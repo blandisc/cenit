@@ -172,6 +172,7 @@ final class AppModel: ObservableObject {
                 guard let self else { return }
                 await ScreenshotFixtures.seed(self, state: fixtureState)
             }
+            
             return
         }
         #endif
