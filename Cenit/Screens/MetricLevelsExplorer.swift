@@ -83,7 +83,7 @@ struct MetricLevelsExplorer: View {
     private var rangeControl: some View {
         VStack(alignment: .leading, spacing: 8) {
             SegmentedPillControl(ExploreRange.allCases, selection: $range, theme: theme) { $0.label }
-                .onChange(of: range) { _ in selectedLevelIndex = nil }
+                .onChange(of: range) { selectedLevelIndex = nil }
             if window.fellBack {
                 Text("Showing the last \(window.rows.count) days")
                     .font(StrandFont.footnote).foregroundStyle(theme.warning)

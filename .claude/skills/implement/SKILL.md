@@ -122,6 +122,13 @@ disparador pesado, súbelo a pesado.
    para el usuario; ver "La bitácora de producto" abajo) → push → PR hacia `iOS`
    (`Closes FER-NN`, criterios verificados en "How it was tested") →
    **squash-merge a `iOS`** → **borra la rama** (`--delete-branch`).
+   **El merge lo hace el agente, no el usuario** (preferencia del usuario): una vez
+   que el gate de entrega se cumplió (carril ligero: tu QA propio; pesado: PASS del
+   verificador), completa tú el `gh pr merge` — no cierres el turno dejándole al
+   usuario que lo mergee a mano. Desde un worktree, `--delete-branch` falla local con
+   `'iOS' is already used by worktree` **pero el merge remoto SÍ ocurre**: verifícalo
+   con `gh pr view <n> --json state,mergedAt` y borra la rama con
+   `git push origin --delete <rama>` (gotcha conocido [[merge-from-worktree-gotchas]]).
 10. **Limpieza final.** Sincroniza el checkout de build: `git -C ~/code/noop fetch origin`
     y `git -C ~/code/noop merge --ff-only origin/iOS` (si no puede fast-forward, avísale
     al usuario en vez de forzar). Mueve el issue a `Done` con el link del PR. Reporta en
