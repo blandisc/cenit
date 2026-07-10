@@ -19,6 +19,11 @@ approximate; Cénit is built from source — see the [README](README.md).
 
 ## Unreleased
 
+- **Reordena tu rutina arrastrando, como mover fichas / Reorder your routine by dragging, like sliding tiles.**
+  **ES** — Mantén presionado un ejercicio en «Rutina» y todas las filas se compactan a nombre + resumen («3 series · 90 kg»): arrastra la ficha a su lugar y, al soltar, las tablas se reabren con el orden nuevo. Una superserie viaja completa como un solo bloque (romperla sigue viviendo en el «···»). Ya no hay «mover arriba/abajo» en menús: el orden se toca, no se dicta.
+  **EN** — Long-press an exercise on "Routine" and every row compacts to name + summary ("3 sets · 90 kg"): drag the tile into place and, on drop, the tables reopen in the new order. A superset travels whole as one block (breaking it still lives in the "···"). No more "move up/down" menu items: order is something you touch, not dictate.
+  ([RoutineEditorScreen.swift](Cenit/Screens/RoutineEditorScreen.swift))
+
 - **Crear una rutina te deja dentro de ella / Creating a routine drops you inside it.**
   **ES** — El constructor de rutinas queda solo para crear (desde cero o duplicando una sesión); editar una rutina existente ahora siempre abre la pantalla «Rutina» unificada, también desde el menú de «Mis rutinas». Y al guardar una rutina nueva ya no te quedas en la lista: se abre directo en «Rutina», lista para ajustar o empezar.
   **EN** — The routine builder is now create-only (from scratch or duplicating a session); editing an existing routine always opens the unified "Routine" screen, including from the "My routines" menu. Saving a new routine no longer strands you on the list: it opens straight on "Routine", ready to tweak or start.
