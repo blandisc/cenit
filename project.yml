@@ -153,6 +153,10 @@ targets:
           # Inject/InjectionIII: permite intercambiar el código en caliente (solo Debug). `$(inherited)`
           # conserva cualquier otro flag. Este bloque NO aplica en Release → el build de tienda queda intacto.
           OTHER_LDFLAGS: -Xlinker -interposable $(inherited)
+          # Xcode 16.3+ dejó de anotar en el build log el comando con que compila cada archivo, y sin eso
+          # InjectionIII no puede recompilar en caliente («Could not locate compile command»). Esto lo
+          # re-activa (solo Debug). Requiere UN rebuild para que el log se regenere.
+          EMIT_FRONTEND_COMMAND_LINES: YES
     dependencies:
       - package: WhoopProtocol
       - package: WhoopStore
@@ -327,6 +331,12 @@ schemes:
         CenitUnitTests: [testing]
     run:
       config: Debug
+      # Inject/InjectionNext: sin esto, la recarga en caliente SOLO reacciona a un ⌘S hecho dentro del
+      # editor de Xcode (la detecta interceptando los logs de SourceKit). Con este env var el bundle de
+      # inyección levanta su propio file-watcher sobre $(SRCROOT), así que también entran en caliente las
+      # ediciones hechas desde fuera de Xcode — un agente, vim, lo que sea. Solo afecta al esquema de Run.
+      environmentVariables:
+        INJECTION_PROJECT_ROOT: $(SRCROOT)
     test:
       config: Debug
       targets:
