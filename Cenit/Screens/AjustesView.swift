@@ -4,6 +4,7 @@ import StrandDesign
 import StrandAnalytics
 import WhoopProtocol
 import WhoopStore
+import Inject   // recarga en caliente (dev-only, inerte en Release)
 
 // MARK: - Ajustes (the Settings tab root) — FER-337
 //
@@ -32,9 +33,15 @@ import WhoopStore
 /// `AjustesLanding`, which reads the resolved theme from the environment. (FER-398 retired the
 /// by-the-hour tint; Ajustes no longer changes colour with the clock.)
 struct AjustesView: View {
+    /// Inject: los hooks van AQUÍ y no en `AjustesLanding`, que es `private` — los miembros de un tipo
+    /// privado son símbolos locales y `-interposable` solo alcanza los globales, así que ahí quedarían
+    /// inertes en silencio. Ver docs/BUILD.md § hot reload.
+    @ObserveInjection private var inject
+
     var body: some View {
         AjustesLanding()
             .instrumentoTheme(.base)
+            .enableInjection()
     }
 }
 
