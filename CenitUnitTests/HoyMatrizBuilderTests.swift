@@ -433,6 +433,30 @@ final class HoyMatrizBuilderTests: XCTestCase {
             .contains("out of your range") == true)
     }
 
+    /// FER-128 (dueño, captura a xxxLarge): con HOY fuera y el aro puesto, el módulo de FC decía
+    /// NADA en su sublabel mientras Sueño decía «fuera del rango recomendado» y el héroe listado
+    /// «fuera de tu rango». Ahora el aro y las palabras dicen lo mismo a la vez.
+    func test_128_fc_fuera_hoy_dice_fuera_en_el_modulo_aunque_haya_aro() {
+        let keys = LiquidHoyBuilder.dayKeys(endingAt: now, calendar: cal, count: 20)
+        let dias = keys.map { metric(day: $0) }
+        let body = keys.map { bodyNight(day: $0, autonomicOut: $0 == keys.last) }
+        // `autonomicOut: true` en el driver = el aro (alerta) puesto en HOY; antes eso callaba el sublabel.
+        let model = LiquidHoyBuilder.matriz(inputs(
+            prep: prep(autonomicOut: true, sentinel: sentinel(.quiet), bodyHistory: body), dias: dias))
+        let sub = seccion(model, id: "rhr")?.sublabel ?? ""
+        XCTAssertTrue(sub.contains("out of your range"), "el módulo calla con el aro puesto: «\(sub)»")
+    }
+
+    /// FER-128 (exploradores): el dominio de sueño cubre las noches extremas (2 h, 12 h) en vez de
+    /// aplastarlas contra el piso 4 o el techo 10; con noches normales sigue siendo 4…10.
+    func test_128_dominio_sueno_cubre_extremos() {
+        func noche(_ h: Double?) -> MatrizColumnas.Noche { .init(valor: h) }
+        XCTAssertEqual(LiquidHoyBuilder.dominioSueno([7, 8, 6.5].map(noche)), 4...10)
+        XCTAssertEqual(LiquidHoyBuilder.dominioSueno([7, 2.0, 8].map(noche)), 2...10)
+        XCTAssertEqual(LiquidHoyBuilder.dominioSueno([7, 12.2, 8].map(noche)), 4...13)
+        XCTAssertEqual(LiquidHoyBuilder.dominioSueno([nil, nil].map(noche)), 4...10)
+    }
+
     // MARK: 17 — Historia juzgada con SU día (no se repinta)
 
     func test_17_historia_no_se_repinta_al_cambiar_hoy() {
