@@ -186,28 +186,13 @@ struct IntervalTimerView: View {
         HStack(spacing: LiquidSpace.s250) {
             Spacer()
             if running {
-                statusPill("Running", dotColor: theme.dataStrain)
+                LiquidStatePill(String(localized: "Running"), dot: theme.dataStrain)
             } else if isFinished {
-                statusPill("Complete", dotColor: theme.dataRecovery)
+                LiquidStatePill(String(localized: "Complete"), dot: theme.dataRecovery)
             } else {
-                statusPill("Paused")
+                LiquidStatePill(String(localized: "Paused"))
             }
         }
-    }
-
-    /// Píldora de estado opaca El Eje — sustituye `EntrenarStatusPill` (papel) sobre el cristal.
-    private func statusPill(_ text: LocalizedStringKey, dotColor: Color? = nil) -> some View {
-        HStack(spacing: LiquidSpace.s150) {
-            if let dotColor {
-                Circle().fill(dotColor).frame(width: LiquidSpace.s150, height: LiquidSpace.s150)
-            }
-            Text(text)
-                .font(StrandFont.caption)
-                .foregroundStyle(theme.ink)
-        }
-        .padding(.horizontal, LiquidSpace.s300)
-        .padding(.vertical, LiquidSpace.s150)
-        .liquidGlass(.pastillaSolida)
     }
 
     // MARK: Stage card — the big glanceable face
