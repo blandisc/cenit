@@ -20,6 +20,8 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
 
 ## Unreleased
 
+- Gate y CI (retro FER-309): test de contraste AA de `LiquidOLED` sobre negro, regla `no-iphone-tone-on-oled` en `CenitWatch/`, y el workflow `ios-app` deja de cancelar el compile-check cuando el PR nace con la etiqueta `ci-app`.
+
 - Funeral de `CenitMetrics` en el paquete (alias muertos fuera; literales 7/18 a `s175`/`s450`; AppMap y cápsulas chrome; catálogo de `LiquidRampas`) (FER-319).
 - CenitDesign: últimas 10 firmas con `theme: InstrumentoTheme` pasan a default `.base` y pintan con `LiquidColor` (FER-320).
 - Pantallas de `Cenit/` y `CenitApp/` dejan de pasar `InstrumentoTheme`; las rampas de dato viven en `LiquidRampas` (FER-317).
