@@ -1300,23 +1300,19 @@ private struct EntrenarLanding: View {
         }
     }
 
-    /// FER-373 (C2): las rutas que NO son plantilla, agrupadas bajo un solo overline — antes eran dos
-    /// filas sueltas sin cabecera. El overline reusa `EntrenarNivel` sin `value`/acción (mismo
+    /// FER-373 (C2): las rutas que NO son plantilla destacada, agrupadas bajo un solo overline — antes
+    /// eran dos filas sueltas sin cabecera. El overline reusa `EntrenarNivel` sin `value`/acción (mismo
     /// componente, mismo estilo default, que ya usa «See full library» en la sesión en vivo) en vez
     /// de un `Text` + `.instrumentoOverline()` a mano: ese modificador es de la generación Instrumento
     /// retirada — `no-legacy-api` lo rechaza en esta capa. «Desde cero» ahora nombra qué hace («elige
-    /// ejercicios»); «Importa el plan de tu IA» no cambia; «Entreno en casa, sin equipo» es nueva y
-    /// reusa `StarterTemplatesSheet(grupo: .home)` (la hoja ya sabe nombrar ese grupo, FER-251). Los 3
-    /// chips de arriba siguen siendo la decisión primaria — este cluster es callado.
+    /// ejercicios»); «Importa el plan de tu IA» no cambia. FER-376: «Entreno en casa» dejó de vivir
+    /// aquí — subió a los chips destacados como «En casa», así que ya no se duplica como fila-enlace.
+    /// Los chips de arriba siguen siendo la decisión primaria; este cluster es callado.
     private var primerUsoOtrasFormas: some View {
         VStack(alignment: .leading, spacing: .zero) {
             EntrenarNivel("Prefer another way?")
             primerUsoLinkRow("Build your own · pick exercises") { showLibrary = true }
             primerUsoLinkRow("Import your AI's plan") { showHubImport = true }
-            primerUsoLinkRow("Home workout, no equipment") {
-                templatesGroup = .home
-                showTemplates = true
-            }
         }
     }
 
@@ -1379,11 +1375,14 @@ private struct EntrenarLanding: View {
         .accessibilityHint(Text("Show the plan"))
     }
 
-    /// Los tres splits destacados del primer uso (mismo vocabulario que `StarterTemplatesSheet`).
-    /// `subtitle` traduce el jargon del split (FER-373 C1) — nunca promete un número de días.
+    /// Los tres grupos destacados del primer uso (mismo vocabulario que `StarterTemplatesSheet`).
+    /// `subtitle` traduce el jargon en lenguaje llano (FER-373 C1) — nunca promete un número de días.
+    /// FER-376: Full body va primero (mejor ajuste para quien empieza) y «En casa» sustituye a Push
+    /// Pull Legs en el trío (PPL sigue en la hoja completa); su fila-enlace se retiró de
+    /// `primerUsoOtrasFormas` para no duplicarlo.
     private static let primerUsoGroups: [(name: String, group: StarterTemplate.Group, subtitle: LocalizedStringKey)] = [
-        ("Push Pull Legs", .pushPullLegs, "Push · pull · legs"),
         ("Full body", .fullBody, "Your whole body, every session"),
+        ("At home", .home, "No equipment"),
         ("Upper / Lower", .upperLower, "Torso one day, legs the next"),
     ]
 
@@ -1516,6 +1515,13 @@ private struct EntrenarLanding: View {
     /// cuerpo» (quisquilloso ronda 4: antes dos copias a mano).
     private var cabeceraFecha: String { CenitFormat.weekdayHeading(Date()) }
 
+    /// Primer uso sin plan: la sección «Arma tu semana» es lo que se muestra — en frío (`!loaded`,
+    /// pintado instantáneo FER-373 C7) o ya cargado con `split` vacío. Una sola definición para que el
+    /// hilo y esa sección no puedan divergir sobre qué es «primer uso».
+    private var esPrimerUsoSinPlan: Bool {
+        model.strengthSession == nil && !loadFailed && (!loaded || split.isEmpty)
+    }
+
     /// El hilo del veredicto: la misma pastilla que es la puerta de Hoy, construida por el MISMO
     /// constructor (`LiquidHoyBuilder.hiloEntrenar`) para que las dos pantallas no puedan divergir.
     ///
@@ -1523,8 +1529,14 @@ private struct EntrenarLanding: View {
     /// la palabra-veredicto las mañanas en que Hoy la retira por no tener la noche anclada, y
     /// colapsaba los tres estados sin veredicto en «Conociéndote», que le decía «te estoy
     /// conociendo» a quien nunca conectó Apple Salud.
+    ///
+    /// FER-376: en primer uso sin plan y SIN Salud, el oráculo devuelve «Conecta Apple Health» como
+    /// primera línea del cuerpo, compitiendo con «Arma tu semana» y sugiriendo en falso que necesitas
+    /// Salud para entrenar. Se suprime SOLO ese caso, aquí en el call-site — el oráculo sigue intacto
+    /// (fuente única de Hoy/widget/reloj). Con Salud conectada, o con un plan, el hilo no cambia.
     @ViewBuilder private var hiloDelVeredicto: some View {
-        if let hilo = LiquidHoyBuilder.hiloEntrenar(
+        if !(esPrimerUsoSinPlan && !healthConnected),
+           let hilo = LiquidHoyBuilder.hiloEntrenar(
             prep: repo.todayPreparedness,
             nights: repo.todayPreparedness?.autonomicNights ?? 0,
             healthConnected: healthConnected,

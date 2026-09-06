@@ -21,22 +21,27 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
 
 ## Unreleased
 
-### Primer uso de Entrenar más claro (FER-373)
-- Los 3 chips de split (Push Pull Legs / Full body / Upper·Lower) ya no repiten cuántas rutinas trae
-  cada uno (eso se ve dentro de la hoja) — ahora traducen el split en lenguaje llano: «Empuja · jala ·
-  pierna», «Todo el cuerpo en cada sesión», «Torso un día, pierna otro».
+### Primer uso de Entrenar más claro (FER-373, FER-376)
+- Los chips de plantilla ya no repiten cuántas rutinas trae cada uno (eso se ve dentro de la hoja) —
+  traducen el split en lenguaje llano. El trío destacado se recura para quien empieza: «Full body»
+  («Todo el cuerpo en cada sesión») va primero, «En casa» («Sin equipo») entra en lugar de «Push Pull
+  Legs», y «Upper·Lower» («Torso un día, pierna otro») cierra. Push Pull Legs sigue a un toque en la
+  hoja completa de plantillas.
 - Si ya armaste una rutina pero no le pusiste día, el héroe deja de repetir «Arma tu semana»:
   reconoce el logro («Casi listo · Ponle un día a tu rutina») y hace de «Asignar día» la acción
   primaria — los 3 chips de plantilla siguen ahí, subordinados, detrás de «O empieza con una
   plantilla».
-- «Desde cero» (ahora «Arma la tuya · elige ejercicios»), «Importa el plan de tu IA» y la nueva fila
-  «Entreno en casa, sin equipo» (rutina de peso corporal) se agrupan bajo un solo «¿Prefieres otra
-  forma?», en vez de flotar sueltas.
+- «Desde cero» (ahora «Arma la tuya · elige ejercicios») e «Importa el plan de tu IA» se agrupan bajo
+  un solo «¿Prefieres otra forma?», en vez de flotar sueltas. (El «entreno en casa» dejó de vivir aquí
+  como fila suelta: subió al trío destacado como «En casa».)
 - La nota de silencio del primer uso ya no explica una ausencia: promete. «Cuando entrenes, aquí van
   a aparecer tus músculos trabajados y tu bitácora», más la promesa diferenciadora de la fuerza
   on-device — progresión sugerida cuando cumples tus reps, sin conexión y sin reloj.
 - El héroe del primer uso pinta de inmediato en un arranque frío: kicker, título, subtítulo y chips ya
   no esperan a que la base de datos conteste para aparecer bajo el pill del veredicto.
+- En el primer uso, si todavía no conectas Apple Salud, el cuerpo abre directo con «Arma tu semana»:
+  se retiró el aviso «Conecta Apple Salud» que aparecía encima y sugería —en falso— que necesitas
+  Salud para entrenar. Con Salud conectada, tu veredicto del día sigue igual.
 
 ### Registrar una sesión de fuerza desde el reloj sin el iPhone (FER-361, ola 2 · C1)
 - Si el iPhone no está a la mano al empezar tu rutina, el reloj arranca la sesión por su cuenta
