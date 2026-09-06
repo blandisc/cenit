@@ -448,7 +448,7 @@ struct StressDetailScreen: View {
         return VStack(alignment: .leading, spacing: LiquidSpace.s300) {
             LiquidRangeSelector(opciones: ExploreRange.allCases.map(\.label),
                                 seleccion: rangeSeleccion, tono: tono)
-            if window.values.count > 1 {
+            if window.hasTrend {
                 VStack(alignment: .leading, spacing: LiquidSpace.s300) {
                     fraseNivelHistorial(model, window)
                     if let pct {

@@ -919,7 +919,7 @@ struct MetricDetailScreen: View {
                 LiquidRangeSelector(opciones: ExploreRange.allCases.map(\.label),
                                     seleccion: liquidRangeSeleccion, tono: liquidTono)
             }
-            if window.values.count > 1 {
+            if window.hasTrend {
                 VStack(alignment: .leading, spacing: LiquidSpace.s300) {
                     // TND20-F3: la frase y la escalera cuentan LO QUE LA GRÁFICA TRAZA (`plot`,
                     // la media móvil donde se suaviza) — el papel (`GraficaRangos`) contaba los
@@ -1690,7 +1690,7 @@ struct MetricDetailScreen: View {
     /// (ambas parseadas en UTC, diferencia en calendario UTC). Mezclar `parseDayKey` (UTC
     /// medianoche) con `Calendar.current.startOfDay` local corría el sello +1 al oeste de
     /// UTC: una medición de HOY decía «Measured yesterday» junto a una joya encendida
-    /// (la clase fila-fantasma UTC↔local que `MetricTrendChart` ya documenta).
+    /// (la clase fila-fantasma UTC↔local que `MetricWindowMath.decimatedPoints` ya documenta).
     private var liquidVo2SelloMedido: String? {
         guard let day = series.last?.day, let date = Repository.parseDayKey(day),
               let hoy = Repository.parseDayKey(todayKey ?? Repository.localDayKey(Date()))
