@@ -7,7 +7,7 @@ Filosofía (enfoque B): el PNG ES la pantalla — renderizada por el código rea
 en un lienzo navegable, la etiqueta y traza las transiciones entre estados.
 
 Regenerar tras capturar estados nuevos:  python3 Tools/build-appmap.py
-El mismo manifiesto genera el Artifact self-contained (Tools/build-appmap-artifact.py).
+El mismo manifiesto alimenta la galería viva autocontenida (Tools/build-galeria-artifact.py).
 """
 import os, html, base64
 
