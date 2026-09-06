@@ -69,23 +69,6 @@
         }
       }
     },
-    "Home workout, no equipment" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Home workout, no equipment"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Entreno en casa, sin equipo"
-          }
-        }
-      }
-    },
     "Once you hit your reps, Entrenar suggests raising the weight. Strength works offline and without a watch." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10043,6 +10026,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "En casa"
+          }
+        }
+      }
+    },
+    "No equipment" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No equipment"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin equipo"
           }
         }
       }
