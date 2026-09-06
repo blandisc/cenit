@@ -1,27 +1,30 @@
 #if os(iOS)
-import SwiftUI
 import CenitDesign
 import StrandAnalytics
 import Foundation
 
-// MARK: - Reusable «selector de tiempo + gráfica» (FER-269)
+// MARK: - «Ventana de métrica»: la matemática de ventana compartida por cada detalle (FER-269)
 //
-// Every metric drill-down — the unified Detalle de Métrica (`MetricDetailScreen`), the sibling
-// «Instrumento» screens (Strain / Recovery / Stress / Skin temp) and the Metric Explorer's detail —
-// drew the SAME thing: a `SegmentedPillControl` (W/M/3M/6M/1Y/ALL) above a `TrendChart`, each screen
-// re-deriving the identical window math (`Window` / `slice` / `effectiveRange` / `makeWindow` /
-// `decimatedPoints`) and re-wiring the chart by hand. This file extracts both halves once:
+// Every metric drill-down — the unified Detalle de Métrica (`MetricDetailScreen`), the sibling detail
+// screens (Strain / Stress / Skin temp), Sleep, the Metric Explorer and the Hoy sheets — derives the SAME
+// window from a W/M/3M/6M/1Y/ALL selection: the trailing-N-days slice, the Explorer auto-widen (FER-216)
+// and the draw-time decimation (FER-219). This file owns that math ONCE so every screen windows the same:
 //
-//   • `MetricWindow` + `MetricWindowMath` — the window math, verbatim from the per-screen copies
-//     (FER-216 / FER-219), now in one place. The parsed series (each `day` string → `Date` once) is
-//     still owned and memoised by the screen; the math only reads it.
-//   • `MetricTrendChart` — the view: the selector (optional) + the trend line, parameterised by a
-//     style so each metric configures trace mode (raw vs. 7-day MA), domain, bands, alert, reference
-//     line, etc. WITHOUT any `if metric == …` branch living inside the component.
+//   • `MetricWindow` — one render's window (effective range, its rows/values, the auto-widen flag) plus
+//     the shared `hasTrend` gate (≥2 points ⇒ there's a line to draw). Replaces the five identical
+//     per-screen `Window` structs.
+//   • `MetricWindowMath` — the window math (`slice` / `effectiveRange` / `make` / `decimatedPoints` /
+//     `axisLabel`). Pure: it reads the screen's already-parsed series and never touches the database.
 //
-// The screen still owns `@State range` (so blocks beyond the chart — the trend stat, VO₂max's change —
-// can read the same selection) and computes the window ONCE in `body`; the component is handed that
-// window and a binding to the range.
+// The screen still owns `@State range` and its parsed series (each `day` string → `Date` once), computes
+// the window ONCE in `body`, and draws it with the Liquid Glass chart (`LiquidGraficaNiveles`).
+//
+// A companion `MetricTrendChart` view once lived here too (FER-269, built on the legacy `TrendChart`),
+// meant to share the selector + line as well. The Liquid Glass · El Eje migration re-based every
+// drill-down on `LiquidGraficaNiveles`, which the legacy `TrendChart` could not be re-skinned into
+// (docs/design-system/LIQUID-SHEET-CONTRACT.md), so that view was never adopted and was removed as dead
+// code; only the design-agnostic math it was bundled with survived. The shared surface is this math (+
+// `hasTrend`), not a view.
 
 /// One render's window: the effective range, its rows/values, and whether it auto-widened because the
 /// selected range held no points. Replaces the five identical per-screen `Window` structs. (FER-269)
@@ -30,6 +33,12 @@ struct MetricWindow {
     let rows: [(day: String, value: Double)]
     let values: [Double]
     let fellBack: Bool
+
+    /// The shared minimum-data gate every drill-down draws behind: a trend line needs ≥2 points, so a
+    /// window holding 0–1 values shows the screen's own empty well instead of a chart. Centralised here —
+    /// it was spelled `window.values.count > 1` inline in each screen — so the threshold can't silently
+    /// drift between the sibling details.
+    var hasTrend: Bool { values.count > 1 }
 }
 
 /// The shared W/M/3M/6M/1Y/ALL window math, lifted verbatim from the per-screen copies so every
@@ -106,131 +115,5 @@ enum MetricWindowMath {
         f.setLocalizedDateFormatFromTemplate("dMMM")
         return f
     }()
-}
-
-// MARK: - The reusable view
-
-/// The reusable «selector + gráfica»: an optional period picker above a `TrendChart`, driven by a
-/// `MetricWindow` and a per-metric `Style`. The screen owns `@State range` and passes a binding; the
-/// component renders the selector (when `showsSelector`), the auto-widen caption, and the line — or the
-/// caller's `empty` content when the window holds ≤1 point. Everything that varies by metric (trace mode,
-/// domain, bands, alert, reference line) is in `Style`, so there's no per-metric branch inside. (FER-269)
-struct MetricTrendChart<Empty: View>: View {
-    @Binding var range: ExploreRange
-    let window: MetricWindow
-    /// Whether to draw the `SegmentedPillControl` + auto-widen caption above the chart. `MetricDetailScreen`
-    /// keeps its selector in a separate (divider-separated) block, so it passes `false` here.
-    var showsSelector: Bool = true
-    let style: Style
-    /// Shown in place of the chart when the window holds ≤1 point (each screen supplies its own well).
-    @ViewBuilder var empty: () -> Empty
-
-    /// Per-metric chart configuration — the knobs that used to be spelled out at each `TrendChart` call site.
-    struct Style {
-        /// Moving-average window for the plotted line; `nil` plots the raw values (SpO₂ / stress / skin temp).
-        var smoothing: Int? = nil
-        /// When true AND `smoothing != nil`, the scrub tooltip appends «prom. N d» to its value line (N =
-        /// the smoothing window), so a moving-average point can't be mistaken for that day's raw reading.
-        /// Opt-in per screen (Recovery's «Tendencia» sets it); raw-value charts never show it. (FER-696)
-        var annotatesSmoothingInScrub: Bool = false
-        var gradient: Gradient
-        var showsArea: Bool = true
-        var height: CGFloat = 200
-        /// Resolves the Y domain from the plotted (already-smoothed) line values; ignore the argument for a
-        /// fixed domain (e.g. stress `0...3`).
-        var valueRange: ([Double]) -> ClosedRange<Double>
-        var valueFormat: (Double) -> String = { String(Int($0.rounded())) }
-        /// Classification bands behind the line, resolved from the LAST plotted value so the active bracket
-        /// matches what the chart actually draws (stress' Low/Moderate/High). Ignore the argument for fixed
-        /// bands (skin temp's ±SD, SpO₂'s clinical zones).
-        var bands: (Double) -> [TrendBand] = { _ in [] }
-        /// The active band's hue, resolved from the same last plotted value.
-        var bandColor: (Double) -> Color = { _ in .clear }
-        var yAxisValues: [Double]? = nil
-        /// Target automatic Y-tick count when `yAxisValues` is nil (band charts pass explicit ticks). Default
-        /// 4; the detail «Media móvil» charts raise it so a wide range reads at finer increments. (Detalle)
-        var yTickCount: Int = 4
-        var alertThreshold: Double? = nil
-        var alertColor: Color = .clear
-        /// When true, the LAST plotted point (the right edge of the line = today / the most recent night)
-        /// is emphasised with a larger filled dot — «el punto es hoy» in the redesigned vital detail. The
-        /// caller can't pass an exact `TrendPoint` because the line is decimated internally, so the
-        /// component marks `points.last` for it. (Detalle de Vital · narrativa)
-        var marksLastPoint: Bool = false
-        /// When true (and `marksLastPoint`), the last point is drawn as a HOLLOW ring rather than a filled
-        /// dot — the F6b level pattern uses it to keep TODAY marked while you explore a level other than its
-        /// own. (FER-571)
-        var markedPointHollow: Bool = false
-        /// The fill of a hollow marked point's centre — pass the sheet's paper so the ring reads cleanly. (FER-571)
-        var markedPointRingFill: Color = .clear
-        /// Draw bands without their in-plot label (and without the wide right gutter): the band reads as a
-        /// quiet «your normal range» context behind the line, named in the caption / inline bar instead.
-        var bandLabelsHidden: Bool = false
-        /// A dashed horizontal reference line (e.g. skin-temp's «0 = your baseline»). `nil` = none.
-        var referenceLine: Double? = nil
-        var referenceLineColor: Color = .clear
-        var accessibilityLabel: LocalizedStringKey
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: LiquidSpace.s250) {
-            if showsSelector {
-                LiquidRangeSelector(
-                    opciones: ExploreRange.allCases.map(\.label),
-                    seleccion: Binding(
-                        get: { ExploreRange.allCases.firstIndex(of: range) ?? 0 },
-                        set: { range = ExploreRange.allCases[$0] }),
-                    tono: LiquidColor.tinta700)
-                if window.fellBack {
-                    Text("Showing the last \(window.rows.count) days")
-                        .font(LiquidType.unidad)
-                        .foregroundStyle(LiquidColor.atencionTexto)
-                }
-            }
-            if window.values.count > 1 {
-                chart
-            } else {
-                empty()
-            }
-        }
-    }
-
-    private var chart: some View {
-        let lineValues = style.smoothing.map { SeriesShape.movingAverage(window.values, window: $0) } ?? window.values
-        let points = MetricWindowMath.decimatedPoints(rows: window.rows, values: lineValues, maxPoints: 80)
-        // The value the bands bracket against: the LAST plotted point (matching the old per-screen
-        // `pts.last?.value ?? window.values.last`), so a decimated long range still highlights the right band.
-        let lastPlotted = points.last?.value ?? lineValues.last ?? 0
-        // «prom. N d» for the scrub tooltip — only when a screen opts in AND the line really is a moving
-        // average (raw-value charts can't trip it). N comes from the smoothing window, so the label can
-        // never drift from what's plotted. (FER-696)
-        let scrubSuffix: String? = (style.annotatesSmoothingInScrub ? style.smoothing : nil)
-            .map { String(localized: "avg \($0) d") }
-        return TrendChart(
-            points: points,
-            gradient: style.gradient,
-            valueRange: style.valueRange(lineValues),
-            showsArea: style.showsArea,
-            height: style.height,
-            showsScrub: true,
-            valueFormat: style.valueFormat,
-            axisLabelColor: LiquidColor.tinta500,
-            gridLineColor: LiquidColor.tinta10,
-            bands: style.bands(lastPlotted),
-            bandColor: style.bandColor(lastPlotted),
-            yAxisValues: style.yAxisValues,
-            alertThreshold: style.alertThreshold,
-            alertColor: style.alertColor,
-            referenceLine: style.referenceLine,
-            referenceLineColor: style.referenceLineColor,
-            markedPoint: style.marksLastPoint ? points.last : nil,
-            markedPointHollow: style.markedPointHollow,
-            markedPointRingFill: style.markedPointRingFill,
-            bandLabelsHidden: style.bandLabelsHidden,
-            yTickCount: style.yTickCount,
-            valueSuffix: scrubSuffix,
-            accessibilityLabel: style.accessibilityLabel
-        )
-    }
 }
 #endif

@@ -52012,23 +52012,6 @@
         }
       }
     },
-    "avg %lld d" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "avg %lld d"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "prom. %lld d"
-          }
-        }
-      }
-    },
     "aviso.matutino.cita.cuerpo" : {
       "extractionState" : "manual",
       "localizations" : {

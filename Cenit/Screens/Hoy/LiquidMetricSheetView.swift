@@ -1278,7 +1278,7 @@ struct LiquidMetricSheetView: View {
     private func nivelesGrafica(_ d: MetricLevels.Classification,
                                 window: MetricWindow) -> some View {
         let highlight = nivelDestacado(d)
-        // La MISMA decimación del explorador (MetricTrendChart:196, maxPoints 80).
+        // La MISMA decimación del explorador (`MetricWindowMath.decimatedPoints`, maxPoints 80).
         let puntos = MetricWindowMath
             .decimatedPoints(rows: window.rows, values: window.values, maxPoints: 80)
             .map { (fecha: $0.date, valor: $0.value) }

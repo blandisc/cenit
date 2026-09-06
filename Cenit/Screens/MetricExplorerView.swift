@@ -415,7 +415,7 @@ struct MetricDetailView: View {
             LiquidRangeSelector(opciones: ExploreRange.allCases.map(\.label),
                                 seleccion: rangeIndex, tono: hue)
                 .accessibilityLabel(String(localized: "Time range"))
-            if window.values.count > 1 {
+            if window.hasTrend {
                 VStack(alignment: .leading, spacing: LiquidSpace.s300) {
                     trendChart(window: window)
                     LiquidResumenVentana(celdas: resumenCeldas(window))
