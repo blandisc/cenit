@@ -68,10 +68,11 @@ struct OnbActoCiclo: View {
                     .padding(.top, LiquidSpace.s800)
                 OnbCuerpo(conReloj ? OnbCopy.cierreCuerpo : OnbCopy.cierreCuerpoSinReloj)
                     .padding(.top, LiquidSpace.s300)
-                // El aviso solo se ofrece donde puede existir: sin noches con reloj no hay lectura
-                // que anunciar y `MorningReadingScheduler.plan` sale vacío (`hayLectura`), así que
-                // aquí sería un recordatorio prometido que nunca va a sonar.
-                if conReloj {
+                // El aviso solo se ofrece donde puede existir: sin PALABRA no hay lectura que
+                // anunciar y `MorningReadingScheduler.plan` sale vacío (`hayLectura`), así que en
+                // `.calibrando` sería un recordatorio prometido que nunca va a sonar (FER-429: antes
+                // se ofrecía con `conReloj`, que es cierto también mientras calibra).
+                if hayLectura {
                     OnbCuerpo(OnbCopy.cierreAviso, tono: LiquidColor.tinta500)
                         .padding(.top, LiquidSpace.s250)
                 }
@@ -109,5 +110,13 @@ struct OnbActoCiclo: View {
         case let .calibrando(noches, _, _):  return noches > 0
         default:                              return false
         }
+    }
+
+    /// ¿Ya hay palabra? Solo entonces el aviso matutino tiene algo que anunciar. Es la misma verdad
+    /// que `MorningReadingScheduler.hayLectura`: en `.calibrando` el plan sale vacío y el aviso no
+    /// suena, así que ofrecerlo ahí sería mentir (FER-429).
+    private var hayLectura: Bool {
+        if case .lectura = landing { return true }
+        return false
     }
 }

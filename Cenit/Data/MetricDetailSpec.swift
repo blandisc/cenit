@@ -155,7 +155,10 @@ struct MetricDetailSpec: Identifiable {
         MetricDetailSpec(
             descriptor: Self.catalog("resp_rate"),
             info: .respiratory(value),
-            blocks: [.periodSelector, .seriesChartBand, .normalRange, .trend, .whatMovesIt, .nightVitals, .method],
+            // FER-429: sin `.whatMovesIt` — `WhatMovesItEngine` solo alimenta hrv y rhr, así que el
+            // bloque nunca se pintaba. Si la respiración gana una relación defendible, vuelve con
+            // su ciencia (L9a del épico FER-428).
+            blocks: [.periodSelector, .seriesChartBand, .normalRange, .trend, .nightVitals, .method],
             hero: .movingAverage7,
             baselineCfg: Baselines.respCfg,
             populationRange: 12...20

@@ -141,6 +141,13 @@ struct HojaTarjetaSuperserieCompuesta: View {
             guard !sheet.locked, rondas > 1 else { return }
             sheet.removeLastRound(members: members)
         })
+        // FER-429: el gesto es destructivo y no tenía equivalente para VoiceOver (la tarjeta de
+        // ejercicio sí lo tiene para «Delete set»). Misma clave que el menú «···».
+        .accessibilityActions {
+            if !sheet.locked, rondas > 1 {
+                Button("Remove last round") { sheet.removeLastRound(members: members) }
+            }
+        }
     }
 
     @ViewBuilder private func tapZone(_ action: (() -> Void)?, active: Bool) -> some View {
