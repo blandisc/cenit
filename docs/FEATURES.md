@@ -4,26 +4,17 @@ Cénit is a standalone, fully **offline** health app on **Apple Health** — **n
 cloud** — that stores everything on-device in SQLite, imports your Apple Health export, and
 computes readiness (preparedness), strain, HRV and sleep locally on your iPhone. There is no
 wearable to pair: Cénit reads the samples your **Apple Watch** already saves to Apple Health.
-Direct WHOOP band pairing and the live Bluetooth layer were retired (FER-1003). Cénit is the iOS
-app (`Cenit`); its UI and data layer live under `Cenit/`, on top of the cross-platform Swift
-packages.
+Cénit is the iOS app (`Cenit`); its UI and data layer live under `Cenit/`, on top of the
+cross-platform Swift packages.
 
-> **Not affiliated with WHOOP.** Cénit is independent software for *your own* data. Historical
-> "WHOOP" references name hardware the app once interoperated with; a legacy WHOOP-sourced data
-> partition still on your device is shown as **"On-device"**, never as a band. **Cénit is not a
-> medical device** — every metric (HR, HRV, readiness, strain, sleep, SpO₂, respiration, skin
-> temperature) is an approximation, not a clinical reading, and must not be used to diagnose,
-> treat or make health decisions.
+> **Cénit is not a medical device** — every metric (HR, HRV, readiness, strain, sleep, SpO₂,
+> respiration, skin temperature) is an approximation, not a clinical reading, and must not be
+> used to diagnose, treat or make health decisions.
 
 Cénit stores its history on-device with [`groue/GRDB.swift`](https://github.com/groue/GRDB.swift)
-(SQLite). Earlier versions interoperated with WHOOP hardware directly over Bluetooth — that path
-is **retired** (FER-1003), but the reverse-engineering work it stood on deserves the credit:
-
-| Project | Contribution |
-| --- | --- |
-| [`groue/GRDB.swift`](https://github.com/groue/GRDB.swift) | On-device SQLite persistence (still in use) |
-| [`johnmiddleton12/my-whoop`](https://github.com/johnmiddleton12/my-whoop) | WHOOP 4.0 BLE protocol (retired band era) |
-| [`b-nnett/goose`](https://github.com/b-nnett/goose) | WHOOP 5.0 / MG BLE protocol (retired band era) |
+(SQLite). Older installs may still carry a dormant, legacy data partition from a retired
+third-party wearable integration — no longer read, and shown, where visible at all, as
+**"On-device"**, never as a band.
 
 ---
 
@@ -172,7 +163,7 @@ a **Crear mi plan** CTA.
 offline: **Templates** (copying a group copies its routines *and* fills the free days of the week in
 order, never overwriting an assigned day), **From scratch** (New routine → the library create-flow),
 and **Import from your AI** (`WorkoutImportView.swift`) — Cénit hands you a prompt, you run it in
-*your own* LLM, and you bring back a `noop.workout.v1` file that becomes real routines. **Cénit never
+*your own* LLM, and you bring back a file that becomes real routines. **Cénit never
 calls the network** — you run the LLM step yourself.
 
 **Tu Plan** (`WeeklyPlanEditorView.swift`) — one surface: assign a routine or rest to each day (top),
@@ -200,8 +191,7 @@ without HealthKit — logging strength is manual.
 - **Set → rest → done.** The active exercise row is edited inline with Cénit's **own keypad**
   (`SessionKeypad.swift`): a 3-column grid whose "Next" key is the confirm affordance and carries the
   only accent. Marking a set done logs it; the **rest** appears as an inline countdown card. Rest and
-  finish **haptics come from the iPhone** (`AppModel.buzz` — which explicitly replaces the retired
-  strap motor).
+  finish **haptics come from the iPhone** (`AppModel.buzz`).
 - **The receipt.** When you finish, a receipt renders in place; the full-screen thermal print is
   `ReceiptPrinterScreen.swift`, and `SavedTicketsScreen.swift` is the grid of saved mini-receipts.
   `ShareCardView.swift` renders the shareable card.
@@ -261,7 +251,7 @@ navigation. A privacy chip up top ("On this iPhone · no account · no cloud"), 
 **More › Ajustes › Data & sources · the import hub. Everything stays on your device.**
 
 `DataSourcesView.swift` — bring your history in once, then it's yours. It is **Apple Health only**;
-there is no WHOOP CSV import and no live-Bluetooth "strap" section (both retired). Sections:
+there is no third-party CSV import and no live-Bluetooth section. Sections:
 
 - **Import** — **Apple Health Export**: import an `export.zip` (from *Health app → profile → Export
   All Health Data*). Cénit streams and aggregates years of HR, HRV, sleep, SpO₂, steps and body
@@ -300,10 +290,10 @@ informational only, **not** a diagnosis.
 ## First-run onboarding
 
 The onboarding wizard (`OnboardingWizard.swift`, with `OnboardingActo*.swift` siblings) appears
-on first launch and runs once (tracked by the `noop.onboarded` preference, an `@AppStorage` flag).
+on first launch and runs once (tracked by an `@AppStorage` preference flag).
 It is **not** a form wizard and there is no band to pair: it's a single scene that transforms
 **seven times over one continuous particle field**, built entirely on **Apple Health** — no
-Bluetooth, no strap, no radar. The canvas fills with *your* evidence (density comes from how much
+Bluetooth, no external hardware, no radar. The canvas fills with *your* evidence (density comes from how much
 real history landed, never from how long you wait), and color arrives once, as a revelation, when
 your verdict tints the field. There is **no global progress indicator, no generic Skip, and no
 cross-launch resume** — most acts carry a **Back** control, but the reveal does not, and quitting

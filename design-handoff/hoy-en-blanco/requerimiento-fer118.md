@@ -787,7 +787,7 @@ aceptable, ya visto por el dueño en el prototipo «Hoy en blanco»). Cada PR:
 |---|---|---|---|
 | **A** `vidrio+tokens` | §5.2 + tokens de §8 (A) + docs DS | ligero (paquete) | `swift test` CenitDesign verde; `#Preview` de la receta; `MatrizContrasteTests` extendido en DOS fondos: (a) `papelTarjeta` (el vidrio al 30 % sobre blanco, el caso medio: las motas cubren ~3 % del área) y (b) el **peor pixel realista**: `particulaRoja` al alfa máximo de mota (0.31) bajo blanco al 30 % (`0.783·blanco + 0.217·rojo`). En (a) —criterio de A—: los 9 hues que pintan numerales (indigo, rosa, doradoTemp, azul, verdeCarga, ambar, cian, teal, verdePrimario) ≥ 3:1 (AA-large) y `tinta700`/`tinta500` ≥ 4.5:1. (b) es criterio del **PR E** (§8) y ahí la lista suma `atencion` (el ámbar del par): en (b) NO se afirma AA — medido: ámbar 2.85, teal 2.75, verdePrimario 2.86, `atencion` 2.85, `tinta500` 3.86 — y no hace falta (WCAG G18 mide los píxeles ADYACENTES a la letra; una mota de ≤ 4.6 pt cada ~234 pt² no es el fondo de un numeral de 30 pt): (b) es un **piso de regresión** con la holgura medida (numerales ≥ 2.7, grises ≥ 3.8) que dispara si sube el alfa del polvo, se oscurece `particulaRoja` o se aclara un hue (§13.29); design-tokens sin diff |
 | **B** `atmósfera` | §5.1 completo (spec, shader, renderer, vista, previews, tests); NO se monta aún en la app | pesado (Metal + concurrencia) | `PolvoSimulacionTests` (abajo); `testLayoutDeLosUniformes` con `EcosistemaPolvoU`; render offscreen: compila y pinta algo, es determinista con `t` fijo, distinto entre `t=0` y `t=3` (vivo), y `still` ignora `t`; previews de 4 climas + RM; ARCHITECTURE.md |
-| **C** `hilos` | §5.4 (vista + namespace + tests) | pesado (gráfica con invariantes de honestidad) | `MatrizHilosTests` 1–6 (geometría pura); `MatrizCosturaMapeoTests` + `CosturaGuardianTests` intactos y verdes; snapshot del guardián en 6 estados (calma con HOY / una fuera / par ámbar / sin base de respiración / leyendo / sin datos) como `MatrizChartSnapshotTests.test_hilos` (macOS, `ImageRenderer`, PNG `matriz_hilos.png` en `/tmp/noop-fer51/`, con `liquidMotionDisabled`); CHANGELOG |
+| **C** `hilos` | §5.4 (vista + namespace + tests) | pesado (gráfica con invariantes de honestidad) | `MatrizHilosTests` 1–6 (geometría pura); `MatrizCosturaMapeoTests` + `CosturaGuardianTests` intactos y verdes; snapshot del guardián en 6 estados (calma con HOY / una fuera / par ámbar / sin base de respiración / leyendo / sin datos) como `MatrizChartSnapshotTests.test_hilos` (macOS, `ImageRenderer`, PNG `matriz_hilos.png` en `una carpeta local en /tmp`, con `liquidMotionDisabled`); CHANGELOG |
 | **D** `fondo de Hoy` | §5.1 montaje + §5.6 + xcstrings + `LiquidHoyScreen` + borrar huérfanos | pesado (app + Metal) · `ci-app` | build app; `HoyMatrizBuilderTests` (bandas sin bitácora, scrub par, sin vota); en simulador: fondo blanco, polvo vivo, parallax al scrollear (visible), pausa con hoja abierta (verificable con un `print` temporal o Instruments), color cambia con crossfade entre `primed`/`strained`; RM estático; `LiquidHoyEstadosRenderTests` verde; CHANGELOG |
 | **E** `cara en vidrio` | §5.3 + §5.5 + hint + snapshots | pesado (rediseño de pantalla; UI ya aprobada en prototipo → sin nuevo gate de preview) · **`ci-app` obligatorio** (toca `Cenit/**`: host y builder) | `MatrizHoyFaceSnapshotTests` nuevos; `test_orden_a11y…` verde; en simulador es y en: 3 estantes, 8 módulos, sin filos, sin «votes», sin chevron, números 30/26 rodando al scrubbear las 8, hint una vez, cascada, press; `xxxLarge` (tope de la app, `CenitApp.swift:96`): dos columnas sin recortes — la columna única (≥ AX1) se verifica SOLO en el DS (`MatrizHoyFaceSnapshotTests` / el `#Preview` de la cara); VoiceOver lee 8 secciones en orden; CHANGELOG |
 | **F** `estados+capturas` | los 8 `test_today_*` del arnés a mano (§11; 8 estados = 32 PNG en `docs/fixtures/`; el arnés fija **idioma `es` + locale `es_MX`** a propósito —`CenitScreenshotTests.baseArgs`; nunca `es-MX` como idioma (§7.10)— y no acepta idioma: el inglés se verifica A MANO en §11, no con fixtures), revisión de los 14 estados del arnés, ajustes menores de pulido que salgan de mirar las capturas (SIN cambiar copy), actualización de `docs/appmap` | ligero | capturas nuevas commiteadas; lista de verificación de §11 marcada en el PR |
@@ -848,8 +848,8 @@ cd Packages/CenitDesign && swift build && swift test
 swift test --filter PolvoSimulacionTests
 swift test --filter EcosistemaMetalRenderTests        # se salta sin GPU; en el Mac del dueño corre
 swift test --filter MatrizHilosTests
-swift test --filter MatrizHoyFaceSnapshotTests        # PNGs a /tmp/noop-fer51/
-swift test --filter LiquidHoyEstadosRenderTests       # PNGs a /tmp/noop-liquid/estado_*.png (14 estados)
+swift test --filter MatrizHoyFaceSnapshotTests        # PNGs a una carpeta local en /tmp
+swift test --filter LiquidHoyEstadosRenderTests       # PNGs a una carpeta local en /tmpestado_*.png (14 estados)
 swift run CenitDesignTokens                          # docs de tokens sin diff (CI design-tokens)
 
 # App — por PR D/E/F (un build a la vez; esperar idle)
@@ -868,27 +868,27 @@ xcodebuild test -project Cenit.xcodeproj -scheme Cenit \
 grep '^FIXTURE_WRITTEN:' /tmp/cap.log | sed 's/^FIXTURE_WRITTEN: //' | while read f; do cp "$f" docs/fixtures/; done
 python3 -c "import importlib.util as u; sp=u.spec_from_file_location('m','Tools/build-appmap.py'); m=u.module_from_spec(sp); sp.loader.exec_module(m); m.sync_shots('docs/fixtures'); m.build_served()"
 git checkout docs/appmap/shots/entrenar-*.png   # el muro solo cambia en Hoy (un concern por PR)
-# `baseArgs` pinea `-noop.acceptedTermsVersion 1.0` y `Terms.currentVersion` es "2.0" → F lo sube a
+# `baseArgs` pinea `el flag de debug de versión de términos aceptada 1.0` y `Terms.currentVersion` es "2.0" → F lo sube a
 # 2.0 (si no, captura la puerta de Términos); y el estado vacío espera 5 s como los demás (a 2 s
 # salía en blanco: su héroe entra con la misma coreografía de ~2.8 s).
 python3 Tools/check-xcstrings-es.py && python3 Tools/check-xcstrings-emdash.py && python3 Tools/find-dead-strings.py
 ```
 
 **A mano en simulador (PR D y E), iPhone 17 Pro · iOS 26 · es-MX y en:**
-1. `-noop.fixture primed`: fondo blanco, polvo verde vivo, héroe verde; scrollear: el héroe se va,
+1. `el flag de debug de fixture primed`: fondo blanco, polvo verde vivo, héroe verde; scrollear: el héroe se va,
    el polvo se queda y se mueve un poco (parallax); las tarjetas revelan polvo (vidrio); 3 estantes;
    Pasos ancho abajo; sin «votes», sin filos.
 2. Scrub en las 8: número rueda, sublabel cruza, háptica; en el guardián el par rueda y el sub dice
    la fecha (o «las dos se salieron juntas» si el fixture trae par).
-3. `-noop.fixture strained` (ámbar/rojo): color del polvo cambia; volver a `primed`: crossfade.
-4. `-noop.fixture calibrating`: polvo neutro tenue; guardián sin banda de respiración; chip «Conociéndote».
+3. `el flag de debug de fixture strained` (ámbar/rojo): color del polvo cambia; volver a `primed`: crossfade.
+4. `el flag de debug de fixture calibrating`: polvo neutro tenue; guardián sin banda de respiración; chip «Conociéndote».
 5. Abrir el acta (ⓘ) y una hoja: el polvo se detiene (verificar con `print`/Instruments); cerrar: sigue.
 6. Ajustes → Accesibilidad → Reducir movimiento: todo quieto, todo visible; scrub funciona; sin hint.
 7. Dynamic Type `xxxLarge` (`xcrun simctl ui <udid> content_size extra-extra-extra-large`; los tamaños AX se capan a xxxLarge por `CenitApp.swift:96`); VoiceOver: recorrer los 8 módulos y ajustar el guardián con swipes.
 8. Reduce Transparency: tarjetas opacas y legibles.
 9. Si hay runtime iOS 18 instalado: mismo recorrido con vidrio de imitación y el borde visible; si
    no, anotarlo en el PR.
-9b. `-noop.fixture empty` (T5, sin fuentes): el orbe dormido, `HealthAlertBanner` y —si hay carga
+9b. `el flag de debug de fixture empty` (T5, sin fuentes): el orbe dormido, `HealthAlertBanner` y —si hay carga
    real— `TrainingLoadStrip` sobre blanco + polvo neutro: legibles y sin bordes raros (ninguno se
    diseñó contra blanco puro; si algo se ve mal se anota, no se rediseña aquí).
 10. Cambiar de pestaña y volver: el polvo se pausa/reanuda (la cascada NO se repite: corre una vez por lanzamiento).

@@ -3,9 +3,9 @@
 Cénit is a standalone, fully **offline** health app on **Apple Health**. It syncs HealthKit into
 on-device SQLite and computes recovery, strain, HRV, and sleep locally — no cloud, no account. It
 can also import Apple Health exports you already own. The app is **Apple-only** (FER-1003): it does
-not pair with or read a WHOOP strap.
+not pair with or read any external wearable.
 
-> **Not affiliated with WHOOP.** Cénit is an independent project. It is **not a medical device**
+> Cénit is an independent project. It is **not a medical device**
 > and produces **approximate** physiological estimates that must not be used for diagnosis or
 > treatment. See [`DISCLAIMER.md`](../DISCLAIMER.md) and [`ATTRIBUTION.md`](../ATTRIBUTION.md).
 
@@ -16,7 +16,7 @@ not pair with or read a WHOOP strap.
 The system is a one-directional pipeline. Health data arrives from Apple Health (live sync) or from
 a user-owned import file, lands durably in SQLite, is read back through a thin repository, is turned
 into daily metrics by pure analytics functions, and finally renders in SwiftUI. Nothing is ever sent
-off-device. The app is **Apple-only** (FER-1003): it no longer pairs with or reads a WHOOP strap.
+off-device. The app is **Apple-only** (FER-1003): it no longer pairs with or reads any external wearable.
 
 ```
                           ┌─────────────────────────────────────────────────────────┐
@@ -48,10 +48,10 @@ off-device. The app is **Apple-only** (FER-1003): it no longer pairs with or rea
 ```
 
 The same `CenitStore` SQLite file is the single convergence point for HealthKit sync and file
-imports. All readers go through `Repository`. Old band partitions (`"strap"` / `"strap-noop"`)
+imports. All readers go through `Repository`. Old legacy device partitions (raw + computed)
 remain **dormant** in SQLite — excluded at read time by `DataSourcePolicy` under the pinned
 `.appleHealthOnly` mode (`SourceModeStore`), **never deleted** (so a backup/restore keeps history
-and dormant band rows cannot win over Apple in the merge).
+and dormant legacy rows cannot win over Apple in the merge).
 
 ---
 
@@ -64,7 +64,7 @@ Cenit/                         App-layer (Data/Screens/System/…) compiled by t
 │   └── ContentView.swift
 ├── Data/                       Read model + import glue + on-disk paths
 │   ├── Repository.swift        @MainActor read model over CenitStore
-│   ├── StorePaths.swift        on-disk SQLite location (App Support/OpenWhoop)
+│   ├── StorePaths.swift        on-disk SQLite location (App Support, legacy folder name — see §2)
 │   ├── SourceModeStore.swift   data-source mode (pinned `.appleHealthOnly`, FER-1003)
 │   ├── AppleHealthImport.swift Apple Health / file-import result → store rows
 │   ├── Profile.swift           user profile (age/sex/body/HRmax)
@@ -108,29 +108,32 @@ with the design tokens — both are pure (Foundation-only / SwiftUI behind `#if 
 with `#if os(iOS)` guards on the two haptic/hover-scrub spots). `CenitStore`/`StrandAnalytics`/
 `StrandImport` are **not** watchOS-bound: no DB or analytics runs on the wrist.
 
-**Frozen identifiers from the NOOP legacy.** The on-disk folder `OpenWhoop/`
-(`Cenit/Data/StorePaths.swift`) and the `noop.*` UserDefaults keys are load-bearing for existing
-data. **Never rename them** — the visual rebrand to Cénit is complete, but these ids stay frozen
-on purpose.
+**Legacy identifiers, migrated once at startup.** The on-disk database folder/file
+(`Cenit/Data/StorePaths.swift`) and a family of UserDefaults keys still carry the name of the
+project's predecessor. Owner decision 2026-09-06 (see `docs/DECISIONS.md`): these are no longer
+frozen — a one-time startup migration renames the on-disk folder/file to a `Cenit`-named path and
+rewrites the UserDefaults key prefix to `cenit.*`, copying (never deleting) the old location/keys
+so a downgrade or a crash mid-migration can't strand a user's data. This migration is implemented
+by a separate change (lane A1); this document describes the target state.
 
-The bundle id and App Group used to be frozen alongside them (`com.feriracheta.noop` /
-`group.com.feriracheta.noop`), but were **not** in the end: the App ID `com.feriracheta.noop` turned out
-to be registered to a different Apple team, so Xcode refused to provision any of the three signed targets
-("cannot be registered to your development team because it is not available"). The prefix moved to
-`com.feriracheta.cenit` — bundle ids, App Group, the exported drag UTType and the Darwin notification all
-in step. **Cost of that move:** the App Group is a new container, so any data already in the old one
-(the Live Activity rest-action inbox, Shortcuts' `PendingIntents`) does not carry over — both are
-transient queues, so nothing durable was lost, but a device installed with the old id keeps the old app
-side by side until it's deleted.
+The bundle id and App Group used to be frozen alongside them, but were **not** in the end: the old
+App ID turned out to be registered to a different Apple team, so Xcode refused to provision any of
+the three signed targets ("cannot be registered to your development team because it is not
+available"). The prefix moved to `com.feriracheta.cenit` — bundle ids, App Group, the exported drag
+UTType and the Darwin notification all in step. **Cost of that move:** the App Group is a new
+container, so any data already in the old one (the Live Activity rest-action inbox, Shortcuts'
+`PendingIntents`) does not carry over — both are transient queues, so nothing durable was lost, but
+a device installed with the old id keeps the old app side by side until it's deleted.
 
 The App Group in particular is declared **once**, in `AppGroup.suiteName` (`CenitShared/`, compiled into
 the app, the watch and the widget extension); every consumer reads it from there rather than repeating the
 literal. This matters because the failure is silent: `UserDefaults(suiteName:)` returns a *non-nil* store
 for a suite the target isn't entitled to — backed by a private plist, so even a write/read round-trip
 succeeds — so a second copy of the string can drift for a long time without anything breaking loudly.
-(It did: the constant said `group.com.noopapp.noop` while every entitlement said `…feriracheta…`.) The
-only reliable probe is `FileManager.containerURL(forSecurityApplicationGroupIdentifier:)`, which returns
-nil on iOS when the entitlement is missing; `AppGroup.warnIfGroupUnprovisioned()` uses it at launch.
+(It did: the constant still named the project's predecessor while every entitlement used the current
+identifier.) The only reliable probe is `FileManager.containerURL(forSecurityApplicationGroupIdentifier:)`,
+which returns nil on iOS when the entitlement is missing; `AppGroup.warnIfGroupUnprovisioned()` uses it
+at launch.
 
 ---
 
@@ -160,13 +163,13 @@ StrandImport ───────▶ CenitStore + StrandTraining + ZIPFoundatio
 > data* — `HRSample`, `RRInterval`, `StreamEvent`, `BatterySample`, the type-47 biometric samples,
 > `Streams`, and `ParsedValue`. It is Foundation-only and depends on nothing, so persistence
 > (`CenitStore`) and math (`StrandAnalytics`) speak it directly. It stays source-agnostic: nothing here
-> names a frame, a byte, or a strap, and there is **no `@_exported import`** — the boundary has to be
+> names a frame, a byte, or a specific device, and there is **no `@_exported import`** — the boundary has to be
 > verifiable by the compiler, which a re-export would erase.
 
 | Package | Responsibility | Key types / functions | Notable boundary |
 |---|---|---|---|
 | **StrandModels** | Shared daily-metric value types used by both persistence and analytics — the durable shapes of cached scores, sleep sessions, and diet adherence status. | `DailyMetric` (+ `FieldUpdate`/`with(...)`), `CachedSleepSession`, `DietMealStatus` | **Leaf — zero dependencies, Foundation only.** No GRDB/UIKit. `CenitStore` depends on it and re-exports the names via `public typealias` (L3-C1a); `StrandAnalytics` depends on it directly (L3-C1b) so math never links GRDB. |
-| **BiometricStreams** | The neutral vocabulary of decoded biometric rows — the durable shapes everything downstream stores, computes over and serializes. Source-agnostic: nothing here names a frame, a byte, or a strap. | `HRSample`, `RRInterval`, `StreamEvent`, `BatterySample`, `SpO2Sample`, `SkinTempSample`, `RespSample`, `GravitySample`, `StepSample`, `Streams` (+ `.empty`), `ParsedValue` | **Root of the graph — zero dependencies, Foundation only.** No CoreBluetooth/UIKit/AppKit/GRDB, and no CRC/UUID/CLIENT_HELLO/schema. (FER-993 · D2). **Still linked into the app binary** — `CenitStore` and `StrandAnalytics` depend on it (`project.yml` lists `BiometricStreams` under the `Cenit` target). |
+| **BiometricStreams** | The neutral vocabulary of decoded biometric rows — the durable shapes everything downstream stores, computes over and serializes. Source-agnostic: nothing here names a frame, a byte, or a specific device. | `HRSample`, `RRInterval`, `StreamEvent`, `BatterySample`, `SpO2Sample`, `SkinTempSample`, `RespSample`, `GravitySample`, `StepSample`, `Streams` (+ `.empty`), `ParsedValue` | **Root of the graph — zero dependencies, Foundation only.** No CoreBluetooth/UIKit/AppKit/GRDB, and no CRC/UUID/CLIENT_HELLO/schema. (FER-993 · D2). **Still linked into the app binary** — `CenitStore` and `StrandAnalytics` depend on it (`project.yml` lists `BiometricStreams` under the `Cenit` target). |
 | **CenitStore** | Durable on-device persistence built on GRDB/SQLite. Migrations, decoded streams, metric caches, generic metric series, raw outbox, cursors. | `actor CenitStore`, `makeMigrator()`, `insert(_:deviceId:)`, `dailyMetrics`, `sleepSessions`, `metricSeries`, `pruneRaw`, `ClockRef`, `RawBatchMeta` | An **`actor`** — all writes/reads run off the main thread on its serial executor. |
 | **StrandAnalytics** | All physiological math, as pure functions over inputs. HRV, recovery, strain, sleep staging, workout detection, baselines, HR zones, correlation/comparison. | `AnalyticsEngine.analyzeDay(...)` → `DayResult`, `HRVAnalyzer`, `RecoveryScorer`, `StrainScorer`, `SleepStager`, `WorkoutDetector`, `Baselines`, `CorrelationEngine`, `Preparedness` (the «Preparación» morning verdict by axis-consensus over the user's Apple baselines — composed in `Repository.performRefresh`, published as `DashboardData.preparedness`, read by the Today hero; FER-1030), `WeeklySplit` (split → today's routine / day states / consistency streak, FER-531) | **Pure — never touches the database (literal):** depends on `BiometricStreams` + `StrandModels` only; no GRDB/CenitStore link (L3-C1b). Produces `DailyMetric`/`CachedSleepSession` shapes for the store. |
 | **StrandImport** | Parse Apple Health exports the user already owns (`export.xml`, streaming). | `ImportCoordinator.detectAndImport`, `AppleHealthImporter`, `AppleHealthAggregator`, `SleepHKEncoder`/`SleepHKDecoder` | **Parsing only** — returns normalized model arrays; the app maps them into the store. |
@@ -207,7 +210,7 @@ the same handle (IntelligenceEngine upserts, imports, HealthKit pulls).
 
 ## 5. Apple Health ingestion / imports
 
-Primary ingestion is Apple Health plus optional file imports — not a BLE strap pipeline.
+Primary ingestion is Apple Health plus optional file imports — not a BLE wearable pipeline.
 
 **Foreground HealthKit sync (FER-872).** `CenitApp` calls `await health.sync(trigger: .foreground)`
 when the scene becomes active (`CenitApp.swift`). `HealthKitBridge.sync` pulls HealthKit samples into
@@ -218,13 +221,13 @@ fingerprint unchanged. Manual / onboarding / re-bucket callers keep `.manual` (f
 
 **Nocturnal beat-to-beat RMSSD (FER-1008).** During sync, `HealthKitBridge.ingestNocturnalHRV` reads
 Apple heartbeat series for recent nights, runs pure `NocturnalHRV` (`StrandAnalytics`), and writes
-`apple_rmssd_night` / density counts under the **`apple-health-noop`** partition (`metricSeries`).
+`apple_rmssd_night` / density counts under a dedicated Apple-computed partition (`metricSeries`).
 `Repository.autonomicTrend` reads those points for the categorical `AutonomicTrend` on Today. See §7
 "Generic metric series" for the partition invariants.
 
 **File imports.** `StrandImport` remains parse-only; the app's `AppleHealthImport` writes results into
 the same store (see §8). Under the pinned `.appleHealthOnly` mode, `DataSourcePolicy` filters reads so
-dormant `strap` / `strap-noop` rows never enter the dashboard merge.
+dormant legacy device partitions (raw + computed) never enter the dashboard merge.
 
 **Historical note.** The former live BLE path, historical offload/safe-trim, and connection lifecycle
 were removed in the band amputation (FER-1003).
@@ -241,7 +244,7 @@ in `CenitShared`; the iPhone half is `WorkoutMirroringBridge` (`CenitApp/Health/
 
 The iPhone stays the **single source of truth**: it persists the session to `CenitStore` before any
 HealthKit/watch step (decoded-first, unchanged). The **one-`HKWorkout` invariant** is held by the
-deterministic shared key `HKMetadataKeyExternalUUID = "noop:strength:<sessionId>"`: whichever device writes,
+deterministic shared key `HKMetadataKeyExternalUUID` (a fixed prefix + `<sessionId>`): whichever device writes,
 the write is idempotent (delete-by-key then save). The iPhone omits its own `saveStrengthWorkoutIfEnabled`
 **only** on a positive `watchDidSaveWorkout` ack (`WorkoutSaveGate`); otherwise it saves, so a missing/absent
 watch is regression-free. Live heart rate on the strength sheet comes from the **Apple Watch mirror**
@@ -319,7 +322,7 @@ concerns:
   are **`WITHOUT ROWID` + `STRICT`** with an **integer `deviceId` surrogate** as of **v21 (FER-513)**.
   A rowid table with a composite PK keeps a second `sqlite_autoindex` copy of the key + rowid on every
   row (~46% of the DB); `WITHOUT ROWID` makes the natural PK *be* the table (no autoindex), and the int
-  surrogate replaces the repeated `"my-whoop"` TEXT — together ~−60% on these tables, zero data loss.
+  surrogate replaces the repeated legacy device-id TEXT — together ~−60% on these tables, zero data loss.
   The dead `synced` column (v5) is dropped from these five. `event`/`battery`/`stepSample`/`spo2Sample`
   keep TEXT `deviceId` + rowid (marginal / empty — out of scope). `spo2Sample` is decoded but no longer
   written (**v20, FER-511**) and its rows were purged; it survives empty for downgrade-safe reads.
@@ -335,14 +338,14 @@ concerns:
   `restingHr`, `avgHrv`, `spo2Pct`, `skinTempDevC`, `respRateBpm`, `exerciseCount`.
 - `sleepSession` — one row per `(deviceId, startTs)` with `efficiency`, `restingHr`, `avgHrv`, and
   a JSON `stagesJSON` hypnogram.
-- `journal`, `workout`, `appleDaily` — imported journal answers, workouts (WHOOP + Apple Health),
+- `journal`, `workout`, `appleDaily` — imported journal answers, workouts (legacy + Apple Health),
   and Apple-Health daily aggregates.
 - `experiment` (v12, FER-307) — one row per N-of-1 experiment, natural key `id` (UUID): the lever
   (`behavior` × `outcome`), `startDay`/`windowDays`, `status` (running/completed/canceled), and the
   verdict columns filled on completion. Additive only; one experiment runs at a time (app-enforced),
   but the table keeps the full history.
 - `dietPlan` / `dietAdherence` (v14, +v16, FER-370/401) — a prescribed diet plan stored as an opaque
-  `noop.diet.v1` JSON `payloadJSON` (PK `id`, + denormalized `nombre`/`idioma`/`ciclo`/`createdAt`),
+  JSON `payloadJSON` (PK `id`, + denormalized `nombre`/`idioma`/`ciclo`/`createdAt`),
   and per-meal daily adherence keyed `(deviceId, day, mealId)` with a tri-state `status`
   (cumpli/sustitui/salte) plus a nullable `optionIndex` (v16, FER-401) recording WHICH equivalent
   `opciones` index was eaten — registro only, it does not change the apego %. CenitStore never decodes
@@ -386,9 +389,9 @@ concerns:
 **Generic metric series** — `metricSeries(deviceId, day, key, value REAL)`: a tall, long-format
 table so *any* scalar metric from *any* source can be queried/compared uniformly (the substrate for
 the Metric Explorer and correlations), indexed by `(deviceId, key, day)`. The nightly frequency-domain
-HRV powers (`hrv_lf` / `hrv_hf` / `hrv_totalpower`, ms², FER-702) persist here under the `-noop`
-computed source — an additive scalar cache with no schema change, alongside `steps_est` and the stress
-aggregates. FER-868 added the daily motion derivatives under the same `-noop` source: `motion_intensity`
+HRV powers (`hrv_lf` / `hrv_hf` / `hrv_totalpower`, ms², FER-702) persist here under a legacy
+computed-source suffix — an additive scalar cache with no schema change, alongside `steps_est` and the stress
+aggregates. FER-868 added the daily motion derivatives under the same computed-source suffix: `motion_intensity`
 (the civil day's gravity motion volume, `StepsEstimateEngine.dayMotionIntensity` — the steps-estimate
 input) and `act_h00`…`act_h23` (the per-local-hour motion profile feeding `CircadianEngine`'s cosinor;
 a row exists iff the hour had samples, even at 0.0 — absent hour = no row, preserving the pooled-bins
@@ -396,26 +399,26 @@ semantics). Persisting them means the engine reads each day's raw `gravitySample
 day's data changes, instead of re-reading 60+14 days of gravity every 15-minute pass — and the derived
 motion history survives both an app relaunch and a raw-stream safe-trim.
 
-FER-972 (P-05) adds two more per-night scalars under the same `-noop` source: `night_dc_ms`
+FER-972 (P-05) adds two more per-night scalars under the same computed-source suffix: `night_dc_ms`
 (nocturnal Deceleration Capacity, ms, over the night's main in-bed session) and `night_warming_c`
 (distal warming onset→plateau, °C). The nightly pass persists them next to `hrv_lf`; the Sleep /
 Skin-temp detail loaders read the points and lazily write-through any night the engine window didn't
 cover, so opening those sheets no longer re-reads ~0.5–1 M raw sample rows.
 
-FER-1008 (the Apple-only recovery redesign) adds a **separate** computed partition, `apple-health-noop`,
-holding the nightly nocturnal-HRV scalars: `apple_rmssd_night` (the night's segmented RMSSD, ms — written
+FER-1008 (the Apple-only recovery redesign) adds a **separate** computed partition, a dedicated
+Apple-computed nocturnal-HRV source, holding the nightly nocturnal-HRV scalars: `apple_rmssd_night` (the night's segmented RMSSD, ms — written
 only when the night is dense), plus `apple_rr_clean_night` and `apple_rr_pairs_night` (the density counts,
 written for every processed night). `HealthKitBridge.ingestNocturnalHRV` writes them from the Apple
 heartbeat series; `Repository.autonomicTrend` reads `apple_rmssd_night` back to compute the categorical
 `AutonomicTrend` (`NocturnalHRV` → `AutonomicTrend`, both pure in `StrandAnalytics`). This partition is
-**deliberately distinct** from both the strap's `-noop` and raw `apple-health`: the Apple RMSSD-per-night
-baseline is a construct of its own and must never be pooled with the band's RMSSD or with Apple's SDNN
+**deliberately distinct** from both the legacy wearable's computed source and raw `apple-health`: the Apple RMSSD-per-night
+baseline is a construct of its own and must never be pooled with the legacy wearable's RMSSD or with Apple's SDNN
 (three separate baselines — the "own baseline per construct" invariant, FER-629).
 
 **Circadian phase** — `circadianPhase(deviceId, day, tempMinHour, acrophaseHours, offsetMinutes,
 confidence, daysObserved, bedtimeHour, wakeHour, computedAt)`, PK `(deviceId, day)`: one structured
 record per local civil day holding `CircadianEngine`'s cosinor phase estimate for the «Tu reloj
-corporal» surface (FER-712). Written by the nightly `IntelligenceEngine` pass (gated to WHOOP bands —
+corporal» surface (FER-712). Written by the nightly `IntelligenceEngine` pass (gated to legacy wearables —
 the phase signal is the accelerometer rest-activity rhythm). A dedicated table, not `metricSeries`,
 because the record is multi-field including an enum confidence. `confidence` is stored as the raw
 `PhaseConfidence` string; `CenitStore` keeps no dependency on `StrandAnalytics`.
@@ -423,23 +426,23 @@ because the record is multi-field including an enum confidence. `confidence` is 
 **Raw outbox** — `rawBatch`: the compressed, **transient, prunable** record of original frames,
 captured only when the research toggle is on. Decoded data is always committed *before* raw is queued,
 so pruning raw (`PrunePolicy`: 24h window / 50MB cap) can never lose a metric. `cursors` holds durable
-watermarks such as `strap_trim`.
+watermarks such as a trim cursor for the legacy device path.
 
-`deviceId` is the per-source partition key. The app uses `"strap"` for the band and
-`"apple-health"` for imported Apple Health, so per-source pages and cross-source "consensus" views
-read the same tables filtered by source. On the five v21 `WITHOUT ROWID` sample tables the stored
+`deviceId` is the per-source partition key. The app uses a dedicated legacy-device label for the
+retired wearable partition and `"apple-health"` for imported Apple Health, so per-source pages and
+cross-source "consensus" views read the same tables filtered by source. On the five v21 `WITHOUT ROWID` sample tables the stored
 `deviceId` is the integer surrogate from `deviceIdMap`; everywhere else it is still the TEXT partition
 key.
 
-The strap partition was labelled `"my-whoop"` until **v36 (FER-993)**, which relabels it to the
-brand-neutral `"strap"` (the app ships to the App Store, so the id it writes into the user's data can't
-carry a third-party brand). The relabel is lossless by two different mechanisms: the five v21 tables
+The legacy device partition originally carried a third-party brand name in its label until **v36
+(FER-993)**, which relabels it to a brand-neutral value (the app ships to the App Store, so the id it
+writes into the user's data can't carry a third-party brand). The relabel is lossless by two different mechanisms: the five v21 tables
 store the *surrogate*, so rewriting the single `deviceIdMap` row re-points all their rows at once
 without touching a sample row; every other table stores the label as TEXT and is swept in place. The
 sweep is driven off the **live schema** (`sqlite_master` + `pragma table_info`, TEXT `deviceId` columns
 only) rather than a hand-written table list — a forgotten table would silently orphan real rows, and
 reading the schema also self-corrects for the v21 tables (their `deviceId` is INTEGER, so it skips
-them). The derived computed partition follows by prefix rewrite (`my-whoop-noop` → `strap-noop`), and
+them). The derived computed partition follows by the same prefix rewrite, and
 `workout.source` — which stores the computed id for detector-derived bouts — moves in lockstep. A one-time VACUUM after the v21 rebuild (and after the v20 spo2 purge) returns the freed pages to
 the OS — each runs once per install, gated by a `cursors` flag (`rebuildVacuumV1Done` / `spo2VacuumV1Done`),
 off the launch path; `auto_vacuum=INCREMENTAL` (FER-511) keeps later deletes reclaimable.
@@ -447,8 +450,8 @@ off the launch path; `auto_vacuum=INCREMENTAL` (FER-511) keeps later deletes rec
 ### Day-key convention (local civil day)
 
 `dailyMetric.day` (and the additive-totals window behind it) is the device's **local civil day** in
-**every** source — on-device computed (`strap-noop`), Apple Health (`apple-health`), and imported
-strap history (`strap`, already local-of-cycle). The local day is derived by shifting the instant by the
+**every** source — on-device computed (the legacy computed partition), Apple Health (`apple-health`), and
+imported legacy-wearable history (already local-of-cycle). The local day is derived by shifting the instant by the
 device's UTC offset and formatting in UTC — the pure `AnalyticsEngine.dayString(_:tzOffsetSeconds:)` /
 `localMidnight(_:tzOffsetSeconds:)` (offset passed explicitly so the math stays testable), the same
 trick file-import glue uses with `tzOffsetMin`. Consumers pick "today" by the matching local key
@@ -481,7 +484,7 @@ URL (export.xml / export.zip / folder)
 multi-hundred-MB files don't blow up memory.
 
 The prescribed-diet path is a third producer on the same parse-only principle: `DietPlanImporter`
-validates a `noop.diet.v1` payload — from the BYO-LLM "copy prompt" flow, a future on-device parse,
+validates an opaque JSON payload — from the BYO-LLM "copy prompt" flow, a future on-device parse,
 or manual entry — into a `DietPlan`, which the app maps to a `dietPlan` row (FER-370). The user
 brings the JSON in, so Cénit still makes no network call.
 
@@ -490,7 +493,7 @@ reads `sleepAnalysis` category samples, and the pure `SleepHKDecoder` (`StrandIm
 `SleepHKEncoder`) groups them into one `CachedSleepSession` per night — gap-based, 1 h threshold —
 mapping Apple's deep/REM/core/awake onto the `[{start,end,stage}]` `stagesJSON` the hypnogram already
 reads, stored under `deviceId="apple-health"`. So a night that came from Apple (Combined-without-band,
-or Apple-Health-only) draws the same per-epoch hypnogram as a strap night. The read-model merge
+or Apple-Health-only) draws the same per-epoch hypnogram as a legacy-wearable night. The read-model merge
 (`Repository.sleepSessions` → `mergeSleepSessions`) gates Apple sleep on `usesAppleHealth` and lets the
 band win per night by interval overlap. No migration — the `sleepSession` table already partitions by
 `deviceId`.
@@ -559,7 +562,7 @@ in the Frente D dead-code sweep (FER-1003). No column, no migration.
   resampling — span-gated per Task Force (1996). **Additive**: feeds no recovery/strain/sleep output.
   Surfaced in the HRV detail (FER-702): `analyzeDay` computes the nightly `Bands` over the SAME in-bed
   session R-R as `avgHrv` (coherent by construction), the app persists the three powers to
-  `metricSeries` under `-noop`, and `HRVSpectralBaseline` labels each band vs "your normal" by reusing
+  `metricSeries` under a legacy computed-source suffix, and `HRVSpectralBaseline` labels each band vs "your normal" by reusing
   `Baselines.foldHistory(logDomain:)` + z-score (log-normal HRV powers, Plews 2013) — no new estimator.
 - **`RecoveryScorer`** normalizes nightly HRV/RHR (and a sleep-performance proxy) against baselines
   into a `0–100` score.
@@ -686,8 +689,8 @@ and `#if DEBUG`-guarding ~46 call sites is churn for a cosmetic gain). Re-check 
 `otool -L` on a Release binary if App Review ever objects.
 
 **Dormant / retired surfaces (post band amputation).** (a) `IntelligenceEngine.analyzeRecent` is a
-no-op under the pinned `.appleHealthOnly` mode: it `guard`s on `mode.usesWhoop` and returns early
-(`IntelligenceEngine.swift`), so the ~15-minute strap-night scoring loop does not run today.
+no-op under the pinned `.appleHealthOnly` mode: it guards on the pinned source-mode and returns early
+(`IntelligenceEngine.swift`), so the ~15-minute offloaded-night scoring loop does not run today.
 (b) The `~N` estimated-recovery display is **retired from the production dashboard path** (Frente A ·
 R4, FER-1008): `assembleDashboard` leaves `recoveryEstimates` empty, so the estimated badge/numeral
 cascade does not render. `AppleRecoveryEstimator` and `Repository.appleRecoveryEstimates(...)` were
@@ -738,12 +741,12 @@ living in `Cenit/` (never in `Packages/`, which stays 100% offline so `swift tes
 is hermetic in CI):
 
 - **Exercise media** (`Cenit/Media/`, FER-722/786) — opt-in thumb/video-loop cache from ExerciseDB,
-  gated by `noop.exerciseMediaEnabled` (default off). `MediaDownloadCoordinator` is the single point
+  gated by a preference default off. `MediaDownloadCoordinator` is the single point
   where the toggle is read; both its entry points (`bulkDownloadThumbsIfNeeded`, `loopIfNeeded(for:)`)
   guard on `isEnabled` before touching `URLSession`, so toggle-off is zero requests by construction,
-  not by convention. Media downloads once per exercise into
-  `Application Support/OpenWhoop/MediaCache/{thumbs,videos}/` — presence of the file on disk **is** the
-  "downloaded" record, no GRDB table — and stays there (offline-readable) until the user taps "Borrar
+  not by convention. Media downloads once per exercise into a `MediaCache/{thumbs,videos}/` folder
+  under `Application Support` (the legacy-named directory, see §2) — presence of the file on disk
+  **is** the "downloaded" record, no GRDB table — and stays there (offline-readable) until the user taps "Borrar
   media descargada"; turning the toggle off stops future downloads but never deletes the cache. Since
   FER-786 the download is a **plain GET of each exercise's baked `gifUrl`** (native ExerciseDB id, from
   the FER-779 catalog) off the public CDN `static.exercisedb.dev` — **no runtime name lookup, no API
@@ -942,16 +945,11 @@ own diff in review, not by the tooling — no text-level check can guard its own
 3. **Pure cores, thin shell.** `CenitStore`, `StrandAnalytics`, and `StrandImport` are platform-pure
    and testable in isolation; the app target is the only SwiftUI surface.
 4. **Interoperability, not impersonation.** Cénit reads your Apple Health data and your exports for your
-   own use. It is independent of WHOOP and is not a medical device.
+   own use. It is not a medical device.
 
 ---
 
 ## Attribution
 
-Cénit's BLE protocol work builds on community reverse-engineering of the WHOOP straps:
-
-- **johnmiddleton12/my-whoop** — WHOOP 4.0 protocol.
-- **b-nnett/goose** — WHOOP 5.0 protocol.
-
-See [`ATTRIBUTION.md`](../ATTRIBUTION.md) for full credits and [`DISCLAIMER.md`](../DISCLAIMER.md) for
-the non-affiliation and not-a-medical-device notice.
+See [`ATTRIBUTION.md`](../ATTRIBUTION.md) and [`NOTICE`](../NOTICE) for full third-party credits and
+[`DISCLAIMER.md`](../DISCLAIMER.md) for the not-a-medical-device notice.

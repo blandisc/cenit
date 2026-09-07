@@ -26,7 +26,7 @@
   <text x="312" y="168" font-family="-apple-system, Helvetica, Arial, sans-serif"
         font-size="104" font-weight="800" fill="#F4F7F5" letter-spacing="2">Cénit</text>
   <text x="316" y="226" font-family="-apple-system, Helvetica, Arial, sans-serif"
-        font-size="30" font-weight="500" fill="#8B9690">Your strap. Your data. Your machine.</text>
+        font-size="30" font-weight="500" fill="#8B9690">Your body. Your data. Your machine.</text>
   <text x="316" y="266" font-family="-apple-system, Helvetica, Arial, sans-serif"
-        font-size="24" font-weight="500" fill="#18C98B">A local-first companion for WHOOP straps. No cloud, no account.</text>
+        font-size="24" font-weight="500" fill="#18C98B">A local-first companion for Apple Health. No cloud, no account.</text>
 </svg>

@@ -93,8 +93,8 @@ Reglas duras del español de la app. Varias están **verificadas por CI** (§8).
    del sistema»*.
 8. **Errores con el marco fijo «No se pudo… + reintento».** *«No se pudo verificar. Inténtalo de
    nuevo.»* La culpa nunca es «tú».
-9. **Marca:** «Cénit» es el nombre de producto; «WHOOP» → siempre **«banda»** en cuerpo («Buscar mi
-   banda», nunca «correa»). **«Apple Health» → «Apple Salud»** siempre.
+9. **Marca:** «Cénit» es el nombre de producto; cualquier marca ajena de dispositivo → siempre
+   **«banda»** en cuerpo («Buscar mi banda», nunca «correa»). **«Apple Health» → «Apple Salud»** siempre.
 10. **El signo apertura sí se usa** donde aplica: *«¡Copiado!»*.
 
 ---
@@ -152,7 +152,7 @@ El término de la izquierda es el **único** que debe aparecer en pantalla para 
 | Readiness | **Preparación** | No «disposición» (string viejo, no canónico). |
 | Signals | **Señales** | — |
 | Session | **Sesión** | — |
-| Band / strap | **banda** | Nunca «correa». |
+| Band | **banda** | Nunca «correa». |
 | Today | **Hoy** | Tab. |
 | Train | **Entrenar** | Tab. «Add Workout» → «Agregar entrenamiento». |
 | Trends | **Tendencias** | Tab. |

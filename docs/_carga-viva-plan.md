@@ -188,7 +188,7 @@ que ya existe en `HealthKitBridge` (líneas 465-475). No se introduce isolation 
 ### Migración
 
 **Ninguna.** Se reutiliza `DailyMetric.strain`. (Si `/implement` decidiera —contra esta recomendación— una
-serie derivada aparte, sería `metricSeries` key bajo `apple-health-noop`, que es **aditivo sin migración**;
+serie derivada aparte, sería `metricSeries` key bajo `apple-health` (partición computada dedicada), que es **aditivo sin migración**;
 pero la recomendación es la columna existente.)
 
 ---
@@ -196,7 +196,7 @@ pero la recomendación es la columna existente.)
 ## Validación contra reglas duras
 
 - **Offline only:** ✅ todo on-device; el estimador es Foundation-pure, cero red/telemetría/cuenta.
-- **BLE no destructivo + CRC:** N/A — no toca `WhoopProtocol` ni bytes salientes.
+- **BLE no destructivo + CRC:** N/A — no toca `ProtocoloBanda` ni bytes salientes.
 - **Pureza de paquetes:** ✅ `AppleLoadEstimator` vive en `StrandAnalytics`, depende solo de
   Foundation + `BiometricStreams` (`HRSample`) + `StrandModels`; ningún `import UIKit/AppKit/CoreBluetooth/GRDB`.
 - **Migraciones append-only:** ✅ **sin migración** (columna existente). No se edita ninguna migración shipped.
@@ -244,7 +244,7 @@ un bug: es el cambio de modelo. Se re-derivan a mano y `/estadistico` los valida
 ## Alternativas y riesgos
 
 **Alternativas evaluadas:**
-- **Serie derivada aparte** (`metricSeries` key bajo `apple-health-noop`, no tocar `DailyMetric.strain`) —
+- **Serie derivada aparte** (`metricSeries` key bajo `apple-health` (partición computada dedicada), no tocar `DailyMetric.strain`) —
   *descartada:* obliga a overlay-plumbing en el merge para que `ReadinessEngine` la vea; en greenfield la
   columna `strain` está libre y es su uso semántico natural. Más código, cero beneficio.
 - **Mantener media móvil, solo persistir strain** — *descartada:* no cura del todo el «congelado». Con

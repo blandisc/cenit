@@ -35,10 +35,9 @@ representing the project in public spaces.
 
 ## Enforcement
 
-Cénit is maintained anonymously, so there is no private contact address. Instances
-of abusive, harassing, or otherwise unacceptable behaviour may be reported by
-opening an issue. If the report itself is sensitive, keep it factual and avoid
-restating the abusive content in detail.
+Instances of abusive, harassing, or otherwise unacceptable behaviour may be
+reported by opening an issue. If the report itself is sensitive, keep it
+factual and avoid restating the abusive content in detail.
 
 The maintainer is responsible for clarifying the standards of acceptable
 behaviour and will take appropriate corrective action in response to any conduct

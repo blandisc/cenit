@@ -5,9 +5,9 @@ on-device SQLite, can import Apple Health exports, and computes recovery / strai
 locally — no cloud, no account. This document explains how the repository is laid out, how to
 build and test it, and the conventions every change is expected to follow.
 
-> **Not affiliated with WHOOP, and not a medical device.** Cénit reads **your own data** on
-> **your own device**; it contains no WHOOP code, firmware, or assets and performs no DRM
-> circumvention. Every derived metric (HR, HRV, recovery, strain, sleep, SpO₂, temperature) is an
+> **Not a medical device.** Cénit reads **your own data** on **your own device**; it contains no
+> third-party proprietary code, firmware, or assets and performs no DRM circumvention. Every
+> derived metric (HR, HRV, recovery, strain, sleep, SpO₂, temperature) is an
 > **approximation** and is **not** clinically validated. See
 > [`../DISCLAIMER.md`](../DISCLAIMER.md) and [`../ATTRIBUTION.md`](../ATTRIBUTION.md).
 
@@ -39,7 +39,7 @@ A few principles run through the whole codebase. Internalize them before opening
    metrics live in a local SQLite database and never leave the device. (The one opt-in exception is
    exercise-media download in `Cenit/Media/`, off by default.)
 2. **Apple Health first.** The shipping app is Apple Health–only. It does not pair with external
-   fitness bands. Cénit contains no WHOOP proprietary code.
+   fitness bands. Cénit contains no third-party proprietary code.
 3. **Transparent math.** Analytics are approximations of published methods, documented file by file.
    No black boxes, no claims of clinical accuracy, no reproduction of any proprietary model.
 4. **Credit dependencies.** Preserve credits for `GRDB.swift` and `ZIPFoundation` in code comments
@@ -343,14 +343,14 @@ to the Explore / Compare / tile UI. The catalog is the contract.
    `Cenit/Data/MetricCatalog.swift` via the `d(...)` helper:
 
    ```swift
-   d("resp_rate", "Respiratory Rate", "Recovery", "rpm", "strap", "lungs", 1, nil),
-   //  key          title                category     unit   source      sf-symbol   decimals  higherIsBetter
+   d("resp_rate", "Respiratory Rate", "Recovery", "rpm", "apple-health", "lungs", 1, nil),
+   //  key          title                category     unit   source        sf-symbol   decimals  higherIsBetter
    ```
 
    - `key` — the exact `metricSeries` key the importer/analyzer writes.
    - `category` — one of `MetricCatalog.categories` (`Heart`, `Recovery`, `Sleep`, `Strain`,
      `Health`); add a new category only if it's genuinely needed.
-   - `source` — `"strap"` (strap/CSV) or `"apple-health"`; drives the `SourceBadge`.
+   - `source` — `"apple-health"` (or a legacy value from an older import path); drives the `SourceBadge`.
    - `higherIsBetter` — `true`/`false`/`nil`; controls delta tinting. Use `nil` when "better" is
      ambiguous (e.g. respiratory rate).
 
@@ -434,7 +434,7 @@ kind of index back, generate it *from* the fixtures rather than maintaining a pa
 Two rules keep the suite from silently rotting (both were learned by it rotting):
 
 - **Navigate with `nav(_:)`, never by tapping labels.** Screens are reached through `ScreenshotNav`
-  (`noop.nav.<key>`, DEBUG-only), which sets the tab and pushes the stack directly. Tapping text
+  (a debug-only Darwin notification, DEBUG-only), which sets the tab and pushes the stack directly. Tapping text
   couples the suite to copy *and* to the host simulator's language — the string catalog's source
   language is English, so `buttons["Entrenar"]` only matched on a Spanish machine. Worse, taps guarded
   by `if exists` no-op silently, so a test could "pass" while snapping the wrong screen into a fixture.
@@ -499,6 +499,5 @@ These are scoped but intentionally not built yet. They're listed so contributors
 
 ---
 
-*Cénit is an independent, unofficial, non-commercial project, not affiliated with, endorsed by, or
-connected to WHOOP, Inc., and is not a medical device. See
+*Cénit is an independent, unofficial project and is not a medical device. See
 [`../DISCLAIMER.md`](../DISCLAIMER.md).*

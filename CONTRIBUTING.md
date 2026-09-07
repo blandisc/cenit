@@ -1,20 +1,18 @@
 # Contributing to Cénit
 
-Thanks for your interest in contributing. Cénit is a standalone, fully **offline**
-health app on **Apple Health** — it syncs HealthKit into on-device SQLite and
-computes recovery / strain / HRV / sleep locally. No servers, no accounts, no
-data leaving the device — with exactly one narrow, opt-in, off-by-default
-exception: the exercise media downloader (thumbnails/loops cached from
-ExerciseDB, FER-722). Documented in [`README.md`](README.md#privacy).
+Thanks for your interest in contributing. Cénit is a fully **offline** health app
+on **Apple Health** — it syncs HealthKit into on-device SQLite and computes
+recovery / strain / HRV / sleep locally. No servers, no accounts, no data
+leaving the device, with two narrow, opt-in, off-by-default exceptions: a
+bring-your-own-key AI Coach and an exercise media downloader. See
+[`README.md`](README.md#privacy).
 
-This file is a quick orientation. The **full contributing guide** —
-repository layout, the design-system rules, how to add a metric / screen /
-migration, and the commit conventions — lives in
-[`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md). Read that before opening a
-non-trivial PR.
+This file is a quick orientation. The **full contributing guide** — repository
+layout, the design-system rules, how to add a metric / screen / migration, and
+the commit conventions — lives in [`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md).
+Read that before opening a non-trivial PR.
 
-> Cénit is not affiliated with, endorsed by, or connected to WHOOP, Inc., and is
-> not a medical device. See [`DISCLAIMER.md`](DISCLAIMER.md).
+> Cénit is not a medical device. See [`DISCLAIMER.md`](DISCLAIMER.md).
 
 ---
 
@@ -54,9 +52,9 @@ Apple ID), see [`docs/BUILD.md`](docs/BUILD.md).
 
 ## What CI checks
 
-The **Swift Packages CI** workflow runs on every PR and push to `main` that
-touches `Packages/**`. It compiles and runs unit tests only — no code signing, no
-secrets, no release.
+The **Swift Packages CI** workflow runs on every PR and push to the default
+branch that touches `Packages/**`. It compiles and runs unit tests only — no
+code signing, no secrets, no release.
 
 | Workflow | Trigger | What it does |
 |---|---|---|

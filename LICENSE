@@ -1,20 +1,16 @@
-NOOP is licensed under the PolyForm Noncommercial License 1.0.0, reproduced below.
+Cénit's own source code and documentation are licensed under the PolyForm
+Noncommercial License 1.0.0, reproduced below in full and unchanged.
 
-Copyright 2026 NoopApp
+Copyright 2026 Fernando Iracheta
 
 Scope and notices:
 
-- This license applies ONLY to NOOP's own original source code and documentation.
-- The protocol facts documented in this repository (BLE service/characteristic
-  identifiers, frame layouts, CRC parameters, command/event/packet numbers, byte
-  offsets) are uncopyrightable factual information about how bytes appear on a wire.
-  They are not claimed as anyone's property and may be reused freely. See
-  DISCLAIMER.md and ATTRIBUTION.md.
+- This license applies ONLY to Cénit's own original source code and documentation.
 - Third-party components keep their own licenses and are not relicensed by this
-  file. See NOTICE for the full list (GRDB.swift and ZIPFoundation are MIT).
-- Required Notice: Copyright 2026 NoopApp
+  file. See NOTICE for the full list.
+- Required Notice: Copyright 2026 Fernando Iracheta
 
-In short: NOOP is source-available and free for personal and other non-commercial
+In short: Cénit is source-available and free for personal and other non-commercial
 use — read it, run it, fork it, and contribute. Commercial use is not granted by
 this license. The full terms follow.
 

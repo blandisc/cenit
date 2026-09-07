@@ -2,12 +2,12 @@
 
 Cénit is a standalone, fully offline health app on **Apple Health**. It stores HealthKit syncs,
 file imports, and on-device computed metrics in a single local SQLite database. Older installs may
-still carry dormant historical band-era partitions in the same DB. This document describes that
-on-device database: every table, its columns, natural keys, indexes, and the migration history that
-produced the current schema.
+still carry dormant legacy partitions in the same DB, from a retired third-party wearable
+integration. This document describes that on-device database: every table, its columns, natural
+keys, indexes, and the migration history that produced the current schema.
 
-> **Scope note.** Cénit is **not affiliated with, endorsed by, or connected to WHOOP**, and it is
-> **not a medical device** — none of the stored values are intended for diagnosis or treatment.
+> **Scope note.** Cénit is **not a medical device** — none of the stored values are intended for
+> diagnosis or treatment.
 
 ---
 
@@ -19,28 +19,11 @@ every package in the repo, it declares both platforms — `.iOS(.v16)` and `.mac
 (`Packages/CenitStore/Package.swift`) — and is UI-framework agnostic, so the same schema and
 storage code back the `Cenit` app from a single cross-platform core.
 
-The app target opens the database at a fixed, per-user location
-(`Cenit/Data/StorePaths.swift`):
-
-```
-<Application Support>/OpenWhoop/whoop.sqlite
-```
-
-```swift
-// Cenit/Data/StorePaths.swift
-static func defaultDatabasePath() throws -> String {
-    let fm = FileManager.default
-    let base = try fm.url(for: .applicationSupportDirectory, in: .userDomainMask,
-                          appropriateFor: nil, create: true)
-        .appendingPathComponent("OpenWhoop", isDirectory: true)
-    try fm.createDirectory(at: base, withIntermediateDirectories: true)
-    return base.appendingPathComponent("whoop.sqlite").path
-}
-```
-
-On iOS that resolves inside the app's sandbox, to
-`<app sandbox>/Library/Application Support/OpenWhoop/whoop.sqlite`. Tests use an in-memory database via
-`CenitStore.inMemory()`.
+The app target opens the database at a fixed, per-user location (`Cenit/Data/StorePaths.swift`),
+inside the app's sandbox `Application Support` directory. That location still carries a legacy
+folder and filename inherited from the project's original name; a one-time startup migration to a
+`Cenit`-named path is planned (see `docs/ARCHITECTURE.md` §2) and tracked separately — **in
+progress**, not yet part of this PR. Tests use an in-memory database via `CenitStore.inMemory()`.
 
 ### Connection configuration
 
@@ -75,7 +58,7 @@ The schema falls into four groups:
 | **Metric caches** | `sleepSession`, `dailyMetric`, `journal`, `workout`, `appleDaily`, `metricSeries` | Derived metrics + CSV / Apple-Health imports |
 | **Experiments** *(v12)* | `experiment` | N-of-1 experiments (FER-307) |
 | **Strength tracker** *(v13, +v15, +v17, +v26)* | `customExercise`, `routine`, `routineExercise`, `routineSet`, `strengthSession`, `setEntry`, `personalRecord` | User-authored routines/sessions/sets/PRs — relational, UUID PKs. `routineExercise.supersetGroup` (v15) groups exercises into supersets. `routineSet` (v17) holds the per-set prescription; each set carries an optional rest override (v26, NULL = inherit the exercise). `strengthSession.energyKcal`/`energySource` (v26) persist the session's energy + its origin. The seed exercise catalog is a bundled resource in `StrandTraining`, not in SQLite. (FER-345/346/492/715) |
-| **Diet** *(v14, +v16)* | `dietPlan`, `dietAdherence` | Prescribed diet plan (`noop.diet.v1`, captured via import) + daily per-meal adherence — apego tracking. `dietAdherence.optionIndex` (v16) records which equivalent option was eaten (FER-370/401) |
+| **Diet** *(v14, +v16)* | `dietPlan`, `dietAdherence` | Prescribed diet plan (an opaque JSON payload, captured via import) + daily per-meal adherence — apego tracking. `dietAdherence.optionIndex` (v16) records which equivalent option was eaten (FER-370/401) |
 
 All timestamp columns named `ts`, `startTs`, `endTs`, `capturedAt`, etc. are **unix seconds**
 (integers). Day-keyed cache tables use a `day` text column in `YYYY-MM-DD` form and compare it
@@ -99,11 +82,11 @@ Migrations are registered in `Packages/CenitStore/Sources/CenitStore/Database.sw
 | **v7** | Adds in-sleep signal aggregates to `dailyMetric`: `spo2Pct`, `skinTempDevC`, `respRateBpm` (all nullable). |
 | **v8** | Adds `journal`, `workout`, and `appleDaily` (Apple-Health daily aggregates). |
 | **v9** | Adds the generic long-format `metricSeries` table and its `(deviceId, key, day)` index. |
-| **v10** | Adds `stepSample` (WHOOP5 step-motion counter persistence). |
+| **v10** | Adds `stepSample` (step-motion counter persistence from a retired band integration). |
 | **v11** | Adds nullable `steps` + `activeKcalEst` to `dailyMetric` (on-device daily step total + calorie estimate). |
 | **v12** | Adds the `experiment` table (N-of-1 experiments, FER-307). |
 | **v13** | Strength tracker (FER-345): `customExercise`, `routine`, `routineExercise`, `strengthSession`, `setEntry`, `personalRecord` + their indexes. Relational, UUID-string PKs; array fields (muscles, cues, warm-up percents) are JSON text columns. Append-only. |
-| **v14** | Diet (FER-370): `dietPlan` (prescribed plan as an opaque `noop.diet.v1` JSON payload + denormalized columns, PK `id`) and `dietAdherence` (per-meal daily status, PK `(deviceId, day, mealId)`). Append-only. |
+| **v14** | Diet (FER-370): `dietPlan` (prescribed plan as an opaque JSON payload + denormalized columns, PK `id`) and `dietAdherence` (per-meal daily status, PK `(deviceId, day, mealId)`). Append-only. |
 | **v15** | Supersets (FER-346): adds nullable `supersetGroup` (INTEGER) to `routineExercise` — same value within a routine = one superset; NULL = standalone. Append-only `ALTER ADD COLUMN`. |
 | **v16** | Diet option (FER-401): adds nullable `optionIndex` (INTEGER) to `dietAdherence` — the 0-based index into the plan meal's `opciones` array (which equivalent was eaten); NULL = not recorded. Registro only — does not change the apego %. Append-only `ALTER ADD COLUMN`. |
 | **v17–v25** | *(not yet documented row-by-row — this table has a gap; v17 created `routineSet`, later migrations covered routine folders, HR-rest references, the weekly split, exercise-type overrides, DB compaction, and the circadian-phase table.)* |
@@ -111,6 +94,18 @@ Migrations are registered in `Packages/CenitStore/Sources/CenitStore/Database.sw
 | **v42** | Ola 1 · FER-324 (one schema PR for five pieces). `strengthSession`: `strainSource` TEXT (`hr`\|`rpe`), `sessionRpe` REAL, `sessionRpeSource` TEXT (`answered`\|`prefill`), `trimpPerAU` REAL, `source` TEXT (`strong`\|`hevy`\|`cenit`), `title` TEXT, `programWeek` INTEGER, `deload` INTEGER — all NULL on old rows. `routineExercise.progressionUseRPE` INTEGER NOT NULL DEFAULT 0. `routineSet.mode` / `setEntry.mode` TEXT (`standard`\|`amrap`\|`drop`, NULL = standard). Every ADD COLUMN via `addColumnIfMissing`. Append-only. |
 | **v43** | Ola 1 · FER-324: table `program` (singleton, PK `id = 'active'`): `name`, `weeks`, `startTs`, `deloadRule`, `endMode`, `templateId`, `createdTs`. `ifNotExists`. Append-only. |
 | _v27–v41_ | _Documented in `Database.swift` comments; the table entries here are pending (FER-337)._ |
+
+### Legacy tables (no longer read)
+
+`device`, `deviceIdMap`, `rrInterval`, `event`, `battery`, `spo2Sample`, `skinTempSample`,
+`respSample`, `gravitySample`, `stepSample`, `cursors`, and `rawBatch` are **legacy tables: no
+longer read; not created on new installs.** They date from the retired third-party wearable
+integration (device registry, raw BLE frame decode, and the highwater/read bookkeeping that
+synchronization needed). Existing installs keep any rows these tables already hold — nothing is
+deleted — but no code path writes to or reads from them going forward. Consolidating the migration
+history to reflect this target state (so these tables stop being created at all on a fresh
+install) is **in progress** in a separate change; this document describes the target, not yet the
+shipped schema.
 
 ### The vestigial `synced` column
 
@@ -171,7 +166,7 @@ replaying overlapping samples never duplicates rows. `insert(...)` returns the c
 
 **Primary key:** `(deviceId, ts)`. HR is taken only from `REALTIME_DATA` (type 40) frames.
 `latestHRSampleTs(deviceId:)` returns `MAX(ts)` here — the biometric "data frontier" used by the
-stuck-strap watchdog.
+stalled-sync watchdog from the retired band era.
 
 ### `rrInterval` *(v1)* — R-R intervals (HRV source)
 
@@ -185,7 +180,7 @@ stuck-strap watchdog.
 **Primary key:** `(deviceId, ts, rrMs)` — `rrMs` is in the key because multiple R-R intervals can
 share a single `REALTIME_DATA` timestamp. Reads order by `ts ASC, rrMs ASC`.
 
-### `event` *(v1)* — strap events
+### `event` *(v1)* — legacy device events
 
 | Column | Type | Notes |
 | --- | --- | --- |
@@ -270,16 +265,17 @@ inserts, identical range-read shape).
 
 ### `rawBatch` *(v1)*
 
-The raw outbox stores the strap's original BLE frames — compressed and batched — so the exact
-bytes survive even for frames Cénit can't yet fully decode. Whereas the decoded streams are durable,
-raw batches are **transient and prunable**. Implementation in `RawOutbox.swift`.
+The raw outbox stored a retired band integration's original BLE frames — compressed and batched — so
+the exact bytes survived even for frames the decoder couldn't yet fully handle. Whereas the decoded
+streams are durable, raw batches were **transient and prunable**. Implementation in `RawOutbox.swift`.
+This table is **legacy: no longer read; not created on new installs.**
 
 | Column | Type | Notes |
 | --- | --- | --- |
 | `batchId` | TEXT | **Primary key.** |
-| `deviceId` | TEXT NOT NULL | Owning strap. |
+| `deviceId` | TEXT NOT NULL | Owning device. |
 | `capturedAt` | INTEGER NOT NULL | Unix seconds the batch was captured; pending reads order by this. |
-| `deviceClockRef` | INTEGER NOT NULL | Strap-clock reference for the wall-clock offset. |
+| `deviceClockRef` | INTEGER NOT NULL | Device-clock reference for the wall-clock offset. |
 | `wallClockRef` | INTEGER NOT NULL | Wall-clock reference, unix seconds. |
 | `startTs` | INTEGER NOT NULL | First frame timestamp in the batch. |
 | `endTs` | INTEGER NOT NULL | Last frame timestamp in the batch. |
@@ -293,8 +289,8 @@ then zlib-compressed with a 4-byte uncompressed-length prefix.
 
 **Pruning policy** (`pruneRaw(now:keepWindowSeconds:maxUnsyncedBytes:)`): only batches with a
 non-null `syncedAt` older than `now - keepWindowSeconds` are deleted — safe because the decoded
-streams persist separately. Unsynced raw is **never** dropped (it is the sole copy of the strap's
-not-yet-decoded bytes after a chunk is trimmed). `maxUnsyncedBytes` is accepted for call-site
+streams persist separately. Unsynced raw was **never** dropped (it was the sole copy of the
+not-yet-decoded bytes after a chunk was trimmed). `maxUnsyncedBytes` is accepted for call-site
 compatibility but intentionally unused.
 
 ---
@@ -469,5 +465,5 @@ served by the `(deviceId, ts)` / `(deviceId, day)` / `(deviceId, startTs)` prima
 Persistence is `CenitStore`; the local recovery / strain / HRV / sleep math is `StrandAnalytics`;
 and the Apple Health importers are `StrandImport`.
 
-> **Reminder.** Cénit is not affiliated with WHOOP and is not a medical device. All stored data is
-> the user's own, kept entirely on the user's device.
+> **Reminder.** Cénit is not a medical device. All stored data is the user's own, kept entirely on
+> the user's device.

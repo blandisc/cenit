@@ -23,10 +23,10 @@ OLD = os.path.join(HERE, "cache", "old-exercises.json")           # catálogo Ex
 NEW = os.path.abspath(os.path.join(
     HERE, "..", "..", "Packages", "StrandTraining", "Sources", "StrandTraining", "Resources",
     "exercises.json"))
-WHOOPSTORE_RES = os.path.abspath(os.path.join(
+CENITSTORE_RES = os.path.abspath(os.path.join(
     HERE, "..", "..", "Packages", "CenitStore", "Sources", "CenitStore", "Resources"))
-OUT_REMAP = os.path.join(WHOOPSTORE_RES, "exercise-id-remap.json.zlib")
-OUT_LEGACY = os.path.join(WHOOPSTORE_RES, "legacy-exercise-data.json.zlib")
+OUT_REMAP = os.path.join(CENITSTORE_RES, "exercise-id-remap.json.zlib")
+OUT_LEGACY = os.path.join(CENITSTORE_RES, "legacy-exercise-data.json.zlib")
 
 
 def norm(name):
@@ -67,7 +67,7 @@ def main():
                 "secondaryMuscles": e.get("secondaryMuscles", []),
             }
 
-    os.makedirs(WHOOPSTORE_RES, exist_ok=True)
+    os.makedirs(CENITSTORE_RES, exist_ok=True)
     write_zlib(OUT_REMAP, remap)
     write_zlib(OUT_LEGACY, legacy)
     print(f"old: {len(old)} · new: {len(new)}")

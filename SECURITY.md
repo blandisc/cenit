@@ -3,9 +3,9 @@
 ## Scope
 
 Cénit is a fully offline, on-device app. It has no servers, no accounts, and no
-cloud sync, so the usual web attack surface does not apply. It reads Apple Health
-on your device and no longer pairs with any Bluetooth hardware (the WHOOP-band /
-BLE path was retired). What remains is local:
+cloud sync, so the usual web attack surface does not apply. It reads Apple
+Health on your device and does not pair with any external hardware. What
+remains is local:
 
 - **Local SQLite database** — every reading is stored on your own device.
 - **File imports** — the Apple Health export ZIP, and Cénit backup files, that you
@@ -19,23 +19,21 @@ offline, local-only guarantee the app makes.
 
 ## Reporting a vulnerability
 
-Cénit is maintained anonymously and has no security contact email. **Report
-security issues by opening a GitHub issue** on the repository.
+**Report security issues by opening a GitHub issue** on the repository.
 
 If a public report would put users at immediate risk before a fix can ship,
 open an issue with a short, non-exploitable summary (what is affected and how
 severe) and hold the proof-of-concept details until a fix is released.
 
-Please include, as far as you can without putting anyone at risk:
+Please include, as far as you can:
 
 - A description of the issue and the guarantee it breaks
 - Steps to reproduce
 - The potential impact
 - A suggested fix, if you have one
 
-Because there is no staffed inbox, response times depend on maintainer
-availability — there is no guaranteed SLA. Confirmed issues are prioritised for
-the next release.
+Response times depend on maintainer availability — there is no guaranteed SLA.
+Confirmed issues are prioritised for the next release.
 
 ## Supported versions
 

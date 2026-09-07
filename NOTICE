@@ -1,12 +1,12 @@
-NOOP — third-party notices
-===========================
+Cénit — third-party notices
+============================
 
-NOOP's own source code and documentation are licensed under the PolyForm
-Noncommercial License 1.0.0 (see LICENSE). That license covers NOOP's original
-work only. The components and prior work below keep their own terms.
+Cénit's own source code and documentation are licensed under the PolyForm
+Noncommercial License 1.0.0 (see LICENSE). That license covers Cénit's original
+work only. The components below keep their own terms.
 
 Bundled dependencies
---------------------
+---------------------
 
 GRDB.swift — https://github.com/groue/GRDB.swift
   License: MIT
@@ -14,27 +14,29 @@ GRDB.swift — https://github.com/groue/GRDB.swift
 
 ZIPFoundation — https://github.com/weichsel/ZIPFoundation
   License: MIT
-  Used for: reading WHOOP / Apple Health export archives during import.
+  Used for: reading Apple Health export archives during import.
 
-The MIT license is permissive: these components may be used, modified, and
-redistributed (including commercially) on their own terms. When they are used as
-part of NOOP's combined work, the combined work as a whole is governed by NOOP's
-PolyForm Noncommercial license.
+Space Grotesk — https://fonts.google.com/specimen/Space+Grotesk
+  License: SIL Open Font License 1.1
+  Used for: the app's display typeface. Full license text bundled at
+  Packages/CenitDesign/Sources/CenitDesign/Resources/SpaceGrotesk-OFL.txt.
 
-Prior reverse-engineering research
-----------------------------------
+free-exercise-db — https://github.com/yuhonas/free-exercise-db
+  License: The Unlicense (public domain)
+  Used for: the baked-in strength exercise catalog. See Tools/bake-exercisedb/
+  for the pipeline that regenerates it from the upstream dataset.
 
-NOOP builds on two community reverse-engineering efforts. Neither states a
-license; NOOP does not redistribute their code. NOOP uses only the uncopyrightable
-factual protocol information they document (BLE service/characteristic identifiers,
-frame layouts, CRC parameters, command/event/packet numbers, byte offsets) and
-re-implements those facts as original code — it does not copy their source.
+The MIT and SIL OFL components are permissive: they may be used, modified, and
+redistributed (including commercially) on their own terms. free-exercise-db is
+public domain. When these components are used as part of Cénit's combined work,
+the combined work as a whole is governed by Cénit's PolyForm Noncommercial
+license.
 
-  johnmiddleton12/my-whoop — https://github.com/johnmiddleton12/my-whoop
-    WHOOP 4.0 BLE protocol facts.
+Historical note
+----------------
 
-  b-nnett/goose — https://github.com/b-nnett/goose
-    WHOOP 5.0 / MG ("puffin") BLE protocol facts.
-
-See ATTRIBUTION.md for fuller credit and DISCLAIMER.md for the interoperability and
-fair-use rationale.
+Historical note: revisions of this repository prior to September 2026 contained
+code from the NOOP project (NoopApp), licensed under PolyForm Noncommercial
+1.0.0 — Required Notice: Copyright 2026 NoopApp. That code has been replaced
+with original work; this notice is retained for those historical revisions
+only.

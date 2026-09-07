@@ -18,7 +18,6 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
 
 ---
 
-
 ## Unreleased
 
 ### Los planes y programas que importas ahora se llaman `cenit.*` (FER-382)
@@ -97,8 +96,6 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
   incluye esos entrenamientos de otras apps cuando el interruptor está prendido, no solo tus sesiones
   de Cénit. (Las «marcas nuevas» siguen siendo solo de tus sesiones ricas: las otras apps no traen
   serie por serie.)
-- Arreglo de bug: una fuente `"apple-health:Whoop"` (una app cuyo nombre contiene «whoop») se
-  clasificaba como WHOOP en vez de Apple.
 
 ### Correcciones de robustez (auditoría de estrés)
 - **Sueño con dos apps:** si el Apple Watch y otra app de sueño (o el Sleep Schedule del iPhone)
@@ -579,11 +576,6 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
   **EN** — On Today, when the morning reading hasn't arrived yet (the "I can't read your mornings yet" hero), the READINESS kicker sat on top of the orb and the block felt cramped. The orb and its labels now lift 26 pt into the air above, and the text block drops 16 pt: READINESS clears the orb and the title gets clean air. Scoped to that no-verdict state only; the real-verdict orb is unchanged.
   ([LiquidEcosistema.swift](Packages/StrandDesign/Sources/StrandDesign/LiquidGlass/LiquidEcosistema.swift))
 
-- **«Qué esperar» ya no menciona la banda retirada / "What to expect" no longer mentions the retired band** (FER-152).
-  **ES** — El texto de «Qué esperar», al inicio de «Novedades», dejó de presentar la banda WHOOP como el camino soportado. Ahora describe lo que la app hace de verdad: lee tu Apple Watch y tu iPhone desde Apple Salud y calcula todo en tu dispositivo, sin hardware que emparejar — igual que ya dicen los Términos. La única mención a la banda que queda es histórica: una versión anterior la leía, y ese camino se retiró.
-  **EN** — The "What to expect" text at the top of "What's New" no longer presents the WHOOP band as the supported path. It now describes what the app actually does: it reads your Apple Watch and iPhone from Apple Health and computes everything on your device, with no hardware to pair — matching what the Terms already say. The only band mention left is historical: earlier versions read it, and that path was retired.
-  ([AppChangelog.swift](Cenit/System/AppChangelog.swift))
-
 - **Entrenar: la pestaña Progreso del detalle de ejercicio, alineada al handoff / Train: the exercise detail's Progress tab, aligned to the handoff** (FER-149).
   **ES** — El chip de tendencia del 1RM estimado ahora compara quincena contra quincena en una
   ventana FIJA de 90 días anclada a hoy calendario (no al último registro): si dejaste de entrenar,
@@ -693,13 +685,13 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
   libres en orden (lunes primero; un día que ya tenías asignado nunca se pisa), y vuelve a la
   landing con el aviso «Plantilla aplicada · semana armada, edítala cuando quieras». DESDE CERO
   empuja «Nueva rutina» a la Biblioteca en su flujo de creación existente. «Importar de tu IA» abre
-  el importador `noop.workout.v1` existente. **EN** — A new «Three paths» screen: the landing's
+  el importador de planes existente. **EN** — A new «Three paths» screen: the landing's
   «Create plan» chip and the first-use «Build my plan» CTA now open this single door instead of
   jumping straight to a sheet. TEMPLATES lists the catalog's five groups — tapping one copies ALL of
   its routines and fills the free days of the week in order (never overwriting a day you already
   assigned), then returns to the landing with a success toast. FROM SCRATCH pushes «New routine»
   into the existing library create-flow. «Import from your AI» opens the existing
-  `noop.workout.v1` importer.
+  plan importer.
 
 - **Entrenar: Tu cuerpo, Historial y el acta — el hilo del veredicto, progreso por ejercicio y el
   recibo / Train: Your body, History and the ballot — the verdict thread, per-exercise progress and
@@ -1067,18 +1059,15 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
   **EN** — The guardian watches a pair, and its rule is that one signal alone never pushes your day. Now the drawing says it: two mirrored edges with the space between them painted — thin when both are in place, open on one side when one drifts, open and tinted only when both step out together.
   ([MatrizCostura.swift](Packages/StrandDesign/Sources/StrandDesign/LiquidGlass/MatrizCostura.swift))
 
-
 - **Hoy: las siete decisiones del dueño sobre la auditoría / Today: the owner's seven calls from the audit** (FER-79).
   **ES** — La temperatura de piel es dorada en toda la app (el ámbar es el color de atención, no una identidad). Las gráficas ya no esperan 20 noches para verse: arrancan en tu primera lectura y crecen contigo. Al separar las señales, el hueco muerto se cierra y la sección de abajo sube. El sueño se compara contra el rango recomendado con una sola voz en toda la app. «Ver más en Tendencias» solo cuando de verdad va a Tendencias; desde una hoja dice «Ver el detalle completo». Lo que se mide durmiendo se fecha como la noche que fue («anoche · 15 ago»). Y el acta ya no abre con una ⓘ dentro de otra: su explicación encabeza «Cómo se calcula».
   **EN** — Skin temp is gold everywhere; charts grow with you instead of waiting for 20 nights; separating the signals no longer leaves dead air; sleep speaks of the recommended range in one voice; the "see more" label tells the truth; night-measured data is dated as the night; and the ballot has a single door inside.
   ([LiquidHoyBuilder+Matriz.swift](Cenit/Screens/Hoy/LiquidHoyBuilder+Matriz.swift), [LiquidMetricSheetView.swift](Cenit/Screens/Hoy/LiquidMetricSheetView.swift), [LiquidEcosistema.swift](Packages/StrandDesign/Sources/StrandDesign/LiquidGlass/LiquidEcosistema.swift))
 
-
 - **Hoy: la pantalla dice la verdad en todos sus estados, el scroll ya no se traba sobre las gráficas y la entrada ya no brinca / Today: honest copy in every state, scrolling over charts works, and the launch orb lands without a jump** (FER-73).
   **ES** — Auditoría a fondo de Hoy y sus hojas. Mientras tu base se forma, el guardián ya no afirma «dentro de tu banda» sobre lecturas que nadie comparó, y la franja deja de contradecir al héroe. El acta cuenta el voto del par temperatura+respiración el día que sí empuja tu día, conoce el estado «leyendo tu noche» y avisa cuando el veredicto es de anoche porque Salud se desconectó. Un deslizamiento que empieza sobre una gráfica vuelve a mover la página. El punto de hoy ya no se corta contra el borde. La ⓘ del veredicto quedó a la altura de la palabra, y la animación de arranque reúne el orbe al centro y aterriza donde de verdad vive.
   **EN** — Deep audit of Today and its sheets: no claimed pattern while your baseline is forming, no band contradicting the hero, the ballot counts the guardian's pair vote and knows the pending state, vertical scrolling works from any chart, the "today" ring no longer clips, the ⓘ sits on the word's baseline, and the launch orb gathers at the center and lands seamlessly.
   ([TodayView.swift](Cenit/Screens/TodayView.swift), [LiquidHoyBuilder.swift](Cenit/Screens/Hoy/LiquidHoyBuilder.swift), [ScrubPan.swift](Packages/StrandDesign/Sources/StrandDesign/LiquidGlass/ScrubPan.swift))
-
 
 - **Hoy: las gráficas de temperatura y respiración son ya la misma familia que la tarjeta del guardián, y Carga se arrastra por día / Today: skin-temp and breathing sparklines now share the guardian card's language; Load scrubs by day** (FER-72).
   **ES** — Trazo pleno, un punto por noche, HOY como anillo hueco — con los mismos tokens que la tarjeta que abre «Te vigila». Y la colina de Carga se arrastra: cada día muestra su razón, estado y fecha.
@@ -1106,11 +1095,6 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
   **EN** — Removed ~30 pt of phantom space under the hero (section-title hit-target inflated the row; now the hit area grows without taking layout space). Pull-to-refresh was theatre (haptic + 1.2 s sleep + local re-read); it now runs a real Apple Health manual sync, so the "pull down to sync" banner finally tells the truth.
   ([MatrizHoyFace.swift](Packages/StrandDesign/Sources/StrandDesign/LiquidGlass/MatrizHoyFace.swift), [TodayView.swift](Cenit/Screens/TodayView.swift))
 
-- **«Hoy» pulida en vivo: estados reales, colores con identidad y todo respira / Today polished live: real states, identity colors, everything breathes** (FER-66→FER-67).
-  **ES** — Cuatro rondas de pulido en vivo sobre «Hoy»: (1) el aviso de Apple Salud desconectada es una tarjeta de dos líneas con glow que respira y abre Fuentes de datos al tocarla; los orbes giran y respiran; Skin temp/Breathing dibujan ondas reales y ahora se arrastran (scrub con valor y fecha por noche). (2) Se retiró «What's new» (contenido de la banda WHOOP); Effort estrenó su ámbar (el de su detalle «Day Strain») y Steps su teal (el de la hoja de resumen) — estaban cruzados. (3) Revisión conceptual de TODOS los estados: los datos de muestra se recalibraron contra el motor vigente (veredicto por ejes: verde · ámbar · rojo) — «Ve con calma» y «Recupérate» por fin se pintan de verdad; calibrando muestra su progreso real («Night 2 of 4»); las franjas dejaron de mentir o hacer eco («pending sync» sin permiso, títulos repetidos). (4) Los rótulos de los orbes ceden al titular (ya no se enciman con «In range»), el caso «noche registrada sin señal» dice la verdad, y el modal de restauración ya no deja sangrar el botón verde de atrás.
-  **EN** — Four live-polish rounds on Today: breathing disconnect card (tappable → Data Sources), spinning orbs, real guardian waves with per-night scrubbing; band-era "What's new" removed; Effort/Steps identity colors un-crossed; every state re-verified against the live engine (green · amber · red ladder now real, "Recover" capturable, calibrating shows true progress, no lying banners); orbital labels yield to the verdict title; honest "night recorded, not enough signal" case; restore dialog veil.
-  ([Cenit/Screens/Hoy](Cenit/Screens/Hoy), [StrandDesign/LiquidGlass](Packages/StrandDesign/Sources/StrandDesign/LiquidGlass), [ScreenshotFixtures.swift](Cenit/App/ScreenshotFixtures.swift))
-
 - **Hoy: se retira el texto de sync heredado de la banda / Today drops the band-era sync caption** (FER-65).
   **ES** — Bajo el encabezado quedaba una línea de texto («Sincronizando…») que nació con la banda retirada. Por decisión del dueño se quita: el pull-to-refresh conserva toda su señal —el sello del dial se da cuerda y gira, más la acción VoiceOver «Sincronizar»—, sin un texto redundante. Se depuraron también los comentarios y los `TODO(/pm)` que aún describían la banda.
   **EN** — A leftover text line ("Syncing…") under the header dated back to the retired band. Removed by owner's call: pull-to-refresh keeps its full signal — the dial seal winds and spins, plus the VoiceOver "Sync" action — without the redundant caption.
@@ -1135,11 +1119,6 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
   **ES** — Los cuatro instrumentos del contexto de Hoy se elevan. **Carga** estrena su mini-colina: la silueta de la colina completa destilada al tamaño de la celda — tu día camina la pendiente (subes la cuesta, la cresta es tu equilibrio, la bajada es la sobrecarga), la estela de días previos deja su rastro por la ladera, y la zona de equilibrio se marca a susurro (sin gritar «aprobado»). **Estrés** estrena su heatmap: cada día toma el color de su nivel — una rampa de calor gris → ocre → siena, deliberadamente distinta del naranja de alerta del guardián (ese sí decide) y jamás verde (ese es el veredicto); el color dice el nivel sin una sola palabra. Y los cuatro marcos entran con un respiro —se asientan una vez al aparecer, no vuelven a re-animarse— mientras solo el punto de HOY late suave. Con Reduce Motion todo queda asentado y quieto.
   **EN** — Today's four context instruments are elevated. **Load** gets its mini-hill: the full hill's silhouette distilled to cell size — your day walks the slope (up the climb, the crest is your balance, the descent is overload), previous days trail up the hillside, and the balance zone is marked at a whisper (no shouting "approved"). **Stress** gets its heatmap: each day takes its level's color — a heat ramp grey → ochre → sienna, deliberately distinct from the guardian's alert orange (that one decides) and never green (that's the verdict); color says the level without a word. And the four frames settle in with a breath — drawn once on appear, never re-animating — while only today's point pulses gently. Under Reduce Motion everything settles still.
   ([MatrizChart.swift](Packages/StrandDesign/Sources/StrandDesign/LiquidGlass/MatrizChart.swift), [LiquidColor.swift](Packages/StrandDesign/Sources/StrandDesign/LiquidGlass/LiquidColor.swift))
-
-- **«Tu contexto» se explica al tocarlo / "Your context" explains itself** (FER-61).
-  **ES** — El rótulo del nivel «Contexto» de Hoy gana su «?»: tocarlo abre el manual «Tu contexto», el hogar único del «no deciden tu día» (antes solo la VFC se auto-etiquetaba «no vota» — asimetría resuelta). Ahí se explica qué es cada una (carga, esfuerzo, VFC, estrés) y, honesto, por qué no votan: en un reloj de muñeca la VFC y el estrés no son lo bastante estables para decidir con ellos. La VFC de día del reloj se aleja alrededor de 29% de una banda de pecho, así que se muestra como una línea quieta donde sueles estar, nunca como un rango que cruzaste; tu FC en reposo y tu sueño llevan el veredicto, estas van de acompañantes. Con el mismo candado honesto de siempre: una lectura de reloj, no un diagnóstico.
-  **EN** — Today's "Context" tier label gains its "?": tapping it opens the "Your context" manual, the single home of the "these don't decide your day" honesty (until now only HRV self-labeled "doesn't vote" — asymmetry fixed). It explains what each one is (load, effort, HRV, stress) and, honestly, why they don't vote: on a wrist watch, HRV and stress aren't stable enough to decide with. The watch's daytime HRV drifts about 29% from a chest strap, so it's shown as a quiet line where you usually sit, never as a range you crossed; your resting heart rate and sleep carry the verdict, these ride along as context. With the same honest lock as always: a watch reading, not a diagnosis.
-  ([HojaContexto.swift](Cenit/Screens/Hoy/HojaContexto.swift), [LiquidHoyBuilder+Matriz.swift](Cenit/Screens/Hoy/LiquidHoyBuilder+Matriz.swift))
 
 - **Contexto, más honesto / Context, more honest** (FER-59).
   **ES** — La sección «Contexto» de Hoy se pule con tres arreglos: el Estrés deja de gritar (usaba la tinta más oscura de toda la pantalla siendo lo menos decisivo — ahora pesa como sus vecinas); su rótulo deja de decir «vs your 7 días» (en inglés, y además sugería una comparación que no es: los niveles son cortes fijos) y ahora describe honesto la ventana, «últimos 7 días»; y la fila de VFC y Estrés queda pareja, sin el borde de abajo dentado.
@@ -1353,9 +1332,9 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
   **EN** — Each metric sheet (HRV, stress, sleep…) tinted its whole background with the metric's hue, and the table/button glass "lit up" while dragging. The background is now neutral paper and glass — color lives only in the datum — and the glass stays put during the drag.
   ([LiquidGlassRecipes.swift](Packages/StrandDesign/Sources/StrandDesign/LiquidGlass/LiquidGlassRecipes.swift), [LiquidColor.swift](Packages/StrandDesign/Sources/StrandDesign/LiquidGlass/LiquidColor.swift))
 
-- **Cénit se instala con identidad propia: el identificador de la app dejó de ser el de NOOP / Cénit now installs under its own identity: the app identifier is no longer NOOP's.**
-  **ES** — El identificador con el que iOS reconoce la app (`com.feriracheta.noop`, heredado del nombre viejo del proyecto) resultó estar registrado a otra cuenta de Apple, así que Xcode se negaba a firmar la app, el reloj y el widget: no había manera de instalar una compilación nueva. Ahora es `com.feriracheta.cenit`. **Qué significa para ti:** iOS la ve como una app distinta, así que al instalarla te aparece **junto a** la anterior — borra la vieja. Tus datos viven en el dispositivo bajo la app nueva; lo único que no se traslada son dos colas temporales (los botones de descanso en la pantalla de bloqueo y los atajos de Siri pendientes), que se vuelven a llenar solas.
-  **EN** — The identifier iOS uses to recognize the app (`com.feriracheta.noop`, inherited from the project's old name) turned out to be registered to a different Apple account, so Xcode refused to sign the app, the watch and the widget: there was no way to install a fresh build. It is now `com.feriracheta.cenit`. **What this means for you:** iOS sees it as a different app, so a new install shows up **next to** the old one — delete the old one. Your data lives on-device under the new app; the only things that do not carry over are two temporary queues (the lock-screen rest buttons and pending Siri shortcuts), which refill on their own.
+- **Cénit se instala con identidad propia: el identificador de la app dejó de ser el del proyecto viejo / Cénit now installs under its own identity: the app identifier is no longer the old project's.**
+  **ES** — El identificador con el que iOS reconoce la app (heredado del nombre viejo del proyecto) resultó estar registrado a otra cuenta de Apple, así que Xcode se negaba a firmar la app, el reloj y el widget: no había manera de instalar una compilación nueva. Ahora es `com.feriracheta.cenit`. **Qué significa para ti:** iOS la ve como una app distinta, así que al instalarla te aparece **junto a** la anterior — borra la vieja. Tus datos viven en el dispositivo bajo la app nueva; lo único que no se traslada son dos colas temporales (los botones de descanso en la pantalla de bloqueo y los atajos de Siri pendientes), que se vuelven a llenar solas.
+  **EN** — The identifier iOS uses to recognize the app (inherited from the project's old name) turned out to be registered to a different Apple account, so Xcode refused to sign the app, the watch and the widget: there was no way to install a fresh build. It is now `com.feriracheta.cenit`. **What this means for you:** iOS sees it as a different app, so a new install shows up **next to** the old one — delete the old one. Your data lives on-device under the new app; the only things that do not carry over are two temporary queues (the lock-screen rest buttons and pending Siri shortcuts), which refill on their own.
   ([project.yml](project.yml), [AppGroup.swift](CenitShared/AppGroup.swift))
 - **El héroe de Hoy ahora lo dibuja la GPU / The Today hero now draws on the GPU.**
   **ES** — Las esferas de partículas que se funden en tu veredicto se pintaban una por una en el procesador. Ahora las dibuja la tarjeta gráfica del iPhone, que es para lo que existe: el mismo héroe, con el mismo movimiento, dejándole trabajo libre al resto de la pantalla. No cambia nada de lo que ves ni de lo que puedes tocar, y con «Reducir movimiento» sigue apareciendo quieto y ya asentado, igual que antes.
@@ -1426,9 +1405,9 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
   **EN** — In Today's "Preparación" hero and the Autonomic axis detail, an axis/signal reading within your base said "In your range"; it now says "In range" — shorter, and consistent with copy already used elsewhere in Today. Text only — no data or verdict math changes.
   ([LiquidHoyBuilder.swift](Cenit/Screens/Hoy/LiquidHoyBuilder.swift))
 
-- **Las capturas de fixture (`-noop.fixture`) vuelven a mostrar el veredicto de Preparación / Fixture screenshots (`-noop.fixture`) show the Preparación verdict again.**
-  **ES** — Desde que el héroe de Hoy se movió a Liquid Glass, el harness de datos sintéticos (`-noop.fixture primed|strained|…`, usado por QA y por las capturas de pantalla) sembraba las filas diarias legacy pero nunca calculaba `Preparedness` — así que los tres orbes de eje y el héroe se quedaban en «Sin datos» / «Aún no conozco tu base» pese a tener 40 días de historia sintética. Ahora el fixture corre el motor real `Preparedness.evaluate` sobre la misma historia antes de publicar el dashboard, así que las capturas y las pruebas manuales vuelven a mostrar un veredicto real.
-  **EN** — Since Today's hero moved to Liquid Glass, the synthetic-data harness (`-noop.fixture primed|strained|…`, used by QA and by screenshot capture) seeded the legacy daily rows but never computed `Preparedness` — so the three axis orbs and the hero stayed at "No data" / "I don't know your base yet" despite 40 days of synthetic history. The fixture now runs the real `Preparedness.evaluate` engine over the same history before publishing the dashboard, so captures and manual testing show a real verdict again.
+- **Las capturas de fixture vuelven a mostrar el veredicto de Preparación / Fixture screenshots show the Preparación verdict again.**
+  **ES** — Desde que el héroe de Hoy se movió a Liquid Glass, el harness de datos sintéticos (usado por QA y por las capturas de pantalla) sembraba las filas diarias legacy pero nunca calculaba `Preparedness` — así que los tres orbes de eje y el héroe se quedaban en «Sin datos» / «Aún no conozco tu base» pese a tener 40 días de historia sintética. Ahora el fixture corre el motor real `Preparedness.evaluate` sobre la misma historia antes de publicar el dashboard, así que las capturas y las pruebas manuales vuelven a mostrar un veredicto real.
+  **EN** — Since Today's hero moved to Liquid Glass, the synthetic-data harness (used by QA and by screenshot capture) seeded the legacy daily rows but never computed `Preparedness` — so the three axis orbs and the hero stayed at "No data" / "I don't know your base yet" despite 40 days of synthetic history. The fixture now runs the real `Preparedness.evaluate` engine over the same history before publishing the dashboard, so captures and manual testing show a real verdict again.
   ([ScreenshotFixtures.swift](Cenit/App/ScreenshotFixtures.swift), [Repository.swift](Cenit/Data/Repository.swift))
 
 - **Las hojas de resumen se visten de Liquid Glass / The summary sheets dress in Liquid Glass.**
@@ -1479,8 +1458,8 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
   ([TodayView.swift](Cenit/Screens/TodayView.swift), [AppLocalized.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/AppLocalized.swift))
 
 - **La documentación describe Cénit como Apple Salud desde el día uno / Docs describe Cénit as Apple Health from day one.**
-  **ES** — Se reescribe la documentación del repo (README, CONTRIBUTING, BUILD, DATA_MODEL, ANALYTICS, PRIVACY_SECURITY, LIBRARY, ATTRIBUTION, plantilla de PR, CLAUDE.md, ARCHITECTURE) para que lea Cénit como una app de Apple Salud, sin marco residual de banda. Completa en la capa de docs el retiro del paquete `WhoopProtocol`, de las guías de protocolo/BLE y del tooling de captura en Linux ya eliminados del árbol.
-  **EN** — Rewrites the repo documentation (README, CONTRIBUTING, BUILD, DATA_MODEL, ANALYTICS, PRIVACY_SECURITY, LIBRARY, ATTRIBUTION, PR template, CLAUDE.md, ARCHITECTURE) so it describes Cénit as an Apple Health app, without residual band framing. Completes on the docs layer the removal of the `WhoopProtocol` package, the protocol/BLE guides, and the Linux capture tooling already deleted from the tree.
+  **ES** — Se reescribe la documentación del repo (README, CONTRIBUTING, BUILD, DATA_MODEL, ANALYTICS, PRIVACY_SECURITY, LIBRARY, ATTRIBUTION, plantilla de PR, CLAUDE.md, ARCHITECTURE) para que lea Cénit como una app de Apple Salud, sin marco residual de banda. Completa en la capa de docs el retiro del paquete de protocolo BLE, de las guías de protocolo y del tooling de captura en Linux ya eliminados del árbol.
+  **EN** — Rewrites the repo documentation (README, CONTRIBUTING, BUILD, DATA_MODEL, ANALYTICS, PRIVACY_SECURITY, LIBRARY, ATTRIBUTION, PR template, CLAUDE.md, ARCHITECTURE) so it describes Cénit as an Apple Health app, without residual band framing. Completes on the docs layer the removal of the BLE protocol package, the protocol guides, and the Linux capture tooling already deleted from the tree.
   ([README.md](README.md), [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md))
 
 - **Entrenar deja de mostrar un dato de recuperación que se quedaba «calibrando» para siempre / Train no longer shows a recovery readout stuck on "calibrating" forever.**
@@ -1498,11 +1477,6 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
   **EN** — Your sleep-schedule regularity (how consistent your bed and wake times are) got stuck on "calibrating" forever without a band: it only looked at band nights and ignored your Apple Watch nights. Now it also reads your Apple Health nights — which do carry real onset and wake times — so regularity shows up again in Sleep Detail and Body Age. Along the way, last night's "asleep/awake" clock times show again on Apple nights, and "N nights to go" counts only full nights, not naps.
   ([SleepDetailScreen.swift](Cenit/Screens/SleepDetailScreen.swift), [CuerpoView.swift](Cenit/Screens/CuerpoView.swift), [SleepRegularity.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/SleepRegularity.swift))
 
-- **Cénit ya no te habla de una banda que no tienes / Cénit no longer mentions a fitness band you don't have.**
-  **ES** — Quedaban textos por toda la app que le hablaban a la banda —«ponte la banda esta noche», «tu banda afina la lectura», «medido con tu banda»— y hasta te sugerían usar una. Como Cénit ahora lee solo de Apple Salud y tu Apple Watch, esos mensajes le mentían a cualquiera que empieza desde cero (un teléfono nuevo nunca tiene datos de banda). Los reescribimos en lenguaje de Apple Watch / Apple Salud, quitamos las sugerencias de la banda, y ocultamos el experimento de fase de ciclo, que solo funcionaba con la temperatura de la banda. Además dejamos un chequeo automático que evita que ese tipo de copy se vuelva a colar.
-  **EN** — Copy across the app still spoke to a fitness band — "wear your strap tonight," "your strap sharpens the reading," "measured with your band" — and even suggested getting one. Since Cénit now reads only from Apple Health and your Apple Watch, those messages misled anyone starting fresh (a new phone never has band data). We rewrote them in Apple Watch / Apple Health language, dropped the band suggestions, and hid the cycle-phase experiment, which only worked with the band's temperature. We also added an automated check that keeps that kind of copy from slipping back in.
-  ([MetricInfoCatalog.swift](Cenit/Screens/MetricInfoCatalog.swift), [TodayView.swift](Cenit/Screens/TodayView.swift), [Tools/check-band-copy.py](Tools/check-band-copy.py))
-
 - **Abrir la app ya no rearma el tablero dos veces.** Al volver a Cénit, antes se reensamblaba el tablero completo dos veces por cada apertura (desperdicio de trabajo y batería). Ahora se arma una sola vez: solo se fuerza un refresco cuando cambió el día —para que «Hoy» pase a la fecha correcta después de la medianoche aunque Apple Salud no traiga datos nuevos—; el resto de las aperturas se apoyan en el refresco que ya hace la sincronización.
 
 - **La Carga del día deja de mostrar una gráfica «hora a hora» que ya no tenía cómo llenarse / Day Strain drops an "hour by hour" chart that could no longer fill.**
@@ -1510,14 +1484,9 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
   **EN** — The Day Strain detail carried a chart of how your effort built up through the day. That curve was drawn from the band's second-by-second pulse; without the band there's nothing to trace it, so it showed a permanent "not enough activity yet." We retired it: the Day Strain number — what your Apple Watch can actually estimate — stays exactly the same, and the detail no longer shows you an empty gap. Rebuilding that curve from the Apple Watch's all-day pulse is noted as separate future work.
   ([StrainDetailScreen.swift](Cenit/Screens/StrainDetailScreen.swift), [MetricInfoSheet.swift](Cenit/Screens/MetricInfoSheet.swift))
 
-- **«Hoy» muestra una sola cara — se retira el número de recuperación estilo-WHOOP / Today shows a single hero — the WHOOP-style recovery number is retired.**
-  **ES** — En «Hoy», el número grande de recuperación (0–100) era un resto de la época de la banda: en una instalación de Apple Salud nunca se calculaba, así que no aparecía, pero el código seguía ahí y hasta parpadeaba un instante al abrir la app. Lo retiramos: «Hoy» tiene ahora una sola cara —el sueño de anoche como número principal y la tarjeta de «cómo vienes»—, sin parpadeos y sin un veredicto que no se podía mostrar con honestidad.
-  **EN** — On "Today," the big 0–100 recovery number was a leftover from the band era: on an Apple Health install it was never computed, so it never showed, but the code lingered and even flickered for an instant when the app opened. We retired it: "Today" now has a single hero — last night's sleep as the dominant number and the "how you're trending" card — with no flicker and no verdict we couldn't show honestly.
-  ([TodayView.swift](Cenit/Screens/TodayView.swift))
-
 ## 1.85 — iOS: Apple Salud only — la banda se retira, con integridad de datos y rendimiento reforzados
 
-El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y pasa a ser una app de Apple Salud: el soporte de banda se retira del producto y los datos históricos importados se conservan intactos y solo-lectura. Sobre esa base, una tanda de endurecimiento: guardados que avisan si fallan en vez de perder el dato en silencio, un error momentáneo de lectura que ya no vacía la pantalla, la Carga del día estimada que deja de releer años de pulso en cada refresco, y limpieza de restos internos de la banda. Todo sigue 100% en el dispositivo.
+El hito de este corte (2026-07-20) es que Cénit deja de usar una banda de terceros y pasa a ser una app de Apple Salud: el soporte de banda se retira del producto y los datos históricos importados se conservan intactos y solo-lectura. Sobre esa base, una tanda de endurecimiento: guardados que avisan si fallan en vez de perder el dato en silencio, un error momentáneo de lectura que ya no vacía la pantalla, la Carga del día estimada que deja de releer años de pulso en cada refresco, y limpieza de restos internos de la banda. Todo sigue 100% en el dispositivo.
 
 - **Un error momentáneo de lectura ya no vacía la pantalla.** Si la base de datos está ocupada (p. ej. durante una compactación) cuando se refresca, Cénit conserva el tablero anterior en vez de publicar uno vacío como si fuera real; así una lectura fallida transitoria no borra tus datos de la vista ni cierra por error un experimento en curso.
 
@@ -1556,15 +1525,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **EN** — Cénit writes some of your numbers into Apple Health so you can see them alongside everything else: resting heart rate, variability, blood oxygen, respiratory rate and your sleep stages. It also saves each strength session there. The problem was that when it read Apple Health back, **it didn't skip what it had written itself** — so it read its own entries and treated them as Watch measurements. Two consequences. The first, invisible: the "this is normal for you, according to Apple" reference your day is scored against had Cénit's own numbers inside it, so it was partly comparing you to itself. The second was visible: **every strength session showed up twice in your history**, once real and once labelled as an Apple workout. Every read now skips Cénit's own entries, and an automated test keeps this from creeping back — it's a failure that had already recurred eleven times by another route, and a comment asking for care was not enough. **An honest note about what's already stored:** this stops the problem going forward, but it does not clean the past on its own. Days that get synced again are rewritten with the right values; **duplicate workouts already stored stay put**, though — they were keyed by start time, and nothing deletes them once they stop being produced.
   ([HealthKitBridge.swift](CenitApp/Health/HealthKitBridge.swift), [HealthKitReadPredicateGuardTests.swift](CenitUnitTests/HealthKitReadPredicateGuardTests.swift))
 
-- **Ya nada te pide importar algo que ya no existe, y el permiso de Bluetooth deja de nombrar una marca ajena / Nothing asks you to import something that no longer exists any more, and the Bluetooth permission stops naming someone else's brand.**
-  **ES** — Cuatro pantallas vacías seguían diciéndote «importa la exportación de tu banda en Fuentes de datos» para llenar tu historial. Ese importador se eliminó hace unas versiones, así que la instrucción era imposible: te mandaba a un botón que ya no está. Ahora apuntan a lo que sí puedes hacer, conectar Apple Salud. Y el diálogo con el que iOS te pide permiso de Bluetooth nombraba la marca de la banda; ahora usa vocabulario neutro sin cambiar lo que promete: qué lee, y que nada sale de tu iPhone. Si ya le diste permiso, sigue dado — cambiar ese texto no lo revoca. Por dentro: la pantalla de Hoy dejó de hacer un trabajo que ya no alimentaba nada, incluida una escritura a la base de datos en cada refresco, para una función que está apagada.
-  **EN** — Four empty states still told you to "import your strap export in Data Sources" to fill your history. That importer was removed a few versions ago, so the instruction was impossible: it pointed at a button that isn't there. They now point at something you can actually do, connecting Apple Health. And the dialog iOS shows to ask for Bluetooth permission named the band's brand; it now uses neutral wording without changing what it promises: what it reads, and that nothing leaves your iPhone. If you already granted it, it stays granted — changing that text doesn't revoke it. Under the hood: the Today screen stopped doing work that no longer fed anything, including a database write on every refresh, for a feature that is switched off.
-  ([TodayView.swift](Cenit/Screens/TodayView.swift), [RootTabView.swift](CenitApp/App/RootTabView.swift), [project.yml](project.yml))
-- **El encabezado de este documento deja de prometer una importación que ya no existe / This document's header stops promising an import that no longer exists.**
-  **ES** — El bloque «What to expect» seguía diciendo «importa tu exportación de WHOOP para llenar tu historial al instante». Ese importador se retiró en FER-991, así que la promesa era falsa para cualquiera que llegara al repo. Ahora apunta a lo que sí existe: conectar Apple Salud en **Datos y fuentes**, que adelanta tu base con el historial que ya traes en el teléfono. De paso, ese mismo bloque dejó de nombrar la marca ajena para describir el hardware —dice **4.0** y **5/MG**, el mismo vocabulario neutro que FER-994 fijó dentro de la app—, porque es el texto que alguien lee al asomarse al proyecto. El descargo de no-afiliación del inicio **se conserva intacto, a propósito**: sigue siendo una advertencia verdadera mientras la app hable con la banda, y es justo lo que FER-994 también decidió no tocar. Solo documentación: ninguna pantalla y ningún número cambian.
-  **EN** — The "What to expect" block still said "import your WHOOP export to backfill your history instantly". That importer was retired in FER-991, so the promise was false to anyone landing on the repo. It now points at what does exist: connecting Apple Health in **Data & sources**, which starts your baseline ahead using the history already on your phone. While there, the same block stopped naming the other brand to describe the hardware — it says **4.0** and **5/MG**, the neutral vocabulary FER-994 settled on inside the app — since this is the text someone reads when they look at the project. The non-affiliation disclaimer at the top is **deliberately left intact**: it stays a true warning while the app talks to the strap, exactly what FER-994 also chose not to touch. Documentation only: no screen and no number changes.
-  ([CHANGELOG.md](CHANGELOG.md))
-
 - **Un momento marcado con la voz se guarda a la hora en que lo pediste / A moment marked by voice is saved at the time you asked for it.**
   **ES** — Si le pedías a Siri «marca un momento en Cénit» con el teléfono bloqueado, Cénit apuntaba la hora equivocada. El atajo dejaba el recado en una fila y el momento se sellaba hasta que abrías la app, así que un momento de las 7 de la mañana podía quedar registrado a mediodía — justo lo que un marcador con hora no debe hacer. Ahora la fila también guarda el instante en que lo pediste, y ese es el que se registra. Los momentos siguen quedando en orden aunque uno llegue tarde a la fila, y un recado que ya estaba en espera antes de esta actualización no se pierde.
   **EN** — If you asked Siri to "mark a moment in Cénit" with your phone locked, Cénit wrote down the wrong time. The shortcut left a note in a queue and the moment was only stamped when you next opened the app, so a 7 a.m. moment could get filed at noon — exactly what a timestamped marker must not do. The queue now carries the instant you asked, and that's what gets recorded. Moments stay in order even when one arrives late, and a note already waiting in the queue from before this update isn't lost.
@@ -1580,8 +1540,8 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **EN** — The live session, the workout editor and the workout detail were left out — each exited with a different button. All three use the same paper disc now. And in all three you can drag from the left edge to leave, including the session and the edit sheet, where iOS doesn't offer that gesture on its own. Swiping always does what tapping does: in the session it minimizes (it stays alive, the pill reopens it), and in the editor, if you have unsaved changes, it asks before discarding them.
   ([SwipeBack.swift](Cenit/System/SwipeBack.swift))
 - **El buzón compartido entre la app y la pantalla de bloqueo deja de apuntar a dos lugares / The shared inbox between the app and the lock screen stops pointing at two places.**
-  **ES** — El nombre del contenedor compartido («App Group») estaba escrito a mano en dos archivos y con el tiempo se separaron: uno decía `group.com.noopapp.noop` —resto del nombre viejo del proyecto— y todos los permisos reales de la app decían `group.com.feriracheta.noop`. **Nada se rompió para ti**: los dos caminos que lo usan (los botones «+30 s»/«Saltar» de la Live Activity, y los atajos de Siri) tenían cada quien su copia y por dentro coincidían consigo mismos. Pero era una trampa esperando: iOS **no avisa** cuando pides un contenedor al que la app no tiene permiso —te devuelve uno privado y todo *parece* funcionar—, así que el siguiente que compartiera datos entre la app y la pantalla de bloqueo lo habría hecho contra un buzón fantasma, sin un solo mensaje de error. Ahora el nombre se declara **una sola vez** y los demás lo leen de ahí, y el chequeo de arranque pregunta por el contenedor real en vez de por algo que siempre responde que sí. Interno: no cambia ninguna pantalla ni ningún número.
-  **EN** — The shared-container ("App Group") name was hand-written in two files and drifted apart: one said `group.com.noopapp.noop` — a leftover from the project's old name — while every actual entitlement said `group.com.feriracheta.noop`. **Nothing was broken for you**: the two paths that use it (the Live Activity's "+30 s"/"Saltar" buttons, and the Siri shortcuts) each carried their own copy and were internally consistent. But it was a trap waiting to spring: iOS gives **no signal** when you ask for a container the app isn't entitled to — it hands back a private one and everything *appears* to work — so the next feature to share data between the app and the lock screen would have written into a phantom inbox without a single error. The name is now declared **once** and read from there by everyone, and the startup check asks about the real container instead of something that always answers yes. Internal: no screen and no number changes.
+  **ES** — El nombre del contenedor compartido («App Group») estaba escrito a mano en dos archivos y con el tiempo se separaron: uno seguía usando el nombre viejo del proyecto y todos los permisos reales de la app usaban el nombre actual. **Nada se rompió para ti**: los dos caminos que lo usan (los botones «+30 s»/«Saltar» de la Live Activity, y los atajos de Siri) tenían cada quien su copia y por dentro coincidían consigo mismos. Pero era una trampa esperando: iOS **no avisa** cuando pides un contenedor al que la app no tiene permiso —te devuelve uno privado y todo *parece* funcionar—, así que el siguiente que compartiera datos entre la app y la pantalla de bloqueo lo habría hecho contra un buzón fantasma, sin un solo mensaje de error. Ahora el nombre se declara **una sola vez** y los demás lo leen de ahí, y el chequeo de arranque pregunta por el contenedor real en vez de por algo que siempre responde que sí. Interno: no cambia ninguna pantalla ni ningún número.
+  **EN** — The shared-container ("App Group") name was hand-written in two files and drifted apart: one still used the project's old name while every actual entitlement used the current name. **Nothing was broken for you**: the two paths that use it (the Live Activity's "+30 s"/"Saltar" buttons, and the Siri shortcuts) each carried their own copy and were internally consistent. But it was a trap waiting to spring: iOS gives **no signal** when you ask for a container the app isn't entitled to — it hands back a private one and everything *appears* to work — so the next feature to share data between the app and the lock screen would have written into a phantom inbox without a single error. The name is now declared **once** and read from there by everyone, and the startup check asks about the real container instead of something that always answers yes. Internal: no screen and no number changes.
   ([AppGroup.swift](CenitShared/AppGroup.swift), [RestActivityBridge.swift](CenitWidgets/Shared/RestActivityBridge.swift), [project.yml](project.yml))
 
 - **El mismo peso ya no se lee distinto en dos pantallas / The same weight no longer reads differently on two screens.**
@@ -1599,30 +1559,10 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **EN** — On an exercise card, the pair of buttons that closes it read "Add set" and "Add warm-up". The second, 21 characters wide in a button that takes half a row, wrapped onto two lines and broke the pair's symmetry. The root cause wasn't the word's length but the icon: the warm-up button carried a flame — which in Cénit's system means "effort/calories", not "add" — so the verb fell through to the word, which then had to carry both the action **and** the object. Both buttons now share the same `+`, the icon carries the verb, and the labels come out short and even: **"Set"** and **"Warm-up"**. VoiceOver still announces the full action, "Add set" and "Add warm-up": what got shorter is what you see, not what it says. The button lives in one shared component, so editing a routine and training it live look the same.
   ([SetActionPills.swift](Cenit/Screens/SetActionPills.swift), [ICONOGRAFIA.md](docs/design-system/ICONOGRAFIA.md))
 
-- **La app deja de nombrar la marca ajena en su propio texto / The app stops naming the other brand in its own copy (FER-994).**
-  **ES** — Cénit hablaba de «tu banda WHOOP», «la app de WHOOP», «tu exportación de WHOOP» en 42 textos vivos, y el «Novedades» dentro de la app cargaba 81 versiones de la era Mac/Android que mencionaban la marca 75 veces (ninguna describía el app de iPhone, y ninguna estaba traducida). Ahora el texto dice lo que de verdad importa: **tu banda**, **la app oficial de la banda**, **la exportación de tu banda**, **4.0** y **5/MG** cuando la diferencia sí cambia lo que puedes esperar. El historial de «Novedades» se recortó a las tres versiones recientes; el archivo completo sigue en este CHANGELOG. **Ninguna frase viva perdió su español**: las 42 llaves renombradas conservan su traducción y las 3,169 restantes quedaron intactas. Lo que **no** se tocó, a propósito: los avisos de no-afiliación y la pantalla de Términos —siguen siendo advertencias verdaderas mientras la app hable con la banda— y los créditos a quienes documentaron el protocolo, porque retirarlos sería apropiarse de trabajo ajeno.
-  **EN** — Cénit talked about "your WHOOP strap", "the WHOOP app", "your WHOOP export" across 42 live strings, and the in-app "What's New" carried 81 Mac/Android-era releases naming the brand 75 times (none of them described the iPhone app, and none were localized). The copy now says what actually matters: **your strap**, **the strap's official app**, **your strap export**, and **4.0** / **5/MG** where the generation genuinely changes what to expect. The "What's New" history was truncated to the three recent releases; the full archive stays in this CHANGELOG. **No live phrase lost its Spanish**: all 42 renamed keys kept their translation and the other 3,169 are untouched. Deliberately **not** touched: the non-affiliation notices and the Terms screen (still true warnings while the app talks to the strap) and the credits to the people who documented the protocol, since removing those would be taking credit for someone else's work.
-  ([AppChangelog.swift](Cenit/System/AppChangelog.swift), [ProjectInfo.swift](Cenit/System/ProjectInfo.swift), [translate-es.py](Tools/translate-es.py))
-
 - **La app deja de cargar 988 textos de pantallas que ya no existen / The app stops carrying 988 strings from screens that no longer exist (FER-994).**
   **ES** — El catálogo de textos de Cénit se compila completo dentro de la app: cada frase que alguna vez estuvo en una pantalla sigue viajando en tu teléfono aunque esa pantalla ya se haya retirado. Se barrió el árbol entero buscando qué frases todavía usa el código y se borraron las **988 que ningún archivo referencia** (de 4,160 a 3,172 llaves, 520 KB menos), incluidas las veinte de la era Mac que hablaban de «esta Mac» y de «Ajustes del Sistema de macOS». **Ninguna frase viva perdió su traducción**: las 3,172 sobrevivientes quedaron idénticas, byte por byte, con sus 3,030 valores en español intactos. Interno: no cambia ningún número, ninguna pantalla y ningún texto que veas.
   **EN** — Cénit's string catalog is compiled whole into the app: every phrase that ever lived on a screen keeps riding along on your phone even after that screen is gone. The whole tree was swept for which phrases the code still uses, and the **988 that no file references** were deleted (4,160 → 3,172 keys, 520 KB lighter), including the twenty Mac-era ones still talking about "this Mac" and "macOS System Settings". **No live phrase lost its translation**: all 3,172 survivors are byte-for-byte identical, with their 3,030 Spanish values intact. Internal: no number, no screen and no text you see changes.
   ([find-dead-strings.py](Tools/find-dead-strings.py), [translate-es.py](Tools/translate-es.py), [I18N.md](docs/design-system/I18N.md))
-
-- **El motor que califica tus noches ya no conoce el tipo de banda / The engine that scores your nights no longer knows the band type (FER-993).**
-  **ES** — Para saber si tu banda estima los pasos del movimiento (la 4.0) o los lee de un contador nativo (5/MG), el motor de inteligencia cargaba el tipo `DeviceFamily` completo: el mismo que guarda los UUID de GATT y los bytes del saludo BLE. Ahora recibe solo ese dato —un sí/no— desde la fachada de la app, y no importa el módulo del protocolo de la banda. Ajustes lee el mismo dato por la misma puerta. El tipo no se movió ni se tocó: sigue detrás de la frontera BLE, que es justo donde debe estar. Interno: **ningún número cambia**. Las dos calibraciones que dependían del tipo (el ajuste de temperatura de piel de la 4.0 y la ventana de movimiento) quedan idénticas banda por banda, y hay pruebas nuevas que lo fijan.
-  **EN** — To know whether your band estimates steps from motion (the 4.0) or reads them from a native counter (5/MG), the intelligence engine pulled in the whole `DeviceFamily` type — the same one holding the GATT UUIDs and the BLE hello bytes. It now takes just that fact — a yes/no — from the app's façade, and no longer imports the strap's protocol module. Settings reads the same fact through the same door. The type itself was neither moved nor touched: it stays behind the BLE boundary, exactly where it belongs. Internal: **no number changes.** The two calibrations that keyed off the type (the 4.0's skin-temperature offset and the motion window) are identical band for band, and new tests pin that.
-  ([IntelligenceEngine.swift](Cenit/Data/IntelligenceEngine.swift), [WhoopModel.swift](Cenit/BLE/WhoopModel.swift), [AjustesView.swift](Cenit/Screens/AjustesView.swift))
-
-- **Limpieza interna: la etiqueta con la que se guardan tus datos ya no lleva marca / Internal cleanup: the label your data is stored under no longer carries a brand.**
-  **ES** — Cada dato que Cénit guarda lleva una etiqueta que dice de qué fuente vino (la banda, Apple Health, lo que la app calcula sola). La de la banda decía `my-whoop` —el nombre del proyecto comunitario del que salió el protocolo—, así que una marca ajena estaba escrita dentro de tu base de datos. Ahora esa etiqueta es `strap`, neutra. El cambio se aplica con una **migración nueva (v36)** que renombra la etiqueta **sin perder una sola fila**: las cinco tablas de 1 Hz guardan un número, no el texto, así que basta renombrar una fila para que todas apunten al lugar correcto; las demás se recorren leyendo el esquema real de tu base, para que ninguna tabla se quede olvidada con tus datos huérfanos. La fuente derivada (lo que la app calcula) se mueve junto con ella. La migración v21, ya publicada, no se tocó. Interno: no cambia ningún número ni nada visible; tu historial completo sigue ahí.
-  **EN** — Every row Cénit stores carries a label saying which source it came from (the strap, Apple Health, what the app computes on its own). The strap's said `my-whoop` — the name of the community project the protocol came from — so a third-party brand was written inside your database. That label is now the neutral `strap`. The change ships as a **new migration (v36)** that renames the label **without losing a single row**: the five 1 Hz tables store a number rather than the text, so renaming one row re-points all of them at once; the rest are swept by reading your database's live schema, so no table can be forgotten and leave your rows orphaned. The derived computed source moves with it. The already-shipped v21 migration was not touched. Internal: no number and nothing visible changes; your full history is intact.
-  ([Database.swift](Packages/CenitStore/Sources/CenitStore/Database.swift), [MigrationTests.swift](Packages/CenitStore/Tests/CenitStoreTests/MigrationTests.swift), [ARCHITECTURE.md](docs/ARCHITECTURE.md))
-
-- **Limpieza interna: los datos de tu cuerpo ya no viven dentro del módulo de la banda / Internal cleanup: your body's data no longer lives inside the strap module.**
-  **ES** — Las formas con las que Cénit guarda y calcula lo que mide tu cuerpo (pulso, R-R, batería, SpO₂, temperatura de piel, respiración, movimiento, pasos, eventos) vivían dentro del módulo que habla el protocolo BLE de la banda. Eso ataba la base de datos y toda la matemática a ese módulo aunque no tuvieran nada que ver con bytes ni con frames. Ahora esas formas viven en un paquete propio y neutro, `BiometricStreams`, que no depende de nadie: la persistencia y los cálculos hablan ese vocabulario **sin linkear el protocolo de la banda**. La dirección es de un solo sentido —`WhoopProtocol` depende de `BiometricStreams`, nunca al revés— y sin `@_exported`, para que el compilador pueda comprobar la frontera. El tipo de evento de la banda pasó a llamarse `StreamEvent` en la mudanza. Interno: no cambia ningún dato, ningún número ni nada visible; ninguna migración se tocó.
-  **EN** — The shapes Cénit uses to store and compute what your body measures (heart rate, R-R, battery, SpO₂, skin temperature, respiration, motion, steps, events) lived inside the module that speaks the strap's BLE protocol. That tied the database and all the math to that module even though neither has anything to do with bytes or frames. Those shapes now live in their own neutral package, `BiometricStreams`, which depends on nothing: persistence and analytics speak that vocabulary **without linking the strap's protocol**. The direction is one-way — `WhoopProtocol` depends on `BiometricStreams`, never the reverse — and with no `@_exported`, so the compiler can verify the boundary. The strap event type was renamed `StreamEvent` in the move. Internal: no data, no number and nothing visible changes; no migration was touched.
-  ([Streams.swift](Packages/BiometricStreams/Sources/BiometricStreams/Streams.swift), [Values.swift](Packages/BiometricStreams/Sources/BiometricStreams/Values.swift), [ARCHITECTURE.md](docs/ARCHITECTURE.md))
 
 - **Los ejercicios que creas al importar ya cuentan para tu análisis / Exercises you create while importing now count toward your analysis.**
   **ES** — Al importar un plan, «Crear nuevo» daba de alta el ejercicio con solo el nombre, sin músculo. Se veía normal en la lista, pero era invisible para todo: no salía en el mapa muscular, no sumaba al volumen semanal y no contaba para decidir si tu rutina es de empuje, tirón o pierna, así que un solo ejercicio importado podía teñir mal toda la pestaña Entrenar sin avisarte. Ahora «Crear nuevo» abre el mismo formulario de la biblioteca, ya con el nombre del plan y **el músculo propuesto a partir del nombre** para que solo lo confirmes o lo corrijas. El músculo es obligatorio, y la app te dice para qué sirve. Si ya tenías ejercicios creados así, la biblioteca los marca con «Sin músculo · toca para completar» y los abre para arreglarlos, sin borrar nada.
@@ -1635,8 +1575,8 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   ([BackButton.swift](Packages/StrandDesign/Sources/StrandDesign/BackButton.swift), [SwipeBack.swift](Cenit/System/SwipeBack.swift))
 
 - **El núcleo de persistencia se llama `CenitStore` / The persistence core is now `CenitStore` (FER-993).**
-  **ES** — El paquete `WhoopStore` pasa a llamarse `CenitStore`: paquete, módulo, actor, target de pruebas y el bundle de recursos. Es un rename mecánico — ninguna función, firma ni comportamiento cambia, y la base de datos y sus migraciones quedan intactas. Importa porque el nombre del módulo se linkea como texto dentro del binario (símbolos, `#file`, el nombre del bundle) y sobrevive a `strip`: era el último rastro de la marca ajena en el núcleo compartido, y solo el rename lo quita. `WhoopProtocol` conserva su nombre por ahora.
-  **EN** — The `WhoopStore` package is now `CenitStore`: package, module, actor, test target and resource bundle. A mechanical rename — no function, signature or behavior changes, and the database and its migrations are untouched. It matters because the module name is linked as text inside the binary (symbols, `#file`, bundle name) and survives `strip`: it was the last trace of the third-party brand in the shared core, and only the rename removes it. `WhoopProtocol` keeps its name for now.
+  **ES** — El paquete de persistencia se renombra a `CenitStore`: paquete, módulo, actor, target de pruebas y el bundle de recursos. Es un rename mecánico — ninguna función, firma ni comportamiento cambia, y la base de datos y sus migraciones quedan intactas. Importa porque el nombre del módulo se linkea como texto dentro del binario (símbolos, `#file`, el nombre del bundle) y sobrevive a `strip`: era el último rastro de la marca ajena en el núcleo compartido, y solo el rename lo quita.
+  **EN** — The persistence package is renamed to `CenitStore`: package, module, actor, test target and resource bundle. A mechanical rename — no function, signature or behavior changes, and the database and its migrations are untouched. It matters because the module name is linked as text inside the binary (symbols, `#file`, bundle name) and survives `strip`: it was the last trace of the third-party brand in the shared core, and only the rename removes it.
   ([Packages/CenitStore/](Packages/CenitStore/), [project.yml](project.yml), [ARCHITECTURE.md](docs/ARCHITECTURE.md))
 
 - **Código muerto fuera del binario: Coach AI, recibo compartible y DFA α1 / Dead code out of the binary: AI Coach, share receipt, and DFA α1.**
@@ -1648,11 +1588,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **ES** — El dock muestra exactamente **Hoy · Tendencias · Entrenar · Ajustes**. Patrones (pestaña) y Dieta (fila en Entrenar + CTAs desde Hoy) dejan de ser alcanzables desde la UI; **todo su código se queda en el repo y compilando** (BucleView, pantalla de dieta, motores, enums `.coach` / `.dieta`) listo para reactivarse en minutos. No es un borrado: es apagar el interruptor.
   **EN** — The dock shows exactly **Today · Trends · Train · Settings**. Patterns (tab) and Diet (row in Train + CTAs from Today) are no longer reachable from the UI; **all their code stays in the repo and compiling** (BucleView, diet screen, engines, `.coach` / `.dieta` enums), ready to re-enable in minutes. Not a delete — just flipping the switch off.
   ([RootTabView.swift](CenitApp/App/RootTabView.swift), [TodayView.swift](Cenit/Screens/TodayView.swift), [EntrenarView.swift](Cenit/Screens/EntrenarView.swift))
-
-- **Cénit ya no importa ni exporta archivos con forma de WHOOP; el respaldo completo se queda igual / Cénit no longer imports or exports WHOOP-shaped files; the full backup is untouched.**
-  **ES** — Se retiraron la importación de una exportación de WHOOP (.zip) y el «Exportar CSV», que escribía un zip con forma de exportación de WHOOP para que ese mismo importador lo releyera. **Tus datos no se tocan**: nada se borra de tu dispositivo, y la forma de mover todo a otro teléfono sigue siendo la misma de siempre — Respaldo → Exportar, que guarda un archivo sin pérdida y lo restaura completo. La importación de Apple Health se queda intacta.
-  **EN** — The WHOOP export (.zip) import and "Export CSV" — which wrote a WHOOP-shaped zip only so that same importer could read it back — have been retired. **Your data is untouched**: nothing is deleted from your device, and moving everything to another phone still works the same way — Backup → Export, which writes a lossless file and restores it whole. The Apple Health import is unchanged.
-  ([DataSourcesView.swift](Cenit/Screens/DataSourcesView.swift))
 
 - **El esfuerzo acumulado del día se verifica también cuando cambia el ritmo de muestreo a media jornada / The day's accumulated strain is now verified across a mid-day sampling-cadence change.**
   **ES** — El esfuerzo del día en curso ya se calculaba de forma incremental (solo las muestras nuevas), en vez de rehacer el día completo cada refresco. Faltaba medir el caso menos obvio: cuando el espaciado típico entre latidos cambia a media jornada (de una toma dispersa cada 30 s a una densa cada segundo), todas las horas anteriores se re-pesan. Ahora hay una prueba que lo comprueba: el número es idéntico al del recálculo completo. **Nada cambia en pantalla** — es una garantía, no un ajuste.
@@ -1768,14 +1703,9 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **EN** — Opening a metric detail now parses day keys and buckets HR zones off the main thread; Compare and Explore move the Pearson sweep to `Task.detached` with Sendable snapshots (ids + rows, never Color or MetricDescriptor); Strain's 90-day heat is precomputed in the model; three details switch to `LazyVStack`; and `StatCell` uses a stable slot id (no UUID per render).
   ([MetricDetailScreen.swift](Cenit/Screens/MetricDetailScreen.swift), [StrainDetailScreen.swift](Cenit/Screens/StrainDetailScreen.swift), [StressDetailScreen.swift](Cenit/Screens/StressDetailScreen.swift), [SkinTempDetailScreen.swift](Cenit/Screens/SkinTempDetailScreen.swift), [CompareView.swift](Cenit/Screens/CompareView.swift), [MetricExplorerView.swift](Cenit/Screens/MetricExplorerView.swift), [MetricInfoSheet.swift](Cenit/Screens/MetricInfoSheet.swift))
 
-- **El jalón de la mañana termina antes y estorba menos / The morning catch-up finishes sooner and gets in the way less.**
-  **ES** — Durante «Descargando la noche…», Cénit ya no re-decodifica cada paquete una segunda vez (con hex por campo incluido) solo para decidir qué archivar, el vigilante de la descarga deja de re-armarse miles de veces por segundo, y el archivo de paquetes ilegibles se construye fuera del hilo de la interfaz — conservando la garantía de que todo queda guardado ANTES de confirmarle a la banda. El monitoreo en vivo también decodifica cada latido una sola vez. Cero cambios en lo que se le envía a la banda.
-  **EN** — During "Downloading the night…", Cénit no longer re-decodes every packet a second time (per-field hex included) just to decide what to archive, the download watchdog stops re-arming thousands of times a second, and the unreadable-packet archive is built off the UI thread — keeping the guarantee that everything is stored BEFORE confirming to the strap. Live monitoring also decodes each beat exactly once. Zero changes to what is sent to the strap.
-  ([Backfiller.swift](Cenit/Collect/Backfiller.swift), [HistoricalStreams.swift](Packages/WhoopProtocol/Sources/WhoopProtocol/HistoricalStreams.swift), [BLEManager.swift](Cenit/BLE/BLEManager.swift), [Collector.swift](Cenit/Collect/Collector.swift))
-
 - **Los papeles vuelven a decir la verdad / The paperwork tells the truth again.**
-  **ES** — La documentación técnica se pone al día con el código real (versiones de esquema, grafo de paquetes, plataformas, pantallas retiradas, el árbol del repo), queda escrito qué identificadores del legado NOOP están congelados a propósito y por qué nunca se renombran, y ocho textos de Ajustes y hojas que estaban en español «de fábrica» ahora siguen la convención del catálogo (con su traducción intacta). El instalable de release ahora se llama Cénit.
-  **EN** — The technical docs catch up with the real code (schema versions, package graph, platforms, retired screens, the repo tree), the deliberately frozen NOOP-legacy identifiers are now documented with their why, and eight Settings/sheet strings that were Spanish-keyed now follow the catalog convention (translations intact). The release artifact is now named Cénit.
+  **ES** — La documentación técnica se pone al día con el código real (versiones de esquema, grafo de paquetes, plataformas, pantallas retiradas, el árbol del repo), queda escrito qué identificadores legados están congelados a propósito y por qué nunca se renombran, y ocho textos de Ajustes y hojas que estaban en español «de fábrica» ahora siguen la convención del catálogo (con su traducción intacta). El instalable de release ahora se llama Cénit.
+  **EN** — The technical docs catch up with the real code (schema versions, package graph, platforms, retired screens, the repo tree), the deliberately frozen legacy identifiers are now documented with their why, and eight Settings/sheet strings that were Spanish-keyed now follow the catalog convention (translations intact). The release artifact is now named Cénit.
   ([ARCHITECTURE.md](docs/ARCHITECTURE.md), [CONTRIBUTING.md](docs/CONTRIBUTING.md), [AjustesView.swift](Cenit/Screens/AjustesView.swift))
 
 - **Las pantallas dejan de trabajar de más / Screens stop doing extra work.**
@@ -1790,7 +1720,7 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
 - **La app lee muchísimo menos para refrescarse / The app reads far less to refresh itself.**
   **ES** — Cada refresh del tablero leía hasta 500 mil muestras de pulso de Apple Health aunque no hicieran falta; ahora solo se leen cuando algún día realmente necesita un esfuerzo estimado. El chequeo de fondo de cada 15 minutos deja de contar millones de filas de más (cada tabla cuenta solo su ventana), el espejo hacia Apple Health ya no borra y reescribe dos semanas de datos idénticos en cada regreso a la app, y todas las lecturas del tablero ahora llegan en una sola pasada consistente — con lecturas que ya no se forman detrás de escrituras largas del motor o de un import. Nada cambia de lugar ni de valor: solo cuesta menos.
   **EN** — Every dashboard refresh read up to 500k Apple Health pulse samples even when none were needed; they're now read only when some day actually needs an estimated strain. The 15-minute background check stops counting millions of extra rows (each table counts only its window), the Apple Health mirror no longer deletes and rewrites two weeks of identical data on every return to the app, and all dashboard reads now arrive in one consistent pass — with reads that no longer queue behind long engine or import writes. Nothing moves or changes value: it just costs less.
-  ([Repository.swift](Cenit/Data/Repository.swift), [DashboardSnapshot.swift](Packages/WhoopStore/Sources/WhoopStore/DashboardSnapshot.swift), [WhoopStore.swift](Packages/WhoopStore/Sources/WhoopStore/WhoopStore.swift), [HealthKitBridge.swift](CenitApp/Health/HealthKitBridge.swift))
+  ([Repository.swift](Cenit/Data/Repository.swift), [DashboardSnapshot.swift](Packages/CenitStore/Sources/CenitStore/DashboardSnapshot.swift), [CenitStore.swift](Packages/CenitStore/Sources/CenitStore/CenitStore.swift), [HealthKitBridge.swift](CenitApp/Health/HealthKitBridge.swift))
 
 - **Guardar ya nunca falla en silencio / Saving never fails silently anymore.**
   **ES** — Si guardar tu entrenamiento falla (disco lleno, base ocupada), Cénit ya no finge que todo salió bien: tus series se quedan a salvo en el teléfono, el recibo muestra el problema y un «Reintentar». Lo mismo al guardar rutinas, el plan semanal, borrar entrenamientos o exportar archivos: cada fallo se ve, nada se pierde callado. Además, si la base de datos no puede abrir al iniciar, la app lo dice de frente — con «Reintentar» y «Restaurar respaldo» — en vez de mostrarse vacía; y restaurar un respaldo ya no puede dejarte sin datos si algo se interrumpe a la mitad.
@@ -1886,8 +1816,8 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **EN** — Reordering exercises in the live strength session now adopts the handoff's visual model: an explicit «move mode» (entered by long-pressing any rail row, or «Reorder» in the «···» menu) compresses every exercise to a one-line row; dragging a row lifts it (ember border, shadow, a slight tilt — Reduce Motion respected) and shows a dashed «drop here · position N» gap at the destination; «Done» exits the mode. The data mechanics reuse the existing swap (`reorderExercise`/`moveExerciseEarlier`); the engine is unchanged.
   ([LiveStrengthSheet.swift](Cenit/Screens/LiveStrengthSheet.swift))
 - **«Importar Plan» fiel al handoff: 4 pasos «Instrumento» / "Import plan" reconciled to the handoff: four "Instrumento" steps.**
-  **ES** — El flujo para traer un plan desde tu IA adopta la firma del handoff en sus cuatro pasos (Captura · Mapear · Confirmar · Listo): overline ámbar, pasos numerados en disco, **«Copiar prompt»** en ámbar y la promesa offline como tarjeta con barra verde («tus rutinas se crean en tu iPhone»); en Mapear, el emparejamiento como **pill verde** y las sugerencias como tarjeta con **«Usar»**; en Confirmar, cada rutina con su **glyph teñido por familia** (empuje/tirón/pierna) y el día en su color; y un cierre **celebratorio centrado** con el sello verde que aparece con un pop suave (respeta Reduce Motion). Copy sin «NOOP» (ahora Cénit) y el stepper localizado es-MX.
-  **EN** — The bring-your-own-AI import flow adopts the handoff's signature across its four steps (Capture · Map · Confirm · Done): amber overline, numbered discs, an amber "Copy prompt", and the offline promise as a green-barred card; matched exercises as a green pill and suggestions as a card with "Use"; each routine shown with its family-tinted glyph and day; and a centered, celebratory finish whose green seal pops in (Reduce Motion respected). Copy drops "NOOP" (now Cénit) and the stepper is localized.
+  **ES** — El flujo para traer un plan desde tu IA adopta la firma del handoff en sus cuatro pasos (Captura · Mapear · Confirmar · Listo): overline ámbar, pasos numerados en disco, **«Copiar prompt»** en ámbar y la promesa offline como tarjeta con barra verde («tus rutinas se crean en tu iPhone»); en Mapear, el emparejamiento como **pill verde** y las sugerencias como tarjeta con **«Usar»**; en Confirmar, cada rutina con su **glyph teñido por familia** (empuje/tirón/pierna) y el día en su color; y un cierre **celebratorio centrado** con el sello verde que aparece con un pop suave (respeta Reduce Motion). Copy con el nombre actual (Cénit) y el stepper localizado es-MX.
+  **EN** — The bring-your-own-AI import flow adopts the handoff's signature across its four steps (Capture · Map · Confirm · Done): amber overline, numbered discs, an amber "Copy prompt", and the offline promise as a green-barred card; matched exercises as a green pill and suggestions as a card with "Use"; each routine shown with its family-tinted glyph and day; and a centered, celebratory finish whose green seal pops in (Reduce Motion respected). Copy uses the current name (Cénit) and the stepper is localized.
   ([WorkoutImportView.swift](Cenit/Screens/WorkoutImportView.swift))- **Serie activa — descanso completo verde tiempo/FC / Active session — full-screen rest goes green, time/HR.**
   **ES** — El descanso a pantalla completa del modo foco ahora es fiel al handoff: fondo verde (`dataRecovery`) de borde a borde con toda la tinta en crema, un toggle «Tiempo / FC» para alternar el héroe (anillo grande o número de pulsaciones), controles −15 s · Omitir · +15 s en barra segmentada, y una tarjeta «SIGUE» con el siguiente paso real (misma serie o siguiente ejercicio). El descanso en línea de la tabla y el motor de descanso no cambian.
   **EN** — Focus mode's full-screen rest now matches the handoff: an edge-to-edge `dataRecovery` green background with all-crema ink, a «Time / HR» toggle to switch the hero (a large ring or the live bpm), −15 s · Skip · +15 s segmented controls, and a «Next» card with the real next step (same set or next exercise). The inline rest card and the rest engine are unchanged.
@@ -1902,12 +1832,10 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **EN** — The library adopts the handoff's signature: the count as the Grotesk hero title, sunken section bands, thumbnails framed in their movement-family hue, and the record as the right-hand datum in that hue (keeping the weight sparkline). es-MX bugs: three strings rendered in English.
   ([ExerciseLibraryScreen.swift](Cenit/Screens/ExerciseLibraryScreen.swift))
 
-
 - **«Mis entrenamientos» espejo del handoff v2 / "My workouts" mirrored to the v2 handoff.**
   **ES** — El historial adopta la firma completa del handoff: héroe con overline y **«Vas al alza»** (antes salía en inglés), tarjeta **«TU MES»** con badge verde del delta, barras semanales con **tap-por-barra** y strip «ESTA SEMANA · EN CURSO · N kg», **3 tiles** (Sesiones · Horas · Energía kcal), **volumen por músculo teñido por familia** (top 4 + el más débil, «Ver mapa» en la banda, nota honesta), **sesiones como filas compactas** con el glyph de su familia y «día · min · kg» (antes tarjetas altas), y tickets bajo banda. Bugs es-MX: «On the rise», «vs last month» y «My saved tickets» salían en inglés.
   **EN** — The history adopts the handoff's full signature: overline hero with the translated title, a "YOUR MONTH" card with the green delta badge, weekly bars with tap-to-switch and the "THIS WEEK · IN PROGRESS · N kg" strip, three tiles (Sessions · Hours · Energy kcal), family-tinted muscle volume (top 4 + the weakest, "See map" on the band, honest footnote), sessions as compact glyph rows, and banded tickets. es-MX bugs: three strings rendered in English.
   ([WorkoutHistoryScreen.swift](Cenit/Screens/WorkoutHistoryScreen.swift))
-
 
 - **«Tu Plan» fiel al handoff: bandas + héroe Grotesk + rutinas con glyph / "Your plan" reconciled to the handoff: bands + Grotesk hero + glyph routine rows.**
   **ES** — «Tu Plan» adopta la firma visual del handoff: **bandas hundidas** en LA SEMANA («toca un día para editarlo» en la banda), VOLUMEN SEMANAL POR GRUPO y MIS RUTINAS (con **«＋ Nueva»** como acción de la banda, retirando la fila suelta), héroe en **Space Grotesk 28** y labels de día en Grotesk. El volumen estrena su **nota honesta** («Series planeadas. Core quedó corto esta semana.») y cada rutina lleva ahora un **chip con el glyph de su familia** (banca/jalón/sentadilla/mancuerna, autorados en StrandDesign) teñido de su color, con los **días asignados** («lun·vie») como dato derecho. La banda hundida se promovió a componente compartido (`InstrumentoSectionBand`) que el Hub reutiliza. Bug es-MX: «Plantillas · Importar · Carpetas» salía en inglés.
@@ -1922,7 +1850,7 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
 - **RPE al registrar / RPE at logging time.**
   **ES** — La tabla de la sesión en vivo estrena una **columna RPE** (esfuerzo percibido, 6-10 con medios pasos): tocarla abre una hoja **estilo Hevy** con el número héroe grande, su descriptor («Esfuerzo duro», «Te quedaban ~2 reps») y una escala horizontal de pills que se selecciona con «Ok ✓». Es **opcional** — marcar una serie sigue siendo un toque, nunca requiere RPE, y no hay ningún aviso que lo exija. El dato persiste (migración v34, `setEntry.rpe`) y sobrevive un cierre inesperado (crash-recovery).
   **EN** — The live session table gets an **RPE column** (perceived effort, 6-10 with half-steps): tapping it opens a **Hevy-style** sheet with a large hero number, its descriptor («Hard effort», «~2 reps left»), and a horizontal pill scale confirmed with «Ok ✓». It's **optional** — marking a set is still one tap, never requires RPE, and there's no nag pushing for it. The value persists (migration v34, `setEntry.rpe`) and survives a crash (crash-recovery).
-  ([Database.swift](Packages/WhoopStore/Sources/WhoopStore/Database.swift), [StrengthStore.swift](Packages/WhoopStore/Sources/WhoopStore/StrengthStore.swift), [Training.swift](Packages/StrandTraining/Sources/StrandTraining/Training.swift), [LiveStrengthSheet.swift](Cenit/Screens/LiveStrengthSheet.swift), [Instrumento.swift](Packages/StrandDesign/Sources/StrandDesign/Instrumento.swift))
+  ([Database.swift](Packages/CenitStore/Sources/CenitStore/Database.swift), [StrengthStore.swift](Packages/CenitStore/Sources/CenitStore/StrengthStore.swift), [Training.swift](Packages/StrandTraining/Sources/StrandTraining/Training.swift), [LiveStrengthSheet.swift](Cenit/Screens/LiveStrengthSheet.swift), [Instrumento.swift](Packages/StrandDesign/Sources/StrandDesign/Instrumento.swift))
 
 - **Superserie en vivo: A1/A2 se turnan sin descanso / Live superset: A1/A2 alternate with no rest between them.**
   **ES** — Cuando una rutina agrupa dos ejercicios en superserie, la sesión en vivo ahora lo respeta: el riel pinta el tramo compartido en **teal** con badges **A1/A2** en vez del punto plano, el nombre lleva la etiqueta **«SUPERSERIE»**, y al terminar una serie de A1 el enfoque **salta directo a la misma vuelta de A2 sin descanso** (aparece «SIN DESCANSO ENTRE A1 Y A2»); el descanso llega hasta después de la vuelta del último miembro, y entonces el enfoque vuelve al primer ejercicio para la siguiente vuelta. Solo refleja superseries ya definidas en la rutina — agruparlas es cosa del editor de rutina, no de la sesión en vivo. Los ejercicios sueltos siguen avanzando/descansando exactamente igual que antes.
@@ -1942,7 +1870,7 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
 - **Catálogo de ejercicios más limpio y de dominio público, sin perder tu historial / Cleaner, public-domain exercise catalog with your history intact.**
   **ES** — La base de ejercicios cambia a **free-exercise-db** (873 ejercicios reales, licencia de dominio público, sin duplicados ni basura), con nombres e instrucciones en español de México. Tus entrenamientos guardados **siguen apuntando a su ejercicio**: una migración remapea los ids del historial al nuevo catálogo y conserva como «ejercicio propio» cualquiera que ya no exista, sin dejar entrenamientos huérfanos.
   **EN** — The exercise base moves to **free-exercise-db** (873 real exercises, public-domain license, no duplicates or junk), with es-MX names and instructions. Your saved workouts **still resolve their exercise**: a migration remaps history ids to the new catalog and keeps any now-missing one as a custom exercise, so no logged workout is orphaned.
-  ([Database.swift](Packages/WhoopStore/Sources/WhoopStore/Database.swift), [StarterTemplates.swift](Packages/StrandTraining/Sources/StrandTraining/StarterTemplates.swift))
+  ([Database.swift](Packages/CenitStore/Sources/CenitStore/Database.swift), [StarterTemplates.swift](Packages/StrandTraining/Sources/StrandTraining/StarterTemplates.swift))
 
 - **«Tu Plan» estrena héroe «Tu semana» y encabeza su semana / «Your plan» gets a «This week» hero and a labeled week.**
   **ES** — El héroe de Tu Plan pasa a **«Tu semana»** con un subtítulo escueto **«N días · N rutinas»** (antes «Tu plan» + una frase de balance), y la lista de días estrena su encabezado **«La semana · toca un día para editarlo»**, al mismo estilo que Volumen y Mis rutinas. Alinea la pantalla al handoff sin tocar su lógica.
@@ -1973,44 +1901,31 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **ES** — (a) En «Tickets guardados», tocar un recibo ahora **reimprime el ticket** (abre la impresora térmica) en vez de mandarte al detalle de la sesión; el resumen se reconstruye de la sesión guardada (sin récords falsos en una reimpresión). (b) El bloque de **recuperación cardiaca (HRR-60s)** del detalle de fuerza gana su **barra rosa de ancla** y una **entrada escalonada** (número → veredicto → línea base → aviso, sin rebote; el overline no anima), fiel al handoff; respeta Reduce Motion.
   **EN** — (a) In «Saved tickets», tapping a receipt now **reprints the ticket** (opens the thermal printer) instead of pushing the session detail; the summary is rebuilt from the stored session (no fake records on a reprint). (b) The strength detail's **cardiac-recovery (HRR-60s)** block gains its **pink anchor bar** and a **staggered entrance** (number → verdict → baseline → disclaimer, no bounce; the overline doesn't animate), faithful to the handoff; honors Reduce Motion.
   ([SavedTicketsScreen.swift](Cenit/Screens/SavedTicketsScreen.swift), [ReceiptMapping.swift](Cenit/Data/ReceiptMapping.swift), [WorkoutDetailScreen.swift](Cenit/Screens/WorkoutDetailScreen.swift))
-- **Modo Apple: Hoy y Ajustes dejan de mostrar la banda / Apple mode: Today and Settings stop showing the strap.**
-  **ES** — En modo Solo-Apple (sin banda WHOOP) desaparecen las superficies que solo aplican a la banda: en Hoy, la batería del strap, el pulso en vivo / «sin señal» y el sello del dial de 24 h; en Ajustes, la sección «Tu strap» (batería, estado, bitácora de conexión). Además, cuando aún no hay veredicto, el texto de por qué está vacío habla de tu Apple Watch en vez de la banda. Con banda (Combinado o Solo-banda) todo queda idéntico.
-  **EN** — In Apple-only mode (no WHOOP strap) the surfaces that only apply to the strap disappear: on Today, the strap battery, the live pulse / «no signal» and the 24-hour dial seal; in Settings, the «Your strap» section (battery, status, connection log). And when there's no verdict yet, the empty-state explanation talks about your Apple Watch instead of the strap. With a strap (Combined or strap-only) everything is unchanged.
-  ([TodayView.swift](Cenit/Screens/TodayView.swift), [AjustesView.swift](Cenit/Screens/AjustesView.swift))
 
-- **La «Carga del día» estimada explica su límite en el Detalle / The estimated «Day load» explains its limit in the detail.**
-  **ES** — Cuando la carga del día es una estimación de tu Apple Watch (modo Solo-Apple), el Detalle de Esfuerzo ahora lo dice: sello de Apple Salud y una línea honesta — «Estimada a partir de la frecuencia cardiaca de tus entrenamientos del Apple Watch. No incluye la actividad fuera de esos entrenamientos, así que puede quedar un poco baja.» Con banda, el detalle no cambia.
-  **EN** — When the day's load is an Apple Watch estimate (Apple-only mode), the Strain detail now says so: an Apple Health seal and an honest line — «Estimated from your Apple Watch workout heart rate. It doesn't include activity outside those workouts, so it can read a little low.» With a strap the detail is unchanged.
-  ([StrainDetailScreen.swift](Cenit/Screens/StrainDetailScreen.swift))
-
-- **Modo Apple: la alerta de enfermedad temprana ahora funciona sin banda / Apple mode: the early-illness warning now works without a strap.**
-  **ES** — El aviso temprano de enfermedad («tu cuerpo se ve exigido») vigila tu FC en reposo, HRV, temperatura y respiración contra tu propia base, y solo avisa cuando **dos o más** señales se salen de tu rango a la vez. En modo Solo-Apple no tenía con qué: la FC en reposo y la HRV se leían solo de la banda, así que sin banda quedaban en blanco y el aviso casi nunca se activaba. Ahora, en modo Solo-Apple, esas señales se leen de tu Apple Watch contra tu **propia base de Apple** (nunca mezclada con la de la banda), así que el aviso se sostiene con FC en reposo + HRV + respiración, y la temperatura confirma cuando existe. Con banda todo queda idéntico. Sigue siendo una estimación en el dispositivo, aproximada, **no un diagnóstico**.
-  **EN** — The early-illness warning («your body looks strained») watches your resting HR, HRV, temperature and respiration against your own baseline, and only flags when **two or more** signals fall out of range at once. In Apple-only mode it had nothing to work with: resting HR and HRV were read from the strap only, so without a strap they were blank and the warning almost never fired. Now, in Apple-only mode, those signals are read from your Apple Watch against your **own Apple baseline** (never mixed with the strap's), so the warning holds up on resting HR + HRV + respiration, with temperature confirming when present. With a strap nothing changes. It remains an on-device, approximate estimate — **not a diagnosis**.
-  ([AppModel.swift](Cenit/App/AppModel.swift))
 - **Recibo de entrenamiento: un ticket térmico que se imprime, se arranca y se comparte / Workout receipt: a thermal ticket that prints, tears off and shares.**
   **ES** — Al terminar una sesión de fuerza, el recibo ahora es un **objeto físico dentro de la pantalla**: un ticket térmico (blanco, monoespaciado, borde dentado) que se **imprime desde una boca de impresora** arriba, se puede **arrastrar y arrancar**, y al sacarlo deja un sello grabado «GUARDADO». El ticket va itemizado como un recibo: cada ejercicio con su volumen «como precio», total, **tiempo en zona de FC** (computado del stream con `HRZones`, zonas Cénit Z2–Z5), resumen (duración · esfuerzo · FC media · calorías) y **recuperación 60s** (HRR, reusa `HeartRateRecovery`), todo con **degradación honesta** (lo que la sesión no trae, se omite; nunca un 0 falso). Se llega también desde **Historial → Mis tickets guardados** (cuadrícula de todos los recibos, el de hoy primero). Acciones: **Guardar** (imagen), **Compartir** (hoja de Apple) y **Vista clásica** (la tarjeta cálida de siempre). Sistema de diseño térmico reutilizable nuevo en `StrandDesign` (`ThermalTicketView`, `MiniTicketView`, `ThermalTicketShape`, `BarcodeGlyph`, `PrinterMouth`, `ReceiptSavedSeal`).
   **EN** — When a strength session ends, the receipt is now a **physical object inside the screen**: a thermal ticket (white, monospace, torn edge) that **prints from a printer mouth** at the top, can be **dragged and torn off**, and leaves an embossed «SAVED» seal when pulled out. The ticket is itemized like a receipt: each exercise with its volume «as a price», total, **time in HR zone** (computed from the stream via `HRZones`, Cénit zones Z2–Z5), a summary (duration · effort · avg HR · calories) and **60s recovery** (HRR, reusing `HeartRateRecovery`), all with **honest degradation** (whatever the session lacks is omitted; never a fake 0). Also reachable from **History → My saved tickets** (a grid of every receipt, today's first). Actions: **Save** (image), **Share** (Apple sheet) and **Classic view** (the familiar warm card). New reusable thermal design system in `StrandDesign`.
   **Cambio de comportamiento / Behavior change:** el compartir anterior tenía **toggles de privacidad** (FC y calorías apagadas por defecto, FER-720). El recibo nuevo, por decisión del dueño, **muestra todo** — se retiran esos toggles; la imagen compartida ya incluye FC y calorías. Además, el botón de Apple Health ahora **«Ver en Apple Health»** abre la app Salud (deep link) en vez de reescribir el entrenamiento: el `HKWorkout` ya se guarda solo (FER-390), así que no se duplica. / The previous share had **privacy toggles** (HR/calories off by default, FER-720); the new receipt, by owner decision, **shows everything** — those toggles are removed. The Apple Health button now **«View in Apple Health»** opens the Health app instead of re-writing the workout (it already auto-saves via FER-390, so no duplicate).
   ([ThermalTicket.swift](Packages/StrandDesign/Sources/StrandDesign/ThermalTicket.swift), [ReceiptPrinterScreen.swift](Cenit/Screens/ReceiptPrinterScreen.swift), [ReceiptMapping.swift](Cenit/Data/ReceiptMapping.swift), [SavedTicketsScreen.swift](Cenit/Screens/SavedTicketsScreen.swift), [TicketMapping.swift](Cenit/Data/TicketMapping.swift), [WorkoutHistoryScreen.swift](Cenit/Screens/WorkoutHistoryScreen.swift), [LiveStrengthSheet.swift](Cenit/Screens/LiveStrengthSheet.swift), [RootTabView.swift](CenitApp/App/RootTabView.swift))
 - **Tendencias más limpia: sin puntos de origen por métrica, y el sello de origen dice lo mismo en todos los Detalles / Cleaner Trends: no per-metric origin dots, and the origin seal reads the same on every detail.**
-  **ES** — En el resumen de Tendencias quitamos el puntito de color que iba antes del nombre de cada métrica (y su leyenda «banda · Apple Salud · calculado» al pie): la pantalla queda más tranquila y el origen del dato ahora vive en un solo lugar, el sello al pie de cada Detalle. Ese sello además se estandariza: el de Apple pasa de «Apple Salud · hoy» a «Medido por Apple Salud · hoy», para emparejar el verbo con «Medido por tu banda» y «Calculado en tu teléfono». El «· cuándo» (hoy / anoche / hace 1 m) sigue variando porque el dato es de momentos distintos.
-  **EN** — On the Trends summary we removed the colored dot before each metric name (and its «strap · Apple Health · computed» footer legend): the screen reads calmer and provenance now lives in one place, the seal at the foot of each detail. That seal is also standardized: the Apple one goes from «Apple Health · today» to «Measured by Apple Health · today», matching the verb in «Measured by your band» and «Computed on your phone». The «· when» (today / last night / 1 m ago) still varies because the reading is from different moments.
+  **ES** — En el resumen de Tendencias quitamos el puntito de color que iba antes del nombre de cada métrica (y su leyenda de origen al pie): la pantalla queda más tranquila y el origen del dato ahora vive en un solo lugar, el sello al pie de cada Detalle. Ese sello además se estandariza: el de Apple pasa de «Apple Salud · hoy» a «Medido por Apple Salud · hoy», para emparejar el verbo con «Calculado en tu teléfono». El «· cuándo» (hoy / anoche / hace 1 m) sigue variando porque el dato es de momentos distintos.
+  **EN** — On the Trends summary we removed the colored dot before each metric name (and its per-metric origin footer legend): the screen reads calmer and provenance now lives in one place, the seal at the foot of each detail. That seal is also standardized: the Apple one goes from «Apple Health · today» to «Measured by Apple Health · today», matching the verb in «Computed on your phone». The «· when» (today / last night / 1 m ago) still varies because the reading is from different moments.
   ([CuerpoView.swift](Cenit/Screens/CuerpoView.swift), [OriginStamp.swift](Packages/StrandDesign/Sources/StrandDesign/OriginStamp.swift))
-- **Modo Apple: temperatura de piel desde la muñeca de tu Apple Watch / Apple mode: skin temperature from your Apple Watch wrist sensor.**
-  **ES** — En modo Solo-Apple (sin banda WHOOP) el tile de Temperatura de piel mostraba «—». Ahora Cénit importa la temperatura de muñeca nocturna del Apple Watch (Series 8+) y la muestra como una desviación vs tu propia base («vs tu base», nunca en °C absolutos ni como «fiebre»), con sello de Apple Salud. Esa señal también alimenta la detección de enfermedad en modo Apple. La desviación de Apple se calcula contra una base propia de Apple y **nunca** se mezcla con la de la banda: en Combinado/Solo-banda todo queda idéntico, y la temperatura de una fuente jamás contamina la base de la otra (FER-629). La fase de ciclo se mantiene deliberadamente basada en la banda.
-  **EN** — In Apple-only mode (no WHOOP strap) the skin temperature tile showed «—». Cénit now imports the Apple Watch's nightly wrist temperature (Series 8+) and shows it as a deviation from your own baseline («vs your baseline», never absolute °C nor «fever»), with an Apple Health badge. That signal also feeds illness detection in Apple mode. Apple's deviation is computed against its own baseline and is **never** mixed with the strap's: Combined/strap-only modes are unchanged, and one source's temperature never contaminates the other's baseline (FER-629). Cycle phase deliberately stays strap-based.
+- **Temperatura de piel desde la muñeca de tu Apple Watch / Skin temperature from your Apple Watch wrist sensor.**
+  **ES** — El tile de Temperatura de piel importa la temperatura de muñeca nocturna del Apple Watch (Series 8+) y la muestra como una desviación vs tu propia base («vs tu base», nunca en °C absolutos ni como «fiebre»), con sello de Apple Salud. Esa señal también alimenta la detección de enfermedad. La desviación se calcula contra tu propia base y una temperatura de una noche jamás contamina la base de otra (FER-629).
+  **EN** — The skin temperature tile imports the Apple Watch's nightly wrist temperature (Series 8+) and shows it as a deviation from your own baseline («vs your baseline», never absolute °C nor «fever»), with an Apple Health badge. That signal also feeds illness detection. The deviation is computed against your own baseline, and one night's temperature never contaminates another's baseline (FER-629).
   ([HealthKitBridge.swift](CenitApp/Health/HealthKitBridge.swift), [SourceLens.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/SourceLens.swift), [AppModel.swift](Cenit/App/AppModel.swift), [CyclePhaseView.swift](Cenit/Screens/CyclePhaseView.swift))
 - **«Mis entrenamientos» ya muestra tu volumen: total del periodo + gráfica por semana / «My workouts» now shows your volume: period total + weekly chart.**
   **ES** — En el detalle de «Mis entrenamientos», el mosaico **«Volumen»** de «Este periodo» deja de estar vacío: suma el tonelaje (peso × reps) de tus sesiones de fuerza dentro del rango que elijas (7D/30D/90D/1A/Todo), en kg o lb según tu unidad. Debajo aparece una nueva gráfica **«Volumen por semana»** con las últimas 8 semanas, la semana actual resaltada en ámbar. El volumen sale solo de tus sesiones de fuerza (las únicas con series y peso); si en la ventana no hay ninguna, el mosaico muestra «—» y la gráfica se oculta.
   **EN** — On the «My workouts» detail, the **«Volume»** tile under «This period» is no longer blank: it sums the tonnage (weight × reps) of your strength sessions within the range you pick (7D/30D/90D/1Y/All), in kg or lb per your unit. Below it, a new **«Volume by week»** chart shows the last 8 weeks with the current week highlighted in amber. Volume comes only from your strength sessions (the only ones with sets and load); when the window has none, the tile shows «—» and the chart is hidden.
   ([WorkoutsView.swift](Cenit/Screens/WorkoutsView.swift))
-- **Modo Apple: «Carga del día» estimada desde la frecuencia cardiaca de tus entrenamientos / Apple mode: estimated «Day load» from your workout heart rate.**
-  **ES** — En modo Solo-Apple (sin banda WHOOP) no había esfuerzo del día, porque se calcula desde la frecuencia cardiaca continua de la banda. Ahora, cuando el Apple Watch graba un entrenamiento, Cénit baja esa frecuencia cardiaca y reconstruye una **«Carga del día»** con el mismo método TRIMP/Edwards del esfuerzo de banda (escala 0–21). El tile la muestra etiquetada «Carga del día» con sello de Apple Salud —nunca como el Strain de WHOOP— porque solo ve la carga del ejercicio y puede quedar ligeramente por debajo de una medición continua. Con banda todo queda idéntico: el esfuerzo sigue saliendo de la banda y el estimado de Apple nunca entra a tu historial ni a ninguna base.
-  **EN** — In Apple-only mode (no WHOOP strap) there was no day strain, because it's computed from the strap's continuous heart rate. Now, when the Apple Watch records a workout, Cénit pulls that heart rate and reconstructs a **«Day load»** with the same TRIMP/Edwards method as strap strain (0–21 scale). The tile labels it «Day load» with an Apple Health source badge —never as WHOOP Strain— because it only sees exercise load and can read slightly below a continuous measurement. With a strap nothing changes: strain still comes from the strap and the Apple estimate never enters your history or any baseline.
+- **«Carga del día» estimada desde la frecuencia cardiaca de tus entrenamientos / Estimated «Day load» from your workout heart rate.**
+  **ES** — Cuando el Apple Watch graba un entrenamiento, Cénit baja esa frecuencia cardiaca y reconstruye una **«Carga del día»** con el método TRIMP/Edwards (escala 0–21). El tile la muestra etiquetada «Carga del día» con sello de Apple Salud, porque solo ve la carga del ejercicio y puede quedar ligeramente por debajo de una medición continua.
+  **EN** — When the Apple Watch records a workout, Cénit pulls that heart rate and reconstructs a **«Day load»** with the TRIMP/Edwards method (0–21 scale). The tile labels it «Day load» with an Apple Health source badge, because it only sees exercise load and can read slightly below a continuous measurement.
   ([HealthKitBridge.swift](CenitApp/Health/HealthKitBridge.swift), [Repository.swift](Cenit/Data/Repository.swift), [StrainScorer.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/StrainScorer.swift), [CuerpoView.swift](Cenit/Screens/CuerpoView.swift), [TodayView.swift](Cenit/Screens/TodayView.swift))
 - **Todos los Detalles de Tendencias con el mismo lenguaje «Instrumento» / All Trends detail screens now share one «Instrumento» language.**
-  **ES** — Las 17 pantallas de Detalle de Tendencias (los 6 Vitales: VFC, FC en reposo, Respiración, Oxígeno en sangre, Temperatura de piel y Frecuencia cardíaca intradía; y las 6 de Actividad y Longevidad: Pasos, Entrenamientos, Tras cada deporte, Edad física, Edad corporal y VO₂max) ahora usan el mismo esqueleto que Recuperación/Sueño/Esfuerzo/Estrés/Carga: héroe invertido pintado del color de la métrica, secciones a sangre («Hoy vs tu rango», «Tu historia», «Tu patrón»), gráfica de historial con Media⇄Rangos, y pie de método + origen unificado. Además: el Oxígeno en sangre deja de compartir color con Respiración (ahora verde, antes ambos azules); el hipnograma de Sueño usa la familia índigo; la curva de Esfuerzo se lee sobre una escala fija 0–21. En el resumen de Tendencias, cada métrica lleva un punto de origen (banda · Apple Salud · calculado) con su leyenda al pie.
-  **EN** — All 17 Trends detail screens (the 6 Vitals: HRV, resting HR, respiration, blood oxygen, skin temperature and intraday heart rate; and the 6 Activity & Longevity: steps, workouts, after-sport recovery, physical age, body age and VO₂max) now use the same skeleton as Recovery/Sleep/Strain/Stress/Load: an inverted hero painted in the metric's colour, full-bleed sections («Today vs your range», «Your story», «Your pattern»), a history chart with Average⇄Ranges, and a unified method + origin footer. Also: blood oxygen no longer shares a colour with respiration (now green, previously both blue); the Sleep hypnogram uses the indigo family; the Strain curve reads against a fixed 0–21 scale. On the Trends summary, each metric now carries an origin dot (strap · Apple Health · computed) with a legend at the foot.
+  **ES** — Las 17 pantallas de Detalle de Tendencias (los 6 Vitales: VFC, FC en reposo, Respiración, Oxígeno en sangre, Temperatura de piel y Frecuencia cardíaca intradía; y las 6 de Actividad y Longevidad: Pasos, Entrenamientos, Tras cada deporte, Edad física, Edad corporal y VO₂max) ahora usan el mismo esqueleto que Recuperación/Sueño/Esfuerzo/Estrés/Carga: héroe invertido pintado del color de la métrica, secciones a sangre («Hoy vs tu rango», «Tu historia», «Tu patrón»), gráfica de historial con Media⇄Rangos, y pie de método + origen unificado. Además: el Oxígeno en sangre deja de compartir color con Respiración (ahora verde, antes ambos azules); el hipnograma de Sueño usa la familia índigo; la curva de Esfuerzo se lee sobre una escala fija 0–21. En el resumen de Tendencias, cada métrica lleva un punto de origen (Apple Salud · calculado) con su leyenda al pie.
+  **EN** — All 17 Trends detail screens (the 6 Vitals: HRV, resting HR, respiration, blood oxygen, skin temperature and intraday heart rate; and the 6 Activity & Longevity: steps, workouts, after-sport recovery, physical age, body age and VO₂max) now use the same skeleton as Recovery/Sleep/Strain/Stress/Load: an inverted hero painted in the metric's colour, full-bleed sections («Today vs your range», «Your story», «Your pattern»), a history chart with Average⇄Ranges, and a unified method + origin footer. Also: blood oxygen no longer shares a colour with respiration (now green, previously both blue); the Sleep hypnogram uses the indigo family; the Strain curve reads against a fixed 0–21 scale. On the Trends summary, each metric now carries an origin dot (Apple Health · computed) with a legend at the foot.
   ([MetricDetailScreen.swift](Cenit/Screens/MetricDetailScreen.swift), [SkinTempDetailScreen.swift](Cenit/Screens/SkinTempDetailScreen.swift), [FitnessAgeDetailView.swift](Cenit/Screens/FitnessAgeDetailView.swift), [WorkoutsView.swift](Cenit/Screens/WorkoutsView.swift), [CuerpoView.swift](Cenit/Screens/CuerpoView.swift), [StrandDesign](Packages/StrandDesign/Sources/StrandDesign/))
 - **Calendarios de 90 días: tamaño de celda ESTABLE en las cuatro pantallas + palabra de estado en el read-out + «duro» sin «+» / Stable 90-day calendar cell size across all four screens + state word in the read-out + «hard» without «+».**
   **ES** — (a) **Tamaño estable:** las celdas del calendario de 90 días ahora se dimensionan a un número **fijo de 14 columnas** (helper compartido `YearHeatStrip.rollingCellSize`), no al conteo vivo de columnas. Antes la celda oscilaba 13↔14 columnas (≈19.3↔21.1pt) según en qué día de la semana arrancaba la ventana, y eso hacía que Recuperación / Sueño / Esfuerzo / Estrés se vieran de **distinto tamaño**. Ahora miden lo mismo, en las cuatro pantallas y todos los días (en días de 13 columnas dejan una columna de aire a la derecha, idéntico en las cuatro). (b) Al tocar un día/noche en **Esfuerzo** y **Sueño**, junto al número aparece la palabra de estado —igual que en Recuperación—: Esfuerzo `duro / moderado / ligero`, Sueño `suficiente / ok / corta`. (c) La leyenda de Esfuerzo dice «duro» en vez de «duro+».
@@ -2024,10 +1939,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **ES** — (a) En «Hoy», la franja de **carga** ahora vive DENTRO de la página **Señales**, justo debajo de la gráfica de las cinco reglas: pertenece solo a Señales y ya no aparece al deslizar a Brief. (b) El número grande de recuperación crece de 98 a 102pt y la palabra del veredicto de al lado de 20 a 22pt —más dominantes— sin meter scroll: el alto extra del glifo se reclama en el descenso vacío y en el margen inferior. (c) Los puntitos de página quedan un pelín más grandes (barra 22×7 / punto 7) y un poco más abajo, más cerca del dock.
   **EN** — (a) On "Today", the **load** strip now lives INSIDE the **Signals** page, right below the five-rules chart: it belongs to Signals only and no longer shows when you swipe to Brief. (b) The big recovery number grows from 98 to 102pt and the verdict word beside it from 20 to 22pt — more dominant — without introducing scroll: the glyph's extra height is reclaimed from its empty descender and the bottom inset. (c) The page dots are a touch larger (bar 22×7 / dot 7) and sit slightly lower, closer to the dock.
   ([TodayView.swift](Cenit/Screens/TodayView.swift), [GroteskVoice.swift](Packages/StrandDesign/Sources/StrandDesign/GroteskVoice.swift))
-- **Observación por-propiedad del estado en vivo / Per-property observation of live strap state.**
-  **ES** — `LiveState` (el estado en vivo de la banda que observan 10+ pantallas) pasó a `@Observable`: ahora un cambio en una sola de sus ~26 propiedades (batería, log, chunks de sync…) solo re-evalúa las vistas que leen ESA propiedad, en vez de todas las que observan el estado. Menos trabajo de UI con la banda conectada. Sin cambios visibles: conexión, log, recibo de sync y gestos idénticos (FER-874). Fija el patrón para migrar las demás clases (Repository, AppModel).
-  **EN** — `LiveState` (the live strap state observed by 10+ screens) moved to `@Observable`: a change to any one of its ~26 properties (battery, log, sync chunks…) now re-evaluates only the views that read THAT property, instead of every view observing the state. Less UI work with the strap connected. No visible change — connection, log, sync receipt and gestures are identical (FER-874). Sets the pattern for migrating the remaining classes (Repository, AppModel).
-  ([LiveState.swift](Cenit/BLE/LiveState.swift), [AppModel.swift](Cenit/App/AppModel.swift))
 
 - **«Wash» sin traducir en el detalle de Sueño / Untranslated "wash" in the Sleep detail.**
   **ES** — El pie de la gráfica de horas dormidas decía «El wash es la banda óptima de 7–9 h», con «wash» en inglés. Ahora dice «La banda sombreada es el rango óptimo de 7–9 h», usando el mismo término que el resto del app.
@@ -2049,19 +1960,10 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   ([SleepDetailScreen.swift](Cenit/Screens/SleepDetailScreen.swift), [StressDetailScreen.swift](Cenit/Screens/StressDetailScreen.swift))
 
 - **Perf UI (FER-876):** LazyVStack en historial de entrenos y log BLE; orbe de respiración en TimelineView (sin re-evaluar toda la pantalla); ids estables en el log de diagnóstico; sort de trendData una sola vez; DateFormatter cacheado; wiggle de Support acotado a 3 disparos; borra PreguntaleView y TrajectoryChart muertos.
-- **Cinco micro-mejoras de datos/BLE (FER-877) / Five data/BLE micro-wins (FER-877).**
-  **ES** — Tras podar batches raw viejos la base de datos libera espacio de verdad (vacuum incremental acotado); los acks de historial en WHOOP 4 ya no inundan el log (solo el 1.º y cada 25.º, como en 5/MG); el CRC32 de cada frame deja de copiar el payload a un array nuevo; la cola de offload drena en O(1) amortizado con un tope suave de visibilidad en memoria; y el buffer pre-reloj del Collector se acota por bytes (~512 KB), no por número de frames, para que un aluvión de frames grandes no se hinche a varios MB.
-  **EN** — After pruning old raw batches the database actually reclaims disk (bounded incremental vacuum); WHOOP 4 historical acks no longer flood the log (1st + every 25th, same as 5/MG); per-frame CRC32 no longer copies the payload into a new array; the offload queue drains in amortized O(1) with a soft memory visibility cap; and the Collector's pre-clock buffer is capped by bytes (~512 KB), not frame count, so a flood of large frames cannot balloon into multi-MB territory.
-  ([RawOutbox.swift](Packages/WhoopStore/Sources/WhoopStore/RawOutbox.swift), [Framing.swift](Packages/WhoopProtocol/Sources/WhoopProtocol/Framing.swift), [BLEManager.swift](Cenit/BLE/BLEManager.swift), [Collector.swift](Cenit/Collect/Collector.swift))
 - **Arranque más liviano: menos reconstrucciones del tablero y sincronía de Apple Salud incremental / Lighter launch: fewer dashboard rebuilds and an incremental Apple Health sync.**
   **ES** — Al abrir la app volvía a armar el tablero de «Hoy» 4-5 veces en los primeros segundos (primer pintado, historial completo, análisis matutino, sincronía de Apple Salud) y cada vuelta a primer plano rejalaba 30 días completos de Apple Salud aunque nada hubiera cambiado. Ahora: la sincronía automática de Apple Salud usa una ventana incremental desde la última (el primer jalón de cada sesión sigue siendo completo, para no perder noches que Apple/el reloj escriben tarde) y NO reconstruye el tablero si no cambió ninguna fila; el aviso de posible malestar se recalcula una vez por cambio real de historial, no por cada publicación; y «La conexión de hoy» (correlación + FDR) corre fuera del hilo principal y se memoiza. Los scores y la atribución por fuente no cambian (FER-872).
   **EN** — Opening the app rebuilt the «Hoy» dashboard 4-5× in the first seconds (first paint, full history, morning analysis, Apple Health sync) and every return to foreground re-pulled a full 30 days of Apple Health even when nothing changed. Now: the automatic Apple Health sync uses an incremental window from the last sync (the first pull of each session stays full, so a night Apple/the watch writes late is never missed) and does NOT rebuild the dashboard when no row changed; the illness heads-up recomputes once per real history change instead of on every publish; and «Today's connection» (correlation + FDR) runs off the main thread and is memoized. Scores and per-source attribution are unchanged (FER-872).
   ([HealthKitBridge.swift](CenitApp/Health/HealthKitBridge.swift), [AppModel.swift](Cenit/App/AppModel.swift), [InsightsProvider.swift](Cenit/Data/InsightsProvider.swift))
-
-- **Pulido de las pantallas nuevas de Tendencias / Polish pass on the new Trends detail screens.**
-  **ES** — Seis ajustes finos tras probarlas: (1) el sello de confianza sobre el héroe de Sueño/Esfuerzo ahora usa tinta papel para que contraste sobre el campo de color (antes se perdía en morado/naranja); (2) la hoja de Latencia deja de salir vacía: muestra el rango de referencia (10–20 min sano) aunque aún no haya dato de la banda; (3) la gráfica de Recuperación gana fechas intermedias en el eje X, no solo los extremos; (4) más aire entre «Qué medimos» y «Hoy, vs tu normal»; (5) la barra de las notas al pie abarca todos sus renglones (antes solo el primero) y la de «Reserva para bajar de marcha» pasa de verde a morado (el hue de sueño), y los calendarios de 90 días/noches de Sueño y Estrés miden igual que el de Recuperación; (6) el letrero negro del scrub flota junto al punto y salta abajo cuando está muy arriba, para que nunca se oculte.
-  **EN** — Six fine adjustments after testing: (1) the confidence stamp on the Sleep/Strain hero now uses paper ink so it reads against the coloured field; (2) the Latency sheet is no longer empty — it shows the reference range (10–20 min healthy) even without a strap value; (3) the Recovery chart gains intermediate X-axis dates, not just the endpoints; (4) more air between "What we measure" and "Today, vs your normal"; (5) the footnote bar now spans all its lines (was only the first) and the "Reserve to downshift" bar goes from green to purple (the sleep hue), and the 90-day/night calendars in Sleep and Stress match Recovery's size; (6) the black scrub chip floats next to the point and flips below when it's near the top, so it's never hidden.
-  ([GraficaRangos.swift](Packages/StrandDesign/Sources/StrandDesign/GraficaRangos.swift), [ConfidenceSello.swift](Packages/StrandDesign/Sources/StrandDesign/ConfidenceSello.swift))
 
 - El app pesa ~1.9 MB menos: el catálogo de ejercicios ahora viaja comprimido y la URL de cada GIF se deriva del id en vez de duplicarse (FER-875).
 
@@ -2126,11 +2028,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **EN** — With Experimental metrics on, the Skin-temp detail shows how steady your distal warming into sleep is: the typical warming (°C, from sleep onset to plateau) and its night-to-night consistency (consistent / moderate / variable). It's an association, not a full 24-hour circadian rhythm (we only have the night); it reads "learning" until there are enough nights.
   ([SkinTempDetailScreen.swift](Cenit/Screens/SkinTempDetailScreen.swift), [Repository.swift](Cenit/Data/Repository.swift))
 
-- **La «reserva para bajar de marcha» de la noche, en Detalle de Sueño / Your nightly "braking reserve", in the Sleep detail.**
-  **ES** — Con las Métricas experimentales prendidas, el Detalle de Sueño muestra tu capacidad de desaceleración nocturna (DC): cuánta reserva tuvo tu corazón para bajar de marcha en reposo, en ms, con una lectura «vs tu normal» (por encima / en rango / por debajo) contra tu propia base de noches recientes. Es un patrón personal, no un número de riesgo ni de mortalidad; se oculta sin banda WHOOP o cuando la noche no da señal suficiente.
-  **EN** — With Experimental metrics on, the Sleep detail shows your nocturnal deceleration capacity (DC): how much room your heart had to ease off the gas at rest, in ms, with a "vs your normal" read (above / in range / below) against your own recent-nights baseline. It's a personal pattern, not a risk or mortality number; it hides without a WHOOP strap or when the night can't be read.
-  ([SleepDetailScreen.swift](Cenit/Screens/SleepDetailScreen.swift), [Repository.swift](Cenit/Data/Repository.swift))
-
 - **Un interruptor «Métricas experimentales» en Ajustes / A "Experimental metrics" toggle in Settings.**
   **ES** — En Ajustes › Experimental hay un nuevo interruptor, apagado por defecto, que habilita cuatro lecturas nuevas y aproximadas (reserva vagal nocturna, estabilidad térmica, respiración de la noche y recuperación post-sesión). Mientras esté apagado, ninguna de esas superficies aparece; al prenderlo, cada una se muestra en su pantalla de detalle. La preferencia sobrevive el relanzamiento.
   **EN** — Settings › Experimental now has a new toggle, off by default, that enables four new approximate reads (nightly vagal reserve, thermal stability, night breathing and post-session recovery). While it's off none of those surfaces appear; turning it on shows each in its detail screen. The preference survives a relaunch.
@@ -2165,32 +2062,10 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **EN** — On the Lock Screen, tapping Complete / ±30 s / Skip / Resume kept asking for Face ID instead of running the action. The buttons ran on a path that forced iOS to wake the app — something the system gates behind unlock; they now run inside the widget extension itself, which executes while the phone is locked, so the action applies in place with no Face ID.
   ([RestActivityIntents.swift](CenitWidgets/Shared/RestActivityIntents.swift))
 
-- **Esfuerzo y Sueño ahora te dicen cuánto confiar en su número / Strain and Sleep now tell you how much to trust their number.**
-  **ES** — Igual que la Recuperación estimada, los detalles de Esfuerzo y Sueño estrenan un sello de confianza («Confianza alta» / «Confianza media»). En Esfuerzo mide cuánto de tu día activo cubrió la banda con pulso real: si la traes puesta unas horas sueltas, el score sale subestimado y el sello te lo advierte. En Sueño mide que la noche haya sido completa y con etapas resueltas; y si una noche reporta eficiencia alta pero cero sueño profundo y REM —algo fisiológicamente imposible, señal de que el clasificador falló— la confianza baja un nivel en vez de presumir certeza. La etiqueta se guarda junto al score de cada día, así tu historial la conserva aunque los datos crudos se depuren después.
-  **EN** — Like estimated Recovery, the Strain and Sleep details gain a confidence stamp ("High confidence" / "Medium confidence"). For Strain it grades how much of your active day the strap actually covered with real heart-rate: wear it only a few loose hours and the score under-counts — the stamp says so. For Sleep it grades a complete night with resolved stages; and when a night reports high efficiency but zero deep and REM — physiologically impossible, a stager failure — confidence drops one level instead of faking certainty. The tier is stored next to each day's score, so your history keeps it even if raw data is pruned later.
-  ([ScoreConfidence.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/ScoreConfidence.swift), [StrainDetailScreen.swift](Cenit/Screens/StrainDetailScreen.swift), [SleepDetailScreen.swift](Cenit/Screens/SleepDetailScreen.swift))
-- **Tu sueño vuelve en las WHOOP 4.0 con el firmware más nuevo / Your sleep comes back on WHOOP 4.0s with the newest firmware.**
-  **ES** — Algunas WHOOP 4.0 con firmware reciente guardan su historial en un formato («v25») que Cénit interpretaba mal: leía la señal de movimiento en el lugar equivocado, la descartaba por no cuadrar, y sin movimiento el análisis de sueño no podía calcular tus etapas — las noches salían en blanco. Ahora Cénit lee ese formato correctamente y recupera el movimiento (el corazón por segundo no viene en v25, es normal), así que tu sueño y tu descanso vuelven a calcularse. Las bandas con firmware anterior no cambian en nada.
-  **EN** — Some WHOOP 4.0s on recent firmware store their history in a format («v25») Cénit misread: it looked for the motion signal in the wrong place, discarded it as not fitting, and without motion the sleep analysis couldn't compute your stages — nights came up blank. Cénit now reads that format correctly and recovers the motion (per-second heart rate isn't stored in v25, which is normal), so your sleep and rest compute again. Straps on earlier firmware are unchanged.
-  ([PostHooks.swift](Packages/WhoopProtocol/Sources/WhoopProtocol/PostHooks.swift))
-
-- **La app se mantiene fluida durante un jalón de historial grande / The app stays smooth during a big history sync.**
-  **ES** — Al sincronizar meses de historial de una WHOOP 4.0, Cénit decodifica decenas de miles de registros; ese trabajo ahora corre en segundo plano con menor prioridad, así que la interfaz sigue respondiendo mientras la sincronización avanza. No cambia qué datos bajan ni su orden — solo evita los tirones al desplazarte durante una sincronización pesada.
-  **EN** — Syncing months of history from a WHOOP 4.0 decodes tens of thousands of records; that work now runs in the background at a lower priority, so the interface stays responsive while the sync proceeds. It changes neither what data comes down nor its order — it just avoids the scroll hitches during a heavy sync.
-  ([Backfiller.swift](Cenit/Collect/Backfiller.swift))
-
 - **Reordena tu rutina arrastrando, como mover fichas / Reorder your routine by dragging, like sliding tiles.**
   **ES** — Mantén presionado un ejercicio en «Rutina» y todas las filas se compactan a nombre + resumen («3 series · 90 kg»): arrastra la ficha a su lugar y, al soltar, las tablas se reabren con el orden nuevo. Una superserie viaja completa como un solo bloque (romperla sigue viviendo en el «···»). Ya no hay «mover arriba/abajo» en menús: el orden se toca, no se dicta.
   **EN** — Long-press an exercise on "Routine" and every row compacts to name + summary ("3 sets · 90 kg"): drag the tile into place and, on drop, the tables reopen in the new order. A superset travels whole as one block (breaking it still lives in the "···"). No more "move up/down" menu items: order is something you touch, not dictate.
   ([RoutineEditorScreen.swift](Cenit/Screens/RoutineEditorScreen.swift))
-- **La historia que hoy no sabemos leer ya no se pierde para siempre / History we can't read yet is no longer lost forever.**
-  **ES** — Algunas WHOOP 4.0 guardan su historia en un formato que Cénit todavía no sabe decodificar; como la banda borra esa historia en cuanto Cénit acusa recibo, esos registros se perdían para siempre aunque la app dijera «historial sincronizado». Ahora Cénit guarda una copia cruda de esos registros en tu dispositivo antes de acusar recibo, y cuando una actualización aprende a leer ese formato, los vuelve a procesar solos para rellenar tu historial. Todo sigue en tu dispositivo; no cambia nada para la banda cuya historia sí se lee.
-  **EN** — Some WHOOP 4.0 straps store their history in a format Cénit can't decode yet; because the strap erases that history the moment Cénit acknowledges it, those records were lost forever even though the app said «history synced». Cénit now keeps a raw copy of those records on your device before acknowledging them, and when an update learns to read that format, it re-processes them automatically to backfill your history. It all stays on your device; nothing changes for a strap whose history already decodes.
-  ([RawHistoryArchive.swift](Cenit/Collect/RawHistoryArchive.swift), [Backfiller.swift](Cenit/Collect/Backfiller.swift))
-- **La mañana sin banda ya trae el veredicto completo / A strapless morning now gets the full verdict.**
-  **ES** — Cuando duermes sin la banda pero Apple Health midió tu noche, «Hoy» ya mostraba el número estimado en el dial, pero se quedaba sin la palabra del día (Desgastado/Exigido/Equilibrado/A punto) ni la recomendación. Ahora el veredicto completo —palabra, porqué y Daily Brief— se deriva de la misma señal de Apple que produjo el número, marcado «estimado» como siempre. Las mañanas con banda no cambian en nada.
-  **EN** — When you sleep without the strap but Apple Health measured your night, «Today» already showed the estimated number on the dial, yet the day's word (Worn down/Strained/Balanced/Primed) and the recommendation stayed missing. The full verdict —word, why, and Daily Brief— now derives from the same Apple signal that produced the number, marked «estimated» as always. Mornings with the strap are unchanged.
-  ([TodayView.swift](Cenit/Screens/TodayView.swift))
 - **Crear una rutina te deja dentro de ella / Creating a routine drops you inside it.**
   **ES** — El constructor de rutinas queda solo para crear (desde cero o duplicando una sesión); editar una rutina existente ahora siempre abre la pantalla «Rutina» unificada, también desde el menú de «Mis rutinas». Y al guardar una rutina nueva ya no te quedas en la lista: se abre directo en «Rutina», lista para ajustar o empezar.
   **EN** — The routine builder is now create-only (from scratch or duplicating a session); editing an existing routine always opens the unified "Routine" screen, including from the "My routines" menu. Saving a new routine no longer strands you on the list: it opens straight on "Routine", ready to tweak or start.
@@ -2199,7 +2074,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **ES** — Peinado del catálogo de traducciones: los préstamos que quedaban en inglés dentro de frases en español se fueron («recovery» → recuperación, «sync» → sincronización, «export/import» → exportación/importación, «full body» → cuerpo completo, «on-device» → en el dispositivo), y la terminología quedó bajo una norma: **empezar** en los botones de arranque, **objetivo** (no «meta»), **entrenamiento/sesión** (se retira el coloquial «entreno»), y **eliminar/quitar** según sea destructivo o no (se retira «borrar»). También se eliminaron dos entradas huérfanas del catálogo que referenciaban en círculo a sus gemelas en inglés.
   **EN** — Translation catalog sweep: leftover English loanwords inside Spanish copy are gone, and the terminology now follows one norm — "empezar" for start CTAs, "objetivo" over "meta", "entrenamiento/sesión" (retiring colloquial "entreno"), "eliminar/quitar" split by destructiveness (retiring "borrar"). Two orphan catalog entries that circularly referenced their English twins were removed.
   (FER-842 — [Localizable.xcstrings](Cenit/Resources/Localizable.xcstrings), [translate-es.py](Tools/translate-es.py))
-
 
 - **Adiós a los diálogos genéricos de iOS / Goodbye to iOS's generic dialogs.**
   **ES** — Todas las confirmaciones, menús «···» y resultados del app hablan ahora el lenguaje de Cénit: las confirmaciones nombran lo que está en juego y su consecuencia concreta (nunca «Cancelar»/«OK», lo destructivo siempre en contorno rojo), los menús son tarjetas de papel, nombrar carpetas usa una tarjeta centrada, y un resultado de respaldo o restauración es un aviso discreto que no tapa la pantalla. Única excepción honesta: la oferta de restaurar datos al primer arranque, que ocurre antes de que el app exista visualmente.
@@ -2219,21 +2093,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **EN** — Three new «Instrumento» design-system components replacing generic native dialogs: ConfirmCard (bottom card naming the context, the concrete consequence, and actions that say what they do, never "Cancel"/"OK"; destructive is always a red outline), InputCard (centered card for naming folders) and PaperMenu (paper menu anchored to the «···»). Screens adopt them in a separate change.
   ([ConfirmCard.swift](Packages/StrandDesign/Sources/StrandDesign/ConfirmCard.swift), [InputCard.swift](Packages/StrandDesign/Sources/StrandDesign/InputCard.swift), [PaperMenu.swift](Packages/StrandDesign/Sources/StrandDesign/PaperMenu.swift))
 
-- **Una banda descargada del todo ya no manda tu sueño al año 2081 / A fully-drained strap no longer flings your sleep to the year 2081.**
-  **ES** — Cuando una WHOOP 4.0 se descarga por completo, su reloj interno se reinicia a 1971; al sincronizar después, Cénit podía «corregir» esa historia lanzándola décadas al futuro (visto: año 2081), y entonces la noche nunca caía en el día correcto y se rompían recuperación y sueño. Ahora Cénit detecta esa sobre-corrección y conserva la fecha real del registro. Y cuando la banda avisa que no tiene historia guardada (por reloj/carga), Cénit lo dice claro en el diagnóstico —«no hay historial que descargar; cárgala y reconéctala»— en vez de rematar la sincronización en verde como si todo hubiera bajado bien.
-  **EN** — When a WHOOP 4.0 fully drains, its internal clock resets to 1971; on the next sync Cénit could «correct» that history by flinging it decades into the future (seen: year 2081), so the night never landed on the right day and recovery and sleep broke. Cénit now detects that overshoot and keeps the record's real date. And when the strap reports it has no banked history (a clock/charge state), Cénit says so plainly in the diagnostic —«no history to download; charge it and reconnect»— instead of ending the sync green as if everything came down fine.
-  ([HistoricalStreams.swift](Packages/WhoopProtocol/Sources/WhoopProtocol/HistoricalStreams.swift), [Backfiller.swift](Cenit/Collect/Backfiller.swift))
-
-- **Mira cómo bajó tu corazón mientras dormías / See how your heart eased off as you slept.**
-  **ES** — El Detalle de Sueño estrena la sección «Forma de la noche»: cuánto bajó tu corazón de la vigilia a su punto más bajo (el dip), a qué hora tocó ese valle, y qué parte de la noche pasaste por debajo de tu ritmo en reposo — con la caída dibujada como una curva. Es la forma del descanso, no solo un número. Se presenta como un patrón, nunca un diagnóstico, y solo aparece las noches que tu banda midió con suficiente señal.
-  **EN** — Sleep detail gains a «Night shape» section: how far your heart fell from waking to its lowest point (the dip), when it hit that valley, and how much of the night you spent below your resting rate — with the fall drawn as a curve. It's the shape of your rest, not just a number. Shown as a pattern, never a diagnosis, and only on nights your strap measured with enough signal.
-  ([NightAutonomicShape.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/NightAutonomicShape.swift), [SleepDetailScreen.swift](Cenit/Screens/SleepDetailScreen.swift))
-
-- **La historia con fecha imposible ya no ensucia tus promedios / History with an impossible date no longer pollutes your averages.**
-  **ES** — Una WHOOP 4.0 con el reloj dañado (por descarga total) a veces entrega registros fechados años en el pasado o en el futuro. Antes Cénit los creía tal cual: un bloque contaminado se repartía sobre cada día y un registro «del futuro» aparecía como «anoche», torciendo tus bases de recuperación. Ahora Cénit descarta cualquier registro cuya fecha no sea creíble —ni antes de nov-2023, ni más de un día en el futuro, ni meses fuera de la ventana de historia que la propia banda reporta— y te avisa en el registro de diagnóstico si tu banda trae el reloj mal (para que la cargues y reconectes). Una banda sana no cambia en nada.
-  **EN** — A WHOOP 4.0 with a broken clock (after a full drain) sometimes hands over records dated years in the past or future. Cénit used to trust them verbatim: a polluted block got smeared across every day and a «future» record showed up as «last night», skewing your recovery baselines. Cénit now drops any record whose date isn't credible —not before Nov 2023, not more than a day into the future, and not months outside the history window the strap itself reports— and notes in the diagnostic log when your strap's clock is wrong (so you charge and reconnect it). A healthy strap is unchanged.
-  ([HistoricalStreams.swift](Packages/WhoopProtocol/Sources/WhoopProtocol/HistoricalStreams.swift), [Backfiller.swift](Cenit/Collect/Backfiller.swift))
-
 - **Cénit te propone la subida de peso cuando la ganas / Cénit proposes the weight raise when you earn it.**
   **ES** — Progresión de carga por ejercicio (apagada por defecto; se activa desde el «···» del ejercicio → Progresión). Cumple tu objetivo de reps en todas las series de trabajo 2 sesiones seguidas (configurable) y la siguiente sesión llega con las celdas ya en el peso nuevo, con el porqué aritmético visible («Hiciste 4×8 con 100 kg el jue 25 jun y el jue 2 jul») y «Volver» sin fricción. El incremento se deriva de tus discos; 3 sesiones estancado propone un deload de ~7,5 %; recuperación baja aplaza la subida (no la cancela). El landing dice «Hoy subes: …», y el detalle del ejercicio muestra la serie Peso en escalones (honestidad del dato) + el bloque «Ciclo actual».
   **EN** — Per-exercise load progression (off by default; enable from the exercise's «···» → Progression). Hit your rep goal on all work sets 2 sessions running (configurable) and the next session arrives pre-seeded at the new weight, with the arithmetic why visible and a friction-free revert. The increment derives from your plates; 3 stalled sessions propose a ~7.5% deload; low recovery defers the raise (never cancels it). The landing names what raises today, and the exercise detail renders the Weight series as steps + a "Current cycle" block.
@@ -2242,18 +2101,7 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
 - **«Volver a X» ya no cuenta contra tu ciclo de progresión / "Back to X" no longer counts against your progression cycle.**
   **ES** — Si Cénit te propone subir de peso y decides «Volver a X», esa sesión ahora queda registrada como tu decisión: no cuenta como fallo hacia el estancamiento (ni como logro). Antes, revertir la subida y no llegar al objetivo con el peso viejo empujaba tu ciclo hacia el deload aunque nunca intentaste el peso nuevo.
   **EN** — If Cénit proposes a raise and you choose "Back to X", that session is now recorded as your call: it counts neither as a miss toward a stall nor as a hit. Before, reverting the raise and missing the goal at the old weight pushed your cycle toward a deload even though you never attempted the new weight.
-  ([StrengthStore.swift](Packages/WhoopStore/Sources/WhoopStore/StrengthStore.swift), [ProgressionPlanner.swift](Cenit/Data/ProgressionPlanner.swift), [LiveStrengthSheet.swift](Cenit/Screens/LiveStrengthSheet.swift))
-
-
-- **Recalibra tu recuperación desde hoy / Recalibrate your recovery from today.**
-  **ES** — En Ajustes → Data hay un botón «Recalibrar recuperación». Si tu línea base quedó mal (cambiaste de banda, tuviste un periodo raro), re-ancla tu calibración desde hoy e ignora tus noches anteriores. Tu número de recuperación vuelve a «calibrando» unos días mientras aprende tu nuevo normal, y luego se asienta rápido. No borra ningún dato ni historial, y puedes deshacerlo con un toque.
-  **EN** — Settings → Data now has a «Recalibrate recovery» button. If your baseline drifted (new strap, an unusual stretch), it re-anchors your calibration from today and ignores your earlier nights. Your recovery number goes back to «calibrating» for a few days while it learns your new normal, then settles quickly. It deletes no data or history, and you can undo it with one tap.
-  ([AjustesView.swift](Cenit/Screens/AjustesView.swift), [Profile.swift](Cenit/Data/Profile.swift), [Baselines.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/Baselines.swift))
-
-- **La conexión con la banda ya no puede atorarse por un dato corrupto / A corrupt byte can no longer stall the strap connection.**
-  **ES** — Si un fragmento de datos Bluetooth llega dañado y declara un tamaño imposible, Cénit ahora lo descarta y se realinea con el siguiente dato válido, en vez de quedarse esperando bytes que nunca llegarán (lo que congelaba el stream hasta reconectar). Aplica a WHOOP 4.0 y 5/MG.
-  **EN** — If a Bluetooth data fragment arrives corrupted declaring an impossible size, Cénit now discards it and re-aligns with the next valid data instead of waiting forever for bytes that will never arrive (which froze the stream until a reconnect). Applies to both WHOOP 4.0 and 5/MG.
-  ([Framing.swift](Packages/WhoopProtocol/Sources/WhoopProtocol/Framing.swift))
+  ([StrengthStore.swift](Packages/CenitStore/Sources/CenitStore/StrengthStore.swift), [ProgressionPlanner.swift](Cenit/Data/ProgressionPlanner.swift), [LiveStrengthSheet.swift](Cenit/Screens/LiveStrengthSheet.swift))
 
 - **Menos chevrons en Tendencias: solo los que abren otra pantalla / Fewer chevrons in Trends: only where one opens another screen.**
   **ES** — Recuperación y Carga de entrenamiento pierden su chevron «›»: como el renglón «Toca cualquier dato para ver su detalle» ya avisa que la tarjeta es tocable, el chevron sobraba. Se reserva para lo que abre una pantalla o herramienta distinta: Mapa muscular, «Cómo amaneces tras cada deporte», Comparar y Ver todas las métricas. Ambas tarjetas se quedan igual de alineadas; solo desaparece la flecha.
@@ -2445,7 +2293,7 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
 - **Tu entrenamiento de fuerza sobrevive un cierre inesperado / Your strength workout survives an unexpected quit.**
   **ES** — Si la app se cierra o se reinicia a mitad de una sesión de fuerza guiada, al volver a abrirla la sesión se recupera con tus series ya registradas, en vez de perderse. Así, terminar desde el Apple Watch sigue guardando el entrenamiento y su recibo, sin duplicarlo en Apple Salud.
   **EN** — If the app quits or restarts mid-way through a guided strength session, it comes back with your logged sets intact instead of losing the workout. Ending from the Apple Watch then still saves the workout and its receipt, without duplicating it in Apple Health.
-  ([AppModel.swift](Cenit/App/AppModel.swift), [InProgressStrengthStore.swift](Packages/WhoopStore/Sources/WhoopStore/InProgressStrengthStore.swift))
+  ([AppModel.swift](Cenit/App/AppModel.swift), [InProgressStrengthStore.swift](Packages/CenitStore/Sources/CenitStore/InProgressStrengthStore.swift))
 
 - **Los vitales muestran tu posición con un slider más simple / Vitals show your position with a simpler slider.**
   **ES** — En VFC, FC en reposo y respiración, la posición de hoy dentro de tu rango normal se muestra con un slider limpio (pista del rango + marcador + «bajo · tu normal · alto»), como el diseño de referencia.
@@ -2533,7 +2381,7 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
 - **La app ya no se queda atorada al abrir tras actualizar / The app no longer gets stuck on open after an update.**
   **ES** — Se corrige un caso en que, al actualizar sobre una instalación previa, la app se quedaba trabada en el arranque (la base de datos intentaba crear una columna que ya existía y fallaba en cada intento). Ahora la actualización de la base de datos revisa lo que ya está antes de tocarlo, así que abre normal.
   **EN** — Fixes a case where, updating over a previous install, the app got stuck on launch (its database tried to create a column that already existed and failed on every attempt). The database update now checks what's already there before touching it, so it opens normally.
-  ([Database.swift](Packages/WhoopStore/Sources/WhoopStore/Database.swift))
+  ([Database.swift](Packages/CenitStore/Sources/CenitStore/Database.swift))
 
 - **La animación se ve completa y las miniaturas ya aparecen / The animation shows in full and thumbnails now appear.**
   **ES** — Dos arreglos al media de ejercicios: (1) la animación de la ficha ya no se recorta ni se acerca de más — el marco es cuadrado como el GIF, así que se ve el cuerpo entero de cabeza a pies. (2) Las filas de la Biblioteca por fin muestran su miniatura (el primer cuadro del GIF ya descargado) en vez de un recuadro vacío; se cargan solo al aparecer en pantalla y solo si ya están en disco, sin descargas por fila. Nota: los GIF de la fuente (ExerciseDB) son de 180×180, así que se ven algo pixelados — es el límite del origen, no un defecto del app.
@@ -2635,11 +2483,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **EN** — In Train, a new row under "Also in your plan" starts a strength session that begins empty with the timer already running, no routine required. It suggests exercises based on which muscles are fresh today (with your last weight/reps), gives you a library search, and behaves like any guided session as soon as you add the first exercise. Also, rest days in "Your week" now show a small dash instead of a blank space.
   ([EntrenarView.swift](Cenit/Screens/EntrenarView.swift), [LiveStrengthSheet.swift](Cenit/Screens/LiveStrengthSheet.swift))
 
-- **Temperatura de piel reemplaza a Oxígeno en sangre en las señales de Hoy / Skin temperature replaces Blood oxygen in Today's signals.**
-  **ES** — En la retícula de SEÑALES de Hoy, el tile de "Oxígeno en sangre" (que solo venía de Apple Salud y casi siempre salía vacío) da su lugar a "Temp. piel": la desviación nocturna de la temperatura de tu piel vs tu propia base (+0.3 °C), una señal real que tu banda mide en reposo. Al tocarlo abre una hoja de resumen con la explicación, de dónde viene y cuándo, tu gráfica de niveles (Debajo/En tu base/Ligeramente elevada/Elevada) con selector de periodo, el método y "Ver más en Tendencias" (que abre el Detalle de temperatura de piel). Los umbrales (+0.4/+0.8 °C) son los mismos que el motor ya usa como señal temprana de enfermedad. El oxígeno en sangre sigue disponible en su Detalle desde Cuerpo.
-  **EN** — In Today's SIGNALS grid, the "Blood oxygen" tile (which only ever came from Apple Health and was usually empty) gives its slot to "Skin temp": your overnight skin-temperature deviation vs your own baseline (+0.3 °C), a real signal your strap measures at rest. Tapping it opens a summary sheet with the plain-language explanation, where it comes from and when, your levels chart (Below/In your base/Running warm/Elevated) with a range selector, the method, and "See more in Trends" (which opens the skin-temperature detail). The cut points (+0.4/+0.8 °C) are the same ones the engine already uses as an early-illness signal. Blood oxygen is still available in its detail from the Body tab.
-  ([TodayView.swift](Cenit/Screens/TodayView.swift), [MetricInfoSheet.swift](Cenit/Screens/MetricInfoSheet.swift), [MetricLevels.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/MetricLevels.swift))
-
 - **Más aire entre las filas de "Por qué N" / More breathing room between "Why N" rows.**
   **ES** — En el bloque "POR QUÉ N" de Hoy (las cinco reglas: HRV, FC en reposo, Sueño, Temp. de piel, Respiración), las filas estaban pegadas entre sí — la marca encendida de una fila casi tocaba la línea divisoria de la fila de arriba. Se agregó un pequeño espacio vertical entre filas para que se lean por separado.
   **EN** — In Today's "WHY N" block (the five rules: HRV, Resting HR, Sleep, Skin temp, Respiration), rows sat flush against each other — a lit mark in one row nearly touched the divider of the row above. Added a small vertical gap between rows so they read as distinct.
@@ -2655,15 +2498,10 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **EN** — In the Train tab, the "today" card no longer crowds a long routine name against its meta ("N exercises · ~NN min") — the meta now drops to its own line. Also fixed a layout bug where the recovery verdict line ("Recovery in your range · train at your usual load.") left a blank gap on the right before wrapping, instead of using the card's full width. No data or behavior changes.
   ([EntrenarView.swift](Cenit/Screens/EntrenarView.swift))
 
-- **La sincronización matutina ya no congela la app / The morning sync no longer freezes the app.**
-  **ES** — Durante el jalón de historial de la banda (el catch-up de la mañana), cada paquete se interpreta **una sola vez** (antes hasta tres) y la decodificación de cada bloque de ~50 registros ahora corre **fuera del hilo de la interfaz**. La app se siente fluida mientras sincroniza; el orden de seguridad no cambia: nada se confirma a la banda hasta que quedó guardado en tu iPhone.
-  **EN** — During the strap's history offload (the morning catch-up), each packet is parsed **exactly once** (previously up to three times) and each ~50-record chunk now decodes **off the UI thread**. The app stays smooth while syncing; the safety ordering is unchanged: nothing is acknowledged to the strap until it's durably stored on your iPhone.
-  ([BLEManager.swift](Cenit/BLE/BLEManager.swift), [Backfiller.swift](Cenit/Collect/Backfiller.swift))
-
 - **Limpieza interna: la matemática pura se mueve a los paquetes / Internal cleanup: pure math moves into the packages.**
-  **ES** — Sin cambios visibles. La matemática del estrés diario (el proxy 0–3 y sus baselines por fuente) ahora vive en `StrandAnalytics`, y tres piezas de nivel de cable (el parser del pulso estándar 0x2A37, la validación del rango de datos de la banda y el payload de SET_CLOCK) viven en `WhoopProtocol` — todas con sus tests en el paquete, incluido un test *golden* que fija byte por byte el SET_CLOCK. Cero cambios de fórmulas ni de bytes salientes.
-  **EN** — No visible changes. The daily-stress math (the 0–3 proxy and its per-source baselines) now lives in `StrandAnalytics`, and three wire-level pieces (the standard 0x2A37 heart-rate parser, the band's data-range validation and the SET_CLOCK payload) live in `WhoopProtocol` — each covered by package tests, including a golden test pinning SET_CLOCK byte-for-byte. Zero formula or outbound-byte changes.
-  ([DailyStressModel.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/DailyStressModel.swift), [SetClock.swift](Packages/WhoopProtocol/Sources/WhoopProtocol/SetClock.swift), [DataRange.swift](Packages/WhoopProtocol/Sources/WhoopProtocol/DataRange.swift), [StandardHeartRate.swift](Packages/WhoopProtocol/Sources/WhoopProtocol/StandardHeartRate.swift))
+  **ES** — Sin cambios visibles. La matemática del estrés diario (el proxy 0–3 y sus baselines por fuente) ahora vive en `StrandAnalytics`, con sus tests en el paquete. Cero cambios de fórmulas.
+  **EN** — No visible changes. The daily-stress math (the 0–3 proxy and its per-source baselines) now lives in `StrandAnalytics`, covered by package tests. Zero formula changes.
+  ([DailyStressModel.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/DailyStressModel.swift))
 
 - **Puedes bajar el objetivo del descanso por pulso / You can now lower the heart-rate rest target.**
   **ES** — En el editor de descanso, el modo **Por frecuencia** ahora tiene dos métodos: **Sobre tu reposo** (un margen en bpm sobre tu pulso en reposo, de +5 a +30, con atajos Cerca +10 / Normal +15 / Suave +20) y **Reserva** (el método Karvonen de antes). El primero te deja **bajar** el objetivo hacia tu reposo y siempre lo muestra en bpm. Las rutinas que ya tenías no cambian hasta que lo ajustes.
@@ -2768,11 +2606,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **EN** — The «Today, hour by hour» curve gains two references, and only when they come from your own data: a **dashed recommended-ceiling line**, a personal strain cap for today that rises when you wake up recovered and drops when you're carrying load (built from your last four weeks of load, not a constant), and an **amber band** over the hour you usually train, learned from your past sessions. The ceiling reads with an honest note: it's context, not a goal, and you can go past it. Without enough history yet (under two weeks of strain, or fewer than three sessions), that reference simply doesn't appear and the curve stays as it was.
   ([StrainCeiling.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/StrainCeiling.swift), [TrainingHabit.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/TrainingHabit.swift), [MetricInfoSheet.swift](Cenit/Screens/MetricInfoSheet.swift))
 
-- **«Hoy» te avisa cuando algo necesita tu atención, y nunca inventa un número / «Hoy» tells you when something needs your attention, and never invents a number.**
-  **ES** — «Hoy» estrena **banners de estado**: una tarjeta discreta bajo el encabezado que aparece solo cuando importa. Hoy te avisa de **batería crítica** de la banda («cárgala antes de dormir o pierdes la noche»), de la **banda desconectada de día** (además el encabezado apaga el pulso y muestra «SIN SEÑAL», con un toque para reconectar) y de una **línea base envejecida** cuando llevas varios días sin sincronizar. Y se refuerza la regla de oro: **el número grande nunca miente**, mientras se calibra muestra «··», sin datos «—», y un estimado lleva «~». Los avisos más finos (siesta, cambio de zona horaria, señal inusual, modo noche) llegarán uno a uno.
-  **EN** — «Hoy» gains **status banners**: a quiet card under the header that shows up only when it matters. It now warns you about the strap's **critical battery** ("charge it before bed or you lose the night"), a **band disconnected during the day** (the header also drops the pulse and shows "NO SIGNAL", with a tap to reconnect), and an **aged baseline** when you've gone several days without syncing. And the golden rule is reinforced: **the big number never lies**, while calibrating it shows "··", with no data "—", and an estimate carries "~". The finer alerts (nap, timezone change, unusual signal, night mode) will arrive one by one.
-  ([TodayBanner.swift](Packages/StrandDesign/Sources/StrandDesign/TodayBanner.swift), [TodayView.swift](Cenit/Screens/TodayView.swift))
-
 - **El descanso entre series llega a la pantalla de bloqueo y a la Dynamic Island / Rest between sets comes to the Lock Screen and the Dynamic Island.**
   **ES** — Durante una sesión guiada, cuando empieza tu descanso ya no tienes que desbloquear el teléfono para saber cuánto falta: una **Live Activity** en la pantalla de bloqueo muestra **«{Rutina} · serie N de M»**, el **timer grande** con barra de progreso, tu **♥ frecuencia cardiaca en vivo** cuando traes la banda, y el recordatorio **«al volver: serie N · {peso} × {reps}»**, con dos acciones directas: **«+30 s»** y **«Saltar»**. La **Dynamic Island** lleva la versión compacta (timer + ♥). Si no traes banda puesta, se muestra solo el timer, sin corazón ni guiones. La Activity arranca sola al iniciar el descanso y se cierra al volver a la serie o al terminar la sesión; nunca se queda colgada. Todo en tu iPhone, sin servidor.
   **EN** — During a guided session, when your rest starts you no longer have to unlock the phone to see how long is left: a **Live Activity** on the Lock Screen shows **"{Routine} · set N of M"**, the **large timer** with a progress bar, your **♥ live heart rate** when you're wearing the band, and the reminder **"back to set N · {weight} × {reps}"**, with two direct actions: **"+30 s"** and **"Skip"**. The **Dynamic Island** carries the compact version (timer + ♥). With no band on, it shows just the timer — no heart, no dashes. The Activity starts on its own when rest begins and ends when you return to the set or finish the session; it never lingers. All on your iPhone, no server.
@@ -2788,10 +2621,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **EN** — When you tap your strain on «Hoy», the summary sheet adds a **"Today, hour by hour"** curve: your accumulated day strain in a solid line up to now, and a **flat dashed projection** to midnight (strain only rises, so the line reads "if you stop here, the day closes here," nothing invented), with a breathing dot at now and a 00·6·12·18·24 axis. Below the selector, **"Hoy en tu plan"** appears: the same routine, streak, and pace you already see on «Hoy», with the button to start your session, or the rest-day note when your split assigns none today. The recommended ceiling and training window will arrive once they come from your own data, not a constant.
   ([MetricInfoSheet.swift](Cenit/Screens/MetricInfoSheet.swift), [TodayView.swift](Cenit/Screens/TodayView.swift))
 
-- **Tu carga de entrenamiento entra a «Hoy»: una franja bajo las pestañas, y una hoja que la explica sin jerga / Your training load comes to «Hoy»: a strip under the tabs, and a sheet that explains it without jargon.**
-  **ES** — La **carga de entrenamiento** (antes solo en Tendencias) ahora vive también en **«Hoy»**, como una **franja fija** bajo las pestañas Señales/Brief: una palabra que entiendes —**Bajando, En equilibrio, Subiendo o Subiendo rápido**— en su color, con una escala de cuatro tramos y el punto de hoy. Tócala y se abre una **hoja rediseñada**: la palabra de banda como dato dominante, tu razón glosada («tu carga reciente de ~7 días frente a tu habitual de ~28», nunca el número pelado), **«La colina»** que dibuja dónde caes en la escala, una gráfica con selector de periodo (S/M/3M/6M/1A), cuántos de tus últimos 28 días pasaste en cada carril, y —cuando hay un patrón— el atajo a Patrones. La jerga (el «acute:chronic workload ratio», Gabbett 2016; no predice lesiones, Impellizzeri 2020) vive solo dentro de «Cómo se calcula». Es contexto para tu recuperación, no una predicción de lesiones. Todo se calcula en tu iPhone, a partir del esfuerzo de tu banda; ni el numeral de recuperación ni sus cinco reglas se tocan.
-  **EN** — Your **training load** (until now only in Trends) also lives in **«Hoy»**, as a **fixed strip** under the Señales/Brief tabs: a plain word you understand —**Easing off, In balance, Ramping up or Ramping fast**— in its color, with a four-segment scale and today's marker. Tap it and a **redesigned sheet** opens: the band word as the dominant datum, your ratio glossed ("your recent ~7-day load vs. your usual ~28", never the bare number), **"The hill"** drawing where you land on the scale, a chart with a period selector (W/M/3M/6M/1Y), how many of your last 28 days sat in each lane, and —when there's a pattern— the shortcut into Patrones. The jargon (the acute:chronic workload ratio, Gabbett 2016; it doesn't predict injuries, Impellizzeri 2020) lives only inside "Behind the number". It's context for your recovery, not an injury prediction. Everything is computed on your iPhone from your strap's strain; the recovery numeral and its five rules are untouched.
-  ([TrainingLoadSheet.swift](Cenit/Screens/TrainingLoadSheet.swift), [TodayView.swift](Cenit/Screens/TodayView.swift), [ReadinessEngine.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/ReadinessEngine.swift))
 - **El lado «mirar atrás» de «Entrenar», re-vestido: tu mes en total, la sesión pasada con acciones, y descansar que también cuenta / The «looking back» side of «Entrenar», re-skinned: your month in total, the past session with actions, and resting that counts too.**
   **ES** — Las pantallas para **revisar** tu entrenamiento estrenan la piel nueva. **Mis entrenamientos** abre con el **total del mes** (sesiones · horas · kg · kcal) y **barras de volumen por semana** (la semana actual en verde); cada sesión trae su meta con las **kcal** cuando existen. La **sesión pasada** muestra sus cinco métricas (duración, volumen, esfuerzo, FC y kcal), tus series por ejercicio con **PR** marcado y las **superseries identificadas**, y dos acciones: **«Repetir hoy»** (arranca la sesión guiada con esos ejercicios) y **«Duplicar como rutina»** (abre el constructor precargado). **«Hoy descansas»** y **«Otra forma de entrenar»** dejan de ser hojas y pasan a ser **pantallas**: la de descanso te recuerda que descansar **no rompe tu racha**, sugiere una alternativa según tu recuperación, y nombra la rutina de mañana. En la **biblioteca**, tus ejercicios **con historial** salen primero (con tu mejor marca y una mini gráfica), el resto trae botón **«Añadir»**, y el conteo refleja el catálogo real. El **detalle de ejercicio** se ordena en **Guía / Progreso / Historial**. Todo se calcula en tu iPhone.
   **EN** — The screens for **reviewing** your training get the new skin. **My workouts** opens with the **month's total** (sessions · hours · kg · kcal) and **per-week volume bars** (the current week in green); each session shows **kcal** when present. The **past session** shows its five metrics (duration, volume, effort, HR and kcal), your per-exercise sets with **PR** flagged and **supersets identified**, and two actions: **«Repeat today»** (starts the guided session with those exercises) and **«Duplicate as routine»** (opens the builder pre-filled). **«Today you rest»** and **«Another way to train»** stop being sheets and become **screens**: the rest one reminds you resting **doesn't break your streak**, suggests an alternative from your recovery, and names tomorrow's routine. In the **library**, your **exercises with history** come first (with your best mark and a mini chart), the rest carry an **«Add»** button, and the count reflects the real catalog. The **exercise detail** is organized into **Guide / Progress / History**. Everything is computed on your iPhone.
@@ -2807,29 +2636,16 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **EN** — When you tap your recovery on «Hoy», the summary sheet takes on the redesign's voice: your score large next to its verdict in words, and a new **zone meter** that places your number across your five real lanes (Depleted · Low · Moderate · High · Peak), with a tick at today's spot. Below it, **"Today, vs your normal"** moves up just above the chart, and the **"See more in Trends"** button still opens the full detail. The compact "vs yesterday" line now lives only in the detail, keeping the quick sheet lighter. The detail is unchanged; this is only «Hoy»'s quick sheet. Your **six vital** sheets (HRV, resting HR, blood oxygen, steps, stress, respiration) get the same header, plus an honest **verdict in words** (where today sits vs your base) and, for HRV and resting HR, a **"Your pattern"** block. The **Sleep** sheet gains its two-part figure (hours asleep · regularity), a **stage bar** for last night (deep, REM, light, awake) and a **"For tonight"** note. The **Day Strain** sheet gets the same header and its verdict in words.
   ([MetricInfoSheet.swift](Cenit/Screens/MetricInfoSheet.swift), [ZoneMeter.swift](Packages/StrandDesign/Sources/StrandDesign/ZoneMeter.swift), [SleepStageBar.swift](Packages/StrandDesign/Sources/StrandDesign/SleepStageBar.swift))
 
-- **La hoja «Latidos» que abres desde el corazón de «Hoy» estrena la piel nueva / The «Heartbeats» sheet you open from «Hoy»'s heart gets the fresh skin.**
-  **ES** — Cuando tocas tus latidos vivos en «Hoy», el monitor adopta la voz del rediseño: el título **LATIDOS** en la tipografía nueva, y el punto del estado de conexión ahora **late** mientras tu banda transmite. Tu **lpm en vivo** se lee más limpio, el ECG dibuja con un trazo un poco más presente, y el tacograma latido a latido queda igual de honesto. Señales, la cobertura de 28 días, la integridad de tus datos y los respaldos no cambian. Solo se mueve lo que está vivo.
-  **EN** — When you tap your live heartbeats on «Hoy», the monitor takes on the redesign's voice: the **LATIDOS** title in the new typeface, and the connection-status dot now **beats** while your strap streams. Your **live bpm** reads cleaner, the ECG draws with a slightly stronger stroke, and the beat-to-beat tachogram stays just as honest. Signals, the 28-day coverage, your data integrity and the backups are unchanged. Only what's alive moves.
-  ([LiveView.swift](Cenit/Screens/LiveView.swift), [GroteskVoice.swift](Packages/StrandDesign/Sources/StrandDesign/GroteskVoice.swift))
 - **El lado «planificar» de «Entrenar», re-vestido: tu semana en balance, rutinas que se leen de un vistazo y descanso por serie / The «planificar» side of «Entrenar», re-skinned: your week in balance, routines you read at a glance, and rest per set.**
   **ES** — Las cinco pantallas para **planear** tu entrenamiento estrenan la piel nueva. La **landing** pone «Hoy» arriba con el color de tu rutina y un solo botón **Empezar**, seguido de **«También en tu plan»** (cada rutina con su propio «Empezar»), los accesos a otras formas de entrenar y a Dieta, y un instrumento compacto de tu semana con la racha, justo sobre la barra. El **plan semanal** ahora **opina del balance** («4 días de entreno · empuje, tirón y pierna, cada uno cubierto»), marca el día de HOY, dibuja mini barras por grupo en cada día y cierra con **«Volumen semanal por grupo»** (el grupo en déficit se ve en gris). **Mis rutinas** muestra cada rutina con su punto de color, sus músculos en una línea y **cuándo la entrenaste por última vez** («hoy» / «hace 3 d»). En el **constructor**, cada serie lleva **su propio descanso**: un chip (tiempo en tinta, umbral de FC en verde) que abre el editor de descanso **como pantalla**, con ámbito «solo esta serie» o «todas las del ejercicio». Se conservan carpetas, deshacer, plantillas e importar.
   **EN** — The five screens for **planning** your training get the new skin. The **landing** puts «Hoy» up top in your routine's color with a single **Start** button, followed by **«Also in your plan»** (each routine with its own «Start»), the shortcuts to other ways to train and to Diet, and a compact instrument of your week with the streak, right above the bar. The **weekly plan** now **opines on balance** ("4 training days · push, pull and legs each covered"), marks TODAY, draws per-group mini bars on each day, and closes with **«Weekly volume by group»** (the group in deficit shows gray). **My routines** shows each routine with its color dot, its muscles on one line, and **when you last trained it** ("today" / "3 d ago"). In the **builder**, every set carries **its own rest**: a chip (time in ink, HR threshold in green) that opens the rest editor **as a screen**, scoped to "just this set" or "all sets of the exercise". Folders, undo, templates and import are preserved.
   ([EntrenarView.swift](Cenit/Screens/EntrenarView.swift), [WeeklyPlanEditorView.swift](Cenit/Screens/WeeklyPlanEditorView.swift), [MisRutinasScreen.swift](Cenit/Screens/MisRutinasScreen.swift), [RoutineBuilderScreen.swift](Cenit/Screens/RoutineBuilderScreen.swift))
-
-- **El mapa muscular ahora piensa en decaimiento, y estrena «Volumen por músculo» / The muscle map now thinks in decay, and debuts "Volume per muscle".**
-  **ES** — El **mapa muscular** (en Cuerpo) se rediseña con la piel nueva de «Entrenar»: un **titular con veredicto** te dice de un vistazo qué está **fresco para entrenar** y qué **aún carga**, con una viñeta que resume la recuperación de tu banda. Por dentro, cada serie ahora **decae a la mitad cada 2 días** (el curso de la síntesis de proteína muscular: MacDougall 1995; Damas 2015), así que el tiempo vive en la matemática y **desaparece el selector de 3/7/14 días** que sobraba. El ranking «Más cargados» queda fijo a los últimos 7 días con tus series de la semana, y el pie explica el método con su cita. Además, desde **«Mis entrenamientos»** llegas a una pantalla nueva, **«Volumen por músculo»**: tus **series por semana** de cada músculo contra la **banda 10–20** (Schoenfeld 2017), con selector de 30 d / 90 d / 6 m / 1 a, los músculos por debajo de la banda en ámbar y una línea accionable al pie («tu Tirón podría absorber 2–3 series más»). Todo se calcula en tu iPhone.
-  **EN** — The **muscle map** (in Cuerpo) is redesigned with the new «Entrenar» skin: a **verdict headline** tells you at a glance what's **fresh to train** and what **still carries load**, with a bullet summarizing your strap recovery. Under the hood, each set now **fades by half every 2 days** (the time course of muscle protein synthesis: MacDougall 1995; Damas 2015), so time lives in the math and the redundant **3/7/14-day selector is gone**. The «Most loaded» ranking is fixed to the last 7 days with your weekly sets, and the foot spells out the method with its citation. From **«My workouts»** you also reach a new screen, **«Volume per muscle»**: each muscle's **sets per week** against the **10–20 band** (Schoenfeld 2017), with a 30 d / 90 d / 6 m / 1 y selector, below-band muscles in amber, and an actionable line at the foot ("your Pull could take 2–3 more sets"). Everything is computed on your iPhone.
-  ([MuscleMapScreen.swift](Cenit/Screens/MuscleMapScreen.swift), [MuscleVolumeScreen.swift](Cenit/Screens/MuscleVolumeScreen.swift), [MuscleFatigueMap.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/MuscleFatigueMap.swift))
 
 - **«Tu reloj corporal» ahora te arma un plan para el jet-lag y los cambios de turno / "Tu reloj corporal" now builds you a plan for jet-lag and shift changes.**
   **ES** — La función experimental **«Tu reloj corporal»** (en Ajustes → Experimental) gana una sección **«Reajuste»**. ¿Un viaje o cambio de turno a la vista? Le dices **hacia dónde** (este/oeste) y **cuántas horas** se recorre tu horario, y Cénit te arma un plan **día con día**: a qué hora buscar luz brillante, cuándo bajar luces, y a qué hora apuntar a dormir — reajustando tu reloj con calma, alrededor de una hora al día. Al empezar el plan, la pantalla te muestra **el día de hoy** cada vez que la abres («Día 2 de 3»), con la guía de ese día. Es una guía de bienestar basada en **luz y horarios, nunca fármacos ni melatonina**, y así lo dice. Todo se calcula en tu iPhone. (Detectar el cambio de zona automáticamente llega en una fase siguiente; por ahora tú indicas el viaje.)
   **EN** — The experimental **"Tu reloj corporal"** feature (in Settings → Experimental) gains a **"Reajuste"** (reset) section. Traveling or changing shifts? You tell it **which way** (east/west) and **how many hours** your schedule moves, and Cénit builds you a **day-by-day** plan: when to seek bright light, when to dim the lights, and what bedtime to aim for — nudging your clock along calmly, about an hour a day. Once you start the plan, the screen shows you **today** each time you open it ("Day 2 of 3"), with that day's guidance. It's wellness guidance built on **light and timing, never drugs or melatonin**, and it says so. Everything is computed on your iPhone. (Auto-detecting the time-zone change comes in a later phase; for now you tell it about the trip.)
   ([PlanViajeSheet.swift](Cenit/Screens/PlanViajeSheet.swift), [RelojCorporalSheet.swift](Cenit/Screens/RelojCorporalSheet.swift), [JetLagPlanStore.swift](Cenit/Data/JetLagPlanStore.swift))
 
-- **La sesión de fuerza, a pantalla completa: edición en línea, descanso entre series y un recibo que cuenta tu logro / The strength session, full screen: inline editing, rest between sets, and a receipt that tells your achievement.**
-  **ES** — El corazón del rediseño de «Entrenar». La sesión guiada ya no es una hoja con pestañita: **ocupa toda la pantalla**, y ni el botón de regresar ni cambiar de pestaña la matan — una **píldora flotante** («Pierna · 24:10 · ♥ 118») te acompaña en las cinco pestañas y la reabre de un toque (adiós a la fila «Reanudar»). Editas peso y reps **directo en la tabla** con un teclado numérico propio («copiar anterior», ±2,5, Siguiente); una serie de tiempo se expande con su **cronómetro en línea** (parar registra y arranca el descanso). Al marcar una serie aparece la **tarjeta de descanso** entre esa serie y la siguiente: por pulso (baja en vivo hacia tu umbral y el strap zumba) o por tiempo, con «Cambiar descanso» y «Saltar». Y al terminar, un **recibo** nuevo: titular con tu logro, cuatro métricas que cuentan de 0 a su valor, comparativa **contra tu última** rutina igual, récords con el «antes → ahora», tus ejercicios con flechas de tendencia y el costo de recuperación con la proyección de mañana. Sin banda puesta, nada miente: el pulso y las kcal en vivo se ocultan, el descanso cae a su tope de tiempo con aviso y las calorías del recibo se marcan «estimado».
-  **EN** — The heart of the «Entrenar» redesign. The guided session is no longer a sheet with a grabber: **it takes the full screen**, and neither the back button nor switching tabs kills it — a **floating pill** ("Pierna · 24:10 · ♥ 118") follows you across all five tabs and re-opens it in one tap (goodbye "Resume" row). You edit weight and reps **right in the table** with a purpose-built numeric keypad ("copy last", ±2.5, Next); a time set expands with its **inline stopwatch** (stopping logs it and starts the rest). Checking a set drops the **rest card** between that set and the next: by heart rate (your pulse drops live toward the threshold and the strap buzzes) or by time, with "Change rest" and "Skip". And when you finish, a new **receipt**: a headline with your achievement, four metrics counting up from 0, a comparison **against your last** same routine, records framed "before → now", your exercises with trend arrows, and the recovery cost with tomorrow's projection. With no band on, nothing lies: live pulse and kcal hide, HR rest falls back to its time cap with a notice, and the receipt's calories say "estimated".
-  ([LiveStrengthSheet.swift](Cenit/Screens/LiveStrengthSheet.swift), [SessionKeypad.swift](Cenit/Screens/SessionKeypad.swift), [RestEditorScreen.swift](Cenit/Screens/RestEditorScreen.swift), [SessionInstruments.swift](Packages/StrandDesign/Sources/StrandDesign/SessionInstruments.swift), [RootTabView.swift](CenitApp/App/RootTabView.swift))
 - **«Hoy» estrena su pantalla rediseñada: Señales y Brief, con el porqué de tu número a la vista / «Hoy» debuts its redesigned screen: Señales and Brief, with your number's why in plain sight.**
   **ES** — Segunda fase del rediseño integral de «Hoy». Tu recuperación ahora domina la pantalla como un numeral gigante junto a su veredicto en palabras (tócalo y se abre el detalle), y debajo dos pestañas: **Señales**, con el bloque **«POR QUÉ N»** — tu puntaje explicado como cinco filas de marcas, una marca por punto y el largo de cada fila según el peso real de cada señal, de modo que la suma encendida siempre cuadra exacto con tu número — y los ocho vitales del día como tarjetas con su tendencia de 14 días dentro de tu propio rango; y **Brief**, tu lectura del día con la conexión y las acciones de siempre. El mini dial de 24 h vive ahora como sello en la esquina y es también el spinner: al jalar para actualizar le das cuerda, y al terminar el número cuenta de 0 a tu puntaje mientras las marcas se encienden en secuencia — solo al actualizar, nunca al abrir.
   **EN** — Second phase of the full «Hoy» redesign. Your recovery now dominates the screen as a giant numeral next to its verdict in words (tap it to open the detail), with two tabs below: **Señales**, with the **"WHY N"** block — your score explained as five rows of marks, one mark per point and each row's length set by the signal's real engine weight, so the lit total always matches your number exactly — plus the day's eight vitals as tiles with their 14-day trend inside your own range; and **Brief**, your daily read with the usual connection and actions. The 24-hour mini dial now lives as a seal in the corner and doubles as the spinner: pulling to refresh winds it up, and on completion the number counts from 0 to your score while the marks light up in sequence — only on refresh, never on open.
@@ -2837,12 +2653,7 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
 - **La base del rediseño de «Entrenar»: descanso por serie y calorías que se guardan / The «Entrenar» redesign's foundation: per-set rest and calories that stick.**
   **ES** — Primera fase (de siete) del rediseño del flujo de entrenamiento. Bajo el capó, cada **serie** puede llevar ahora su **propio descanso** (tiempo fijo o por frecuencia cardiaca), no solo el ejercicio; tus rutinas actuales se migran sin perder nada (cada serie hereda el descanso que ya tenías). Y cada **sesión de fuerza guarda sus calorías** con su origen («con banda» cuando hubo pulso, «estimado» cuando no) en vez de calcularlas y descartarlas. Nada cambia todavía en lo que ves: esta fase solo prepara el modelo para la sesión a pantalla completa que llega después.
   **EN** — First phase (of seven) of the training-flow redesign. Under the hood, each **set** can now carry its **own rest** (fixed time or by heart rate), not just the exercise; your existing routines migrate with nothing lost (every set inherits the rest you already had). And each **strength session now saves its calories** with their origin ("band-measured" when there was a pulse, "estimated" when not) instead of computing and discarding them. Nothing changes in what you see yet: this phase only lays the model for the full-screen session that comes next.
-  ([Training.swift](Packages/StrandTraining/Sources/StrandTraining/Training.swift), [Database.swift](Packages/WhoopStore/Sources/WhoopStore/Database.swift), [AppModel.swift](Cenit/App/AppModel.swift))
-
-- **Nuevo: «Tu reloj corporal» — ¿eres alondra o búho? / New: "Tu reloj corporal" — are you a morning lark or a night owl?**
-  **ES** — En **Ajustes → Experimental** puedes activar **«Tu reloj corporal»**, una función nueva y experimental. A partir de tu **patrón de actividad** de las últimas dos semanas, Cénit estima si tu cuerpo tiende a **adelantarse (Alondra)**, a **atrasarse (Búho)** o a ir **a la par de tu horario (Alineado)**, y te sugiere una **ventana de sueño aproximada** («tu cuerpo pide dormir alrededor de las ~X»). Es honesta: te dice cuándo la lectura es preliminar, y cuando tu ritmo es difícil de leer lo dice en vez de inventar. **No es un diagnóstico** y ese aviso te acompaña siempre. Necesita una banda WHOOP. (El plan de viaje/jet-lag llega en una fase siguiente.)
-  **EN** — Under **Settings → Experimental** you can turn on **"Tu reloj corporal"** (your body clock), a new, experimental feature. From your **activity pattern** over the last two weeks, Cénit estimates whether your body tends to **run early (a morning lark)**, **run late (a night owl)**, or **stay in step with your schedule (aligned)**, and suggests an **approximate sleep window** ("your body wants to sleep around ~X"). It's honest: it tells you when the reading is preliminary, and when your rhythm is hard to read it says so instead of guessing. **It is not a diagnosis** and that note stays with you throughout. It needs a WHOOP band. (The jet-lag/travel plan comes in a later phase.)
-  ([RelojCorporalSheet.swift](Cenit/Screens/RelojCorporalSheet.swift), [CircadianEngine.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/CircadianEngine.swift), [CircadianPhaseProvider.swift](Cenit/Data/CircadianPhaseProvider.swift))
+  ([Training.swift](Packages/StrandTraining/Sources/StrandTraining/Training.swift), [Database.swift](Packages/CenitStore/Sources/CenitStore/Database.swift), [AppModel.swift](Cenit/App/AppModel.swift))
 
 - **Pulido de copy: sin guiones largos sobrantes en español / Copy polish: no stray em-dashes in Spanish.**
   **ES** — Dos textos de ayuda del Detalle de HRV (por frecuencia y respiración) cambian un guion largo por una coma, cerrando la limpieza de guiones de la versión pasada.
@@ -2860,15 +2671,7 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **ES** — Primera fase (de cuatro) del rediseño integral de «Hoy». La tipografía **Space Grotesk** (licencia abierta) viaja dentro de la app, sin red, y define la voz nueva del instrumento: numerales tabulares enormes, overlines en mayúsculas trackeadas, títulos de hoja. Se suman los tokens de color del rediseño (fondo de bloque patrón, franja de rango, sol del sello, acento del CTA, etapas de sueño, puntos de origen del dato) — generados, no a mano. Nada cambia visualmente todavía: esta fase solo prepara el sistema; la serif de veredictos queda marcada para retiro.
   **EN** — First phase (of four) of the full «Hoy» redesign. **Space Grotesk** (open license) ships inside the app, offline, and defines the instrument's new voice: huge tabular numerals, tracked ALL-CAPS overlines, sheet titles. The redesign's color tokens land too (pattern-block background, range band, seal sun, CTA accent, sleep stages, data-origin dots) — generated, never hand-edited. Nothing changes visually yet: this phase only lays the foundation; the serif verdict face is marked for retirement.
   ([GroteskVoice.swift](Packages/StrandDesign/Sources/StrandDesign/GroteskVoice.swift), [Instrumento.swift](Packages/StrandDesign/Sources/StrandDesign/Instrumento.swift), [DESIGN.md](docs/design-system/DESIGN.md))
-- **El Detalle de HRV ahora desglosa tu variabilidad por frecuencia / The HRV detail now breaks your variability down by frequency.**
-  **ES** — En el Detalle de HRV aparece una sección nueva, **«Tu HRV por frecuencia»** (colapsada, para el curioso). Separa la variabilidad de anoche en la parte **respiratoria (tu señal de calma, ligada a tu respiración)**, la parte **lenta** y la **variación total**, cada una como una potencia en ms² **comparada con tu propio normal** («más alta / dentro / más baja de lo normal»). Es honesta con lo que puede y no puede decir: solo aparece las noches con banda, avisa cuando aún está aprendiendo tu rango, y **no** interpreta nada como un «balance de estrés» — son potencias descriptivas, no un diagnóstico.
-  **EN** — The HRV detail gains a new section, **"Your HRV by frequency"** (collapsed, for the curious). It splits last night's variability into the **respiratory part (your calm signal, tied to your breathing)**, the **slow** part, and the **total variation**, each as a power in ms² **compared to your own normal** ("higher / within / lower than your normal"). It's honest about what it can and can't say: it shows only on nights with the strap, it tells you while it's still learning your range, and it does **not** read anything as a "stress balance" — these are descriptive powers, not a diagnosis.
-  ([MetricDetailScreen.swift](Cenit/Screens/MetricDetailScreen.swift), [HRVFreqDomain.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/HRVFreqDomain.swift), [HRVSpectralBaseline.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/HRVSpectralBaseline.swift), [IntelligenceEngine.swift](Cenit/Data/IntelligenceEngine.swift))
 
-- **Nuevo: «Ritmo» — un vistazo experimental a qué tan parejo latió tu corazón anoche / New: "Ritmo" — an experimental look at how steady your heart beat last night.**
-  **ES** — En **Ajustes → Experimental** encontrarás **«Ritmo»**, una función nueva y experimental. Mientras duermes con tu banda, Cénit mira tu ritmo **latido a latido** y te lo dibuja como una **nube de puntos**: una nube apretada y alargada significa que se vio parejo; una más redonda, que varió más de lo usual. Te dice en palabras sencillas cómo se vio la noche («Se vio estable», «Varió más de lo usual»…) y, si tocas la nube, las seis medidas detrás con su explicación. **No es un ECG, no es un diagnóstico y no detecta enfermedades** — es una visualización de bienestar, y ese aviso te acompaña siempre. La primera vez te explica qué es y qué no es. Necesita una banda WHOOP (no funciona con solo Apple Health).
-  **EN** — Under **Settings → Experimental** there's a new, experimental feature: **"Ritmo"**. While you sleep with your band, Cénit looks at your **beat-to-beat** rhythm and draws it as a **point cloud**: a tight, elongated cloud means it looked steady; a rounder one means it varied more than usual. It tells you in plain words how the night looked ("Looked steady", "Varied more than usual"…) and, if you tap the cloud, the six measures behind it, each explained. **It is not an ECG, not a diagnosis, and does not detect disease** — it's a wellness visualization, and that note stays with you throughout. The first time, it explains what it is and isn't. It needs a WHOOP band (not available with Apple Health only).
-  ([RitmoView.swift](Cenit/Screens/RitmoView.swift), [PoincareCloud.swift](Packages/StrandDesign/Sources/StrandDesign/PoincareCloud.swift))
 - **Cuando dos fuentes miden lo mismo, Cénit te dice si coinciden — y marca el conflicto en vez de esconderlo / When two sources measure the same thing, Cénit tells you whether they agree — and flags a conflict instead of hiding it.**
   **ES** — En pasos, sueño total y energía activa puedes tener dos fuentes el mismo día (tu banda y Apple Salud). Antes se mostraba un solo número sin decir qué opinaba la otra. Ahora, bajo esas métricas aparece una línea discreta: **«Las fuentes coinciden»**, **«difieren un poco»** o **«Fuentes en conflicto»**, con **ambos valores a la vista** (p. ej. «Apple Health 8,100 · Banda 8,420»). Cénit **elige el valor de la fuente que mide mejor ese dato —el podómetro cuenta pasos, la banda cronometra el sueño— y nunca promedia** las dos: si discrepan de más, te lo enseña en lugar de inventar un punto intermedio. Las señales sensibles (HRV, FC en reposo, respiración, etapas de sueño) **no se tocan** — esas las mide cada instrumento distinto y las sigue gobernando su propia lógica de pureza.
   **EN** — For steps, total sleep, and active energy you can have two sources on the same day (your band and Apple Health). Before, Cénit showed a single number without saying what the other source thought. Now a quiet line sits under those metrics: **"Sources match"**, **"differ slightly"**, or **"Sources in conflict"**, with **both values visible** (e.g. "Apple Health 8,100 · Band 8,420"). Cénit **picks the value from whichever source measures that metric best — the pedometer counts steps, the band times sleep — and never averages** the two: when they diverge too far, it shows you rather than inventing a midpoint. The sensitive signals (HRV, resting HR, respiration, sleep stages) are **left alone** — each is measured by a different instrument and stays governed by its own baseline-purity logic.
@@ -2883,50 +2686,16 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **ES** — Se quitó el guion largo (—) de las 222 cadenas en español (ahora coma o punto, según el caso) y de dos separadores fijos en pantalla («Vs ayer: … — …» y «Hoy tu día es … — …»). Se tradujeron cadenas que aún salían en inglés porque faltaban en el catálogo (temp. de piel «muy por encima de tu línea base…», estados del banco de ejercicios), y se corrigió el encabezado de Recuperación que mostraba una coma doble («Tu HRV, por debajo de tu base, , es lo que…»).
   **EN** — Removed the em-dash (—) from all 222 Spanish strings (now comma or period as fits) and from two hard-coded on-screen separators. Translated strings that still showed in English because they were missing from the catalog (skin-temp «well above baseline…», exercise-library states), and fixed the Recovery headline that rendered a double comma.
   ([Localizable.xcstrings](Cenit/Resources/Localizable.xcstrings), [MetricInfoSheet.swift](Cenit/Screens/MetricInfoSheet.swift), [RecoveryDetailScreen.swift](Cenit/Screens/RecoveryDetailScreen.swift))
-- **Una recuperación estimada ahora te dice en cuántas señales se apoya / An estimated recovery now tells you how many signals back it.**
-  **ES** — Cuando tu recuperación de hoy es una **estimación** (un día sin banda, apoyado en Apple Salud), Cénit ya conservaba el número siendo prudente si faltaban señales — pero no te decía por qué. Ahora el sello bajo el veredicto dice **«Estimado — N de 3 señales»**: cuántas de las tres señales principales (HRV, FC en reposo, sueño) respaldan el número. Así, un día que salió conservador se entiende de un vistazo. En un día de banda —con las señales completas— no aparece ningún conteo, igual que antes, y **el número no cambia**.
-  **EN** — When today's recovery is an **estimate** (a strapless day, leaning on Apple Health), Cénit already kept the number cautious when signals were missing — but never told you why. Now the marker under the verdict reads **"Estimated — N of 3 signals"**: how many of the three primary signals (HRV, resting HR, sleep) back it. A day that came out conservative now makes sense at a glance. On a strap day — with the full set of signals — no count appears, just as before, and **the number is unchanged**.
-  ([AppleRecoveryEstimator.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/AppleRecoveryEstimator.swift), [Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift), [Cenit/Screens/RecoveryDetailScreen.swift](Cenit/Screens/RecoveryDetailScreen.swift))
 
 - **El Detalle de Recuperación pasa de dos gráficas a una sola, más clara / The Recovery detail goes from two charts to a single, clearer one.**
   **ES** — El Detalle de Recuperación tenía **dos gráficas de línea de lo mismo**: una con tu recuperación **cruda de cada día** (con zonas: Agotado / Bajo / Moderado / Alto / Pico) y otra con un **promedio móvil de 7 días**. Para una misma fecha mostraban números distintos (p. ej. 61 y 34) sin explicar por qué — «¿el promedio de qué?». Quitamos la segunda: ahora hay **una sola gráfica** (la de zonas) y **un solo selector de periodo**. El resumen de números que vivía debajo de la de tendencia —**media del periodo, rango y cambio (%) vs el periodo anterior**— se conserva, ahora bajo la gráfica de zonas. El número grande, el mini-gráfico de dirección y el calendario de 90 días no cambian.
   **EN** — The Recovery detail had **two line charts of the same thing**: one with your **raw daily recovery** (with zones: Depleted / Low / Moderate / High / Peak) and one with a **7-day moving average**. For the same date they showed different numbers (e.g. 61 and 34) with no explanation — "the average of what?". We removed the second one: now there's **a single chart** (the zones one) and **a single period selector**. The number summary that lived under the trend — **period average, range, and change (%) vs the previous period** — is kept, now beneath the zones chart. The big number, the direction sparkline, and the 90-day calendar are unchanged.
   ([RecoveryDetailScreen.swift](Cenit/Screens/RecoveryDetailScreen.swift))
 
-- **Una recuperación no puede salir «perfecta» apoyada en una sola señal / A recovery score can't come out "perfect" leaning on a single signal.**
-  **ES** — Tu recuperación combina hasta cuatro señales (HRV, FC en reposo, sueño, respiración). Cuando faltaban casi todas —típico de un día sin banda, donde Apple Salud a veces solo aporta HRV— el cálculo se montaba **al 100 % sobre la que quedaba**, y un HRV alto disparaba el número hasta casi «100» como si toda la foto estuviera perfecta. Ahora, si el cálculo se apoya en solo una parte de las señales, el resultado se **acerca a lo neutral** en proporción a lo que falta: una sola señal fuerte ya no satura el score, se comporta como si las demás no dijeran nada (en vez de amplificarla). Con las señales completas —el caso normal con la banda— **el número no cambia**.
-  **EN** — Your recovery blends up to four signals (HRV, resting HR, sleep, breathing). When almost all were missing — typical of a strapless day, where Apple Health sometimes offers only HRV — the score rode **100 % on the one that remained**, and a high HRV pushed the number toward "100" as if the whole picture were perfect. Now, if the score leans on only part of the signals, the result is **pulled toward neutral** in proportion to what's missing: one strong signal no longer saturates the score, it behaves as if the others said nothing (rather than amplifying it). With the full set of signals — the normal strap case — **the number is unchanged**.
-  ([RecoveryScorer.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/RecoveryScorer.swift))
-
-- **La banda te recuerda moverte cuando llevas mucho rato sentado / Your strap reminds you to move after a long sit.**
-  **ES** — Nuevo recordatorio de movimiento (opcional, en Automatizaciones): tras un rato largo sentado **sin caminar**, la banda te da un zumbido suave en su próxima sincronización para que te levantes. Mide la **falta de caminata**, no la quietud de la muñeca —teclear en el escritorio sigue contando como estar sentado—, así que no te molesta por moverte en la silla. Tú eliges el tiempo (por defecto 45 min), cada cuánto insiste, tus horas activas y unas horas silenciosas. Respaldo: menos tiempo sentado se asocia con mejor salud a largo plazo, independiente del ejercicio. Requiere WHOOP 4.0 y que la banda sincronice.
-  **EN** — A new movement reminder (optional, in Automations): after a long stretch of sitting **without walking**, your strap gives a gentle buzz on its next sync so you get up. It measures a **lack of walking**, not wrist stillness — typing at a desk still counts as sitting — so fidgeting in your chair won't set it off. You pick the sit time (45 min by default), how often it re-nudges, your active hours, and a quiet-hours window. Backed by evidence that less sitting is linked to better long-term health, independent of exercise. Needs a WHOOP 4.0 and a strap sync.
-  ([SedentaryDetector.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/SedentaryDetector.swift), [Cenit/Data/InactivityPrefs.swift](Cenit/Data/InactivityPrefs.swift), [Cenit/Screens/AutomationsView.swift](Cenit/Screens/AutomationsView.swift))
-
-- **La recuperación estimada ya no inventa un número perfecto de madrugada: espera a que la noche tenga suficiente sueño / Estimated recovery no longer invents a perfect number in the small hours — it waits until the night has enough sleep.**
-  **ES** — Cuando aún no sincronizas la banda, Cénit puede **estimar** tu recuperación a partir del HRV de Apple Salud contra tu propia norma. Pero pasada la medianoche —con la noche apenas empezada (~2 h) y sin FC en reposo ni sueño todavía— esa estimación se apoyaba en una sola señal y saltaba a un **«100» que no era real**. Ahora, si la noche medida no llega a ~3 h de sueño, Cénit **no muestra un número**: enseña «—» (igual que cuando apenas está aprendiendo tu base) hasta que haya suficiente sueño registrado. Las noches completas no cambian.
-  **EN** — Before you've synced the strap, Cénit can **estimate** your recovery from Apple Health's HRV against your own norm. But just after midnight — with the night barely begun (~2 h) and no resting HR or sleep yet — that estimate leaned on a single signal and jumped to a **"100" that wasn't real**. Now, if the measured night is under ~3 h of sleep, Cénit **shows no number** at all: it displays "—" (the same as when it's still learning your baseline) until enough sleep has been logged. Full nights are unchanged.
-  ([AppleRecoveryEstimator.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/AppleRecoveryEstimator.swift))
-
-- **El WHOOP 5.0/MG deja de inflar tus pasos: un dial para calibrar su contador / The WHOOP 5.0/MG stops inflating your steps: a dial to calibrate its counter.**
-  **ES** — El **contador de pasos nativo** del WHOOP 5.0/MG lee de más (a veces muchísimo). Ahora, en Ajustes → Perfil → **Calibración de pasos** (visible solo en un 5/MG), un control te deja dividir ese conteo hasta que cuadre con un día que puedas verificar. Por defecto queda **Apagado** (usa el conteo tal cual), así que nada cambia hasta que tú lo ajustes. El WHOOP 4.0 no tiene contador nativo —estima sus pasos (ver arriba)— así que esto no le aplica.
-  **EN** — The WHOOP 5.0/MG's **native step counter** reads high (sometimes very high). Now, in Settings → Profile → **Steps calibration** (shown only on a 5/MG), a control lets you divide that count until it matches a day you can check. It defaults to **Off** (raw count), so nothing changes until you set it. The WHOOP 4.0 has no native counter — it estimates its steps (see above) — so this doesn't apply there.
-  ([AnalyticsEngine.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/AnalyticsEngine.swift), [Cenit/Data/Profile.swift](Cenit/Data/Profile.swift), [Cenit/Screens/AjustesView.swift](Cenit/Screens/AjustesView.swift))
-
 - **El aviso temprano de enfermedad ya no grita por una resaca, un sauna o un entreno duro / The early-illness heads-up no longer cries wolf over a hangover, a sauna or a hard workout.**
   **ES** — El aviso temprano miraba cuatro señales (FC en reposo, HRV, temperatura de piel, respiración) por separado y saltaba con **dos cualquiera** pasadas de tu rango normal — sin cruzarlas ni descartar una explicación más simple. El problema: **una noche con alcohol, un sauna o un entreno tardío** suben la FC y bajan la HRV **igualito** que una infección temprana, así que el aviso saltaba en falso. Ahora un motor compuesto (0–100) exige **al menos dos señales que se corroboren** y **revisa tu diario del mismo día**: si registraste alcohol, estrés, sauna o una sesión dura, amortigua la señal (×0.45) y **no dispara la alerta** — la explicación más sencilla gana. Solo una señal multi-parámetro clara **sin** un factor que la explique levanta el aviso. Sigue siendo una estimación en el dispositivo, **no un diagnóstico**. (Mishra 2020, Nat Biomed Eng 4:1208.)
   **EN** — The early-warning watched four signals (resting HR, HRV, skin temperature, respiration) independently and fired on **any two** past your normal range — with no cross-check and no plainer explanation ruled out. The catch: **a night of drinking, a sauna, or a late/hard workout** raises RHR and drops HRV **exactly like** early illness, so it cried wolf. A composite engine (0–100) now requires **at least two corroborating signals** and **checks the same-day journal**: if you logged alcohol, stress, sauna or a hard session, it damps the signal (×0.45) and **won't raise the alert** — the simpler explanation wins. Only a clear multi-parameter pattern with **no** confounder logged raises the heads-up. It's still an on-device estimate, **not a diagnosis**. (Mishra 2020, Nat Biomed Eng 4:1208.)
   ([IllnessSignalEngine.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/IllnessSignalEngine.swift), [AppModel.swift](Cenit/App/AppModel.swift))
-
-- **La detección de sueño aguanta las noches «a trozos» del WHOOP 5.0/MG y descarta artefactos / Sleep detection now survives the WHOOP 5.0/MG's "clumped" nights and rejects artefacts.**
-  **ES** — El **WHOOP 5.0/MG** (sin desbloquear) respalda el movimiento en ráfagas dispersas, así que una noche real de ~6 h se fragmentaba en trocitos que Cénit descartaba por cortos — y a veces no marcaba **nada de sueño**. Se portaron seis robustezas: (1) une los trozos de una misma noche cuando el ritmo cardiaco se mantiene en zona de sueño a través del hueco; (2) descarta un tramo pasado fuera de la muñeca (backstop fraccional, deja pasar una cola corta); (3) tira bloques imposibles de más de 16 h (artefacto de reloj); (4) suprime la «siesta fantasma» de la mañana justo después de despertar; (5) no corta la cola de una noche que se alarga hasta media mañana; y (6) deja lista la confirmación con el propio estado de sueño de la banda. **Todo está detrás de un candado de «gravity dispersa», así que el WHOOP 4.0 (denso) queda idéntico** — sus 19 pruebas de regresión pasan sin tocarse.
-  **EN** — The (un-unlocked) **WHOOP 5.0/MG** backs up motion in sparse bursts, so a real ~6 h night fragmented into pieces Cénit dropped as too short — sometimes showing **no sleep at all**. Six robustness fixes were ported: (1) stitch a night's pieces back together when heart rate stays in the sleep band across the gap; (2) drop a stretch spent off the wrist (fractional backstop that still keeps a short tail); (3) reject impossible >16 h blocks (a bad-clock artefact); (4) suppress the "phantom nap" right after a morning wake; (5) don't truncate the tail of a night that runs into late morning; and (6) wire up confirmation from the strap's own sleep state. **All of it is gated behind a "sparse gravity" check, so the dense WHOOP 4.0 path is byte-identical** — its 19 regression tests pass untouched.
-  ([SleepStager.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/SleepStager.swift))
-
-- **Las calorías son más fieles: ni se desploman en el WHOOP 5.0/MG ni se inflan en un día tranquilo / Calories are truer: no longer collapsing on the WHOOP 5.0/MG nor inflating on a quiet day.**
-  **ES** — Dos arreglos al estimado de energía por ritmo cardiaco. (1) En el **WHOOP 5.0/MG**, que manda el pulso disperso (~cada 30 s), las **calorías de un entrenamiento** se desplomaban casi a cero porque cada muestra contaba como un solo segundo; ahora cada muestra pesa el **tiempo real** que cubre hasta la siguiente (con un tope), así que un esfuerzo disperso cuenta los minutos que de verdad duró. (2) Las **calorías del día** aplicaban la fórmula de ejercicio a cualquier pulso un poco elevado —caminar, subir escaleras— y **sobreestimaban ~1000+ kcal**; ahora el día solo aplica esa fórmula a pulso de ejercicio real (umbral más alto), y por debajo cuenta metabolismo en reposo. El estimado por entrenamiento no cambia en el WHOOP 4.0 a 1 Hz.
-  **EN** — Two fixes to the heart-rate energy estimate. (1) On the **WHOOP 5.0/MG**, which sends a sparse pulse (~every 30 s), a **workout's calories** collapsed toward zero because each sample counted as a single second; now each sample is weighted by the **real elapsed time** to the next one (capped), so a sparse effort counts the minutes it actually lasted. (2) **Whole-day calories** applied the exercise formula to any slightly-elevated pulse — walking, stairs — and **over-counted by ~1000+ kcal**; the day now applies that formula only at genuine exercise-level pulse (a higher threshold) and counts resting metabolism below it. The per-workout estimate is unchanged on the 1 Hz WHOOP 4.0.
-  ([WorkoutDetector.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/WorkoutDetector.swift))
 
 - **Un esfuerzo largo con una pausa breve ya no se parte en pedazos que desaparecen / A long effort with a brief lull no longer shatters into pieces that vanish.**
   **ES** — Cénit detecta un entrenamiento por movimiento sostenido + ritmo cardiaco elevado. En un esfuerzo de resistencia largo —una rodada en bici— es normal dejar de moverte unos minutos sin descansar de verdad: bajas una pendiente sin pedalear, te paras en un cruce, o el sensor pierde señal un momento. Antes, esa pausa **partía el esfuerzo en trozos**, y cada trozo, al quedar corto, **desaparecía** — perdías el entrenamiento entero. Ahora Cénit cose dos tramos separados por una pausa de hasta 5 minutos **solo si tu ritmo cardiaco siguió alto** en la pausa (o no hubo señal), de modo que el esfuerzo cuenta como uno solo. Dos entrenamientos de verdad separados por un descanso (tu pulso baja) siguen contándose por separado.
@@ -2938,30 +2707,10 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **EN** — In your readiness read, the **training-load** signal (the acute:chronic ratio) used to say things like "ease off if fatigued" or "watch fatigue". The best current evidence (Impellizzeri 2020) is clear: that ratio **does not predict injury**, so framing it as a risk instruction over-promised. The sentence now just describes where your recent load sits versus your baseline load ("acute above chronic"), no imperatives. No math or signal color changes, only the wording.
   ([ReadinessEngine.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/ReadinessEngine.swift))
 
-- **El Esfuerzo del día ya refleja HOY en el WHOOP 5.0/MG en vez de quedarse en blanco / Day Strain now reflects TODAY on the WHOOP 5.0/MG instead of staying blank.**
-  **ES** — El **WHOOP 5.0/MG** manda tu ritmo cardiaco en vivo solo ~cada 30 segundos, así que necesitaría ~5 horas seguidas de uso para juntar las muestras que Cénit pedía antes de calcular el **Esfuerzo del día**. Resultado: el medidor se quedaba **en blanco casi todo el día** (o mostraba el valor de ayer). Ahora Cénit también acepta un stream **disperso pero sostenido** —al menos 10 minutos de cobertura de reloj— para puntuarlo. Esto **no inventa carga**: el cálculo sigue integrando honesto tu ritmo cardiaco real, así que un día tranquilo sigue marcando 0; solo deja que el medidor hable de tu día de hoy. El WHOOP 4.0 (1 Hz) no cambia en nada.
-  **EN** — The **WHOOP 5.0/MG** sends your live heart rate only ~every 30 seconds, so it would take ~5 continuous hours of wear to reach the samples Cénit used to require before scoring **Day Strain**. The result: the gauge sat **blank most of the day** (or showed yesterday's value). Cénit now also accepts a **sparse-but-sustained** stream — at least 10 minutes of wall-clock coverage — to score it. This **fabricates no load**: the math still integrates your real heart rate honestly, so a calm day still reads 0; it just lets the gauge speak to today. The WHOOP 4.0 (1 Hz) path is unchanged.
-  ([StrainScorer.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/StrainScorer.swift))
-
-- **La WHOOP 4.0 ya estima tus pasos del día, calibrada contra tu iPhone / The WHOOP 4.0 now estimates your daily steps, calibrated against your iPhone.**
-  **ES** — La WHOOP 4.0 no manda conteo de pasos por Bluetooth, así que ese tile vivía vacío para quien no usa Apple Salud. Ahora Cénit **estima** tus pasos desde el volumen de movimiento de la muñeca, con un coeficiente **personal** que se calibra solo comparando contra los días en que tu iPhone también contó pasos (o que tú fijas a mano en Ajustes → Perfil → Estimación de pasos). El tile de Pasos siempre prefiere un conteo real; la estimación solo llena los huecos y va rotulada **«est.»** — es una estimación honesta, nunca un podómetro (el sensor de la 4.0 no ve zancadas individuales).
-  **EN** — The WHOOP 4.0 sends no step count over Bluetooth, so that tile sat empty unless you use Apple Health. Cénit now **estimates** your steps from wrist motion volume, with a **personal** coefficient that auto-calibrates against the days your iPhone also counted steps (or that you set by hand in Settings → Profile → Steps estimate). The Steps tile always prefers a real count; the estimate only fills the gaps and is labeled **"est."** — an honest estimate, never a pedometer (the 4.0's sensor can't see individual strides).
-  ([StepsEstimateEngine.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/StepsEstimateEngine.swift), [Cenit/Data/IntelligenceEngine.swift](Cenit/Data/IntelligenceEngine.swift), [Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift), [Cenit/Screens/AjustesView.swift](Cenit/Screens/AjustesView.swift))
-
-- **Los huecos de sincronización ya no inflan tus pasos con miles de pasos fantasma / Sync gaps no longer inflate your steps with thousands of phantom steps.**
-  **ES** — El contador de **pasos** de la banda es un contador acumulado, y cuando pasaban horas entre sincronizaciones (o la banda se reiniciaba), ese salto gigante podía colarse al total del día como **decenas de miles de pasos que nunca diste**. Ahora Cénit descarta cualquier salto implausible entre dos lecturas consecutivas (≥512, el umbral que la comunidad validó tras ver conteos hasta 24× de más) y solo suma el movimiento real. Un día activo normal no cambia.
-  **EN** — The strap's **step** counter is cumulative, and when hours passed between syncs (or the strap rebooted), that giant jump could leak into the daily total as **tens of thousands of steps you never took**. Cénit now drops any implausible jump between two consecutive readings (≥512, the threshold the community validated after seeing counts up to 24× too high) and only sums real movement. A normal active day is unchanged.
-  ([AnalyticsEngine.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/AnalyticsEngine.swift))
-
 - **El Detalle de Estrés ahora aclara que el número y el mapa del día miden cosas distintas / The Stress detail now explains that the number and the day map measure different things.**
   **ES** — En el **Detalle de Estrés** conviven dos medidas: el **número grande** (tu carga del día completo frente a tu base de ~30 días) y el **mapa del día** (los momentos en que te activaste, comparados con tu calma reciente de ~7 días). Son lentes distintas a propósito, pero nada lo decía, y podían leerse como si no cuadraran. Ahora la ⓘ de cada uno lo explica: la del número aclara que es tu día completo vs tu base, distinta del mapa; la del mapa aclara que marca momentos vs tu calma reciente. No cambia ningún cálculo, solo el texto.
   **EN** — The **Stress detail** holds two measures: the **big number** (your whole-day load vs your ~30-day baseline) and the **day map** (the moments you got activated, against your recent ~7-day calm). They're different lenses on purpose, but nothing said so, and they could read as if they didn't add up. Now each one's ⓘ explains it: the number's says it's your whole day vs your baseline, distinct from the map; the map's says it marks moments vs your recent calm. No math changes, only the wording.
   ([Cenit/Screens/StressDetailScreen.swift](Cenit/Screens/StressDetailScreen.swift), [Cenit/Screens/StressDayMapView.swift](Cenit/Screens/StressDayMapView.swift))
-
-- **El Esfuerzo del día en curso muestra un solo número en todas partes / Today's Day Strain now shows one number everywhere.**
-  **ES** — En un día en curso, tu **Esfuerzo del día** podía verse **distinto según dónde lo miraras**: el número grande del Detalle (y el tile de Hoy) decían, por ejemplo, 7.8, pero la curva **«Cómo se acumuló hoy»** llegaba a 8.3 — aunque la propia pantalla promete que la curva «termina en tu score de arriba». Pasaba porque el número usaba una foto guardada mientras la curva reprocesaba tu ritmo cardiaco en vivo, con parámetros ligeramente distintos. Ahora las tres superficies —**tile, número grande y curva**— salen de **un solo cálculo en vivo**: el número es, por construcción, el final de la curva, y sube conforme tu banda sincroniza. Los días pasados no cambian.
-  **EN** — On an in-progress day, your **Day Strain** could look **different depending on where you saw it**: the big number in the detail (and the Today tile) read, say, 7.8, while the **"How today added up"** curve climbed to 8.3 — even though the screen promises the curve "ends on your score above." It happened because the number used a saved snapshot while the curve re-ran your heart rate live, with slightly different parameters. Now all three surfaces — **tile, big number and curve** — come from **one live derivation**: the number is, by construction, the end of the curve, and it rises as your strap syncs. Past days are unchanged.
-  ([Cenit/App/AppModel.swift](Cenit/App/AppModel.swift), [Cenit/Screens/StrainDetailScreen.swift](Cenit/Screens/StrainDetailScreen.swift), [Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift), [Cenit/Screens/CuerpoView.swift](Cenit/Screens/CuerpoView.swift))
 
 - **Pulido de Hoy y Ajustes: «toca para saber por qué» en ambas páginas, título «Ajustes» en español y tiles del Vistazo parejos / Today & Settings polish: "tap to see why" on both pages, "Ajustes" title in Spanish, and even Glance tiles.**
   **ES** — Tres arreglos visuales. (1) En **Hoy**, el enlace **«toca para saber por qué»** bajo el dial ahora acompaña también a la página **«Métricas de hoy»**, no solo al Daily Brief. (2) El título de la pantalla de **Ajustes** decía «Settings» en inglés (un literal sin localizar); ahora dice **«Ajustes»**. (3) En el **Vistazo**, los tiles de **Recuperación**, **HRV** y **Sueño** quedaban con altos ligeramente distintos porque el valor ancho de Sueño encogía un pelo; ahora los tres son del mismo alto.
@@ -2973,44 +2722,10 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **EN** — When your acute:chronic load (ACWR) spikes, the signal read "higher injury risk". But the rest of the app — and its own help text — is explicit that ACWR is **context for your recovery, never an injury claim** (that evidence doesn't hold up; Lolli 2019, Impellizzeri 2020). One screen asserted what another denied. That signal now reads **"ease off if fatigued"** — actionable, with no injury claim — matching the "watch fatigue" of the band below it. The ACWR math is unchanged; only the copy.
   ([ReadinessEngine.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/ReadinessEngine.swift))
 
-- **«Qué la mueve» deja de mezclar banda y Apple al correlacionar tu HRV / "What moves it" no longer mixes band and Apple when correlating your HRV.**
-  **ES** — En el detalle de **HRV**, el bloque **«Qué la mueve»** (relación con el sueño y con el esfuerzo del día anterior) corría sobre una serie que mezclaba tus noches de banda (RMSSD) con las de Apple Health (SDNN) — dos medidas distintas sin conversión publicada. Ahora esas noches de Apple se excluyen de la correlación de HRV, igual que ya lo hacen «Hoy», Patrones y el Detalle. Este era el último consumidor de HRV que quedaba sin filtrar por fuente. La FC en reposo (misma medida física entre fuentes) no cambia. Un usuario solo-banda no ve ningún cambio.
-  **EN** — In the **HRV** detail, the **"What moves it"** block (its link to sleep and to the prior day's strain) ran over a series that mixed your band nights (RMSSD) with Apple Health ones (SDNN) — two different measures with no published conversion. Those Apple nights are now excluded from the HRV correlation, just like Today, Patterns and the Detail already do. This was the last HRV consumer left unfiltered by source. Resting HR (the same physical metric across sources) is unchanged. A strap-only user sees no change.
-  ([Cenit/Data/WhatMovesIt.swift](Cenit/Data/WhatMovesIt.swift))
-
-- **Tu Edad Corporal ahora avisa cuando es una estimación parcial / Your Body Age now flags when it's a partial estimate.**
-  **ES** — Si solo usas Apple Health (sin banda), tu **Edad Corporal** se calcula sin las dos señales de mayor peso —**HRV** y **FC en reposo**, que solo vienen de la banda— pero el número y su margen (±5 años) se veían idénticos a los de alguien con datos completos. Ahora, cuando falta alguna de esas dos, la Edad Corporal muestra un sello **«Estimación parcial»** (el mismo que ya usa la Edad Física) y una línea honesta que nombra qué le falta: «calculada sin HRV ni FC en reposo… el número sigue valiendo, con menos precisión». El cálculo, el número y el margen no cambian — solo se comunica la menor confianza. Un usuario con banda no ve ningún cambio.
-  **EN** — If you only use Apple Health (no strap), your **Body Age** is worked out without the two heaviest signals — **HRV** and **resting HR**, which only come from the band — yet the number and its ±5-year margin looked identical to someone with full data. Now, when either of those is missing, Body Age shows a **"Partial estimate"** flag (the same one Physical age already uses) and an honest line naming what it's leaning without: "worked out without HRV or resting heart rate… the number still holds, with less precision." The math, the number and the margin are unchanged — only the reduced confidence is now communicated. A strap user sees no change.
-  ([Cenit/Screens/BodyAgeSheet.swift](Cenit/Screens/BodyAgeSheet.swift), [Cenit/Screens/CuerpoView.swift](Cenit/Screens/CuerpoView.swift))
-
-- **Tu Edad Corporal ya no se mueve por mezclar banda y Apple en el HRV nocturno / Your Body Age no longer shifts from mixing band and Apple in nightly HRV.**
-  **ES** — **Vitalidad / Edad Corporal** toma la mediana de tu **HRV nocturno** y la compara contra una norma **RMSSD por edad**. Pero la ventana leía `displayDays`, que rellena noches sin banda con HRV de Apple Health — que es **SDNN**, no RMSSD, dos medidas distintas sin conversión publicada (Task Force 1996; Shaffer & Ginsberg 2017). Una semana con varias noches Apple corría esa mediana y movía tu Edad Corporal **por la fuente, no por tu fisiología**. Ahora ese HRV nocturno (y la FC en reposo nocturna, que arrastraba el mismo desfase de ~12.7 bpm) se toma **solo de la banda**. Si solo usas Apple Health, el factor de HRV simplemente **queda ausente** en vez de comparar SDNN contra la norma de banda — Vitalidad sigue calculándose con sueño, regularidad y pasos. Un usuario solo-banda no ve ningún cambio.
-  **EN** — **Vitality / Body Age** takes the median of your **nightly HRV** and scores it against an **RMSSD-by-age** norm. But the window read `displayDays`, which back-fills band-less nights with Apple Health HRV — which is **SDNN**, not RMSSD, two different measures with no published conversion (Task Force 1996; Shaffer & Ginsberg 2017). A week with several Apple nights shifted that median and moved your Body Age **by source, not physiology**. That nightly HRV (and the nightly resting HR, which carried the same ~12.7 bpm offset) now comes **from the band only**. If you only use Apple Health, the HRV factor is simply **absent** rather than comparing SDNN to the band norm — Vitality still computes from sleep, regularity and steps. A strap-only user sees no change.
-  ([Cenit/Screens/CuerpoView.swift](Cenit/Screens/CuerpoView.swift))
-
-- **Patrones y «La conexión de hoy» ya no mezclan banda y Apple al juzgar tu HRV / Patterns and "Today's connection" no longer mix band and Apple when judging your HRV.**
-  **ES** — En la pestaña **Patrones** y en la línea **«La conexión de hoy»** del resumen diario, avisos como «anoche tu HRV corrió bajo tu base» y las correlaciones (alcohol, dieta…) se calculaban sobre una base **mezclada** con tus noches de Apple Health — pero el HRV de la banda es RMSSD y el de Apple es SDNN, dos medidas que corren ~20–40% distinto sin conversión publicada. Tras un viaje sin banda, ese aviso podía **dispararse o silenciarse** por el cambio de escala, no por tu fisiología. Ahora esos avisos y correlaciones (HRV, FC en reposo y respiración) se calculan sobre **una sola fuente** —la banda— igual que ya lo hacen «Hoy» y el Detalle de Recuperación. Tu carga de entrenamiento (esfuerzo/ACWR) no usa esas señales y no cambia. Un usuario solo-banda no ve ningún cambio.
-  **EN** — In the **Patterns** tab and the **"Today's connection"** line of the daily brief, nudges like "last night your HRV ran below your baseline" and the correlations (alcohol, diet…) were computed against a baseline **mixed** with your Apple Health nights — but the band's HRV is RMSSD and Apple's is SDNN, two measures that run ~20–40% apart with no published conversion. After a strap-less trip, that nudge could **fire or go silent** from the scale change, not your physiology. Those nudges and correlations (HRV, resting HR and respiration) now compute over a **single source** — the band — just like Today and the Recovery Detail already do. Your training load (strain/ACWR) doesn't use those signals and is unchanged. A strap-only user sees no change.
-  ([Cenit/Data/InsightsProvider.swift](Cenit/Data/InsightsProvider.swift))
 - **Recuperación: una sola sección «Hoy, vs tu normal», un «Qué cambió vs ayer» nuevo y un «Mañana» direccional / Recovery: one unified "Today, vs your normal", a new "What changed since yesterday", and a directional "Tomorrow".**
   **ES** — El **Resumen** y el **Detalle** de recuperación ahora cuentan la misma historia con el mismo motor. La atribución por nivel se unificó en una sola sección, **«Hoy, vs tu normal»**, con un solo eje: cada señal muestra su posición vs tu base, su peso, y una barra que la sostiene (derecha) o la frena (izquierda), rankeadas por cuánto pesan en tu score de hoy. Debajo llega **«Qué cambió vs ayer»**: cuántos puntos subiste o bajaste respecto a ayer y las 1–2 señales que más se movieron («48 → 61 ms»). Y **«Mañana»** deja de mostrar un número falso-preciso: ahora es una flecha de tendencia + una frase honesta («Tendencia estable. Si descansas igual, deberías seguir en tu rango medio»). Todo se calcula solo con tus noches de banda, así que nunca contradice tu score.
   **EN** — Recovery's **Summary** and **Detail** now tell the same story with the same engine. Level attribution is unified into one section, **"Today, vs your normal"**, on a single axis: each signal shows its position vs your base, its weight, and a bar that holds recovery up (right) or back (left), ranked by how much it weighs on today's score. Below it, a new **"What changed since yesterday"**: how many points you're up or down vs yesterday and the 1–2 signals that moved most ("48 → 61 ms"). And **"Tomorrow"** drops the falsely precise number for a trend arrow + an honest sentence ("Trend steady. Rest the same and you should stay in your mid-range"). It's all computed from your band nights only, so it never contradicts your score.
   ([Cenit/Screens/RecoveryDetailScreen.swift](Cenit/Screens/RecoveryDetailScreen.swift), [Cenit/Screens/MetricInfoSheet.swift](Cenit/Screens/MetricInfoSheet.swift), [Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift), [Packages/StrandAnalytics/Sources/StrandAnalytics/RecoveryChange.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/RecoveryChange.swift))
-
-- **El detalle de HRV, FC en reposo y respiración ya no mezcla banda y Apple en su tendencia / The HRV, resting-HR and respiration detail no longer mixes band and Apple in its trend.**
-  **ES** — Al abrir el detalle de **HRV**, **FC en reposo** o **frecuencia respiratoria**, la línea de tendencia, tu «rango normal ±σ», la consistencia y el «Δ% vs el mes pasado» sumaban noches de la banda con noches de Apple Health — pero cada fuente mide con otro instrumento (el HRV de la banda es RMSSD y el de Apple es SDNN; la FC en reposo de Apple corre ~13 bpm más alta; la respiración +2). Mezclarlas ensanchaba tu rango normal y sesgaba el Δ%. Ahora el detalle calcula todo eso sobre **una sola fuente** —la banda si tienes noches con ella, Apple si solo usas Apple— así que la línea y las cifras nunca cruzan instrumentos. Tu lectura de **hoy** se sigue mostrando tal cual (con su sello «Apple» si vino de ahí). Un usuario solo-banda no ve ningún cambio.
-  **EN** — Opening the **HRV**, **resting HR** or **respiratory rate** detail, the trend line, your "normal range ±σ", the consistency figure and the "Δ% vs last month" pooled band nights together with Apple Health nights — but each source measures with a different instrument (the band's HRV is RMSSD, Apple's is SDNN; Apple's resting HR runs ~13 bpm higher; respiration +2). Mixing them widened your normal range and biased the Δ%. The detail now computes all of that over a **single source** — the band when you have band nights, Apple if you only use Apple — so the line and the figures never cross instruments. **Today's** reading is still shown as-is (with its "Apple" seal when it came from there). A strap-only user sees no change.
-  ([Cenit/Screens/MetricDetailScreen.swift](Cenit/Screens/MetricDetailScreen.swift), [Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift), [Cenit/Screens/CuerpoView.swift](Cenit/Screens/CuerpoView.swift))
-
-- **El aviso temprano de enfermedad juzga tu FC en reposo contra tu base de banda, sin mezclar Apple / The illness early-warning judges your resting HR against your strap baseline, no Apple mixed in.**
-  **ES** — El aviso opcional de «tu cuerpo se ve exigido» compara tus últimas noches contra tu base para detectar la firma de enfermedad (FC en reposo↑, HRV↓, temperatura de piel↑). Su término de FC en reposo comparaba contra una base **mezclada** con tus noches de Apple Health, cuya FC en reposo (medida despierto) corre ~10–13 bpm más alta que la de la banda (medida en el sueño) — así que una subida real de FC en reposo podía quedar **silenciada** (o dispararse sesgada). Ahora ese término usa solo tus noches de banda, igual que ya lo hacía el de HRV. La **respiración no cambia** (ambas fuentes la miden durante el sueño, es el mismo número). Un usuario solo-banda no ve ningún cambio.
-  **EN** — The optional "your body looks strained" nudge compares your recent nights against your baseline to catch the illness signature (resting HR↑, HRV↓, skin temp↑). Its resting-HR term compared against a baseline **mixed** with your Apple Health nights, whose resting HR (measured awake) runs ~10–13 bpm higher than the band's (measured during sleep) — so a real resting-HR rise could be **silenced** (or fire biased). That term now uses your band nights only, just like the HRV term already did. **Respiration is unchanged** (both sources measure it during sleep — the same number). A strap-only user sees no change.
-  ([Cenit/App/AppModel.swift](Cenit/App/AppModel.swift))
-
-- **El Detalle de Recuperación mide tus señales contra tu base de banda, igual que el score / The Recovery Detail measures your signals against your strap baseline, matching the score.**
-  **ES** — Al abrir el Detalle de Recuperación, cada señal («HRV vs tu base», «FC en reposo vs tu base») se comparaba contra una base **mezclada** con tus noches de Apple Health, mientras que el número grande de recuperación se calcula solo con tu banda. Por eso el score podía gritar «fondo» y el Detalle susurrar «leve» el mismo día. Ahora el Detalle usa exactamente la misma base solo-banda que el score, así que la σ que ves coincide con el número. En un día sin banda (estimado con Apple Health) el Detalle ya no inventa una σ de banda para una lectura que la banda no tomó. Además, el titular del Detalle ahora nombra la señal que **más movió** tu recuperación (por su peso real), no la que más se desvió: HRV (60% del peso) en vez de Respiración (5%).
-  **EN** — Opening the Recovery Detail, each signal ("HRV vs your base", "resting HR vs your base") was compared against a baseline **mixed** with your Apple Health nights, while the big recovery number is computed from your strap alone. So the score could shout "rock bottom" while the Detail whispered "mild" on the same day. The Detail now uses the exact same strap-only baseline the score does, so the σ you see matches the number. On a band-less day (an Apple Health estimate) the Detail no longer invents a strap σ for a reading the strap never took. The Detail's headline now names the signal that **moved your recovery most** (by its real weight), not the one that deviated most: HRV (60% of the weight) instead of Respiration (5%).
-  ([Cenit/Screens/RecoveryDetailScreen.swift](Cenit/Screens/RecoveryDetailScreen.swift))
 
 - **Las gráficas de Esfuerzo y Estrés ya terminan en hoy, como su número grande / The Strain and Stress charts now end on today, like their hero number.**
   **ES** — Al abrir el resumen de **Esfuerzo del día** o **Estrés** desde Hoy a media jornada, el número grande mostraba el valor de hoy pero la línea de tendencia terminaba en **ayer**, como si faltaran datos. Eran dos fallas: la gráfica de Esfuerzo descartaba a propósito el punto parcial de hoy (aunque el número sí lo mostraba), y la de Estrés etiquetaba cada punto un día atrás por una conversión de zona horaria (visible en México y todo huso al oeste de UTC). Ahora ambas líneas terminan en el mismo día que el número grande. Pasos no cambia: su gráfica sigue contando solo días completos, a propósito.
@@ -3021,10 +2736,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **ES** — Al abrir el resumen de Recuperación (desde el Daily Brief, el número de Hoy o el vistazo de Cuerpo), las barras de pesos fijos de la fórmula (HRV 60%, FC 20%…) — que decían lo mismo todos los días — se reemplazan por **«Qué la movió hoy»**: cada señal aparece con su estado en palabras («suprimida», «elevada»…), una frase de impacto («la bajó mucho», «la subió») y una barra que muestra cuánto y hacia dónde movió tu recuperación **de hoy**, ordenadas por impacto real. El titular nombra la señal que más pesó. Además, estos impactos se calculan contra tu base **solo de la banda** (sin mezclar noches de Apple Health), igual que el score — así el resumen y el número nunca se contradicen. Los pesos exactos y la σ siguen disponibles bajo «Cómo se calcula».
   **EN** — When opening the Recovery summary (from the Daily Brief, the Today numeral, or the Body glance), the formula's fixed-weight bars (HRV 60%, RHR 20%…) — which read the same every day — are replaced by **"What moved it today"**: each signal shows its state in words ("suppressed", "elevated"…), an impact phrase ("pulled it down hard", "lifted it") and a bar showing how much and in which direction it moved **today's** recovery, ordered by real impact. The headline names the signal that weighed the most. These impacts are computed against your **band-only** baseline (no Apple Health nights mixed in), same as the score — so the summary and the number can never contradict each other. The exact weights and the σ remain available under "How it's calculated".
   ([Packages/StrandAnalytics/Sources/StrandAnalytics/RecoveryImpact.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/RecoveryImpact.swift), [Cenit/Screens/MetricInfoSheet.swift](Cenit/Screens/MetricInfoSheet.swift))
-- **Los primeros días con banda nueva ya no arrancan tu base de FC en reposo inflada por Apple / A brand-new band's first days no longer start your resting-HR baseline inflated by Apple.**
-  **ES** — Cuando estrenas la banda y aún no tiene noches propias, Cénit sembraba tu base de arranque con datos de Apple Health para que la Recuperación encendiera antes. Pero la FC en reposo de Apple (medida despierto) corre ~10–13 bpm más alta que la de la banda (medida en el sueño), así que esa siembra dejaba tu base de FC en reposo demasiado alta durante el arranque — y tus primeros scores salían sesgados. Ahora la FC en reposo **ya no se siembra de Apple**: arranca honesta y se va afinando con las propias noches de la banda, igual que ya se hacía con el HRV. La **frecuencia respiratoria sí se sigue sembrando** de Apple (ambas fuentes la miden durante el sueño, es el mismo número). Un usuario solo-banda no ve ningún cambio.
-  **EN** — When you first put on the band and it has no nights of its own yet, Cénit seeded your cold-start baseline with Apple Health data so Recovery would light up sooner. But Apple's resting HR (measured awake) runs ~10–13 bpm higher than the band's (measured during sleep), so that seed left your resting-HR baseline too high during warm-up — and your first scores came out biased. Now resting HR is **no longer seeded from Apple**: it starts honest and sharpens with the band's own nights, just like HRV already did. **Respiratory rate is still seeded** from Apple (both sources measure it during sleep — the same number). A strap-only user sees no change.
-  ([Cenit/Data/IntelligenceEngine.swift](Cenit/Data/IntelligenceEngine.swift))
 
 - **La zona alta de Recuperación ahora se llama «Alto» — «A punto» es solo el veredicto del día / Recovery's high zone is now called «Alto» — «A punto» belongs to the day's verdict only.**
   **ES** — La misma palabra «A punto» nombraba dos cosas distintas: el veredicto del dial de Hoy (que combina sueño + señales) y la zona 70–88 del score de Recuperación. Por eso podías ver «61 · A punto» en el dial y, al abrir el detalle, tu 61 caía en «Moderado» — parecía contradicción, pero era choque de vocabulario. La escala de zonas ahora se lee Agotado · Bajo · Moderado · **Alto** · Pico, y «A punto» queda exclusivo del veredicto.
@@ -3035,15 +2746,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **ES** — Las viñetas del Daily Brief mostraban cifras como «-1.0σ» (notación de estadístico que nadie entiende) y frases con guion largo que empacaban dos ideas en un renglón. Ahora cada viñeta dice el hecho arriba y la interpretación abajo, en palabras: «Tu pulso en reposo está bajo tu base · señal de recuperación». Además, la viñeta de Recuperación ya no dice «por encima de tu base» (un lenguaje que su Detalle nunca usa): ahora habla el mismo vocabulario de zonas del Detalle — «en Moderado, mejor que tus últimos días». Y en el Detalle de Recuperación, la lista «vs tu base» también cambia el «+1.2σ» por la palabra de banda («Arriba de tu base»), con su barra intacta.
   **EN** — The Daily Brief bullets showed figures like "-1.0σ" (statistician notation nobody reads) and long-dash sentences packing two ideas into one line. Now each bullet states the fact on top and the interpretation below, in words: "Your resting pulse is below your base · a recovery signal". The Recovery bullet also stops saying "above your base" (language its Detail never uses): it now speaks the Detail's zone vocabulary — "in Moderate, better than your recent days". And in the Recovery Detail, the "vs your base" list swaps "+1.2σ" for the band word ("Above your base"), bar intact.
   ([Packages/StrandAnalytics/Sources/StrandAnalytics/DailyBrief.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/DailyBrief.swift), [Cenit/Screens/RecoveryDetailScreen.swift](Cenit/Screens/RecoveryDetailScreen.swift))
-- **El Estrés ya no se apaga en un día de pulso realmente alto por mezclar tu FC de la banda con la de Apple / Stress no longer gets muted on a genuinely high-pulse day by mixing your band's resting HR with Apple's.**
-  **ES** — Para medir tu estrés, Cénit compara la frecuencia cardíaca en reposo de hoy contra tu base personal. El problema: la banda toma tu FC en reposo del punto más bajo del sueño (~57), mientras que Apple la estima de ratos despierto y quieto (~68) — no es el mismo número, hay un hueco sistemático de ~10–13 bpm. Al meter las dos en una sola base, un día de FC de banda genuinamente elevada se comparaba contra una base inflada por Apple y el estrés salía **más bajo de lo real**. Ahora cada lectura se compara contra la base de su propia fuente (banda con banda, Apple con Apple), igual que ya se hacía con el HRV. Si aún no tienes suficiente historial de una fuente, Cénit prefiere no marcar estrés antes que darte un número sesgado. Un usuario solo-banda no ve ningún cambio.
-  **EN** — To gauge your stress, Cénit compares today's resting heart rate against your personal baseline. The catch: the band reads resting HR from your sleep low point (~57), while Apple estimates it from awake, still moments (~68) — not the same number, a systematic ~10–13 bpm gap. Folding both into one baseline meant a genuinely elevated band-HR day was compared against an Apple-inflated baseline, so stress came out **lower than it really was**. Now each reading is compared against the baseline of its own source (band with band, Apple with Apple), just like HRV already was. When you don't yet have enough history from a source, Cénit would rather show no stress than a biased number. A strap-only user sees no change.
-  ([Cenit/Screens/StressModel.swift](Cenit/Screens/StressModel.swift))
-
-- **La banda ya no se sigue drenando cuando dejas «En vivo» abierto y guardas el teléfono / The strap no longer keeps draining when you leave «Live» open and pocket your phone.**
-  **ES** — El monitor «En vivo» le pide a la banda un flujo de pulso latido-a-latido de alta frecuencia, que gasta bastante más batería. Ese flujo debía apagarse al cerrar la hoja, pero si abrías «En vivo» y luego bloqueabas el teléfono o cambiabas de app **sin cerrarla**, se quedaba encendido de fondo hasta que volvías y la cerrabas a mano — drenando la banda de más. Ahora el flujo se **suelta solo** en cuanto la app pasa a segundo plano y se **reanuda** al volver, si la hoja sigue abierta. Una sesión de fuerza en curso conserva su pulso intacto.
-  **EN** — The «Live» monitor asks the strap for a high-rate beat-to-beat heart-rate stream, which uses noticeably more battery. That stream was meant to stop when you closed the sheet, but if you opened «Live» and then locked your phone or switched apps **without closing it**, it stayed on in the background until you came back and dismissed it — draining the strap. Now the stream is **released automatically** as soon as the app goes to the background and **resumes** on return if the sheet is still open. An in-progress strength session keeps its heart rate intact.
-  ([Cenit/Screens/LiveView.swift](Cenit/Screens/LiveView.swift))
 
 - **El Daily Brief ya no dice que tu HRV está «bajo tu base» cuando el Detalle la ve dentro / The Daily Brief no longer says your HRV is «below your base» when the Detail sees it within range.**
   **ES** — El mismo día podía decir «HRV un poco por debajo de la línea base» en el Daily Brief y «En tu base» al abrir el Detalle de HRV. No era un error de datos: son dos preguntas distintas. Una **caída pequeña pero digna de notar** (lo que marca el brief) no es lo mismo que **salirte de tu rango típico** (lo que marca el Detalle) — y las dos son ciertas a la vez. El problema era llamarle «base» a las dos. Ahora, para esa zona intermedia, el brief dice que tu HRV **va a la baja / está un poco por debajo de lo habitual** (una señal a vigilar), y reserva «bajo tu base» para cuando de verdad sales de tu rango. Así el brief y el Detalle dejan de contradecirse.
@@ -3139,11 +2841,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **EN** — In **Trends**, opening **Sleep** no longer hides the good stuff behind "See your history": "Last night vs your typical", "Tonight's metrics", the duration trend and the weekly debt **now show directly**, in one scroll, in the designed order (Hero → Last night → vs typical → Metrics → Trend → Debt → How it's measured). The condensed summary that repeated those numbers was removed. Tapping a tile still opens its range and trend. Presentation only.
   ([Cenit/Screens/SleepDetailScreen.swift](Cenit/Screens/SleepDetailScreen.swift))
 
-- **Ajustes, pulido / Settings, polished.**
-  **ES** — La pestaña **Ajustes** se pule sin perder nada: cada función se reubica. **Edad, peso y altura** dejan los botones +/− y se editan con una **rueda** en una hoja (conserva la entrada imperial: lb y ft·in). La **FC máxima** abre una hoja **Automático / Manual** — Automático muestra el cálculo de Tanaka en grande; Manual revela una rueda (100–230) y avisa que estás anulando el cálculo. Las herramientas **experimentales WHOOP 5/MG** (sondas, grabar tramas y **Exportar…**) salen de «Tu banda» a una nueva hoja **Avanzado**. «Tu banda» queda en estado + acción + registro. La lista de abajo se agrupa con encabezados (**App · Datos · Más**) y cada fila gana un subtítulo. El encabezado muestra un **chip «En este iPhone · sin cuenta · sin nube»** y un icono de engrane; al pie, la misma promesa offline. **Desconectar** baja a un enlace discreto detrás de una **confirmación**. Las hojas (Unidades, ruedas de perfil, FC máxima, Avanzado) ahora **se ajustan a su contenido** en vez de abrir a media pantalla vacía.
-  **EN** — The **Settings** tab is polished without dropping anything — every function is just relocated. **Age, weight and height** drop the +/− steppers and are edited with a **wheel** in a sheet (imperial entry preserved: lb and ft·in). **Max heart rate** opens an **Automatic / Manual** sheet — Automatic shows the Tanaka estimate large; Manual reveals a wheel (100–230) and notes you're overriding the estimate. The **WHOOP 5/MG experimental** tools (probes, frame capture and **Export…**) move out of "Your strap" into a new **Advanced** sheet. "Your strap" is now status + action + log. The lower list is grouped under overlines (**App · Data · More**) and each row gains a subtitle. The header shows an **"On this iPhone · no account · no cloud" chip** and a gear icon; a footer restates the same offline promise. **Disconnect** is demoted to a quiet link behind a **confirmation**. The sheets (Units, profile wheels, max heart rate, Advanced) now **size to their content** instead of opening as a half-empty half-screen card.
-  ([Cenit/Screens/AjustesView.swift](Cenit/Screens/AjustesView.swift))
-
 - **Los encabezados de Patrones, Tendencias y Entrenar ya no «saltan» al cambiar de pestaña / Patterns, Trends and Train headers no longer "jump" when you switch tabs.**
   **ES** — Pulido de consistencia: los tres encabezados de pestaña (**Patrones**, **Tendencias**, **Entrenar**) ahora comparten un mismo componente, así que el **título, el icono y la fecha/chip del lado derecho quedan al mismo tamaño y a la misma altura**. Antes el título de Tendencias iba 6 px más abajo y, en Entrenar, el chip de recuperación empujaba el título hacia abajo; al deslizar entre pestañas el título brincaba. Ahora la fila se ancla al título —el chip de recuperación se conserva, solo deja de mover el título— y las tres pantallas arrancan a la misma altura. Solo presentación.
   **EN** — A consistency polish: the three tab headers (**Patterns**, **Trends**, **Train**) now share one component, so the **title, the icon and the right-side date/chip are the same size and sit at the same height**. Before, the Trends title sat 6 px lower and, on Train, the recovery chip pushed the title down; swiping between tabs made the title jump. Now the row is anchored to the title — the recovery chip stays, it just no longer moves the title — and all three screens start at the same height. Presentation only.
@@ -3207,16 +2904,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **ES** — En Recuperación, Esfuerzo, Estrés y Sueño, bajo la gráfica de niveles ahora se lee **«Media · {periodo} · {valor} · {Δ%} vs periodo previo»** —el promedio del periodo que elijas y su cambio frente al periodo anterior, **coloreado** según la buena dirección de cada métrica (Esfuerzo es neutral)— más una línea pequeña con el **Rango mín–máx**. Es el formato del handoff, conservando el rango.
   **EN** — In Recovery, Strain, Stress and Sleep, under the levels chart you now read **"Average · {period} · {value} · {Δ%} vs previous"** — the average for whichever period you pick and its change vs the previous one, **coloured** by each metric's good direction (Strain is neutral) — plus a small **Range min–max** line. It's the handoff format, keeping the range.
   ([Cenit/Screens/RecoveryDetailScreen.swift](Cenit/Screens/RecoveryDetailScreen.swift), [Packages/StrandDesign/Sources/StrandDesign/Components.swift](Packages/StrandDesign/Sources/StrandDesign/Components.swift))
-
-- **Patrones: «Empezar de cero» para borrar lo que anotaste / Patterns: "Start from scratch" to wipe what you logged.**
-  **ES** — Al fondo de **Patrones** hay un botón discreto **«Empezar de cero»** que borra **lo que tú aportaste**: tu diario en la app (check-ins / «anota tu día») y todos tus experimentos con sus veredictos (con eso se limpian también las palancas «probadas» de §4). Pide confirmación y es irreversible. **No** toca los patrones que el motor detecta de tu cuerpo (esos se recalculan solos desde tu historial fisiológico) ni tu journal importado de WHOOP.
-  **EN** — At the foot of **Patterns** there's a quiet **"Start from scratch"** button that wipes **what you contributed**: your in-app journal (check-ins / "log your day") and every experiment with its verdicts (which also clears the "proven" levers in §4). It asks for confirmation and can't be undone. It does **not** touch the patterns the engine detects from your body (those recompute on their own from your physiological history) nor your imported WHOOP journal.
-  ([Cenit/Screens/BucleView.swift](Cenit/Screens/BucleView.swift), [Cenit/Data/Repository.swift](Cenit/Data/Repository.swift))
-
-- **«Latidos» muestra la batería de la banda y agrupa la integridad de datos / "Heartbeats" now shows strap battery and groups data integrity.**
-  **ES** — La carta que abre la píldora de pulso ahora se llama **«Latidos»** y muestra el **nivel de batería de tu banda** (con el mismo color por nivel del header de Hoy: verde, ámbar ≤20 %, rojo ≤10 %; se oculta si no hay dato). La lista de **Señales** se volvió plegable —tócala para esconderla y dejar la carta compacta— y la cobertura de 28 días, el guardado en iPhone/iCloud y **Verificar** quedaron juntos bajo un solo encabezado, **«Integridad de datos»**. Solo presentación: no cambia la captura ni lo que se guarda.
-  **EN** — The card behind the pulse pill is now called **"Heartbeats"** and shows your **strap's battery level** (same by-level color as Today's header: green, amber ≤20 %, red ≤10 %; hidden when unknown). The **Signals** list is now foldable — tap to collapse it and keep the card compact — and the 28-day coverage, iPhone/iCloud backup and **Verify** are grouped under one heading, **"Data integrity"**. Presentation only: capture and what's stored are unchanged.
-  ([Cenit/Screens/LiveView.swift](Cenit/Screens/LiveView.swift))
 
 - **Las pantallas de detalle estrenan titulares con tipografía editorial / Detail screens now lead with an editorial serif headline.**
   **ES** — Cada hoja de detalle (Recuperación, Sueño, Esfuerzo, Estrés, HRV, FC en reposo, SpO₂, Respiración, Temp. de piel, Pasos, VO₂ máx, Mapa muscular, Edad física/corporal…) y los grupos de Tendencias (Recuperación, Descanso y carga, Vitales, Actividad, Longevidad) ahora encabezan con **Instrument Serif**, la tipografía editorial del sistema «Instrumento diurno». Le da a cada pantalla una identidad más cálida y legible. Los números, veredictos y gráficas no cambian.
@@ -3297,10 +2984,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **EN** — The verdict phrase on «Hoy» (e.g. "Vienes recuperando mejor.") is now set in **Instrument Serif**, the «Instrumento diurno» editorial face — reserved for headlines and verdict phrases only, never a number or a label. The font ships inside the app (works fully offline) and scales with your system text size. Nothing else changes.
   ([Packages/StrandDesign/Sources/StrandDesign/Typography.swift](Packages/StrandDesign/Sources/StrandDesign/Typography.swift), [Packages/StrandDesign/Sources/StrandDesign/FontRegistration.swift](Packages/StrandDesign/Sources/StrandDesign/FontRegistration.swift), [Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
 
-- **En Hoy, cada dato dice de dónde viene: banda, Apple o calculado / On Today, each number says where it comes from: band, Apple or calculated.**
-  **ES** — En la vista Métricas, cada pill y cada tile lleva ahora un chip con su **fuente real del día**: **BANDA** (tu strap), **APPLE** (Apple Salud) o **CALCULADO** (lo que Cénit deriva, como el Estrés). Es dinámico por-dato: en modo Combinado, si una noche no traías la banda, ese dato se marca **APPLE** sin mentir; en Solo Apple Salud nada dice «BANDA», y en Solo banda nada dice «APPLE». Cambiar de modo solo cambia lo que ves; nada se borra.
-  **EN** — In the Metrics view, each pill and tile now carries a chip with its **real source for the day**: **BAND** (your strap), **APPLE** (Apple Health) or **CALCULATED** (what Cénit derives, like Stress). It's dynamic per-datum: in Combined mode, if you didn't wear the band one night, that number is marked **APPLE** without lying; in Apple-Health-only nothing says "BAND", and in band-only nothing says "APPLE". Switching modes only changes what you see; nothing is deleted.
-  ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
 - **Nueva rutina de Movilidad para los días suaves / New Mobility routine for softer days.**
   **ES** — Cuando tu recuperación viene **baja**, la sugerencia de Entrenar ahora te lleva a una nueva rutina de **Movilidad y cardio ligero** (~20 min, solo peso corporal) en vez de a Respira. Al abrirla, el botón principal es **«Empezar»**: arranca la sesión guiada al momento, sin tener que guardarla antes; si la quieres conservar, **«Agregar a mis rutinas»** está como opción secundaria. Es un reinicio suave, sin equipo y sin promesas clínicas.
   **EN** — When your recovery is **low**, the Train suggestion now takes you to a new **Mobility & light cardio** routine (~20 min, bodyweight only) instead of Breathe. When it opens, the primary button is **«Start»**: it begins the guided session right away, with no need to save it first; if you want to keep it, **«Add to my routines»** stays as the secondary option. A gentle reset, no equipment, no clinical claims.
@@ -3308,7 +2991,7 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
 - **Ahora puedes editar y borrar un entrenamiento de tu historial / You can now edit and delete a workout from your history.**
   **ES** — Abre un entrenamiento de «Mis entrenamientos» y, con el menú **⋯** arriba, puedes **Editar** o **Borrar** la sesión —ya no hace falta buscar el menú escondido al mantener presionado en la lista. Al editar corriges el **peso y las repeticiones** de cada serie, **agregas o quitas** series (desliza para quitar), **cambias el ejercicio**, ajustas la **fecha y hora** y editas **notas** y la **rutina** asociada. El esfuerzo y la frecuencia cardiaca, que mide tu banda, se muestran pero no se editan, y tus récords personales se recalculan solos al guardar. Borrar pide confirmación y te deja **deshacer**.
   **EN** — Open a workout from "My workouts" and, with the **⋯** menu up top, you can **Edit** or **Delete** the session — no more hunting for the hidden long-press menu in the list. Editing lets you fix each set's **weight and reps**, **add or remove** sets (swipe to remove), **change the exercise**, adjust the **date and time**, and edit **notes** and the linked **routine**. Effort and heart rate, measured by your band, are shown but not editable, and your personal records recompute on save. Deleting asks to confirm and lets you **undo**.
-  ([Cenit/Screens/WorkoutEditSheet.swift](Cenit/Screens/WorkoutEditSheet.swift), [Cenit/Screens/WorkoutHistoryScreen.swift](Cenit/Screens/WorkoutHistoryScreen.swift), [Packages/WhoopStore/Sources/WhoopStore/StrengthStore.swift](Packages/WhoopStore/Sources/WhoopStore/StrengthStore.swift))
+  ([Cenit/Screens/WorkoutEditSheet.swift](Cenit/Screens/WorkoutEditSheet.swift), [Cenit/Screens/WorkoutHistoryScreen.swift](Cenit/Screens/WorkoutHistoryScreen.swift), [Packages/CenitStore/Sources/CenitStore/StrengthStore.swift](Packages/CenitStore/Sources/CenitStore/StrengthStore.swift))
 - **Cada tile de Hoy ahora trae tu tendencia de 14 días / Each Today tile now shows your 14-day trend.**
   **ES** — En la rejilla de Métricas, cada tile (Esfuerzo, FC reposo, Oxígeno, Pasos, Estrés, Respiración) cambia la barrita de rango por una **mini-gráfica de área de 14 días** con tus valores reales, tintada por su color y con un punto en el día de hoy: ves de un vistazo si vienes subiendo o bajando. Se conserva tu «±N vs media» abajo. Si aún no hay suficientes días, dice «aún construyendo».
   **EN** — In the Metrics grid, each tile (Strain, Resting HR, Blood Oxygen, Steps, Stress, Respiration) swaps the little range bar for a **14-day area mini-chart** of your real values, tinted in its color with a dot on today: you see at a glance whether you're trending up or down. Your "±N vs average" stays below it. If there aren't enough days yet, it says it's still building.
@@ -3341,11 +3024,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
 - **En Hoy, tu estado vuelve al centro del dial y la píldora de pulso dice qué tan fresca es / On Today, your status returns to the center of the dial and the pulse pill shows how fresh it is.**
   **ES** — En la pantalla Hoy, la palabra de tu veredicto («A punto», «Equilibrado», …) vuelve a aparecer **dentro del dial**, justo bajo el número, en su color; tócala para ver «¿por qué?». Y la píldora de tu pulso ahora muestra, junto a los latidos, **hace cuánto se actualizó** («⟳ 2m»), para que sepas si la lectura es reciente. Cuando aún no hay veredicto del día, el dial no inventa una palabra.
   **EN** — On the Today screen, your verdict word ("Primed", "Balanced", …) is back **inside the dial**, right under the number, in its color; tap it for the "why". And your pulse pill now shows, next to the beats, **how long ago it updated** ("⟳ 2m"), so you know how fresh the reading is. When there's no verdict yet for the day, the dial doesn't invent a word.
-  ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
-
-- **En Hoy, el número grande de HRV y FC en reposo ya coincide con su gráfica / On Today, the big HRV and resting-HR number now matches its own graph.**
-  **ES** — En la pantalla Hoy, al abrir HRV o FC en reposo, el número grande de arriba a veces no cuadraba con el último punto de su propia gráfica (p. ej. 56 arriba, 48 en la gráfica): el número venía del strap de ayer y la gráfica del dato de Apple Salud de hoy. Ahora el número grande usa **el mismo dato que el último punto de la gráfica** —tu lectura más reciente—, con el corazón de Apple Salud cuando viene de ahí. Número y gráfica siempre concuerdan.
-  **EN** — On the Today screen, opening HRV or resting HR, the big number up top sometimes didn't match the last point of its own graph (e.g. 56 up top, 48 on the graph): the number came from yesterday's strap while the graph showed today's Apple Health value. The big number now uses **the same data as the graph's last point** —your most recent reading—, with the Apple Health heart when it comes from there. Number and graph always agree.
   ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
 
 - **Importar un plan: ahora reconoce nombres con viñetas o «4x8» pegados / Importing a plan now recognizes names with bullets or "4x8" stuck on.**
@@ -3430,7 +3108,7 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
 - **Borra un entrenamiento del historial, con deshacer / Delete a workout from your history, with undo.**
   **ES** — En **Entrenar → Mis entrenamientos** ya puedes **borrar** una sesión: mantén presionada su tarjeta → **«Borrar entrenamiento»**. Tus **récords** se mantienen honestos: si la sesión borrada tenía un récord, se recalcula con lo que queda (puede bajar al segundo mejor, o desaparecer si era tu único registro de ese ejercicio). Si te equivocas, un aviso **«Deshacer»** la restaura completa, con sus series y su récord. Borrar un entrenamiento no toca tus rutinas ni los demás entrenamientos.
   **EN** — In **Train → My workouts** you can now **delete** a session: long-press its card → **"Delete workout"**. Your **records** stay honest: if the deleted session held a record, it's recomputed from what's left (it can drop to the second-best, or disappear if it was your only log for that exercise). Changed your mind? An **"Undo"** toast restores it fully, with its sets and its record. Deleting a workout doesn't touch your routines or your other workouts.
-  ([Cenit/Screens/WorkoutHistoryScreen.swift](Cenit/Screens/WorkoutHistoryScreen.swift), [Packages/WhoopStore/Sources/WhoopStore/StrengthStore.swift](Packages/WhoopStore/Sources/WhoopStore/StrengthStore.swift))
+  ([Cenit/Screens/WorkoutHistoryScreen.swift](Cenit/Screens/WorkoutHistoryScreen.swift), [Packages/CenitStore/Sources/CenitStore/StrengthStore.swift](Packages/CenitStore/Sources/CenitStore/StrengthStore.swift))
 
 - **Una noche sin tu banda ya muestra un recovery «estimado» desde Apple Salud / A night without your band now shows an "estimated" recovery from Apple Health.**
   **ES** — Si una noche **no la registró tu banda** pero tu **Apple Watch** sí midió tu HRV y tu sueño, Cénit ahora calcula un recovery **estimado** en vez de dejar «—» (aplica en **Combinado** y en **Solo Apple Salud**). Se compara tu HRV de esa noche contra **tu propia norma de Apple** (sin mezclarlo con el de la banda), y siempre se marca **«estimado» + grado de confianza** con una explicación al tocar: viene de tu Apple Watch (HRV SDNN) y vale **menos** que la lectura de la banda. Si esa noche **sí** la tuvo la banda, manda la banda (sin cambios). Con muy pocas noches de Apple todavía dice «—».
@@ -3445,13 +3123,13 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **EN** — In **Body → "What to train today"**, a muscle you haven't trained in the window now shows **green (fresh)** instead of gray, and its label says "fresh" like the rest. Before there was an inconsistency: untrained muscles were gray yet the app called them "fresh." Now "fresh" = green everywhere (silhouette, the "Most loaded" list, and when you tap a muscle).
   ([Cenit/Screens/MuscleMapScreen.swift](Cenit/Screens/MuscleMapScreen.swift))
 - **Importar un plan de tu IA ahora casa los ejercicios casi solo / Importing a plan from your AI now matches exercises almost on its own.**
-  **ES** — Al **importar un plan hecho con tu IA** (Entrenar → Importar plan), el prompt que copias ahora **incluye el catálogo de ejercicios de NOOP** y le pide a tu IA que elija el ejercicio exacto de esa lista. Resultado: al traer el archivo, los ejercicios **casan directo** —aunque la IA los haya nombrado distinto («Press plano» vs «Press de banca»)— en vez de caer todos al paso de emparejar a mano. Si la IA no encuentra alguno en la lista, ese sí lo emparejas tú (como antes). El prompt copiado es más largo, pero es un solo toque. Sin red.
-  **EN** — When you **import a plan made with your AI** (Train → Import plan), the prompt you copy now **includes NOOP's exercise catalog** and asks your AI to pick the exact exercise from that list. The upshot: when you bring the file back, exercises **match directly** —even if the AI named them differently ("Flat press" vs "Bench press")— instead of all falling to the manual mapping step. Anything the AI couldn't find in the list, you still map yourself (as before). The copied prompt is longer, but it's one tap. No network.
+  **ES** — Al **importar un plan hecho con tu IA** (Entrenar → Importar plan), el prompt que copias ahora **incluye el catálogo de ejercicios de Cénit** y le pide a tu IA que elija el ejercicio exacto de esa lista. Resultado: al traer el archivo, los ejercicios **casan directo** —aunque la IA los haya nombrado distinto («Press plano» vs «Press de banca»)— en vez de caer todos al paso de emparejar a mano. Si la IA no encuentra alguno en la lista, ese sí lo emparejas tú (como antes). El prompt copiado es más largo, pero es un solo toque. Sin red.
+  **EN** — When you **import a plan made with your AI** (Train → Import plan), the prompt you copy now **includes Cénit's exercise catalog** and asks your AI to pick the exact exercise from that list. The upshot: when you bring the file back, exercises **match directly** —even if the AI named them differently ("Flat press" vs "Bench press")— instead of all falling to the manual mapping step. Anything the AI couldn't find in the list, you still map yourself (as before). The copied prompt is longer, but it's one tap. No network.
   ([Cenit/Data/WorkoutPrompt.swift](Cenit/Data/WorkoutPrompt.swift), [Packages/StrandImport/Sources/StrandImport/WorkoutProgram.swift](Packages/StrandImport/Sources/StrandImport/WorkoutProgram.swift))
 - **Cénit guarda tu historial en mucho menos espacio / Cénit stores your history in far less space.**
   **ES** — Cénit reorganizó cómo guarda las señales que tu banda graba cada segundo (pulso, variabilidad, temperatura, respiración, movimiento). Es exactamente la misma información —no se pierde ni un dato— pero ocupa alrededor de un 60% menos en tu iPhone, y deja de crecer tan rápido. El cambio se hace solo, una vez, la primera vez que abres esta versión. Nota: tras esta actualización no se puede volver a una versión anterior de Cénit sin reinstalar.
   **EN** — Cénit reorganized how it stores the signals your band records every second (heart rate, variability, temperature, respiration, motion). It's exactly the same information —not a single data point is lost— but it takes about 60% less room on your iPhone and stops growing as fast. The change happens automatically, once, the first time you open this version. Note: after this update you can't downgrade to an older Cénit without reinstalling.
-  ([Packages/WhoopStore/Sources/WhoopStore/Database.swift](Packages/WhoopStore/Sources/WhoopStore/Database.swift))
+  ([Packages/CenitStore/Sources/CenitStore/Database.swift](Packages/CenitStore/Sources/CenitStore/Database.swift))
 - **Arrastra para organizar tus rutinas / Drag to organize your routines.**
   **ES** — En **Entrenar → Mis rutinas** ya puedes **arrastrar**: mantén presionada una rutina y suéltala sobre una **carpeta** (que se resalta) para meterla ahí, o sobre **«Sin carpeta»** para sacarla. También arrastras una rutina sobre otra para **reordenarlas**, y arrastras el encabezado de una **carpeta** para reordenar las carpetas. El menú «Mover a…», el deslizar-para-eliminar y el toque-para-abrir siguen igual.
   **EN** — In **Train → My routines** you can now **drag**: long-press a routine and drop it onto a **folder** (which highlights) to file it there, or onto **"Unfiled"** to take it out. You can also drop a routine onto another to **reorder** them, and drag a **folder** header to reorder folders. The "Move to…" menu, swipe-to-delete and tap-to-open all still work.
@@ -3469,7 +3147,7 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
 - **Cénit ocupa menos espacio en tu iPhone / Cénit takes up less space on your iPhone.**
   **ES** — Cénit dejó de guardar una señal del sensor que no usaba ninguna pantalla (el oxígeno en sangre «crudo» de la banda — el oxígeno que ves en Cénit viene de Apple Salud). Esos datos ya no se acumulan, y los que había se borran y le devuelven el espacio a tu teléfono (eran ~16% de la base de datos). No cambia nada de lo que ves; solo pesa menos. Todo on-device.
   **EN** — Cénit no longer stores one sensor signal that no screen actually used (the band's "raw" blood-oxygen — the oxygen you see in Cénit comes from Apple Health). That data stops piling up, and the rows already saved are cleared and give the space back to your phone (they were ~16% of the database). Nothing you see changes; it just weighs less. All on-device.
-  ([Packages/WhoopStore/Sources/WhoopStore/StreamStore.swift](Packages/WhoopStore/Sources/WhoopStore/StreamStore.swift))
+  ([Packages/CenitStore/Sources/CenitStore/StreamStore.swift](Packages/CenitStore/Sources/CenitStore/StreamStore.swift))
 - **El diagnóstico ya no muestra una fila de SpO₂ fija en cero / The diagnostics no longer show a perpetually-zero SpO₂ row.**
   **ES** — En **Live** y **Datos y fuentes**, el recibo de «filas guardadas» ya no lista «Oxígeno en sangre (SpO₂)». Desde que Cénit dejó de guardar esa señal de la banda (ver arriba), esa fila quedaba fija en cero y, para un ojo técnico, parecía una falla. El oxígeno que ves en la app sigue viniendo de Apple Salud, sin cambios; solo se ocultó esa fila del panel de diagnóstico (la captura y el almacenamiento no se tocaron).
   **EN** — In **Live** and **Data & sources**, the "stored rows" receipt no longer lists "Blood oxygen (SpO₂)". Since Cénit stopped saving that band signal (see above), the row sat perpetually at zero and, to a technical eye, read like a fault. The oxygen you see in the app still comes from Apple Health, unchanged; only that diagnostics row was hidden (capture and storage are untouched).
@@ -3479,10 +3157,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **ES** — El detalle de un ejercicio (desde la biblioteca) ahora tiene un bloque **«Progreso»** con un **selector**: **peso máximo**, **1RM estimado** o **volumen**, cada uno graficado a lo largo del tiempo (toca la línea para ver el valor de cada punto). Debajo, **«Records personales»** con tu **mayor peso**, **más reps** y **mejor volumen de serie**, con la fecha de cada uno. Un ejercicio que aún no has registrado sigue mostrando su mensaje honesto, sin gráficas ni records en cero.
   **EN** — An exercise's detail (from the library) now has a **"Progress"** block with a **selector**: **max weight**, **estimated 1RM**, or **volume**, each charted over time (tap the line to read any point). Below it, **"Personal records"** with your **heaviest weight**, **most reps** and **best set volume**, each dated. An exercise you haven't logged yet still shows its honest message — no empty charts or zeroed records.
   ([Cenit/Screens/ExerciseDetailScreen.swift](Cenit/Screens/ExerciseDetailScreen.swift))
-- **El descanso entre series ya se guía por tu pulso / Rest between sets is now guided by your pulse.**
-  **ES** — Con la banda puesta y un ejercicio configurado con descanso **«Por FC»**, al registrar una serie la sesión muestra **«N lpm para estar listo»** —el número baja conforme tu pulso se recupera— y se enciende **«Listo»** en verde cuando alcanzas tu objetivo. Respeta el modo que elegiste por ejercicio (Automático / % del pico / % de reserva / umbral de lpm) y el piso/techo de descanso. Sin banda, o si no se puede calcular el objetivo, cae al **temporizador** de siempre, sin inventar tu frecuencia.
-  **EN** — With your strap on and an exercise set to **"By HR"** rest, logging a set shows **"N bpm to ready"** —the number falls as your pulse recovers— and lights up **"Ready"** in green when you hit your target. It honors the mode you chose per exercise (Automatic / % of peak / % of reserve / bpm threshold) and the rest floor/ceiling. With no strap, or when the target can't be computed, it falls back to the usual **timer**, never inventing your heart rate.
-  ([Cenit/Screens/LiveStrengthSheet.swift](Cenit/Screens/LiveStrengthSheet.swift), [Packages/StrandAnalytics/Sources/StrandAnalytics/RestReadiness.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/RestReadiness.swift))
 
 - **En «Hoy», las métricas se acomodan al centro y ocupan toda la pantalla / On "Today", the metrics grid now centers and fills the screen.**
   **ES** — La rejilla de métricas de **«Hoy»** (Esfuerzo, Sueño, HRV, FC, FC en reposo, Oxígeno, Pasos, Estrés) ya no queda pegada arriba con un hueco grande abajo: el aire sobrante se reparte por igual arriba y abajo, así que la rejilla baja al centro y la pantalla se ocupa completa. El dial sigue fijo arriba y los puntitos del pager cerca del dock; en pantallas chicas el espacio colapsa al gap compacto de siempre.
@@ -3504,10 +3178,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **EN** — In **Settings → Data Sources** you can now choose, right at the top, **how your data is read**: **Combined** (Apple Health as the base with your band on top — the most complete), **Band only**, or **Apple Health only**. Switching modes only changes what you see in **Today** and **Body** —steps, workouts, trends—; **nothing is ever deleted** and capture from both sources keeps running, so you can switch back to Combined anytime and everything reappears. If a mode needs something (connect Apple Health, pair your band), the screen tells you honestly. The coverage below always shows what you have stored, even in another mode.
   ([Cenit/Screens/DataSourcesView.swift](Cenit/Screens/DataSourcesView.swift))
 
-- **Mira los entrenamientos que has hecho / See the workouts you've done.**
-  **ES** — Nueva pantalla **«Mis entrenamientos»** (en Entrenar → Herramientas): la lista de tus sesiones de fuerza terminadas, de la más reciente a la más antigua, con **fecha, rutina, duración y volumen total** de cada una — y, cuando entrenaste con la banda puesta, el **esfuerzo** y la **FC media** de la sesión (en naranja, el dato físico). Toca cualquiera para ver el **desglose por ejercicio**, serie por serie (peso × reps), como en tu app de registro. Si aún no has terminado una sesión, la pantalla te lo dice en vez de quedarse en blanco.
-  **EN** — New **"My workouts"** screen (under Train → Tools): the list of your finished strength sessions, newest first, each with **date, routine, duration and total volume** — plus, when you trained with the strap on, the session's **effort** and **average heart rate** (in orange, the physiological datum). Tap any one to see the **per-exercise breakdown**, set by set (weight × reps), like your logging app. With no sessions yet, the screen says so instead of going blank.
-  ([Cenit/Screens/WorkoutHistoryScreen.swift](Cenit/Screens/WorkoutHistoryScreen.swift))
 - **Elige cómo termina tu descanso por frecuencia cardiaca / Choose how your heart-rate rest ends.**
   **ES** — En el editor de un ejercicio, el descanso **«Por FC»** ahora deja elegir **cómo** se decide que ya estás listo: **Automático** (vuelve cerca de tu reposo, como hasta ahora), **% de caída desde el pico** de la serie, **% de tu FC de reserva** (Karvonen), o un **umbral fijo de lpm**. Tu elección se guarda por ejercicio. *(Por ahora es la configuración: el descanso por FC en vivo durante la sesión llega en una próxima actualización.)*
   **EN** — In an exercise's editor, the **"By HR"** rest now lets you choose **how** "ready" is decided: **Automatic** (returns near your resting rate, as before), **% drop from the set's peak**, **% of your heart-rate reserve** (Karvonen), or a **fixed bpm threshold**. Your choice is saved per exercise. *(For now this is the setup; the live HR-guided rest during a session lands in a future update.)*
@@ -3523,19 +3193,10 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **EN** — The **"What to train today"** sheet is reordered so **the recommendation leads**: a hero up top with the muscles that are **fresh to train** and the **recovery gate anchored** (a banded **low · base · clear** bar with a marker at your score, so you see *why* you're clear today), plus a **"Still loaded today: …"** line. The figures went from schematic blobs to **detailed front/back anatomical silhouettes**. **Tapping a muscle now works in two steps** — the first tap highlights it and shows a mini load indicator (with a **reset**), the second opens the full detail, which now rises **only as tall as its content**. The **"Most loaded" list** was polished (full-width names — no more clipped "Calves" — with a full-width load bar). The 3/7/14-day **tint lens** moved to the foot (discreet; the weekly band stays fixed at 7 d), next to a **"See the method"** disclosure. The math is unchanged (the cited `MuscleFatigueMap` model).
   ([Cenit/Screens/MuscleMapScreen.swift](Cenit/Screens/MuscleMapScreen.swift), [Cenit/Screens/MuscleAtlas.swift](Cenit/Screens/MuscleAtlas.swift))
 
-- **La banda recupera la hora sola cuando la pierde, sin pasar por la app de WHOOP / The strap recovers its clock on its own when it loses it — no WHOOP app needed.**
-  **ES** — Una WHOOP 4.0 puede **perder la hora** tras un bajón de batería; cuando pasa, **deja de grabar** tu biometría y esas horas se pierden (por eso a veces faltaba el sueño/recuperación de una noche). Antes la única salida era **pasar la banda por la app oficial de WHOOP**. Ahora Cénit **detecta** que la banda perdió la hora —sin depender de que la banda conteste su reloj, cosa que esta versión nunca hace— y **se la vuelve a poner sola** al iniciar la siguiente descarga, reintentando hasta que la banda vuelve a guardar. Mientras no esté guardando, Cénit **ya no marca la sincronización como exitosa** (nada de un «al día» en falso) y te avisa claro que está reponiendo la hora. *(Si la banda estuvo descargada toda la noche, esa noche no se grabó y no es recuperable; el respaldo para eso es Apple Salud, en camino.)*
-  **EN** — A WHOOP 4.0 can **lose its clock** after a battery dip; when it does it **stops recording** your biometrics and those hours are lost (that's why a night's sleep/recovery sometimes went missing). The only fix used to be **running the strap through the official WHOOP app**. Cénit now **detects** that the strap lost its clock —without relying on the band answering its clock, which this firmware never does— and **re-sets it on its own** at the start of the next download, retrying until the strap saves again. While it isn't saving, Cénit **no longer marks the sync as successful** (no false "up to date") and tells you plainly that it's restoring the clock. *(If the strap was off all night, that night was never recorded and can't be recovered; the safety net for that is Apple Health, coming soon.)*
-  ([Cenit/BLE/BLEManager.swift](Cenit/BLE/BLEManager.swift), [Packages/WhoopProtocol/Sources/WhoopProtocol/RtcHealthPolicy.swift](Packages/WhoopProtocol/Sources/WhoopProtocol/RtcHealthPolicy.swift), [Packages/WhoopProtocol/Sources/WhoopProtocol/ClockReassertPolicy.swift](Packages/WhoopProtocol/Sources/WhoopProtocol/ClockReassertPolicy.swift))
 - **Organiza tus rutinas en carpetas / Organize your routines into folders.**
   **ES** — En **Entrenar → Mis rutinas** ahora puedes crear **carpetas** (ej. «Empuje», «Pierna», «Casa») y agrupar tus rutinas en secciones. Toca **«Nueva carpeta»** para crear una; mantén presionada una rutina y usa **«Mover a…»** para meterla en una carpeta, sacarla, o crear una nueva al vuelo; el **⋯** del encabezado de cada carpeta la renombra o la borra. **Borrar una carpeta no borra sus rutinas** —caen a «Sin carpeta»—. Si no creas ninguna carpeta, la lista se ve igual que antes.
   **EN** — In **Train → My routines** you can now create **folders** (e.g. "Push", "Legs", "Home") and group your routines into sections. Tap **"New folder"** to make one; long-press a routine and use **"Move to…"** to file it, take it out, or create a new folder on the fly; the **⋯** on each folder header renames or deletes it. **Deleting a folder doesn't delete its routines** —they fall back to "Unfiled"—. If you don't create any folder, the list looks exactly as before.
   ([Cenit/Screens/EntrenarView.swift](Cenit/Screens/EntrenarView.swift))
-
-- **La sesión de fuerza enciende el pulso en vivo, te lo muestra y vibra al empezar / Strength sessions turn on live heart rate, show it, and buzz on start.**
-  **ES** — Antes, si entrenabas fuerza con la banda puesta pero **sin haber abierto antes la pantalla «En vivo»**, la sesión no leía tu pulso y terminaba en **«Sin frecuencia cardiaca esta sesión»**. Ahora, al empezar una rutina guiada Cénit **enciende automáticamente la lectura de pulso** (igual que «En vivo»), **vibra** para confirmar el arranque, y muestra tu **FC en vivo en el encabezado de la sesión** —en todos los ejercicios, no solo cardio— para que veas que sí está leyendo. Y el resumen ya es honesto con las **sesiones cortas**: si grabó tu pulso pero el entreno fue muy breve para un puntaje de esfuerzo, muestra tu **FC media** en vez de decir «Sin frecuencia cardiaca». Abrir y cerrar «En vivo» durante la sesión ya no corta el pulso del entreno.
-  **EN** — Before, if you trained strength with the strap on but **without opening the "Live" screen first**, the session didn't read your pulse and ended in **"No heart rate this session."** Now, starting a guided routine **automatically turns on the live heart-rate read** (just like "Live"), **buzzes** to confirm it started, and shows your **live HR in the session header** —on every exercise, not just cardio— so you can see it's actually reading. The summary is also honest about **short sessions**: if it recorded your pulse but the workout was too brief for an effort score, it shows your **average HR** instead of claiming "No heart rate." Opening and closing "Live" mid-session no longer cuts the workout's heart rate.
-  ([Cenit/App/AppModel.swift](Cenit/App/AppModel.swift), [Cenit/Screens/LiveView.swift](Cenit/Screens/LiveView.swift), [Cenit/Screens/LiveStrengthSheet.swift](Cenit/Screens/LiveStrengthSheet.swift))
 
 - **Entrenar: registra tu serie directo en la pantalla, estilo Hevy / Train: log your sets right on the screen, Hevy-style.**
   **ES** — La sesión de entrenamiento ahora es **una sola hoja de registro**: ves todos tus ejercicios y, por serie, las columnas **SERIE · ANTERIOR · KG · REPS · ✓**. Tocas la celda de **KG** o **REPS** y escribes con el teclado numérico; tocas **ANTERIOR** y se precarga lo que hiciste la última vez; tocas el **✓** para marcar la serie como hecha. Arriba ves **Duración · Volumen · Series** en vivo, y puedes **«Agregar serie»** por ejercicio o **deslizar** una serie para eliminarla. Hasta abajo está **«Descartar entrenamiento»**. ¿Prefieres los botones grandes de antes? Toca el **número de serie** y se abre ese modo enfocado en esa serie (es además el modo para ejercicios de **tiempo** y **distancia**, que se cronometran).
@@ -3566,24 +3227,10 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **EN** — In **Train → create/edit routine**, once the routine had exercises the list (the name, each exercise with its «⋯» menu, and «Add exercise») sat flush against the left and right screen edges with no margin — it looked clipped. It now uses the same side margin as the rest of the app and as its own empty state.
   ([Cenit/Screens/RoutineBuilderScreen.swift](Cenit/Screens/RoutineBuilderScreen.swift))
 
-- **Hojas de métrica: la fecha del detalle ya coincide con la del resumen, y el Sueño muestra de dónde viene / Metric sheets: the detail date now matches the summary, and Sleep shows its source.**
-  **ES** — En el **detalle** de una métrica (HRV, FC en reposo…) el último punto aparecía fechado **un día antes** que en la tarjeta de resumen (p. ej. «21 jun» en vez de «22 jun» en husos al oeste de UTC, como CDMX) — un desajuste de zona horaria entre las dos gráficas. Ahora ambas fechan el mismo punto igual. Además, cuando el dato de **Sueño** viene de **Apple Salud** (porque la banda no grabó esa noche), la tarjeta ahora lo indica con el corazón, igual que el mosaico de Hoy — antes solo el mosaico lo señalaba.
-  **EN** — In a metric's **detail** view (HRV, resting HR…) the last point was dated **one day earlier** than in the summary card (e.g. "21 jun" instead of "22 jun" west of UTC, like Mexico City) — a time-zone slip between the two charts. Both now date the same point identically. Also, when a **Sleep** value comes from **Apple Health** (because the strap didn't record that night), the card now shows it with the heart glyph, matching the Today tile — previously only the tile did.
-  ([Cenit/Screens/MetricTrendChart.swift](Cenit/Screens/MetricTrendChart.swift), [Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
-
 - **Detalle (vista «Rangos»): el eje Y pone labels por encima del carril más alto / Detail ("Ranges" view): the Y axis labels above the top band.**
   **ES** — En la vista «Rangos» el eje Y solo marcaba los umbrales de banda (p. ej. 5k/8k/10k en Pasos), así que cuando la línea subía muy por encima del último umbral el label se quedaba en 10k. Ahora se agregan marcas redondas arriba del carril más alto (12.5k, 15k… en Pasos), **acotadas hasta donde llega la línea**: la gráfica ya no se estira con espacio vacío hasta 25k, sino que encuadra los datos con un margen chico sobre el pico.
   **EN** — In the "Ranges" view the Y axis only marked the band thresholds (e.g. 5k/8k/10k for Steps), so when the line climbed past the top threshold the top label stayed at 10k. Round ticks are now added above the top band (12.5k, 15k… for Steps), **bounded to where the line reaches**: the chart no longer stretches to empty space up at 25k — it frames the data with a small margin above the peak.
   ([Cenit/Screens/MetricDetailScreen.swift](Cenit/Screens/MetricDetailScreen.swift))
-
-- **Batería: la app deja de re-sincronizar en vano una banda fuera de la muñeca / Battery: the app stops pointlessly re-syncing an off-wrist strap.**
-  **ES** — Cuando dejas la banda **fuera de la muñeca** (o no está grabando), seguía emitiendo señales cada ~90 s y la app intentaba **descargar historial cada vez** —sin traer nada—, gastando batería de la banda y del teléfono. Ahora, tras unos intentos vacíos seguidos, la app **espacia** los reintentos automáticos (hasta ~6 min / ~1 h) y vuelve al ritmo normal **al instante** en cuanto la banda entrega datos reales otra vez. Sincronizar a mano, reconectar o abrir la app **nunca** se retrasan.
-  **EN** — When you leave the strap **off your wrist** (or it isn't recording), it kept emitting signals every ~90 s and the app tried to **download history each time** —bringing nothing back—, draining both the strap's battery and your phone's. Now, after a few empty attempts in a row, the app **spaces out** the automatic retries (up to ~6 min / ~1 h) and snaps back to normal cadence **instantly** the moment the strap hands over real data again. Manual sync, reconnecting, and opening the app are **never** delayed.
-  ([Cenit/BLE/BackfillPolicy.swift](Cenit/BLE/BackfillPolicy.swift), [Packages/WhoopProtocol/Sources/WhoopProtocol/EmptySyncTracker.swift](Packages/WhoopProtocol/Sources/WhoopProtocol/EmptySyncTracker.swift), [Cenit/BLE/BLEManager.swift](Cenit/BLE/BLEManager.swift))
-- **Sincronización matutina: la descarga de la noche se encadena sola con más precisión / Morning sync: the night's download chains itself more reliably.**
-  **ES** — La descarga del historial de la noche (cuando el teléfono estuvo lejos de la banda) ya se encadenaba sola para que no tuvieras que tocar «Sincronizar» una y otra vez. Ahora decide si **queda historial por bajar** comparando lo que la **banda dice tener** contra lo que **ya guardaste** —en vez de adivinarlo por el tamaño del último lote—, así que es más confiable: una banda que estuvo **descargada** (o que trae historial de un dueño previo) ya **no se detiene a medias** obligándote a tocar el strap, y cuando de verdad **ya está al día** deja de insistir (sin gastar batería de más). Cero pérdida de datos; mismo comportamiento cuando todo va bien.
-  **EN** — The night's history download (when the phone was away from the strap) already chained itself so you didn't have to tap "Sync" over and over. It now decides whether **more history remains** by comparing what the **strap says it holds** against what you've **already saved** —instead of guessing from the size of the last batch— so it's more reliable: a strap that had been **fully discharged** (or carries a previous owner's history) no longer **stops half-way** and makes you tap the strap, and once it's genuinely **caught up** it stops pestering (no wasted battery). Zero data loss; unchanged when everything's normal.
-  ([Packages/WhoopProtocol/Sources/WhoopProtocol/DrainContinuationPolicy.swift](Packages/WhoopProtocol/Sources/WhoopProtocol/DrainContinuationPolicy.swift), [Cenit/BLE/BLEManager.swift](Cenit/BLE/BLEManager.swift), [Cenit/Collect/Backfiller.swift](Cenit/Collect/Backfiller.swift))
 
 - **Consistencia: los números que no son el héroe usan SF Pro con dígitos tabulares (no SF Mono), y el desglose de método se llama «Cómo se calcula» / Consistency: non-hero numbers use SF Pro tabular digits (not SF Mono), and the method disclosure is "How it's calculated".**
   **ES** — Pase de consistencia del sistema «Instrumento» (no cambia layout ni datos). (1) **Tipografía de números**: solo el **numeral-héroe** va en SF Mono; los demás números —los **deltas** de Patrones y Cuerpo, las **fechas** de cabecera y los valores del **comparativo de conducta**— pasan a **SF Pro con dígitos tabulares** (la misma letra del texto, con cifras parejas), para que no se lean «de máquina». (2) **Método**: el desglose al pie de las hojas de detalle (Recuperación, Sueño, Esfuerzo, Estrés, Temperatura de piel y el explorador de métricas) se renombra de «Ver el método» a **«Cómo se calcula»**, un estándar único. El color y los tokens ya estaban alineados; el ancla del héroe («vs tu media» / «tu base») se deja para después.
@@ -3677,10 +3324,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **ES** — En la hoja de detalle de un vital (FC en reposo, HRV, respiración…), al tocar la ⓘ de la barra «tu rango normal» se pintaba un recuadro café del mismo color que el riel de la barra, así que el riel se fundía con el fondo y la gráfica de rango se perdía. Se quitó ese realce: ahora el riel se ve completo y el estado abierto lo sigue marcando la tarjeta de texto que aparece debajo.
   **EN** — On a vital's detail sheet (Resting HR, HRV, Respiration…), tapping the ⓘ on the "your normal range" bar painted a café box the same color as the bar's rail, so the rail blended into the background and the range chart disappeared. That highlight was removed: the rail now shows in full and the open state is still signalled by the text card below.
   ([Cenit/Screens/MetricDetailScreen.swift](Cenit/Screens/MetricDetailScreen.swift))
-- **Hoy cabe en una sola pantalla durante la calibración / Today fits on a single screen while calibrating.**
-  **ES** — La rejilla de «Métricas de hoy» se compactó un poco (tiles más juntas y un pelín más bajas) para que la pantalla de **Hoy** quepa **sin scroll** incluso cuando la barra «Afinando con tu strap» suma una fila durante la calibración. El dial grande del veredicto y el héroe no cambian; las tiles siguen creciendo con tipografía grande (Dynamic Type) para no cortar texto.
-  **EN** — The "Today's metrics" grid was tightened a touch (tiles closer together and slightly shorter) so the **Today** screen fits **without scrolling** even when the "Afinando con tu strap" bar adds a row during calibration. The large verdict dial and hero are unchanged; tiles still grow with large type (Dynamic Type) so text never clips.
-  ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
 - **Patrones: ahora puedes abrir el detalle de tu experimento, con su gráfica de efecto / Patterns: you can now open your experiment's detail, with its effect chart (FER-463).**
   **ES** — Tu experimento en prueba ahora tiene **«Ver detalle»**: una pantalla con el **día N de M**, tu **racha** y su **arco**, y —lo nuevo— **«Tu recuperación durante el experimento»**: una gráfica de cómo va tu métrica desde que empezaste, dibujada sobre una **línea punteada de tu «media antes»**, con un **«+N vs antes»** debajo (en verde si mejora, en rojo si no — y en la FC en reposo, bajar cuenta como mejorar). Desde ahí también puedes hacer el **check-in del día** y **cancelar** el experimento. Lo abres tocando el módulo «En prueba · tu racha».
   **EN** — Your running experiment now has **"Ver detalle"**: a screen with the **day N of M**, your **streak** and its **arc**, and —the new part— **"Your recovery during the experiment"**: a chart of how your metric is trending since you started, drawn over a **dashed "average before" line**, with a **"+N vs before"** below it (green if it's improving, red if not — and for resting HR, going down counts as improving). From there you can also do the **daily check-in** and **cancel** the experiment. You open it by tapping the "En prueba · tu racha" module.
@@ -3749,14 +3392,10 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **ES** — La hoja que se abre al tocar un vital (HRV, FC en reposo, Respiración, SpO₂, Frecuencia cardiaca y Temperatura de piel) se rediseñó de una pila de bloques iguales a una **narrativa de cuatro secciones**: **Hoy** (tu lectura de hoy como protagonista, con la palabra «Normal para ti / Sano» y tu nivel de 7 días como contexto, más una **barra de tu rango normal** que se toca para explicarse), **Tu historia** (la gráfica con tu rango **sombreado detrás de la línea** y el punto de hoy marcado, y una **tira de stats que se tocan** —Promedio, Tendencia, Consistencia— en vez de acordeones), **Tu patrón** («Qué la mueve» y «Otras señales de anoche») y **Método**. Toda la información que antes daba cada ⓘ sigue ahí, ahora tocando el dato entero. SpO₂ muestra su zona clínica y «Noches < 95%»; Frecuencia cardiaca, tu curva del día con pico y zonas; Temperatura de piel, una lectura **neutral** con tu vaivén típico y un aviso de racha. Pasos y VO₂max no cambian.
   **EN** — The sheet that opens when you tap a vital (HRV, Resting HR, Respiration, SpO₂, Heart Rate and Skin Temperature) was redesigned from a stack of equal blocks into a **four-section story**: **Today** (today's reading as the lead, with the word "Normal for you / Healthy" and your 7-day level as context, plus a **your-normal-range bar** you tap to explain), **Your story** (the chart with your range **shaded behind the line** and today's point marked, and a **tappable stat strip** —Average, Trend, Consistency— instead of accordions), **Your pattern** ("What moves it" and "Other signals from last night") and **Method**. Everything each ⓘ used to show is still there — now you tap the whole datum. SpO₂ shows its clinical zone and "Nights < 95%"; Heart Rate shows today's curve with peak and zones; Skin Temperature reads **neutral** with your typical swing and a streak heads-up. Steps and VO₂max are unchanged.
   ([Cenit/Screens/MetricDetailScreen.swift](Cenit/Screens/MetricDetailScreen.swift), [Cenit/Screens/SkinTempDetailScreen.swift](Cenit/Screens/SkinTempDetailScreen.swift), [Cenit/Screens/MetricTrendChart.swift](Cenit/Screens/MetricTrendChart.swift), [Packages/StrandDesign/Sources/StrandDesign/TrendChart.swift](Packages/StrandDesign/Sources/StrandDesign/TrendChart.swift))
-- **La batería del strap avisa igual en toda la app, y su ícono de carga ya no desaparece / The strap battery warns consistently across the app, and its charging icon no longer vanishes.**
-  **ES** — Dos arreglos al indicador de batería del strap: (1) ahora **una sola regla de color** rige en toda la app —verde sana, **ámbar a partir de 20%**, **rojo a partir de 10%**— así Hoy y Ajustes coinciden (antes Ajustes avisaba con otros umbrales y sin verde para «sana»); y (2) en **Hoy**, el **ícono de carga ya no desaparece**: usaba símbolos de batería-con-rayo que no existen para niveles parciales y salía en blanco al cargar por debajo de 75% — ahora muestra el rayo correcto y el «%» de al lado lleva el nivel.
-  **EN** — Two fixes to the strap battery indicator: (1) a **single color rule** now applies app-wide —green when healthy, **amber at 20%**, **red at 10%**— so Today and Settings match (Settings previously warned at different thresholds and had no green for "healthy"); and (2) on **Today**, the **charging icon no longer disappears**: it referenced battery-with-bolt symbols that don't exist for partial levels and rendered blank when charging below 75% — now it shows the correct bolt glyph, with the level carried by the "%" beside it.
-  ([Packages/StrandDesign/Sources/StrandDesign/Instrumento.swift](Packages/StrandDesign/Sources/StrandDesign/Instrumento.swift), [Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift), [Cenit/Screens/AjustesView.swift](Cenit/Screens/AjustesView.swift))
 - **El estrés de la madrugada deja de salir como «picos» cuando dormiste / Overnight no longer shows as stress "peaks" while you slept.**
   **ES** — Arreglo: en **Cuerpo › Estrés**, si te dormías **antes de medianoche**, tus horas de sueño se colaban en la gráfica «Estrés a lo largo del día» y aparecían como tus **«momentos más activados»** (p. ej. las 2:35 a.m.) — un artefacto, no estrés real. El motor sí excluye el sueño, pero buscaba mal la sesión nocturna (solo las que *empezaban* después de medianoche). Ahora la encuentra aunque haya empezado la noche anterior, así que la madrugada dormida sale como «sin lectura» y tus patrones de hora dejan de sesgarse hacia la noche. **No cambia** la puntuación general de estrés (esa es un cálculo aparte y ya estaba bien).
   **EN** — Fix: in **Body › Stress**, if you fell asleep **before midnight**, your sleeping hours leaked into the "Stress through the day" chart and showed up as your **"most activated moments"** (e.g. 2:35 a.m.) — an artifact, not real stress. The engine does exclude sleep, but it was looking up the night's session wrongly (only ones that *started* after midnight). It now finds it even when it began the night before, so slept-through hours read as "no reading" and your time-of-day patterns stop skewing toward the night. It **doesn't change** your overall stress score (that's a separate calculation and was already correct).
-  ([Packages/WhoopStore/Sources/WhoopStore/MetricsCache.swift](Packages/WhoopStore/Sources/WhoopStore/MetricsCache.swift))
+  ([Packages/CenitStore/Sources/CenitStore/MetricsCache.swift](Packages/CenitStore/Sources/CenitStore/MetricsCache.swift))
 - **La gráfica de estrés ahora es por hora y se explora con el dedo / The stress chart is now hourly and you explore it by dragging.**
   **ES** — En **Cuerpo › Estrés**, la gráfica de «Estrés a lo largo del día» ahora dibuja **una barra por hora** (el promedio de esa hora, no cientos de barritas por minuto) y es **más alta** para que se aprecie bien. **Mantén el dedo y deslízalo** sobre ella: se resalta la hora y arriba aparece **qué hora es, su nivel (Bajo/Moderado/Alto) y el evento de tu calendario que coincidió** (o «sin evento»). Las horas sin lectura —actividad o sueño— salen como un trazo tenue, nunca un valor inventado. El pico exacto y tus «momentos más activados» siguen saliendo de la lectura fina, así que las barras son la *forma* del día sin perder precisión.
   **EN** — In **Body › Stress**, the "Stress through the day" chart now draws **one bar per hour** (that hour's average, not hundreds of per-minute slivers) and is **taller** so it reads clearly. **Hold and slide** your finger across it: the hour highlights and above it you see **which hour it is, its level (Low/Moderate/High) and the calendar event that overlapped** (or "no event"). Hours with no reading —activity or sleep— show as a faint stub, never a made-up value. The exact peak and your "most activated moments" still come from the fine reading, so the bars are the day's *shape* without losing precision.
@@ -3773,10 +3412,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **ES** — El resumen que ves al terminar una sesión de fuerza, en el bloque **«Costo de recuperación»**, ahora puede añadir una línea: **«Mañana, si descansas bien, deberías rondar ~X%»** — una proyección honesta de tu recuperación de mañana que toma en cuenta lo que te costó la sesión de hoy. El número sale del mismo motor de pronóstico del Detalle de Recuperación; **si todavía no tienes ~2 semanas de historial, la línea simplemente no aparece** (nunca un número inventado). Solo se muestra cuando la sesión midió tu corazón.
   **EN** — The summary you see after a strength session, in the **"Recovery cost"** block, can now add a line: **"Tomorrow, if you rest well, you should be around ~X%"** — an honest projection of tomorrow's recovery that factors in what today's session cost you. The number comes from the same forecast engine as the Recovery detail; **if you don't have ~2 weeks of history yet, the line simply doesn't appear** (never an invented number). It only shows when the session measured your heart rate.
   ([Packages/StrandAnalytics/Sources/StrandAnalytics/RecoveryForecast.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/RecoveryForecast.swift), [Cenit/Screens/LiveStrengthSheet.swift](Cenit/Screens/LiveStrengthSheet.swift))
-- **El header de Hoy: tiempo de sync más corto y batería que avisa cuando está baja / Today's header: shorter sync time and a battery that warns when low.**
-  **ES** — Dos retoques al renglón de estado de **Hoy**: (1) el tiempo desde la última sincronización ahora va **abreviado** —«hace 3 min», «hace 1 h», «hace 2 d»— en vez de la forma larga; y (2) el glifo de la **batería del strap** ya **cambia de color por nivel**: verde cuando está sana, **ámbar a partir de 20%** y **rojo a partir de 10%**, para que una carga baja se note de un vistazo. El «%» se queda en tinta; el color vive solo en el glifo.
-  **EN** — Two tweaks to **Today's** status row: (1) the time since the last sync now shows **abbreviated** —"3 min ago", "1 h ago", "2 d ago"— instead of the long form; and (2) the **strap battery** glyph now **changes color by level**: green when healthy, **amber at 20%** and **red at 10%**, so a low charge stands out at a glance. The "%" stays in ink; the color lives only in the glyph.
-  ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
 - **Toca una señal y entiende qué es (y qué es ese «σ») / Tap a signal to understand it (and that "σ").**
   **ES** — En **Coach**, ahora puedes **tocar** HRV o FC en reposo en «Señales de hoy» y se abre una hoja que te explica, sin tecnicismos: **qué es** esa métrica, **qué significa tu lectura de hoy** y —lo que más confunde— **qué es la unidad «σ»** (mide qué tan lejos estás de **tu propio** promedio de las últimas semanas, no del de otras personas). El número sigue igual en la fila; la explicación vive en el toque. Incluye el método y la nota de que no es diagnóstico médico.
   **EN** — In **Coach**, you can now **tap** HRV or Resting HR in "Today's signals" and a sheet opens that explains, jargon-free: **what** the metric is, **what today's reading means**, and —the most confusing part— **what the "σ" unit is** (how far you are from **your own** recent average, not other people's). The number stays the same on the row; the explanation lives in the tap. It includes the method and a not-a-medical-diagnosis note.
@@ -3789,10 +3424,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **ES** — Los selectores de pestaña en papel (el de **«Efectos de tus hábitos»** —HRV · Sueño · FC en reposo— y el de periodos del **Detalle de métrica** —S · M · 3M · 6M · 1A · Todo—) se rediseñaron al estilo nativo de iOS: texto un poco más grande y la opción elegida resalta como una pastilla elevada y clara sobre una pista hundida, en vez del tinte casi invisible de antes. Se lee y se distingue de un vistazo.
   **EN** — The light, paper segmented selectors (the **"Effects of your habits"** one —HRV · Sleep · Resting HR— and the **Metric detail** period one —W · M · 3M · 6M · 1Y · All—) were redesigned in the native iOS style: slightly larger text and the selected option now stands out as a raised, light thumb on a recessed track, instead of the previous near-invisible tint. It reads and stands apart at a glance.
   ([Packages/StrandDesign/Sources/StrandDesign/Components.swift](Packages/StrandDesign/Sources/StrandDesign/Components.swift))
-- **La carga del strap aparece de inmediato en Hoy, y la pantalla cabe de una / The strap's battery shows right away on Today, and the screen fits at a glance.**
-  **ES** — Dos arreglos en **Hoy**: (1) la **carga de la banda** vuelve a aparecer arriba a la derecha en cuanto el enlace queda libre tras el sync de la mañana —antes podía quedarse en blanco porque solo se sondeaba ~cada minuto y ese sondeo se salta durante la sincronización—; y (2) se **compacta el ritmo vertical** para que en los días de calibración (cuando aparece la barra «afinando») la pantalla quepa **sin scroll**, manteniendo el dial grande. Solo cambia el momento en que se pide la batería y el espaciado: ningún dato ni comando nuevo.
-  **EN** — Two fixes on **Today**: (1) the **strap battery** shows top-right again as soon as the link is free after the morning sync —before it could stay blank because it was only polled ~once a minute and that poll is skipped during syncing—; and (2) the **vertical rhythm is tightened** so that on calibration days (when the "tuning" bar shows) the screen **fits without scrolling**, keeping the large dial. Only the moment the battery is requested and the spacing change: no new data or commands.
-  ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
 - **El Coach abre más limpio arriba / The Coach opens cleaner at the top.**
   **ES** — En la pestaña **Coach**, el bloque de arriba se pulió: quitamos la fecha que sobraba y «Decisión de hoy» sube hasta arriba (con el sello «On-device» a su lado); el anillo de recuperación es más delgado y la palabra «RECUPERACIÓN» se lee mejor; ahora hay una pista visible —«Ver por qué»— de que puedes tocar para ver por qué y qué hacer hoy; y la gráfica de tu recuperación de 14 días se puede arrastrar con el dedo para leer cada día, como las demás. También afinamos el texto de «Prueba».
   **EN** — In the **Coach** tab, the top block is polished: we removed the redundant date and pulled «Decisión de hoy» to the top (with the «On-device» seal beside it); the recovery ring is thinner and the «RECUPERACIÓN» label reads better; there's now a visible cue —«Ver por qué»— that you can tap to see why and what to do today; and your 14-day recovery chart can be scrubbed with a finger to read each day, like the others. We also refined the «Prueba» copy.
@@ -3801,11 +3432,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **ES** — La sección **«Estrés a lo largo del día»** se rediseñó para que la entiendas de un vistazo y se subió al frente del detalle de Estrés (ya no hay que abrir «Ver tu historial»). Arriba te dice **a qué hora estuviste más activado y con qué evento de tu calendario coincidió**; debajo, una gráfica chica con la forma del día y la lista de **tus momentos más activados** (y el más tranquilo), cada uno con su hora, su evento y su nivel. Los nombres de junta largos o enredosos se limpian solos, y los calendarios ahora se distinguen por su cuenta entre paréntesis (p. ej. «Personal (iCloud)»). Es coincidencia, no causa, y todo se calcula en tu iPhone.
   **EN** — The **"Stress through the day"** section was redesigned to be clear at a glance and moved to the front of the Stress detail (no more opening "See your history"). Up top it tells you **when you were most activated and which calendar event it coincided with**; below, a small chart of the day's shape and a list of **your most activated moments** (plus your calmest), each with its time, event and level. Long or messy meeting names are cleaned up automatically, and calendars are now told apart by their account in parentheses (e.g. "Personal (iCloud)"). It's coincidence, not cause, and everything is computed on your iPhone.
   ([Cenit/Screens/StressDayMapView.swift](Cenit/Screens/StressDayMapView.swift), [Packages/StrandAnalytics/Sources/StrandAnalytics/StressMoments.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/StressMoments.swift))
-
-- **El copy en español ya no se casa con la marca WHOOP / Spanish copy is brand-agnostic about WHOOP.**
-  **ES** — El texto en español ahora dice **«banda»** en vez de «WHOOP», «correa» o «strap» cuando solo se refiere a tu dispositivo (p. ej. «Conecta tu banda», «Acerca tu banda», «Haz vibrar tu banda»), y unifica **«Apple Salud»** y el caso de **«WHOOP»**. Se conserva «WHOOP» donde es un hecho: el descargo de que Cénit no es la app de WHOOP, la **exportación de WHOOP**, la nube de WHOOP y los modelos 4.0 / 5 / MG. Solo cambia el texto en español; ni los datos ni la lógica se tocan (el inglés es un cambio aparte).
-  **EN** — Spanish copy now reads **"banda"** instead of "WHOOP", "correa" or "strap" when it just means your device (e.g. "Conecta tu banda", "Acerca tu banda"), and standardizes **"Apple Salud"** and the casing of **"WHOOP"**. "WHOOP" stays where it's a fact: the disclaimer that Cénit isn't the WHOOP app, the **WHOOP export**, the WHOOP cloud and the 4.0 / 5 / MG models. Spanish copy only; no data or logic touched (English is a separate change).
-  ([Cenit/Resources/Localizable.xcstrings](Cenit/Resources/Localizable.xcstrings))
 
 - **Se retira el widget por ahora (vendrá uno nuevo) / The widget is retired for now (a new one is coming).**
   **ES** — El widget de pantalla de inicio / bloqueo (recuperación, frecuencia cardiaca y batería) se **quita** por ahora: era del diseño oscuro viejo y no encajaba con la app en papel. En su lugar habrá una **nueva estrategia de widgets** más adelante. Si lo tenías puesto, desaparecerá; nada más dentro de la app cambia.
@@ -3832,10 +3458,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **ES** — Si tu plan trae **horas sugeridas**, ahora puedes activar **recordatorios por comida**: una notificación a la hora de cada comida para que marques tu apego. Es **opcional** (apagado por default) y **todo en tu iPhone** —sin servidor ni nube—. Al activarlo te pide permiso; si lo apagas, se cancelan; y si cambias de plan, se reacomodan solos. Si tu plan no trae horas, el interruptor te lo dice.
   **EN** — If your plan has **suggested times**, you can now turn on **per-meal reminders**: a notification at each meal's time so you mark your adherence. It's **opt-in** (off by default) and **all on your iPhone** —no server, no cloud. Turning it on asks permission; turning it off cancels them; and changing your plan re-aims them. If your plan has no times, the switch tells you.
   ([Cenit/System/DietReminderScheduler.swift](Cenit/System/DietReminderScheduler.swift))
-- **Tu sesión de fuerza ahora registra tu esfuerzo / Your strength session now records your effort.**
-  **ES** — Si entrenas fuerza con la banda puesta, Cénit ahora **captura tu frecuencia cardiaca** durante la sesión y, al terminar, calcula tu **esfuerzo** y tu **FC media** — que aparecen en el resumen junto con su costo de recuperación. Las calorías que se guardan en Apple Salud también se vuelven más precisas (a partir de tu FC real, no de una estimación por duración). Sin banda, todo funciona igual que antes.
-  **EN** — If you train strength with the strap on, Cénit now **captures your heart rate** during the session and, when you finish, computes your **effort** and **average HR** — which appear in the summary along with its recovery cost. The calories saved to Apple Health also get more accurate (from your real HR, not a duration estimate). Without the strap, everything works as before.
-  ([Cenit/App/AppModel.swift](Cenit/App/AppModel.swift), [Packages/StrandAnalytics/Sources/StrandAnalytics/WorkoutDetector.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/WorkoutDetector.swift))
 
 - **Limpieza interna de localización del onboarding (sin cambio visible) / Internal onboarding localization cleanup (no visible change).**
   **ES** — Las cadenas del onboarding y de la pantalla Hoy ahora usan **claves en inglés** en el código (la convención del String Catalog de la app, cuyo idioma fuente es inglés), con el español como traducción. **No cambia una sola palabra de lo que ves en español.** Es mantenimiento que elimina de raíz una clase de ciclo clave↔valor en el catálogo que podía hacer **crashear a Xcode** al indexar (la causa de FER-395). Las palabras con copy distinto en otra pantalla (p. ej. «Apple Salud», «Masculino») se dejan intactas a propósito. (FER-404)
@@ -3844,27 +3466,19 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
 - **Una vez calculado, el día ya no se «desborra» / Once computed, a day no longer un-fills itself.**
   **ES** — Endurecimiento de datos: cuando Cénit ya calculó la recuperación, el sueño o el esfuerzo de un día, un recálculo posterior que aún no detecta esa noche **ya no puede borrar** esos valores —solo puede rellenarlos o actualizarlos con un dato real—. Antes, una pasada parcial podía regresar un día completo a vacío; ahora el guardado es **monotónico**. No cambia ningún número que ya veías; solo evita que un buen dato se pierda.
   **EN** — Data hardening: once Cénit has computed a day's recovery, sleep or strain, a later recompute that hasn't (yet) detected that night **can no longer erase** those values — it can only fill them in or update them with a real reading. Before, a partial pass could regress a complete day back to empty; now the write is **monotonic**. It changes none of the numbers you already saw; it just keeps a good reading from being lost.
-  ([Packages/WhoopStore/Sources/WhoopStore/MetricsCache.swift](Packages/WhoopStore/Sources/WhoopStore/MetricsCache.swift))
+  ([Packages/CenitStore/Sources/CenitStore/MetricsCache.swift](Packages/CenitStore/Sources/CenitStore/MetricsCache.swift))
 - **Mira tu apego a la dieta de un vistazo / See your diet adherence at a glance.**
   **ES** — El tracker de Dieta estrena un **calendario de apego**: una cuadrícula donde cada día se tiñe de **verde según qué tanto cumpliste** —más verde, más apego— y los días que no registraste salen apagados (sin inventar). Toca cualquier día para saltar a él. Reusa el mismo calendario que ya ves en Recuperación, ahora con tu dieta.
   **EN** — The Diet tracker gains an **adherence calendar**: a grid where each day is tinted **green by how well you followed your plan** —greener means more adherence— and days you didn't track stay muted (nothing invented). Tap any day to jump to it. It reuses the same calendar you already see in Recovery, now for your diet.
   ([Packages/StrandDesign/Sources/StrandDesign/YearHeatStrip.swift](Packages/StrandDesign/Sources/StrandDesign/YearHeatStrip.swift))
-- **El veredicto, el sueño y el esfuerzo aparecen solos tras el sync de la mañana / Your verdict, sleep and day strain now appear on their own after the morning sync.**
-  **ES** — Antes, al sincronizar la banda en la mañana, los datos de la noche se descargaban pero el **veredicto de Hoy, el sueño y el esfuerzo del día se quedaban vacíos** varios minutos; a veces solo aparecían tras refrescar varias veces, otras de repente. La descarga no disparaba el recálculo: este solo corría en un ciclo de fondo que se saltaba su turno mientras la banda seguía sincronizando. Ahora, **en cuanto el sync termina de bajar la noche, Cénit recalcula solo** y tu recuperación, sueño y esfuerzo aparecen en segundos —sin refrescar a mano—. Si la banda hace varias descargas seguidas, el recálculo se agrupa en **una sola pasada** para no recargar el teléfono.
-  **EN** — Before, syncing the strap in the morning downloaded the night's data but left **Today's verdict, sleep and day strain blank** for minutes; sometimes they only showed after refreshing several times, sometimes suddenly. The download didn't trigger the recompute — that only ran on a background cycle that skipped its turn while the strap kept syncing. Now, **as soon as the sync finishes landing the night, Cénit recomputes on its own** and your recovery, sleep and strain appear within seconds — no manual refresh. If the strap runs several back-to-back downloads, the recompute is coalesced into **a single pass** so it doesn't tax your phone.
-  ([Cenit/App/AppModel.swift](Cenit/App/AppModel.swift))
 - **Las indicaciones de tu nutriólogo, a la vista / Your nutritionist's guidance, in view.**
   **ES** — El tracker de Dieta ahora muestra las **indicaciones** que venían en tu plan: las **reglas** generales (toma 2 L de agua, evita el azúcar…) en una sección quieta, y la **nota** de cada comida bajo sus alimentos. Si tu plan **declaró** objetivos (calorías/macros), aparecen como **referencia** —nunca los contamos ni los inventamos—. Si tu plan no trae nada de esto, no se muestra nada.
   **EN** — The Diet tracker now shows the **guidance** your plan came with: the general **rules** (drink 2 L of water, avoid added sugar…) in a quiet section, and each meal's **note** under its foods. If your plan **declared** targets (calories/macros), they show up as a **reference** —we never count or invent them. If your plan has none of this, nothing shows.
-- **Al terminar tu rutina de fuerza, ahora ves un resumen / A summary now appears when you finish a strength workout.**
-  **ES** — Cuando terminas una sesión de fuerza guiada, Cénit te muestra un **resumen**: el esfuerzo de la sesión (o la duración, si no traías la banda), tu volumen total y series, las **marcas nuevas** que lograste, el **costo de recuperación**, y los músculos que trabajaste (toca uno para abrir el mapa de agotamiento). Antes, terminar solo cerraba la pantalla sin mostrarte nada.
-  **EN** — When you finish a guided strength session, Cénit now shows a **summary**: the session's effort (or its duration, if you weren't wearing the strap), your total volume and sets, the **new records** you hit, the **recovery cost**, and the muscles you worked (tap one to open the fatigue map). Before, finishing just closed the screen without showing anything.
-  ([Cenit/Screens/LiveStrengthSheet.swift](Cenit/Screens/LiveStrengthSheet.swift), [Cenit/App/AppModel.swift](Cenit/App/AppModel.swift))
 
 - **Elige qué opción de tu dieta comiste / Choose which option of your diet you ate.**
   **ES** — Cuando una comida de tu plan trae **equivalentes** (cena A o cena B…), el tracker ahora te deja **elegir cuál comiste** —queda registrada— en vez de un simple «cumplí». Si comiste algo fuera del plan, marca **Otra**; si te la saltaste, **Salté**. De paso, ves tu **plan completo** con todas las opciones de cada comida. Tu **% de apego no cambia**: comer cualquier opción cuenta como cumplido.
   **EN** — When a meal in your plan has **equivalents** (dinner A or dinner B…), the tracker now lets you **pick which one you ate** —it's recorded— instead of a plain «followed». Ate something off‑plan? Mark **Other**; skipped it? **Skipped**. You also see your **full plan** with every option per meal. Your **adherence % doesn't change**: eating any option counts as followed.
-  ([Packages/WhoopStore/Sources/WhoopStore/DietStore.swift](Packages/WhoopStore/Sources/WhoopStore/DietStore.swift))
+  ([Packages/CenitStore/Sources/CenitStore/DietStore.swift](Packages/CenitStore/Sources/CenitStore/DietStore.swift))
 
 - **Los interruptores y selectores se ven de la casa / Switches and selectors now match the app's look.**
   **ES** — Los controles de iOS —interruptores, selectores de segmentos (como «Masculino/Femenino») y botones −/+— dejaron de verse como piezas blancas y genéricas del sistema sobre el papel cálido. Ahora van en la **tinta del tema**, parejos en toda la app: el interruptor **encendido** en tinta firme y **apagado** en gris cálido (la perilla ya no es blanca), y el segmento elegido en un tono cálido en vez de blanco puro. Es puro cambio visual —ningún ajuste cambia de lugar ni de función.
@@ -3918,10 +3532,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **EN** — The Stress detail, under «Your patterns», gains a stress line by **time of day**: with several days of data it tells you something like "your stress tends to run higher in the afternoons", "lower on Sundays" or "usually peaks around 3 p.m." It's an **observation, not a cause**, and only appears with enough signal (the same vetted statistics as the rest of the app: a difference test + multiple-comparison correction, a minimum number of days). Tapping **"Explore it in the Coach"** takes you to the Coach tab. Everything is computed on your iPhone.
   ([Cenit/Screens/StressDetailScreen.swift](Cenit/Screens/StressDetailScreen.swift), [Packages/StrandAnalytics/Sources/StrandAnalytics/StressTimeOfDayPatterns.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/StressTimeOfDayPatterns.swift), [CenitApp/App/TabRouter.swift](CenitApp/App/TabRouter.swift))
 
-- **El Foco se adapta a cada tipo de ejercicio / The Focus adapts to each exercise type.**
-  **ES** — En la **sesión guiada de fuerza**, el Foco deja de ser solo peso × reps y se acomoda a lo que estás haciendo: en **peso corporal** las **reps mandan** (con **lastre opcional** si le agregas peso); en ejercicios de **tiempo** sale un **cronómetro con objetivo** y registras al parar; y en **cardio/distancia** ves **distancia y tiempo** en tinta y, si traes la banda, tu **frecuencia cardiaca y zona en color** en vivo (sin banda, simplemente no aparecen). Cada serie guarda la medida correcta de su tipo, y la tabla de series y el «sigue» del descanso también se adaptan.
-  **EN** — In the **guided strength session**, the Focus is no longer just weight × reps — it fits what you're doing: for **bodyweight** moves the **reps lead** (with **optional added weight** if you load up); **timed** exercises get a **stopwatch with a goal** and log when you stop; and **cardio/distance** shows **distance and time** in ink plus, if your strap is on, your **live heart rate and zone in color** (no strap — they just don't show). Each set saves the right measure for its type, and the set table and the rest screen's «up next» adapt too.
-  ([Cenit/Screens/LiveStrengthSheet.swift](Cenit/Screens/LiveStrengthSheet.swift), [Packages/StrandTraining/Sources/StrandTraining/SetCapture.swift](Packages/StrandTraining/Sources/StrandTraining/SetCapture.swift))
 - **Las pantallas de detalle responden primero, el análisis queda a un toque / Detail screens answer first, the analysis is one tap away.**
   **ES** — Recuperación, Sueño, Esfuerzo y Estrés se reordenaron en **tres niveles**: arriba **la respuesta** (el número, su lectura y el porqué inmediato); en medio **«Tus patrones»**, donde lo que antes eran 3–4 bloques de dispersión con jerga (σ, CV, ACWR) se funden en 2–3 líneas en lenguaje plano; y abajo **«Ver tu historial»**, plegado por defecto, que despliega calendarios, tendencias con selector de periodo, barras y sub-métricas. No se quitó nada: todo sigue ahí, solo ordenado por profundidad. **Cuerpo** estrena tarjetas por dominio con la recuperación como héroe, **Hoy** afina el ritmo (separador y batería en el encabezado, vignette cálido tras el dial) y el **dial de 24 h** gana pips por hora, un arco solar con degradado ámbar→oro y un anillo de papel en el punto «ahora».
   **EN** — Recovery, Sleep, Strain and Stress are re-sequenced into **three levels**: **the answer** up top (the number, its reading and the immediate why); **«Your patterns»** in the middle, where what used to be 3–4 jargon-laden dispersion blocks (σ, CV, ACWR) fuse into 2–3 plain-language lines; and **«See your history»** at the bottom, collapsed by default, holding calendars, period-selector trends, bars and sub-metrics. Nothing was removed — it's all still there, just ordered by depth. **Body** gets domain cards with recovery as the hero, **Today** tightens the rhythm (header separator and battery, a warm vignette behind the dial), and the **24-hour dial** gains hourly pips, an amber→gold solar arc gradient and a paper ring on the «now» dot.
@@ -3939,43 +3549,27 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **ES** — En el onboarding, el paso «Sobre ti» ya llega prellenado con tu **sexo, edad, peso y estatura** tomados de Apple Health (los que tenga), con una marca «Tomado de Apple Health · editable». Lo que ajustes a mano gana. Si no tienes Health conectado o le faltan esos datos, arranca con valores por defecto editables — nunca te bloquea. Todo on-device.
   **EN** — In onboarding, the "About you" step now arrives pre-filled with your **sex, age, weight and height** from Apple Health (whatever it has), with a "From Apple Health · editable" mark. Anything you tweak by hand wins. If Health isn't connected or lacks those, it starts with editable defaults — never a dead end. All on-device.
   ([CenitApp/Health/HealthKitBridge.swift](CenitApp/Health/HealthKitBridge.swift), [Cenit/Onboarding/OnboardingWizard.swift](Cenit/Onboarding/OnboardingWizard.swift))
-- **El Coach cruza tu dieta con tu recuperación / The Coach crosses your diet with your recovery.**
-  **ES** — Tu **apego a la dieta** (que ya registras en Entrenar) ahora entra al motor del **Coach** que descubre qué te funciona: los días que **seguiste tu plan** (apego ≥ 80%) se comparan con los días que no, y si tu cuerpo responde, «Seguí mi dieta» aparece como una **palanca** en «Lo que funciona en ti» y como un **experimento** que puedes correr una semana — «los días que seguiste tu dieta, tu recuperación fue +X%». Es lo que ninguna app de calorías puede, porque ninguna tiene la banda. Honesto con los datos: los días que **no registraste** tu dieta quedan **fuera** del contraste (no cuentan como haber incumplido), y con pocos días no afirma nada (el mismo piso estadístico que ya usa el Bucle).
-  **EN** — Your **diet adherence** (which you already log in Train) now feeds the **Coach** engine that surfaces what works for you: the days you **followed your plan** (≥ 80% adherence) are compared against the days you didn't, and if your body responds, «I followed my diet» shows up as a **lever** in «What works for you» and as an **experiment** you can run for a week — «on the days you followed your diet, your recovery was +X%». The thing no calorie app can do, because none has the strap. Honest with the data: days you **didn't log** your diet stay **out** of the contrast (they don't count as breaking it), and with too few days it claims nothing (the same statistical floor the Coach already uses).
-  ([Cenit/Screens/BucleView.swift](Cenit/Screens/BucleView.swift), [Packages/StrandAnalytics/Sources/StrandAnalytics/DietAdherence.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/DietAdherence.swift), [Packages/StrandAnalytics/Sources/StrandAnalytics/BehaviorInsights.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/BehaviorInsights.swift))
 - **Empieza una rutina desde una plantilla / Start a routine from a template.**
   **ES** — En **Entrenar**, **«Empieza con una plantilla»** abre una galería de rutinas probadas — **Push Pull Legs** (Empuje, Jalón, Pierna), **Cuerpo completo**, **Torso / Pierna** y **En casa** (sin equipo) — para no armar todo desde cero. Cada plantilla se **previsualiza** (sus ejercicios con series × reps y descanso) antes de copiarla, y al tocar **«Agregar a mis rutinas»** se **copia editable**: queda como una rutina tuya más, lista para ajustar peso, ejercicios o descanso a tu gusto. Todo viene **incluido en la app** (sin conexión) y cada ejercicio sale del catálogo real.
   **EN** — In **Train**, **«Start from a template»** opens a gallery of proven routines — **Push Pull Legs** (Push, Pull, Legs), **Full body**, **Upper / Lower**, and **At home** (no equipment) — so you don't have to build from scratch. Each template is **previewed** (its exercises with sets × reps and rest) before you copy it, and tapping **«Add to my routines»** drops in an **editable copy**: it becomes one of your own routines, ready to tweak weight, exercises, or rest to taste. It's all **bundled and offline**, and every exercise comes from the real catalog.
   ([Cenit/Screens/StarterTemplatesSheet.swift](Cenit/Screens/StarterTemplatesSheet.swift), [Packages/StrandTraining/Sources/StrandTraining/StarterTemplates.swift](Packages/StrandTraining/Sources/StrandTraining/StarterTemplates.swift))
-- **Mapa de agotamiento muscular: qué entrenar hoy / Muscle fatigue map: what to train today.**
-  **ES** — En **Cuerpo** estrena el **Mapa muscular**: dos siluetas —frente y espalda— donde cada músculo se **colorea por la carga reciente** de tus series (de verde «fresco» a rojo «cargado»), con una ventana de **3, 7 o 14 días**. Lo que ni un tracker sin banda ni una banda sin registro pueden hacer: **cruza esa carga local con tu recuperación del strap** y te dice para qué estás **«listo para…»** hoy (si tu recuperación está baja, prioriza descansar). Debajo, el ranking de los más cargados con «hace cuántos días», y al tocar un músculo ves su **volumen semanal** frente a la banda recomendada (10–20 series, Schoenfeld 2017), su tendencia, los ejercicios que lo trabajan y una recomendación. Sin historial, un estado honesto: «entrena para llenar tu mapa». La carga decae con los días (vida media de 2 días, siguiendo el curso de la síntesis proteica muscular) y todo el cálculo es transparente y citado.
-  **EN** — **Body** gains a **Muscle map**: two silhouettes — front and back — where each muscle is **tinted by the recent load** of your sets (green «fresh» to red «loaded»), over a **3-, 7- or 14-day** window. The thing a tracker without a strap and a strap without set logging each can't do: it **crosses that local load with your strap recovery** and tells you what you're **«ready for…»** today (if your recovery is low, it nudges you to rest first). Below it, the ranking of your most-loaded muscles with «how many days ago», and tapping a muscle shows its **weekly volume** against the recommended band (10–20 sets, Schoenfeld 2017), its trend, the exercises that work it, and a recommendation. With no history, an honest state: «train to fill your map». Load decays over days (a 2-day half-life, following the muscle-protein-synthesis time course), and the whole computation is transparent and cited.
-  ([Cenit/Screens/MuscleMapScreen.swift](Cenit/Screens/MuscleMapScreen.swift), [Packages/StrandAnalytics/Sources/StrandAnalytics/MuscleFatigueMap.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/MuscleFatigueMap.swift))
 - **La banda de recuperación ahora sugiere subir, mantener o bajar la carga / The recovery band now suggests dialing your load up, holding, or easing off.**
   **ES** — En **Rutina de hoy** y en la tarjeta **Hoy** de Entrenar, la banda de recuperación deja de ser un texto provisional y pasa a una **sugerencia con fundamento**: lee tu recuperación contra tus propias bandas y te dice **Sube / Mantén / Baja** la carga de hoy, con una etiqueta clara de «**sugerencia · tú decides**» —nunca te bloquea—. Si todavía no hay recuperación calculada, la banda **no aparece** (no se inventa un consejo). Se apoya en literatura de autorregulación del entrenamiento (Kiviniemi 2007), sin ninguna afirmación clínica.
   **EN** — On **Today's routine** and Train's **Today** card, the recovery band stops being a placeholder and becomes an **evidence-based suggestion**: it reads your recovery against your own bands and tells you to **Push / Hold / Ease** today's load, with a clear «**suggestion · you decide**» label — it never blocks you. With no recovery score yet, the band simply **doesn't appear** (no invented advice). It's grounded in training-autoregulation literature (Kiviniemi 2007), with no clinical claim.
   ([Cenit/Screens/EntrenarView.swift](Cenit/Screens/EntrenarView.swift), [Packages/StrandAnalytics/Sources/StrandAnalytics/TrainingRegulation.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/TrainingRegulation.swift))
 - **Entrena guiado, serie por serie / Train guided, set by set.**
   **ES** — Desde **«Rutina de hoy»**, **«Empezar»** abre la sesión guiada de fuerza. Un **Foco** sin distracciones: el **peso manda** (en color), con botones de + y −, los reps, y la referencia de **«la última vez»** con un peso **sugerido** ya prellenado para que solo confirmes. Cada serie se registra con un toque y arranca un **descanso** con cuenta regresiva (ajústalo −15/+15 o sáltalo). El **cajón** despliega la **tabla completa** de tus series para **editar, agregar o saltar** cualquiera. Y si quieres reordenar el día, el **navegador del plan** te deja **saltar o reordenar** ejercicios en pleno descanso. Todo corre **sin banda y sin conexión** (registrar fuerza es manual), y la sesión **no se pierde** si cierras la hoja o cambias de pestaña: el hub te ofrece **«Reanudar»**. Al terminar se guarda con tus récords. *(El descanso inteligente por ritmo cardiaco y el resumen final llegan pronto.)*
-  **EN** — From **«Today's routine»**, **«Start»** opens the guided strength session. A distraction-free **Focus**: the **weight leads** (in color), with + and − buttons, the reps, and your **«last time»** reference with a **suggested** weight pre-filled so you just confirm. Each set logs with one tap and starts a **rest** countdown (nudge it −15/+15 or skip it). The **drawer** opens the **full set table** to **edit, add, or skip** any set. And if you want to reshuffle the day, the **plan navigator** lets you **skip or reorder** exercises mid-rest. It all runs **strapless and offline** (logging strength is manual), and the session is **never lost** if you close the sheet or switch tabs — the hub offers **«Resume»**. Finishing saves it with your records. *(Smart rest by heart rate and the end-of-session summary are coming soon.)*
+  **EN** — From **«Today's routine»**, **«Start»** opens the guided strength session. A distraction-free **Focus**: the **weight leads** (in color), with + and − buttons, the reps, and your **«last time»** reference with a **suggested** weight pre-filled so you just confirm. Each set logs with one tap and starts a **rest** countdown (nudge it −15/+15 or skip it). The **drawer** opens the **full set table** to **edit, add, or skip** any set. And if you want to reshuffle the day, the **plan navigator** lets you **skip or reorder** exercises mid-rest. It all runs **fully offline** (logging strength is manual), and the session is **never lost** if you close the sheet or switch tabs — the hub offers **«Resume»**. Finishing saves it with your records. *(Smart rest by heart rate and the end-of-session summary are coming soon.)*
   ([Cenit/Screens/LiveStrengthSheet.swift](Cenit/Screens/LiveStrengthSheet.swift))
 - **Mira con qué coincidieron tus momentos de más estrés, cruzados con tu calendario / See what your most stressful moments lined up with, crossed against your calendar.**
   **ES** — El Detalle de Estrés estrena **«Estrés a lo largo del día»**: un mapa que pone tu **curva de estrés minuto a minuto** junto a los **eventos de tu calendario** (a elegir cuáles), resalta tu **punto más alto** del día y te dice con qué evento **coincidió** — «cayó dentro de Revisión Q3», nunca «te causó». Todo se lee y se calcula **en tu iPhone** (calendario vía permiso, sin red). Es honesto con lo que no sabe: el ejercicio y los tramos ruidosos quedan «sin lectura» en vez de inventar un pico, y mientras aprende tu ritmo te lo dice. El estrés del día se mide contra **tu propia calma** (tu HRV de vigilia de los últimos días), así que un día tranquilo se ve tranquilo. Es observación de coincidencias, no de causas.
   **EN** — The Stress detail gains **«Stress through the day»**: a map that places your **minute-by-minute stress curve** next to your **calendar events** (you choose which), highlights your **highest point** of the day, and tells you which event it **coincided with** — «fell within Revisión Q3», never «caused it». Everything is read and computed **on your iPhone** (calendar via permission, no network). It's honest about what it can't see: exercise and noisy stretches read «no reading» instead of inventing a peak, and it tells you while it's still learning your rhythm. The day's stress is measured against **your own calm** (your waking HRV over recent days), so a calm day looks calm. It reads coincidence, not cause.
   ([Cenit/Screens/StressDayMapView.swift](Cenit/Screens/StressDayMapView.swift), [Cenit/Data/CalendarDayMap.swift](Cenit/Data/CalendarDayMap.swift), [Packages/StrandAnalytics/Sources/StrandAnalytics/StressEngine.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/StressEngine.swift), [Packages/StrandAnalytics/Sources/StrandAnalytics/StressDayMap.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/StressDayMap.swift))
 
-- **Lo que aún no tiene lectura se hace a un lado / What has no reading yet steps back.**
-  **ES** — Dos toques de fidelidad al diseño en los tiles de **Hoy**: (1) cuando una métrica **todavía no tiene lectura**, su ícono y el «—» se ven en **gris apagado** en vez de a color — así lo que sí mediste resalta y lo que falta se hace a un lado (en «Base Apple Salud», las filas que vienen de Apple siguen a color y las que esperan tu banda se apagan); (2) el **marcador** de tu valor de hoy en la mini-barra de rango ahora va en el **color de la métrica**.
-  **EN** — Two design-fidelity touches in the **Today** tiles: (1) when a metric has **no reading yet**, its icon and the "—" show in **muted gray** instead of color — so what you did measure stands out and what's missing steps back (in "Apple Health baseline", the Apple-sourced rows stay in color and the ones waiting for your strap dim); (2) the **marker** of today's value on the range mini-bar now uses the **metric's color**.
-  ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift), [Packages/StrandDesign/Sources/StrandDesign/Instrumento.swift](Packages/StrandDesign/Sources/StrandDesign/Instrumento.swift))
 - **Cada métrica de hoy estrena su ícono / Each of today's metrics gets its icon.**
   **ES** — En **Hoy**, cada tile de «Métricas de hoy» ahora lleva un **ícono** junto al nombre, en el color del dato: un rayo para el esfuerzo, una luna para el sueño, un corazón para la frecuencia cardíaca, una gota para el oxígeno, y así. Venía en el diseño y faltaba; ahora reconoces cada métrica de un vistazo.
   **EN** — On **Today**, each "Today's metrics" tile now shows an **icon** next to its name, in the data color: a bolt for strain, a moon for sleep, a heart for heart rate, a drop for blood oxygen, and so on. It was in the design and was missing; now you recognize each metric at a glance.
   ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
-- **Arma tus rutinas de fuerza y guarda una biblioteca de ejercicios / Build your strength routines and keep an exercise library.**
-  **ES** — Entrenar estrena un constructor de rutinas: ponle nombre, agrega ejercicios desde una **biblioteca on-device** (busca y filtra por músculo y equipo), reordénalos, y agrúpalos en **supersets**. Cada ejercicio se afina con sus series objetivo, un **calentamiento automático por % del peso** (40/60/80, editable, que no cuenta para tus marcas) y el descanso —**por frecuencia cardíaca** (listo cuando tu pulso baja, lo lee tu banda) o un tiempo fijo. Puedes **crear tus propios ejercicios**. Y cada ejercicio tiene su detalle: qué músculos trabaja, tu mejor marca y tu última vez, y tu **1RM estimado** (la fórmula de Epley, 1985) trazado como tendencia. Todo en el lenguaje «báscula de papel»: el peso manda en tinta, el color se reserva al dato. Todo se guarda en tu iPhone, sin cuenta ni nube.
-  **EN** — Train gains a routine builder: name it, add exercises from an **on-device library** (search and filter by muscle and equipment), reorder them, and group them into **supersets**. Each exercise tunes its target sets, an **automatic warm-up by % of the working weight** (40/60/80, editable, that doesn't count toward your records) and rest — **by heart rate** (ready when your pulse drops, read from your strap) or a fixed timer. You can **create your own exercises**. And every exercise has a detail: which muscles it loads, your best mark and last time, and your **estimated 1RM** (the Epley formula, 1985) plotted as a trend. All in the «paper scale» language: weight rules in ink, color is reserved for the datum. Everything stays on your iPhone — no account, no cloud.
-  ([Cenit/Screens/RoutineBuilderScreen.swift](Cenit/Screens/RoutineBuilderScreen.swift), [Cenit/Screens/ExerciseLibraryScreen.swift](Cenit/Screens/ExerciseLibraryScreen.swift), [Cenit/Screens/ExerciseDetailScreen.swift](Cenit/Screens/ExerciseDetailScreen.swift), [Packages/StrandAnalytics/Sources/StrandAnalytics/OneRepMax.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/OneRepMax.swift))
 
 - **«Cuerpo» se rediseñó a tarjetas por dominio / «Body» redesigned into domain cards.**
   **ES** — La pestaña **Cuerpo** dejó de ser una lista plana de ~16 métricas con peso visual idéntico y pasó a una columna de **tarjetas por dominio** en el lenguaje «Instrumento»: un encabezado con **título + fecha**, **Recuperación** como única tarjeta héroe (numeral grande + tendencia de 14 días), y **Descanso & carga**, **Vitales**, **Actividad** y **Longevidad** como tarjetas cuyos números entran directo a su detalle (igual que antes). «Cómo amaneces tras cada deporte» ahora vive **dentro** de la tarjeta de Actividad, y Comparar / Ver todas quedan como acciones al pie. Mismos datos, mismos detalles al tocar — solo cambia la jerarquía y el ritmo.
@@ -3986,14 +3580,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **EN** — With your plan captured, **Diet** becomes a daily board: mark each meal **Followed**, **Swapped** (an equivalent) or **Skipped**, and your **adherence %** for today climbs instantly, with a small 7-day trend. "Swapped" counts as followed — it honors the equivalents your nutritionist gave you — and until you mark anything you'll see "—", not a scolding 0. All on your phone. This completes the Diet section.
   ([Packages/StrandAnalytics/Sources/StrandAnalytics/DietAdherence.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/DietAdherence.swift))
 
-- **Hoy sin datos, más claro: conecta tus fuentes de una / Empty Today, clearer: connect your sources at a glance.**
-  **ES** — Cuando Hoy todavía no tiene ninguna fuente (ni banda emparejada ni Apple Health), la pantalla ahora **cabe de una** y va al grano: en vez de 8 tiles vacías más un botón verde, una sola tarjeta te ofrece **conectar Apple Health** (la base de tus datos) y **emparejar tu banda WHOOP** (que afina la señal). Coherente con el onboarding nuevo —Apple Health primero, la banda como capa opcional— y quitamos el viejo enlace «Conectar Apple Salud» del pie.
-  **EN** — When Today has no source yet (no paired strap, no Apple Health), the screen now **fits at a glance** and gets to the point: instead of 8 empty tiles plus a green button, a single card offers to **connect Apple Health** (the base of your data) and **pair your WHOOP strap** (which sharpens the signal). Consistent with the new onboarding — Apple Health first, the strap as an optional layer — and we dropped the old "Connect Apple Health" footer link.
-  ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
-- **De dónde vienen Pasos y Oxígeno en sangre, dicho con honestidad / Where Steps and Blood Oxygen come from, said honestly.**
-  **ES** — En el detalle de una métrica (al tocar un tile en Hoy) afinamos la procedencia: en **Pasos** quitamos la coletilla «el strap WHOOP no los registra» (ya decía que vienen de Apple Salud); y en **Oxígeno en sangre** añadimos que **viene de Apple Salud**, para que sea claro y consistente con Pasos. De paso corregimos una imprecisión real: el texto decía que tu banda promedia el oxígeno cada noche, pero Cénit **no** convierte la señal óptica del strap en porcentaje — esa lectura viene de Apple Salud (o de un import de tu export de WHOOP).
-  **EN** — In a metric's detail (tap a tile on Today) we tightened provenance: in **Steps** we dropped the "the WHOOP strap doesn't record them" tail (it already said they come from Apple Health); and in **Blood Oxygen** we added that it **comes from Apple Health**, for clarity and consistency with Steps. We also fixed a real inaccuracy: the text claimed your strap averages your blood oxygen each night, but Cénit does **not** turn the strap's optical signal into a percentage — that reading comes from Apple Health (or a WHOOP export you import).
-  ([Cenit/Screens/MetricInfoSheet.swift](Cenit/Screens/MetricInfoSheet.swift))
 - **Ajustes: Automatizaciones ya se ve clara y «Acerca de» queda más simple / Settings: Automations renders light and «About» is simpler.**
   **ES** — Dos ajustes finos al rediseño de Ajustes: la pantalla de **Automatizaciones** ya abre en papel claro (se había quedado con barra/croma oscuro). Y **Acerca de y soporte** se simplificó — quitamos «Buscar actualizaciones», la sección de donación y la de contacto; queda la versión, **Novedades** (el changelog), la misión, las atribuciones y el aviso legal.
   **EN** — Two fine-tunes to the Settings redesign: the **Automations** screen now opens on warm paper (it had been left with a dark bar/chrome). And **About & support** is simpler — we removed "Check for updates", the donation section and the contact section; what is left is the version, **What's New** (the changelog), the mission, attributions and the legal notice.
@@ -4018,14 +3604,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **ES** — Las tarjetas de insight del **Bucle** —lo que sube o baja con cada hábito, las correlaciones, las anomalías de la noche, las tendencias, el pronóstico, la regularidad y la deuda de sueño, el costo de un deporte, la carga de entrenamiento y la edad fitness— se escribían directo en español; ahora tienen fuente en inglés con **tu español preservado**, así que el Bucle funciona en ambos idiomas. Por dentro, las **claves de datos** —con las que se guardan tus experimentos y el Coach rutea tus preguntas— siguen en español **sin cambiar**: solo se localizó lo que se muestra. Con esto queda completa la localización es/en del motor de insights.
   **EN** — The **Loop's** insight cards — what rises or drops with each habit, correlations, night anomalies, trends, the forecast, sleep regularity and debt, a sport's cost, training load and fitness age — were written straight in Spanish; they now carry an English source with **your Spanish preserved**, so the Loop works in both languages. Under the hood, the **data keys** — what your experiments persist and the Coach routes questions on — stay in Spanish, **unchanged**: only the displayed text was localized.
   ([Packages/StrandAnalytics/Sources/StrandAnalytics/InsightEngine.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/InsightEngine.swift))
-- **La sincronización de la mañana ya no necesita varios toques / The morning sync no longer needs several taps.**
-  **ES** — Antes, en la mañana tenías que tocar «Sincronizar» **varias veces** para bajar toda la noche: la banda guarda muchísimos datos (uno por segundo) y cada sincronización traía solo un pedazo. Ahora, con **un solo toque** —o con solo abrir la app— Cénit **encadena la descarga sola** hasta vaciar la noche, y se detiene en cuanto está al día. Si el enlace se cae a medias, reintenta como antes y no se pierde nada.
-  **EN** — In the morning you used to tap "Sync" **several times** to pull down the whole night: the strap stores a lot (one reading per second) and each sync brought only a slice. Now a **single tap** — or just opening the app — makes Cénit **chain the download on its own** until the night is drained, then stop once it's caught up. If the link drops mid-way it retries as before, and nothing is lost.
-  ([Cenit/BLE/BLEManager.swift](Cenit/BLE/BLEManager.swift), [Cenit/BLE/BackfillPolicy.swift](Cenit/BLE/BackfillPolicy.swift), [Packages/WhoopProtocol/Sources/WhoopProtocol/DrainContinuationPolicy.swift](Packages/WhoopProtocol/Sources/WhoopProtocol/DrainContinuationPolicy.swift))
-- **«Automatizaciones» en papel cálido, y solo lo que aplica a tu iPhone / "Automations" on warm paper, iPhone-only.**
-  **ES** — La pantalla de Automatizaciones pasó del tema oscuro a la luz «Instrumento diurno». De paso quitamos lo que solo tenía sentido en Mac (bloquear la Mac al quitarte la banda) y ajustamos el texto: lo que queda funciona en tu iPhone — doble toque para disparar un atajo o marcar un momento, ejecutar un atajo al quitarte/ponerte la banda, coaching háptico, alarma inteligente y aviso temprano de enfermedad.
-  **EN** — The Automations screen moved from the dark theme to the light «Instrumento diurno» language. We also removed what only made sense on a Mac (locking the Mac when you take the strap off) and fixed the copy: what is left works on your iPhone — double-tap to fire a Shortcut or mark a moment, run a Shortcut on wrist off/on, haptic coaching, smart alarm and illness early-warning.
-  ([Cenit/Screens/AutomationsView.swift](Cenit/Screens/AutomationsView.swift))
 - **«Acerca de y soporte» en papel cálido (y una sola pantalla) / "About & support" on warm paper (and a single screen).**
   **ES** — La pantalla de Acerca de y soporte —versión, novedades, buscar actualizaciones, la misión del proyecto, atribuciones, apoyar con cripto y contacto— pasó del tema oscuro a la luz «Instrumento diurno», con un solo aviso de «no afiliado / no es dispositivo médico» (antes se repetía). Las mismas funciones; ahora combina con el resto de la app.
   **EN** — The About & support screen —version, what's new, check for updates, the project's mission, attributions, crypto support and contact— moved from the dark theme to the light «Instrumento diurno» language, with a single "not affiliated / not a medical device" notice (it used to be duplicated). Same features; now it matches the rest of the app.
@@ -4034,22 +3612,10 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **ES** — El copy de **«Pregúntale a tus datos»** —las preguntas sugeridas, la línea con la que abre, las respuestas del Modo esencial y el «¿y si…?»— estaba escrito directo en español y nunca pasaba por el catálogo: invisible para ti, pero un usuario en inglés lo veía en español. Ahora tiene fuente en inglés con **tu español preservado palabra por palabra**, así que Pregúntale funciona en ambos idiomas. El clasificador que entiende tus preguntas en español por dentro **no cambió** (sigue siendo el mismo, y el modelo nunca inventa una cifra tuya).
   **EN** — The **"Ask your data"** copy — the suggested questions, its opening line, the essential-mode answers and the "what if…?" — was written straight in Spanish and never went through the catalog: invisible to you, but English users saw it in Spanish. It now has an **English source with your Spanish preserved word for word**, so Ask works in both languages. The Spanish keyword classifier under the hood is **unchanged** (and the model still never invents one of your figures).
   ([Packages/StrandAnalytics/Sources/StrandAnalytics/CoachGrounding.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/CoachGrounding.swift))
-- **«Datos y fuentes» ahora en papel cálido / "Data & sources" now on warm paper.**
-  **ES** — La pantalla de Datos y fuentes (importar tu historial de WHOOP/Apple Health, sincronización en vivo, el diagnóstico de tu banda, la cobertura de 30 días y el respaldo) y el visor de tus datos de Apple Health pasaron del tema oscuro al lenguaje claro «Instrumento diurno», como el resto de la app: papel cálido, color solo en el dato. Las mismas funciones; ahora se leen parejo con Hoy, Cuerpo y Ajustes.
-  **EN** — The Data & sources screen (import your WHOOP/Apple Health history, live sync, your strap's diagnostic, 30-day coverage and backup) and the Apple Health data viewer moved from the dark theme to the light «Instrumento diurno» language, like the rest of the app: warm paper, color only on the datum. Same features; now they read consistently with Today, Body and Settings.
-  ([Cenit/Screens/DataSourcesView.swift](Cenit/Screens/DataSourcesView.swift), [Cenit/Screens/AppleHealthView.swift](Cenit/Screens/AppleHealthView.swift))
 - **El explicador de Pregúntale y los errores del coach, ya en tu idioma / The Ask explainer and coach errors now in your language.**
   **ES** — Dos textos que vivían fuera del catálogo: (1) el explicador de **«por qué Pregúntale no puede usar texto libre»** (cuando tu iPhone no tiene Apple Intelligence) ahora tiene fuente en inglés con su español, así que un usuario en inglés ya no lo lee en español; (2) los mensajes de error del **coach por API (tu propia clave)** —«falta la clave», «problema de red», «el proveedor rechazó la clave»…— estaban **solo en inglés** aun con la app en español; ahora salen en español.
   **EN** — Two strings that lived outside the catalog: (1) the **"why Ask can't use free text"** explainer (when your iPhone lacks Apple Intelligence) now has an English source plus its Spanish, so English users no longer see it in Spanish; (2) the **bring-your-own-key API coach's** error messages — "no key", "network problem", "provider rejected the key"… — were **English-only** even with the app in Spanish; they now localize.
   ([Cenit/AI/CoachAvailability.swift](Cenit/AI/CoachAvailability.swift), [Cenit/AI/OnDeviceCoach.swift](Cenit/AI/OnDeviceCoach.swift), [Cenit/AI/AICoach.swift](Cenit/AI/AICoach.swift))
-- **Onboarding nuevo: Apple Health es la base, tu banda WHOOP es opcional / New onboarding: Apple Health is the base, your WHOOP strap is optional.**
-  **ES** — El arranque de Cénit se rediseñó de cero al lenguaje claro «Instrumento diurno». Ahora Apple Health es la **base** que conectas primero (con un «Ahora no» honesto a la vista), y tu banda WHOOP es una **capa opcional** que se monta encima: si no tienes una —o se está cargando— ya no te quedas atorado, entras igual. El flujo es más corto (de 11 pasos a ~6), el color aparece **solo** cuando de verdad pasa algo (verde al conectar Health, rojo si lo dejas desactivado), y se fue el modo oscuro con su radar y sus brillos.
-  **EN** — Cénit's first run was rebuilt from scratch in the light «Instrumento diurno» language. Apple Health is now the **base** you connect first (with an honest "Not now" in plain sight), and your WHOOP strap is an **optional layer** on top: if you don't have one — or it's charging — you're no longer stranded, you get in anyway. The flow is shorter (11 steps down to ~6), color shows **only** when something real happens (green on connecting Health, red if you leave it off), and the dark mode with its radar and glows is gone.
-  ([Cenit/Onboarding/OnboardingWizard.swift](Cenit/Onboarding/OnboardingWizard.swift), [Packages/StrandDesign/Sources/StrandDesign/OnboardingButtons.swift](Packages/StrandDesign/Sources/StrandDesign/OnboardingButtons.swift))
-- **Ajustes, rediseñado: una sola pantalla clara, sin laberinto / Settings, redesigned: one clean screen, no maze.**
-  **ES** — La pestaña Ajustes estrena el lenguaje claro «Instrumento»: abre directo (sin el paso extra «Settings») y con tu perfil y el estado de tu banda a la vista. Desaparece el cajón «Más»: lo que ya vivía en Cuerpo (Explorar, Comparar, Entrenamientos) deja de duplicarse aquí, y lo demás queda ordenado en **Datos y fuentes**, **Automatizaciones**, y **Acerca de y soporte**. El log de la banda —con Copiar/Guardar para adjuntar a un reporte— sigue a un toque, dentro de «Tu banda».
-  **EN** — The Settings tab adopts the light «Instrumento» language: it opens directly (no extra "Settings" step) with your profile and your strap's status in view. The "More" drawer is gone: what already lived in Body (Explore, Compare, Workouts) is no longer duplicated here, and the rest is tidied into **Data & sources**, **Automations**, and **About & support**. The strap log — with Copy/Save to attach to a bug report — stays one tap away, inside "Your strap".
-  ([Cenit/Screens/AjustesView.swift](Cenit/Screens/AjustesView.swift), [CenitApp/App/RootTabView.swift](CenitApp/App/RootTabView.swift))
 - **«Hace 5 min», no «5 min ago»: la antigüedad de la sincronización ya en español / Relative sync time no longer stays in English.**
   **ES** — La línea de sincronización («Última sincronización…» / «Historial sincronizado…») mostraba la antigüedad en inglés —«5 min ago», «just now», «2 h ago»— aun con la app en español. Ahora dice «hace 5 min», «justo ahora», «hace 2 h». De paso rutamos por el catálogo las abreviaturas de unidad de las métricas (ms, rpm, ml/kg) para que ninguna quede escrita a mano.
   **EN** — The sync line ("Last synced…" / "History synced…") showed the age in English — "5 min ago", "just now", "2 h ago" — even with the app in Spanish. It now reads "hace 5 min", "justo ahora", "hace 2 h". We also routed the metric unit abbreviations (ms, rpm, ml/kg) through the catalog so none stay hardcoded.
@@ -4063,26 +3629,10 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **ES** — Unos textos del sistema de diseño que se quedaban fijos en inglés (o en español para todos) ahora siguen tu idioma: las etapas del **hipnograma** de sueño (Despierto/Ligero/Profundo/REM), las iniciales de los **días** en la tira anual del año, y lo que **VoiceOver** lee del dial de 24 h y de una métrica sin lectura de hoy. Es un arreglo invisible si todo estaba en su sitio, y correcto si no.
   **EN** — A few design-system texts that stayed hardcoded in English (or in Spanish for everyone) now follow your language: the sleep **hypnogram** stages (Awake/Light/Deep/REM), the **weekday** initials in the yearly strip, and what **VoiceOver** reads from the 24-h dial and from a metric with no reading yet.
   ([Packages/StrandDesign/Sources/StrandDesign/Palette.swift](Packages/StrandDesign/Sources/StrandDesign/Palette.swift), [Packages/StrandDesign/Sources/StrandDesign/YearHeatStrip.swift](Packages/StrandDesign/Sources/StrandDesign/YearHeatStrip.swift), [Packages/StrandDesign/Sources/StrandDesign/DiurnalDial.swift](Packages/StrandDesign/Sources/StrandDesign/DiurnalDial.swift))
-- **Entrenar se vuelve de día: Respira e Intervalos en papel cálido / The Train tab goes daytime: Breathe and Intervals on warm paper.**
-  **ES** — La pestaña **Entrenar** —su lista, **Respira** (tu respiración guiada con el strap) e **Intervalos** (el cronómetro HIIT silencioso)— dejó el tema oscuro y pasó al lenguaje claro «Instrumento diurno», igual que Hoy y Cuerpo. Las mismas funciones de siempre; ahora el color aparece **solo en el dato que importa** —tu pulso, tu HRV, el esfuerzo—, los números mecánicos (el cronómetro) van en tinta, y el resto descansa en papel. Es el primer paso del rediseño grande de Entrenar.
-  **EN** — The **Train** tab —its list, **Breathe** (strap-guided breathing) and **Intervals** (the silent HIIT timer)— left the dark theme for the light «Instrumento diurno» language, like Today and Body. Same features as ever; now color shows **only on the datum that matters** —your heart rate, your HRV, your effort—, mechanical numbers (the timer) sit in ink, and everything else rests on paper. The first step of the larger Train redesign.
-  ([Cenit/Screens/BreathingView.swift](Cenit/Screens/BreathingView.swift), [Cenit/Screens/IntervalTimerView.swift](Cenit/Screens/IntervalTimerView.swift), [CenitApp/App/RootTabView.swift](CenitApp/App/RootTabView.swift), [Cenit/Screens/LiveWorkoutSheet.swift](Cenit/Screens/LiveWorkoutSheet.swift))
-- **Cénit deja de ofrecer alemán / Cénit no longer ships German.**
-  **ES** — Cénit ya no incluye traducción al alemán: la app se ofrece en **español e inglés**. En un iPhone configurado en alemán verás el inglés (el idioma base). Quitamos las 988 cadenas en alemán de la app y las 6 del widget, más el script interno de traducción. No cambia tus datos ni nada de lo que la app hace. (Importar un export de WHOOP en alemán **sigue funcionando** — eso es lectura de datos, no el idioma de la app.)
-  **EN** — Cénit no longer ships a German translation: the app is offered in **Spanish and English**. On an iPhone set to German you'll see English (the base language). We removed the 988 German strings from the app and the 6 from the widget, plus the internal translation script. It doesn't touch your data or anything the app does. (Importing a German WHOOP export **still works** — that's data reading, not the app's language.)
-  ([Cenit/Resources/Localizable.xcstrings](Cenit/Resources/Localizable.xcstrings), [CenitWidgets/Localizable.xcstrings](CenitWidgets/Localizable.xcstrings))
 - **Respalda a iCloud desde En vivo con un toque / Back up to iCloud from the Live screen with one tap.**
   **ES** — En la pantalla **En vivo**, el chip de iCloud (el que te dice cuándo fue tu último respaldo) ahora es un **botón**: tócalo y Cénit respalda todos tus datos a tu carpeta de iCloud Drive **al instante**, sin entrar a Ajustes. Mientras copia ves «Respaldando…» con un toque háptico, y si algo falla te avisa ahí mismo («No se pudo respaldar») para que lo intentes de nuevo. Aparece solo si ya elegiste tu carpeta de respaldo (eso se sigue configurando en Ajustes).
   **EN** — On the **Live** screen, the iCloud chip (the one showing when you last backed up) is now a **button**: tap it and Cénit backs up all your data to your iCloud Drive folder **instantly**, without opening Settings. While it copies you see "Backing up…" with a light haptic, and if something fails it tells you right there ("Couldn't back up") so you can retry. It only shows once you've chosen your backup folder (still set up in Settings).
   ([Cenit/Screens/LiveView.swift](Cenit/Screens/LiveView.swift))
-- **El Coach ya no se "reinicia" a medianoche / The Coach no longer "resets" at midnight.**
-  **ES** — Al pasar de la medianoche, antes de que sincronices la banda en la mañana, el Coach se veía como recién instalado: «Aún reuniendo señal · 61 de 14 noches», y tus hallazgos desaparecían. Ahora, si ya tienes suficiente historial, solo la **decisión del día** queda «en espera» (con tu veredicto de ayer como contexto y la nota de que se afina al sincronizar), mientras *Lo que funciona en ti*, tus hallazgos y tus correlaciones **siguen ahí**. Y cuando de verdad apenas empiezas, el contador ya no se pasa de 14 («Faltan N noches…»).
-  **EN** — Just after midnight, before you sync the strap in the morning, the Coach looked freshly installed: "Still gathering signal · 61 of 14 nights", and your findings vanished. Now, if you already have enough history, only the **day's decision** waits (with yesterday's verdict as context and a note that it sharpens once you sync), while *What works for you*, your findings and your correlations **stay put**. And when you're genuinely just starting, the counter no longer goes past 14 ("N nights to go…").
-  ([Cenit/Screens/BucleView.swift](Cenit/Screens/BucleView.swift))
-- **Hoy ya no muestra tu esfuerzo y sueño de ayer a medianoche / Today no longer shows yesterday's strain and sleep at midnight.**
-  **ES** — Justo después de la medianoche, antes de sincronizar la banda en la mañana, Hoy mostraba el **esfuerzo** y el **sueño** de ayer como si fueran de hoy (con su «vs media»), aunque el veredicto ya decía «aún no hay lectura de hoy». Ya no: el esfuerzo del día EN CURSO cuenta solo tu actividad de hoy (a la 1 AM = «—», y sube de verdad conforme avanza el día), y el sueño muestra **«Esta noche»** hasta que duermas y sincronices. Tu historial no cambia ni un dígito. (HRV, FC en reposo y oxígeno siguen mostrando tu última lectura nocturna.)
-  **EN** — Just after midnight, before you sync the strap in the morning, Today showed yesterday's **strain** and **sleep** as if they were today's (with their "vs average"), even though the verdict already said "no reading yet today." Not anymore: the in-progress day strain counts only today's own activity (at 1 AM it reads "—", and climbs for real as the day goes on), and sleep reads **"Tonight"** until you sleep and sync. Your history doesn't change at all. (HRV, resting HR and blood oxygen still show your latest overnight reading.)
-  ([Packages/StrandAnalytics/Sources/StrandAnalytics/AnalyticsEngine.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/AnalyticsEngine.swift), [Cenit/Data/IntelligenceEngine.swift](Cenit/Data/IntelligenceEngine.swift), [Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
 - **Tu deuda y regularidad de sueño ahora cuadran en toda la app / Your sleep debt and regularity now match everywhere in the app.**
   **ES** — Antes el coach y el Detalle de Sueño podían darte **dos cifras distintas** de lo mismo (p. ej. deuda de 7.7 h en el coach vs 5h 41m en el Detalle), porque cada uno la calculaba a su manera. Ahora la **deuda de sueño** y la **regularidad** salen de un solo cálculo compartido, así que el número que ves es el mismo en todos lados. (La definición de "cuánto necesitas dormir" quedó en un solo lugar, lista para afinarse.)
   **EN** — Before, the coach and the Sleep Detail could show **two different numbers** for the same thing (e.g. a 7.7 h debt in the coach vs 5h 41m in Detail), because each computed it its own way. Now **sleep debt** and **regularity** come from one shared calculation, so the number you see is the same everywhere. (The definition of "how much you need to sleep" now lives in one place, ready to refine.)
@@ -4127,7 +3677,7 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
 - **Coach: pon a prueba una palanca una semana y confírmala en tu cuerpo / Coach: test a lever for a week and confirm it on your own body.**
   **ES** — El Bucle ya detecta qué va con tu mejor recuperación («Lo que funciona en ti»), pero nace como **candidato** —una asociación, no una prueba—. Ahora puedes **probarlo**: el Bucle te sugiere una **«Idea por probar»** (tu candidato más fuerte) y, al tocar **Probar**, una hoja te explica qué vas a confirmar y arranca un experimento de **7 días**. Mientras corre, ves **«Tu experimento»** con tu avance («Día 4 de 7»), cuántos días lo cumpliste y la fecha del veredicto. Al cerrar la semana, Cénit compara esos días contra tu base y te da un veredicto honesto: **se sostuvo**, **no se sostuvo** o **sin señal suficiente**. Si se sostuvo, la palanca pasa de «candidato» a **«probado»**. La adherencia sale de lo que anotas en «Anota tu día»; uno a la vez.
   **EN** — The Loop already spots what goes with your best recovery ("What works for you"), but it starts as a **candidate** — an association, not proof. Now you can **test it**: the Loop suggests an **"Idea to try"** (your strongest candidate) and, when you tap **Test**, a sheet explains what you'll confirm and starts a **7-day** experiment. While it runs, **"Your experiment"** shows your progress ("Day 4 of 7"), how many days you kept it, and the verdict date. When the week closes, Cénit compares those days against your baseline and gives an honest verdict: **held up**, **didn't hold up**, or **not enough signal**. If it held up, the lever moves from "candidate" to **"proven"**. Adherence comes from what you log in "Note your day"; one at a time. Y si todavía no tienes una palanca que probar, el Bucle muestra igual una invitación («Pon a prueba una idea») que te lleva a anotar tus días, en vez de no mostrar nada. / And if you don't have a lever to test yet, the Loop still shows an invitation ("Test an idea") that points you to logging your days, instead of nothing.
-  ([Cenit/Screens/BucleView.swift](Cenit/Screens/BucleView.swift), [Cenit/Screens/BucleSheets.swift](Cenit/Screens/BucleSheets.swift), [Packages/WhoopStore/Sources/WhoopStore/ExperimentStore.swift](Packages/WhoopStore/Sources/WhoopStore/ExperimentStore.swift), [Packages/StrandAnalytics/Sources/StrandAnalytics/ExperimentVerdict.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/ExperimentVerdict.swift))
+  ([Cenit/Screens/BucleView.swift](Cenit/Screens/BucleView.swift), [Cenit/Screens/BucleSheets.swift](Cenit/Screens/BucleSheets.swift), [Packages/CenitStore/Sources/CenitStore/ExperimentStore.swift](Packages/CenitStore/Sources/CenitStore/ExperimentStore.swift), [Packages/StrandAnalytics/Sources/StrandAnalytics/ExperimentVerdict.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/ExperimentVerdict.swift))
 - **Precisión interna: tres pulidos numéricos menores / Internal precision: three minor numeric polish fixes.**
   **ES** — Correcciones de borde en el motor de análisis, sin cambio visible esperado: la mediana de intervalos en zonas de pulso ahora promedia los dos valores centrales (antes sesgaba ligeramente al alza), la regularidad de sueño nunca muestra «-0 min» para un horario perfecto, y la estimación de calorías del día tiene un tope robusto ante entradas degeneradas.
   **EN** — Edge-case fixes in the analytics engine, with no expected visible change: the heart-rate-zone interval median now averages the two central values (it used to bias slightly high), sleep regularity never shows "-0 min" for a perfect schedule, and the day-calories estimate is robustly capped against degenerate input.
@@ -4164,16 +3714,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **EN** — The Coach tab is no longer a menu of three separate screens — it's now **a single warm-paper screen**. At the top, your **Decision for today** ("Push today", "Ease off"…) with your recovery as the evidence. Below: **What works for you** (the habits that move you most, with their effect), **Findings** (anomalies, trends and relationships the on-device engine surfaces from your data), **Log your day** (mark Yes/No what happened, feeding your levers) and **Your habit effects** (explore by metric how each habit affects you, across your whole history). Everything is computed **on your phone**, no cloud. **Ask your data** still opens the chat with your own AI (your key, optional) — nothing was lost.
   ([Cenit/Screens/BucleView.swift](Cenit/Screens/BucleView.swift), [Cenit/Screens/BucleSheets.swift](Cenit/Screens/BucleSheets.swift))
 
-- **Estrés: un hueco al inicio del día ya no infla tu Estrés / Strain: an early gap no longer inflates your Strain.**
-  **ES** — Si tu banda se reconectaba o la primera lectura del día llegaba con retraso, ese hueco hacía que Cénit creyera que cada lectura duraba mucho más y, por error, **inflaba el Estrés del día entero** (en un caso medido, casi lo duplicaba). Ahora la duración por lectura se calcula con el espaciado **típico** de tus datos, no con el primer par de lecturas, así que un hueco aislado deja tu Estrés intacto.
-  **EN** — If your strap reconnected or the day's first reading arrived late, that gap made Cénit think every reading lasted much longer and wrongly **inflated the whole day's Strain** (nearly doubling it in one measured case). Strain now derives each reading's duration from your data's **typical** spacing rather than the first pair of readings, so an isolated gap leaves your Strain unchanged.
-  ([Packages/StrandAnalytics/Sources/StrandAnalytics/StrainScorer.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/StrainScorer.swift))
-
-- **Hoy: una pista te invita a deslizar para actualizar / Today: a hint invites you to swipe to refresh.**
-  **ES** — Hoy ya tenía un gesto para actualizar (jalar la pantalla hacia abajo sincroniza tu strap y recalcula), pero casi no se notaba: solo una flechita muda que además desaparecía para siempre tras usarla una vez. Ahora, en reposo, aparece una **flecha que rebota suave** con el texto **«Desliza para actualizar»**, así descubres el gesto. Una vez que lo aprendes, el texto y el rebote se retiran pero queda una flecha discreta, para que la pista nunca se pierda del todo. Aparece tengas o no strap (jalar igual recarga tus datos) y respeta Reduce Motion y VoiceOver.
-  **EN** — Today already had a refresh gesture (pull the screen down to sync your strap and recompute), but it was nearly invisible: just a silent little arrow that also vanished forever after one use. Now, at rest, a **gently bouncing arrow** with the label **"Swipe to refresh"** shows up, so you discover the gesture. Once you've learned it, the text and bounce retire but a discreet arrow stays, so the hint is never fully lost. It appears with or without a strap (pulling refreshes your data either way) and respects Reduce Motion and VoiceOver.
-  ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift), [Packages/StrandDesign/Sources/StrandDesign/Motion.swift](Packages/StrandDesign/Sources/StrandDesign/Motion.swift))
-
 - **Hoy: la explicación del veredicto abre completa, sin tener que jalarla / Today: the verdict explainer opens fully, no dragging.**
   **ES** — La hoja **«¿Por qué [veredicto]?»** (la que abre la **«i»** del veredicto) salía cortada y había que arrastrarla hacia arriba para leer todo. Ahora abre a la altura exacta de su contenido, así ves toda la explicación —noche corta, tus señales y la leyenda de colores— de un vistazo.
   **EN** — The **"Why [verdict]?"** sheet (opened from the verdict's **"i"**) used to open cut off, forcing you to drag it up to read everything. Now it opens at its content's exact height, so you see the whole explanation — short night, your signals, and the color legend — at a glance.
@@ -4183,11 +3723,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **ES** — Cuando duermes menos de 6 h, Hoy marca el veredicto con **«Noche corta — confianza baja»** (una noche corta deprime tu HRV e infla tu frecuencia en reposo, así que el número se lee con menos certeza). Antes esa línea no explicaba nada; ahora, al tocar la **«i»** del veredicto, una explicación te dice **cuántas horas dormiste anoche** y por qué eso baja la confianza —recalcando que no es que estés peor, solo que una noche corta se mide con menos certeza—.
   **EN** — When you sleep under 6 h, Today flags the verdict with **"Short night — low confidence"** (a short night suppresses your HRV and inflates your resting heart rate, so the number reads with less certainty). That line used to explain nothing; now, tapping the verdict's **"i"** shows an explanation with **how many hours you slept last night** and why that lowers confidence — stressing it doesn't mean you're worse off, just that a short night is measured with less certainty.
   ([Cenit/Screens/WhyVerdictSheet.swift](Cenit/Screens/WhyVerdictSheet.swift), [Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
-
-- **Hoy: «Descargando la noche…» en vez de «Falta la lectura de hoy» mientras sincroniza / Today: "Downloading last night…" instead of "Today's reading is missing" while it syncs.**
-  **ES** — En la mañana, mientras tu banda todavía está bajando el historial de la noche, Hoy decía «Falta la lectura de hoy / Usa tu banda…» —confuso, porque sí traes la banda y el dato viene en camino—. Ahora, mientras descarga, el Hero dice la verdad: **«Descargando la noche…»**, con el dial girando, y «Tus datos de anoche están llegando. La primera sincronización del día puede tardar unos minutos.». En cuanto termina y se calcula tu recuperación, aparece el veredicto.
-  **EN** — In the morning, while your strap is still pulling down the night's history, Today used to say "Today's reading is missing / Wear your strap…" — confusing, since you *are* wearing it and the data is on its way. Now, while it downloads, the hero tells the truth: **"Downloading last night…"**, with the dial spinning, and "Your data from last night is arriving. The first sync of the day can take a few minutes." As soon as it finishes and your recovery is computed, the verdict appears.
-  ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
 
 - **Hoy: el rótulo «El veredicto de hoy» se lee un poco más / Today: the "Today's verdict" label reads a touch louder.**
   **ES** — El pequeño rótulo arriba del dial, «El veredicto de hoy», ahora es un punto más grande (no más pesado) y respira un poco más de aire arriba, para que oriente mejor de un vistazo — sin robarle protagonismo al número grande de recuperación.
@@ -4199,35 +3734,10 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **EN** — The small "Today" label that sat above the tiles is gone, so the metrics grid moves up and Today fits a screen better. And the **live pulse** (the pill with your bpm) no longer lives above the tiles: it now sits **next to the verdict word** — "Strained," "Balanced"… — which stays centered, with the pulse anchored to the right. Still tappable to open the beat-by-beat monitor. If the word is long (or you use large text), the pulse drops below instead of overlapping.
   ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
 
-- **El Detalle de Recuperación ahora asoma cómo viene mañana / Recovery detail now hints at where tomorrow is headed.**
-  **ES** — Un bloque nuevo, «Mañana, si descansas igual», proyecta tu recuperación de mañana: un número con su **rango probable** y si la tendencia va subiendo, estable o bajando, ajustado un poco si traes deuda de sueño importada de WHOOP. Es una **proyección de tendencia, no una garantía** —lo de mañana depende sobre todo de lo que hagas hoy— y solo aparece cuando hay unas dos semanas de datos; antes de eso dice honestamente «Aún calibrando». La ⓘ del bloque explica el método y la cita.
-  **EN** — A new block, "Tomorrow, if you rest the same," projects tomorrow's recovery: a number with its **likely range** and whether the trend is rising, steady or falling, nudged a little if you carry sleep debt imported from WHOOP. It's a **trend projection, not a guarantee** — tomorrow depends most on what you do today — and it only appears once there's about two weeks of data; before that it honestly says "Still calibrating." The block's ⓘ explains the method and citation.
-  ([Cenit/Screens/RecoveryDetailScreen.swift](Cenit/Screens/RecoveryDetailScreen.swift))
-
-- **El detalle de cada métrica te dice si el dato viene de Apple Salud / Each metric's detail now tells you when the reading comes from Apple Health.**
-  **ES** — Al tocar una métrica en Hoy se abre su tarjeta de detalle. Ahora, **hasta abajo**, esa tarjeta muestra un ♥ discreto con «Apple Health» cuando el valor que estás viendo viene **prestado de Apple Salud** y no del strap —misma marca que ya traían los recuadros de Hoy—. Es dinámico, no fijo: HRV, FC en reposo, sueño y SpO₂ pueden venir de cualquiera de las dos fuentes, así que solo se marca cuando de verdad salió de Apple; los pasos (que Apple sí registra y el strap no) lo muestran siempre. Los datos del strap siguen sin marca, como es lo normal.
-  **EN** — Tapping a metric on Today opens its detail card. Now, **at the very bottom**, that card shows a quiet ♥ with "Apple Health" when the value you're looking at is **borrowed from Apple Health** rather than the strap — the same badge Today's tiles already use. It's dynamic, not fixed: HRV, resting HR, sleep and SpO₂ can come from either source, so it's only marked when the reading actually came from Apple; steps (which Apple records and the strap doesn't) always show it. Strap data stays unbadged, as is the norm.
-  ([Cenit/Screens/MetricInfoSheet.swift](Cenit/Screens/MetricInfoSheet.swift), [Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
-
-- **«Ver todas las métricas» ahora muestra los datos de tu strap (no solo importaciones) / "See all metrics" now shows your strap data (not just imports).**
-  **ES** — En el catálogo «Ver todas las métricas» (Cuerpo → Ver todas), al abrir una métrica que tu strap calcula en el dispositivo —recuperación, esfuerzo, HRV, FC en reposo, respiración, SpO₂, temperatura de piel, pasos, sueño— ya ves tu gráfica y tus números, aunque nunca hayas importado un archivo de WHOOP. Antes el catálogo solo leía de las importaciones, así que para un usuario de strap salía «Primero importa tu historial». Las métricas que de verdad solo vienen de una importación (peso, grasa corporal, etc.) siguen igual.
-  **EN** — In the "See all metrics" catalog (Body → See all), opening a metric your strap computes on device — recovery, strain, HRV, resting HR, respiration, SpO₂, skin temp, steps, sleep — now shows your chart and numbers even if you never imported a WHOOP file. Before, the catalog read only from imports, so a strap user saw "Import your history first." Metrics that genuinely come only from an import (weight, body fat, etc.) are unchanged.
-  ([Cenit/Screens/MetricExplorerView.swift](Cenit/Screens/MetricExplorerView.swift))
-
 - **«Ver todas las métricas» y el detalle del catálogo ahora son claros / The metric catalog and its detail are now light.**
   **ES** — La última pantalla oscura que quedaba sale del cuarto oscuro. Al tocar **«Ver todas las métricas»** en Cuerpo, el catálogo ya no salta oscuro sobre el fondo claro: se rediseñó al estilo «Instrumento» —papel cálido, filas limpias separadas por una línea fina, color solo en el dato (el ícono y el número de cada métrica)—. Y el **detalle de cada métrica del catálogo** quedó igual que el resto de los detalles: el número grande arriba, la misma gráfica con selector de tiempo, el resumen Prom · rango · cambio, y «Qué correlaciona» con sus barras verde/rojo. Funciona idéntico a antes; solo se ve como el resto de la app.
   **EN** — The last dark screen leaves the darkroom. Tapping **"See all metrics"** in Body no longer pops a dark catalog over the light background: it was redesigned to the "Instrumento" style — warm paper, clean rows separated by a hairline, color only on the datum (each metric's icon and number). And each catalog metric's **detail** now matches the rest: the big number up top, the same time-selector chart, the Avg · range · change summary, and "What correlates" with its green/red bars. Works exactly as before; it just looks like the rest of the app now.
   ([Cenit/Screens/MetricExplorerView.swift](Cenit/Screens/MetricExplorerView.swift), [Cenit/Screens/CuerpoView.swift](Cenit/Screens/CuerpoView.swift))
-
-- **Hoy junta todo el estado del strap en una sola línea arriba / Today gathers all the strap status into one line up top.**
-  **ES** — El estado de tu instrumento dejó de estar regado por la pantalla. Ahora, **arriba en una sola línea**: la fecha a la izquierda, y a la derecha qué tan reciente es tu última sincronización (o «N paquetes» girando mientras descarga) **junto a** la batería del strap. La sincronización ya no vive a media pantalla. Y en las métricas, los datos de tu **strap ya no llevan marca** (es lo normal); solo lo que viene **prestado de Apple Salud** lleva un ♥ — se fue la leyenda repetida del pie. Menos ruido, y de un vistazo sabes qué tan al día estás y de dónde sale cada número.
-  **EN** — Your instrument's status is no longer scattered across the screen. Now, **in one line up top**: the date on the left, and on the right how recent your last sync is (or a spinning "N packets" while it downloads) **next to** the strap battery. Sync no longer lives mid-screen. And in the metrics, your **strap data carries no badge** (that's the norm); only data **borrowed from Apple Health** gets a ♥ — the repeated footer legend is gone. Less noise, and at a glance you know how current you are and where each number comes from.
-  ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
-
-- **«Comparar» ya te muestra tus datos aunque no hayas importado nada / "Compare" now shows your data even if you never imported anything.**
-  **ES** — Antes, «Comparar» salía vacío (sin métricas ni gráfica) para quien usa el strap sin haber importado un archivo de WHOOP, porque leía de un lugar que solo se llena al importar. Ahora lee del mismo tablero que Hoy y Cuerpo, así que tus métricas calculadas en el dispositivo (recuperación, esfuerzo, HRV, FC en reposo, respiración, SpO₂, temperatura de piel, pasos, sueño…) **se grafican de una**. Abre directo con Recuperación · Esfuerzo · HRV. De paso, el selector de rango (S/M/3M/6M/1A/TODO) ya no parte «TODO» en dos líneas ni se ve tan alto.
-  **EN** — Before, "Compare" came up empty (no metrics, no chart) for anyone using the strap without importing a WHOOP file, because it read from a place that only fills on import. Now it reads from the same dashboard as Today and Body, so your on-device metrics (recovery, strain, HRV, resting HR, respiration, SpO₂, skin temp, steps, sleep…) **chart right away**. It opens on Recovery · Strain · HRV. The range selector (W/M/3M/6M/1Y/ALL) also no longer wraps "ALL" onto a second line or looks too tall.
-  ([Cenit/Screens/CompareView.swift](Cenit/Screens/CompareView.swift))
 
 - **La «i» del veredicto es más fácil de tocar, y Hoy carga un poco más ligero / The verdict's "i" is easier to tap, and Today loads a bit lighter.**
   **ES** — La pequeña **«i»** junto a la palabra del veredicto (la que abre «por qué se lee así») ahora tiene un área tocable de 44pt, el mínimo de Apple, así que ya no se te escapa. Por dentro, retiramos código viejo de la versión de escritorio que ya no se usaba en el iPhone, lo que de paso hace que Hoy dispare unas cuantas consultas menos al cargar. Sin cambios visibles fuera de eso.
@@ -4237,11 +3747,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
 - **Detalles de accesibilidad en Hoy: pulso más fácil de tocar y un corazón que se lee mejor / Accessibility polish on Today: an easier-to-tap pulse and a more readable heart.**
   **ES** — Tres ajustes finos en Hoy. El **chip de pulso vivo** (el del bpm) ahora tiene un área tocable más grande (44pt, el mínimo de Apple) aunque se vea igual de compacto, así no se te escapa al picarlo. El **corazón de «Apoya a Cénit»** de arriba a la derecha cambió a un rojo del propio tema, que contrasta bien sobre el papel claro (antes usaba un rosa del tema oscuro que quedaba lavado). Y los **números de los tiles** ya nunca se encogen tanto como para perder contraste. Nada cambia en el uso diario; solo se ven y se tocan mejor.
   **EN** — Three fine-grained tweaks on Today. The **live-pulse chip** (the bpm one) now has a larger tap area (44pt, Apple's minimum) while looking just as compact, so it's easier to hit. The **"Support Cénit" heart** in the top-right switched to a theme red that reads well on the light paper (it used to borrow a dark-theme rose that looked washed out). And the **tile numbers** never shrink so far that they lose contrast. Nothing changes in daily use; things just read and tap better.
-  ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
-
-- **Hoy te dice cómo abrir tu recuperación y cómo sincronizar / Today now shows you how to open your recovery and how to sync.**
-  **ES** — Dos gestos que ya existían pero estaban escondidos ahora se anuncian solos, sin estorbar el diseño. Junto al «/100» de tu número de veredicto aparece una **flechita** que indica que ese número se toca para ver el detalle. Y arriba, mientras tu strap está en reposo, un **chevron discreto** te sugiere que jalando la pantalla hacia abajo fuerzas una sincronización; desaparece para siempre la primera vez que la usas. Ambas son señales quietas en tinta que **no agrandan la pantalla** —el número queda bien centrado en su dial y todo sigue cabiendo de una—, fieles al estilo «Instrumento».
-  **EN** — Two gestures that already existed but were hidden now announce themselves, without crowding the layout. Next to the "/100" under your verdict number, a small **arrow** signals that the number is tappable for the detail. And up top, while your strap is idle, a quiet **chevron** hints that pulling the screen down forces a sync; it disappears for good the first time you use it. Both are calm, ink-colored cues that **don't grow the screen** — the number stays nicely centered in its dial and everything still fits on one — true to the "Instrumento" style.
   ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
 
 - **La pantalla «Comparar» ahora es clara, como el resto de la app / The "Compare" screen is now light, like the rest of the app.**
@@ -4264,11 +3769,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **EN** — We dropped the big "Today's metrics" title for a quiet **"Today"** stamp with the **last sync right next to it** (it used to live at the bottom): "3 min ago" at rest, or a spinning counter with **"N packets"** while it downloads your history. The **live pulse** is no longer a big capsule — it's now a **clearly tappable chip** (dot + bpm + chevron) that opens the beat-by-beat monitor. And each tile is compact again: the mini-band of your typical range and the change **vs your average** now fit on a single line. The result: the section fits on screen without clipping, and the numbers lead.
   ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
 
-- **Entrenamientos se rediseñó completo, claro y con detalle por sesión / Workouts got a full redesign — light, with a per-session detail.**
-  **ES** — La pantalla de **Entrenamientos** (desde **Cuerpo**) dejó el viejo tema oscuro y la tabla apretada: ahora es clara, al estilo «Instrumento», como el resto de la app. Arriba, **un número protagonista** —tus sesiones del periodo— con un filtro (7D/30D/90D/1A/Todo) que se amplía solo si el rango queda vacío. Debajo, dos apoyos quietos (**tiempo activo** y **deporte más frecuente**), una lista **por deporte**, y la lista de **sesiones**: cada una se toca para abrir su **detalle**. El detalle de una sesión es nuevo: encabeza con tu **esfuerzo** (y si esa sesión no lo trae, baja honestamente a tu **frecuencia cardiaca media** o a la **duración**, nunca un cero falso), seguido de tus **zonas de frecuencia cardiaca** —cuando la sesión las tiene—, FC media/máx, distancia y energía (con un aviso de «estimado» cuando no vienen de tu WHOOP), notas y el origen. Editar, re-etiquetar, descartar, borrar o duplicar viven en el menú ••• del detalle.
-  **EN** — The **Workouts** screen (from **Body**) drops the old dark theme and the cramped table: it's now light, "Instrumento"-style, like the rest of the app. At the top, **one protagonist number** — your sessions in the period — with a range filter (7D/30D/90D/1Y/All) that widens on its own only when the range is empty. Below it, two quiet supports (**active time** and **most frequent sport**), a **by-sport** list, and the list of **sessions**: tap any one to open its **detail**. The session detail is new: it leads with your **effort** (and when a session doesn't carry it, it honestly drops to your **average heart rate** or **duration**, never a fake zero), followed by your **heart-rate zones** — when the session has them — avg/max HR, distance and energy (flagged "estimated" when they don't come from your WHOOP), notes, and the source. Edit, re-label, dismiss, delete or duplicate live in the detail's ••• menu.
-  ([Cenit/Screens/WorkoutsView.swift](Cenit/Screens/WorkoutsView.swift), [Cenit/Screens/WorkoutDetailScreen.swift](Cenit/Screens/WorkoutDetailScreen.swift))
-
 - **La tarjeta de Oxígeno en sangre en Hoy ahora tiene botón «Ver más» / Blood-oxygen card in Today now has a "See more" button.**
   **ES** — La tarjeta de **SpO₂** en la pantalla de Hoy ya muestra el botón «Ver más». Al tocarlo abre el detalle completo: promedio 7 días como número principal, gráfica con banda clínica 95–100%, conteo de noches por debajo del 95% y método.
   **EN** — The **SpO₂** card on the Today screen now shows a "See more" button. Tapping it opens the full detail: 7-day average as the headline number, chart with the clinical 95–100% band, nights-below-95% count, and method.
@@ -4287,10 +3787,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
 - **Frecuencia cardiaca ahora tiene su detalle completo, con tu día y tus zonas / Heart rate now has its full detail, with your day and your zones.**
   **ES** — Tocar **Frecuencia cardiaca** —en **Cuerpo** o con **«Ver más»** desde Hoy— ya no abre la hoja resumida: abre el detalle completo, al estilo «Instrumento». Arriba, tu **promedio del día** con el mínimo, el máximo y tu **reposo de anoche**. Como protagonista, la **curva de tu día** (promedios de 5 minutos desde medianoche) con tu **pico marcado** y la hora en que ocurrió, y tu **frecuencia en reposo** dibujada como una línea de referencia tenue. Debajo, **«Tiempo en zonas»**: cuántos minutos pasaste en cada zona (1 a 5, como porcentaje de tu frecuencia cardiaca máxima), encabezado por los minutos «elevados» (zona 3 o más). Sin lecturas del día, queda «—» con un aviso honesto de que aún no hay datos de hoy.
   **EN** — Tapping **Heart rate** — in **Body** or via **"See more"** from Today — no longer opens the summary sheet: it opens the full, "Instrumento"-style detail. At the top, your **average for the day** with the min, the max and **last night's resting** heart rate. As the centrepiece, **your day's curve** (5-minute averages from midnight) with your **peak marked** and the time it happened, and your **resting heart rate** drawn as a quiet reference line. Below it, **"Time in zones"**: how many minutes you spent in each zone (1 to 5, as a percentage of your max heart rate), led by your "elevated" minutes (zone 3 and up). With no readings yet, it shows "—" with an honest note that there's nothing for today.
-- **Pasos ahora tiene su hoja de detalle completa / Steps now has its full detail sheet.**
-  **ES** — Tocar **Pasos** —en **Cuerpo**, o con **«Ver más»** desde **Hoy**— ya no abre la hoja resumida: abre el detalle completo, al nivel de las demás métricas. Arriba va tu **conteo de hoy** como número protagonista, con tu **promedio diario de 7 días** debajo de contexto. Luego un **selector de período** (semana a año) y una **gráfica de tendencia diaria** que suaviza los altibajos entre semana y fin de semana, más un bloque de **tendencia** (este mes contra el anterior). A propósito **no** lleva «rango normal» ni bandas clasificatorias: los pasos son un conteo, no un signo vital. Y se aclara de dónde vienen: de **Apple Salud**, no del strap.
-  **EN** — Tapping **Steps** —in **Body**, or via **"See more"** from **Today**— no longer opens the summary sheet: it opens the full detail, on par with the other metrics. It leads with **today's count** as the protagonist number, with your **7-day daily average** below it for context. Then a **period selector** (week to year) and a **daily trend chart** that smooths the weekday/weekend swings, plus a **trend** block (this month vs last). It deliberately carries **no** "normal range" or classificatory bands: steps are a count, not a vital sign. And it's clear where they come from: **Apple Health**, not the strap.
-  ([Cenit/Screens/MetricDetailScreen.swift](Cenit/Screens/MetricDetailScreen.swift))
 
 - **Las métricas de Hoy ahora se comparan con tu media, no con ayer / Today's metrics now compare against your average, not yesterday.**
   **ES** — En **Hoy**, cada tile de «Métricas de hoy» dejó de decir «vs ayer» (que se ensucia con una sola noche rara) y ahora te dice dónde caes **vs tu media de 7 días**: «4 ms sobre tu media», «12 min bajo tu media», o «En tu media de 7 días» cuando vas parejo. Debajo del número aparece una **mini-banda** que dibuja tu **rango típico** y marca con un tick dónde caíste hoy, para leer de un vistazo si estás dentro de lo normal o fuera. Mientras junta historia (tus primeros días) dice «Aún construyendo tu media». El color sigue la regla de siempre: verde si mejoraste, rojo si empeoraste, neutro cuando no aplica.
@@ -4301,11 +3797,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **ES** — En **Cuerpo**, tocar **Temperatura de la piel** ya no abre la vieja pantalla oscura del catálogo: abre un detalle claro «Instrumento», al nivel de Sueño, Esfuerzo y Estrés. Arriba va tu **última lectura** (cuánto se alejó anoche de tu base, en ±°C); luego una **gráfica por noche** con una **banda sombreada de tu variación típica** alrededor de 0 —dentro es lo normal, salirse varias noches seguidas del mismo lado es la señal— y un **selector de período** (semana a año). Debajo, tu **promedio** del período con un chip que compara mes contra mes **en °C** (no en porcentaje, que sobre un número cercano a cero engañaría), y tu **consistencia** como el vaivén noche a noche en °C. Con la nota de siempre: es una señal de confort, no un termómetro ni un diagnóstico.
   **EN** — In **Body**, tapping **Skin temperature** no longer opens the old dark catalog screen: it opens a light «Instrumento» detail, on par with Sleep, Strain and Stress. It leads with your **latest reading** (how far last night ran from your baseline, in ±°C); then a **per-night chart** with a **shaded band of your typical variation** around 0 — inside it is business as usual, several nights poking out the same side is the signal — and a **period selector** (week to year). Below it, your period **average** with a chip comparing month over month **in °C** (not a percentage, which would mislead on a near-zero number), and your **consistency** as the night-to-night swing in °C. With the usual caveat: it's a comfort signal, not a thermometer or a diagnosis.
   ([Cenit/Screens/SkinTempDetailScreen.swift](Cenit/Screens/SkinTempDetailScreen.swift))
-
-- **Tu VO₂max ahora tiene su propia hoja de detalle / Your VO₂max now has its own detail sheet.**
-  **ES** — En **Cuerpo**, sección **Longevidad**, aparece una fila nueva: **VO₂ máx**. Al tocarla se abre un detalle completo con tu **última lectura** como protagonista y, debajo, dónde cae **para tu edad y sexo** (por encima / en línea / por debajo de lo esperado) y cuándo se midió. Trae la **gráfica de tus valores por meses**, **cuánto cambió** en el periodo, tu **nivel** (Bajo / Promedio / Bueno / Excelente entre tus pares), tu **edad cardiorrespiratoria** equivalente, y un bloque **«Por qué importa»**: el VO₂max es uno de los predictores de longevidad mejor fundamentados. Si aún no hay dato (lo mide tu Apple Watch en caminatas y carreras al aire libre), la hoja te lo explica y te invita a conectar Apple Salud. Es dato de Apple Salud, no de la banda WHOOP.
-  **EN** — In **Body**, under **Longevity**, there's a new row: **VO₂ max**. Tapping it opens a full detail led by your **latest reading**, with where it lands **for your age and sex** (above / in line with / below expected) and when it was measured right under it. It carries a **chart of your values over months**, **how much it changed** across the period, your **level** (Low / Average / Good / Excellent among your peers), your equivalent **cardiorespiratory age**, and a **"Why it matters"** block: VO₂max is one of the best-evidenced predictors of long-term health. When there's no reading yet (your Apple Watch estimates it on outdoor walks and runs), the sheet explains that and invites you to connect Apple Health. It comes from Apple Health, not the WHOOP strap.
-  ([Cenit/Screens/CuerpoView.swift](Cenit/Screens/CuerpoView.swift), [Cenit/Screens/MetricDetailScreen.swift](Cenit/Screens/MetricDetailScreen.swift), [Packages/StrandAnalytics/Sources/StrandAnalytics/VO2maxReference.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/VO2maxReference.swift))
 
 - **«Consistencia» ahora se lee de un vistazo / "Consistency" now reads at a glance.**
   **ES** — En las hojas de **HRV, Estrés y Recuperación**, el bloque de consistencia dejó de empezar con jerga. Antes decía «Consistencia (CV)» y mostraba «±18% semana a semana · variable». Ahora la **palabra manda**: **Estable** (en verde) o **Variable** (en ámbar) como el dato grande, con el «±18% semana a semana» en chico debajo. La definición técnica (coeficiente de variación) se queda dentro de la **ⓘ**, que es su lugar.
@@ -4337,11 +3828,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **EN** — In the **Sleep** sheet (in Body) the **duration trend** chart now **matches the one in Today**: 14 nights with the four bands (Short / Adequate / Optimal 7–9 h / Extended). It's now clear **which band you're in** — your band is highlighted and always labelled, with a header for how many of your recent nights land there — and the fill that muddied it is gone. And the week's **sleep debt** is its own block, with the running total as a big number and, below it, **one bar per night** showing which night fell short or beat your need; **drag across it** to see, night by night, how much you slept and that day's debt.
   ([Cenit/Screens/SleepDetailScreen.swift](Cenit/Screens/SleepDetailScreen.swift), [DebtBars.swift](Packages/StrandDesign/Sources/StrandDesign/DebtBars.swift))
 
-- **Detalle de Esfuerzo: Tendencia primero, sin nota de fuente / Strain detail: Trend first, source note removed.**
-  **ES** — En la hoja de **Esfuerzo** (en Cuerpo): la sección **«Tendencia»** sube al segundo lugar (justo después del número de hoy), antes de la curva intradía y las zonas — igual que en las demás hojas de detalle. Además, desaparece la nota «fuente: tu correa, en el dispositivo» del pie de la pantalla, que no existía en ninguna otra hoja y resultaba redundante.
-  **EN** — In the **Strain** sheet (in Body): the **"Trend"** section moves up to second position (right after today's number), before the intraday curve and the zones — consistent with the rest of the detail sheets. Also removed the "source: your strap, on device" note at the bottom, which didn't appear in any other detail sheet and was redundant.
-  ([Cenit/Screens/StrainDetailScreen.swift](Cenit/Screens/StrainDetailScreen.swift))
-
 - **Detalle de Estrés: gráfica alineada, texto en español y secciones reordenadas / Stress detail: aligned chart, Spanish text, reordered sections.**
   **ES** — Tres correcciones en la hoja de Estrés (en Cuerpo): (1) las líneas de cuadrícula del eje Y ahora están **perfectamente alineadas** con las bandas de color del fondo de la gráfica; (2) la comparativa mes-a-mes («+10% vs el mes pasado») ahora aparece **en español**; (3) el bloque **«Tiempo en calma»** sube por encima de **«Qué lo mueve»**, porque el primero es más fácil de leer para quien no conoce HRV ni FC en reposo.
   **EN** — Three fixes in the Stress sheet (in Body): (1) the Y-axis grid lines are now **perfectly aligned** with the colour bands behind the chart; (2) the month-over-month comparison ("+10% vs last month") now shows **in Spanish**; (3) the **"Calm time"** block moves above **"What moves it"**, since the former is easier to read for users unfamiliar with HRV or resting HR.
@@ -4351,11 +3837,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **ES** — En el detalle de **Sueño** y **Estrés**, la gráfica de los últimos 14 días dejó la escala rara (en Sueño venía en minutos: 0, 200, 400) y ahora se dibuja contra sus rangos: el eje de Sueño va en **horas**, y la banda donde cae tu último valor (p. ej. **Óptimo 7–9 h** o, en estrés, **Bajo/Medio/Alto**) se resalta como un «carril», con las demás insinuadas. Debajo del título te dice **cuántos de los últimos días caen en ese mismo rango** («Óptimo · 9 de los últimos 14 días en este rango»). El carril se mueve solo según tu valor más reciente.
   **EN** — In the **Sleep** and **Stress** detail, the last-14-days chart drops the odd scale (Sleep used to read in minutes: 0, 200, 400) and now reads against its ranges: the Sleep axis is in **hours**, and the band your latest value lands in (e.g. **Optimal 7–9 h**, or for stress **Low/Medium/High**) is highlighted as a "lane," with the others hinted. Below the title it tells you **how many of the recent days fall in that same range** ("Optimal · 9 of the last 14 days in this range"). The lane moves on its own with your most recent value.
   ([Cenit/Screens/MetricInfoSheet.swift](Cenit/Screens/MetricInfoSheet.swift), [Packages/StrandDesign/Sources/StrandDesign/TrendChart.swift](Packages/StrandDesign/Sources/StrandDesign/TrendChart.swift))
-
-- **«Qué la/lo mueve» ahora te dice cuándo aún faltan datos, en vez de no aparecer / "What moves it" now tells you when there's not enough data yet, instead of just not appearing.**
-  **ES** — El bloque **«Qué mueve tu esfuerzo»** (y los de **HRV** y **FC en reposo**) solo aparecían cuando ya había suficiente historial para una tendencia confiable (unas seis semanas); antes de eso, simplemente no se veían y parecía que faltaba algo. Ahora, si todavía no hay suficientes datos, el bloque aparece con un mensaje claro: «Aún no hay suficientes datos — sigue usando tu correa y vuelve en unas semanas». Así sabes que la función está ahí, esperando a que tu historial crezca.
-  **EN** — The **"What moves your strain"** block (and the **HRV** and **resting HR** ones) only showed up once there was enough history for a trustworthy trend (about six weeks); before that they simply weren't there, and it looked like something was missing. Now, when there's not enough data yet, the block appears with a clear message: "Not enough data yet — keep wearing your strap and check back in a few weeks." So you know the feature is there, waiting for your history to grow.
-  ([Cenit/Screens/StrainDetailScreen.swift](Cenit/Screens/StrainDetailScreen.swift), [Cenit/Screens/MetricDetailScreen.swift](Cenit/Screens/MetricDetailScreen.swift))
 
 - **El detalle de Esfuerzo ahora te dice qué mueve tu esfuerzo / Your Strain detail now tells you what moves your strain.**
   **ES** — En el detalle de **Esfuerzo** (en Cuerpo) aparece un bloque **«Qué mueve tu esfuerzo»**: lee tu propio historial y te dice hacia dónde se inclina tu esfuerzo según **qué tan recuperado empiezas el día** y **qué tan duro fue el día anterior** — por ejemplo, «suele ser más alto los días que empiezas más recuperado». Es una **tendencia, no una causa**: nunca te da un número, y solo aparece cuando tienes suficientes días (unas seis semanas) y la relación es lo bastante clara para no ser casualidad. Si no, el bloque simplemente no se muestra. La **ⓘ** explica el método (correlación) y la ciencia detrás.
@@ -4377,11 +3858,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **EN** — In Body, tapping **"Day Strain"** no longer opens a basic sheet: it opens a **rich detail** on warm paper with your **today's number** (0–21), the **curve of how your strain piled up through the day**, your intensity **zones** (with today's highlighted), the **14-day trend** and **how it's calculated** — each block with an **ⓘ** that explains the science. **Today** is unchanged: the Strain tile still shows its quick summary on tap.
   ([Cenit/Screens/StrainDetailScreen.swift](Cenit/Screens/StrainDetailScreen.swift), [Cenit/Screens/CuerpoView.swift](Cenit/Screens/CuerpoView.swift))
 
-- **La temperatura de piel de la WHOOP 4.0 ya aparece / Your WHOOP 4.0 skin temperature now shows up.**
-  **ES** — En la WHOOP 4.0, tu temperatura de piel salía siempre vacía aunque la banda sí la mide: Cénit la convertía con la escala de la 5.0, que en la 4.0 daba un valor imposiblemente frío y se descartaba completo. Ahora Cénit usa la conversión correcta para cada modelo de banda, así que la desviación de temperatura de tus noches vuelve a calcularse y a mostrarse (se afina sobre unas cuantas noches, como el resto de tus líneas base).
-  **EN** — On the WHOOP 4.0, your skin temperature always came up empty even though the band measures it: Cénit was converting it with the 5.0's scale, which on the 4.0 produced an impossibly cold value that got discarded entirely. Cénit now uses the right conversion per band model, so your nightly temperature deviation is computed and shown again (it sharpens over a few nights, like the rest of your baselines).
-  ([Packages/StrandAnalytics/Sources/StrandAnalytics/AnalyticsEngine.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/AnalyticsEngine.swift), [Cenit/Data/IntelligenceEngine.swift](Cenit/Data/IntelligenceEngine.swift), [Cenit/App/AppModel.swift](Cenit/App/AppModel.swift))
-
 - **El esfuerzo, los pasos y el sueño de la tarde-noche ya cuentan para hoy, no para «mañana» / Your evening strain, steps and sleep now count for today, not "tomorrow".**
   **ES** — En México (y cualquier huso al oeste de Londres), lo que hacías de la tarde en adelante —tu esfuerzo, tus pasos, tu HRV, tu sueño— se guardaba con la fecha de **mañana** y aparecía en una fila «futura» que tu reloj aún no alcanza. Ahora **cada día se cierra a tu medianoche local**, en todas las fuentes (tu banda y Apple Salud), así que la tarde-noche cuenta para el día correcto y ya no se cuela una fila de un día que no ha llegado. Al actualizar, Cénit **re-acomoda solo** tu historial reciente desde los datos que ya tiene —sin perder nada— una sola vez.
   **EN** — In México (and any zone west of London), anything you did from the afternoon on —your strain, steps, HRV, sleep— was filed under **tomorrow's** date and showed up as a "future" row your watch hasn't reached yet. Now **each day closes at your local midnight**, across every source (your band and Apple Health), so the evening counts for the right day and no row for a day that hasn't arrived sneaks in. On update, Cénit **re-groups your recent history by itself** from the data it already has —losing nothing— just once.
@@ -4396,10 +3872,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **ES** — Ahora puedes **arrastrar el dedo sobre el hipnograma** de «Anoche» para ver en qué momento y por cuánto tiempo entraste en cada etapa (igual que en las gráficas de métricas). **Respiración** ya muestra el valor de anoche en su tarjeta —antes salía en «—» aunque sí había dato—. Y el color de **REM** pasó de un verde menta muy brillante a un **teal más calmado**, para que no jale tanto la vista.
   **EN** — You can now **drag your finger across the "Last night" hypnogram** to see when and for how long you entered each stage (just like the metric charts). **Respiration** now shows last night's value on its tile —it used to read "—" even when there was data—. And the **REM** colour went from a bright mint to a **calmer teal**, so it no longer pulls the eye.
   ([Packages/StrandDesign/Sources/StrandDesign/Hypnogram.swift](Packages/StrandDesign/Sources/StrandDesign/Hypnogram.swift), [Packages/StrandDesign/Sources/StrandDesign/Palette.swift](Packages/StrandDesign/Sources/StrandDesign/Palette.swift), [Cenit/Screens/SleepDetailScreen.swift](Cenit/Screens/SleepDetailScreen.swift))
-- **Las métricas de hoy muestran de dónde viene cada dato / Today's metrics now show where each reading comes from.**
-  **ES** — Cada tarjeta de métrica ahora muestra un pequeño indicador de fuente a la derecha: **W** cuando el dato viene de tu banda WHOOP y un **♥** cuando viene de Apple Salud — sin quitar el cambio vs ayer que ya aparecía. Abajo de la rejilla, una leyenda discreta te explica los iconos la primera vez que los ves.
-  **EN** — Each metric tile now shows a small source badge on the right: **W** when the reading comes from your WHOOP band and a **♥** when it comes from Apple Health — without removing the vs-yesterday change that was already there. A subtle legend below the grid explains the icons the first time you see them.
-  ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
 - **El Detalle de Recuperación se rediseñó al «Instrumento» rico, con la ciencia citada en cada bloque / Your Recovery detail was redesigned to the rich light "Instrument", with the science cited in every block.**
   **ES** — Al tocar tu **recuperación** en **Cuerpo** ahora se abre un detalle completo en **papel claro «Instrumento»**, a juego con el resto de la app. (En **Hoy**, el número de recuperación sigue abriendo la hoja resumida de siempre, como las demás métricas del día.) Arriba, tu **número del día** en su color de banda (verde / ámbar / rojo) y, debajo, **qué lo explica**: cada señal (HRV, FC en reposo, sueño, temperatura, respiración) con **cómo viene frente a tu base** y cuánto pesa. Sigue con **tu rango normal**, la **tendencia** (con promedio, mediana, mínimo, máximo y variación), qué tan **consistente** es semana a semana, un **calendario de 90 días** que pinta cada día por tu recuperación, y tu **carga reciente** —como contexto honesto, **no** como pronóstico de lesión—. Cada bloque trae una **ⓘ** que despliega la ciencia citada (Buchheit, Plews, Impellizzeri). Mientras junta tus primeras noches, te dice cuántas faltan en vez de inventar un número.
   **EN** — Tapping your **recovery** in **Body** now opens a full detail on the **light "Instrument" paper**, matching the rest of the app. (On **Today**, the recovery number still opens the same summarized sheet as the other daily metrics.) Up top, your **day's number** in its band color (green / amber / red) and, below it, **what explains it**: each signal (HRV, resting HR, sleep, temperature, breathing) with **how it sits vs your baseline** and how much it weighs. It continues with **your normal range**, the **trend** (with average, median, lowest, highest and spread), how **consistent** it is week to week, a **90-day calendar** that tints each day by your recovery, and your **recent load** — as honest context, **not** an injury forecast. Every block has an **ⓘ** that opens the cited science (Buchheit, Plews, Impellizzeri). While it gathers your first nights, it tells you how many are left instead of inventing a number.
@@ -4409,25 +3881,10 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **EN** — In the evenings, opening the **Sleep detail** could show "no data last night" even when you had slept — it was mistakenly reading a "tomorrow" row (the same timezone quirk we fixed in Stress). It now anchors to your clock's real day and always shows your latest night.
   ([Cenit/Screens/SleepDetailScreen.swift](Cenit/Screens/SleepDetailScreen.swift), [Cenit/Screens/CuerpoView.swift](Cenit/Screens/CuerpoView.swift))
 
-- **Jala Hoy hacia abajo y el propio dial se arma para sincronizar / Pull Today down and the dial itself charges up to sync.**
-  **ES** — Cuando jalas la pantalla **Hoy** hacia abajo para sincronizar tu banda, ya **no aparece la ruedita gris de iOS**: ahora el **mismo reloj de 24 h se «arma»** con el gesto —un arco verde se va llenando alrededor del dial conforme jalas—. Al cruzar el punto justo sientes un **toque háptico** y, al soltar, ese arco **empieza a girar** mientras tu banda descarga en segundo plano (es el mismo giro de sincronización del dial). Si sueltas antes, simplemente regresa sin hacer nada. Un solo lenguaje visual, de principio a fin. Con *Reducir movimiento* el arco no se dibuja —el gesto sigue funcionando con su toque háptico— y para **VoiceOver** se conserva una acción accesible **«Sincronizar»**. Sin conexión o sin banda, solo refresca lo local, sin errores.
-  **EN** — When you pull the **Today** screen down to sync your strap, the **grey iOS spinner is gone**: now the **24-hour dial itself "charges up"** with the gesture — a green arc fills around the dial as you pull. Cross the right point and you feel a **haptic tap**; let go and that arc **starts spinning** while your strap downloads in the background (the same sync spin the dial already does). Release early and it just springs back, doing nothing. One visual language, start to finish. With *Reduce Motion* the arc isn't drawn — the gesture still works with its haptic tap — and for **VoiceOver** an accessible **"Sync"** action is preserved. Offline or with no strap, it just refreshes locally, no errors.
-  ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift), [Packages/StrandDesign/Sources/StrandDesign/DiurnalDial.swift](Packages/StrandDesign/Sources/StrandDesign/DiurnalDial.swift))
-
 - **El Detalle de Sueño ahora se explica al tocarlo / The Sleep detail now explains itself when you tap it.**
   **ES** — Le dimos una pasada al **Detalle de Sueño** para que se entienda de un vistazo. Ahora **cada métrica de la noche** (Rendimiento, Eficiencia, Restaurador, Respiración, Despertares) **se toca** y abre una tarjeta que explica qué significa, con tu **tendencia de los últimos 14 días** —igual que en Hoy—. Junto a «Anoche» hay una **ⓘ** que abre una tarjeta con **qué es cada etapa** (REM, profundo, ligero, despierto) y por qué son aproximadas. Reescribimos los textos confusos bajo «Tendencia de duración» (qué es la zona recomendada de 7–9 h y qué es la **deuda de la semana**), emparejamos los **espacios** para que la pantalla respire pareja, y quitamos el pie de «Fuente» para que combine con el resto de la app.
   **EN** — We gave the **Sleep detail** a pass so it reads at a glance. Now **each night metric** (Performance, Efficiency, Restorative, Respiration, Awakenings) is **tappable** and opens a card explaining what it means, with its **last-14-days trend** — just like Today. Next to "Last night" there's an **ⓘ** that opens a card with **what each stage is** (REM, deep, light, awake) and why they're approximate. We rewrote the confusing lines under "Duration trend" (what the 7–9 h recommended zone is, and what the **weekly debt** means), evened out the **spacing** so the screen breathes consistently, and removed the "Source" footer to match the rest of the app.
   ([Cenit/Screens/SleepDetailScreen.swift](Cenit/Screens/SleepDetailScreen.swift), [Cenit/Screens/MetricInfoSheet.swift](Cenit/Screens/MetricInfoSheet.swift))
-
-- **El Estrés vuelve a mostrar tu número por las tardes / Stress shows your number again in the evenings.**
-  **ES** — Por las tardes, la tarjeta de **Estrés** en Hoy se quedaba en **«—»** aunque tu HRV y tu frecuencia en reposo sí tuvieran dato. Pasaba porque el Estrés tomaba por error una fila «de mañana» (un detalle de zona horaria) que todavía venía vacía. Ahora **se ancla al día real de tu reloj** e ignora esa fila futura, y además **usa tu respaldo de Apple Salud** cuando la banda solo registró parte de la noche — igual que las demás tarjetas. Si de plano no hay ningún dato (ni de la banda ni de Apple), sigue mostrando «—» en vez de inventar.
-  **EN** — In the evenings, the **Stress** card on Today would sit at **"—"** even when your HRV and resting heart rate had data. It was mistakenly reading a "tomorrow" row (a timezone quirk) that was still empty. It now **anchors to your clock's real day** and ignores that future row, and it **falls back to your Apple Health data** when the strap only captured part of the night — just like the other cards. If there's genuinely no data (neither strap nor Apple), it still shows "—" rather than invent one.
-  ([Cenit/Screens/StressView.swift](Cenit/Screens/StressView.swift), [Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift), [Cenit/Screens/CuerpoView.swift](Cenit/Screens/CuerpoView.swift))
-
-- **El dial de Hoy gira mientras tu banda se sincroniza / Today's dial spins while your strap syncs.**
-  **ES** — Cuando tu banda está descargando su historial, el **reloj de 24 h de Hoy cobra vida**: un arco verde gira sobre el aro y el número de recuperación se atenúa un momento («recalculando»), en lugar de la ruedita genérica de antes. Al terminar, el dial vuelve a su estado normal con tu número. Si tienes activado *Reducir movimiento*, el arco **no gira** —se queda quieto— y VoiceOver avisa «Sincronizando». La línea pequeña del encabezado («Sincronizado hace…») no cambia.
-  **EN** — While your strap is downloading its history, the **24-hour dial on Today comes alive**: a green arc spins around the ring and the recovery number dims for a moment ("recalculating"), instead of the old generic spinner. When it's done, the dial returns to normal with your number. With *Reduce Motion* on, the arc **doesn't spin** —it rests— and VoiceOver announces "Syncing". The small header line ("Synced … ago") is unchanged.
-  ([Packages/StrandDesign/Sources/StrandDesign/DiurnalDial.swift](Packages/StrandDesign/Sources/StrandDesign/DiurnalDial.swift), [Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
 
 - **El Detalle de Sueño se rediseñó al «Instrumento» claro y suma la regularidad de tu horario / Your Sleep detail was redesigned to the light "Instrument" and adds your schedule regularity.**
   **ES** — Al tocar **Sueño** en Cuerpo, el detalle ahora se abre en el **papel claro «Instrumento»** (el número que importa en tinta, el color en el dato), a juego con el resto de la app. Conserva todo lo que ya tenías —tu **hipnograma** de la noche, las **etapas** (deep / REM / light / awake), tu noche **vs. lo típico** y la **tendencia de duración**— y estrena un marcador nuevo: la **regularidad de tu horario**, qué tan parecida es de noche a noche la hora en que duermes. Es la señal de sueño que **mejor predice tu salud**, más que el total de horas: si tu horario baila el fin de semana, te lo dice. Mientras junta tus primeras noches, te avisa cuántas faltan en vez de inventar un número.
@@ -4484,60 +3941,10 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **EN** — The big recovery number now prints in a **monospaced typeface** (like an instrument read-out) and sits in **ink**, not color. The day's color lives on **only the verdict word** — green when you're ready, amber when you're strained — so the number and the word can **no longer disagree** (no more amber "66" under a green "Balanced"). And the **HRV** datum moved to a **cyan** that's clearly distinct from the verdict's green (before they were two greens that blended together). The day clock looks the same.
   ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift), [Packages/StrandDesign/Sources/StrandDesign/Instrumento.swift](Packages/StrandDesign/Sources/StrandDesign/Instrumento.swift))
 
-- **Tu Edad física aparece en Cuerpo, con su detalle / Your Physical age now appears in Cuerpo, with its detail.**
-  **ES** — Cuerpo estrena la **Edad física**: un número que compara tu condición física con la de una persona promedio de tu edad, a partir de tu **frecuencia cardíaca en reposo** (lo que más pesa) y tu **actividad reciente**. En la sección Longevidad ves el número y, debajo, cuántos años estás **más joven** (en verde) o **por encima** (en ámbar) de tu edad real. Al tocarlo se abre una pantalla que explica **qué lo mueve**, **con qué datos se calcula** —es honesta: te dice cuántas noches lleva— y el método científico detrás (modelo Nes/HUNT). Mientras tu correa junta sus primeras 4 noches, te dice exactamente qué falta en vez de inventar un número. Es una **comparación de fitness, no tu edad biológica ni un diagnóstico médico**.
-  **EN** — Cuerpo introduces **Physical age**: a number comparing your fitness with that of an average person your age, from your **resting heart rate** (which weighs most) and your **recent activity**. In the Longevity section you see the number and, below it, how many years **younger** (green) or **above** (amber) your real age you read. Tapping it opens a screen that explains **what moves it**, **which data it's computed from** — honestly: it tells you how many nights it has — and the science behind it (Nes/HUNT model). While your strap gathers its first 4 nights, it tells you exactly what's missing instead of inventing a number. It's a **fitness comparison, not your biological age or a medical diagnosis**.
-  ([Cenit/Screens/FitnessAgeDetailView.swift](Cenit/Screens/FitnessAgeDetailView.swift), [Cenit/Screens/CuerpoView.swift](Cenit/Screens/CuerpoView.swift), [Packages/StrandAnalytics/Sources/StrandAnalytics/FitnessAgeSnapshot.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/FitnessAgeSnapshot.swift))
-
-- **Sincroniza tu correa jalando la pantalla de Hoy hacia abajo / Sync your strap by pulling Today down.**
-  **ES** — Ahora puedes **jalar la pantalla de Hoy hacia abajo** para forzar una sincronización con tu correa, igual que en las apps que ya conoces. Sientes una **pequeña vibración** al provocarlo y aparece el indicador de carga de siempre; en cuanto arranca la sincronización el indicador se retira (no se queda girando), y la descarga del historial sigue marcándose abajo con «Sincronizando historial…». Si tu correa estaba desconectada, el jalón **intenta reconectarla** y sincroniza sola; si nunca has emparejado una correa, solo refresca lo que ya está en el teléfono. Tus números se actualizan solos cuando llegan datos nuevos.
-  **EN** — You can now **pull the Today screen down** to force a sync with your strap, just like the apps you already know. You feel a **little vibration** when you trigger it and the usual loading indicator appears; the moment the sync starts the indicator goes away (it doesn't keep spinning), and the history download keeps showing below as "Syncing strap history…". If your strap was disconnected, the pull **tries to reconnect** and syncs on its own; if you've never paired a strap, it just refreshes what's already on your phone. Your numbers update on their own as new data arrives.
-  ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
-
-- **La sincronización de la WHOOP 4.0 ahora cierra en verde al alcanzar el presente / WHOOP 4.0 sync now finishes cleanly once it catches up.**
-  **ES** — En algunas WHOOP 4.0, la sincronización del historial **nunca terminaba**: aunque todos tus datos sí se guardaban, la pantalla de Fuentes se quedaba en «Sincronizando…» y mostraba el aviso naranja «Sync ran long and was paused» una y otra vez. La causa: ese firmware nunca manda la señal de «historial completo», así que la app esperaba indefinidamente y cortaba a los 5 minutos. Ahora Cénit **se da cuenta solo de cuándo ya te alcanzó** —cuando los datos que llegan se reducen al goteo en vivo— y cierra la sincronización **como exitosa** (recibo verde «Recibiendo y guardando todo»). El corte de 5 minutos queda solo como red de seguridad. No había pérdida de datos: era solo que nunca se mostraba el «listo».
-  **EN** — On some WHOOP 4.0 straps, the history sync **never finished**: even though all your data was being saved, the Data Sources screen stayed on "Syncing…" and showed the orange "Sync ran long and was paused" notice over and over. The cause: that firmware never sends the "history complete" signal, so the app waited indefinitely and cut off at 5 minutes. Cénit now **detects on its own when it has caught up** — when incoming data shrinks to the live drip — and completes the sync **as a success** (green "Receiving and storing everything" receipt). The 5-minute cutoff stays only as a safety net. No data was ever lost; it just never showed "done".
-  ([Packages/WhoopProtocol/Sources/WhoopProtocol/CaughtUpDetector.swift](Packages/WhoopProtocol/Sources/WhoopProtocol/CaughtUpDetector.swift), [Cenit/Collect/Backfiller.swift](Cenit/Collect/Backfiller.swift), [Cenit/BLE/BLEManager.swift](Cenit/BLE/BLEManager.swift))
-
-- **El «/100» del veredicto queda centrado, y Hoy queda más compacta / The verdict's "/100" is now centered, and Today is more compact.**
-  **ES** — El **«/100»** del número del veredicto ahora va **centrado justo debajo del número** (antes colgaba a la derecha, descuadrado). Y mientras tu base apenas se afina (los primeros días, «N de 14 noches»), Hoy quedó **un poco más compacta**: la línea «Afinando con tu strap» ocupa menos y las tarjetas de «Métricas de hoy» son un pelín más bajas, para que entre más sin tanto scroll. (El tamaño del reloj del veredicto no cambió.)
-  **EN** — The verdict number's **"/100"** now sits **centered right under the number** (it used to hang off to the right, off-center). And while your baseline is still settling (the first days, "N of 14 nights"), Today is **a bit more compact**: the "Tuning with your strap" line takes less room and the "Today's metrics" cards are slightly shorter, so more fits with less scrolling. (The verdict clock's size is unchanged.)
-  ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
-
-- **La gráfica de Pasos ya aparece al abrir su detalle / Steps now shows its 14-day chart.**
-  **ES** — Al tocar el tile de **Pasos** en Hoy, el detalle mostraba el aviso de «sin datos» en lugar de la gráfica de tendencia, aunque el número de hoy sí salía. Pasaba cuando tus pasos venían del **sync en vivo de Apple Health** (no de una importación ni de la correa): ese sync guardaba los pasos para la cifra de hoy, pero se le olvidaba escribirlos en la tabla que alimenta la gráfica de 14 días. Ahora los guarda en ambos lados —igual que ya lo hacían la importación y la correa—, así que la gráfica se llena sola en la próxima sincronización (retroactiva a 30 días).
-  **EN** — Tapping the **Steps** tile on Today showed the "no data" notice instead of the trend chart, even though today's number was there. It happened when your steps came from the **live Apple Health sync** (not an import or the strap): that sync stored steps for today's figure but forgot to write them to the table that feeds the 14-day chart. Now it writes them to both — like the import and the strap already did — so the chart fills in on the next sync (retroactive to 30 days).
-  ([CenitApp/Health/HealthKitBridge.swift](CenitApp/Health/HealthKitBridge.swift))
-
 - **Estrés: la gráfica de tendencia ya aparece / Stress: the trend chart shows up.**
   **ES** — Al tocar **Estrés** en «Métricas de hoy», la hoja de detalle se abría **sin ninguna gráfica** — era la única métrica sin una. Ahora muestra la tendencia de **«Últimos 14 días»** con la curva 0–3 (leída con un decimal), igual que recuperación, sueño, HRV y las demás. Reutiliza el mismo histórico diario que ya alimentaba el mini-sparkline del cuadro, así que no calcula nada nuevo.
   **EN** — Tapping **Stress** in "Today's metrics" opened a detail sheet with **no chart at all** — the only metric missing one. It now shows the **"Last 14 days"** trend with the 0–3 curve (read to one decimal), just like recovery, sleep, HRV and the rest. It reuses the same daily history that already fed the tile's sparkline, so nothing new is computed.
   ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift), [Cenit/Screens/MetricInfoSheet.swift](Cenit/Screens/MetricInfoSheet.swift))
-
-- **Recupera el registro del strap en Ajustes / The strap log is back, in Settings.**
-  **ES** — El **registro del strap** (la bitácora técnica de la conexión Bluetooth, útil para diagnosticar problemas y adjuntarla a un reporte) había desaparecido con el rediseño de En vivo. Vuelve, ahora embebido en **Ajustes → Strap**: lo ves desplazándose en vivo conforme tu banda se conecta y sincroniza, y puedes **Copiar** o **Guardar…** todo el registro con un toque. Si todavía no hay actividad, te lo dice en lugar de mostrar un recuadro vacío.
-  **EN** — The **strap log** (the technical Bluetooth-connection trail you use to diagnose problems and attach to a bug report) had disappeared in the Live redesign. It's back, now embedded in **Settings → Strap**: you watch it scroll live as your strap connects and syncs, and you can **Copy** or **Save…** the whole log with one tap. If there's no activity yet, it says so instead of showing an empty box.
-  ([Cenit/Screens/SettingsView.swift](Cenit/Screens/SettingsView.swift))
-
-- **En vivo: hoja a la medida, cobertura por fuente y detalles más claros / Live: right-sized sheet, coverage by source, clearer details.**
-  **ES** — Varios pulidos a la hoja de En vivo: (1) ahora **abre a la altura que necesita**, sin todo ese espacio vacío abajo; (2) el indicador **«en vivo» quedó junto a la cifra**, no flotando a la derecha; (3) la unidad de frecuencia cardiaca ahora dice **«lpm»** en español (antes «bpm»); (4) el encabezado **«REGISTROS»** ya no se corta; y (5) la tira de cobertura de 28 días ahora **distingue de dónde vino cada día**: verde = tu **correa**, azul = **solo Apple Health**, gris = **sin datos**, con su leyenda y conteos. Así ves de un vistazo cuántos días capturó realmente tu correa (antes pintaba de verde hasta los días que venían de Apple Health).
-  **EN** — Several polish passes on the Live sheet: (1) it now **opens only as tall as it needs**, no empty space below; (2) the **"live" indicator sits next to the number**, not floating to the right; (3) the heart-rate unit now reads **"lpm"** in Spanish (was "bpm"); (4) the **"RECORDS"** header no longer gets cut off; and (5) the 28-day coverage strip now **shows where each day came from**: green = your **strap**, blue = **Apple Health only**, grey = **no data**, with a legend and counts. Now you can see at a glance how many days your strap actually captured (before, days from Apple Health also showed as green).
-  ([Cenit/Screens/LiveView.swift](Cenit/Screens/LiveView.swift), [Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
-
-- **En vivo ya no se desconecta a cada rato / Live no longer keeps flashing "disconnected".**
-  **ES** — Antes, En vivo te mandaba a la pantalla de «Conecta tu correa» cada vez que la banda se desconectaba un instante —algo que pasa solo, todo el tiempo, porque la correa se conecta y desconecta para ahorrar batería—. Se sentía como que perdías la conexión a cada rato y como si tuvieras que reconectar a mano. Ahora una caída corta **deja el monitor en su lugar, en pausa** (la frecuencia cardíaca muestra «—», sin el punto verde de «en vivo»), con la etiqueta **«Reconectando…»** mientras la app se vuelve a enganchar sola en unos segundos. Solo si pasan ~15 s sin volver —porque de verdad te quitaste la banda o te alejaste— aparece el botón **«Conectar»**.
-  **EN** — Live used to throw you onto the "Connect your strap" screen every time the band dropped for a moment — which happens on its own, all the time, because the strap connects and disconnects to save battery. It felt like you kept losing the connection and had to reconnect by hand. Now a short drop **keeps the monitor in place, paused** (heart rate shows "—", with no green "live" dot), labeled **"Reconnecting…"** while the app re-attaches on its own within a few seconds. Only if ~15 s pass without it returning — because you really took the strap off or walked away — does the **"Connect"** button appear.
-  ([Cenit/Screens/LiveView.swift](Cenit/Screens/LiveView.swift))
-
-- **Inicia un entrenamiento en vivo desde Entrenar / Start a live workout from the Train tab.**
-  **ES** — La pestaña **Entrenar** tiene de nuevo **«Iniciar en vivo»**: arranca una sesión y mídela contra tu banda en tiempo real. Se abre una hoja clara con el **cronómetro**, tu **ritmo, promedio y pico**, y un botón **Terminar** que la califica y la guarda en tus entrenamientos (la puedes re-etiquetar después). La grabación sigue corriendo aunque cierres la hoja o cambies de pestaña — la fila muestra «Grabando» con el tiempo, y la vuelves a abrir con un tap. Si tu banda no está transmitiendo, el botón espera y te dice por qué; y si terminas sin que llegara ritmo cardiaco, te avisa en vez de quedarse callado. Recupera el cronómetro que vivía en En vivo (ahora En vivo es solo monitor).
-  **EN** — The **Train** tab brings back **"Start live"**: begin a session and measure it against your strap in real time. A light sheet opens with the **stopwatch**, your **rate, average and peak**, and a **Finish** button that scores it and saves it to your workouts (you can re-label it later). Recording keeps running even if you close the sheet or switch tabs — the row shows "Recording" with the elapsed time, and a tap reopens it. If your strap isn't streaming, the button waits and tells you why; and if you finish before any heart rate arrived, it tells you instead of staying silent. It brings back the stopwatch that used to live in Live (now Live is monitor-only).
-  ([CenitApp/App/RootTabView.swift](CenitApp/App/RootTabView.swift), [Cenit/Screens/LiveWorkoutSheet.swift](Cenit/Screens/LiveWorkoutSheet.swift), [Cenit/App/AppModel.swift](Cenit/App/AppModel.swift))
-
-- **Tus latidos por minuto, ahora junto a «Métricas de hoy» / Your live beats per minute, now next to "Today's metrics".**
-  **ES** — Quitamos la fila «Verlo latido a latido» del pie de Hoy y pusimos tu **pulso en vivo como una pastilla compacta** (un corazón con tus latidos por minuto) **a un lado del título «Métricas de hoy»**. Tócala y se abre el mismo monitor latido a latido de siempre — no cambió en nada. El punto late en color cuando tu banda está transmitiendo y se apaga a tinta cuando no; si no hay lectura en ese momento, muestra «—» pero sigue funcionando. Con esto Hoy queda aún más corta y cabe completa en una pantalla.
-  **EN** — We removed the "See it beat by beat" row from the bottom of Today and put your **live pulse as a compact pill** (a heart with your beats per minute) **next to the "Today's metrics" title**. Tap it and the same beat-by-beat monitor opens as always — it didn't change at all. The dot beats in color while your strap is streaming and fades to ink when it isn't; if there's no reading right then, it shows "—" but still works. This makes Today even shorter, so it fits on one screen.
-  ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
 
 - **En vivo: los dos números de cada señal ahora se explican / Live: each signal's two numbers are now labeled.**
   **ES** — En la hoja de En vivo, cada señal mostraba dos números a la derecha sin decir qué eran. Ahora cada grupo tiene **encabezados de columna**: en «Capturando en vivo», los números grandes se rotulan **«registros»** (cuántas muestras llevas guardadas); en «Se completa al sincronizar», se agrega **«guardado»** sobre la hora (cuándo llegó la última vez) además de **«registros»**. Las columnas quedaron alineadas parejo. Y le dimos **más aire arriba** al título, que quedaba muy pegado a la orilla de la hoja.
@@ -4564,35 +3971,10 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **EN** — Today had grown tall — you had to scroll to see all of it. We tightened the layout so it fits at a glance: **"See it beat by beat" moved to the bottom** of the screen (it used to sit mid-screen, breaking up the hero), the **"Today's metrics" tiles are shorter**, and we **removed the "Sources" section from Today** — it already lives in Data Sources / Settings. The big number, the 24-hour clock and the verdict are unchanged; it just breathes better and, on most iPhones, shows complete without scrolling.
   ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
 
-- **Captura en vivo más fluida y a prueba de carreras / Smoother, race-safe live capture.**
-  **ES** — Mientras tu banda transmite en vivo (~2 lecturas por segundo), la app decodificaba el mismo paquete hasta **3 veces** y lo hacía en el mismo hilo que dibuja la pantalla, lo que podía sentirse como pequeños tirones. Ahora cada paquete se decodifica **una sola vez**, y el trabajo pesado de decodificación de la captura se movió **fuera del hilo de la interfaz**, así que la pantalla en vivo se siente más fluida. Por dentro, además, se cerró una **carrera latente** en el decodificador (su tabla de protocolo ahora se prepara una sola vez, de forma segura entre hilos) que podía provocar fallas intermitentes. Mismos datos, misma precisión — solo más estable y fluido. (Es la base de una mejora mayor de estabilidad del Bluetooth que sigue en camino.)
-  **EN** — While your strap streams live (~2 readings per second), the app was decoding the same packet up to **3×** and doing it on the same thread that draws the screen, which could feel like small stutters. Now each packet is decoded **once**, and the heavy capture-decoding work moved **off the UI thread**, so the live screen feels smoother. Under the hood it also closes a **latent race** in the decoder (its protocol table is now prepared a single time, thread-safely) that could cause intermittent glitches. Same data, same accuracy — just more stable and smooth. (This is the groundwork for a larger Bluetooth-stability improvement still on the way.)
-  ([Cenit/BLE/BLEManager.swift](Cenit/BLE/BLEManager.swift), [Cenit/Collect/Collector.swift](Cenit/Collect/Collector.swift), [Packages/WhoopProtocol/Sources/WhoopProtocol/Schema.swift](Packages/WhoopProtocol/Sources/WhoopProtocol/Schema.swift))
-
-- **En vivo, aún más limpio / Live, even cleaner.**
-  **ES** — Seguimos puliendo **En vivo** como monitor puro: quitamos tres cosas que duplicaban información o ya no encajaban ahí. (1) La **batería de la correa** —ya se ve en Ajustes—. (2) El **bloque de entrenamiento** (el botón «Iniciar entrenamiento» y la tarjeta de grabación); registrar entrenamientos vive en *Más › Workouts*. (3) El renglón **«N noches guardadas en tu iPhone»** del recibo de datos —esa cuenta ya aparece en otro lugar—; el respaldo en iCloud se queda. Todo lo demás del monitor sigue igual.
-  **EN** — We kept polishing **Live** as a pure monitor by removing three things that duplicated info or no longer belonged. (1) The **strap battery** — it's already in Settings. (2) The **workout block** (the "Start workout" button and the recording card); logging workouts lives in *More › Workouts*. (3) The **"N nights stored on your iPhone"** line in the data receipt — that count already shows elsewhere; the iCloud backup line stays. Everything else in the monitor is unchanged.
-  ([Cenit/Screens/LiveView.swift](Cenit/Screens/LiveView.swift))
-
 - **«Métricas de hoy»: la lectura del día, de un vistazo / "Today's metrics": your day at a glance.**
   **ES** — En Hoy, la lista de «Métricas clave» mostraba la **tendencia de 14 días** de cada métrica (una minigráfica). Pero Hoy es la **foto del día**, no la tendencia. Ahora esa sección es una **rejilla de 8 tiles** —Esfuerzo del día, Sueño, HRV, Frecuencia cardíaca, FC en reposo, Oxígeno en sangre, Pasos y **Estrés** (nuevo)— donde cada tile muestra su **valor de hoy** en su color y, debajo, **cuánto cambió respecto a ayer** (verde si mejoró, rojo si empeoró, según la métrica). La recuperación no se repite aquí: ya es el número grande de arriba. ¿Quieres la tendencia de 14 días? Sigue ahí: **toca cualquier tile** y la verás dentro, junto a su explicación. El tile de Estrés ahora también abre su propia ficha, con sus bandas 0–3 y cómo se calcula.
   **EN** — On Today, the "Key Metrics" list showed each metric's **14-day trend** (a tiny chart). But Today is the **snapshot of your day**, not the trend. That section is now a **grid of 8 tiles** — Day Strain, Sleep, HRV, Heart Rate, Resting HR, Blood Oxygen, Steps and **Stress** (new) — where each tile shows its **today's value** in its color and, below it, **how much it changed since yesterday** (green if it improved, red if it worsened, per metric). Recovery isn't repeated here: it's already the big number up top. Want the 14-day trend? It's still there: **tap any tile** and you'll see it inside, alongside its explanation. The Stress tile now opens its own card too, with its 0–3 bands and how it's computed.
   ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift), [Cenit/Screens/MetricInfoSheet.swift](Cenit/Screens/MetricInfoSheet.swift))
-
-- **En vivo ahora es un monitor en papel claro, sin estorbos / Live is now a clean, light-paper monitor.**
-  **ES** — La pantalla **En vivo** estaba en oscuro y mezclaba el monitor del corazón con la gestión de la correa (escanear, vibrar, desconectar, elegir modelo, el registro técnico) y un número de «carga». Ahora es un **monitor puro** en el mismo **papel claro «Instrumento»** que Hoy: el ECG y los latidos por minuto en color de corazón, los indicadores de «en vivo» y «guardado» en verde, y todo lo demás en tinta. Se conserva lo que te gusta —ECG + bpm, latidos de la sesión y su tacograma, lo que se captura en vivo, lo que se completa al sincronizar, el aviso de «todo guardado» y el recibo de datos con la cobertura de 28 días—. Salió la **carga** (vive en Hoy) y la **gestión de la correa** (se va a Ajustes). Cuando no hay correa conectada, En vivo muestra un único botón **«Conectar»**, sin callejones sin salida.
-  **EN** — The **Live** screen was dark and mixed the heart monitor with strap management (scan, buzz, disconnect, pick model, the technical log) and a "strain" number. It's now a **pure monitor** on the same **light "Instrumento" paper** as Today: the ECG and beats-per-minute in heart color, the "live" and "saved" indicators in green, and everything else in ink. What you like stays — ECG + bpm, beats this session and its tachogram, what's capturing live, what completes on sync, the "everything saved" note, and the data receipt with its 28-day coverage. **Strain** is gone (it lives on Today) and **strap management** moves to Settings. When no strap is connected, Live shows a single **"Connect"** button — no dead ends.
-  ([Cenit/Screens/LiveView.swift](Cenit/Screens/LiveView.swift), [Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
-
-- **La sincronización ya no se queda pegada en «Sincronizando…» / Sync no longer gets stuck on "Syncing…".**
-  **ES** — En un caso raro, la banda podía seguir mandando datos sin avisar nunca que ya terminó, y la app se quedaba con el mensaje **«Sincronizando…»** pegado para siempre; en otro, si el almacenamiento del teléfono no arrancaba a la primera, podías quedar **conectado pero sin guardar nada**. Ahora la sincronización tiene un **tope de tiempo**: si se alarga de más, se pausa sola, te avisa con honestidad («se pausó, continúa en la próxima») y **retoma justo donde se quedó** —no se pierde nada—. Y si el almacenamiento falla al iniciar, la app **se recupera sola en el siguiente intento** en vez de quedarse muerta. Se siente menos «congelada».
-  **EN** — In a rare case the strap could keep sending data without ever signaling it had finished, leaving the app stuck on **"Syncing…"** forever; in another, if the phone's storage failed to start on the first try, you could end up **connected but saving nothing**. Sync now has a **time cap**: if it runs too long it pauses itself, tells you honestly ("paused, it'll continue next sync") and **resumes right where it left off** — nothing is lost. And if storage fails to start, the app **recovers on the next attempt** instead of staying dead. It feels less "frozen."
-  ([Cenit/BLE/BLEManager.swift](Cenit/BLE/BLEManager.swift))
-
-- **Tu banda vuelve a sincronizar al reconectar, sin intentos dobles / Your strap syncs again on reconnect, without double attempts.**
-  **ES** — Se corrigieron dos fallas de la conexión con la banda. La primera: si la app volvía al frente con la banda **ya conectada**, a veces se quedaba «conectada pero sin sincronizar» —sin bajar datos nuevos— hasta que pasaba el siguiente ciclo automático (hasta 15 minutos). La segunda: al **cambiar de modelo de banda** (de una WHOOP 4 a una 5/MG o al revés), la app lanzaba **dos** intentos de conexión encimados en vez de uno. Ahora, reabrir la app con la banda conectada **rearranca el saludo y vuelve a pedir tus datos** de inmediato, y cambiar de banda hace **un solo** intento limpio.
-  **EN** — Two strap-connection glitches are fixed. First: if the app came back to the foreground with the strap **already connected**, it could get stuck "connected but not syncing" — pulling no new data — until the next automatic cycle (up to 15 minutes). Second: **switching strap model** (a WHOOP 4 to a 5/MG or back) fired **two** overlapping connection attempts instead of one. Now, reopening the app while connected **restarts the handshake and re-requests your data** right away, and switching straps makes **one** clean attempt.
-  ([Cenit/BLE/BLEManager.swift](Cenit/BLE/BLEManager.swift))
 
 - **Explorar métricas ya no cierra la app / Exploring metrics no longer crashes the app.**
   **ES** — En la pestaña **Más → Explore**, abrir el detalle de una métrica cerraba la app de golpe. Era un choque entre dos pantallas que abrían su propia navegación, una dentro de otra. Lo reescribimos al patrón correcto —una sola navegación por pestaña— así que ahora **Más → Explore → tocar una métrica** abre el detalle sin cerrarse, y el botón de regresar te lleva de vuelta paso a paso (métrica → Explore → lista de Más).
@@ -4603,11 +3985,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **ES** — Con muchos meses o años de datos, la pantalla de Hoy podía sentirse pesada: el scroll se trababa y, mientras llegaba tu pulso en vivo, la app a veces se congelaba lo suficiente como para cerrarse sola. Era porque Hoy volvía a calcular tu veredicto del día —ordenando toda tu historia— **muchas veces por cada cuadro de animación**. Ahora ese cálculo se hace **una sola vez cuando tus datos cambian** y se reutiliza, así que Hoy se mantiene fluido por más historia que tengas, sin cambiar ni un número de lo que ves.
   **EN** — With many months or years of data, the Today screen could feel heavy: scrolling stuttered and, while your live heart rate streamed in, the app sometimes froze long enough to quit on its own. That was because Today recomputed your day's verdict — sorting your whole history — **many times per animation frame**. That work now runs **once when your data changes** and is reused, so Today stays smooth no matter how much history you have, without changing a single number you see.
   ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
-
-- **Cénit trabaja más liviano en segundo plano / Cénit runs lighter in the background.**
-  **ES** — El cálculo que Cénit hace solo cada 15 minutos para armar tus scores (recuperación, esfuerzo, sueño) ahora **se detiene cuando cierras la app** y se reanuda al volver, en vez de seguir corriendo siempre; y **ya no compite** con la sincronización de tu banda mientras está bajando datos. Además, cuando **no llegó nada nuevo** desde la última vez, se **salta el trabajo pesado** en lugar de releer ~3 semanas de datos cada vuelta. Se traduce en menos batería y una app más fluida —con **exactamente los mismos scores** de siempre.
-  **EN** — The work Cénit runs on its own every 15 minutes to build your scores (recovery, strain, sleep) now **pauses when you close the app** and resumes when you return, instead of running forever; and it **no longer competes** with your strap's sync while it's offloading data. And when **nothing new** has arrived since last time, it **skips the heavy work** instead of re-reading ~3 weeks of data every cycle. That means less battery use and a smoother app — with **exactly the same scores** as before.
-  ([Cenit/App/AppModel.swift](Cenit/App/AppModel.swift), [Cenit/Data/IntelligenceEngine.swift](Cenit/Data/IntelligenceEngine.swift))
 
 - **Tendencias se desplaza más suave, sobre todo con años de historial / Trends scrolls more smoothly, especially with years of history.**
   **ES** — Al desplazar o animar **Tendencias**, la app rehacía todo el cálculo de tus series y volvía a interpretar cada fecha **en cada cuadro**, lo que provocaba tirones cuando tienes un historial largo importado. Ahora ese trabajo se hace **una sola vez** por cada cambio de datos o de rango (semana/mes/3M…) y se reutiliza mientras nada cambie, así que el scroll y las animaciones quedan fluidos. Es el mismo contenido y los mismos números; solo se siente más ligero. De paso, varias pantallas (Hoy, Salud de Apple, Comparar, Explorador de métricas) dejaron de crear formateadores de fecha/número repetidamente al dibujar.
@@ -4649,11 +4026,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **EN** — The Today screen already led with a dominant number and its 24-hour dial; now **every** hero state — with a verdict, calibrating, an Apple-Health-seeded baseline, and no reading yet — shares the **same skeleton** (overline + number + dial + body + foot). Only the number and its color change: your recovery **in color** when today's reading is ready; a **"2/4"** while your baseline sharpens; or a **gray dash "—"** while you're still waiting. And a subtle case was fixed: when there's a number but **not enough context** for a verdict word, the number now shows **in gray** with an honest note ("not enough context yet") instead of being painted green/amber as if it were a firm verdict. Same information as before, one coherent shape.
   ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
 
-- **Hoy se ve más grande, llena la pantalla y vuelve a mostrar tus fuentes / Today reads bigger, fills the screen, and shows your sources again.**
-  **ES** — Segunda pasada sobre el rediseño de **Hoy**: una escala más generosa y armoniosa que **llena el espacio** que antes quedaba vacío abajo —el número del veredicto más grande, "Métricas clave" con más presencia, y cada métrica con **renglones más altos y gráficas de 14 días más grandes**—, sin que ninguna etiqueta se recorte (los nombres largos como "Oxígeno en sangre" se ven completos). El puntito del pulso en vivo quedó **centrado** con su número. La **barra de estado** (hora, señal, batería) por fin se ve en **tinta oscura** sobre el papel claro de Hoy. Y, hasta abajo, vuelve una sección **"Fuentes"** discreta que resume de dónde vienen tus datos —tu banda WHOOP y Apple Salud— sin repetir la hora de sincronización que ya está arriba.
-  **EN** — A second pass over the **Today** redesign: a more generous, harmonious scale that **fills the space** that used to sit empty at the bottom — a larger verdict number, a stronger "Key Metrics" heading, and each metric with **taller rows and bigger 14-day charts** — without ever truncating a label (long names like "Blood oxygen" show in full). The live-pulse dot is now **centered** with its number. The **status bar** (clock, signal, battery) finally shows in **dark ink** on Today's light paper. And, at the very bottom, a quiet **"Sources"** section returns to summarize where your data comes from — your WHOOP strap and Apple Health — without repeating the sync time already shown up top.
-  ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift), [Packages/StrandDesign/Sources/StrandDesign/MetricRow.swift](Packages/StrandDesign/Sources/StrandDesign/MetricRow.swift))
-
 - **El texto de la app ya no menciona Android: Cénit habla solo de iOS / The app's copy no longer mentions Android: Cénit talks only about iOS.**
   **ES** — Limpieza de textos: como Cénit ahora es solo para iOS, quitamos las menciones a «Android» (y a «Mac») que quedaban sueltas en el texto que ves. La tarjeta de **Apoyo**, el aviso al **exportar/importar** tus datos y los **Términos de uso** ahora dicen «iOS» o simplemente «Cénit», en español, inglés y alemán. Es solo un ajuste de redacción: no cambia nada de lo que la app hace, y los Términos no requieren que los vuelvas a aceptar.
   **EN** — A copy cleanup: since Cénit is now iOS-only, we removed the leftover mentions of "Android" (and "Mac") in the text you see. The **Support** card, the **export/import** notice for your data, and the **Terms of Use** now read "iOS" or simply "Cénit," in Spanish, English and German. It's wording only — nothing the app does changes, and the Terms don't need re-accepting.
@@ -4662,11 +4034,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **ES** — Cuando tocas una métrica en **«Métricas clave»** se abre una ficha que la explica; ahora esa ficha vive en el mismo **papel claro «Instrumento»** que la pantalla de Hoy (antes era oscura y desentonaba) y **todo su texto está en español** —el párrafo que explica qué es, las zonas (Reposo / ligero, Moderado, Intenso, Extremo…), las notas y el método—, antes en inglés. Cada ficha usa el **color de su métrica**, resalta tu zona actual y mantiene legibles las gráficas sobre el papel. Si una lectura puede venir de **Apple Salud** y aún no la conectas, la ficha te lo dice con una línea para conectarla desde Hoy. Cubre Esfuerzo del día, Sueño, HRV, Frecuencia cardíaca, FC en reposo, Oxígeno en sangre, Pasos y Recuperación (también en alemán).
   **EN** — Tapping a metric in **"Key Metrics"** opens a card that explains it; that card now lives on the same **light "Instrumento" paper** as the Today screen (it used to be dark and clashed) and **all of its text is now localized** — the paragraph explaining what it is, the zones (Rest / Light, Moderate, Hard, Extreme…), the notes and the method — previously in English. Each card uses its **metric's color**, highlights your current zone, and keeps its charts legible on the paper. If a reading can come from **Apple Health** and you haven't connected it yet, the card says so with a line to connect it from Today. Covers Day Strain, Sleep, HRV, Heart Rate, Resting HR, Blood Oxygen, Steps and Recovery (German too).
   ([Cenit/Screens/MetricInfoSheet.swift](Cenit/Screens/MetricInfoSheet.swift), [Packages/StrandDesign/Sources/StrandDesign/TrendChart.swift](Packages/StrandDesign/Sources/StrandDesign/TrendChart.swift))
-
-- **La app estrena nombre e icono: ahora se llama «Cénit» / The app has a new name and icon: it's now called "Cénit".**
-  **ES** — NOOP ahora se llama **Cénit** —el punto más alto del recorrido del sol, el cénit del dial de 24 horas, en guiño al icono—. Es un cambio puramente de imagen: el nombre bajo el icono (app y widget), un nuevo icono «dial diurno» (anillo de 24 h con el arco del día en ámbar, la muesca del cénit arriba y el punto verde del «ahora») con sus tres aparencias de iOS 18 —claro, oscuro y tintado—, y todos los textos de la app pasan a «Cénit», en español, inglés y alemán. Tus datos, tu vínculo con la banda y tus respaldos quedan intactos: no hay que reinstalar ni volver a vincular nada, y los respaldos anteriores «NOOP-backup» se siguen restaurando igual.
-  **EN** — NOOP is now called **Cénit** — the sun's highest point, the zenith of the 24-hour dial, echoing the icon. It's a pure rebrand: the name under the icon (app and widget), a new "daytime dial" icon (a 24-hour ring with the day's arc in amber, the cénit notch at the top and the green "now" dot) with its three iOS 18 appearances — light, dark and tinted — and every in-app text now reads "Cénit," in Spanish, English and German. Your data, your strap pairing and your backups are untouched: nothing to reinstall or re-pair, and older "NOOP-backup" files still restore exactly as before.
-  ([project.yml](project.yml), [Cenit/System/ProjectInfo.swift](Cenit/System/ProjectInfo.swift), [Tools/gen-icon.swift](Tools/gen-icon.swift))
 
 - **Hoy se lee más fácil: barra de estado en tinta, métricas más grandes y separadores más marcados / Today reads easier: dark status bar, larger metrics, and clearer separators.**
   **ES** — Pulido de legibilidad sobre el rediseño de **Hoy**: los íconos del sistema (hora, señal, batería) ahora se ven en **tinta oscura** sobre el papel claro, en vez de blancos y lavados. Las **«Métricas clave»** crecieron —etiquetas y números más grandes— para que el dato se lea de un vistazo, el título **«Métricas clave»** vuelve a tener contraste (antes quedaba casi invisible), y las **líneas divisorias** entre métricas y sobre «Verlo latido a latido» son un poco más gruesas y marcadas. Se quitó el rótulo «Hoy» sobre las métricas para un encabezado más limpio.
@@ -4683,80 +4050,35 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **EN** — The date under the greeting on the Today screen showed the day of the last recorded data, not the calendar day. Before today's row existed, the header stayed on yesterday (e.g. "Mon, Jun 15" when it was already the 16th), making the app look frozen. It now always shows the real current day, just like the greeting.
   ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
 
-- **«En la banda» ya no muestra fechas imposibles / "On the band" no longer shows impossible dates.**
-  **ES** — En el diagnóstico de Fuentes de datos, la línea «En la banda» —que muestra el rango de historial que dice tener tu strap— a veces enseñaba fechas basura: un solo día repetido (p. ej. «mar 15, 2025 → mar 15, 2025») o incluso fechas del futuro, porque la WHOOP 4.0 con el reloj inestable manda lecturas sin sentido. Ahora NOOP valida esa ventana antes de mostrarla: si no es plausible (fecha futura, o un rango colapsado a un solo punto), muestra «—» en vez de inventar un historial. Cuando la banda sí reporta un rango real, se muestra igual que antes.
-  **EN** — In the Data Sources diagnostic, the "On the band" line — which shows the history range your strap claims to hold — sometimes displayed garbage dates: a single day repeated (e.g. "Mar 15, 2025 → Mar 15, 2025") or even future dates, because a WHOOP 4.0 with an unstable clock sends meaningless readings. NOOP now validates that window before showing it: if it isn't plausible (a future date, or a range collapsed to a single point), it shows "—" instead of inventing a history. When the band does report a real range, it's shown just as before.
-  ([Cenit/BLE/BLEManager.swift](Cenit/BLE/BLEManager.swift))
-
-- **Hoy reconoce de dónde viene tu base: Apple Health o tu banda / Today now recognizes where your baseline comes from: Apple Health or your strap.**
-  **ES** — Antes de tu primer veredicto, la pantalla de Hoy ahora cuenta una historia coherente según de dónde salió tu base. Si importaste tu historial de **Apple Health**, ya no te pide «calibrar desde cero» ni muestra «0 de 4 noches»: te dice que **tu base ya está lista** y que solo falta que uses tu banda para el dato de hoy —el único que Apple Health no puede darte—. Si todavía no tienes historial, la tarjeta de calibración sigue contando tus noches 0→4, pero ahora aclara que son las noches que **tu propia base** necesita (no «tu veredicto») y te ofrece un atajo para conectar Apple Health y adelantar la base. Si no diste permiso a Apple Health, ningún mensaje te promete una base que no tienes. Es el complemento del cambio anterior en el veredicto (la línea «Se afina con tu banda · N de 14»).
-  **EN** — Before your first verdict, the Today screen now tells a coherent story based on where your baseline came from. If you imported your **Apple Health** history, it no longer asks you to "calibrate from zero" or shows "0 of 4 nights": it tells you **your baseline is ready** and all that's missing is wearing your strap for today's reading — the one thing Apple Health can't give you. If you don't have history yet, the calibration card still counts your nights 0→4, but now it makes clear those are the nights **your own baseline** needs (not "your verdict") and offers a shortcut to connect Apple Health and give your baseline a head start. If you haven't granted Apple Health permission, no message promises a baseline you don't have. It's the companion to the earlier verdict change (the "Sharpening with your strap · N of 14" line).
-  ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
-
-- **El diagnóstico de sincronización ya distingue «la banda no está guardando (reloj)» de un error que reportar / The sync diagnostic now tells "the band isn't storing (clock)" apart from a bug to report.**
-  **ES** — Antes, cuando una WHOOP 4.0 con el reloj perdido se conectaba, el diagnóstico de Fuentes de datos decía «Llegan datos pero no se decodifican — repórtalo». Era engañoso: no había nada que reportar; la banda simplemente no estaba guardando nada porque perdió la hora, así que solo manda mensajes internos (no biometría). Ahora ese caso —cuando no llega ni un registro biométrico y la banda no muestra historial guardado— se lee como «La banda no está guardando (reloj). Pásala por la app de WHOOP para reanudar», que es la acción correcta. El caso real en que sí llegan biométricos pero no se pueden decodificar conserva su mensaje de «repórtalo».
-  **EN** — Before, when a WHOOP 4.0 with a lost clock connected, the Data Sources diagnostic said "Data arrives but doesn't decode — please report." That was misleading: there was nothing to report; the band simply wasn't storing anything because it lost the time, so it only sends internal log messages (no biometrics). Now that case — when not a single biometric record arrives and the band shows no stored history — reads "The band isn't storing data (clock). Run it through the WHOOP app to resume," which is the right action. The genuine case where biometric data does arrive but can't be decoded keeps its "report it" message.
-  ([Cenit/BLE/LiveState.swift](Cenit/BLE/LiveState.swift))
-
-- **Tu tendencia de variabilidad cardíaca ya no deja huecos los días que el strap no completó la noche / Your heart-rate-variability trend no longer leaves gaps on days the strap didn't finish the night.**
-  **ES** — Si un día llevaste el strap pero NOOP no alcanzó a calcular tu variabilidad cardíaca (HRV) de esa noche —pasa en días de conexión parcial—, la mini-gráfica de 14 días y la tendencia de HRV en Hoy se quedaban con un hueco aunque Apple Salud sí tuviera el dato. Ahora rellenan ese día con el valor de Apple Salud, así la línea queda continua. Cuando el strap **sí** calculó tu HRV, ese valor manda y Apple no lo pisa. Esto es solo para lo que ves en la gráfica: tu recuperación y la calibración de tu línea base siguen contando únicamente las noches reales del strap, sin cambios.
-  **EN** — If you wore the strap on a day but NOOP couldn't compute that night's heart-rate variability (HRV) — which happens on partial-connection days — the 14-day mini-chart and the HRV trend on Today were left with a gap even when Apple Health did have the value. They now fill that day from Apple Health, so the line stays continuous. When the strap **did** compute your HRV, that value wins and Apple never overrides it. This only affects what you see in the chart: your recovery and your baseline calibration still count strap-only nights, unchanged.
-  ([Cenit/Data/Repository.swift](Cenit/Data/Repository.swift), [Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
-
-- **NOOP ya puede calcular tu «Vitalidad» y tu «edad corporal» a partir de tus señales de bienestar / NOOP can now compute your "Vitality" and "Body Age" from your wellness signals.**
-  **ES** — Nueva pieza de fondo: NOOP ya sabe calcular una «Vitalidad» (un puntaje de bienestar de 0 a 100) y una «edad corporal» (en años) combinando tu pulso nocturno en reposo, tu fitness (VO₂max), tu sueño, la regularidad de tu sueño, tu variabilidad cardíaca y tus pasos. Cada señal se traduce a su riesgo publicado de mortalidad por todas las causas (UK Biobank, FRIEND, Paluch 2022, Windred 2024, entre otros) y se combinan en una sola cifra. A diferencia de la «edad de fitness» —que mira solo lo cardiorrespiratorio—, la edad corporal es una mirada de **cuerpo entero** que suma sueño, regularidad, HRV y pasos. Tras una revisión experta del modelo le aplicamos seis correcciones para que sea honesto con los datos reales del strap: lo anclamos a tu pulso **nocturno**, separamos el riesgo de dormir poco del de dormir de más, ajustamos el solapamiento entre señales (para no castigar a quien tiene pocas), atenuamos la HRV (cuyos hazard ratios vienen de electrocardiograma clínico, no de la correa), corregimos la referencia de regularidad y volvemos el umbral de pasos sensible a la edad. Es, por diseño, una **comparación de bienestar, nunca una edad biológica ni un dato clínico**. Todavía no aparece en ninguna pantalla: es la base sobre la que se construirá esa vista después.
-  **EN** — New groundwork: NOOP can now compute a "Vitality" (a 0–100 wellness score) and a "Body Age" (in years) by combining your nocturnal resting heart rate, your fitness (VO₂max), your sleep, your sleep regularity, your heart-rate variability and your steps. Each signal is mapped to its published all-cause-mortality risk (UK Biobank, FRIEND, Paluch 2022, Windred 2024, among others) and combined into a single number. Unlike "fitness age" — which looks only at the cardiorespiratory side — Body Age is a **whole-body** view that adds sleep, regularity, HRV and steps. After an expert review of the model we applied six corrections so it stays honest with real strap data: we anchor it to your **nocturnal** resting HR, separate the risk of sleeping too little from too much, adjust the overlap between signals (so users with few signals aren't penalized), attenuate HRV (whose hazard ratios come from clinical ECG, not the strap), fix the regularity reference, and make the steps threshold age-aware. It is by design a **wellness comparison, never a biological or clinical age**. It doesn't appear on any screen yet — it's the foundation that view will be built on later.
-  ([Packages/StrandAnalytics/Sources/StrandAnalytics/VitalityEngine.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/VitalityEngine.swift))
-
-- **El nuevo «dial de 24 horas» de NOOP marca tu hora, tu sueño y tu sol / NOOP's new "24-hour dial" marks your time, sleep and sun.**
-  **ES** — Pieza central del rediseño: NOOP ya tiene su «dial de 24 horas», un reloj con el **mediodía arriba y la medianoche abajo** donde un punto de luz marca la hora actual —entra con un barrido suave y late despacio—, sobre un aro que dibuja tu **ventana de sueño** y las marcas de **amanecer y atardecer** de tu zona. Cambia de tono con la hora del día (usa el modo claro «Instrumento diurno» del paso anterior) y respeta la preferencia de «reducir movimiento» del sistema: si está activa, se queda quieto. En las latitudes extremas, donde no hay amanecer ni atardecer, el aro queda limpio, sin cruce. Por diseño no lleva color: el tono saturado se reserva para el dato de salud que irá al centro. Todavía no aparece en ninguna pantalla —es el componente sobre el que se construirá el nuevo Hoy.
-  **EN** — The centerpiece of the redesign: NOOP now has its "24-hour dial", a clock with **noon at the top and midnight at the bottom** where a point of light marks the current time — it sweeps in gently and pulses slowly — over a ring that draws your **sleep window** and your local **sunrise/sunset** marks. It shifts tone with the time of day (it uses the previous step's "Instrumento diurno" light mode) and respects the system's "reduce motion" preference: when that's on, it stays still. At extreme latitudes, where there's no sunrise or sunset, the ring stays clean, with no crossing. By design it carries no color — saturated hue is reserved for the health datum that will sit at its centre. It doesn't appear on any screen yet — it's the component the new Today will be built on.
+- **El nuevo «dial de 24 horas» de Cénit marca tu hora, tu sueño y tu sol / Cénit's new "24-hour dial" marks your time, sleep and sun.**
+  **ES** — Pieza central del rediseño: Cénit ya tiene su «dial de 24 horas», un reloj con el **mediodía arriba y la medianoche abajo** donde un punto de luz marca la hora actual —entra con un barrido suave y late despacio—, sobre un aro que dibuja tu **ventana de sueño** y las marcas de **amanecer y atardecer** de tu zona. Cambia de tono con la hora del día (usa el modo claro «Instrumento diurno» del paso anterior) y respeta la preferencia de «reducir movimiento» del sistema: si está activa, se queda quieto. En las latitudes extremas, donde no hay amanecer ni atardecer, el aro queda limpio, sin cruce. Por diseño no lleva color: el tono saturado se reserva para el dato de salud que irá al centro. Todavía no aparece en ninguna pantalla —es el componente sobre el que se construirá el nuevo Hoy.
+  **EN** — The centerpiece of the redesign: Cénit now has its "24-hour dial", a clock with **noon at the top and midnight at the bottom** where a point of light marks the current time — it sweeps in gently and pulses slowly — over a ring that draws your **sleep window** and your local **sunrise/sunset** marks. It shifts tone with the time of day (it uses the previous step's "Instrumento diurno" light mode) and respects the system's "reduce motion" preference: when that's on, it stays still. At extreme latitudes, where there's no sunrise or sunset, the ring stays clean, with no crossing. By design it carries no color — saturated hue is reserved for the health datum that will sit at its centre. It doesn't appear on any screen yet — it's the component the new Today will be built on.
   ([Packages/StrandDesign/Sources/StrandDesign/DiurnalDial.swift](Packages/StrandDesign/Sources/StrandDesign/DiurnalDial.swift))
-
-- **NOOP ya puede estimar tu «edad de fitness» a partir de tu pulso y tu actividad / NOOP can now estimate your "fitness age" from your resting heart rate and activity.**
-  **ES** — Nueva pieza de fondo: NOOP ya sabe calcular una «edad de fitness» —cómo se compara tu estado físico con el de una persona promedio de tu edad— a partir de tu pulso nocturno en reposo, tu actividad y tu perfil, usando un modelo científico publicado y revisado por pares (Nes/HUNT 2011). Tras una revisión experta del modelo, le aplicamos tres correcciones para que sea honesto con los datos reales del strap: lo anclamos al pulso **nocturno** (no al pulso sentado del estudio original, que dejaría a todos ~4 años más jóvenes), recalibramos la actividad a la escala de Esfuerzo de NOOP, y reservamos la banda de «±5 años» solo para la edad, no para el VO₂max. Es, por diseño, una **comparación de fitness, nunca una edad biológica ni un dato clínico**. Todavía no aparece en ninguna pantalla: es la base sobre la que se construirá esa vista después.
-  **EN** — New groundwork: NOOP can now compute a "fitness age" — how your fitness compares to an average person your age — from your nocturnal resting heart rate, your activity and your profile, using a published, peer-reviewed model (Nes/HUNT 2011). After an expert review of the model, we applied three corrections so it stays honest with real strap data: we anchor it to **nocturnal** resting HR (not the original study's seated pulse, which would read everyone ~4 years younger), recalibrate activity to NOOP's Effort scale, and reserve the "±5 years" band for the age only, not the VO₂max. It is by design a **fitness comparison, never a biological or clinical age**. It doesn't appear on any screen yet — it's the foundation that view will be built on later.
-  ([Packages/StrandAnalytics/Sources/StrandAnalytics/FitnessAgeEngine.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/FitnessAgeEngine.swift))
 
 - **Tu frecuencia cardíaca de hoy vive ahora en Métricas clave / Today's heart rate now lives in Key Metrics.**
   **ES** — En el iPhone, la gráfica de frecuencia cardíaca de 24 h dejó de ser una sección suelta al fondo de Hoy: ahora es un renglón más de «Métricas clave», justo encima de «FC en reposo». Muestra tu promedio del día y, al tocarlo, abre la curva de las últimas 24 horas —un poco más grande— con tus valores mínimo, promedio y máximo. Si todavía no hay lecturas del día, el renglón muestra «—» y el detalle avisa que aún no hay datos de hoy. Además, la tarjeta de «Fuentes» se movió de Hoy al final de la pantalla «Fuentes de datos». Así, Hoy queda como una sola pantalla: tu veredicto del día y tus métricas clave, sin scroll de más.
   **EN** — On iPhone, the 24h heart-rate chart is no longer a loose section at the bottom of Today: it's now a row in "Key Metrics", right above "Resting HR". It shows your average for the day and, when tapped, opens the last-24-hours curve — a little larger — with your min, average and max. If there are no readings yet today, the row shows "—" and the detail says so. The "Sources" card also moved from Today to the bottom of the "Data Sources" screen. Today now reads as a single screen: your day's verdict and your key metrics, with no extra scrolling.
   ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift), [Cenit/Screens/MetricInfoSheet.swift](Cenit/Screens/MetricInfoSheet.swift), [Cenit/Screens/SourcesSummaryCard.swift](Cenit/Screens/SourcesSummaryCard.swift), [Cenit/Screens/DataSourcesView.swift](Cenit/Screens/DataSourcesView.swift))
 
-- **El nuevo modo claro de NOOP cambia de tono con la hora del día / NOOP's new light mode shifts its tone with the time of day.**
+- **El nuevo modo claro de Cénit cambia de tono con la hora del día / Cénit's new light mode shifts its tone with the time of day.**
   **ES** — La siguiente etapa del rediseño (el lenguaje «Instrumento diurno», un modo claro sobre papel cálido) ahora respira con tu reloj: amanecer durazno, día neutro luminoso, atardecer ámbar y noche en pergamino atenuado. El cambio es continuo —se interpola minuto a minuto en un espacio de color perceptual, sin saltos bruscos— y se calcula por completo en tu dispositivo con la hora local (y, si está disponible, tu amanecer/atardecer del paso anterior). La noche se apaga y se entibia, pero **no** se vuelve modo oscuro: así el texto se mantiene legible —cumpliendo el estándar de accesibilidad AA— a cualquier hora. Es la pieza que tiñe todo el rediseño; todavía no cambia ninguna pantalla (las pantallas la adoptan en los siguientes pasos).
   **EN** — The next stage of the redesign (the «Instrumento diurno» language, a light mode on warm paper) now breathes with your clock: peach dawn, luminous neutral day, amber dusk, and a dimmed-parchment night. The shift is continuous — interpolated minute by minute in a perceptual color space, with no hard jumps — and computed entirely on your device from the local time (and, when available, your sunrise/sunset from the previous step). Night dims and warms but does **not** flip to dark mode, so text stays legible — clearing the AA accessibility standard — at any hour. It's the piece that tints the whole redesign; it doesn't change any screen yet (screens adopt it in the next steps).
   ([Packages/StrandDesign/Sources/StrandDesign/InstrumentoThemeEngine.swift](Packages/StrandDesign/Sources/StrandDesign/InstrumentoThemeEngine.swift))
 
-- **NOOP ya puede estimar qué tanto se asocia cada deporte con tu recuperación (de momento, por dentro) / NOOP can now estimate how each sport is associated with your recovery (under the hood for now).**
-  **ES** — Como base de un próximo insight, NOOP ya sabe calcular —por deporte— qué tanto tiende a bajar tu recuperación (Charge) la mañana siguiente a una sesión, comparado con tus días de descanso, y cuántos días suele tardar en volver. Es estadística descriptiva sobre tu propio historial —una asociación, no una relación de causa— calculada por completo en tu dispositivo. Por ahora vive solo «por dentro»: todavía no aparece en ninguna pantalla; eso llega después. Pasó por una revisión a fondo del método para no reportar ruido como si fuera señal: usa la mediana, exige al menos 6 sesiones y no anuncia efectos por debajo del margen de error de la medición.
-  **EN** — As the groundwork for an upcoming insight, NOOP can now work out — per sport — how much your recovery (Charge) tends to dip the morning after a session versus your rest days, and how many days it usually takes to bounce back. It's descriptive statistics over your own history — an association, not cause — computed entirely on your device. For now it lives only under the hood: it doesn't appear on any screen yet; that comes later. It went through a careful review of the method so it doesn't report noise as signal: it uses the median, needs at least 6 sessions, and won't flag effects below the measurement's margin of error.
+- **Cénit ya puede estimar qué tanto se asocia cada deporte con tu recuperación (de momento, por dentro) / Cénit can now estimate how each sport is associated with your recovery (under the hood for now).**
+  **ES** — Como base de un próximo insight, Cénit ya sabe calcular —por deporte— qué tanto tiende a bajar tu recuperación (Charge) la mañana siguiente a una sesión, comparado con tus días de descanso, y cuántos días suele tardar en volver. Es estadística descriptiva sobre tu propio historial —una asociación, no una relación de causa— calculada por completo en tu dispositivo. Por ahora vive solo «por dentro»: todavía no aparece en ninguna pantalla; eso llega después. Pasó por una revisión a fondo del método para no reportar ruido como si fuera señal: usa la mediana, exige al menos 6 sesiones y no anuncia efectos por debajo del margen de error de la medición.
+  **EN** — As the groundwork for an upcoming insight, Cénit can now work out — per sport — how much your recovery (Charge) tends to dip the morning after a session versus your rest days, and how many days it usually takes to bounce back. It's descriptive statistics over your own history — an association, not cause — computed entirely on your device. For now it lives only under the hood: it doesn't appear on any screen yet; that comes later. It went through a careful review of the method so it doesn't report noise as signal: it uses the median, needs at least 6 sessions, and won't flag effects below the measurement's margin of error.
   ([Packages/StrandAnalytics/Sources/StrandAnalytics/ActivityCostEngine.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/ActivityCostEngine.swift))
 
-- **NOOP ya calcula tu amanecer y atardecer sin pedir tu ubicación / NOOP now works out your sunrise and sunset without asking for your location.**
-  **ES** — Como base del rediseño que viene (el «dial de 24 horas»), NOOP ya sabe a qué hora amanece y atardece donde estás —aproximado, dentro de unos 15–30 min— calculado por completo en tu dispositivo, sin pedir permiso de ubicación y sin GPS: deduce tu región a partir de la zona horaria del teléfono. En las latitudes muy altas (sol de medianoche o noche polar) lo reporta como «sin amanecer/atardecer» en lugar de inventar una hora. Es la pieza sobre la que se dibujará el nuevo dial diurno; todavía no cambia ninguna pantalla.
-  **EN** — As the foundation for the upcoming redesign (the "24-hour dial"), NOOP can now tell when the sun rises and sets where you are — approximately, within about 15–30 min — computed entirely on your device, with no location permission and no GPS: it infers your region from the phone's time zone. At very high latitudes (midnight sun or polar night) it reports "no sunrise/sunset" instead of inventing a time. It's the piece the new daytime dial will draw on; it doesn't change any screen yet.
+- **Cénit ya calcula tu amanecer y atardecer sin pedir tu ubicación / Cénit now works out your sunrise and sunset without asking for your location.**
+  **ES** — Como base del rediseño que viene (el «dial de 24 horas»), Cénit ya sabe a qué hora amanece y atardece donde estás —aproximado, dentro de unos 15–30 min— calculado por completo en tu dispositivo, sin pedir permiso de ubicación y sin GPS: deduce tu región a partir de la zona horaria del teléfono. En las latitudes muy altas (sol de medianoche o noche polar) lo reporta como «sin amanecer/atardecer» en lugar de inventar una hora. Es la pieza sobre la que se dibujará el nuevo dial diurno; todavía no cambia ninguna pantalla.
+  **EN** — As the foundation for the upcoming redesign (the "24-hour dial"), Cénit can now tell when the sun rises and sets where you are — approximately, within about 15–30 min — computed entirely on your device, with no location permission and no GPS: it infers your region from the phone's time zone. At very high latitudes (midnight sun or polar night) it reports "no sunrise/sunset" instead of inventing a time. It's the piece the new daytime dial will draw on; it doesn't change any screen yet.
   ([Packages/StrandAnalytics/Sources/StrandAnalytics/SolarClock.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/SolarClock.swift))
 
 - **Los textos más tenues (etiquetas y pies) se leen mejor / The faintest text (labels and captions) is easier to read.**
   **ES** — Las etiquetas en mayúsculas y los pies de gráfica en gris tenue de toda la app subieron un punto de contraste para cumplir el estándar de accesibilidad AA sobre las tarjetas, donde antes se quedaban apenas por debajo. Es un ajuste sutil, pero hace esos textos más legibles —sobre todo con poca luz o para quien batalla con el texto de bajo contraste.
   **EN** — The uppercase labels and chart captions in faint gray across the app were nudged up in contrast to meet the AA accessibility standard on cards, where they previously fell just short. It's a subtle change, but it makes that text more legible — especially in low light or for anyone who struggles with low-contrast text.
   ([Packages/StrandDesign/Sources/StrandDesign/Palette.swift](Packages/StrandDesign/Sources/StrandDesign/Palette.swift))
-
-- **Tu registro del strap ya oculta tus identificadores al compartirlo / Your shared strap log now hides your identifiers.**
-  **ES** — Cuando compartes tu registro del strap para ayudar a mapear el protocolo, NOOP ahora borra automáticamente tus datos personales antes de que salgan: la dirección MAC del Bluetooth queda enmascarada (solo su primer y último byte), el número de serie del WHOOP —que va en el nombre del dispositivo y está atado a tu cuenta— se elimina, y el identificador único de tu instalación se reemplaza por «<device>». Se conservan a propósito los UUID de servicio públicos (idénticos en todo strap) para que el registro siga sirviendo para diagnóstico.
-  **EN** — When you share your strap log to help map the protocol, NOOP now automatically scrubs your personal data before it leaves: the Bluetooth MAC address is masked (first and last byte only), the WHOOP serial number — carried in the device name and tied to your account — is removed, and your install's unique identifier is replaced with "<device>". The public service UUIDs (identical on every strap) are deliberately kept so the log stays useful for diagnostics.
-  ([Cenit/BLE/LiveState.swift](Cenit/BLE/LiveState.swift))
-
-- **Tus fuentes de datos en Hoy ahora viven en una tarjeta ordenada / Your data sources in Today now live in a tidy card.**
-  **ES** — La nota de fuentes al pie de Hoy se rediseñó como una tarjeta «FUENTES»: cada fuente en su renglón con un ícono propio (rayo+corazón para WHOOP, corazón para Apple Health) a la izquierda y sus conteos alineados a la derecha, y el estado de sincronización abajo, separado por una línea fina y con un puntito de color (ámbar si algo falló). Antes los dos badges de color competían entre sí y el texto colgaba sin orden. Mismo contenido, ahora ordenado y fácil de leer de un vistazo.
-  **EN** — The data-sources note at the bottom of Today was redesigned as a "Sources" card: each source on its own row with its own icon (bolt+heart for WHOOP, heart for Apple Health) on the left and its counts aligned right, with the sync status below, set off by a thin divider and a small colored dot (amber if something failed). Before, the two colored badges competed and the text hung without order. Same content, now tidy and easy to read at a glance.
-  ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift), [Packages/StrandDesign/Sources/StrandDesign/Components.swift](Packages/StrandDesign/Sources/StrandDesign/Components.swift))
-
-- **Toca cualquier métrica clave para ver su tendencia de los últimos 14 días / Tap any key metric to see its 14-day trend.**
-  **ES** — Al tocar Recuperación, HRV, FC en Reposo, Sueño, Oxígeno en Sangre o Pasos en Hoy, el sheet ahora muestra primero una gráfica de línea de los últimos 14 días — antes de las bandas de referencia y la explicación del método. La tendencia se arma con tu historial real combinado (tu banda cuando la tiene, Apple Health cuando no), igual que los mini-gráficos de los tiles, así que se llena aunque no hayas importado un CSV de WHOOP. El color y la escala son propios de cada métrica (gradiente indigo→menta para Recuperación y HRV, rosa para FC en Reposo, etc.), y el sheet se abre con la altura exacta que necesita para que la gráfica no quede cortada. Esfuerzo no la lleva: ya tiene su propia gráfica de «cómo se acumuló hoy».
-  **EN** — Tapping Recovery, HRV, Resting HR, Sleep, Blood Oxygen or Steps in Today now shows a 14-day line chart at the top of the info sheet — before the reference bands and method disclosure. The trend is built from your real merged history (your strap when it has the day, Apple Health when it doesn't), the same source the tile sparklines use, so it fills in even without a WHOOP CSV import. Each metric uses its own color and scale (indigo→mint gradient for Recovery and HRV, rose for Resting HR, etc.), and the sheet opens just tall enough so the chart is never cut off. Strain doesn't get one: it already has its own "how today added up" curve.
-  ([Cenit/Screens/MetricInfoSheet.swift](Cenit/Screens/MetricInfoSheet.swift), [Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
 
 - **Toca y arrastra cualquier gráfica para ver el valor exacto de ese día / Touch and drag any chart to see the exact value for that day.**
   **ES** — Ahora puedes tocar cualquier `TrendChart` en la app (la gráfica de 14 días de HRV, Recuperación, FC en Reposo, Sueño, Oxígeno, Pasos, y la curva de acumulación del Esfuerzo de hoy) y arrastrar el dedo sobre ella: aparece un crosshair vertical, un punto resaltado sobre la línea y un tooltip con el valor exacto + la fecha. Mientras el dedo se mueve, el tooltip lo sigue en tiempo real. Al soltar, desaparece. Los macOS ya podían hacer esto con el cursor; ahora también funciona táctilmente en el iPhone.
@@ -4766,11 +4088,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
 - **La pantalla de Hoy queda más compacta — menos aire muerto vertical / The Today screen is more compact — less vertical dead space.**
   **ES** — Hoy se sentía holgada: demasiado espacio en blanco entre secciones y, sobre todo, mucho hueco arriba y abajo de la fila «Míralo latido a latido» (justo debajo de «Tu base viene de Apple Health»). Compactamos la pantalla: las secciones se acercan, la fila de latido queda mucho más ajustada, se recorta el aire bajo la tarjeta de veredicto, y toda la tarjeta de veredicto sube un poco hacia arriba. Mismo contenido, solo más junto. No cambia ninguna otra pantalla.
   **EN** — Today felt airy: too much whitespace between sections and, especially, a lot of empty space above and below the "See it beat by beat" row (right under "Your baseline comes from Apple Health"). We compacted the screen: sections sit closer, the heartbeat row is much tighter, the space below the verdict card is trimmed, and the whole verdict card sits a bit higher. Same content, just closer together. No other screen changes.
-
-- **Fuentes de datos en Hoy se ven ordenadas en dos columnas / Data sources in Today are now laid out in a clean two-column grid.**
-  **ES** — WHOOP y Apple Health ahora aparecen lado a lado, cada uno con su badge arriba y sus conteos debajo. Antes, cuando los dos estaban activos, el texto se partía de forma rara con el separador «·» colgando al final de la primera línea.
-  **EN** — WHOOP and Apple Health now sit side by side, each with its badge on top and counts below. Previously, when both were active, the text broke awkwardly with the separator «·» dangling at the end of the first line.
-  ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
 
 - **Tu tarjeta de hoy ya no confunde una recuperación alta con un veredicto exigente / Your Today card no longer makes a high recovery look like it's fighting the verdict.**
   **ES** — Si amaneces muy recuperado (digamos 92) pero el veredicto del día sale «Exigido», antes parecía una contradicción — y el 92 hasta se pintaba del color del veredicto (ámbar). Ahora la tarjeta muestra dos cosas distintas, lado a lado y cada una en su color: tu **Veredicto** (¿te exiges hoy?) y tu **Recuperación** (¿qué tan recuperado amaneciste?, 92/100, en verde). Una frase abajo las reconcilia: «Amaneciste muy recuperado. Lo que pide cuidado: hoy es tu carga, no tu cuerpo». Y un enlace «¿Por qué exigido?» abre una pantalla que explica qué señal pesó (HRV, carga, FC en reposo…) y qué significa cada color (menta = Listo, verde = Equilibrado, ámbar = Exigido, rosa = Desgastado), marcando en cuál estás hoy — información que en el iPhone antes no aparecía. «Listo» ahora se ve en menta brillante, distinto del verde de «Equilibrado». No cambia cómo se calcula tu recuperación ni tu veredicto.
@@ -4782,11 +4099,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **EN** — Just like recovery, you can now tap "HRV" in the Today summary row (and in Key Metrics) to understand it in plain language: what beat-to-beat variability is, why your own trend matters more than any universal threshold, and — one tap deeper — how it's computed (we take the intervals between your heartbeats overnight, drop the ones outside 300–2000 ms and the odd beats, and if at least 20 clean ones remain we compute RMSSD; Task Force 1996, Malik's rule). If there was no HRV last night, it tells you why. All on your device.
   ([Cenit/Screens/MetricInfoSheet.swift](Cenit/Screens/MetricInfoSheet.swift), [Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
 
-- **Mira cuántos días vienen de tu banda y cuántos de Apple Health / See how many days come from your strap vs. Apple Health.**
-  **ES** — En Fuentes de datos → card de Apple Health aparece una nueva sección «Cobertura de datos»: un grid de 30 cuadros, uno por día, que muestra de dónde vino cada dato — verde si lo midió la banda, cyan si solo vino de Apple Health, gris si no hay dato. Una línea de resumen arriba del grid y una leyenda abajo hacen la lectura inmediata. Sin taps ni ventanas nuevas; sólo una vista honesta de cómo la banda va reemplazando a Apple Health día a día.
-  **EN** — In Data Sources → Apple Health card, a new "Data coverage" section shows a 30-cell grid — one cell per day — color-coded by source: green if the strap measured it, cyan if it came from Apple Health only, gray if there's no data. A summary line above the grid and a legend below make it instantly readable. No taps, no new screens; just an honest view of how the strap is taking over from Apple Health day by day.
-  ([Cenit/Screens/DataSourcesView.swift](Cenit/Screens/DataSourcesView.swift))
-
 - **Toca tu número de recuperación para ver de dónde sale / Tap your recovery number to see where it comes from.**
   **ES** — Al tocar «Recuperación» en la fila de resumen de Hoy se abre una explicación en lenguaje llano de cómo se arma tu número del 0 al 100: cuánto pesa cada señal de tu noche (HRV 60 %, FC en reposo 20 %, sueño 15 %, temperatura de piel 10 %, respiración 5 %) y, a un toque más, el método detrás —cada señal comparada con tu propio promedio, RMSSD, Task Force 1996—. Si tu base aún se está calibrando, te dice por qué todavía no hay número en vez de inventarlo. Todo en tu dispositivo; es una estimación, no un diagnóstico.
   **EN** — Tapping "Recovery" in the Today summary row now opens a plain-language explanation of how your 0–100 number is built: how much each signal from your night counts (HRV 60%, resting HR 20%, sleep 15%, skin temp 10%, respiration 5%) and, one tap deeper, the method behind it — each signal compared with your own average, RMSSD, Task Force 1996. While your baseline is still calibrating, it tells you why there's no number yet instead of making one up. All on your device; it's an estimate, not a diagnosis.
@@ -4797,38 +4109,10 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   **EN** — Tapping "Day Strain" on Today now shows a new chart below the zones table, "How today added up": your strain rising from midnight to the number shown above, so you can see where your score came from and when you pushed hardest. The axis fits your own day, so even a quiet day reads clearly. When there isn't enough activity yet, a short note appears instead. Computed on the fly from today's data, on your device.
   ([Cenit/Screens/MetricInfoSheet.swift](Cenit/Screens/MetricInfoSheet.swift), [Packages/StrandAnalytics/Sources/StrandAnalytics/StrainScorer.swift](Packages/StrandAnalytics/Sources/StrandAnalytics/StrainScorer.swift), [Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
 
-- **Tu veredicto te dice de dónde viene tu base y cuánto le falta para afinarse / Your verdict now shows where your baseline comes from and how far it has to sharpen.**
-  **ES** — Si importaste tu historial de Apple Health, NOOP puede darte el veredicto del día con una sola noche de banda — lo que antes confundía ("¿no eran varias noches?"). Ahora, al pie del veredicto, una barra discreta —«Se afina con tu banda · N de 14 noches»— muestra que tu cálculo sigue afinándose con cada noche que usas la banda, y cuando tu base se sembró con Apple Health, te lo dice. La barra se retira sola al llegar a tus 14 noches; una noche corta cede el lugar al aviso de baja confianza. No cambia cómo se calcula tu recuperación.
-  **EN** — If you imported your Apple Health history, NOOP can give you the day's verdict after a single strap night — which used to feel confusing ("wasn't it supposed to take several nights?"). Now, at the foot of the verdict, a quiet bar —"Sharpening with your strap · N of 14 nights"— shows your read keeps sharpening with every strap night, and when Apple Health seeded your baseline it says so. The bar retires itself once you reach 14 nights; a short night yields the spot to the low-confidence note. Recovery scoring is unchanged.
-- **NOOP escribe tu sueño de WHOOP en Apple Salud / NOOP writes your WHOOP sleep to Apple Health.**
-  **ES** — Tras cada sincronización, las fases de sueño que la WHOOP mide toda la noche (light, deep, REM, wake) aparecen en la app de Salud como fuente "NOOP". La WHOOP mide las fases con PPG continua durante la noche, a diferencia del Apple Watch que hace muestreos puntuales. Los datos coexisten con los del Watch y el usuario elige cuál tiene prioridad en Salud → [métrica] → Fuentes. No se crean duplicados: NOOP borra sus propias entradas anteriores antes de escribir las nuevas.
-  **EN** — After each sync, the sleep stages WHOOP measures throughout the night (light, deep, REM, wake) appear in the Health app under the "NOOP" source. WHOOP measures stages with continuous PPG all night, unlike Apple Watch which takes spot readings. The data coexists with Watch readings and the user can set priority in Health → [metric] → Data Sources. No duplicates are created: NOOP deletes its own prior entries before writing new ones.
-  ([CenitApp/Health/HealthKitBridge.swift](CenitApp/Health/HealthKitBridge.swift))
-
-- **La info de fuentes en "Hoy" ocupa menos espacio / Data source info on Today takes less space.**
-  **ES** — La sección "Procedencia" al fondo de la pantalla Hoy era un card grande (con título de sección y tres renglones separados) que le daba peso de pantalla principal a información secundaria. Ahora aparece como dos líneas discretas en el fondo del scroll: una con los badges de fuente y conteos, otra con el estado del último sync de la banda.
-  **EN** — The "Provenance" section at the bottom of Today was a full card (with section title and three separate rows) that gave primary-screen weight to secondary metadata. It now appears as two compact lines at the bottom of the scroll: one with source badges and counts, one with the strap's last sync status.
-  ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
-
-- **"Procedencia" muestra ahora el recuento correcto de días de la banda / "Provenance" now shows the correct strap day count.**
-  **ES** — El renglón "Whoop" en la sección de Procedencia contaba todos los días del dashboard (incluyendo los de Apple Health), no solo los días donde la banda fue la fuente ganadora. Con 31 días de Apple Health y 1 de la banda, mostraba "32 días" en lugar de "1 día". Ahora el conteo es exacto: solo aparecen los días con datos reales del strap.
-  **EN** — The "Whoop" row in the Provenance section was counting every day in the dashboard (including Apple Health days) instead of only the days where the strap won. With 31 Apple Health days and 1 strap day it showed "32 days" instead of "1 day". The count is now accurate: only days with real strap data are shown.
-  ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
-
-- **"Métricas clave" rellena con Apple Salud cuando la banda viene vacía / "Key Metrics" fills from Apple Health when the strap comes up empty.**
-  **ES** — Si tu banda registraba el día pero sin HRV / sueño / FC en reposo / oxígeno (le pasa a la WHOOP 4.0 cuando no alcanza a decodificar), esos datos tapaban los que Apple Salud sí tenía y "Métricas clave" quedaba en "—". Ahora, cuando la banda no trae el valor de hoy o ayer, "Métricas clave" usa el de Apple Salud (marcado "Apple Health"). Si la banda sí lo tiene, ese gana. No cambia el cálculo de recuperación.
-  **EN** — If your strap logged the day but without HRV / sleep / resting HR / blood oxygen (which happens to the WHOOP 4.0 when it can't decode them), that empty row hid the values Apple Health did have and "Key Metrics" showed "—". Now, when the strap lacks today's or yesterday's value, "Key Metrics" uses Apple Health's (badged "Apple Health"). If the strap has it, the strap wins. Recovery scoring is unchanged.
-  ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift), [Cenit/Data/Repository.swift](Cenit/Data/Repository.swift))
-
 - **La pantalla "Apple Health" ya muestra lo que sincronizas en vivo / The "Apple Health" page now shows what you sync live.**
   **ES** — Si conectabas Apple Salud (sin importar un archivo de exportación), la pantalla "Apple Health" (en Más), "Explorar" y "Comparar" salían vacías aunque los datos sí estaban en el teléfono. Era porque la sincronización en vivo no llenaba la tabla que esas pantallas leen. Ahora sí: tus pasos, FC en reposo, HRV, oxígeno, sueño y energía aparecen ahí —y las mini-gráficas de Apple en Hoy se dibujan— sin necesidad de importar nada.
   **EN** — If you connected Apple Health (without importing an export file), the "Apple Health" page (in More), "Explore" and "Compare" came up empty even though the data was on your phone — the live sync wasn't filling the table those screens read from. Now it does: your steps, resting HR, HRV, blood oxygen, sleep and energy show up there, and the Apple sparklines on Today draw, with nothing to import.
   ([CenitApp/Health/HealthKitBridge.swift](CenitApp/Health/HealthKitBridge.swift))
-
-- **Sincronización discreta: el indicador de sincronización ya no interrumpe la pantalla / Quiet sync indicator: syncing no longer interrupts the screen.**
-  **ES** — Mientras la app descarga el historial de la banda, ya no aparece un pill verde pulsante en la pantalla. En su lugar, la pequeña línea de estado en la esquina superior derecha (la misma que muestra "Sincronizado hace 2 min · banda 87%") cambia discretamente a "Sincronizando historial de la banda…" en el mismo tono gris apagado. Cuando termina, vuelve al estado normal sin ningún parpadeo.
-  **EN** — While the app downloads strap history, the pulsing green pill no longer interrupts the screen. Instead, the small status line in the top-right corner (the one that shows "Synced 2 min ago · strap 87%") quietly reads "Syncing strap history…" in the same muted gray. When it finishes, it returns to normal with no flash.
-  ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift), [Cenit/Screens/IntelligenceView.swift](Cenit/Screens/IntelligenceView.swift), [Cenit/Screens/SleepView.swift](Cenit/Screens/SleepView.swift))
 
 - **Apple Salud se queda conectado entre aperturas / Apple Health stays connected between launches.**
   **ES** — Antes, al cerrar y reabrir la app tenías que volver a conectar Apple Salud cada vez, y
@@ -4843,30 +4127,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   discreet "Connect Apple Health" shortcut that takes you to Data Sources.
   ([CenitApp/Health/HealthKitBridge.swift](CenitApp/Health/HealthKitBridge.swift), [Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
 
-- **Tu pulso en vivo y el monitor latido a latido, en cada pantalla / Live pulse and the beat-to-beat monitor, on every screen.**
-  **ES** — La fila "Míralo latido a latido" (con tu `• NN bpm` en vivo) ahora aparece al pie del
-  veredicto del día y de la pantalla "Aún sin lectura de hoy", no solo durante la calibración. Tócala
-  para ver tu corazón latido a latido — antes no había forma de abrir ese monitor desde el veredicto.
-  Y el encabezado quedó definitivamente limpio (solo fecha y sincronización) en todas las pantallas.
-  Si la banda no transmite, la fila dice "Sin lectura".
-  **EN** — The "See it beat by beat" row (with your live `• NN bpm`) now sits at the foot of the day's
-  verdict and of the "No reading for today yet" screen, not just during calibration. Tap it to watch
-  your heart beat to beat — there was no way to open that monitor from the verdict before. And the
-  header is finally clean (just date and sync) on every screen. When the strap isn't streaming, the
-  row reads "No reading".
-  ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
-
-- **Tu pulso en vivo se mudó a la tarjeta de tu primera noche / Live heart rate moved into the first-night card.**
-  **ES** — Durante la calibración (la pantalla de las 4 noches), tu ritmo cardiaco en vivo ya no va
-  arriba en el encabezado: ahora aparece como `• NN bpm` en la fila "Míralo latido a latido" de la
-  tarjeta, justo donde tocas para verlo latido a latido. El encabezado queda solo con la fecha y la
-  sincronización. Si la banda no está transmitiendo, la fila dice "Sin lectura".
-  **EN** — During calibration (the four-night screen), your live heart rate no longer sits up in the
-  header: it now shows as `• NN bpm` in the card's "See it beat by beat" row, right where you tap to
-  watch it live. The header is just date and sync. When the strap isn't streaming, the row reads
-  "No reading".
-  ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
-
 - **La fila de Recuperación / HRV / Sueño ahora va centrada / Recovery · HRV · Sleep row is now centered.**
   **ES** — La franja de resumen bajo el veredicto (Recuperación, HRV, Sueño) estaba pegada a la
   izquierda con un hueco a la derecha. Ahora sus tres columnas van centradas y balanceadas, con los
@@ -4876,31 +4136,13 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   alignment changed; the numbers are the same.
   ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
 
-- **WHOOP 4.0 clock & history diagnostics in the strap log.** When syncing a 4.0, the strap log now
-  spells out three things in plain language: the band's own clock as a readable date (or that it never
-  answered), the retained-history window it reports (`oldest → newest`, or that it holds nothing), and
-  a per-offload breakdown of what actually arrived (biometric records vs. firmware console logs vs.
-  other). This makes it possible to tell apart "the band's clock is wrong so it never saved history"
-  from "the band has nothing new" — without guessing. Observability only; no new strap commands.
-  ([Cenit/BLE/BLEManager.swift](Cenit/BLE/BLEManager.swift), [Cenit/Collect/Backfiller.swift](Cenit/Collect/Backfiller.swift))
-
 - **The Today header no longer pulses — calmer, with more room for what matters.** The animated ECG
   waveform that rode the top of the Today screen is gone. The header now reads as a quiet date + sync
   line with your live heart rate still pinned to the right — just without the decorative pulse, which
   ate the most valuable strip of the screen without telling you anything. (First of a few small steps
   tidying the Today header.) ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
 
-- **Strap sync diagnostic in Data Sources — honest proof your data is getting through.** The WHOOP
-  strap row now expands into a read-only diagnostic that answers "did the band capture data, and is
-  NOOP receiving, decoding and storing it?" It shows the band's own retained-history window
-  (`oldest → newest`, from the strap's last data-range report — proof the sensor captured and still
-  holds it), a **Sync now** button that forces a single safe history offload and shows live progress,
-  a per-sensor receipt of what landed this sync (heart rate, R-R, blood oxygen, temperature,
-  respiration, movement), and one honest verdict: *Receiving and storing everything* · *The band has
-  nothing new* · *Data arrives but doesn't decode — please report*. It only informs — the sole action
-  is Sync now (never a reboot/wipe). Localized in English and Spanish. ([Cenit/Screens/DataSourcesView.swift](Cenit/Screens/DataSourcesView.swift))
-
-- **Debug screenshot fixtures for Today's readiness states (developers only).** A new DEBUG-only `ScreenshotFixtures` seeds ~40 days of deterministic synthetic history — reverse-engineered against `ReadinessEngine` + `Baselines` — so TodayView can be captured in a specific verdict on demand: `-noop.fixture primed` (signals aligned, load supported) or `-noop.fixture strained` (one signal flagging). The seed publishes a matching dashboard plus synthetic workouts and a 24h heart-rate trace, and `AppModel.init` skips the production refresh loop while a fixture is active so it isn't overwritten. The `NOOPScreenshotTests` UI test gained one isolated method per state (`test_captureTodayEmpty/Primed/Strained`) that captures a top→bottom scroll sequence. All `#if DEBUG`-gated; no effect on release builds. ([Cenit/App/ScreenshotFixtures.swift](Cenit/App/ScreenshotFixtures.swift))
+- **Debug screenshot fixtures for Today's readiness states (developers only).** A new DEBUG-only `ScreenshotFixtures` seeds ~40 days of deterministic synthetic history — reverse-engineered against `ReadinessEngine` + `Baselines` — so TodayView can be captured in a specific verdict on demand via a debug launch flag (signals aligned, load supported, or one signal flagging). The seed publishes a matching dashboard plus synthetic workouts and a 24h heart-rate trace, and `AppModel.init` skips the production refresh loop while a fixture is active so it isn't overwritten. The screenshot UI test suite gained one isolated method per state (`test_captureTodayEmpty/Primed/Strained`) that captures a top→bottom scroll sequence. All `#if DEBUG`-gated; no effect on release builds. ([Cenit/App/ScreenshotFixtures.swift](Cenit/App/ScreenshotFixtures.swift))
 
 - **Fix: trend charts no longer tint the hour labels or clip the last one.** On a tight value domain
   (e.g. the heart-rate chart on Today, 64–145 bpm) the area fill anchored to its implicit zero
@@ -4908,8 +4150,7 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   straight behind the X-axis labels and tinting "2:25 p.m. / 2:40 p.m. …" a faint red; the rightmost
   label was also cut off ("3:25 p..." instead of "3:25 p.m."). The fill is now pinned to the value
   domain's floor (`AreaMark` `yStart`), and the Y-scale reserves a clean band below it for the labels
-  while the X-scale insets its trailing edge so the last label renders in full
-  (`NoopMetrics.chartXLabelBand` / `chartXTrailingInset`). Pinning the floor also makes the fill
+  while the X-scale insets its trailing edge so the last label renders in full. Pinning the floor also makes the fill
   *physically unable* to bleed below the axis onto the footer (reinforces FER-10). Applies everywhere
   `TrendChart` is used — Today (heart rate), Trends and Explore — since it's one shared component;
   `.monotone` interpolation and the hover/crosshair logic are untouched. Verified by rendering the
@@ -4922,16 +4163,10 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   the Workouts tab still lists every session, the Apple Health workout count in Data Sources is
   unaffected, and macOS keeps its "Last Workouts" section. ([Cenit/Screens/TodayView.swift](Cenit/Screens/TodayView.swift))
 
-- **Debug screenshot automation (developers only).** iOS debug builds now register a Darwin notification listener (`noop.nav.<screen>`) so every screen can be navigated programmatically — `xcrun simctl spawn booted notifyutil -p noop.nav.trends` — without triggering system permission dialogs. The "More" tab was refactored to use `NavigationLink(value:)` with a typed `MoreScreen` enum and a programmatic `NavigationPath`, enabling deep-link navigation into any sub-screen from the command line. A `noopdev://` URL scheme (backup transport) is also registered. All debug code is `#if DEBUG`-gated; it has no effect on release builds. ([CenitApp/App/ScreenshotNav.swift](CenitApp/App/ScreenshotNav.swift))
+- **Debug screenshot automation (developers only).** iOS debug builds now register a Darwin notification listener so every screen can be navigated programmatically via a debug CLI command — without triggering system permission dialogs. The "More" tab was refactored to use `NavigationLink(value:)` with a typed `MoreScreen` enum and a programmatic `NavigationPath`, enabling deep-link navigation into any sub-screen from the command line. A debug-only URL scheme (backup transport) is also registered. All debug code is `#if DEBUG`-gated; it has no effect on release builds. ([CenitApp/App/ScreenshotNav.swift](CenitApp/App/ScreenshotNav.swift))
 
 - **Fix: `MetricInfoSheet` now compiles on macOS 13.0.** `.presentationBackground(_:)` requires macOS 13.3 but the sheet was calling it unconditionally. Wrapped in a `PresentationBackgroundModifier` with an `@available(macOS 13.3, iOS 16.4, *)` guard.
 
-- **The Heart Rate graph on Today now fills from a live-only session (iPhone).** If you wore the strap
-  with NOOP connected but never imported a WHOOP export, today's Heart Rate chart stayed empty even
-  though your live pulse showed at the top of the screen. The live heart rate streaming over the
-  strap's realtime channel was shown but never saved, so the chart had nothing to draw. It's now
-  recorded as it streams (deduplicated so a strap sending both channels isn't double-counted), and the
-  chart appears on its own after a few minutes of wear — no import or app restart needed.
 - **Apple Health workouts now appear in Today and Workouts (iPhone).** The live Apple Health sync asked
   for workout permission but never actually fetched them — only the manual XML export brought them in.
   The sync now queries HealthKit workouts in the same window as the rest of your health data, so
@@ -4939,7 +4174,7 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   to export anything. Activity names come through correctly (e.g. "Traditional Strength Training",
   "Running") and the progress bar shows "Workouts (12/13)" while they load.
 
-- **The wait for your first verdict is alive now (iPhone, FER-61).** Before NOOP has banked enough
+- **The wait for your first verdict is alive now (iPhone, FER-61).** Before Cénit has banked enough
   nights to compute a verdict, Today shows a night-by-night progress card from night zero — four dots
   that fill in as each valid night lands (0 of 4 → 4 of 4), so you always see how many nights are left
   instead of a blank screen. Tap "See it beat by beat" to open a live monitor: your heart rate on a
@@ -4949,13 +4184,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   temperature, respiration and movement are marked "completes on sync" — and a footer confirms when
   everything is saved (or warns when you're streaming live HR without having finished the secure
   pairing the rest of the data needs). Fully localized (English + Spanish).
-- **"Resting HR" help text no longer assumes the WHOOP strap (iPhone, FER-77).** Tapping Resting HR in
-  Key Metrics described it as "your lowest heart rate during sleep" — true for the strap, but since
-  Apple Health now fills the value when the strap hasn't (FER-62), that wording was wrong for the
-  Apple-sourced reading (Apple computes resting heart rate its own way, across the day). The help text
-  now describes the metric without assuming a source, and a footnote names both: measured overnight by
-  the strap, or read from Apple Health's resting heart rate when the strap isn't worn. Copy-only; no
-  calculation change.
 
 - **Apple Health strength workouts read as words again, not one run-on label (iPhone, FER-76).** On
   Today, the "Last Workouts" tiles took the workout type straight from Apple Health, so a *Traditional
@@ -4964,17 +4192,6 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   ("Traditional Strength Training"), and every metric/workout tile caps its label at two lines so a
   long name can no longer collide with its value. Also clears the same run-on name in the Workouts
   list and the per-sport breakdown.
-- **Your data backs itself up to iCloud Drive, so a reinstall can't lose it (iPhone, FER-74).** Your
-  strap's history lives only inside NOOP — once the band hands a night over it deletes its own copy —
-  so deleting or reinstalling the app used to lose it for good. Now you can pick a folder in your own
-  iCloud Drive (a free Apple ID is enough — this isn't a paid developer-iCloud feature) and NOOP keeps
-  a fresh copy of everything there, refreshed automatically after each sync (about once a day, while
-  the app is open). If you ever open NOOP to an empty screen — a fresh install, a new phone — it
-  offers to restore from that backup in one tap; you can also back up or restore any time from
-  Settings. Apple Health and an imported WHOOP export re-fill on their own, so this protects the one
-  thing that can't: the strap's own history. Honest limits: iCloud uploads when iOS decides (usually
-  minutes), and after deleting the app you re-pick the folder once. Fully localized (English +
-  Spanish).
 - **The "14-day" header on Key Metrics now reads "14-day trend" (iPhone).** The header above the Key
   Metrics list paired "Today" with a bare "14-day", which read as if the values themselves spanned 14
   days rather than being today's reading (steps, for example, are today's total; blood oxygen is a
@@ -4982,42 +4199,15 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   row — the trend — not the number. This also brings iPhone in line with macOS, which already showed
   "14-day trend". Fully localized (English + Spanish + German).
 
-- **Trends and Sleep fill in from Apple Health before the strap does (FER-62).** If you've connected
-  Apple Health but the strap hasn't covered a day yet, Trends now plots your HRV and resting heart
-  rate from Apple Health, and Sleep shows last night's stage breakdown from it — each tagged with an
-  "Apple Health" badge so the source is clear. The strap always wins: any day or night the strap
-  covers shows the strap's reading, and Apple Health only fills the gaps. Apple's sleep is shown as a
-  proportional deep / light / REM bar (no minute-by-minute hypnogram — that's strap-only). Fully
-  localized (English + Spanish + German).
-- **"Key Metrics" on Today fills in from Apple Health too (FER-62 follow-up).** Until now only Steps
-  read from Apple Health on the Today screen — HRV, resting heart rate, sleep and blood oxygen stayed
-  blank whenever the strap hadn't scored the day, even though Apple Health had the data. They now show
-  your Apple Health reading, each tagged "Apple Health" so it's never mistaken for a live strap value
-  — the same treatment Trends and Sleep already got. To keep the "Today" label honest, a value only
-  fills in if it's from today or yesterday; anything older reads "—" (the full history still shows in
-  Trends). Day Strain stays strap-only — it's a computed score Apple doesn't provide. Also closed a
-  gap where a stale import could show a months-old Steps count under Today; it's now bounded to recent
-  days. No new copy — reuses the existing "Apple Health" tag, so it's localized everywhere already.
-- **The live heart-rate ECG reads like a real monitor now (iPhone, FER-58).** When your strap is streaming, the brand ECG strip on Today no longer just scrolls one fixed wave faster or slower. A sweep head moves across the strip drawing each heartbeat the instant it reaches that beat — complexes spaced by your live BPM, so a faster heart packs them closer together. The trace now stays continuous like a hospital monitor: the head wipes last pass forward into this one behind a small erase gap instead of blanking to a flat line, so the beats no longer jump sideways between passes. And the beat breathes — subtle beat-to-beat variation in spacing and height plus a slow respiratory drift — so it reads like a living heart rather than one frame looping. With no strap connected it rests on a calm flatline.
 - **Apple Health import is no longer a black box (FER-70).** Connecting or syncing Apple Health used
   to run silently — you couldn't tell whether it was working, how many days came in, or which metrics
   never arrived. The "Apple Health — Live Sync" card on Data Sources now shows live per-stage progress
   while it runs ("Importing HRV… · 4/12"), then a coverage summary ("12 May → 9 Jun · 28 d") and a
   per-metric checklist of exactly what landed (HRV ✓ 28 d · Sleep ✓ 25 d · SpO₂ —). It links straight
   to Settings to grant any missing permission, and the onboarding import step now shows a live record
-  counter so a long export reads as progressing rather than frozen. NOOP also stops asking for the
+  counter so a long export reads as progressing rather than frozen. Cénit also stops asking for the
   Body Temperature permission it never actually imported. Fully localized (English + Spanish).
 - **Tap any metric to learn what it means (iPhone).** Every row in "Key Metrics" is now tappable. A bottom sheet opens showing what the metric measures, how it is calculated, and a colour-coded range table (e.g. Rest · Moderate · Hard · Extreme for strain) with your current value highlighted in its band. Covers Day Strain, Sleep, HRV, Resting HR, Blood Oxygen, and Steps.
-- **No-data screen stays honest when the strap connects mid-onboarding.** Previously the Today screen would flip from the clean "No reading yet" hero to the older "Scores are building" state the moment a strap was seen, even before any recovery data arrived. Now a single adaptive hero covers both states: it shows "No reading yet / Scan for strap" until a strap is ever seen, then "Your scores are building" once one is — always without fabricated gauges or dashes.
-- **Redesigned Today screen (iPhone).** The Today tab is now a tighter, verdict-first "instrument"
-  read. It opens with an honesty line ("Synced 2 min ago · strap 87%" / "Last sync — never") and the
-  brand ECG strip with your live heart rate, then a single committed verdict — "You're Primed",
-  "Ease off today", or "No reading yet" on a fresh install — with a 0–100 readiness gauge that fills
-  to today's score. After a short night the verdict honestly flags itself "confidence low" (and HRV
-  carries a small "Low conf" tag) instead of pretending to be sure. Below, a borderless
-  Recovery · HRV · Sleep synthesis and a dense Key Metrics list (label · sparkline · value) replace
-  the old tile grid, and a true first-launch empty state shows skeletons + a "Scan for strap" action
-  rather than a wall of dashes. macOS Today is unchanged. Fully localized (English + Spanish).
 - **Importing your history is much faster (FER-52).** Importing a multi-year Apple Health export
   used to grind through tens of millions of records doing slow date math on every single one. The
   per-record work is now done with plain integer arithmetic instead of the heavyweight calendar and
@@ -5028,38 +4218,14 @@ El hito de este corte (2026-07-20) es que Cénit deja de usar la banda WHOOP y p
   tiles (Recovery / HRV / Sleep) sit in a tight three-column row. In languages with longer words —
   e.g. Spanish "Recuperación" — the label was clipped to "Recupera…". The label now scales down to
   fit its tile instead of truncating, so the full word always shows.
-- **Steadier scores in your first couple of weeks (FER-13).** While NOOP is still learning your
+- **Steadier scores in your first couple of weeks (FER-13).** While Cénit is still learning your
   baseline (roughly your first 4–14 nights), recovery and readiness now lean toward neutral instead
   of swinging hard on a single reading measured against just a few nights of data. Each night your
   baseline firms up, the scores trust your signals a little more, reaching full sensitivity by ~14
   nights. Once your baseline is established, nothing changes — this only tempers the noisy early
   window.
-- **A recovery score from your first night with the strap (FER-60).** NOOP used to need about four
-  nights before it could show a calibrated recovery score, so a fresh install sat in "calibrating"
-  for days. If you've connected Apple Health, NOOP now seeds your personal baseline from your recent
-  Apple Health history (overnight HRV, resting heart rate, respiration) so a score can appear on
-  night one. The strap always wins: the Apple Health seed is capped to about a week and treated as
-  provisional, so your own strap nights take over as they accumulate and the early score stays
-  honestly tempered. Apple Watch and the strap measure HRV a little differently, so the first couple
-  of days may read slightly off until your strap baseline settles.
 
 _The items below are developer / docs — no user-facing change._
-- **Apple Health fallback for Trends & Sleep (FER-62).** `Repository.refresh` reads the `apple-health`
-  source as a third, lowest-precedence layer in `mergeDaily` (apple < on-device < imported) and tracks
-  the surfaced-from-Apple days in `DashboardData.appleHealthDays` — no `source` column needed on
-  `DailyMetric`. Trends badges the HRV / resting-HR cards whose latest point is Apple-sourced; Sleep
-  synthesizes a fallback `Night` from Apple's stage minutes (proportional bar, no hypnogram,
-  onset–wake hidden) when there's no strap session. `ChartCard` gained an optional `badge` slot.
-  `Repository.mergeDaily` is unit-tested (`RepositoryMergeTests`).
-- **Apple Health baseline prior (FER-60).** `IntelligenceEngine.analyzeRecent` now folds an Apple
-  Health prior (`deviceId: "apple-health"`) UNDER the imported + on-device strap layers when seeding
-  the HRV / resting-HR / respiration baselines — filling only days neither strap source covers (the
-  existing `== nil` precedence idiom, so the strap always wins). The prior is capped to
-  `applePriorMaxNights` (7) so the seeded baseline lands `.provisional`, letting FER-13 confidence
-  shrinkage temper the SDNN(Apple)↔RMSSD(strap) HRV scale gap; the 14-night EWMA converges to the
-  strap as real nights arrive. Pure helpers `applePriorDays` / `foldApplePrior` are unit-tested
-  (`IntelligenceBaselinePriorTests`), and the cold-start contract they rely on is pinned in
-  `ColdStartPriorTests`. Efficiency / skin-temp are not seeded (Apple has no comparable signal here).
 
 - **Confidence shrinkage on thin baselines (FER-13).** Added `Baselines.confidence(nValid:)` — a
   weight that ramps linearly from `confidenceFloor` (0.5) at `minNightsSeed` to 1.0 at
@@ -5098,43 +4264,23 @@ _The items below are developer / docs — no user-facing change._
   defaults (keeping within-process reads/writes working), so the misprovisioning is visible in
   Release logs instead of invisible. (The HealthKit-day-in-UTC and sync-error-to-UI halves of FER-32
   were already fixed earlier in `b5c0e3b` / `c96df55`.)
-- **Imports are cancellable instead of leaking (FER-33).** A WHOOP or Apple Health import ran as a
-  fire-and-forget task: if you left the screen or started another import, the old one kept parsing
-  and writing in the background with no way to stop it. The in-flight import is now retained and
-  cancelled when a new one starts (or via `cancelImport()`), and the importers cooperate — the
-  Apple Health XML parse polls for cancellation and aborts mid-file, and both importers bail before
-  their database writes — so a cancelled import stops promptly and writes nothing further. A
-  cancelled run reports "Import cancelled." rather than a failure.
 - **Tabs build on first visit, not at launch (FER-31).** The iPhone tab bar eagerly constructed all
   of its screens at startup — Today, Trends, Live and Sleep each ran its body and its on-appear data
   load before you'd opened them, widening the launch gap. Each tab is now built the first time it's
   selected and kept alive afterward (so switching back is instant), leaving only the Today screen to
   build at launch. No visible change beyond a faster start.
-- **Integration tests for cross-source workouts + timezone day bucketing (FER-34).** Added
-  `swift test`-runnable coverage for two areas the workout/data pipeline had thin: the storage
-  contract behind the cross-source workout merge (the strap / Apple-Health / on-device-detected
-  buckets coexisting, source-scoped deletes, the trailing window — `WorkoutMergeStoreTests`), and
-  day bucketing across timezone offsets and a daylight-saving switch (`AppleHealthAggregator.localDay`
-  — travellers shouldn't see a day split or merged). The pure merge helpers (source classification,
-  dismissed-span filter, HR-zone roll-up, unit formatting) already have unit tests; the app-layer
-  union glue in `Repository.workoutRows` isn't reachable from CI (the app target has no headless test
-  host — only Xcode), so it's exercised here at the store contract it rests on.
 
 ---
 
-## 1.84 — iOS: safer strap sync (reliability hardening)
+## 1.84 — iOS: reliability hardening
 
 Behind-the-scenes robustness work on the experimental iOS port. No new features and no visible UI
-change — the goal is that a strap sync can't quietly corrupt or lose data. Still fully on-device.
+change — the goal is that a sync can't quietly corrupt or lose data. Still fully on-device.
 
 - **No more double database setup.** If the app tried to prepare its on-device store twice at once
   (e.g. Bluetooth reporting "powered on" more than once at launch), it could build the store and run
   the database migration twice in parallel. Concurrent callers now join a single setup, so the store
   is created exactly once.
-- **History frames can't be reordered or duplicated on a dropped link.** When the strap disconnected
-  mid-sync, the queue that feeds historical frames into the database could be left able to spawn a
-  second, parallel drain — risking out-of-order or duplicated frames, i.e. corrupted history. There
-  is now a single owner for that drain; a disconnect cleanly cancels it instead of racing it.
 - **Live HR widget start is regression-proofed.** The guard that prevents two Live Activity starts on
   close-together heart-rate ticks already reset correctly, but its reset now runs via `defer` so it
   can't be skipped by a future code change — keeping the lock-screen Live HR from getting wedged off
@@ -5145,11 +4291,6 @@ change — the goal is that a strap sync can't quietly corrupt or lose data. Sti
   source. Insights and Compare load their metrics in parallel instead of one after another. The
   numbers shown are unchanged (relationships and overlays still use your full history); the screens
   just stop doing redundant work, so they appear sooner for users with years of data.
-- **Large imports write much faster.** Journal answers, workouts and Apple-Health daily rows were
-  saved one database row at a time — a big WHOOP export or Health backfill meant tens of thousands of
-  separate writes inside a single transaction, which could stall the app mid-import. These now write
-  in batches (the same way metric series already did), so a large import lands in a fraction of the
-  database round-trips.
 
 ## 1.83 — iOS: Today synthesis label no longer clips in Spanish
 
@@ -5164,7 +4305,7 @@ Work on the experimental iOS port. On-device only, no cloud.
 
 ## 1.82 — iOS: more accurate recovery & readiness
 
-Work on the experimental iOS port. Still fully on-device, no cloud. Imported WHOOP scores are left
+Work on the experimental iOS port. Still fully on-device, no cloud. Imported band scores are left
 untouched; the on-device scores re-derive a little more accurately as the engine re-scores recent
 nights.
 
@@ -5177,9 +4318,6 @@ nights.
   spike it is — the injury-risk warning fires when it should.
 - **Recovery and Readiness agree.** Both now read your HRV and resting heart rate off the same
   personal baseline, so the two cards no longer tell different stories about the same night.
-- **Temperature now counts.** An elevated nightly skin temperature — a classic early sign of illness
-  or overreaching — now nudges recovery down and raises a readiness flag, using a signal the strap
-  already captured but the score ignored.
 - **Sleep judged against your own normal.** The sleep part of recovery is measured against your
   personal efficiency baseline instead of a fixed target, so a naturally lighter sleeper isn't
   penalized every night. All five changes fall back gracefully until your baseline has enough nights.
@@ -5188,13 +4326,6 @@ nights.
 
 Work on the experimental iOS port. All on-device, no cloud — nothing here changes that.
 
-- **Spanish (es-MX) localization (new):** the whole app is translated to Mexican Spanish via the
-  String Catalog (`Cenit/Resources/Localizable.xcstrings`), driven by a re-runnable
-  `Tools/translate-es.py`, with its own catalog for the widget. The catch was that many labels were
-  plain Swift `String`s SwiftUI never extracts (metric titles/categories, readiness/behaviour/stress
-  sentences, range pickers, strap-connection states, intelligence notes) — these now go through
-  `String(localized:)` at their literal sites, so they actually localize. Longer Spanish labels were
-  overflowing the Live/Breathe action buttons; those now scale to fit.
 - **Apple Health import — no more OOM crash (fix):** a multi-year Apple Health export is tens of
   millions of `<Record>` elements; the importer used to accumulate every sample in memory (plus a
   dedupe set) and iOS killed the app. Parsing now **aggregates per-day on the fly** (a streaming
@@ -5218,1294 +4349,11 @@ Work on the experimental iOS port. All on-device, no cloud — nothing here chan
   and issued concurrently, and `Repository.ensureStore` memoizes store creation — closing a race
   where concurrent first-callers could open and migrate the database twice. (Wall-clock at launch is
   still gated by SwiftUI scene setup, unchanged here; this removes the redundant data work behind it.)
-- **Apple Health live sync is now reachable (fix):** the two-way HealthKit bridge (read your Health
-  HR/HRV/sleep/SpO₂/steps, write NOOP's strap-derived metrics back) was fully built but had **no UI
-  entry point** — `requestAuthorization()` was never called, so the feature was effectively dead. Data
-  Sources now has an **"Apple Health — Live Sync"** card with a "Connect Apple Health" button that
-  requests permission from an explicit tap (HIG: rationale shown first, never a cold launch prompt),
-  then syncs and shows last-synced / errors. Also: a failed read→store upsert during sync no longer
-  gets swallowed by `try?` while `lastSync` advances — it now surfaces the error and re-attempts the
-  window next time, instead of silently dropping that day's data; a successful sync refreshes the
-  dashboard so the imported days appear immediately.
 - **Build:** explicit shared Xcode schemes in `project.yml`, so `xcodebuild -scheme Cenit` works in
   a clean checkout / CI without opening Xcode first.
 
----
-
-## 1.80 — Journal logging + an Imperial/Metric units toggle
-
-- **New (Mac and Android):** a journal card on Insights — quick yes/no chips for behaviours (caffeine,
-  alcohol, a late meal, screen time, and your own custom questions) so you can see what moves your
-  recovery. Entries stay on-device and are never overwritten by an import.
-- **New (Mac and Android):** an Imperial / Metric units toggle in Settings — distance, weight, height
-  and temperature, with a separate temperature override. Display-only; stored data is unchanged.
-
----
-
-## 1.79 — Manual workouts, edit/dismiss auto-detected ones, and CSV export
-
-- **New (Mac and Android):** add a workout by hand, and edit, re-label, or **dismiss** the ones NOOP
-  auto-detects — so a misread or duplicate bout no longer sticks around with no way to remove it.
-  Dismissals are remembered, so a re-detected session stays hidden.
-- **New (Mac and Android):** export all your data as a WHOOP-format CSV bundle (cycles, sleeps,
-  workouts, journal) from Settings — yours to keep, and it imports straight back into NOOP.
-
----
-
-## 1.78 — Fewer false daytime sleeps + an Android sync button
-
-- **Fixed (Mac and Android):** a long sedentary daytime stretch no longer gets logged as sleep —
-  daytime periods now need a longer, genuinely low-heart-rate window, while nights and real naps stay
-  unchanged.
-- **New (Android):** a manual "Sync now" button on the Live screen + an honest progress indicator
-  while strap history offloads.
-- **Repo:** contributor guidelines, issue/PR templates, a security policy, and build-check CI added.
-
----
-
-## 1.77 — First-run terms acknowledgment + an Explore chart fix
-
-- **New (Mac and Android):** a one-time, plain-English terms acknowledgment on first launch — what
-  NOOP is, that it's independent of WHOOP and that using it may breach WHOOP's Terms of Service, that
-  it's not a medical device, and that you use it at your own risk. You accept once; full terms in
-  `TERMS.md`.
-- **Fixed (Mac):** the Explore metric charts no longer flicker to a straight line when the cursor
-  crosses into or out of the graph.
-
----
-
-## 1.76 — Robust Apple Health import, marginal-radio HR mode, live HR graph
-
-- **Improved (Mac and Android):** a very large Apple Health export no longer fails to import because
-  of a single malformed byte — NOOP skips the bad spans and imports everything else, reporting how
-  many it skipped. Multi-year exports that errored out before should come in fine now.
-- **New (Mac):** if your Bluetooth radio can't sustain WHOOP 4's full realtime stream (older Macs /
-  OpenCore), NOOP now falls back to a low-bandwidth standard heart-rate mode, so live HR keeps working
-  instead of looping on a dropped connection.
-- **Fixed (Mac):** the Health tab's live heart-rate graph now builds a continuous trace over time
-  instead of getting stuck on two points.
-
----
-
-## 1.75 — Personal vital baselines + Mac analytics parity
-
-- **New (Mac and Android):** the Health Monitor now judges each vital — HRV, resting heart rate,
-  respiratory rate, skin temperature — against **your own learned baseline** (after ~14 nights),
-  not just a one-size-fits-all population range. A personal normal that sits outside the textbook
-  band (e.g. a naturally lower HRV) stops reading as "off" when it's fine for you. Falls back to the
-  typical range until your baseline is established.
-- **New (Mac):** macOS now computes steps, respiratory rate, daily calories and nightly skin
-  temperature on-device, matching Android — and nightly respiration now feeds the recovery score on
-  both platforms (existing recoveries unchanged when respiration isn't available).
-
----
-
-## 1.74 — Android reconnect guide + a startup-crash fix
-
-- **Android reconnect guide (parity with Mac 1.73):** if your WHOOP 5.0 / MG can't connect after a
-  firmware update (a Bluetooth pairing reset), NOOP now detects it and shows the forget-and-re-pair
-  steps right in the app, instead of silently retrying.
-- **Fixed (Android):** a rare startup crash on some fast devices (e.g. Galaxy S24+) — the app could
-  crash once on launch when a strap was already connected, then open fine on the second try. Mac was
-  never affected.
-
----
-
-## 1.73 — Reconnect help for WHOOP 5.0 / MG after a firmware update
-
-- **If your WHOOP 5.0 / MG stopped connecting after a WHOOP firmware update**, that's a Bluetooth
-  pairing reset — not a lockout, and NOOP works fine on the new firmware. To reconnect: quit the
-  official WHOOP app, forget the strap in your Bluetooth settings, put it in pairing mode (tap the
-  band until the LEDs flash blue), then reconnect. On Mac, NOOP now detects this automatically and
-  shows you these exact steps in-app instead of silently retrying. WHOOP 4.0 is unaffected.
-
----
-
-## 1.72 — GPS workout crash fix (Android)
-
-- **Fixed (Android):** starting a GPS-tracked workout could crash the app on Android 12 and newer.
-  GPS needs location permission, which NOOP never requested — and it was capped to older Android
-  versions — so route tracking failed the instant it began. NOOP now asks for location permission
-  right before a GPS workout and fails safe if it's unavailable: the workout still records heart rate
-  and strain, just without a route. If you don't use GPS workouts, nothing changes. (Mac: version
-  bump only.)
-
----
-
-## 1.71 — GPS-tracked workouts (Android)
-
-A community-requested feature, built on the v1.67 manual workout tracking.
-
-- **Pick a sport on start.** Tapping "Start workout" opens a searchable picker (the Health Connect
-  exercise-type catalogue, ~21 sports) + a "Track GPS route" toggle that defaults on for distance sports.
-- **GPS route / distance / pace** via the platform `LocationManager` (no Google Play Services dependency).
-  Live distance + pace show on the workout card; accuracy/teleport filtering via a pure `TrackFilter`.
-- **Offline route drawing** — the route is stored as an encoded polyline (`WorkoutRow.routePolyline`,
-  Room migration 3→4) and drawn on a blank Compose `Canvas` (`RouteCanvas`) — **no map tiles fetched.**
-- **Health Connect writeback** — an `ExerciseSession` (+ `DistanceRecord`) on save, opt-in under Data
-  Sources (unions `EXERCISE_PERMISSIONS` into the writeback request; non-fatal if not granted).
-- New: `RouteMath` (Haversine/pace/polyline/normalize), `WorkoutSport`/`ExerciseTypes`, `LocationTracker`,
-  `RouteCanvas`; `WhoopConnectionService` gains the `location` foreground-service type. Mac: version bump only.
-- *Follow-ups:* per-session route on the Workouts screen; screen-off background tracking (dynamic FGS type).
-
-## 1.70 — Clearer sync status + responsive Compare (#91, #93)
-
-- **Android: sync is now visibly in progress.** The Live screen shows a plain "Syncing your strap
-  history…" line while the strap offloads, instead of only a brief "· syncing" pill suffix that was easy
-  to miss (#91, #93). `LiveScreen.kt`. Mac already surfaced this.
-- **macOS: responsive Compare controls.** The time-range pills + Add menu now stack (`ViewThatFits`)
-  instead of overflowing on a narrow window — ported from the iOS port's fix. `CompareView.swift`.
-
-## 1.69 — Cleaner Live status + sync diagnostics (#91, #92)
-
-- **Fixed (Mac + Android): "Last Event" no longer leaks plumbing.** The Live status field was showing
-  the raw internal event `BLE_REALTIME_HR_ON` (truncated to "BLE_REALTIME_…") whenever live HR started
-  — confusing (#92). Both platforms now skip the `BLE_REALTIME_HR_ON/OFF` stream toggle in that field;
-  every meaningful event (wrist on/off, double-tap, battery, bonded…) still shows. Swift `FrameRouter`
-  EVENT case + Android `WhoopBleClient` non-gesture branch.
-- **Diagnostics (Mac + Android): dump rejected-frame hex.** Building on the v1.65 "decoded to 0 rows"
-  WARNING — when a history chunk has frames that all fail to decode (CRC / unmapped firmware layout /
-  out-of-range timestamp), the Backfiller now logs a hex sample of the first 3 rejected frames (≤64 B
-  each). #91 is the first confirmed in-the-wild case (Moto Razr fold, WHOOP 4, layout the v1.66 fallback
-  didn't catch) — the count alone can't be decoded, but the bytes let us map the firmware's layout.
-  `Backfiller.swift` + `Backfiller.kt` at the WARNING site.
-- **Docs:** corrected the stale "macOS AI Coach is sandbox-blocked" claim in README + PRIVACY_SECURITY —
-  the distributed macOS build is unsandboxed, so the opt-in Coach works on both platforms.
-
-## 1.68 — Sleep figures, HR zones, charging, calibration (thanks iHateSubscriptions, #88)
-
-A large community contribution (#88), reviewed hard and reimplemented as our own commit onto v1.67.
-Eleven small features from a gap analysis against the official app; adopted on both platforms after a
-full build-verify (Android suite green, both Swift packages + the macOS app target compile).
-
-- **Imported per-workout HR zones** (Mac + Android): a new "HR Zones" card on Workouts — time-in-zone
-  for imported sessions, duration-weighted aggregate labelled approximate. Both parsers tolerate both
-  stored key shapes (`z1..z5` Mac / `zone1..zone5` Android).
-- **Charging indicator** (Mac + Android): the already-decoded BATTERY_LEVEL charging bit surfaced as a
-  "· Charging" suffix on the battery pill; freshness-gated on Android, cleared on disconnect.
-- **Prefer imported WHOOP sleep figures** (Mac + Android) on the headline tiles
-  (`sleep_performance`/`sleep_consistency`/`sleep_need_min`/`sleep_debt_min`), with the on-device
-  APPROXIMATE recompute as fallback. Android premise fix: `parseCycleSeries` now lands those four keys
-  as `metricSeries` rows the Explore/Compare UI already referenced but nothing wrote.
-- **Real hypnogram** (Android): the Sleep hero renders the stager's persisted per-epoch segments.
-- **Recovery cold-start "Calibrating — N of 4 nights"** (Mac): Today ring + synthesis card; retires the
-  misleading "0 DEPLETED" empty ring. Pure helper in `StrandAnalytics` (7 Android oracle cases ported).
-- **Sync-status surfacing** (Mac): "History synced N ago" / stall warning in Today › Data Sources + the
-  menu-bar popover; `relativeAgo` mirrored value-for-value with the Android twin.
-- **Illness early-warning notification** (Mac): the opt-in toggle now posts a real system notification on
-  the clear→raised transition, once per local day (Android already did). Fixed a double-`requestAuthorization`
-  + day-key-set-inside-the-grant-callback bug found in review, so the once-per-day limit holds even if
-  notifications were declined.
-- **5/MG firmware alarm** (Mac): byte-identical to the hardware-confirmed Android rev-4 golden frame.
-  **Experimental on WHOOP 5/MG** — arming is ACKed on hardware, a strap-driven wake-fire has not been
-  captured yet; the smart-alarm card now says so. WHOOP 4 path byte-for-byte unchanged.
-- **Cleanup**: removed the dead "light-sleep window" stepper (stored but never read — no wake-window
-  watcher exists) and `Tools/translate-de.py` now pins UTF-8 (a Windows run had mojibaked the umlauts).
-- **Kept the macOS AI Coach.** The contribution proposed removing it for an "offline by construction" Mac;
-  we kept it instead — it's opt-in, bring-your-own-key, and works in the distributed (unsandboxed) build,
-  so removing a working feature wasn't the right call. Privacy docs already describe it as the one
-  transparent opt-in network exception. Gemini provider support (#89) is on the list, on both platforms.
-
-## 1.67 — Manual workout tracking (Mac + Android)
-
-- **New feature: start/stop a workout yourself** (top Reddit request). A "Start workout" button on the
-  Live screen (shown when a strap is streaming) opens a live card — elapsed clock, current HR, avg,
-  peak, and **strain building in real time** — with an "End workout" button.
-- **Built entirely on existing primitives** (no new storage/analysis): captures the smoothed live `bpm`
-  into a buffer, scores the window via `StrainScorer.strain(hr:maxHR:sex:)`, and saves a `WorkoutRow`
-  (`sport:"Workout"`, `source:"manual"`) via the existing `upsertWorkouts` path — so it appears in the
-  Workouts view automatically. Not a double-count: the day's strain already counts that HR (same live
-  stream the store persists); the row is a per-session annotation.
-- macOS: `AppModel.startWorkout/endWorkout/captureWorkoutSample` (hooked into `ingestHR`) +
-  `LiveView.workoutSection`. Android: the mirror on `AppViewModel` + `LiveScreen`. Single buzz on
-  start, double on save; a too-short session (no HR captured) is discarded quietly.
-
-## 1.66 — Android: WHOOP 4 unmapped-firmware fallback — the #77 fix
-
-- **Root cause (found via the Goose-PR mining + a cross-platform audit): a real macOS-only fix that
-  never reached Android.** macOS `PostHooks "historical_data"` falls back to the canonical **v24
-  layout** for an unmapped firmware version and accepts it only if it decodes to physically-real data
-  (|gravity|≈1g + plausible HR) — the issue-#30 fix. Android's `HistoricalStreams.decodeHistorical`
-  did `histVersionLayout(version) ?: return null` with **no fallback**, so a WHOOP 4 reporting a
-  layout version outside {5,7,9,12,24} had **every type-47 record dropped** → the offload "completed"
-  (`HISTORY_COMPLETE`), the trim advanced, and **zero data persisted**. Exact match for the #77
-  Samsung S23+/Android-16 symptom (sync runs, nothing shows).
-- **Fix:** ported the macOS fallback to Android `decodeHistorical` — unmapped version → decode against
-  HIST_V24 → keep ONLY if `|gravity| ∈ 0.8..1.2` and `hr ∈ 25..230`, else drop (same as before, never
-  garbage). **Strictly dominant:** recovers data the gate proves real, mapped versions untouched, no
-  scenario makes any user worse off. Pinned by `HistoricalFallbackTest` (3 cases: mapped still decodes;
-  unmapped+real falls back; unmapped+garbage still rejected).
-- macOS: **version bump only** (already had it via #30).
-
-## 1.65 — Sync diagnostics: surface silently-dropped history (#77)
-
-- **Observability only — no behaviour change.** `Backfiller.finishChunk` now logs when a chunk arrives
-  with frames but `extractHistoricalStreams` returns **zero rows** — i.e. every type-47 frame was
-  dropped (CRC fail / unmapped layout / out-of-range timestamp). Previously this acked the trim and
-  advanced the cursor while persisting nothing, so a "zero data" strap log showed only healthy
-  `acked chunk` lines and the silent loss was **invisible**. Now: `WARNING N frame(s) decoded to 0 rows
-  (trim=X) — dropped (CRC/layout/timestamp); nothing persisted`.
-- Wired both platforms: Android via a new `log` callback on `Backfiller`; macOS reuses the existing
-  `Backfiller.log` sink (which already logs unmapped firmware *versions* — this adds the **aggregate**
-  CRC-drop case). Added `Streams.isEmpty` (Swift) mirroring Android `StreamBatch.isEmpty`.
-- **Deliberately NOT changed:** the ack/trim behaviour. Refusing to ack an all-dropped chunk would
-  wedge the offload in a re-send loop if frames fail CRC systematically — that fix needs a confirmed
-  root cause first (a Samsung S23+/Android-16 reporter on #77 is the live case). This release exists to
-  make that root cause diagnosable from a user's strap log.
-
-## 1.64 — Android: MTU 247, skin-temp, sync status, recovery UI, alarm groundwork (thanks iHateSubscriptions, #85)
-
-Reimplemented (NoopApp-authored, per our external-contribution policy) from PR #85, rebased on v1.62.
-Reviewed part-by-part against current main + the objectivity discipline. **Adopted 4, modified 1, held 1.**
-
-- **MTU 247 (adopt):** negotiate a larger ATT MTU on connect *before* service discovery — the default
-  23 caps notifications at 20 bytes and fragments the type-47 offload. Gated discovery on
-  `onMtuChanged` with a fallback timeout (a stack that ignores `requestMtu` can't stall connect); the
-  once-only discovery kick is an `AtomicBoolean.compareAndSet` (API 26/27 deliver these callbacks on
-  binder-pool threads, so the timeout and `onMtuChanged` race).
-- **Sync status (adopt):** `lastSyncAt`/`lastSyncError` on `LiveState`, stamped in `exitBackfilling`
-  by reason (`HISTORY_COMPLETE` → "History synced N ago"; `timeout` → a non-silent stalled-sync note).
-  Pure `relativeAgo` helper + tests. Honest sync truth for a cloud-free app.
-- **Skin-temp deviation, offline (adopt):** `AnalyticsEngine.wornNightlySkinTempC` (wear-gated —
-  HR-concurrent, in-bed only, 28–42 °C so on-charger ambient drift can't poison the mean) feeds a
-  two-pass personal baseline in `IntelligenceEngine` (mirrors avgHrv→recovery), re-deriving
-  `skinTempDevC` — which re-arms the illness skin-temp signal. `/100` scale, APPROXIMATE.
-- **Recovery cold-start UI (adopt):** `recoveryCalibrationNights` (counts nights with in-bounds HRV,
-  matching `Baselines.update`'s validity predicate) → "Calibrating — N of 4 nights" on the ring,
-  header and tile instead of a bare "No Data."
-- **Named maverick buzz refactor (HELD):** **review catch** — the PR's `notificationBuzz(loops=1)`
-  sets the `overallLoop` byte to 1, but our shipped golden frame
-  (`…0113012f98…00…`, harshavin hardware-confirmed) has it **0**. The buzz already works; changing a
-  proven payload for a refactor is regression risk for zero user value. Kept our inline buzz.
-- **5/MG firmware alarm (MODIFIED — experimental-gated):** adopted `AlarmPayload` (`SET_ALARM_TIME`
-  rev4 + `DISABLE_ALARM` rev2) + byte-exact tests, and wired `armStrapAlarm`/`disableStrapAlarm` for
-  5/MG. But the rev4 layout is **unconfirmed on our side** (no captured `STRAP_DRIVEN_ALARM_EXECUTED`)
-  and our own notes deferred it — so arming is **gated behind the Experimental probes opt-in**, not
-  the plain smart-alarm toggle: a normal user can never rely on an alarm that might silently not fire,
-  while opted-in testers can verify it. (`SET_ALARM_TIME`/`DISABLE_ALARM` added to the 5/MG allowlist.)
-- macOS: **version bump only.**
-
-## 1.63 — Mac: strap-computed nights show in Sleep (#77)
-
-- **Fixed (macOS): BLE-computed nights vanished from the Sleep tab** (found from RolandGao's #77
-  question "why is last night's analysis in Intelligence instead of Sleep?"). Root cause: TWO
-  `stagesJSON` formats exist — imported nights store a **dict of minutes** (`{"light":N,…}`), while
-  on-device computed nights store a **segment array** (`AnalyticsEngine.encodeStages` →
-  `[{start,end,stage}]`). `SleepView.decodeStages` only parsed the dict, and `latestNight` returned
-  nil on failure → **the whole "last night" hero disappeared for Bluetooth-only users** while
-  Intelligence (reading DailyMetric) showed the night fine. Fix: `decodeSegments` parses the array
-  (mapping the stager's "wake"→awake), and `Night.realSegments` feeds the hypnogram the GENUINE
-  timeline for computed nights — strictly better than the synthetic "plausible architecture"
-  reconstruction imported nights still get (the export has no per-epoch timeline).
-- Android already handled both shapes (`SleepScreen.kt` tries JSONObject then JSONArray) — **version
-  bump only.**
-
-## 1.62 — WHOOP 5/MG history: the missing clock (thanks tajchert, #78)
-
-Reimplemented (per our external-contribution policy) from **tajchert's hardware-validated fork branch**
-(`whoop5-android-history-sync`), reviewed by a 29-agent adversarial workflow against our v1.61: 25
-recommendations verified → 9 adopted, 26 already-superseded, 1 rejected (his CCCD reordering would have
-killed standard-0x2A37 live HR).
-
-- **THE unblock — clock before history (Mac + Android):** an un-clocked WHOOP 5 does NOT save sensor
-  data to flash (firmware console: "RTC timestamp … is invalid; not saving data to flash"), so offloads
-  "succeeded" with metadata only. NOOP now sends SET_CLOCK/GET_CLOCK (WHOOP4's 8-byte payload over
-  puffin framing — strap-acked on hardware) after the puffin CCCD drain, before SEND_HISTORICAL_DATA.
-  His hardware: 0 → 246 HISTORICAL_DATA frames. Android relocates the post-bond kick to the CCCD-drain
-  completion; macOS clocks inside the once-per-connection `whoop5SessionStarted` gate.
-- **GET_DATA_RANGE gating, fail-OPEN (Android):** query the stored range first, fire the transfer on
-  SUCCESS (result codes 0–3 now decoded; PENDING precedes SUCCESS), 2s fallback because real hardware
-  sometimes swallows the first query; one zero-frame retry per connection. Family-aware response offset
-  (cmd@10 on 5/MG vs @6 — `strapNewestTs` never updated from 5/MG replies before).
-- **5/MG decoders (Android parity + new):** COMMAND_RESPONSE (resp_cmd@10/seq@11/result@12),
-  EVENT (+4, payload preserved as hex; BATTERY_LEVEL fields mirrored from Swift), CONSOLE_LOGS
-  (UTF-8 @21, 2KB cap) — the strap's console now lands in the strap log ("strap: BLE: PullStats…").
-- **Opt-in 5/MG raw capture (Android, default OFF):** `BackfillCaptureJsonl/Summary` (adopted verbatim —
-  pure, tested) + append/rotate writer (40k lines/10MB; his truncate-per-session lost overnight data) +
-  Settings toggle + consent-headed share sheet. This is the crowdsourcing pipeline for the puffin
-  biometric decode (his captures show bulk type-54 = PUFFIN_EVENTS_FROM_STRAP per our PROTOCOL.md, still
-  unclassified payload-wise).
-- **Post-commit scoring (Android):** a committed backfill chunk schedules a debounced (1.5s)
-  `IntelligenceEngine.analyzeRecent` + HC-writeback — fresh history scores in seconds, and scores at all
-  in background-only operation (the 15-min loop lives in the Activity-scoped ViewModel).
-- **Direct-connect to the OS-bonded 5/MG (Android):** skips the scan (hardware showed first protected
-  GATT op failing status=133 on scan-reconnects); stale bonds fall back to a scan via handleDisconnect.
-- **isOffloadFrame accepts type 52** (HISTORICAL_IMU_DATA_STREAM) for 5/MG. His EVENT/CONSOLE_LOGS
-  progress-counting *removal* is NOT adopted — needs hardware validation (watchdog semantics).
-- **Tests:** 4 real-hardware vectors (CRC-pinned Goose command frames, event 0x1D, console text,
-  ACK-capture v18 frame: HR 66 / skin 32.38°C / |g|≈1) + capture encoder/summary suites — all green.
-- Model selection now survives restarts even with background connection off.
-
-## 1.61 — Android: the widget now actually updates (#82, second find)
-
-- **Fixed: widget starvation under live HR.** The reporter's follow-up symptoms (live HR fine in-app,
-  widget frozen at "♥ —"/"⚡ —" with "Connected" underneath, surviving re-adds and reboots, on a Pixel)
-  pinned a textbook coroutine bug: the service collected the notification/widget stream with
-  **`collectLatest`, whose body is cancelled on every new emission** — and `WidgetSnapshotStore.push()`
-  suspends in Glance machinery (`getGlanceIds` + `updateAll`) longer than the ~1 s live-HR emission
-  interval. Once streaming started, **every push was cancelled mid-flight, forever**; only the sparse
-  post-connect pushes (connected=true, HR/battery not yet present) ever completed — exactly what the
-  widget showed. Compounding it, the throttle marked `lastPushAtMs` BEFORE the write, so each doomed
-  attempt also burned the 60 s refresh window. The notification was immune (synchronous post).
-- **Fix:** `conflate()` + `collect` (process the latest value, never cancel in-flight) + throttle
-  decision extracted to a pure `PushGate` (mark **after** save; save **before** the placed-widget
-  check so a widget added later renders fresh data; **HR-presence joins the key** so the first sample
-  pushes immediately instead of waiting out the window). Regression-pinned by `PushGateTests` (7 tests).
-- macOS: **version bump only.**
-
-## 1.60 — Android: notification recovery fix + widget armour (#82)
-
-- **Fixed: the v1.56 notification Recovery %** — `buildNotification` accepted the value but the
-  display line was never added, so it computed and silently dropped it. Now rendered ("Recovery NN%"
-  between status and battery).
-- **#82 ("app keeps stopping" after first widget add, v1.57) — investigated to the metal, NOT
-  reproducible:** 10-agent adversarial workflow decompiled Glance 1.1.0's full exception flow
-  (receiver `goAsync` catches Throwable→log; SessionWorker exceptions → WorkManager FAILED;
-  composition errors → built-in error layout, default `errorUiLayout` is non-zero so the rumored
-  rethrow path is unreachable) — **the Glance pipeline cannot kill the process**. Stood up a headless
-  Pixel-6/Android-14 emulator and ran 12 scenarios on v1.59 **plus the exact repro on a fresh v1.57
-  install** (real launcher drag-and-drop first-ever widget add → repeated app returns): zero crashes,
-  stable PID. Verdict: environment-specific to the reporter's device, self-resolved after update;
-  no behavioral change justified (objectivity rule).
-- **Defence-in-depth shipped anyway** (belt-and-braces, honestly labelled): `.catch{}` on the
-  service's notification combine (a Room error in `daysMergedFlow` WOULD have propagated uncaught out
-  of `scope.launch` — real latent risk, just not #82), `onCompositionError` override rendering our own
-  fallback layout (friendlier than Glance's generic one), `runCatching` around the widget's pref load.
-- **Dependency currency:** `glance-appwidget` 1.1.0→**1.1.1**; explicit
-  `androidx.work:work-runtime-ktx:2.9.0` pin (Glance's POM drags in 2.7.1 from Oct 2021 — pre-Android-14;
-  2.9.x is the compileSdk-34 ceiling).
-- macOS: **version bump only.**
-
-## 1.59 — Android: share back to Health Connect (opt-in)
-
-- **New (Android): Health Connect writeback** — new `HealthConnectWriter` pushes NOOP's **computed**
-  nightly metrics (resting HR, HRV RMSSD, SpO₂, respiratory rate; last 60 days) into Health Connect.
-  Two deliberate scope limits: **computed days only** (`repo.days(computedDeviceId)` — imported
-  WHOOP-export/HC rows are never echoed back, which would duplicate another app's data or loop our own
-  import), and **idempotent by `clientRecordId`** (`noop-<metric>-<day>` + write-time
-  `clientRecordVersion`, because HC does NOT auto-dedupe re-inserts the way HealthKit does — the
-  latest computation always wins, no stacking). Four `WRITE_*` permissions added to the manifest,
-  requested only when the user opts in; denial flips the toggle back off. **Default OFF** — "Share
-  back to Health Connect" toggle in Data Sources; while on, every 15-min recompute re-writes
-  (runCatching-guarded so an HC hiccup never breaks the analysis loop).
-- macOS: **version bump only.**
-
-## 1.58 — Android: bottom tab bar
-
-- **New (Android): bottom `NavigationBar`** — Today / Trends / Live / Sleep as permanent tabs, plus a
-  **More** tab opening a `ModalBottomSheet` that renders the *same* `drawerGroups` the hamburger drawer
-  shows (verbatim — one source of truth, both routes reach every screen). The drawer is kept untouched
-  for reversibility; the bar is purely additive. The More tab lights up whenever the current screen
-  isn't one of the four tabs, so the bar never shows "nowhere". All navigation through the existing
-  `navigateTopLevel` (single-top + state save/restore — back behaves the same).
-- macOS: **version bump only.**
-
-## 1.57 — Android home-screen widget
-
-- **New (Android): home-screen widget** — today's recovery (band-coloured 67/34), live HR and strap
-  battery, tap-to-open. New `com.noop.widget` package on Glance (`glance-appwidget:1.1.0`, the last
-  line compatible with compileSdk 34): `NoopGlanceWidget` renders purely from a SharedPreferences
-  snapshot (no BLE/DB at compose time, survives process death), `WidgetSnapshotStore.push()` throttles
-  (meaningful-change immediate, HR at most 1/min — Glance re-inflation is far heavier than a notify())
-  and no-ops when no widget is placed. Two producers: `WhoopConnectionService`'s v1.56 combine (the
-  heartbeat while the UI is closed) and `AppViewModel.recentDays` (foreground with the service off).
-  `updatePeriodMillis=0` — push-only, the OS never polls. Receiver `exported="true"` as the launcher
-  requires.
-- macOS: **version bump only.**
-
-## 1.56 — Shortcuts on Mac, recovery in the Android notification
-
-- **New (macOS): App Intents / Shortcuts actions — "Buzz Strap" and "Mark a Moment."** New
-  `Cenit/System/NOOPAppIntents.swift` exposes both as `AppIntent`s with an `AppShortcutsProvider`, so
-  they're available from Shortcuts.app, Spotlight, and menu-bar/keyboard triggers without opening the
-  window. They reach the live bonded strap via a new `static weak var AppModel.shared` (published in
-  `AppModel.init`) — constructing a fresh `AppModel` from an intent would spin up a second BLEManager +
-  analysis loop and could never buzz. Guarded: a fired intent with NOOP closed throws "open NOOP first";
-  with the strap unbonded, "connect your strap." macOS 13+, **no new entitlement or Info.plist key**.
-  The inbound counterpart to the existing outbound double-tap→Shortcut path (#42 idea-mining).
-- **New (Android): today's recovery % in the foreground-service notification.**
-  `WhoopConnectionService` now `combine`s `ble.state` with `repo.daysMergedFlow("my-whoop")` and appends
-  "Recovery NN%" to the ongoing notification's detail line (alongside live HR + strap battery). It
-  re-posts when the 15-min `IntelligenceEngine` recompute lands, and stays absent until enough nights
-  are scored. `runCatching`-guarded; near-zero blast radius (notification copy only).
-
-## 1.55 — Mac: recovery builds from your strap alone (#78)
-
-- **New (macOS): BLE-only recovery cold-start — parity with Android v1.53.** `IntelligenceEngine.swift`
-  now runs **two passes** (harvest each offloaded night's baseline-independent avgHrv/restingHr, seed
-  the baseline from the union of imported + on-device nightly values, re-score recovery). So a
-  Bluetooth-only Mac user crosses `Baselines.minNightsSeed` (4 nights) and recovery lights up without a
-  WHOOP import; honest-null until then; imported values still win per day (only-if-absent fill).
-- **macOS: WHOOP5 `step_motion_counter` now persists** (`StepSample` in WhoopProtocol Streams + routed in
-  `extractHistoricalStreams` + WhoopStore **v10 migration** — additive, no destructive fallback). Decoded
-  but previously dropped on Mac. Surfaced later; still APPROXIMATE. `StepSampleTests` pins the round-trip.
-- **Deferred (objectively): the skin-temp `/100` vs `/128` scale.** Both platforms store the **raw**
-  register and both real frames sit in the *overlap* of the two gate bands, so it's a **latent**
-  divergence, not a bug — and the obvious unification (`/128`, 20–45) would reject the off-wrist frame
-  and break the wrist-contact parity test. Left as-is pending a real calibration decision.
-- Android: **version bump only** — it already had recovery seeding and step persistence (v1.53).
-
-## 1.54 — French WHOOP exports now import (#79)
-
-- **Fixed: a French WHOOP export imported 0 items.** Third localisation after German (#3) and Spanish
-  (#76). A French export translates **both** the column headers (`Score de récupération %`,
-  `Variabilité de la fréquence cardiaque (ms)`, `Durée du sommeil paradoxal (min)`, …) **and** the
-  sleep/workout filenames (`sommeil.csv`, `entrainements.csv`) — so nothing matched.
-- NOOP now maps the **full** French column set, including the complete **workouts** file (HR zones,
-  activity name/strain) — the reporter supplied all three header rows, so French is more complete than
-  Spanish out of the gate. Two French quirks handled by the normaliser (both fold to `_`): the
-  apostrophe in `Niveau d'oxygène` / `Temps d'éveil` (straight `'` **and** curly `’`), and the
-  **non-breaking space** before `%` in the `Zone FC 1 %` workout headers. `physiological_cycles.csv`
-  keeps its English filename but French columns; both handled. Mac + Android. Real-header parse +
-  normalisation tests pin it (incl. the apostrophe + NBSP cases); verified with `swift test`.
-
-## 1.53 — Recovery builds from your strap alone, Android (#78)
-
-- **New (Android): BLE-only recovery cold-start.** The recovery baseline only ever seeded from
-  *imported* nightly history, so a Bluetooth-only user (no WHOOP CSV) never crossed
-  `Baselines.minNightsSeed` (4 valid nights) and recovery stayed blank forever — even with offloaded
-  nights sitting in the store. `IntelligenceEngine` now runs **two passes**: pass 1 computes each
-  offloaded night's baseline-*independent* aggregates (avgHrv / restingHr via SleepStager+AnalyticsEngine),
-  pass 2 seeds the baseline from the **union of imported + on-device nightly values** and re-scores only
-  the cheap recovery composite. So recovery lights up from the strap's own nights after ~4 nights; it
-  stays honestly null until then; a real import still wins per day. The natural payoff of v1.52's offload.
-- **Under the hood (landed dark — computed/stored, not yet surfaced, pending hardware validation):**
-  - `stepSample` table + `dailyMetric.steps` / `activeKcalEst` columns via a **real additive Room
-    migration** (`MIGRATION_2_3`). **The `.fallbackToDestructiveMigration()` is removed** — with
-    `exportSchema=false` a hand-written-SQL mismatch would otherwise *silently wipe* already-acked,
-    non-resendable strap history; now Room throws loudly instead. The migration SQL was **verified
-    byte-for-byte against Room's generated schema** before shipping.
-  - The WHOOP5 `step_motion_counter@57` (decoded but previously dropped) now persists; `AnalyticsEngine`
-    derives a daily step total + an APPROXIMATE whole-day HR→energy estimate; detected workouts persist
-    under the `-noop` id (deduped against imported workouts). All clearly APPROXIMATE; **the steps tile
-    stays dark** until @57's semantics are validated against the official app.
-  - **Fixed a respiratory-rate band mismatch:** `SleepStager.respRateFromRR` could emit 6–8 bpm, but every
-    consumer (`ReadinessEngine` illness/readiness) only acts on 8–25 — so a sub-8 estimate was
-    persisted-then-silently-ignored. The band is now a single canonical source (`respPlausibleRangeBpm`,
-    owned by the producer, referenced by the consumer); RSA NaNs anything outside it before persisting.
-  - Conservative resp gates (size ≥ 10, raised z-thresholds, 2+ flags to fire) so the noisier on-device
-    RSA can't trip false illness/readiness flags.
-- Reimplemented onto current main from community PR #78 (credited), with the migration-safety + RSA-band
-  fixes applied. v1.48–1.52 work untouched.
-- macOS: **version bump only** — it has the same single-pass-baseline gap; recovery-seeding parity is a
-  tracked follow-up.
-
-## 1.52 — WHOOP 5.0/MG history offload, Android (#78)
-
-- **New (Android, experimental): WHOOP 5.0/MG historical offload** — Android reaches parity with the
-  Mac, which already had this. A 5/MG can now download its stored history (not just stream live HR),
-  which is what feeds recovery / strain / sleep.
-- **The fix that made it actually work.** The 5/MG "puffin" envelope shifts the inner record **+4** vs
-  4.0, and its HISTORY_END/COMPLETE marker is **`PUFFIN_METADATA` (type 56)**, not 49. Android's
-  offload-frame check read `frame[4]` with `{47,48,49,50}` — so on a real strap **every** history-closing
-  frame was dropped as live-flood, no chunk ever committed, the strap never trimmed, and the offload
-  idle-watchdog timed out: zero history. NOOP now reads the type at `frame[8]` for 5/MG and accepts
-  `{47,48,49,50,56}` — matching the hardware-proven Swift path (`BLEManager.isOffloadFrame`,
-  `BLEManager.swift:500`). Ported pieces: family-aware `isOffloadFrame`, `decodeMetadataWhoop5`
-  (meta_type@10 / unix@11 / trim_cursor@21), `Backfiller.begin(family)` + `endData` (+4 → `frame[21:29]`),
-  the 5/MG `send()` allow-list (`SEND_HISTORICAL_DATA` + `HISTORICAL_DATA_RESULT`, framed as puffin
-  commands), and the 5/MG post-bond offload kick (the CLIENT_HELLO ack now marks the handshake done,
-  which gates the offload). A new `Whoop5OffloadTest` pins the type-56 case the original PR's tests missed.
-- **Experimental — please verify on a real strap.** The offsets are cross-confirmed (Swift + Linux tool +
-  the hardware-anchored +4), but no captured 5/MG HISTORY_END frame exists in-repo, so 5.0/MG owners:
-  please report whether your history actually populates end-to-end. Reimplemented from a community
-  contribution (#78), credited; the v1.48–1.51 reliability work (write queue, resubscribe, sync pill,
-  family-gated battery) is untouched.
-- macOS: **version bump only** — its 5/MG offload path was already complete and hardware-verified.
-
-## 1.51 — True battery %, a sync indicator, and HR on imported workouts (#77)
-
-- **Fixed: battery flashing 100% then correcting (or reverting to 100%).** The WHOOP 4.0 exposes the
-  standard Battery Level characteristic (0x2A19) but it's a **stub that always reports 100** — the real
-  charge only comes from the proprietary `GET_BATTERY_LEVEL` response (u16/10). NOOP read **both** into
-  the same display with no priority, so 0x2A19 landed first (100%) and the real value corrected it a
-  beat later — and since 0x2A19 is also *subscribed*, a stray stub notification could revert a true 94%
-  back to 100%. Battery now comes **only from the real source per family**: WHOOP 4 = the proprietary
-  command; 5.0/MG = 0x2A19 (unchanged — its proprietary command isn't framed). On macOS this also stops
-  the stub 100 polluting the low-battery alert hook. Mac + Android.
-- **New: "Syncing strap history…" indicator** (Mac + Android). While a historical offload runs, Today /
-  Sleep / Intelligence's empty states show a pulsing pill with a live **chunks-pulled count** (a count,
-  never a percent — total pending is unknowable from the protocol), so "No nights here yet" mid-sync
-  reads as in-progress rather than final. The Live pill shows **"Bonded · syncing"**. `LiveState` now
-  publishes `backfilling` + `syncChunksThisSession` (Android republishes every 10th chunk so the
-  foreground-service notification isn't re-posted at chunk rate); cleared on session end AND on
-  disconnect so the pill can't stick on.
-- **Fixed (Android): imported workouts showed no HR.** Health Connect `ExerciseSessionRecord`s carry no
-  summary HR, so the importer stored `avgHr/maxHr = null` and the Workouts list rendered "–" forever.
-  Two-part fix: (a) the **importer** now intersects each session's window with its `HeartRateRecord`
-  samples (targeted per-session reads, one bad session can't fail the import) and stores real avg/max;
-  (b) **display fallback** — Workouts/Today fill a null-HR imported session from the strap's own ~1 Hz
-  samples over the workout window (new indexed `hrWindowStats` aggregate; ≥60 samples required so strays
-  can't fabricate an average; display-only so a re-import can't be clobbered; capped per load). Demo
-  flavor unaffected (its seeded workouts always carry HR).
-
-- **Fixed (Android): sustained command-write congestion on slow GATT stacks.** A Pixel 7 on Android 16
-  logged ~56 `writeCharacteristic busy` retries **and 6 hard `dropped after 6 retries`** in ten minutes
-  (v1.48). Two changes:
-  - **Bigger, escalating write-retry budget** — `MAX_WRITE_RETRIES` 6 → 12, and the backoff now grows
-    per attempt (12, 24, … capped ~96ms) so a stack that's busy for a while gets time to clear instead
-    of exhausting the budget in ~70ms. Nothing hard-drops.
-  - **Re-subscribe at most once per quiet episode.** The keep-alive re-subscribed all notify chars on
-    every 30s tick while the stream was quiet, flooding descriptor writes that collide with the command
-    queue (Android serves **one** GATT op at a time across reads/writes/descriptors). It now re-subscribes
-    once per quiet spell and re-arms when data next arrives — a dropped CCCD is still recovered, the churn
-    is gone.
-- Context (from #77): the "no overnight scores" reports are usually an **empty strap buffer** — the
-  official WHOOP app, bonded overnight, trims the strap's history as it syncs, so NOOP finds little to
-  offload. The reliable history path is the WHOOP CSV import. This release fixes the *separate* congestion
-  bug those logs surfaced.
-- macOS: **version bump only** (CoreBluetooth queues GATT ops internally).
-
-- **Fixed: a Spanish WHOOP export imported 0 items.** WHOOP's Spanish export translates **both** the
-  column headers (`Puntuación de recuperación (%)`, `Variabilidad de la frecuencia cardíaca (ms)`, …)
-  **and** some filenames (`sueño.csv`, `entrenamientos.csv`) — so the filename match missed the sleep/
-  workout files and the column match missed every translated header, giving "Imported 0 items."
-- NOOP now maps the full set of Spanish column headers (supplied from a real export, #76) onto the
-  canonical fields, and recognises the Spanish filenames — so recovery, RHR, HRV, skin temp, blood
-  oxygen, day strain, every sleep stage, nap, etc. all import. `physiological_cycles.csv` keeps its
-  English filename in the Spanish export but its columns are Spanish; both cases are handled. The
-  content-sniffer also classifies the Spanish sleep file by its (now-aliased) columns.
-- Same approach that added German (#3). Workout column names are inferred from WHOOP's consistent
-  Spanish pattern; an unmatched alias simply never fires, so it's safe. Mac + Android. A real-header
-  parse test pins the values. Verified with `swift test`.
-
-- **Fixed (Android): dropped Bluetooth commands on stricter stacks (Android 13+, worst on Android 16).**
-  When the phone's GATT stack was momentarily busy it would reject a command write, and NOOP **dropped**
-  it instead of retrying. The dropped frame was often the one that **starts live HR**, **sets the strap
-  clock**, or **acks a history chunk** — so live HR sometimes never started and overnight data never
-  landed, even with a healthy strap and pairing. NOOP now **retries a rejected write** (bounded backoff,
-  preserving command order) and **paces** without-response writes so the stack keeps up.
-- Diagnosed from a detailed strap log: a Pixel 7 on Android 16 whose offload completed cleanly but whose
-  `TOGGLE_REALTIME_HR` / `SET_CLOCK` writes were being rejected and dropped.
-- macOS: **version bump only** — it relies on CoreBluetooth's own write queue and was never affected.
-
-## 1.47 — Auto-sync Health Connect (Android)
-
-- **Opt-in Health Connect auto-sync (Android).** Turn it on under Data Sources → Health Connect and NOOP
-  re-pulls new Health Connect data (e.g. a Samsung Galaxy Watch → Samsung Health → Health Connect) each
-  time you open the app, if the last sync is older than your chosen **6 / 12 / 24h** interval. Read-only,
-  idempotent, **never overwrites richer strap data**, **default OFF**. Adopted from a community PR.
-- Deliberately **on-open only** (no background worker): the contributed version also added a WorkManager
-  background job, but that's best-effort on Android 14+ and needs a sensitive background-health
-  permission — so we took the reliable foreground catch-up and skipped the worker + the permission.
-- macOS: **version bump only** (HealthKit doesn't exist on macOS; the Mac path stays the export import).
-
-## 1.46 — Revived-strap history dates, gestures during sync, clearer pairing state
-
-- **Stale-strap clock correction (#72).** A strap that sat unused has a drifted RTC, so its offloaded
-  history landed months in the past — live HR worked, but recovery/strain/sleep never showed as "today."
-  `extractHistoricalStreams` now corrects type-47 + EVENT timestamps by the strap-vs-real clock offset
-  **only when the strap clock is clearly stale (>1 day off)**, snapped to a 5-min grid so the correction
-  is deterministic across re-syncs (rows dedupe by timestamp). No-op for a normal strap. Both platforms.
-- **Live gestures during a history sync (#69).** `isOffloadFrame` classed EVENT(48) as bulk-sync
-  traffic, so during a backfill a real-time double-tap / wrist event was routed to the sync handler and
-  never fired — for minutes at a time on a 5.0/MG. NOOP now fires live gestures even mid-sync, gated on
-  the event being recent **in the strap's own clock domain** (macOS) so a *replayed historical* gesture
-  from the offload doesn't fire; Android fires live gestures ungated and gates only during a backfill.
-- **"Encrypted bond" vs "live HR" indicator (#69).** On a 5.0/MG, live HR streams over the open
-  Bluetooth profile without a real encrypted bond, so the app used to say "Bonded" when it wasn't. The
-  Live pill now shows **"Bonded"** only for a genuine encrypted bond, else **"Live HR (not fully
-  paired)"** — the encrypted bond is what unlocks buzz, alarms, double-tap and history sync. The in-app
-  pairing tip now mentions tapping the band to enter 5.0/MG pairing mode. Both platforms.
-- _Known, tracked limitations:_ a strap that's both clock-stale and mid-offload may miss a double-tap
-  during that sync window on Android (no GET_CLOCK correlation to gate in the strap's clock domain); and
-  a record re-offloaded across a successful SET_CLOCK could store twice (proper fix = persist the
-  per-device offset). Both narrow.
-
-## 1.45 — Clearer pairing guidance for WHOOP 5.0/MG (Mac, #69)
-
-- **A 5.0/MG streams live heart rate before it's fully (encrypted-)paired** — and buzz, alarms,
-  double-tap and full history sync all need that real pairing. NOOP now keeps the "free the strap
-  from the WHOOP app" guidance visible (in clearer wording) whenever the strap isn't fully paired,
-  instead of hiding it once live HR appears — so it's obvious what to do to unlock the rest (#69).
-- This **reverts v1.44's over-eager hint-clearing**: on a 5/MG, `bonded` is also set by the live-HR
-  shortcut (HR rides the unbonded standard profile), so clearing the hint there hid the *accurate*
-  "free the strap" guidance from users who were streaming HR but never got the real encrypted bond.
-  The hint now only clears on a genuine bond (the `CLIENT_HELLO` ack) or a fresh connect attempt, and
-  the banner is reworded from "Pairing refused" to guidance.
-- Android: **version bump only** (the banner is macOS-only).
-
-## 1.44 — Fixes a false "pairing refused" warning (Mac, #69)
-
-- **The "Pairing refused" banner no longer cries wolf on a working connection** (Mac). It could stay
-  up on the Live screen even after the strap had bonded and live heart rate was streaming — a stale
-  warning on a link that was actually fine (reported by a 5.0/MG owner, #69). `LiveState.pairingHint`
-  now clears on every bond-completion path (a `didSet` on `bonded`), so it disappears the moment the
-  link bonds.
-- Android: **version bump only** (the banner is macOS-only).
-
-## 1.43 — 24-hour heart-rate trend on the dashboard
-
-- **See your whole day's heart rate on Control Center** (Mac + Android). A new full-width trend plots
-  your continuous heart rate across today, read straight from the strap's own ~1 Hz history — so it
-  fills in even for the hours the app was closed, not just while it's open.
-  - **Downsampled in SQL**: a fully-worn day is ~86k samples at 1 Hz, so the chart reads 5-minute
-    bucket means (`GROUP BY ts/300`) rather than loading every row — a new `hrBuckets()` on both the
-    GRDB store and the Room DAO. The day's low / average / high sit under the chart.
-  - Hidden until there's wear today, so a strap with no readings yet shows nothing rather than an
-    empty axis. Works on WHOOP 4.0, and on 5.0/MG (its live HR feeds the trend too).
-
-## 1.42 — Auto-reconnect to your strap on launch (Android, #67)
-
-- **NOOP reconnects to your strap automatically when the app starts** (issue #67 — jamartif: after an
-  APK update the band stayed disconnected until you tapped Connect). The process restart on an update
-  (or any cold launch) left the app disconnected because there was **no auto-connect on launch** and
-  **no persisted strap** — every `connect()` was user-tapped, and the v1.36 reconnect used an
-  in-memory device that's gone after a restart.
-  - **Persist the bonded strap**: `NoopPrefs.setLastDevice(address, model)` on the bonded transition
-    (on-device only, never sent); cleared on a model switch.
-  - **Reconnect on launch**: `AppViewModel.autoReconnectOnLaunch()` (called from `init`) →
-    `WhoopBleClient.reconnectToAddress()` does a direct `connectGatt(autoConnect=true)` to the saved
-    strap — no scan; the OS connects as soon as it's in range. Gated on **"Keep connected in the
-    background"** + a previously-bonded strap; no-ops if already connected or the runtime BT permission
-    isn't granted.
-- macOS: **version bump only.** It has the same gap (CoreBluetooth state restoration isn't actually
-  enabled — `CBCentralManager` is created without a restore identifier), but it's lower-value there (the
-  menu-bar app stays alive, updates are infrequent) and adding it needs a gating decision (no
-  keep-connected pref exists on macOS). Tracked as a follow-up.
-
-## 1.41 — Update check shows what's new
-
-- **The "Check for updates" result now previews what's new.** When a newer version is found, the
-  result expands to show the release's notes (the changes, with the Downloads/footer boilerplate
-  trimmed and the heaviest markdown stripped, capped + scrollable) alongside the Download button — so
-  you can see what you're getting before tapping through. The `body` is already in the
-  `releases/latest` response, so this is the same single request; `cleanNotes()` does the trimming on
-  each platform. No new network behaviour.
-
-## 1.40 — Check for updates (both platforms)
-
-- **New: a manual "Check for updates" button** in Settings → About. One user-initiated GET to the
-  PUBLIC GitHub releases API (`api.github.com/repos/NoopApp/noop/releases/latest`) — compares the
-  `tag_name` to the installed version and, if newer, shows a Download button that opens the release
-  page; otherwise "You're on the latest." Graceful failure on offline/rate-limit. **No background
-  polling, no auto-update, nothing about the user is sent** — it only runs on tap, and only reads a
-  version number.
-- **Version comparison is unit-tested** on both platforms (`VersionCheck.isNewer` in WhoopProtocol;
-  `UpdateCheck.isNewer` on Android) — it compares dot-separated numeric segments so `1.40 > 1.39` and
-  `1.9 < 1.10` (a plain string compare gets both wrong), tolerant of a leading `v` and the demo
-  flavour's `-demo` suffix.
-- **macOS posture note:** this is the first feature to make an outbound connection, so the macOS
-  sandbox entitlement `com.apple.security.network.client` was added. It's used only for this
-  user-tapped check and the opt-in, off-by-default AI Coach — there is no automatic/background traffic.
-  Android already declared `INTERNET` (for the opt-in Coach), so it needed no change.
-
-## 1.39 — Wrist alerts for incoming calls (Android, #66)
-
-- **Buzz on incoming calls** (community PR #66 by DieserLiton; reimplemented as NoopApp). A dedicated
-  **Calls** section in Notifications settings, separate from per-app alerts:
-  - **Native phone calls** via a `PhoneCallReceiver` (READ_PHONE_STATE), and **best-effort VoIP** via the
-    existing notification listener (`VoipCallClassifier`, an 8-app allowlist). One coordinator
-    (`CallAlertController`) drives a bounded repeat cadence — immediate, then every 8s, max 4 buzzes.
-  - **Privacy contract intact** — reads only the phone *state* string (`RINGING`/`OFFHOOK`/`IDLE`, never
-    `EXTRA_INCOMING_NUMBER`) and a tiny set of notification *metadata* (package / `CATEGORY_CALL` / flags),
-    never the number, caller, title, text, or extras; no `READ_CALL_LOG`/`READ_CONTACTS`; nothing
-    sensitive logged. `READ_PHONE_STATE` is requested **only** when the user enables "Phone calls".
-  - Reuses the shared component system; the existing per-app wrist-alerts are untouched.
-- **Two correctness fixes applied on adoption** (from the review):
-  - `CallAlertController` now has a **self-healing 60s max-ring watchdog** — a dropped `PHONE_STATE=IDLE`
-    broadcast or a missed `onNotificationRemoved` could otherwise leak a token and silently kill the next
-    call's alert until a process restart. It auto-clears (re-armed on each sign of life).
-  - An incoming VoIP call is now routed to the **Calls path only** (always returns), so a call from an app
-    that's also enabled as a per-app alert can't **double-buzz**.
-
-## 1.38 — Responsive during long history syncs (Mac, #64 / #65)
-
-- **Mac stays responsive during long historical offloads and dashboard analysis** (community PRs #64,
-  #65 by rr-allin; both verified against current `main`, symbols + the buzz path intact):
-  - **#64 (`BLEManager.swift`)** — offload frames are treated as bulk sync, not live UI traffic:
-    during a backfill, type-47/48/49/50/56 frames bypass the live `FrameRouter` and feed only the
-    `Backfiller`, drained in small batches (12) with `Task.yield()` between slices so SwiftUI can
-    paint. HISTORY_END ack logging is throttled (ack #1, then every 25th). `beginBackfill()` now
-    returns whether it actually started, so a deferred backfill no longer stamps `backfillLastAt`
-    (which would rate-limit a sync that never ran). Live HR (type-40) and the GET_DATA_RANGE liveness
-    watchdog still flow through the live path — unaffected.
-  - **#65 (`AppModel.swift`, `IntelligenceEngine.swift`)** — a completed backfill now refreshes the
-    dashboard cache (`repo.refresh(days: 120)`) instead of immediately running full analysis;
-    `analyzeRecent` early-returns if an analysis is already in flight (guarded on the existing
-    `computing` flag); `AnalyticsEngine.analyzeDay` runs in a utility-priority detached task with a
-    `Task.yield()` between days — so the heavy recovery/strain/sleep compute no longer stalls the main
-    actor.
-- Mac-only changes; Android gets the lockstep version bump.
-
-## 1.37 — New first-run onboarding, Mac + Android parity (#36 / #63)
-
-- **A unified 11-step first-run onboarding** on both platforms (Welcome · What it does · Expectations ·
-  Bluetooth · Wear · Connect/Scan · **Bonded** celebration · Profile · Import · **Notifications** · Done),
-  reimplemented from community PR #36 (by Brechard; design in #63). Highlights:
-  - **Contextual permissions (Android)** — nothing fires at launch; Bluetooth is requested only when
-    leaving the "before you connect" screen, scanning goes through the shared `BlePermissions.kt` gate
-    (the same one Live/Settings use), and notifications are requested on the Notifications step's CTA.
-  - **Bonded celebration** auto-advances once the strap bonds (skipped when nothing is bonded); the
-    **foreground-connection service is promoted only on completion**, not mid-flow.
-  - **Parity/polish** — config-change-safe nav (`rememberSaveable`), typed import-failure styling on both
-    platforms (incl. a macOS Data Sources green-on-failure fix), `+/−` steppers for the profile (the two
-    `StepperField`/`StepperButton` helpers promoted from Settings into the shared `Components.kt`), shared
-    component system + `Metrics.*` spacing, chrome uses `accent` rather than the data-reserved recovery ramp.
-  - Verified on adoption: every recent fix survives untouched (HR-spike smoothing #46, smart-alarm bond
-    re-arm #59, the Re-scan permission gate #1, the buzz), the `connect(promoteService:)` change is
-    backward-compatible, and the unused `GhostButtonStyle` was dropped.
-- **Live HR zones use your real max heart rate.** `HealthScreen` now reads `ProfileStore.hrMax` (your manual
-  override, else the age-based Tanaka estimate) for live zone/%-max instead of a hardcoded `190` — committed
-  separately from the onboarding change.
-
-## 1.36 — Android: direct reconnect after a dropout (#61)
-
-- **Fixed (Android): a dropped WHOOP 4.0 could get stuck "disconnected" and never reconnect** (issue
-  #61). `handleDisconnect` only ever called `connect()` → a BLE **scan**, but a bonded strap that the
-  OS still holds (or that simply isn't advertising) doesn't show up in a scan — so it looped
-  `No WHOOP strap found` until the user forced the strap into pairing mode. Now the client **remembers
-  the connected `BluetoothDevice`** and, on an unintentional drop, reconnects to it **directly** via
-  `connectGatt(autoConnect = true)` — the OS reconnects as soon as the strap is reachable, with no
-  scan and no advertisement needed. `connectToDevice` gained an `autoConnect` param (default `false`
-  for the scan-discovered first connect) and now closes any stale GATT first; `prepareForModelSwitch`
-  clears the remembered device so a model switch scans fresh.
-- macOS already did this — `connect()` reconnects via `retrieveConnectedPeripherals` + `central.connect`
-  (and state-restoration) before falling back to a scan — so this is an **Android-only** fix +
-  lockstep version bump.
-
-## 1.35 — WHOOP 5/MG buzz matched byte-for-byte (#48)
-
-- **WHOOP 5.0/MG haptics now byte-identical to a working app.** v1.34 fixed the opcode (`0x13`) but
-  kept the WHOOP-4.0 payload. The contributor's working 5.0 app ("whootify") was decompiled, giving
-  the real command:
-  - **Payload**: `[0x01, effects(8), loopControl(u16 LE), overallLoop]` — 12 bytes. We send the
-    "notify" preset (effects `47,152`): `01 2f 98 00 00 00 00 00 00 00 00 00`.
-  - **Framing fix — `pad4`**: the strap's maverick framing pads the inner record to a 4-byte boundary
-    before length+CRC. `puffinCommandFrame` *wasn't* doing this — it didn't matter for the 4-aligned
-    commands shipped so far (toggle-HR, historical), but the 12-byte haptic inner is 15 bytes and must
-    pad to 16, or the declared length + CRC32 are wrong and the strap rejects the frame. Added pad4 to
-    `puffinCommandFrame` on both platforms (no-op for the aligned commands — existing frames unchanged).
-  - **Verified byte-for-byte**: a golden-vector test on each platform asserts `puffinCommandFrame(0x13,
-    seq=1, notify-payload)` equals the frame the working app's `buildMaverickFrame` produces
-    (`aa0114000001e1e1230113012f98…98cb83a5`), and that pad4 leaves HR-toggle's frame at 16 bytes.
-- So a bonded 5.0/MG should now actually vibrate on Test buzz / wrist alerts / smart-alarm buzz.
-  **WHOOP 4.0 buzz is byte-for-byte unchanged** (still opcode 79 + its own frame). Awaiting hardware
-  confirmation on #48.
-
-## 1.34 — WHOOP 5/MG haptics opcode (experimental, #48)
-
-- **Experimental (WHOOP 5.0/MG): buzz now sends opcode `0x13`, not the 4.0 `RUN_HAPTICS_PATTERN`
-  (79).** Decoding @james-e-morris's real-MG puffin capture showed the strap **rejecting** our
-  opcode 79 (`COMMAND_RESPONSE result=0x03`, while every accepted command — toggle-HR `0x03`,
-  historical `0x16`/`0x17` — returns `0x01`), and a working third-party 5.0 app fires the buzz with
-  opcode **`0x13` (19)** (`PENDING → HAPTICS_FIRED → SUCCESS`, `VALID_PATTERN`). The `send()` puffin
-  branch now overrides **only the opcode** for `runHapticsPattern` on `.whoop5` (`0x13`); the payload
-  is still the 4.0 preset `[patternId, loops, …]` pending the exact 5/MG payload (incoming via the
-  working app's binary). Scoped strictly to the 5/MG path — **WHOOP 4.0 buzz is byte-for-byte
-  unchanged** (still 79 via its own frame). The strap log now annotates the write `(puffin cmd=0x13)`.
-- This may or may not buzz yet (payload unconfirmed); the immediate goal is to confirm the strap now
-  **accepts** the command (result `0x01` / a haptics-fired event) instead of rejecting it. 5/MG owners:
-  please share a strap log on #48.
-
-## 1.33 — Smart alarm time actually reaches the strap
-
-- **Fixed: the Smart-alarm wake time you set didn't always transmit to the strap** (issue #59). The
-  strap's firmware alarm is set over BLE, and the send is gated on bond — but `applySmartAlarm()` was
-  only called from the enable/time-change setters (`setSmartAlarm…` / `AutomationsView.onChange`),
-  **never on (re)connect**. So a time changed while the strap wasn't bonded was silently dropped, and
-  the strap kept its previous time (set 07:15 → still fired at the old 07:00). Both platforms had this
-  gap.
-- **Fix:** re-arm on the bond `false→true` transition. macOS adds a `live.$bonded.removeDuplicates()`
-  sink in `AppModel.init`; Android tracks the bonded transition in `AppViewModel`'s `ble.state`
-  collector. Both gated on `smartAlarmEnabled` so a disabled alarm doesn't disarm on every reconnect.
-  Net effect: every time the strap reconnects, the current wake time is re-sent — so the time you set
-  is the time that fires. (Re-arming on each reconnect also refreshes the next-occurrence epoch.)
-- WHOOP 5/MG note unchanged: `armStrapAlarm` is still dropped by `send()` on 5/MG (its command set
-  isn't verified) — this fix is for the WHOOP 4.0 firmware alarm, same as before.
-
-## 1.32 — Today trends stay within their window (Mac)
-
-- **Fixed (Mac): Today metric sparklines could draw all-history data under a "14-day trend" label**
-  (PR #49, by rr-allin). `sparkValues` fell back to the entire series when the trailing window had
-  <2 points, so a stale import rendered months-old points as a current trend. It now returns only
-  `trailingWindow(all, days:).map(\.value)` — strictly within the window. A consequence (intended):
-  `latestString` reads `.last` of this windowed series, so a metric whose latest reading predates the
-  window shows "—" instead of a stale value — same anti-stale spirit as the #23 trailing-window fix,
-  and weight's generous 90-day window keeps genuinely-recent-but-sparse readings rendering. The
-  `Sparkline` view already handles 0/1 points (empty / single head dot), so no fallback is needed.
-- Android: **already correct** — `remember14` strictly filters to the trailing calendar window with no
-  all-history fallback (handled in the #23 era), so this is a Mac-only fix + lockstep version bump.
-
-## 1.31 — No HR spike on resume
-
-- **Fixed: heart rate briefly showed a stale ~100 bpm when you reopened the app / returned to Live,
-  then drifted down** (issue #46). The hero number is the **median of a short smoothing window**
-  (macOS `AppModel.hrWindow`, a 10s/40-sample buffer; Android `AppViewModel.hrWindow`, a 5-sample
-  deque). The window was only ever cleared on explicit disconnect — never on resume or BLE re-attach.
-  Since the strap only notifies every ~30s, on reopen the window still held the pre-gap samples (from
-  when the user's real HR was higher) and republished that stale median until fresh low samples
-  refilled it. The strap itself was never wrong (the #46 log never exceeds 75 bpm — the spike was
-  entirely in the display layer).
-- **Fix:** added a `resetSmoothing()` (clears the window, blanks `bpm` → `—`) and call it from the
-  resume hook on each platform — `AppModel.startRealtimeHR()` / `AppViewModel.requestRealtimeHr()`.
-  These fire on Live/Health screen entry, **not** on the 30s keep-alive re-arm (which goes straight to
-  `ble.startRealtime()`), so steady-state smoothing is untouched; the hero shows `—` only for the brief
-  moment until the first fresh reading lands, then shows the truthful value. Mirrors the existing
-  `disconnect()` clear. Verified every `bpm` reader is nil-safe (zone coaching, breathe, menu bar).
-- Both platforms get the real fix (the bug was present on each; only the recovery time differed).
-
-## 1.30 — Workouts: correct source pill for Health Connect (Android)
-
-- **Fixed (Android): Health Connect workouts showed an "Apple" pill in the Workouts list's Src
-  column** (issue #53, follow-up — the Today page was fixed in 1.28). The `SessionRow` badge was a
-  binary `isWhoop ? "Whoop" : "Apple"`, so every non-WHOOP session (including `health-connect`) fell
-  through to "Apple". It now classifies on the row's stored origin — `deviceId`/`source` of
-  `my-whoop` → "Whoop" (accent), `apple-health`/"Apple Health" → "Apple" (cyan),
-  `health-connect` → **"HC"** (purple, matching the Data Sources / Today tint). "HC" is abbreviated
-  to fit the narrow column, exactly as "Apple" stands in for "Apple Health" there. The classification
-  is a pure `workoutSourceLabel()` helper with a unit test pinning all three importer origins.
-- macOS: lockstep version bump only — Health Connect is Android-only, so macOS workouts are only ever
-  WHOOP or Apple and the existing badge is already correct there.
-
-## 1.29 — Re-scan actually scans on Android
-
-- **Fixed (Android): Re-scan / Connect could silently do nothing on Android 12+** (issue #1; community
-  PRs #54/#55). A BLE scan needs the runtime `BLUETOOTH_SCAN`/`BLUETOOTH_CONNECT` (Nearby devices)
-  permission; the Settings **Re-scan** button called `vm.connect()` directly, so if the permission was
-  denied or revoked the scan threw `SecurityException`, the BLE layer swallowed it into a status note,
-  and no prompt was ever raised — the button did nothing (the Pixel 9 report). Live's Connect and the
-  onboarding flow already gated correctly; Settings was the overlooked path. The permission gate is now
-  a single shared Compose helper, `rememberRequestScan {}` (`ui/BlePermissions.kt`), used by both Live
-  and Settings, so no entry point can forget it. The gate must stay in the Compose layer — the
-  ViewModel can't raise an Activity-scoped prompt.
-- **Feedback while searching.** Settings now shows a "Searching…" status detail and disables Re-scan
-  while a scan is in flight (`enabled = !live.scanning`); Live's Connect shows "Searching…" and disables
-  too. The `scanning`/`statusNote` state already existed and was fully wired in `WhoopBleClient` (set on
-  scan start, cleared on every terminal path — timeout, found, connected, disconnect, permission error),
-  so no BLE/state changes were needed; only the buttons were missing the `enabled` gate.
-- **Live control buttons stay on one line** on narrow phones (`captionNumber` + `maxLines = 1`), which
-  also keeps the new longer "Searching…" label from wrapping the row.
-- macOS: lockstep version bump only — CoreBluetooth has no Android-style runtime-permission prompt, so
-  there's no analogous fix to make (the macOS scanning-feedback parity gap is tracked separately).
-
-## 1.28 — Health Connect: correct source label + workout types (Android)
-
-- **Fixed (Android): Health Connect data showed under the "Apple Health" pill on Today** (issue #53,
-  follow-up to #34). The Today provenance footer unioned `apple-health` + `health-connect` into one
-  "Apple Health" row. It now keeps them separate — a dedicated **Health Connect** row (its own counts +
-  tint) alongside Apple Health — matching the Data Sources screen. `TodayFooterState` gained
-  `hcDays`/`hcWorkouts`; the construction splits the two sources; the recent-workouts feed still unions all.
-
-- **Fixed (Android): Health Connect workout types were mislabelled** (issue #53) — e.g. a **walking**
-  session showed as **swimming**. The `EXERCISE_TYPE_NAMES` map had **wrong hardcoded integers**: `79`
-  was mapped to "Swimming" but `79` is actually `WALKING`; `80` ("Swimming") is `WATER_POLO`; `82`
-  ("Walking") is `WHEELCHAIR`; and yoga/HIIT/boxing/hiking/weightlifting were wrong too. The map now
-  references `ExerciseSessionRecord.EXERCISE_TYPE_*` **constants** directly, so the int↔label mapping is
-  resolved by the library and a renamed/removed constant is a compile error rather than a silent
-  mismatch. New imports are correct immediately; **re-import Health Connect data to relabel** sessions
-  imported before this fix (the sport name is stored at import time).
-
-## 1.27 — Wrist alerts work on Android
-
-- **Fixed (Android): wrist alerts couldn't be enabled — NOOP didn't appear in Notification Access**
-  (issue #52). The Notifications screen had the full wrist-alerts UI (master toggle, per-app filters,
-  quiet hours — all already persisted in `NotifPrefs`) and an "Open Notification Access" button, but the
-  manifest declared **no `NotificationListenerService`**, so NOOP could never appear in the system's
-  Notification Access list (and nothing acted on notifications even if it could). Added
-  `com.noop.notif.NoopNotificationListener` + its manifest `<service>` (guarded by
-  `BIND_NOTIFICATION_LISTENER_SERVICE`). Once the user grants access and enables wrist alerts, it buzzes
-  the strap via the existing `RUN_HAPTICS_PATTERN` path on a posted notification, gated by the persisted
-  settings (master, per-app opt-in, the app's buzz pattern → loops, quiet hours with midnight-wrap,
-  only-when-worn) and skipping ongoing / foreground-service / group-summary noise. **Privacy-preserving by
-  design: it reads only the posting package name — never notification content — and nothing leaves the
-  device** (documented in `PRIVACY_SECURITY.md` §2.5). Works on WHOOP 4.0; 5/MG haptics are dropped by the
-  `send()` guard until verified (#48).
-
-## 1.26 — Smart alarm actually works on Android
-
-- **Fixed (Android): the Automations "Smart alarm" was a non-functional mock-up** (issue #51). The whole
-  screen's toggles were ephemeral `remember { mutableStateOf(false) }` with no persistence and no backend,
-  and the wake time was hardcoded static `Text("07:00")` (not tappable) — so the toggle reset on navigation
-  and the time couldn't be changed. The smart alarm is now a **real, persisted feature** mirroring macOS:
-  `NoopPrefs` stores `smartAlarmEnabled` + `smartAlarmMinutes`; the time uses the reusable `TimeChip`
-  picker (now `internal`, shared with the quiet-hours chip); and `AppViewModel.applySmartAlarm()` arms the
-  strap's **firmware alarm** via `WhoopBleClient.armStrapAlarm()` (`SET_CLOCK` → `SET_ALARM_TIME(66)` with
-  `[0x01]+u32 LE epoch+[0,0]`) / `disableStrapAlarm()` (`DISABLE_ALARM(69)`) — so on **WHOOP 4.0** it buzzes
-  at the wake time even if the phone is asleep or NOOP is closed. Needs the strap connected to arm. (On
-  5.0/MG the alarm command is dropped by the `send()` guard, same as the buzz, until verified.) The other
-  Automations toggles (zone coaching / stress nudge / auto-lock) remain preview-only — a separate follow-up.
-
-## 1.25 — WHOOP 5/MG history offload (experimental) + pairing clarity (Mac)
-
-- **Added (macOS, experimental): a bonded WHOOP 5/MG strap now runs the historical offload.** Four
-  interlocking gaps blocked it; all are now fixed, scoped strictly to `.whoop5` (WHOOP 4.0 byte-for-byte
-  unchanged): (1) `connectHandshakeDone` is set after the 5/MG bond + notify-subscribe, behind a new
-  `whoop5SessionStarted` once-guard that mirrors the WHOOP4 ack-storm guard (so the per-chunk acks
-  re-entering `didWriteValueFor` can't re-trigger the offload mid-stream); (2) the whoop5 branch now
-  kicks `requestSync(.connect)` + `startBackfillTimer()` (the trigger lived only in the WHOOP4 block);
-  (3) `send()` allowlists `SEND_HISTORICAL_DATA` + `HISTORICAL_DATA_RESULT` for 5/MG (puffin-framed,
-  same transport as the proven HR toggle); (4) `isOffloadFrame` is family-aware (reads the type byte at
-  `frame[8]` for puffin, not `frame[4]`) and inbound puffin offload frames (47/48/49/50) route to the
-  Backfiller during a backfill, while live REALTIME_DATA still only reaches the live router; the
-  `Backfiller` is family-aware (parse + `end_data` slice `frame[21:29]` for 5/MG, family captured at
-  `begin()`). The chunk-ack needs no new code — `send()` already owns the puffin framing + seq. **Brand
-  new, needs on-hardware verification; observable stage-by-stage in the strap log.** 117 WhoopProtocol
-  tests green; macOS builds clean.
-
-- **Changed (macOS): clearer WHOOP 5/MG pairing.** The bond-refused hint ("free the strap from the WHOOP
-  app — pairing mode") now shows on the **Live** screen where people connect (it was Settings-only), and
-  the README has a prominent *"Pairing a WHOOP 5.0 / MG — read this first"* guide (the one-bond-at-a-time
-  constraint, the `Encryption is insufficient` symptom, and the close-app → pairing-mode → connect steps).
-
-## 1.24 — Switch between a WHOOP 4 and a 5.0/MG (Mac + Android)
-
-- **Fixed (macOS + Android): you couldn't switch straps once one was bonded.** The Live screen's strap
-  picker was gated on `!bonded` — but `bonded` is **sticky** (it survives a disconnect, meaning "this
-  strap is paired"), so after the first successful pairing the picker disappeared for good. A user with
-  both a WHOOP 4 and a 5.0/MG was then stuck: the scan kept targeting the first strap's service
-  (`61080001` vs `fd4b0001`), so the other strap was never discovered. The picker now shows whenever
-  you're **not actively streaming** (`!(connected && bonded)`), and changing the selection calls a new
-  `prepareForModelSwitch()` (`BLEManager`/`WhoopBleClient`) that drops the current strap and clears the
-  sticky `connected`/`bonded` state, so the newly-picked model bonds fresh. Pick the strap → Scan &
-  Connect. macOS builds clean; full Android unit suite green.
-
-## 1.23 — WHOOP 5.0/MG historical decode parity (Android)
-
-- **Added (Android): WHOOP 5.0/MG type-47 v18 historical records now decode on Android** — bringing it to
-  parity with the macOS decode shipped in 1.21. New `decodeWhoop5Historical` in `HistoricalStreams.kt`
-  reads the WHOOP5-absolute layout (record @8, so `unix@15`/`hr@22`/`rr@24+`/`gravity@45/49/53` — NOT the
-  WHOOP4 V24 offsets) plus the per-second fields each gated to a physical range: `skin_temp_raw@73`
-  (kept only when /100 ∈ 20–45 °C), `dynamic_acceleration@41` (f32, 0–8 g), `step_motion_counter@57`,
-  `motion_wear_quality@63` (0/1/2). `decodeHistorical` routes the WHOOP5 family to it; the offload
-  `extractHistoricalStreams` type-dispatch is now family-aware (`frame[8]` for WHOOP5 vs `frame[4]` for
-  WHOOP4). Verified by a new `Whoop5HistoricalDecodeTest` against the **same real worn/off-wrist frames**
-  the macOS tests use (so both platforms decode identical bytes); full Android unit suite green, macOS
-  unaffected (117 tests). Decode layer only — it activates when the 5/MG history offload runs. Fields the
-  source report listed but that didn't decode consistently on this firmware (cardiac/sleep-state/perfusion)
-  are deliberately omitted; SpO₂ remains impossible offline.
-
-## 1.22 — Battery refresh on WHOOP 5.0/MG (Mac + Android)
-
-- **Fixed (macOS + Android): "Refresh battery" was a no-op on WHOOP 5.0/MG.** `getBattery()` sent the
-  WHOOP 4 proprietary `GET_BATTERY_LEVEL` command, which the `send()` guard **drops** for 5/MG (only the
-  HR toggle + buzz are puffin-framed) — so a 5/MG strap's battery only updated via passive `0x2A19`
-  notifications, never on demand. Both platforms now read the **standard Battery Level characteristic
-  (`0x2A19`)** directly: macOS `BLEManager.refreshBattery()` (`readValue` → existing `didUpdateValueFor`
-  parse), Android `WhoopBleClient.refreshBattery()` (`readCharacteristic` → a newly-added
-  `onCharacteristicRead` callback → `onInbound` → `setBattery`). The char is also read once at discovery
-  when readable, so a value appears as soon as you connect. WHOOP 4 keeps its legacy command path too
-  (it gets both). Contributed via #47 (macOS); Android mirrored.
-
-## 1.21 — WHOOP 5.0 historical biometrics + PPG channel fix (Mac)
-
-- **Added (macOS): WHOOP 5.0 type-47 v18 records now decode more biometric fields**, each gated to a
-  physically-real range and cross-validated against real worn-vs-off-wrist frames (the data is the
-  arbiter): **skin temperature@73** (u16/100 °C — ~30.6 °C worn, ~22.5 °C off-wrist, AS6221 thermistor;
-  the raw sensor, not WHOOP's cloud-calibrated summary), **dynamic acceleration@41** (f32 g, gated 0–8),
-  a **cumulative motion/step counter@57**, and **wrist-contact/motion quality@63** (enum 0/1/2). Fields
-  the source report listed but that did **not** decode consistently on this device's firmware
-  (cardiac_flags@33, sleep-state@81, perfusion@69/71) are deliberately left in the raw region pending
-  more captures — so NOOP never ships a guessed offset. These are building blocks toward on-device 5.0
-  sleep/recovery (decode layer only; not yet surfaced in the UI).
-
-- **Fixed (macOS): the WHOOP 5.0 v26 PPG channel index was read from the wrong byte.** A community
-  reverse-engineering report (validated against a 22 h overnight corpus) and NOOP's own two real test
-  fixtures both show the channel is **`frame[21]` (values 1–26, a time-multiplexed sweep)**, not
-  `frame[12]` — the `0x41`/`0x46` that the merged v1.19 decode reported were a high-entropy counter byte
-  caught during a short 2-burst capture. Corrected and gated to 1…26 so a wrong offset stores nothing.
-  The PPG **waveform** decode (LE i16 @[27:75]) was always correct and is unchanged. This 26-way
-  time-multiplex is also why **SpO₂ is not recoverable offline** (it needs simultaneous red+IR; no two
-  channels are ever co-sampled). 117 WhoopProtocol tests green.
-
-## 1.20 — Strap log stays off the system log (Android)
-
-- **Changed (Android): the strap connection log is no longer mirrored to logcat by default** (PR #45).
-  It was always written to Android's system log via `Log.d` — even in release builds — so a normal user
-  emitted the device's BLE control flow to the device-wide log with no way to turn it off. It's now
-  **opt-in**: a new **Settings → Strap → "Debug logging"** toggle (default **off**, persisted as
-  `NoopPrefs.KEY_DEBUG_LOGGING`) gates the single `Log.d` call, applied to the process-wide BLE client at
-  the composition root so the low-level client never depends on the UI/prefs layer. The in-app ring
-  buffer still records unconditionally, so **"Share strap log" keeps working for everyone** (the bug-report
-  path from #17/#18) — only the adb-visible mirror is gated. Developers flip it on to watch a session over
-  `adb logcat -s WhoopBleClient`. No BLE flow, protocol, or storage change; WHOOP 4.0 and 5/MG unaffected.
-  Documented in `PRIVACY_SECURITY.md` §2.4 (what the log does/doesn't contain) and `ANDROID.md`.
-
-## 1.19 — Import polish (Mac) + WHOOP 5 optical decode
-
-- **Changed (macOS): import buttons lock while an import runs** (follow-up to #40). While either
-  source is writing to the store, both Data Sources buttons disable and only the active source shows a
-  spinner — preventing two concurrent imports and keeping the loading state on the correct card. Each
-  source already kept its own status line (from 1.18); this serialises the import itself behind a single
-  `activeImportSource`.
-
-- **Added: WHOOP 5.0 optical PPG waveform decoded** (#43). The strap's high-rate type-47 **version-26**
-  history record — previously a raw region — is now decoded as a **24 Hz optical photoplethysmography
-  (PPG) trace**: 24 little-endian i16 ADC samples per second (`unix` u32 LE @15, channel id @12). It was
-  identified as optical, not motion, using heart rate as *internal* ground truth — the concatenated
-  waveform autocorrelates to the measured HR (lag 14 ≈ 103 bpm vs 101.7 bpm), trough-detection gives a
-  ~563 ms inter-beat interval, and the pulse stays HR-locked even when the wrist is still. Raw ADC counts
-  are exposed verbatim as `ppg_waveform` (PPG has no absolute unit — no scale is invented). Visible in
-  the strap inspector / `whoop-decode`; a building block toward 5.0 recovery and strain. Decoder-only and
-  version-keyed, so v18 and unknown versions are unaffected.
-
-## 1.18 — Import fixes (Mac + Android)
-
-- **Fixed (macOS): an Apple Health import overwrote the WHOOP import's status message** in Data Sources
-  (issue #40). The two importers shared one `importing`/`importSummary` state, and only the WHOOP card
-  rendered the summary — so importing Apple Health flipped both buttons to loading and replaced the WHOOP
-  message in the WHOOP section, looking like a data overwrite. The data was always stored under separate
-  sources (`my-whoop` vs `apple-health`); split the UI state per source (`whoopImporting`/`appleImporting`
-  + per-source summaries) and gave the Apple Health card its own status line.
-- **Fixed (Android): one failing Health Connect record type aborted the whole import** (issue #34). All
-  the `readAll` calls ran inside a single try/catch, so a device/SDK quirk on any one type (e.g. the
-  "count must not be less than 1, currently 0" some Health Connect builds throw) failed the entire
-  import. Each type's read is now self-contained — on failure it's logged and skipped, and every other
-  type still imports (reads accumulate into shared buckets, so a partial type is simply absent, never
-  corrupt).
-
----
-
-## 1.17 — Sleep from WHOOP 4 on unmapped firmware (Mac)
-
-- **Fixed (macOS): a WHOOP 4 on firmware whose historical record version NOOP hadn't mapped recorded no
-  sleep.** Root cause: sleep is staged from the strap's overnight **gravity/motion** stream
-  (`SleepStager.detectSleep` requires gravity — empty gravity → 0 sleeps). The WHOOP 4 historical
-  (type-47) post-hook **bailed out entirely on any version outside the schema's `{12, 24}`** —
-  `guard resolveVersion(...) else { region("unmapped"); return }` decoded nothing (no HR, no R-R, **no
-  gravity**). So the offload "completed" (acks + HISTORY_COMPLETE) yet stored no motion, HR got
-  backfilled from the realtime stream (which carries none), and `IntelligenceEngine` produced a day with
-  HR but zero sleeps. **Fix:** for an unmapped version, fall back to the canonical **v24 DSP layout**
-  (firmware overwhelmingly shares it — the schema notes V12 == V24) and accept it **only if it decodes
-  to physically-real data** — `|gravity| ≈ 1 g` (the DSP gravity is a unit vector) and a plausible HR. A
-  wrong layout yields random f32 gravity nowhere near 1 g, so it's rejected and the record left raw (the
-  Backfiller then logs the unmapped version once to the strap log, so we can map it). Mapped versions are
-  unchanged. New tests cover accept + reject. Issue #30. *(Android has its own decoder; this is the Mac
-  fix for the reporters' platform.)*
-
----
-
-## 1.16 — Health Connect shows as Health Connect (Android)
-
-- **Fixed (Android): Health Connect data was attributed to "Apple Health."** `HealthConnectImporter`
-  stored its daily aggregates (steps/HR/HRV/sleep/weight) under the shared `apple-health` deviceId — the
-  same bucket the Apple Health export uses — so the Data Sources screen counted them under the Apple
-  Health card (only the workouts were correctly tagged `health-connect`). It now files **all** Health
-  Connect data under its own `health-connect` source, named "Health Connect," and the Data Sources
-  Health Connect card shows its own counts. The unified-external-health read sites (Today footer,
-  Workouts) union both sources, so nothing disappears; `CompareScreen` is unaffected (Health Connect
-  writes no `metricSeries`). A one-time refile runs at the start of a Health Connect import to move any
-  legacy `apple-health` Health-Connect data across (safe + idempotent: HC writes no `metricSeries`, so
-  `apple-health` daily rows with no `metricSeries` are unambiguously HC-origin; runs before the import so
-  re-importing never duplicates). No data was ever lost — labelling only (issue #34).
-
----
-
-## 1.15 — WHOOP 5/MG: the wrist buzz works
-
-- **The haptic buzz now fires on WHOOP 5.0/MG (experimental), both platforms.** @jamartif confirming live
-  HR on v1.13 proved a 5/MG strap acts on NOOP's puffin-framed commands — so the buzz
-  (`RUN_HAPTICS_PATTERN`) is now allowlisted through the same `puffinCommandFrame` transport that the
-  realtime-HR toggle uses, in `send()` on both `BLEManager.swift` and `WhoopBleClient.kt`. That powers
-  Test buzz, the smart alarm, and any haptic feedback on 5/MG. Still experimental — whether the strap
-  honours that specific command is the unverified part, but the transport is proven and the worst case is
-  a no-op (no link teardown observed with the HR toggle). All other commands stay dropped for 5/MG (the
-  offload set needs its own verified framing). Battery already worked on 5/MG via the standard `0x2A19`
-  profile, so it needed nothing here. WHOOP 4.0 is unaffected (issue #28).
-
----
-
-## 1.14 — Android Today: clearer empty states for stale imports
-
-- **Android Today now renders missing current-day metrics as explicit "No Data" instead of raw dashes**,
-  and the recovery ring no longer shows a `0% / depleted` state when there's simply no recovery row for
-  today — so after a historical import, Today reads as "no score for today yet," not a broken-looking zero.
-  Added a Mac-style Today footer for provenance: recent 14-day workouts (when present) plus Data Sources
-  counts, so imported history is clearly labelled as history. No change for a user who has today's data —
-  values render normally; only genuinely-absent values show "No Data." Brings Android to parity with the
-  Mac Today screen and completes the stale-import work from v1.11/v1.12. Android-only (TodayScreen,
-  TrendsScreen comment); reimplemented as NOOP from @Brechard's PR #31 (refs #23).
-
----
-
-## 1.13 — WHOOP 5/MG heart rate on Android
-
-- **Fixed (Android, WHOOP 5/MG): bonded but no heart rate.** Android brought the strap to "Bonded —
-  Streaming" (v1.10) but then listened for HR only on the standard `0x2A37` profile — which a 5/MG
-  strap doesn't stream. Realtime HR rides the puffin notify chars (`fd4b0003/4/5/7`) as `REALTIME_DATA`,
-  exactly as on macOS. NOOP now, on the `.whoop5` path only: (1) subscribes those puffin notify chars
-  **after** the `CLIENT_HELLO` bond (they're rejected on an unauthenticated link); (2) makes the frame
-  reassembler **family-aware** (5/MG framing is `declLen @[2..4]` / total `+8`, vs WHOOP4 `length @[1..3]`
-  / `+4` — the WHOOP4 rule decoded a bogus ~6 KB length and never emitted a frame); (3) decodes `REALTIME_DATA`
-  at the WHOOP5 `+4` offsets (HR @16) — the same hardware-verified decode shipped for macOS in PR #21; and
-  (4) sends the realtime-HR toggle with **puffin command framing** (`send()` dropped every 5/MG command
-  before). Verified by unit tests against a real worn-strap frame (HR=98, R-R=[603,587]); the new decode +
-  reassembler are covered. Still experimental on 5/MG; WHOOP 4.0 is byte-for-byte unaffected (issue #17/#26).
-- **Note:** other 5/MG commands (battery poll, haptic buzz) still need their own verified puffin framing
-  and remain dropped for now — only the realtime-HR toggle is wired, because it's the one confirmed on
-  hardware. So buzz on a 5/MG strap isn't expected to fire yet (issue #28).
-
----
-
-## 1.12 — WHOOP 5/MG heart rate on Mac + Readiness anchoring
-
-- **Fixed (macOS, WHOOP 5/MG): the connect bonding and actually streaming live HR.** The v1.5 attempt
-  bonded but still failed on real 5/MG hardware because it subscribed the protected puffin notify chars
-  (`fd4b0003/4/5/7`) at *discovery*, before the link was encrypted — the strap rejected them with
-  *"Authentication is insufficient"* and the bond write itself failed *"Encryption is insufficient."*
-  NOOP now (1) retains those chars but defers the subscribe until the `CLIENT_HELLO` `.withResponse`
-  write confirms in `didWriteValueFor`; (2) arms realtime HR post-bond with **puffin command framing**
-  (`puffinCommandFrame(TOGGLE_REALTIME_HR)`) — the `send()` guard previously dropped every 5/MG command,
-  so even a bonded strap never started streaming; and (3) surfaces actionable pairing-mode guidance when
-  the bond is refused (`Encryption/Authentication is insufficient`) — CoreBluetooth won't start a fresh
-  just-works bond against a strap still bonded to the official WHOOP app, so it must be in pairing mode
-  (blue LEDs, WHOOP app closed). Reimplemented from a 5/MG owner's hardware-verified flow (issue #17).
-  WHOOP 4.0 is untouched; the change is scoped entirely to the `.whoop5` path.
-- **Fixed (Mac + Android): the Readiness card still anchoring to the newest stored row.** v1.11 anchored
-  Today, the sparklines and the Trends windows to the device's real calendar day, but left
-  `ReadinessEngine` reading `sorted.last`, so the "Should you push today?" card still synthesised off a
-  stale import's newest day. Both platforms now pass the local day key into `evaluate(...)`, and the
-  engine treats an explicit-but-absent `today` as *insufficient* rather than falling back to the newest
-  row — so on a stale import the readiness card hides instead of showing an old day's read. No-op for
-  anyone wearing the strap nightly (today's row exists). Caught via @Brechard's PR #24 (issue #23/#24).
-
----
-
-## 1.11 — Today reflects today, not stale imports
-
-- **Fixed (Mac + Android): the dashboard treated the newest *imported* day as "today."** After a
-  historical WHOOP import, the Today hero, the 14-day sparklines and the Trends W/M/3M windows were all
-  anchored to the newest stored *row* (or `latestDay`) rather than the device's actual calendar date —
-  so a months-old import showed as today's recovery/readiness, and the trend windows showed the last N
-  imported days instead of the last N calendar days. Today now resolves by the real local day key
-  (`yyyy-MM-dd`), and the sparkline/Trends windows are date-anchored to today; older imports stay
-  visible under the wider ranges / All history. No change for the common case (recent contiguous data:
-  last-N-days == last-N-rows) — only stale-import dashboards are corrected (issue #23).
-
----
-
-## 1.10 — WHOOP 5/MG bonding on Android + Health Monitor fix
-
-- **Fixed (Android, WHOOP 5/MG): the strap connecting but never bonding.** It wrote `CLIENT_HELLO`
-  unacknowledged (`WRITE_TYPE_NO_RESPONSE`), which never triggered the just-works bond the `fd4b` strap
-  needs — so it sat connected, unbonded, and silent (the strap won't even stream the standard `0x2A37`
-  HR on an unauthenticated link). `CLIENT_HELLO` is now a confirmed write that triggers bonding (the
-  same fix shipped for macOS in v1.5), so live HR can come through. Experimental; isolated to the 5/MG
-  path — WHOOP 4.0 unaffected (issue #17).
-- **Fixed (Health Monitor): the heart-rate chart freezing when opened from the Live page.** Leaving
-  Live sent `TOGGLE_REALTIME_HR=0`, switching the stream off, so Health Monitor (which also shows live
-  HR) got nothing. The realtime stream is now ref-counted and stays on while any live-HR screen is
-  visible (issue #18).
-
----
-
-## 1.9 — Fix: bonded but no live data (Android)
-
-- **Fixed (Android): a strap that connects and bonds but shows no live data** — heart rate, battery,
-  worn and events all blank (it reproduces reliably on newer Android). A GATT callback-threading race
-  let the bond's with-response write fire before the notification subscriptions and starve them as
-  BUSY, so the strap looked bonded (commands like buzz worked) but not one notification was ever
-  enabled. NOOP now pins all GATT callbacks to the main looper (API 28+) and retries a transiently-BUSY
-  subscribe. Reported, diagnosed and hardware-verified (Pixel 8 / Android 16) by a community
-  contributor (PR #22); reviewed for no regression to the verified WHOOP 4.0 path.
-
----
-
-## 1.8 — Strap-log export on Mac + a Health Monitor fix
-
-- **New (Mac): export the strap log.** The Live screen's strap-log card now has **Copy** and **Save…**
-  buttons, so Mac users can attach the connection log to a bug report — Android has had this since 1.6,
-  Mac didn't (issue #17).
-- **Fixed: Health Monitor heart-rate chart flat-lining.** It derived the chart from R-R intervals,
-  which are sparse on WHOOP 4.0, so it sat on a flat 2-point line even while HR was clearly changing.
-  It now plots a rolling buffer of your live heart rate over time (issue #18).
-
----
-
-## 1.7 — WHOOP 5/MG frame capture + protocol workbench
-
-- **New (Mac): opt-in WHOOP 5/MG frame capture.** Settings → Experimental → "Record puffin frames"
-  logs the strap's raw 5/MG ("puffin") frames — each stamped with a timestamp and your live heart
-  rate as ground-truth — to a JSON file, with Export / Reveal actions. Read-only on the strap, off by
-  default, and never touches WHOOP 4.0. This is how 5/MG owners can contribute the captures needed to
-  decode recovery / strain / sleep.
-- **Dev tooling:** a headless Linux capture workbench (`tools/linux-capture/`, Python + bleak) and a
-  `whoop-decode` CLI that decodes captures with the same `WhoopProtocol` decoder the apps ship — no
-  second decoder to drift. Plus hardware-verified WHOOP 5.0 bonding/session notes in
-  `docs/BLE_REVERSE_ENGINEERING.md` that confirm the v1.5 just-works-bond approach.
-- Cherry-picked from community PRs #19 and #20 by @j0b-dev — reviewed, build-verified, and
-  reimplemented for the repo.
-
----
-
-## 1.6 — Share strap logs, and a worn-status fix
-
-- **New (Android): Share strap log.** Settings → Strap → **"Share strap log"** writes the connection
-  log to a file and opens the share sheet, so you can attach it to a bug report. Android's logs
-  weren't reachable without `adb`, which is why connection problems on Android (issues #17, #18) were
-  hard to diagnose — now they're one tap away.
-- **Fixed (Android): the "Worn" status always reading Off.** The Android default was wrong (`false`);
-  it now defaults to worn until the strap reports otherwise, matching the macOS app (issue #18).
-- **Mac:** the alarm debug log now prints your **local** wake time instead of UTC. Alarms already
-  fired at the correct local time — the log's "+0000" was just `Date`'s default UTC formatting.
-
----
-
-## 1.5 — WHOOP 5/MG: secure-pairing fix
-
-- **Fixed (experimental): WHOOP 5.0/MG stuck at "Finishing the secure pairing handshake."** The 5/MG
-  strap requires an encrypted (bonded) Bluetooth link before it will let the app subscribe to its
-  characteristics — it was rejecting them with "Authentication is insufficient," so the handshake
-  waited forever and live heart rate never arrived. NOOP now writes the `CLIENT_HELLO` with-response
-  to trigger just-works bonding, then subscribes once the link is authenticated. Diagnosed from a
-  shared strap log by a contributor on issue #17. **Still experimental on 5/MG** — if you have one,
-  please try it and share your strap log so we can keep improving it. WHOOP 4.0 is unaffected.
-
----
-
-## 1.4 — Live heart rate that doesn't freeze
-
-- **Fixed: live heart rate freezing mid-session.** The WHOOP firmware lets its realtime stream lapse
-  if it isn't periodically re-armed, which left heart rate stuck on a stale number while the strap was
-  still "connected" — the only fix was a manual disconnect/reconnect. NOOP now runs a 30-second
-  keep-alive that re-arms the realtime stream, re-subscribes a dropped notification, and — if nothing
-  has arrived for two minutes — reconnects on its own. This ports the macOS app's existing keep-alive
-  to Android, so the two platforms behave the same.
-- **Fixed: a corrupt Bluetooth packet could wedge the live stream.** The frame reader now rejects an
-  impossible frame length and resyncs to the next packet, and starts each connection from a clean
-  buffer, so a single bad packet can't freeze the stream until you reconnect.
-
----
-
-## 1.3 — Stays connected in the background
-
-- **New: keeps your strap connected when the app is closed.** On Android, NOOP runs a quiet ongoing
-  foreground-service notification that holds the Bluetooth link open, so your heart rate keeps
-  streaming and offloads keep landing even after you swipe the app away. On macOS this already came
-  for free — close the window and NOOP keeps running from the menu bar.
-- **New: "Keep connected in the background" toggle** in Settings → Strap, on by default. Turn it off
-  and NOOP disconnects whenever you close the app (and drops the notification with it).
-- **Fixed:** the strap dropping the instant you closed the app (the connection used to be torn down
-  with the screen). The BLE client is now owned by the app process, not the UI.
-- **Fixed:** the Android notification permission is now actually declared and requested, so the
-  background notification can appear on Android 13+.
-
----
-
-## 1.2 — Readiness, and the start of WHOOP 5/MG
-
-- **New: Readiness.** A "should you push today?" card on Today that synthesizes established
-  sports-science signals from your own history — HRV vs your baseline (Plews/Buchheit), resting-heart-
-  rate drift (Lamberts), sleeping respiratory rate, training-load balance (the acute:chronic workload
-  ratio, Gabbett) and training variety (monotony, Foster) — into one headline (Primed / Balanced /
-  Strained / Run down) with the drivers beneath it. Pure on-device math; not medical advice.
-- **WHOOP 5/MG: live heart rate now works.** Deeper 5/MG metrics (recovery, strain, sleep) are still
-  experimental and being worked on.
-- **Opt-in WHOOP 5/MG protocol probes** under Settings → Experimental, for 5/MG owners who want to
-  help map the protocol. Off by default; never affects WHOOP 4.0.
-- **Localized exports import fully.** German (and other localized) WHOOP exports now import with real
-  values, not blanks — the column headers are mapped, not just the filenames.
-- **Fixes.** The WHOOP 5/MG "stuck connecting" state, and the macOS "Choose export" button.
-
-## 1.1 — Scores live from the strap
-
-- **On-device scoring.** Recovery, strain and sleep now compute live from the strap, not only from an
-  import. They calibrate over your first few nights, like any recovery wearable.
-- **Pick your strap** (WHOOP 4.0 or 5.0/MG) before connecting, so it looks for the right one.
-- **Universal macOS build** that runs on both Intel and Apple Silicon.
-
-## 1.0 — First release
-
-- Pair directly with a WHOOP strap over Bluetooth — no WHOOP account, no cloud.
-- Compute recovery, strain, HRV and sleep locally on your own device.
-- Bring your history: import a WHOOP export, an Apple Health export, or Android Health Connect.
+## Antes de Cénit
+
+Cénit deriva de un proyecto anterior de código abierto que ya fue retirado. Las notas de
+lanzamiento de aquellas versiones no se conservan en este archivo; el historial de commits del
+repositorio sigue disponible para quien quiera consultarlo.

@@ -8,8 +8,8 @@ This document is the reference for the **reusable, cross-platform Swift
 packages** that make that possible. They are designed to be vendored and reused
 independently of the app itself.
 
-> **Not affiliated with WHOOP.** Cénit contains no WHOOP proprietary code,
-> firmware, or assets and works only with the user's own device and data.
+> Cénit contains no third-party proprietary code, firmware, or assets and works
+> only with the user's own device and data.
 > **Cénit is not a medical device.** Every derived metric (HR, HRV, recovery,
 > strain, sleep, SpO₂, temperature) is an approximation and is not clinically
 > validated.
@@ -161,7 +161,7 @@ public func pruneRaw(now:keepWindowSeconds:maxUnsyncedBytes:) async throws -> In
 ```swift
 import CenitStore
 
-let store = try await CenitStore(path: "/path/to/noop.sqlite")
+let store = try await CenitStore(path: "/path/to/cenit.sqlite")
 try await store.upsertDevice(id: "device-1", mac: nil, name: "Apple Watch")
 
 // Persist stream rows (idempotent — safe to replay).

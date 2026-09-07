@@ -4,7 +4,7 @@ Cénit is a standalone, fully **offline** health app on **Apple Health**. It syn
 on-device SQLite, can import Apple Health exports, and computes recovery / strain / HRV / sleep
 locally. There is no cloud, no account — the app works only with **your own data**.
 
-> **Not affiliated with WHOOP, and not a medical device.** Cénit contains no WHOOP code, firmware,
+> **Not a medical device.** Cénit contains no third-party proprietary code, firmware,
 > or assets. All outputs (HR, HRV, recovery, strain, sleep, SpO₂, temperature) are approximations
 > and are **not** clinically validated. See [`DISCLAIMER.md`](../DISCLAIMER.md) and
 > [`ATTRIBUTION.md`](../ATTRIBUTION.md).
@@ -129,7 +129,7 @@ Xcode to refresh it. The app keeps bundle id `com.feriracheta.cenit` and product
 
 ### 4. Apple Health on iOS
 
-Cénit is **Apple Health–only**: it does not pair with a WHOOP strap. On first launch iOS prompts
+Cénit is **Apple Health–only**: it does not pair with any external wearable. On first launch iOS prompts
 for HealthKit permissions; grant the types you want Cénit to read. Foreground sync pulls samples
 through `HealthKitBridge` into the local SQLite store. You can also import an Apple Health
 `export.xml` from **Settings → Data Sources**. See [`CONTRIBUTING.md`](CONTRIBUTING.md) for

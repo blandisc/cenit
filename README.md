@@ -15,39 +15,25 @@
 </p>
 
 <p align="center">
-  <a href="#download">⬇&nbsp;Download</a> ·
   <a href="#features">Features</a> ·
-  <a href="docs/ARCHITECTURE.md">Architecture</a>
+  <a href="docs/ARCHITECTURE.md">Architecture</a> ·
+  <a href="#privacy">Privacy</a> ·
+  <a href="#build">Build</a>
 </p>
 
-<p align="center"><sub>Cénit began life as <b>NOOP</b> — the name some paths and identifiers still carry.</sub></p>
-
 ---
 
-## Download
+Cénit is a standalone, fully **on-device** health app built on **Apple Health** and
+your **Apple Watch**. It syncs HealthKit samples into a local SQLite database on
+your iPhone and computes preparedness, strain, HRV, and sleep **locally**, with
+no account and no cloud. There is no separate wearable to pair — Cénit reads the
+samples your Apple Watch already saves to Apple Health.
 
-Cénit is an iOS app — you build it from source:
+> **Cénit is not a medical device.** Every derived metric is an approximation,
+> not clinical data. See [`DISCLAIMER.md`](DISCLAIMER.md).
 
-| Platform | Build | Notes |
-|---|---|---|
-| **iOS** | Build from source — see [`docs/BUILD.md`](docs/BUILD.md) | App + Watch + widgets + HealthKit. **Not distributed as a download:** iOS has no anonymous install path — the App Store and TestFlight both require a real Apple Developer identity — so it's build-it-yourself in Xcode. |
-
-See [`docs/BUILD.md`](docs/BUILD.md) for the full build instructions.
-
-Everything runs **on your device**. There is no account and no Cénit server. Optional exceptions (off unless you turn them on): an **iCloud Drive backup** of the local database, and the **ExerciseDB** animation downloader in Settings.
-
----
-
-Cénit is a standalone, fully **on-device** health app built on **Apple Health**.
-It syncs HealthKit samples into a local SQLite database on your iPhone and
-computes preparedness, strain, HRV, and sleep **locally**, with no account and
-no required cloud. Historical band data from older installs is preserved in
-SQLite but dormant (WHOOP BLE was retired in FER-1003).
-
-> **Not affiliated with WHOOP.** Cénit is an independent project. It is not
-> affiliated with, endorsed by, or connected to WHOOP, Inc. **Cénit is not a
-> medical device**; every derived metric is an approximation, not clinical
-> data. See [`DISCLAIMER.md`](DISCLAIMER.md).
+Cénit is free to use today; the author may introduce paid features later. This
+does not change the source license below.
 
 ---
 
@@ -55,10 +41,8 @@ SQLite but dormant (WHOOP BLE was retired in FER-1003).
 
 - [Why Cénit](#why-cénit)
 - [Features](#features)
-- [Platform status](#platform-status)
 - [Architecture](#architecture)
-- [Quickstart](#quickstart)
-- [How your data flows](#how-your-data-flows)
+- [Build](#build)
 - [Privacy](#privacy)
 - [Attribution](#attribution)
 - [Disclaimer](#disclaimer)
@@ -81,188 +65,84 @@ Your biometrics are yours. Cénit is built on that premise:
   `export.xml` from **Ajustes → Fuentes de datos**.
 - **Transparent math.** Strain, HRV, sleep, and the daily preparedness verdict
   are recomputed on-device from documented, citable methods (Task Force 1996 HRV,
-  Karvonen %HRR, Edwards / Banister TRIMP, Tanaka HRmax, and so on). The
-  algorithms are approximations of — not reproductions of — any proprietary
-  model, and every analyzer file documents exactly what it does.
+  Karvonen %HRR, Edwards / Banister TRIMP, Tanaka HRmax, and so on) — every
+  analyzer file documents exactly what it does.
 
 ---
 
 ## Features
 
-The live shell is **four tabs** (`RootTabView` / `TabRouter`):
+The live shell is **four tabs**:
 
 | Tab | What's there |
 |---|---|
-| **Hoy** | Home. An ecosystem hero (orb, moons, guardian) with a **Preparedness** verdict, then a three-shelf matrix: decide your day (sleep, resting HR), watch (temperature / respiration), and context (load, HRV / stress, steps). Pull down to sync Apple Health. **En vivo** is not a tab — it opens as a cover from Hoy. |
-| **Tendencias** | Longer-range body. Period chips (W / M / 3M / 6M / 1Y / ALL). Hero is the **Preparedness** word, not a 0–100 recovery score (that scorer is retired from the UI). Modules: rest & load, training load (ACWR), vitals, activity, longevity (fitness age, VO₂max). Compare + see-all at the bottom. |
-| **Entrenar** | Today's routine hero with **Empezar** and shortcuts (quick strength, intervals, 20 min mobility, 3 min breathe), plus a mosaic: week, dose, hills, body map, marks + volume, consistency, history. Strength opens a full-screen **Hoja** (`RoutineSheet` live): log weight/reps, rest, focus mode; save writes `strengthSession` + sets locally (discarded if you logged no sets). Apple Watch mirroring is optional. |
-| **Ajustes** | Profile (age / sex / weight / height / HRmax), units, data sources + backup, recovery recalibration, opt-in ExerciseDB animations, illness watch, morning notice, workout reminder, FA history, display/sound/rest alerts, experimental metrics, cycle phase, About. |
+| **Hoy** | Home. A daily preparedness verdict, then a grid of signal tiles: sleep, HRV, resting heart rate, day strain, steps, skin temperature, respiration, and stress. Pull down to sync Apple Health. |
+| **Tendencias** | Longer-range body. Period chips (week / month / 3 months / 6 months / year / all). Modules for rest & load, training load (ACWR), vitals, activity, and longevity (fitness age, VO₂max). |
+| **Entrenar** | A training planner and guided strength-session logger: routines, sets/reps tracking, rest timers, and an optional **Apple Watch** companion that mirrors the session and logs sets independently from the wrist. |
+| **Ajustes** | Profile (age / sex / weight / height / HRmax), units, data sources & backup, recovery recalibration, opt-in exercise media downloads, illness watch, reminders, and About. |
 
 There is also a first-run **onboarding wizard**, Home-screen / Lock-screen
 **widgets**, and an in-app **"What's new"** changelog.
 
-**Retired from the live shell (still in git history):** a fifth **Coach / Patrones** tab (archived FER-240) and WHOOP BLE pairing (retired FER-1003). Do not treat those as current product.
-
----
-
-## Platform status
-
-Cénit's logic lives in Swift packages. The iOS app syncs **Apple Health** and
-scores preparedness, strain, and sleep **on your own device**.
-
-| Platform | Status |
-|---|---|
-| **iOS** | ✅ The app (`Cenit`, SwiftUI, **iOS 17+**) — app target + Watch + widgets + HealthKit. Syncs Apple Health and scores preparedness / strain / sleep on-device. **Build-from-source only, not distributed.** |
-
-Cénit is **iOS-only** today — earlier macOS and Android experiments have been
-retired. The packages stay portable so a future port is technically possible;
-none is in development right now.
-
-### What to expect when you start
-
-- **Apple Health sync** pulls samples when the app comes to the foreground
-  (and on pull-to-refresh). HealthKit authorization is requested from the empty
-  Hoy state, not silently at launch.
-- **Strain and sleep** appear once HealthKit has enough recent history.
-- **Preparedness** needs a few nights to learn your baseline, then updates
-  each night.
-- **In a hurry?** Import an Apple Health `export.xml` in **Ajustes → Fuentes de
-  datos** and your full history fills in about a minute.
-
-On the **Simulator**, HealthKit is unavailable; screenshot fixtures fill the UI.
+See [`docs/FEATURES.md`](docs/FEATURES.md) for the full feature guide.
 
 ---
 
 ## Architecture
 
 The repository is split into platform-pure Swift packages plus the iOS app target
-(`Cenit`). All packages declare both `.iOS(.v16)` and `.macOS(.v13)` so the pure
-logic builds and tests without an app;
-framework-specific UI is guarded with `#if canImport(UIKit)` / `#if canImport(AppKit)`.
+(`Cenit`). Every package targets both iOS and macOS so the pure logic builds and
+tests without an app; framework-specific code is guarded with
+`#if canImport(UIKit)` / `#if canImport(AppKit)`.
 
 ```
 Cenit/                 SwiftUI app layer — AppModel, Repository, Screens
 CenitApp/              iOS app shell — HealthKitBridge, RootTabView, widgets, intents
-CenitWatch/            watchOS companion (optional HR mirroring)
+CenitWatch/            watchOS companion (strength-session logging + HR mirroring)
 CenitWidgets/          WidgetKit extension (Home / Lock-screen widget)
 CenitShared/           code shared between the app and the widgets
 Packages/
   BiometricStreams/     neutral vocabulary of biometric rows (pure, zero deps)
-  CenitStore/           GRDB/SQLite persistence (versioned migrations, currently through v41)
+  CenitStore/           GRDB/SQLite persistence (versioned migrations)
   StrandAnalytics/      HRV / preparedness / strain / sleep math (pure, DB-free)
   StrandTraining/       strength domain (catalog, sets/reps, routines)
   StrandImport/         Apple Health importers
-  CenitDesign/         SwiftUI design system
+  CenitDesign/          SwiftUI design system
   StrandModels/         shared models
 Tools/                  developer scripts (localization, screen captures, design lint)
 ```
 
-> The packages keep their original `Strand*` names from earlier eras; the app
-> layer is `Cenit/` (display name **Cénit**).
-
-### `CenitStore` — local SQLite via GRDB
-
-Everything is stored on-device in SQLite (using
-[GRDB.swift](https://github.com/groue/GRDB.swift)). The schema is a versioned
-migrator in `Packages/CenitStore` (`Database.swift`, currently through **`v41`**).
-Live HealthKit rows land under `deviceId = "apple-health"`. An older `"strap"`
-partition from the WHOOP era is **dormant**, not deleted — `SourceModeStore` is
-pinned to `.appleHealthOnly`.
-
-### `StrandAnalytics` — transparent, on-device math
-
-Pure, database-free analyzers. Each is documented and grounded in published
-methods (and is explicitly an approximation, not a reproduction of any proprietary
-model). The live UI verdict is **Preparedness** (categorical), not a 0–100
-recovery score.
-
-| File | Computes |
-|---|---|
-| `HRVAnalyzer.swift` | RMSSD + SDNN from R-R intervals (Task Force 1996), with range + Malik ectopic filtering. |
-| `Preparedness.swift` / `ReadinessEngine.swift` | The Hoy / Tendencias verdict — HRV vs baseline, RHR drift, load balance (ACWR), and related signals. |
-| `StrainScorer.swift` | A logarithmic strain scale from %HRR (Karvonen) and Edwards / Banister TRIMP. |
-| `NocturnalHRV.swift` | Night RMSSD from Apple Health heartbeat series. |
-| `FitnessAgeEngine.swift` / `VitalityEngine.swift` | Longevity-facing reads (fitness age, VO₂max, etc.). |
-
-A legacy `RecoveryScorer` (0–100) still exists in the package; it is **not**
-what the production tabs show.
-
-### `StrandImport` — bring your own history
-
-- **Apple Health export** (`AppleHealthImporter.swift`): a **streaming** SAX parser
-  (`XMLParser`) for `export.xml` (which can exceed 1 GB), with correlation-dedupe,
-  unit normalization (e.g. SpO₂ fraction → %), and sleep-stage mapping.
-
-### `CenitDesign` — the SwiftUI design system
-
-Palette, typography, motion, and reusable components/charts — no external UI
-dependencies.
+See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full system map —
+pipeline, package boundaries, concurrency model, and storage schema.
 
 ---
 
-## Quickstart
+## Build
 
-**Requirements:** a recent Xcode and an iPhone on **iOS 17+**. To explore without
-a full HealthKit history, import an Apple Health export instead.
-
-The Xcode project is generated from [`project.yml`](project.yml) with
-[XcodeGen](https://github.com/yonaskolb/XcodeGen). Canonical checkout on the
-author's machine is `~/code/noop`.
+Cénit builds from source. Requirements: a recent Xcode and an iPhone on
+**iOS 17+**. To explore without a full HealthKit history, import an Apple
+Health export instead.
 
 ```bash
-# 1. Clone
-git clone https://github.com/blandisc/noop.git cenit
+git clone https://github.com/blandisc/cenit.git
 cd cenit
 git checkout iOS
 
-# 2. (Re)generate the Xcode project from project.yml
 brew install xcodegen   # if you don't have it
-xcodegen generate
-
-# 3. Open in Xcode, then select the Cenit scheme and run on your iPhone.
+xcodegen generate       # generates Cenit.xcodeproj from project.yml
 ```
 
-Notes:
-
-- Product, scheme and module are **Cenit**; the app's display name is **Cénit**.
-  Set your own bundle id and signing team in `project.yml` before building to your
-  device.
-- Default branch is **`iOS`**.
-- Swift Package Manager resolves the only third-party dependencies automatically:
-  **GRDB.swift** (SQLite) and **ZIPFoundation** (export unzip).
-- A 16 GB Mac should cap parallel simulator work (`-jobs 4`); see `CLAUDE.md`.
-- Run the tests from Xcode (the app's test target + each package's test target),
-  or per-package with `swift test` inside `Packages/<Name>/`.
+Then open the project in Xcode, select the `Cenit` scheme, and run on your
+iPhone. See [`docs/BUILD.md`](docs/BUILD.md) for the full build guide, including
+signing and installing on-device without a paid Apple Developer account.
+Cénit is prepared for App Store distribution; in the meantime, building from
+source is how you run it.
 
 To explore without an Xcode project, the packages build on their own:
 
 ```bash
 cd Packages/StrandAnalytics && swift build && swift test
 ```
-
-See [`docs/BUILD.md`](docs/BUILD.md) for the full build guide.
-
----
-
-## How your data flows
-
-```
-Apple Health (HealthKit) ──▶ HealthKitBridge.sync (.foreground)
-                                      │
-                                      ▼
-                         CenitStore GRDB (deviceId "apple-health")
-                                      │
-                                      ▼
-                         Repository.refresh → Preparedness
-                                      │
-                                      ▼
-                    Hoy / Tendencias / Entrenar / Ajustes
-```
-
-File imports (`export.xml`) join the same SQLite store via `StrandImport`.
-The `"strap"` partition is excluded at read time. Optional Watch HR during a
-strength session writes `strengthHrSample`. Optional iCloud Drive backup and
-ExerciseDB CDN downloads are the only network paths, both opt-in.
 
 ---
 
@@ -274,32 +154,29 @@ device.
 
 Network exceptions, both **off unless you opt in**:
 
-- **iCloud Drive backup** of the local database (`autoBackup` in the iOS app).
-- **ExerciseDB media** ("Descargar biblioteca de ejercicios" in Ajustes):
-  downloads exercise thumbnails and short video loops from the public ExerciseDB
-  CDN and caches them on your iPhone. Turning it off stops future downloads;
-  a separate clear-cache control deletes what's already stored.
+- **iCloud Drive backup** of the local database.
+- **Exercise media downloads** in Ajustes: fetches exercise thumbnails and short
+  video loops and caches them on your iPhone. Turning it off stops future
+  downloads; a separate control clears what's already stored.
+- **AI Coach** (off by default): only with an API key you supply yourself, to
+  the provider you choose.
 
-See [`docs/PRIVACY_SECURITY.md`](docs/PRIVACY_SECURITY.md).
+Read the full privacy policy at
+**[blandisc.github.io/cenit/privacidad.html](https://blandisc.github.io/cenit/privacidad.html)**,
+or see [`docs/PRIVACY_SECURITY.md`](docs/PRIVACY_SECURITY.md) for the technical
+detail of exactly what stays on-device.
 
 ---
 
 ## Attribution
 
-With thanks:
-
-- **`groue/GRDB.swift`** — SQLite persistence.
-- **`weichsel/ZIPFoundation`** — export unzipping.
-
-Cénit contains no WHOOP proprietary code, firmware, logos, or assets, and performs
-no DRM circumvention. Full detail in [`ATTRIBUTION.md`](ATTRIBUTION.md).
+With thanks to the open-source projects Cénit builds on — GRDB.swift,
+ZIPFoundation, Space Grotesk, and free-exercise-db. Full detail in
+[`ATTRIBUTION.md`](ATTRIBUTION.md) and [`NOTICE`](NOTICE).
 
 ---
 
 ## Disclaimer
-
-Cénit is an independent, unofficial, non-commercial project. It is **not
-affiliated with, endorsed by, or connected to WHOOP, Inc.**
 
 **Cénit is not a medical device.** Heart rate, HRV, preparedness, strain, sleep
 stages, SpO₂, respiratory rate, and skin temperature are **approximations**
@@ -307,8 +184,8 @@ computed from published methods. They are not clinically validated and are not
 medical advice. Do not use them to diagnose, treat, or make health decisions —
 consult a qualified professional.
 
-Provided **as-is**, with **no warranty**, for **personal and educational use**. You
-use it at your own risk. Read the full notice in [`DISCLAIMER.md`](DISCLAIMER.md).
+Provided **as-is**, with **no warranty**. You use it at your own risk. Read the
+full notice in [`DISCLAIMER.md`](DISCLAIMER.md).
 
 ---
 
@@ -316,22 +193,22 @@ use it at your own risk. Read the full notice in [`DISCLAIMER.md`](DISCLAIMER.md
 
 Cénit is **source-available** under the [PolyForm Noncommercial License 1.0.0](LICENSE):
 **free for personal and other non-commercial use** — read it, run it, fork it, and
-contribute. Commercial use is not granted by this license. (PolyForm Noncommercial is
-a proper software license with patent terms; it is deliberately *not* an OSI
-"open-source" licence, because that would permit the commercial use this project's
-non-commercial nature rules out.)
+contribute. Commercial use of the source is not granted by this license. (PolyForm
+Noncommercial is a proper software license with patent terms; it is deliberately
+*not* an OSI "open-source" licence, because that would permit the commercial use
+this license rules out.)
 
-The license covers Cénit's own original code and docs. Protocol facts (frame layouts,
-command numbers, byte offsets) are uncopyrightable and free to reuse; bundled
-dependencies keep their own licenses (GRDB.swift and ZIPFoundation are MIT — see
-[`NOTICE`](NOTICE)). By opening a pull request you agree your contribution is licensed
-under the same terms — see [`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md).
+The license covers Cénit's own original code and docs; bundled dependencies keep
+their own licenses (see [`NOTICE`](NOTICE)). By opening a pull request you agree
+your contribution is licensed under the same terms — see
+[`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md).
 
 ---
 
 ## Docs
 
 - [`docs/BUILD.md`](docs/BUILD.md) — full build & install guide.
+- [`docs/FEATURES.md`](docs/FEATURES.md) — the full feature guide.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — the system map (pipeline, package boundaries, storage schema).
 - [`docs/PRIVACY_SECURITY.md`](docs/PRIVACY_SECURITY.md) — exactly what stays on-device.
 - [`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md) — repository layout, build/test, design-system rules.

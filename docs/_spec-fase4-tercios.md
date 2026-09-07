@@ -18,7 +18,7 @@ Repository.performRefresh(full:)  ──► por cada sesión de sueño de las pr
              (OJO: la etiqueta es "wake", NO "awake")
     NightThirds.compute(hr: hrForNights de la sesión, asleep:)   ← MISMO marco wall-clock → nunca nil
     upsertMetricSeries([MetricPoint(day: dayKey, key: "night_thirds_delta", value: deltaBpm)],
-                       deviceId: appleComputedDeviceId)          ← "apple-health-noop", :42
+                       deviceId: appleComputedDeviceId)          ← "apple-health (partición computada dedicada)", :42
 SleepDetailScreen  ──► LEE metricSeries(deviceId: appleComputedDeviceId,   ← accesor NUEVO, ver §5/N1
                        key: "night_thirds_delta") + calcula z.
 ```
@@ -94,7 +94,7 @@ En la UI, sobre la serie persistida de `deltaBpm` leída con el **accesor nuevo*
 | `Packages/StrandAnalytics/.../Baselines.swift` | Alta `MetricCfg` `"night_thirds_delta"` |
 
 ⚠️ **N1 (bloqueante de wiring):** el accesor de lectura DEBE apuntar a `deviceId: appleComputedDeviceId`
-(`"apple-health-noop"`), **no** al `computedDeviceId` (`+"-noop"` sobre el strap) del patrón
+(`"apple-health (partición computada dedicada)"`), **no** al `computedDeviceId` (`+"(sufijo de fuente computada)"` sobre el banda) del patrón
 `computedSeries`/`stressDaySummaries`. Reusar ese patrón lee la partición equivocada → serie vacía → el
 z nunca pinta (otro falso verde). Es un **método nuevo**, no `computedSeries`. **NO** toca
 `TodayView`/`CuerpoView` (la ruta única elimina el plumbing de HR vivo). Vive en el paquete por
