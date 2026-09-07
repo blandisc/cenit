@@ -1364,8 +1364,10 @@ struct SleepDetailModel {
 
     // MARK: - Build
 
-    /// Personal sleep need (minutes): mean asleep, never below a 7.5 h floor. Single source of truth
-    /// shared with the coach/InsightEngine via `SleepMath` (FER-339), so both show the same debt.
+    /// Sleep need (minutes): a fixed 7.5 h recommended target (FER-409), NOT the personal mean — which
+    /// is why the on-screen copy can honestly call it «the 7–9 h target, not a measurement of you».
+    /// Single source of truth shared with the coach/InsightEngine via `SleepMath` (FER-339), so both
+    /// show the same debt.
     private static func sleepNeedMin(_ days: [DailyMetric]) -> Double {
         SleepMath.needMinutes(days)
     }
