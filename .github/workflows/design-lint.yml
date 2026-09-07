@@ -36,6 +36,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Paridad de las tres patas contra CONTRATO.md (FER-265)
         run: python3 Tools/check-gate-parity.py
+      - name: "Enseñanza: toda pantalla nueva lleva // ensenanza: <id> (D6, épico FER-428)"
+        run: python3 Tools/check-ensenanza.py
       - name: Design-drift linter — no raw hex (all roots)
         run: python3 Tools/check-design-drift.py --rules no-hex
       - name: Design-drift linter — no ad-hoc font/radius/opacity, ratchet (FER-276)
@@ -103,3 +105,14 @@ jobs:
           DIFF_FILES=$(git diff --name-only FETCH_HEAD HEAD | tr '\n' ',')
           python3 /tmp/check-monotony.py /tmp/base.json Tools/design-drift-baseline.json \
             --labels "$PR_LABELS" --diff-files "$DIFF_FILES"
+      - name: El baseline de enseñanza solo baja (D6, épico FER-428)
+        run: |
+          # FETCH_HEAD ya trae la punta de la base (paso «Baseline y guardia» de arriba, mismo job).
+          # `|| true`: si la base todavía no tiene este archivo (su propia alta, este PR), queda
+          # vacío — check-ensenanza.py trata una base vacía como alta estructural, no como subida.
+          git show "FETCH_HEAD:Tools/ensenanza-baseline.txt" > /tmp/ens-base.txt 2>/dev/null || true
+          # El guardia corre desde la BASE (igual que check-monotony arriba: un PR no trae su propio
+          # gate parchado); si la base todavía no lo tiene (su propia alta), el del PR es el único.
+          git show "FETCH_HEAD:Tools/check-ensenanza.py" > /tmp/check-ensenanza.py 2>/dev/null \
+            || cp Tools/check-ensenanza.py /tmp/check-ensenanza.py
+          python3 /tmp/check-ensenanza.py --base /tmp/ens-base.txt

@@ -34,7 +34,7 @@ jobs:
     #   - StrandTraining: Compression (Exercise.swift — zlib-inflated catalog, FER-875).
     # Pure / Foundation-only packages build/test on Linux: BiometricStreams,
     # StrandModels, StrandAnalytics (depends on StrandModels + BiometricStreams only — L3-C1b;
-    # no longer links GRDB via CenitStore).
+    # no longer links GRDB via CenitStore), CenitEnsenanza (no deps — épico FER-428, L4/FER-430).
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -43,6 +43,8 @@ jobs:
           - package: BiometricStreams
             os: ubuntu-latest
           - package: StrandAnalytics
+            os: ubuntu-latest
+          - package: CenitEnsenanza
             os: ubuntu-latest
           - package: StrandTraining
             os: macos-15

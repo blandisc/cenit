@@ -326,6 +326,8 @@ def main() -> int:
 
     dead: list[str] = []
     for key in keys:
+        if key.startswith("ensenanza."):
+            continue  # las claves del registro se arman en runtime (FuncionalidadID + sufijo), nunca literales
         if is_alive(key, exact, normalized, raw) is None:
             dead.append(key)
 

@@ -90,6 +90,7 @@ Cenit/
 | Persisting data, migrations, caches, reads | `Packages/CenitStore` | GRDB/SQLite only. |
 | Computing recovery / strain / HRV / sleep / correlations | `Packages/StrandAnalytics` | Pure, database-free analyzers. |
 | Strength domain types & rules (exercise catalog, sets/reps modeling, progression) | `Packages/StrandTraining` | Pure domain; live session state & persistence → app layer (`Cenit/`). |
+| Qué se enseña y cómo (registro de funcionalidades) | `Packages/CenitEnsenanza` | Pure, Foundation-only; text and routes only, never logic. |
 | Parsing Apple Health `export.xml` | `Packages/StrandImport` | Streaming SAX XML. |
 | Colors, fonts, motion, cards, charts | `Packages/CenitDesign` | No external UI deps; bridges AppKit/UIKit. |
 | HealthKit sync, import glue, repository | `CenitApp/Health`, `Cenit/Data` | App layer. |
@@ -378,6 +379,10 @@ to the Explore / Compare / tile UI. The catalog is the contract.
    SQLite directly from a view.
 4. **Optional features default OFF.** Anything that fires a notification or automates behavior is
    opt-in and toggleable, matching the existing screens.
+5. **Regístrala.** Every new screen under `Cenit/Screens/**` needs a teaching entry — enforced by
+   `Tools/check-ensenanza.py` (design-lint + `verify.sh quick`): a `case` in `FuncionalidadID`, an
+   entry in `Registro+<Pestaña>.swift`, the three `ensenanza.<id>.*` keys in the catalog, and a
+   `// ensenanza: <id>` marker in the screen file.
 
 ### Add a database column or table
 
