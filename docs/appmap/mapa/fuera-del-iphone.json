@@ -2,7 +2,7 @@
   "familia": "fuera-del-iphone",
   "titulo": "Fuera del iPhone · widgets, Live Activity, Watch",
   "unidad": "estados",
-  "blurb": "Superficies que test_mapa no alcanza porque no son una pantalla del iPhone navegable con -noop.nav: los widgets de HomeScreen (TrainTodayWidget/WeekWidget), la Live Activity de la sesión de fuerza (RestLiveActivity) y las pantallas del Apple Watch. Mapa 100 % Ola 4 (FER-394) investigó renderizarlas aparte con ImageRenderer (SwiftUI → PNG, «render, no captura del simulador») en vez de capturarlas. Los tres quedaron NO VIABLES dentro del alcance «toca solo estos archivos» de la ola — cada nodo documenta el estado que se hubiera renderizado y por qué no se pudo, como backlog explícito (ver docs/appmap/mapa/README.md § omitido).",
+  "blurb": "Superficies que test_mapa no alcanza porque no son una pantalla del iPhone navegable con -cenit.nav: los widgets de HomeScreen (TrainTodayWidget/WeekWidget), la Live Activity de la sesión de fuerza (RestLiveActivity) y las pantallas del Apple Watch. Mapa 100 % Ola 4 (FER-394) investigó renderizarlas aparte con ImageRenderer (SwiftUI → PNG, «render, no captura del simulador») en vez de capturarlas. Los tres quedaron NO VIABLES dentro del alcance «toca solo estos archivos» de la ola — cada nodo documenta el estado que se hubiera renderizado y por qué no se pudo, como backlog explícito (ver docs/appmap/mapa/README.md § omitido).",
   "nodos": [
     {
       "id": "widget-hoy-con-rutina",
