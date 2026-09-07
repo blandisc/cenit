@@ -6,7 +6,7 @@ import SwiftUI
 ///
 /// Two transport layers — both post to `.noopDebugNav` which RootTabView observes:
 ///   1. Darwin notifications (no dialog): notifyutil -p noop.nav.<screen>
-///   2. URL scheme (backup):              xcrun simctl openurl booted "noopdev://<screen>"
+///   2. URL scheme (backup):              xcrun simctl openurl booted "cenit://<screen>"
 ///
 /// Supported screen keys (FER-182 — 4-tab shell after FER-240):
 ///   Tabs: today · body (aliases: trends, sleep — Sueño lives inside Cuerpo now) ·
@@ -27,11 +27,15 @@ extension Notification.Name {
     static let noopDebugNav = Notification.Name("noop.debugNav")
 }
 
-/// Handles noopdev:// URLs and broadcasts the target screen via NotificationCenter.
+/// Handles `cenit://<screen>` URLs and broadcasts the target screen via NotificationCenter.
+///
+/// `session` is NOT handled here: that one is the Live Activity's deep link and has to work in
+/// Release too, so `RootTabView` owns it (FER-398). Skipping it keeps the two handlers from both
+/// reacting to the same URL.
 struct DebugURLHandler: ViewModifier {
     func body(content: Content) -> some View {
         content.onOpenURL { url in
-            guard url.scheme == "noopdev", let screen = url.host else { return }
+            guard url.scheme == "cenit", let screen = url.host, screen != "session" else { return }
             NotificationCenter.default.post(name: .noopDebugNav, object: screen)
         }
     }

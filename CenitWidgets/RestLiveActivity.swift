@@ -571,7 +571,11 @@ private enum SessionDynamicIsland {
         } minimal: {
             minimal(s)
         }
-        .widgetURL(URL(string: "noopdev://session"))
+        // FER-398: el esquema propio de Cénit, y ahora con un manejador REAL en Release
+        // (`RootTabView`): toca la isla → pestaña Entrenar + la sesión viva. Antes apuntaba a
+        // `noopdev://`, un esquema cuyo único manejador vivía bajo `#if DEBUG`, así que en la app
+        // de la tienda este tap solo abría Cénit donde la hubieras dejado.
+        .widgetURL(URL(string: "cenit://session"))
         .keylineTint(s.isHRRest ? LiquidOLED.rosa : LiquidOLED.ambar)
     }
 

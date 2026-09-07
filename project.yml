@@ -132,10 +132,14 @@ targets:
         NSPhotoLibraryAddUsageDescription: "Cénit saves the workout card you choose to share to your photo library. It only saves the image you explicitly ask it to."
         NSCalendarsFullAccessUsageDescription: "Cénit crosses your calendar events with your day's stress, on your iPhone, to show what your most activated moments coincided with. Cénit never uploads it. No server, no account."
         NSCalendarsUsageDescription: "Cénit crosses your calendar events with your day's stress, on your iPhone, to show what your most activated moments coincided with. Cénit never uploads it. No server, no account."
-        # Debug-only URL scheme for screenshot automation (simulator navigation via xcrun simctl openurl)
+        # FER-398: el esquema propio de Cénit. Lo abre la Live Activity de descanso
+        # (`cenit://session` → pestaña Entrenar + la sesión viva) y, solo en Debug, el navegador de
+        # capturas (`cenit://<pantalla>`, ver CenitApp/App/ScreenshotNav.swift). Era `noopdev`, un
+        # esquema del nombre viejo que además solo tenía sentido para desarrollo.
         CFBundleURLTypes:
-          - CFBundleURLSchemes:
-              - noopdev
+          - CFBundleURLName: com.feriracheta.cenit
+            CFBundleURLSchemes:
+              - cenit
     entitlements:
       path: CenitApp/Resources/NOOP.entitlements
       properties:

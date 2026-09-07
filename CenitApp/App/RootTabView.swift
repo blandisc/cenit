@@ -311,6 +311,18 @@ struct RootTabView: View {
             isTodayActive = isLightTab(newValue)
         }
         .onAppear { isTodayActive = isLightTab(selection) }
+        // FER-398 — `cenit://session`, el deep link de la Live Activity de descanso (su `widgetURL`).
+        // En AMBOS modos, no solo en Debug: en la app de la tienda ese tap no llevaba a ningún lado
+        // porque el único manejador del esquema vivía bajo `#if DEBUG` (`ScreenshotNav`), que además
+        // ignora `session` a propósito para que los dos no reaccionen a la misma URL.
+        //
+        // Con sesión viva: Entrenar + reabrir la hoja (el mismo camino que toca la píldora flotante).
+        // Sin sesión viva: solo Entrenar — nunca inventa una sesión que no existe.
+        .onOpenURL { url in
+            guard url.scheme == "cenit", url.host == "session" else { return }
+            selection = .train
+            appModel.resumeStrengthSession()   // ya es un no-op sin sesión viva
+        }
         // Cross-tab navigation requests (FER-378). One-shot: apply + clear.
         .onReceive(tabRouter.$requested.compactMap { $0 }) { req in
             switch req {
