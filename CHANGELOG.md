@@ -21,6 +21,14 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
 
 ## Unreleased
 
+### La base de datos, reescrita por dentro sin tocar tus datos (FER-393)
+- La capa que guarda tu historial en el teléfono se reescribió desde cero. Para ti no cambia nada:
+  tu base abre igual, con las mismas filas, y al abrirla no se ejecuta ni una sola instrucción que
+  modifique su forma. Hay una prueba que lo comprueba sobre una base real, no sobre un argumento.
+- De paso desaparecieron tres funciones muertas que quedaron de la época de la banda y que
+  consultaban tablas que ya no existen: fallaban en silencio en cada llamada y nadie leía su
+  resultado.
+
 ### Primer uso de Entrenar más claro (FER-373, FER-376)
 - Los chips de plantilla ya no repiten cuántas rutinas trae cada uno (eso se ve dentro de la hoja) —
   traducen el split en lenguaje llano. El trío destacado se recura para quien empieza: «Full body»

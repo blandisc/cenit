@@ -129,21 +129,21 @@ On iOS every app is sandboxed by the OS, so `<Application Support>` resolves **i
 the app's private data container** (under the app's home directory), not in any
 shared or user-global location. No other app can reach it through the filesystem.
 
-The schema is defined by a versioned `DatabaseMigrator` in
-`Packages/CenitStore/Sources/CenitStore/Database.swift` (currently schema version 9).
-It holds exactly the kinds of data you would expect from the features:
+The schema is defined by a `DatabaseMigrator` in
+`Packages/CenitStore/Sources/CenitStore/Schema.swift`, with one migration that installs
+all 29 tables. It holds exactly the kinds of data you would expect from the features:
 
-- **Decoded biometric streams** (durable): `hrSample`, `rrInterval`, `spo2Sample`,
-  `skinTempSample`, `respSample`, `gravitySample`, `battery`, `event`.
+- **Beat streams** (durable): `hrSample` and `rrInterval`.
 - **Derived/cached metrics**: `sleepSession`, `dailyMetric`, `workout`, `journal`,
   `appleDaily`, and the generic long-format `metricSeries`.
-- **A transient raw outbox** (`rawBatch`): compressed raw BLE frames from the retired
-  band era — **dormant** and **prunable**.
-- **Device records** (`device`): device id (historical), MAC, name, first/last-seen timestamps.
+- **The strength tracker**: routines, sessions, sets, personal records, the program.
+- **Experiments and diet**: `experiment`, `dietPlan`, `dietAdherence`.
+- **Bookkeeping**: `cursors` (one-shot flags and watermarks) and `deviceIdMap` (the
+  per-source partition label and its integer surrogate).
 
 The database is opened in WAL journal mode with `synchronous = NORMAL` and a busy
 timeout, tuned for bulk import/backfill writes
-(`Packages/CenitStore/Sources/CenitStore/CenitStore.swift`). WAL means you will also
+(`Packages/CenitStore/Sources/CenitStore/Store.swift`). WAL means you will also
 see `whoop.sqlite-wal` and `whoop.sqlite-shm` sidecar files alongside the main
 database — they live in the same container.
 
@@ -174,19 +174,15 @@ backups) so the database isn't readable inside a backup.
 
 ### 2.3 Data minimization & pruning
 
-The raw-frame outbox (`rawBatch`) is treated as transient, not as the system of
-record — the decoded streams are durable, the raw frames are a compressed,
-**prunable** buffer. The prune policy in
-`Packages/CenitStore/Sources/CenitStore/RawOutbox.swift` deletes old batches:
+Cénit keeps only what a feature reads back. The raw-frame outbox of the retired band
+era, the per-row upload flag of a retired server feature, and the stream tables nothing
+writes any more were all dropped from the schema and are not recreated on a fresh
+install — so a new database starts with 29 tables and no scaffolding for capabilities
+the app doesn't have.
 
-```sql
-DELETE FROM rawBatch WHERE syncedAt IS NOT NULL AND syncedAt < ?
-```
-
-So raw captures do not accumulate forever. (The `syncedAt`/upload-related columns are
-schema scaffolding inherited from the upstream collection library; in Cénit's offline
-configuration nothing uploads, and the raw buffer is purely a local replay/recovery
-aid.)
+What is still stored is bounded by what the user syncs: `auto_vacuum = INCREMENTAL`
+keeps deleted pages reclaimable, and `vacuum()` (a maintenance step, off the launch
+path) returns them to the OS. Deleting a day of metrics is a `DELETE`, not a flag.
 
 ### 2.4 Diagnostics
 
@@ -287,7 +283,7 @@ The Apple Health importer lives in `Packages/StrandImport/` and assumes the file
 | App state | Implausible-but-valid values | Range gates (e.g. HR 30–220) at HealthKit / import boundaries | `HealthKitBridge`, import glue |
 | Health import | XML bomb / multi-GB DOM blowup | Streaming SAX over `InputStream`; per-element autorelease pool | `StrandImport/AppleHealthImporter.swift` |
 | Health import | Zip bomb | 8 GB decompressed ceiling, chunked to disk, hard abort | `StrandImport/AppleHealthImporter.swift` |
-| Data at rest | Device theft / offline access | Relies on iOS Data Protection (passcode-tied) + app sandbox; SQLCipher available as an option | `CenitStore/CenitStore.swift` |
+| Data at rest | Device theft / offline access | Relies on iOS Data Protection (passcode-tied) + app sandbox; SQLCipher available as an option | `CenitStore/Store.swift` |
 
 ---
 
