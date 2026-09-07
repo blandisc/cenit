@@ -34,8 +34,12 @@ struct LiquidDetalleLegoTests {
         ("negativo", LiquidColor.negativo),
     ]
 
+    /// FER-448: los tonos y `tonoCampo` son `LiquidTheme.dynamic` desde A1/A2, y `rgbaComponents`
+    /// a secas los resuelve con la apariencia del HOST: en un Mac en modo oscuro toda la familia
+    /// reprobaba y «se aclaraba» (leía el ramo oscuro, que ACLARA a propósito). Estas pruebas miden
+    /// el modo claro, así que se resuelve explícito, como los tests de oscuro del paquete.
     private static func rgb(_ c: Color) -> (r: Double, g: Double, b: Double) {
-        let k = c.rgbaComponents
+        let k = c.resolved(at: .light).rgbaComponents
         return (r: k.r, g: k.g, b: k.b)
     }
 
