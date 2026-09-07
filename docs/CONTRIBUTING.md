@@ -1,508 +1,266 @@
-# Contributing to Cénit
+# Contributing
 
-Cénit is a standalone, fully **offline** health app on **Apple Health**. It syncs HealthKit into
-on-device SQLite, can import Apple Health exports, and computes recovery / strain / HRV / sleep
-locally — no cloud, no account. This document explains how the repository is laid out, how to
-build and test it, and the conventions every change is expected to follow.
+This is the working guide for changing Cénit: where code belongs, what the gates enforce, how to add
+the three things people most often add, and what a change has to satisfy before it merges.
 
-> **Not a medical device.** Cénit reads **your own data** on **your own device**; it contains no
-> third-party proprietary code, firmware, or assets and performs no DRM circumvention. Every
-> derived metric (HR, HRV, recovery, strain, sleep, SpO₂, temperature) is an
-> **approximation** and is **not** clinically validated. See
-> [`../DISCLAIMER.md`](../DISCLAIMER.md) and [`../ATTRIBUTION.md`](../ATTRIBUTION.md).
+Read [ARCHITECTURE.md](ARCHITECTURE.md) before any structural change, and
+[BUILD.md](BUILD.md) for the toolchain and the verification command. This document assumes both.
 
 ---
 
-## Table of contents
+## Five rules that get a change rejected
 
-- [Ground rules](#ground-rules)
-- [Repository layout](#repository-layout)
-- [Build & test](#build--test)
-- [The design system is the law](#the-design-system-is-the-law)
-- [Coding conventions](#coding-conventions)
-- [How to add things safely](#how-to-add-things-safely)
-  - [Add a new metric](#add-a-new-metric)
-  - [Add a new screen](#add-a-new-screen)
-  - [Add a database column or table](#add-a-database-column-or-table)
-- [Tests & fixtures](#tests--fixtures)
-- [Commit & PR conventions](#commit--pr-conventions)
-- [Roadmap](#roadmap)
+These are not style preferences. Each is enforced by something that will fail your build, and each
+exists because breaking it once cost real damage.
+
+**1. Offline only.** No server, no account, no telemetry, no network call. The app's privacy claim is
+that it has no reachable network path at all, and that claim is only as strong as the next change.
+See [PRIVACY_SECURITY.md](PRIVACY_SECURITY.md) for the evidence a reviewer will check against.
+
+**2. The design system is the law.** Screens use tokens and components from `CenitDesign` and nothing
+else — no raw hex, no literal font sizes, no ad-hoc spacing, no one-off card. If a token is missing,
+add it to `CenitDesign` with a preview; do not inline it. The enforcement contract lives in
+[design-system/CONTRATO.md](design-system/CONTRATO.md) and the visual point of view in
+[design-system/DESIGN.md](design-system/DESIGN.md).
+
+**3. Transparent math.** Every derived physiological value is a documented approximation of a
+published method. A new one needs the citation, a test, and honest hedging in the copy. No black
+boxes and no clinical claims — Cénit is not a medical device.
+
+**4. Migrations are append-only.** Never edit a shipped migration. Add the next version and a test
+case. Every column addition goes through the idempotent helper, never a raw alter.
+
+**5. One concern per pull request.** Do not commit generated files (the Xcode project, build output),
+and do not fold an unrelated cleanup into a feature.
 
 ---
 
-## Ground rules
+## Where code belongs
 
-A few principles run through the whole codebase. Internalize them before opening a PR.
+The single most expensive class of defect measured in this repository is writing a second version of
+something that already exists. Before writing code, inventory what you will reuse: which components,
+which helpers, which engine. If you cannot name them, you have not read enough yet.
 
-1. **Offline by design.** There is no server, no telemetry, no account, no network call. A change
-   that phones home — for any reason — does not belong here. Health data, imports, and computed
-   metrics live in a local SQLite database and never leave the device. (The one opt-in exception is
-   exercise-media download in `Cenit/Media/`, off by default.)
-2. **Apple Health first.** The shipping app is Apple Health–only. It does not pair with external
-   fitness bands. Cénit contains no third-party proprietary code.
-3. **Transparent math.** Analytics are approximations of published methods, documented file by file.
-   No black boxes, no claims of clinical accuracy, no reproduction of any proprietary model.
-4. **Credit dependencies.** Preserve credits for `GRDB.swift` and `ZIPFoundation` in code comments
-   and in [`../ATTRIBUTION.md`](../ATTRIBUTION.md).
+The second question is which layer the code belongs in. The rule of thumb: **the more the change is
+about numbers or storage, the deeper into `Packages/` it goes, and the more it must be covered by a
+test that needs no app and no device.**
+
+| The change is about | It belongs in | Proven by |
+| --- | --- | --- |
+| The shape of a decoded sample | `BiometricStreams` | A package test |
+| A row type both storage and math must name | `StrandModels` | A package test |
+| A table, a column, a query | `CenitStore` | A migration test against an in-memory store |
+| A physiological computation | `StrandAnalytics` | A package test with a hand-computed reference |
+| Sets, reps, progression, routines | `StrandTraining` | A package test |
+| Parsing a file the user supplies | `StrandImport` | A package test over a fixture |
+| A token, a component, a chart | `CenitDesign` | A package test plus a preview |
+| A screen, navigation, a HealthKit call | `Cenit/` and `CenitApp/` | The app's unit tests |
+
+If you find yourself computing a physiological value inside a view, the code is in the wrong layer.
+Move it down until it can be tested without a simulator.
+
+### Keeping the packages platform-neutral
+
+Every package targets at least two platforms, and continuous integration builds three of them on
+Linux. That is what keeps UI and hardware frameworks out of the packages. Package code must not
+import UIKit, AppKit, CoreBluetooth, HealthKit or WidgetKit unconditionally.
+
+When a platform-specific implementation is genuinely needed:
+
+```swift
+#if canImport(UIKit)
+import UIKit
+// iOS and watchOS
+#elseif canImport(AppKit)
+import AppKit
+// macOS
+#endif
+```
+
+Today every such guard in the layer lives in `CenitDesign`, plus one localization shim in
+`StrandAnalytics`. Adding a guard anywhere else deserves a sentence in the pull request explaining
+why.
+
+Do not use `@_exported import`. There is not one in the repository, and a file should say which
+module a type comes from.
 
 ---
 
 ## Repository layout
 
-The codebase is split into reusable, cross-platform Swift packages plus a thin app layer. The
-**iOS app (`Cenit`) is the app target**; `Cenit/` is its shared app layer. The packages reuse the
-same code across platforms.
+| Path | What lives there |
+| --- | --- |
+| `Packages/` | The eight cross-platform packages that do the real work. See [LIBRARY.md](LIBRARY.md). |
+| `Cenit/` | The app layer: screens, data plumbing, onboarding, media, system glue, Live Activity. |
+| `CenitApp/` | The iOS shell: app entry, the HealthKit bridge, the Info property list and entitlements. |
+| `CenitShared/` | Code compiled into more than one target: the app group, and the watch-to-phone wire contract. |
+| `CenitWidgets/` | The widget extension and the rest Live Activity. |
+| `CenitWatch/` | The watch companion. |
+| `CenitUnitTests/`, `CenitUITests/` | App-layer tests and the screenshot harness. |
+| `Tools/` | Gates, linters, codegen and the verification script. |
+| `docs/` | This documentation, the design system, decisions and specifications. |
+| `.github/workflows/` | The six continuous-integration workflows. |
 
-```
-Cenit/
-├── project.yml                 # XcodeGen project definition — source of truth for the project
-├── Cenit.xcodeproj/           # Generated by `xcodegen generate` — do NOT hand-edit (gitignored)
-├── Cenit/                     # SwiftUI app layer (built by Cenit; module/product: Cenit, display name Cénit)
-│   ├── App/                    # AppModel and root app state
-│   ├── Data/                   # Repository, StorePaths, MetricCatalog, profile, import glue
-│   ├── LiveActivity/           # Live Activity / rest-timer presentation glue
-│   ├── Media/                  # opt-in exercise-media cache/download (off by default)
-│   ├── Onboarding/             # first-run / restore / terms flows
-│   ├── Resources/              # app-layer resources
-│   ├── Screens/                # SwiftUI screens (Today, Sleep, Trends, MetricExplorer, …)
-│   └── System/                 # ProjectInfo and app-layer helpers
-├── CenitApp/                   # iOS app shell (scene, HealthKit, resources)
-├── CenitShared/                # code shared between app, widgets, and watch
-├── CenitWidgets/               # home / lock-screen widgets + Live Activity
-├── CenitWatch/                 # watchOS companion (mirrors strength session)
-├── CenitUnitTests/             # app-layer unit tests (simulator)
-├── CenitUITests/               # UI tests
-├── Packages/
-│   ├── BiometricStreams/       # neutral vocabulary of biometric rows (root, zero deps)
-│   ├── StrandModels/           # shared model types
-│   ├── CenitStore/             # GRDB/SQLite persistence (migrations, streams, caches)
-│   ├── StrandAnalytics/        # HRV / recovery / strain / sleep / correlation math
-│   ├── StrandTraining/         # strength domain types, catalog, sets/reps rules (pure)
-│   ├── StrandImport/           # Apple Health importers
-│   └── CenitDesign/           # SwiftUI design system (palette, components, charts)
-└── Tools/                      # dev scripts (i18n, design lint, screenshots, icon, DerivedData prune)
+`Cenit.xcodeproj` is generated by XcodeGen from `project.yml` and is gitignored. Regenerate it after
+any file addition or removal.
+
+---
+
+## Verifying a change
+
+One command, before you finish anything that touches Swift:
+
+```bash
+Tools/verify.sh
 ```
 
-### Where logic belongs
+It picks the work from what you changed: the linters always, then the touched packages, then an
+unsigned app build if the app layer moved. [BUILD.md](BUILD.md) documents every mode, what "touched"
+means, and the machine hygiene that keeps a full build from taking the Mac down.
 
-| If your change is about… | It belongs in… | Notes |
-|---|---|---|
-| Persisting data, migrations, caches, reads | `Packages/CenitStore` | GRDB/SQLite only. |
-| Computing recovery / strain / HRV / sleep / correlations | `Packages/StrandAnalytics` | Pure, database-free analyzers. |
-| Strength domain types & rules (exercise catalog, sets/reps modeling, progression) | `Packages/StrandTraining` | Pure domain; live session state & persistence → app layer (`Cenit/`). |
-| Qué se enseña y cómo (registro de funcionalidades) | `Packages/CenitEnsenanza` | Pure, Foundation-only; text and routes only, never logic. |
-| Parsing Apple Health `export.xml` | `Packages/StrandImport` | Streaming SAX XML. |
-| Colors, fonts, motion, cards, charts | `Packages/CenitDesign` | No external UI deps; bridges AppKit/UIKit. |
-| HealthKit sync, import glue, repository | `CenitApp/Health`, `Cenit/Data` | App layer. |
-| A screen or navigation destination | `Cenit/Screens`, `Cenit/System` | App layer. |
+Two things to know that surprise people:
 
-**Rule of thumb:** the more "math-level" or "storage-level" a change is, the deeper into `Packages/` it
-should live, and the more it should be covered by a `swift test` suite that runs without an app or
-HealthKit hardware.
+- Auto mode does **not** build the app for a change confined to the watch app or to `Packages/`.
+- `quick` runs linters only and deliberately does not record a completed verification.
 
-### Cross-platform discipline
+The design-drift linter runs in two flavors. Diff-scoped rules check the files you changed. Ratchet
+rules scan whole directory roots against a committed baseline, so pre-existing debt in a file you did
+not touch can fail your run. That is intended: the baseline may only ever go down. A separate gate
+proves the rules and roots are identical in the pre-commit hook, in `verify.sh` and in continuous
+integration, so "green locally, red in CI" cannot happen quietly.
 
-Every package declares **both** `.iOS(.v16)` and `.macOS(.v13)` so storage, analytics,
-import, and design layers compile and run unmodified on iOS (and stay portable to other platforms).
-Any framework-specific code must be guarded:
+---
+
+## Working inside the design system
+
+### Use a token, or add one
+
+Color, type, spacing, radius, motion and elevation all come from `CenitDesign`. A literal in a screen
+is a lint failure, not a matter of taste. The generated index of every component — its role, its
+symbol and its file — is [design-system/CATALOGO.md](design-system/CATALOGO.md); read it before
+building a component, because the odds are good that it exists.
+
+Adding a token or a component means writing it in `CenitDesign` with a `#Preview`, naming it by role
+rather than by appearance, and regenerating the catalog. The token generator is an executable target
+in that package, and a workflow re-runs it and fails if the committed output differs.
+
+### The exemption, and its budget
+
+When a rule genuinely must be broken, annotate the line:
 
 ```swift
-#if canImport(AppKit)
-let ns = NSColor(self).usingColorSpace(.sRGB) ?? NSColor(self)
-// …
-#elseif canImport(UIKit)
-let ui = UIColor(self)
-// …
-#endif
+// token-exempt(<categoria>): <reason>
 ```
 
-Do **not** add `import AppKit`/`import UIKit`/`import CoreBluetooth` to any file under `Packages/` —
-that is what breaks the cross-platform contract.
+The category comes from a fixed taxonomy — a datum, a system constraint, a missing piece, an optical
+correction, parity with something else, or a genuine one-off. The reason is prose a reviewer can
+judge. Exemptions are themselves ratcheted: their total may go down, not up.
+
+Raising a baseline is legal but narrow. It requires the designated label **and** a diff that touches
+nothing but the baseline file and documentation. Both conditions are checked, and the check runs from
+the base branch's copy of itself, so a pull request cannot ship a loosened gate.
+
+### Copy
+
+Spanish is the user-facing language and the voice is defined in
+[design-system/LENGUAJE.md](design-system/LENGUAJE.md). Three gates enforce the mechanics:
+
+- No Spanish literal in code. The catalog's source language is English, so a Spanish literal becomes
+  a Spanish *key* that never translates.
+- New keys go under `es`, never `es-MX`. A regional code hijacks the language and leaves plain
+  Spanish unresolved.
+- No em dash in a Spanish value. Use a colon, a middle dot or a comma.
+
+The key-existence gate carries a self-test that runs first, so a loosened extractor fails loudly
+instead of blinding the check.
 
 ---
 
-## Build & test
+## Adding things
 
-This is a condensed reference; [`BUILD.md`](BUILD.md) is the full guide (signing, installing
-on-device, re-importing into the on-device DB).
+### A metric
 
-### Prerequisites
+1. **Compute it in `StrandAnalytics`**, as a pure function. Cite the published method in the file
+   header and write a test with a hand-computed reference value.
+2. **Persist it** if it is a per-day scalar: either a nullable column on the day-grain table with a
+   new migration, or a row in the long-format metric series if it needs no schema. Prefer the latter
+   for anything exploratory.
+3. **Read it** through the repository layer, not from a view.
+4. **Display it** with existing tokens and an existing chart component.
+5. **Say what it is honestly.** If the number is an estimate, the copy says so. A copy gate checks
+   that the words next to a number do not overclaim.
 
-| Tool | Notes |
-|---|---|
-| Xcode 15+ (Swift 5.9 toolchain) | Provides `xcodebuild` + the iOS SDK. |
-| iPhone (iOS 17+) | Deployment target is iOS 17.0 (`project.yml`). |
-| XcodeGen | Generates `Cenit.xcodeproj` from `project.yml` (`brew install xcodegen`). |
+### A screen
 
-The packages themselves only need a Swift toolchain — they build and test with plain `swift build` /
-`swift test`, no Xcode project required.
+1. **Check the catalog first.** Most of what a new screen needs already exists as a component.
+2. **Design the experience before the pixels** — the flow, and every state: empty, loading, populated,
+   error, and permission denied. The permission-denied state is not optional; the app cannot assume
+   Apple Health access.
+3. **Build it from tokens and components.** A screen file that declares its own colors or spacing will
+   fail the linter.
+4. **Register what it teaches.** Screens carry a marker naming the features they surface, checked
+   against the teaching registry in `CenitEnsenanza`. A new screen file without one fails a gate.
+5. **Cover Dynamic Type and VoiceOver.** The design system has contrast and accessibility tests; a new
+   component is expected to pass them.
 
-### Per-package iteration (fastest loop)
+### A database column or table
 
-Most contributions live inside one package. Build and test it in isolation — it's far faster than
-the whole app and needs no HealthKit hardware:
+1. **Add a new migration.** Never edit a shipped one.
+2. **Use the idempotent column helper** for every addition. A plain alter that re-runs against a
+   database which already grew the column throws on every launch and wedges startup — this has
+   happened. Use `ifNotExists` when creating a table for the same reason.
+3. **Choose a default that preserves existing behavior exactly.** The established pattern is that an
+   upgrade changes nothing the user can see.
+4. **Make null mean absent, not zero.** A nullable column with no default lets the interface
+   distinguish "not captured" from a real value; a defaulted zero destroys that distinction forever.
+5. **Add a migration test** covering the upgrade path, the fresh-install path, and re-running against
+   a database that already has the change.
+6. **Update [DATA_MODEL.md](DATA_MODEL.md)** in the same pull request.
+
+---
+
+## Tests
+
+Package tests are the fast loop and where the burden of proof lives:
 
 ```bash
-cd Packages/StrandAnalytics && swift build && swift test
-cd Packages/CenitStore     && swift build && swift test
-cd Packages/StrandImport   && swift build && swift test
-cd Packages/CenitDesign   && swift build && swift test
+cd Packages/<Name> && swift build && swift test
+swift test --filter <TestCaseOrMethod>
 ```
 
-### iOS app
+The app's unit tests need a signed simulator build, which `Tools/verify.sh app-tests` handles.
 
-The Xcode project is **generated**, not committed. `project.yml` is the source of truth; re-run
-generation whenever you add/remove source files or edit `project.yml`:
+Everything is XCTest except a single design-system file that uses Swift Testing. That matters when
+scraping a log: a Swift Testing failure prints `✘ Suite`, not the XCTest format, so a naive grep for
+failures can miss it.
 
-```bash
-xcodegen generate
-
-# fast syntax/type check (no signing, no bundle):
-xcodebuild -project Cenit.xcodeproj -scheme Cenit \
-  -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO build
-
-# full app + integration tests:
-xcodebuild -project Cenit.xcodeproj -scheme Cenit -destination 'generic/platform=iOS' test
-```
-
-The scheme is `Cenit`; the built product is `Cenit.app` (`project.yml` sets `PRODUCT_NAME: Cenit`,
-display name `Cénit`, bundle id `com.feriracheta.cenit`). A **free** Apple ID is enough to install a personal build on your own
-iPhone — no paid Apple Developer account needed. See [`BUILD.md`](BUILD.md) for the on-device install
-recipe.
-
-### CI for the app layer (opt-in)
-
-The packages CI watches `Packages/**` only — a PR touching just the app layer gets **no automatic
-compile check**. The `iOS App Compile Check` workflow (`.github/workflows/ios-app.yml`) closes that
-gap on demand: add the **`ci-app` label** to the PR (or trigger it via *Run workflow*) and it
-compiles the full `Cenit` scheme unsigned on a macOS runner, mirroring `release.yaml`'s recipe.
-It is opt-in on purpose — macOS runners bill at 10× and this account has hit Actions spending
-limits — so reach for the label on any PR whose app-layer changes deserve a machine check
-(refactors, wide sweeps, anything merged without a local build). (FER-973)
-
-The check runs `build-for-testing`, so it compiles the **test targets** (`CenitUnitTests`,
-`CenitUITests`) as well as the app and its extensions. That matters more than it sounds: a plain
-`build` never touches the test targets, so a stale call site in a test compiles nowhere in CI and
-only surfaces when a human runs the harness — and because `xcodebuild test` builds *every* test
-target even under `-only-testing`, one rotten line takes down the whole screenshot harness
-(`Tools/update-screen-map.sh`, `iterate-shot.sh`, `capture-appmap.sh`). It only compiles: no
-simulator is booted and no test is executed. (FER-986)
-
-### Before you push
-
-- `swift test` passes in every package you touched (and the app's test target if you touched the
-  app layer).
-- `xcodegen generate` has been run if you added or removed files, **but do not commit
-  `Cenit.xcodeproj/`** — it's gitignored and regenerated from `project.yml`.
-- No new third-party dependency unless it's discussed first. Today the only ones are **GRDB.swift**
-  (SQLite) and **ZIPFoundation** (export unzip), both via SwiftPM.
+A note on fixtures. A test fixture that never crosses the boundary it is supposed to exercise proves
+nothing. If a test covers a threshold, the fixture has to sit on both sides of it. If a test covers
+Spanish copy, it has to resolve Spanish — a suite running in English silently passes regardless of
+what the Spanish says.
 
 ---
 
-## The design system is the law
+## Commits and pull requests
 
-`CenitDesign` is the single source of visual truth. **Every screen composes only its tokens and
-components.** Do not hardcode colors, sizes, fonts, or invent ad-hoc cards.
+Write commit messages that explain the *why*. The diff already shows the what.
 
-### Color — `StrandPalette` only
+- Branch from an up-to-date `iOS`, one branch per issue, named from the issue identifier and a short
+  slug. If the branch already exists, someone else owns it.
+- Reference the issue so it links and closes on merge.
+- Pull requests target `iOS` and are squash-merged; delete the branch afterwards.
+- Add a changelog entry for anything user-facing.
+- If the change moves the architecture, update [ARCHITECTURE.md](ARCHITECTURE.md) in the same pull
+  request. If it settles a question that was open, record it in [DECISIONS.md](DECISIONS.md).
+- Label a pull request that touches the app layer so the app workflow runs — but apply the label
+  **after** the pull request exists. Passing it at creation has repeatedly caused the labeled run to
+  be cancelled, leaving a job that reports skipped without ever running.
 
-Never write a raw hex value or a system color in a screen. Pull from
-`Packages/CenitDesign/Sources/CenitDesign/Palette.swift`:
+Two of the six workflows' jobs are required to merge, both from the design-lint workflow. The rest
+are advisory but should be green.
 
-```swift
-// ✅ correct
-.foregroundStyle(StrandPalette.textPrimary)
-.background(StrandPalette.surfaceRaised)
-let tint = StrandPalette.recoveryColor(score)      // gradient-sampled, 0...100
-let strain = StrandPalette.strainColor(value)      // 0...21 scale
+### When a review keeps finding the same defect
 
-// ❌ wrong
-.foregroundStyle(Color(hex: "#F4F7F5"))
-.background(Color(red: 0.05, green: 0.08, blue: 0.07))
-```
-
-The **canonical DNA is «Liquid Glass · El Eje»** (tinted glass on a white canvas, two regimes —
-**mosaico** / **sobrio**; see [`docs/design-system/DESIGN.md`](design-system/DESIGN.md) and
-[`LIQUID-GLASS.md`](design-system/LIQUID-GLASS.md)). «Instrumento diurno / papel cálido» is the
-**previous generation** — absorbed and in migration (`DESIGN.md` §8); do not design new screens
-on warm paper. The dark system remains **legacy** (maintain, don't extend; Watch OLED is the
-only live exception). Semantic tokens exist for surfaces
-(`surfaceBase`/`surfaceRaised`/`surfaceOverlay`/`surfaceInset`), text
-(`textPrimary`/`textSecondary`/`textTertiary`), `hairline`/`hairlineStrong` borders, the `accent`
-chrome green, status colors (`statusPositive`/`statusWarning`/`statusCritical`), the recovery and
-strain gradients, sleep-stage colors, and HR zones. There are sampling helpers
-(`recoveryColor`, `strainColor`, `sleepStageColor`, `hrZoneColor`) — use them rather than picking a
-stop by hand. If a screen needs a color that isn't in the palette, the answer is almost always "use
-an existing token", and otherwise "add the token to the palette", never "inline a hex".
-
-### Type — `StrandFont` only
-
-From `Typography.swift`. Use the named scale (`title1`, `title2`, `headline`, `body`, `caption`,
-`overline`, `mono`, …). **All live/numeric values use tabular digits** so they don't reflow — use
-`StrandFont.number(_:)`, `bodyNumber`, `captionNumber`, or `display(_:)`. For ALL-CAPS overline
-labels, use the `Text.strandOverline()` helper rather than styling by hand.
-
-### Components — compose, don't reinvent
-
-From `Components.swift`, the chart files, and `LiquidGlass/`. The full rol → símbolo → archivo →
-cuándo usarlo → cuándo no index is **generated** into
-[`docs/design-system/CATALOGO.md`](design-system/CATALOGO.md) — start there when looking for a
-component; it's the source of truth, this file doesn't duplicate it. The card surface for Liquid
-Glass screens is `liquidGlass(_:)` (the dark-legacy card primitive it replaced was retired in
-FER-444).
-
-Spacing and sizing come from `CenitMetrics` (`cardRadius`, `cardPadding`, `gap`, `sectionGap`,
-`screenPadding`, `tileHeight`, `chartHeight`) and animation from `StrandMotion`
-(`interactive`, `gentle`, `hero`, …). Do not introduce magic numbers for these.
-
-**If you find yourself writing a one-off card, gradient, font size, or animation in a screen, stop**
-— either it already exists in `CenitDesign`, or it should be added there (with a `#Preview`) and
-then used. Screens stay thin; the system stays canonical.
-
-### Copy — `LENGUAJE.md` is the voice
-
-The visual system isn't the only thing that's canonical: so is **how the app talks**. Before you
-write user-facing copy, read [`docs/design-system/LENGUAJE.md`](design-system/LENGUAJE.md) — it fixes
-the voice (a calm first-person coach, tuteo, honest numerals), the es-MX house style (imperative
-buttons, **no em-dash**, blame-free `No se pudo…` errors, mandatory hedging), the microcopy patterns
-per component, and the **canonical glossary** (Strain → **Esfuerzo**, never «tensión»; Readiness →
-**Preparación**; baseline → **base**). Use the glossary term, not a synonym. The no-em-dash and
-no-hardcoded-string rules are CI-enforced; the rest is review convention.
-
-Two companion guides document the mechanics: [`ACCESIBILIDAD.md`](design-system/ACCESIBILIDAD.md)
-(contrast floors 3:1/4.5:1, Dynamic Type fixed-vs-scaling split, VoiceOver, Reduce Motion, 44pt
-touch targets) and [`I18N.md`](design-system/I18N.md) (English-key catalog, the `translate-es.py`
-workflow, the single generic-`es` locale strategy, plurals, and the `en_US_POSIX`-for-parsing rule).
-Both are honest about current gaps (e.g. plurals are used on 2 keys out of ~939 `%lld`).
-
-### No drift — the two rules, enforced by a linter (auditoría jul-2026)
-
-1. **Any visual pattern that appears ≥3 times is promoted to `CenitDesign`** with a snapshot test —
-   never copy-pasted a fourth time. The card surface is `.instrumentoCard(_:)` (never a hand-rolled
-   `.background(surface, in: RoundedRectangle) + .overlay(stroke)`); glyphs use `StrandFont.glyph(_:)`;
-   microtext uses `StrandFont.micro`; opacities use `CenitOpacity` (or the `theme.tint(_:)` helpers).
-2. **No new visual value enters as a literal** — first the token, then the use. A raw hex, a
-   `.font(.system(size:))`, a literal `cornerRadius:`, or a magic `.opacity(0.NN)` in a screen is
-   rejected by `Tools/check-design-drift.py` (run in `design-tokens.yml` CI and the pre-commit hook).
-   Geometry of data that genuinely needs a literal (chart bars, legends, keypad, the Dynamic-Island
-   widget) is silenced per-line with a trailing `// token-exempt(<categoria>): <reason>` — and the
-   exemption itself is ratcheted debt. **The full enforcement contract — gate matrix across the three
-   legs, the exemption taxonomy and ×3 rule, the only legal way to raise the baseline, the collision
-   arbitration policy — lives in [docs/design-system/CONTRATO.md](design-system/CONTRATO.md)**;
-   `Tools/check-gate-parity.py` fails CI if the legs drift from it.
-
-The linter's rules turn on incrementally as each migration sweep lands. `no-hex` runs on every root;
-the font/radius/opacity rules are now ON for `Cenit/Screens` + `Cenit/Onboarding` (fully migrated).
-`CenitWidgets` (Live Activity) and `CenitWatch` are fixed Dynamic-Island / watch geometry (the
-`WidgetMetrics` category, exempt from Dynamic Type) and are not yet under the three new rules.
-
-`no-spacing-literal` (FER-258) is the same idea for **distance**: a bare number in `.padding(…)`,
-`spacing:` or `lineWidth:`. It could not start green — the tree still carries 466 of them — so it runs
-over `Cenit/Screens` as a **ratchet** against `Tools/design-drift-baseline.json`, which grandfathers
-that debt *per file*: one literal more than a file already had fails CI, the pre-commit hook and
-`verify.sh`. When a sweep removes some, the run stays green and prints how many to re-record with
-`python3 Tools/check-design-drift.py --rules no-spacing-literal --write-baseline Tools/design-drift-baseline.json Cenit/Screens`
-— the number only goes down. It extends to `CenitWidgets`/`CenitWatch` when FER-219 closes. The token blocks in
-`docs/design-system/tokens/design-tokens.json` and the color tables in `DESIGN.md` are **generated**
-from the Swift by `swift run CenitDesignTokens` — never hand-edit them; run the generator and commit.
-
----
-
-## Coding conventions
-
-- **Swift, four-space indent, no trailing whitespace.** Match the surrounding file.
-- **Public API is intentional.** `public` only what a consumer package or the app actually needs.
-  Internal helpers stay internal. Types crossing concurrency boundaries are `Sendable` where it makes
-  sense (e.g. `DeviceFamily`, `AnalyticsEngine.ProfileBaselines`).
-- **Document the "why", and cite sources.** Analytics code carries comments that explain *where a
-  fact came from* — analyzers cite Task Force 1996 (HRV), Karvonen (%HRR), Edwards/Banister (TRIMP),
-  Tanaka (HRmax). Preserve and extend these citations; they are how we keep the math transparent.
-- **Pure where possible.** `StrandAnalytics` analyzers are deliberately free of side effects and
-  frameworks so they're unit-testable. Keep new logic in that pure style and let the app layer do
-  the I/O.
-- **`@MainActor` for UI-touching state.** Live-state types that touch SwiftUI are main-actor
-  isolated. Don't move UI-facing work off-main without a very good reason.
-- **No anonymous magic.** Reach for an existing constant/enum (`CenitMetrics`, `StrandPalette`,
-  `MetricCatalog`) before introducing a literal.
-- **Validate before you trust.** HealthKit and import values that drive UI/state should be
-  range-checked at the boundary (e.g. HR 30…220). New inbound paths follow the same pattern.
-
----
-
-## How to add things safely
-
-### Add a new metric
-
-A "metric" is a named daily/series value that flows from an importer or analyzer into SQLite and out
-to the Explore / Compare / tile UI. The catalog is the contract.
-
-1. **Write the series.** An importer (`Packages/StrandImport`) or analyzer
-   (`Packages/StrandAnalytics`) produces points; they're persisted via
-   `CenitStore.upsertMetricSeries(_:deviceId:)` into the `metricSeries` table. **The series `key`
-   must match exactly** what the catalog expects.
-2. **Register it in the catalog.** Add a `MetricDescriptor` row in
-   `Cenit/Data/MetricCatalog.swift` via the `d(...)` helper:
-
-   ```swift
-   d("resp_rate", "Respiratory Rate", "Recovery", "rpm", "apple-health", "lungs", 1, nil),
-   //  key          title                category     unit   source        sf-symbol   decimals  higherIsBetter
-   ```
-
-   - `key` — the exact `metricSeries` key the importer/analyzer writes.
-   - `category` — one of `MetricCatalog.categories` (`Heart`, `Recovery`, `Sleep`, `Strain`,
-     `Health`); add a new category only if it's genuinely needed.
-   - `source` — `"apple-health"` (or a legacy value from an older import path); drives the `SourceBadge`.
-   - `higherIsBetter` — `true`/`false`/`nil`; controls delta tinting. Use `nil` when "better" is
-     ambiguous (e.g. respiratory rate).
-
-3. **That's it for the UI.** Metric Explorer and Compare are *built from the catalog*, so a correctly
-   registered metric with data behind it appears automatically. No screen edits required.
-4. **Add a test.** If a new importer/analyzer produces the series, cover the parse/compute in that
-   package's test suite.
-
-> **Verify the key in three places** before you push: what the importer/analyzer *writes*, the
-> `MetricCatalog` `key`, and any SQL `WHERE key = …`. Mismatched keys are a known class of bug here —
-> a metric that silently shows no data is almost always a key typo.
-
-### Add a new screen
-
-1. **Build it from `CenitDesign`.** Compose from [`docs/design-system/CATALOGO.md`](design-system/CATALOGO.md)
-   (`liquidGlass(_:)`, `StatTile`, etc.); pull every color/font/size from `StrandPalette` /
-   `StrandFont` / `CenitMetrics`. Use the shared `ScreenScaffold` for the standard screen chrome
-   (see existing screens in `Cenit/Screens`).
-2. **Register it in the app's navigation.** Add it to the navigation enum that drives the app's
-   destinations:
-   - add a `case` (its `rawValue` is the destination label),
-   - add an SF Symbol in the `icon` switch,
-   - add the `case` to the view-builder switch that maps the destination → your `View`.
-3. **Keep state where it belongs.** Read through `AppModel` / `Repository`; don't reach into
-   SQLite directly from a view.
-4. **Optional features default OFF.** Anything that fires a notification or automates behavior is
-   opt-in and toggleable, matching the existing screens.
-5. **Regístrala.** Every new screen under `Cenit/Screens/**` needs a teaching entry — enforced by
-   `Tools/check-ensenanza.py` (design-lint + `verify.sh quick`): a `case` in `FuncionalidadID`, an
-   entry in `Registro+<Pestaña>.swift`, the three `ensenanza.<id>.*` keys in the catalog, and a
-   `// ensenanza: <id>` marker in the screen file.
-
-### Add a database column or table
-
-Schema lives in `Packages/CenitStore/Sources/CenitStore/Database.swift` as a **versioned GRDB
-`DatabaseMigrator`** (currently through `v35`).
-
-- **Never edit an existing migration.** They've already run on users' on-device databases. Add a
-  **new** `migrator.registerMigration("vN") { db in … }` block.
-- The early migrations create the durable decoded-stream tables (`hrSample`, `rrInterval`,
-  `spo2Sample`, `skinTempSample`, `respSample`, the raw outbox) keyed by `(deviceId, ts)`; later ones
-  add metric caches (`sleepSession`, `dailyMetric`, `metricSeries`), cursors, and more. Follow the
-  same shape and naming.
-- Add a `MigrationTests` case proving the migration applies cleanly on top of the prior version.
-
----
-
-## Tests & fixtures
-
-- **Each package owns its tests** under `Packages/<Name>/Tests/…`; run them with `swift test`.
-  Coverage already includes schema, store insert/read/migration/prune, the analyzers (HRV,
-  recovery, strain, sleep, correlation, baselines, workout detection), and the Apple Health
-  importers (including real-export tests).
-- **Import fixtures** live in package test resources (`StrandImport` via its `Package.swift`) and
-  under `docs/fixtures/` for UI captures.
-- **Prefer pure tests.** Because `StrandAnalytics` is framework-free, you can (and should) cover
-  new math with fixtures rather than requiring HealthKit hardware.
-- The **app test target** is the app-layer integration suite (run via `xcodebuild … test`).
-
-### Screen captures (`docs/fixtures/`)
-
-`CenitUITests/CenitScreenshotTests` captures one PNG per screen (and per state) into `docs/fixtures/`.
-Regenerate with the one command:
-
-```bash
-./Tools/capture-screens.sh                 # iPhone 17 Pro Max (por defecto)
-./Tools/capture-screens.sh "iPhone 16"     # otro simulador
-```
-
-It boots a simulator, so **CI can't run it** — it's manual, and the fixtures are committed. The script
-reports which tests failed and which fixtures it did *not* regenerate, and exits non-zero if either
-happened; a green run is the only run you should commit.
-
-The consumer is the **state wall** (`docs/appmap/`): `Tools/build-appmap.py` picks a subset of these
-raw PNGs — the mapping lives in its `SHOT_SRC` — rescales them, and lays them out as a navigable
-canvas. Its live sibling is `Cenit/App/AppMap.swift`, an Xcode `#Preview` that seeds the *same*
-`ScreenshotFixtures` and renders the real screens without running the harness at all. Adding a state
-worth seeing on the wall means adding a case here **and** an entry to `SHOT_SRC`.
-
-(There used to be a second consumer, `docs/screen-map.html`. It was retired: its screen inventory
-never tracked this suite — over half its entries pointed at PNGs that no capture produced — while the
-script stamped a fresh "Actualizado" date on every run, so it always looked current. If you want that
-kind of index back, generate it *from* the fixtures rather than maintaining a parallel list by hand.)
-
-Two rules keep the suite from silently rotting (both were learned by it rotting):
-
-- **Navigate with `nav(_:)`, never by tapping labels.** Screens are reached through `ScreenshotNav`
-  (a debug-only Darwin notification, DEBUG-only), which sets the tab and pushes the stack directly. Tapping text
-  couples the suite to copy *and* to the host simulator's language — the string catalog's source
-  language is English, so `buttons["Entrenar"]` only matched on a Spanish machine. Worse, taps guarded
-  by `if exists` no-op silently, so a test could "pass" while snapping the wrong screen into a fixture.
-  Adding a screen means adding its key to `DebugNavWatcher.screens`.
-- **The captured language is pinned to Spanish** (`baseArgs`), so the map looks the same on every
-  machine. It's the product's copy, and two tab keys («Tendencias», «Patrones») have no English
-  translation — an English run renders a mixed-language bar.
-
-Also note `app.tabBars` is **empty**: the native bar is hidden app-wide in favour of the custom
-`InstrumentTabBar` (FER-163/FER-490). Querying it silently matches nothing.
-
----
-
-## Commit & PR conventions
-
-- **Generated artifacts stay out of git.** `Cenit.xcodeproj/`, `build/`, `.build/`, `*.app`, and
-  DerivedData are gitignored; commit `project.yml`, not the generated project. `Package.resolved` is
-  fine to commit.
-- **One concern per PR.** Keep a schema migration and a UI change in separate commits/PRs where
-  practical.
-- **Show your verification.** For analytics, cite the method and add a test. For UI, confirm it uses
-  only `CenitDesign` tokens.
-- **Anonymous, project-voice.** Documentation and comments are written in a neutral, third-person
-  project voice. Keep dependency credits (`GRDB.swift`, `ZIPFoundation`) intact.
-- **No proprietary material.** Don't add third-party firmware, decompiled app code, logos, or
-  assets, and don't introduce DRM circumvention.
-- **Licensing.** By opening a pull request you agree your contribution is licensed under the same
-  [PolyForm Noncommercial License 1.0.0](../LICENSE) as the rest of Cénit. Forks and personal,
-  non-commercial use are welcome under those terms.
-
----
-
-## Roadmap
-
-Cénit's logic already lives in cross-platform packages, so most platform work is app-layer wiring
-rather than rewrites of the core. Today the **iOS app (`Cenit`) is the shipping app**; the items
-below are planned, experimental, or deferred.
-Contributions toward these are welcome — open an issue to coordinate first.
-
-### Other platforms
-
-- **Windows app (planned).** A native desktop client for Windows. Every package already declares
-  `.iOS(.v16)` and `.macOS(.v13)` and guards UI-framework code with
-  `#if canImport(UIKit) / #elseif canImport(AppKit)`, so the non-UI core (`StrandAnalytics`,
-  `CenitStore`, …) stays portable; the work is a Windows UI re-implementation that matches the
-  shared packages' behavior.
-
-### Deferred ideas
-
-These are scoped but intentionally not built yet. They're listed so contributors know the direction
-(and the open questions) before investing time:
-
-- **Local AI coach.** An **on-device**, offline assistant that reasons over your own series (recovery
-  / strain / sleep / HRV trends) to produce plain-language guidance. Hard requirement: it must stay
-  local and offline — no cloud inference, no data leaving the device — consistent with Cénit's
-  offline-by-design principle. Any output remains an approximation and is not medical advice.
-- **Deeper Watch physiology.** Live HR already mirrors from the Watch (`watchBpm`); folding more
-  Watch-side physiology into recovery/strain is open product work.
-
-> Roadmap items don't change the ground rules. Everything above still holds: offline-only,
-> design-system-only UI, and transparent, clearly-non-clinical math.
-
----
-
-*Cénit is an independent, unofficial project and is not a medical device. See
-[`../DISCLAIMER.md`](../DISCLAIMER.md).*
+If three or more findings share a shape, stop fixing them one at a time. Write the gate, the lint
+rule or the test that catches the whole class, run one sweep, and move on. Nearly every gate in
+`Tools/` exists because someone did that instead of fixing the fourth instance.
