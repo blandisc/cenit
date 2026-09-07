@@ -131,6 +131,11 @@ struct LiveStrengthSheet: View {
     /// The terminal «Nothing to save» result card for discarding an empty session (FER-894 · Estados 2).
     @State private var nothingToSave = false
     @State private var saveError = false
+    /// FER-453: re-entrancy guard for `addExercises`. Both call sites (library picker + fresh-suggestion
+    /// chip) are fire-and-forget `Task`s; `addExercises` `await`s the exercise history BEFORE it checks
+    /// `session.runs.isEmpty`, so a fast double-tap ran two overlapping adds that both saw the same empty
+    /// state and inserted the exercise twice. Set/checked on the MainActor before the first await.
+    @State private var isAddingExercises = false
     /// El hilo compacto de la cabecera (FER-133): la MISMA hoja del acta de Hoy que abre el hilo de
     /// la landing (`EntrenarView.showVeredictoActa`) — dos puertas, un solo destino.
     @State private var showVeredictoActa = false
@@ -1203,6 +1208,10 @@ struct LiveStrengthSheet: View {
     /// (each `insertExerciseAfterCurrent` call lands at the same `currentIndex + 1` slot, pushing the
     /// previous insert one further along — see its doc comment).
     private func addExercises(_ picks: [Exercise]) async {
+        // FER-453: guard against a double-tap racing two adds through the empty-state check below.
+        guard !isAddingExercises else { return }
+        isAddingExercises = true
+        defer { isAddingExercises = false }
         let lasts = await withTaskGroup(of: (String, Double?, Int?).self) { group in
             for ex in picks {
                 group.addTask {
