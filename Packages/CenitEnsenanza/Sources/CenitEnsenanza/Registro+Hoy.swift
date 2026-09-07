@@ -2,6 +2,7 @@ import Foundation
 
 // Entradas de la pestaña «hoy» del registro (semilla del épico FER-428, L4/FER-430).
 // Generado por `Tools/gen-ensenanza.py` a partir de `Tools/ensenanza-semilla.json`.
+// FER-433: las piezas `.vacio(clave:)` se añadieron a mano (el generador aún no las conoce).
 extension Registro {
     public static let hoy: [Funcionalidad] = [
         Funcionalidad(
@@ -93,7 +94,7 @@ extension Registro {
             id: .hoyHojaMetrica,
             pestana: .hoy,
             requiere: [],
-            piezas: [.ayuda(seccion: .hoy), .tip(id: "hoy.hoja-metrica")],
+            piezas: [.ayuda(seccion: .hoy), .tip(id: "hoy.hoja-metrica"), .vacio(clave: "vacio.hoja-metrica.tendencia.queEs"), .vacio(clave: "vacio.hoja-metrica.fc-hoy.queEs")],
             desde: "1.85"
         ),
         Funcionalidad(
@@ -107,7 +108,7 @@ extension Registro {
             id: .hoyDetalleRico,
             pestana: .hoy,
             requiere: [],
-            piezas: [.ayuda(seccion: .hoy)],
+            piezas: [.ayuda(seccion: .hoy), .vacio(clave: "vacio.sueno.tendencia.queEs"), .vacio(clave: "vacio.sueno.anoche.queEs")],
             desde: "1.85"
         ),
         Funcionalidad(

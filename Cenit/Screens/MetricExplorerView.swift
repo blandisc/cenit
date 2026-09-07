@@ -297,12 +297,13 @@ struct MetricDetailView: View {
                     LiquidSheetSkeleton(a11yCargando: String(localized: "Reading your history…"))
                         .liquidSeccion()
                 } else if series.isEmpty {
-                    // ONLY genuine empty state: no data in the entire history.
+                    // ONLY genuine empty state: no data in the entire history (FER-433: el vacío
+                    // que enseña, con el copy de siempre repartido en sus partes).
                     LiquidFranjaSeccion(String(localized: "History"), tono: hue)
-                    LiquidGraficaNiveles(
-                        puntos: [], bandas: [], dominio: 0...1, ticksY: [], tono: hue,
-                        estadoVacio: String(localized: "No history yet. Connect Apple Health in Data Sources and it fills every metric you can explore here."),
-                        a11yLabel: String(localized: "\(metric.canonicalTitle) trend"))
+                    LiquidVacio(
+                        queEs: Text(String(localized: "vacio.detalle.tendencia.queEs",
+                                           defaultValue: "This period's trend goes here.")),
+                        comoSeLlena: Text(String(localized: "No history yet. Connect Apple Health in Data Sources and it fills every metric you can explore here.")))
                         .liquidSeccion()
                 } else {
                     LiquidFranjaSeccion(String(localized: "History"), tono: hue)
@@ -430,11 +431,8 @@ struct MetricDetailView: View {
                 }
                 .liquidTarjetaSeccion()
             } else {
-                // One reading or none in the range → the honest empty well (no card, no summary).
-                LiquidGraficaNiveles(
-                    puntos: [], bandas: [], dominio: valueRange(window.values), ticksY: [], tono: hue,
-                    estadoVacio: String(localized: "Not enough days in this range to draw a trend."),
-                    a11yLabel: String(localized: "\(metric.canonicalTitle) trend"))
+                // One reading or none in the range → el vacío que enseña (FER-433).
+                MetricDetailScreen.vacioTendencia(noches: false)
             }
         }
     }
@@ -455,7 +453,7 @@ struct MetricDetailView: View {
             formatoValorScrub: { fmt($0) },
             formatoFechaScrub: { Self.ejeFmt.string(from: $0) },
             formatoFechaEje: { Self.ejeFmt.string(from: $0) },
-            estadoVacio: String(localized: "Not enough days in this range to draw a trend."),
+            estadoVacio: MetricDetailScreen.vacioTendenciaComoSeLlena(noches: false),
             a11yLabel: String(localized: "\(metric.canonicalTitle) trend"))
     }
 

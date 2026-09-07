@@ -78,6 +78,8 @@ struct TrainTodayWidgetView: View {
                 OpenAppBody()
             } else if let today = snapshot.today {
                 RoutineBody(today: today, verdict: snapshot.verdict)
+            } else if !snapshot.hasPlan {
+                NoPlanBody()
             } else {
                 RestBody(verdict: snapshot.verdict)
             }
@@ -165,7 +167,8 @@ private struct RestBody: View {
 }
 
 /// Snapshot rancio: la app no ha publicado en el horizonte declarado. Nunca una rutina vieja
-/// disfrazada de vigente — solo la invitación honesta a abrir la app (FER-95).
+/// disfrazada de vigente — solo la invitación honesta a abrir la app (FER-95). FER-433: dice para
+/// qué abrirla («Abre Cénit para actualizar»), no solo «Abre Cénit».
 private struct OpenAppBody: View {
     private typealias M = HomeWidgetMetrics
 
@@ -176,14 +179,68 @@ private struct OpenAppBody: View {
                 .tracking(M.overlineTracking)
                 .foregroundStyle(LiquidColor.tinta500)
             Spacer(minLength: 0)
-            Text("Open Cénit")
+            Text(verbatim: TrainWidgetSnapshot.rancioComoSeLlena)
                 .font(.system(size: M.title, weight: .bold, design: .rounded))
                 .foregroundStyle(LiquidColor.tinta900)
+                .lineLimit(2)
+                .minimumScaleFactor(0.8)
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text("Open Cénit"))
+        .accessibilityLabel(Text(verbatim: TrainWidgetSnapshot.rancioComoSeLlena))
+    }
+}
+
+/// FER-433 · Sin plan semanal (primer uso): qué va aquí («Tu rutina de hoy») y cómo se llena («Arma
+/// tu semana en Cénit»). Todo el bloque es el botón: `StartTodayRoutineIntent` abre Cénit en Entrenar
+/// (`TabRouter.startTodayTraining()` pide la pestaña `.train`; sin rutina, ahí se arma la semana).
+private struct NoPlanBody: View {
+    private typealias M = HomeWidgetMetrics
+
+    var body: some View {
+        Button(intent: StartTodayRoutineIntent()) {
+            VStack(alignment: .leading, spacing: M.rowGap) {
+                Text("Today")
+                    .font(LiquidType.unidad.weight(.semibold))
+                    .tracking(M.overlineTracking)
+                    .foregroundStyle(LiquidColor.tinta500)
+                Text(verbatim: TrainWidgetSnapshot.sinPlanQueEs)
+                    .font(.system(size: M.title, weight: .bold, design: .rounded))
+                    .foregroundStyle(LiquidColor.tinta900)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.8)
+                Spacer(minLength: 0)
+                Text(verbatim: TrainWidgetSnapshot.sinPlanComoSeLlena)
+                    .font(LiquidType.cuerpoBanner.weight(.semibold))
+                    .foregroundStyle(LiquidColor.tinta900)
+                    .lineLimit(2)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(verbatim: TrainWidgetSnapshot.sinPlanQueEs)
+            + Text(verbatim: ". ") + Text(verbatim: TrainWidgetSnapshot.sinPlanComoSeLlena))
+        .accessibilityAddTraits(.isButton)
+    }
+}
+
+// FER-433 · Lo que ambos widgets (`TrainTodayWidget`, `WeekWidget`) comparten del primer uso: la regla
+// «sin plan» y el copy de las tres partes. Vive aquí (no en `Shared/`) porque solo la extensión lo usa.
+extension TrainWidgetSnapshot {
+    /// «Sin plan»: ni rutina hoy ni ningún día de la semana planeado (todo descanso, o una semana
+    /// vacía). Distinto de un día de descanso dentro de una semana ya armada.
+    var hasPlan: Bool { today != nil || week.contains { $0.state != .rest } }
+
+    static var sinPlanQueEs: String {
+        String(localized: "vacio.widget.sin-plan.queEs", defaultValue: "Your routine for today")
+    }
+    static var sinPlanComoSeLlena: String {
+        String(localized: "vacio.widget.sin-plan.comoSeLlena", defaultValue: "Build your week in Cénit")
+    }
+    static var rancioComoSeLlena: String {
+        String(localized: "vacio.widget.rancio.comoSeLlena", defaultValue: "Open Cénit to refresh")
     }
 }
 

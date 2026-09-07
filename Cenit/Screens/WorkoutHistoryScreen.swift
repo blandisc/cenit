@@ -525,7 +525,14 @@ struct WorkoutHistoryScreen: View {
                 Text(verbatim: "\(entries.count)").font(LiquidType.titulo).foregroundStyle(LiquidColor.tinta700)
             }
             if entries.isEmpty {
-                EntrenarHistorialLista(vacio: String(localized: "No sessions in this period yet."), filas: [AnyView]())
+                // FER-433 · El periodo vacío enseña: qué va aquí, por qué está vacío y qué tocar.
+                LiquidVacio(
+                    queEs: Text(String(localized: "vacio.historial.periodo.queEs",
+                                       defaultValue: "Your sessions for this period go here.")),
+                    comoSeLlena: Text(String(localized: "vacio.historial.periodo.comoSeLlena",
+                                             defaultValue: "There were no sessions on these dates.")),
+                    salida: .dondeVive(Text(String(localized: "vacio.historial.periodo.salida",
+                                                   defaultValue: "Change the period above."))))
             } else {
                 EntrenarHistorialLista(filas: entries.map { AnyView(entryRow($0)) })
             }
@@ -1139,35 +1146,15 @@ struct WorkoutHistoryScreen: View {
         .accessibilityElement(children: .combine)
     }
 
+    /// FER-433 · El vacío que enseña (`LiquidVacio`), con el copy de siempre y la acción de importar.
     private var emptyState: some View {
-        VStack(alignment: .leading, spacing: LiquidSpace.s200) {
-            LiquidCapilar(eje: .horizontal)
-            Image(systemName: "clock.arrow.circlepath")
-                .font(LiquidType.iconSF(size: 22)).foregroundStyle(LiquidColor.tinta500)
-                .accessibilityHidden(true)
-            Text("No workouts yet").font(LiquidType.titulo).foregroundStyle(LiquidColor.tinta900)
-            Text("When you finish a strength session, it shows up here with its breakdown, volume and effort.")
-                .font(LiquidType.cuerpoBanner).foregroundStyle(LiquidColor.tinta700)
-                .fixedSize(horizontal: false, vertical: true)
+        LiquidVacio(
+            simbolo: "clock.arrow.circlepath",
+            queEs: Text("No workouts yet"),
+            comoSeLlena: Text("When you finish a strength session, it shows up here with its breakdown, volume and effort."),
             // FER-333 · E9: misma hoja de 4 pasos que Ajustes › Datos y fuentes › Importar.
-            Button { showStrengthCSVImport = true } label: {
-                HStack(spacing: LiquidSpace.s100) {
-                    Text("Coming from Strong or Hevy? Import your history")
-                        .font(LiquidType.tituloFilaMedia)
-                        .foregroundStyle(LiquidColor.tinta900)
-                        .multilineTextAlignment(.leading)
-                    Spacer(minLength: LiquidSpace.s100)
-                    LiquidIcon(.chevron, size: 12, color: LiquidColor.tinta500)
-                        .accessibilityHidden(true)
-                }
-                .frame(minHeight: EntrenarMetrics.row)
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.liquidPress)
-            .accessibilityHint(Text("Opens the CSV import sheet"))
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.vertical, LiquidSpace.s400)
+            salida: .accion(etiqueta: Text("Coming from Strong or Hevy? Import your history"),
+                            simbolo: "square.and.arrow.down") { showStrengthCSVImport = true })
         .sheet(isPresented: $showStrengthCSVImport) {
             #if os(iOS)
             StrengthHistoryImportSheet(

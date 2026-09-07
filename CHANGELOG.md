@@ -85,6 +85,35 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
 - Al actualizar, cada consejo de Entrenar que ya habías cerrado puede aparecer una vez más (su
   llave interna cambió al id del registro). Se cierra igual, con «Entendido».
 
+### Los vacíos ahora enseñan / Empty states now teach (FER-433)
+### ES
+- Cada pantalla o sección sin datos dice tres cosas: qué va ahí, cómo se llena (con la cuenta
+  cuando la app la sabe: «llevas una noche») y dónde vive o qué tocar. Antes unas veinte solo
+  decían «sin datos». Aplica a la hoja de cada señal de Hoy, los detalles de vitales, Sueño,
+  Comparar, Tendencias, Historial, Marcas, tickets, el mapa muscular, la biblioteca (con «Quitar
+  filtros» a la mano), las rutinas del planificador y Fuentes de datos / Apple Salud.
+- En Entrenar, las teselas Dosis y Volumen ya no se callan: dicen cuántas sesiones llevas y
+  cuántas necesitan (3 en 7 días; 3 en 8 semanas).
+- Primeros usos: los widgets sin plan muestran «Tu rutina de hoy · Arma tu semana en Cénit» y el
+  toque abre Entrenar; con datos viejos piden «Abre Cénit para actualizar». El reloj sin nada que
+  mostrar explica de dónde sale la rutina y qué hace la corona; sin conexión, avisa que tus series
+  se guardan y se sincronizan al reconectar. La Live Activity en descanso por FC dice a qué pulso
+  termina el descanso.
+
+### EN
+- Every screen or section with no data now says three things: what goes there, how it fills (with
+  the count when the app knows it) and where it lives or what to tap. About twenty of them only
+  said "no data" before. Covers Today's signal sheets, vital details, Sleep, Compare, Trends,
+  History, Marks, tickets, the muscle map, the library (with "Clear filters" at hand), the
+  planner's routines and Data sources / Apple Health.
+- In Train, the Dose and Volume tiles no longer go quiet: they say how many sessions you have and
+  how many they need (3 in 7 days; 3 in 8 weeks).
+- First uses: widgets with no plan show "Your routine for today · Build your week in Cénit" and a
+  tap opens Train; with stale data they ask you to open Cénit to refresh. The watch with nothing
+  to show explains where the routine comes from and what the crown does; disconnected, it says
+  your sets are saved and sync on reconnect. The rest Live Activity in HR mode says at which
+  pulse the rest ends.
+
 ### Los planes y programas que importas ahora se llaman `cenit.*` (FER-382)
 - El archivo que armas con tu LLM (rutina o plan de comida) pasa a identificarse como
   `cenit.workout.v1` / `cenit.diet.v1`. **Los archivos que ya tienes siguen funcionando**: Cénit

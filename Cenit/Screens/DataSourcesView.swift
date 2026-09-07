@@ -536,8 +536,15 @@ struct DataSourcesView: View {
             .liquidGlass(.pastillaSolida)
             .accessibilityElement(children: .combine)
         } else {
-            Text(String(localized: "No Apple Health data imported yet: tap Sync now to pull your recent history."))
-                .font(LiquidType.captionLectura).foregroundStyle(LiquidColor.tinta500)
+            // FER-433 · El vacío que enseña; «Sincronizar ahora» vive justo arriba, así que la salida
+            // lo señala en vez de duplicar el botón.
+            LiquidVacio(
+                queEs: Text(String(localized: "vacio.fuentes.salud.queEs",
+                                   defaultValue: "What Cénit read from Apple Health goes here.")),
+                comoSeLlena: Text(String(localized: "vacio.fuentes.salud.comoSeLlena",
+                                         defaultValue: "It fills when you sync, or when you import your export.")),
+                salida: .dondeVive(Text(String(localized: "vacio.fuentes.salud.salida",
+                                               defaultValue: "The Sync now button is right above."))))
         }
     }
 

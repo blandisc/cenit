@@ -709,12 +709,11 @@ struct WeeklyPlanEditorView: View {
                 .accessibilityLabel(Text("New routine"))
             }
             if routines.isEmpty {
-                Text("No routines yet. Create one, start from a template, or import a plan.")
-                    .font(LiquidType.cuerpoBanner)
-                    .foregroundStyle(LiquidColor.tinta700)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.top, LiquidSpace.seccionAire)
-                    .padding(.bottom, LiquidSpace.s200)
+                // FER-433 · El vacío que enseña: qué va aquí y cómo se llena («＋ Nueva» vive arriba).
+                LiquidVacio(
+                    queEs: Text("No routines yet"),
+                    comoSeLlena: Text(String(localized: "vacio.plan.rutinas.comoSeLlena",
+                                             defaultValue: "Create one, start from a template, or import a plan.")))
             } else if folders.isEmpty {
                 VStack(spacing: .zero) {
                     ForEach(routines) { r in

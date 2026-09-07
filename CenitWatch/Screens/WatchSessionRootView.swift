@@ -52,8 +52,24 @@ struct WatchIdleView: View {
     @EnvironmentObject var manager: WatchWorkoutManager
     @Environment(\.isLuminanceReduced) private var isLuminanceReduced
 
+    /// FER-433 · Sin nada que el iPhone haya empujado (ni rutina, ni palabra) es el primer uso: el
+    /// título enseña qué va aquí. Con contexto pero sin rutina hoy, «Sin sesión» como antes.
+    private var esPrimerUso: Bool { manager.idleContext == WatchIdleContext() }
+
     private var routineTitle: String {
-        manager.idleContext.routineName ?? String(localized: "No session")
+        if let routine = manager.idleContext.routineName { return routine }
+        return esPrimerUso
+            ? String(localized: "vacio.watch.primer-uso.queEs", defaultValue: "Your routine for today starts here")
+            : String(localized: "No session")
+    }
+
+    /// Cómo se llena: en el primer uso, de dónde sale la rutina y qué hace la corona (la registra
+    /// series en el logger del reloj, C1); después, la invitación de siempre.
+    private var comoSeLlena: String {
+        esPrimerUso
+            ? String(localized: "vacio.watch.primer-uso.comoSeLlena",
+                     defaultValue: "Build your week on your iPhone; here you start it and log sets with the crown")
+            : String(localized: "Start a strength routine on your iPhone and the watch joins in.")
     }
 
     var body: some View {
@@ -74,7 +90,7 @@ struct WatchIdleView: View {
                             // already reads for Reduce Motion.
                             .environment(\.liquidAmbientPaused, isLuminanceReduced)
                     }
-                    Text("Start a strength routine on your iPhone and the watch joins in.")
+                    Text(verbatim: comoSeLlena)
                         .font(LiquidType.filaConteo)
                         .foregroundStyle(LiquidOLED.tintaSecundaria)
                         .multilineTextAlignment(.center)
@@ -114,7 +130,7 @@ struct WatchIdleView: View {
                 label = label + Text(verbatim: ". ") + Text(LocalizedStringKey(advice))
             }
         }
-        return label + Text(verbatim: ". ") + Text("Start a strength routine on your iPhone and the watch joins in.")
+        return label + Text(verbatim: ". ") + Text(verbatim: comoSeLlena)
     }
 
     private func startButton(_ routine: String) -> some View {

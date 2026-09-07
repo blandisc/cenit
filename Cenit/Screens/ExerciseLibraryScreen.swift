@@ -158,6 +158,16 @@ struct ExerciseLibraryScreen: View {
 
     // MARK: - Filters
 
+    /// FER-433 · «Quitar filtros» solo cuando hay alguno puesto (búsqueda, músculo, equipo o tipo):
+    /// sin filtros sería un botón muerto. Limpiarlos dispara los `onChange` que ya rehacen `filtered`.
+    private var filtrosSalida: LiquidVacio.Salida? {
+        guard !search.isEmpty || muscle != nil || equipment != nil || typeFilter != nil else { return nil }
+        return .accion(etiqueta: Text(String(localized: "vacio.biblioteca.filtros.accion",
+                                             defaultValue: "Clear filters"))) {
+            search = ""; muscle = nil; equipment = nil; typeFilter = nil
+        }
+    }
+
     private var filterChips: some View {
         HStack(spacing: LiquidSpace.s200) {
             filterMenu(title: String(localized: "Muscle"), isPresented: $showMuscleFilter,
@@ -212,11 +222,13 @@ struct ExerciseLibraryScreen: View {
     private var exerciseList: some View {
         LazyVStack(alignment: .leading, spacing: .zero) {
             if loaded && filtered.isEmpty {
-                Text("No exercises match your filters.")
-                    .font(LiquidType.cuerpoBanner)
-                    .foregroundStyle(LiquidColor.tinta700)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.vertical, LiquidSpace.seccionAire)
+                // FER-433 · El vacío que enseña, con la acción real de quitar los filtros.
+                LiquidVacio(
+                    queEs: Text(String(localized: "vacio.biblioteca.filtros.queEs",
+                                       defaultValue: "The exercises that match go here.")),
+                    comoSeLlena: Text(String(localized: "vacio.biblioteca.filtros.comoSeLlena",
+                                             defaultValue: "None meets every filter at once.")),
+                    salida: filtrosSalida)
             }
             // «Con historial tuyo» — the exercises you've logged, first, each with its best mark.
             if !mine.isEmpty {

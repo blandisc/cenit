@@ -686,13 +686,35 @@ private enum SessionDynamicIsland {
     }
 
     // Expanded bottom: the «¿qué sigue?» caption for rest/pause; the exercise name in the active set.
+    // FER-433 · En descanso por FC, antes va la regla que lo termina («cuando tu pulso baja a N»): la
+    // overline dice «Por FC» y esta es la línea que lo explica.
     @ViewBuilder private static func expandedBottom(_ s: RestActivityAttributes.ContentState) -> some View {
-        Text(bottomCaption(s))
-            .font(.system(size: WidgetMetrics.islandBottomCaption, weight: .medium))
-            .foregroundStyle(LiquidOLED.tintaSecundaria)
-            .lineLimit(1).minimumScaleFactor(0.7)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.vertical, WidgetMetrics.captionGap)   // air above/below so descenders don't kiss the island's bottom edge
+        VStack(alignment: .leading, spacing: WidgetMetrics.captionGap) {
+            if s.isHRRest {
+                Text(hrRestRule(s))
+                    .font(.system(size: WidgetMetrics.islandBottomCaption, weight: .medium))
+                    .foregroundStyle(LiquidOLED.tintaSecundaria)
+                    .lineLimit(1).minimumScaleFactor(0.7)
+            }
+            Text(bottomCaption(s))
+                .font(.system(size: WidgetMetrics.islandBottomCaption, weight: .medium))
+                .foregroundStyle(LiquidOLED.tintaSecundaria)
+                .lineLimit(1).minimumScaleFactor(0.7)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, WidgetMetrics.captionGap)   // air above/below so descenders don't kiss the island's bottom edge
+    }
+
+    /// FER-433 · El umbral real del descanso por FC: `hrTarget` (`StrengthSessionModel.currentRestTarget`,
+    /// el mismo «→ N» del héroe). Sin umbral en el estado (FER-348: reposo + margen por defecto), la
+    /// regla sin número — nunca un umbral inventado.
+    private static func hrRestRule(_ s: RestActivityAttributes.ContentState) -> String {
+        if let target = s.hrTarget {
+            return String(localized: "vacio.live-activity.por-fc.linea",
+                          defaultValue: "Rest ends when your pulse drops to \(target)")
+        }
+        return String(localized: "vacio.live-activity.por-fc.linea.sin-umbral",
+                      defaultValue: "Rest ends when your pulse drops")
     }
 
     private static func bottomCaption(_ s: RestActivityAttributes.ContentState) -> String {
