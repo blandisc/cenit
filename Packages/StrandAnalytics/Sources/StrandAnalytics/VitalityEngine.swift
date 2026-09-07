@@ -259,7 +259,10 @@ public enum VitalityEngine {
 
     /// Full Vitality + Body Age. Returns nil until at least `minFactors` inputs are present.
     public static func compute(_ inputs: Inputs) -> Result? {
-        guard inputs.chronoAge > 0 else { return nil }
+        // FER-469: el modelo (UK Biobank) está validado para adultos [minBodyAge, maxBodyAge]. Fuera de
+        // ese rango extrapola y, con el clamp de salida, afirmaría una «edad corporal» falsa. Devolver
+        // nil → la UI muestra «—» / su checklist, nunca un veredicto de cuerpo inválido.
+        guard inputs.chronoAge >= minBodyAge, inputs.chronoAge <= maxBodyAge else { return nil }
         let contribs = contributions(inputs)
         guard contribs.count >= minFactors else { return nil }
         let shrink = overlapShrink(forFactors: contribs.count)   // correction #3

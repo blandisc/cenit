@@ -210,4 +210,17 @@ final class FitnessAgeEngineTests: XCTestCase {
                                                  hasHeightWeight: false, hasWaist: false)
         XCTAssertEqual(r.confidence, .ready)
     }
+
+    // FER-469: fuera del dominio validado del motor (Nes 2011 / HUNT), `compute` devuelve nil en vez de
+    // extrapolar y afirmar un veredicto falso («N años mayor que tu edad de 13»).
+    func testComputeRejectsAgeOutsideValidatedDomain() {
+        XCTAssertNil(FitnessAgeEngine.compute(age: 13, sex: "male", restingHR: 58, paIndex: 5),
+                     "edad < minAge (20) → sin número")
+        XCTAssertNil(FitnessAgeEngine.compute(age: 85, sex: "male", restingHR: 58, paIndex: 5),
+                     "edad > maxAge (80) → sin número")
+        XCTAssertNotNil(FitnessAgeEngine.compute(age: FitnessAgeEngine.minAge, sex: "male", restingHR: 58, paIndex: 5),
+                        "el borde inferior sí calcula")
+        XCTAssertNotNil(FitnessAgeEngine.compute(age: FitnessAgeEngine.maxAge, sex: "male", restingHR: 58, paIndex: 5),
+                        "el borde superior sí calcula")
+    }
 }
