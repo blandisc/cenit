@@ -1344,9 +1344,9 @@ private struct CuerpoLanding: View {
         async let wkRows     = repo.workoutRows()
         // Stored daily "stress" series (0–3) — the model prefers it, else derives from RHR/HRV.
         async let stressRows = repo.series(key: "stress", source: "strap")
-        let startOfToday = Int(Calendar.current.startOfDay(for: Date()).timeIntervalSince1970)
-        let nowTs = Int(Date().timeIntervalSince1970)
-        async let hrRows = repo.hrBuckets(from: startOfToday, to: nowTs, bucketSeconds: 300)
+        let dayStart = Int(Calendar.current.startOfDay(for: Date()).timeIntervalSince1970)
+        let rightNow = Int(Date().timeIntervalSince1970)
+        async let hrRows = repo.hrBuckets(from: dayStart, to: rightNow, bucketSeconds: 300)
 
         appleDays = await adRows
         appleMetricDays = (await amRows).sorted { $0.day < $1.day }
@@ -1653,8 +1653,8 @@ private struct CuerpoLanding: View {
     /// Today's mean HR from the 5-minute buckets (nil when there are no readings).
     private var hrTodayAvg: Int? {
         guard hrPoints.count > 1 else { return nil }
-        let v = hrPoints.map(\.value)
-        return Int((v.reduce(0, +) / Double(v.count)).rounded())
+        let readings = hrPoints.map(\.value)
+        return Int((readings.reduce(0, +) / Double(readings.count)).rounded())
     }
 
     /// La línea bajo el héroe cuando todavía no hay veredicto que decir. FER-119 le quitó
@@ -1743,23 +1743,23 @@ private struct LiquidLenteTenidaModifier: ViewModifier {
 #if DEBUG
 #Preview("Cuerpo") {
     let repo = Repository(deviceId: "preview")
-    let cal = Calendar(identifier: .gregorian)
-    let today = cal.startOfDay(for: Date())
-    var sample: [DailyMetric] = []
-    for i in stride(from: 27, through: 0, by: -1) {
-        let date = cal.date(byAdding: .day, value: -i, to: today)!
-        let day = Repository.dayString(date)
-        let phase = Double(i)
-        sample.append(DailyMetric(
-            day: day, totalSleepMin: 420 + 60 * sin(phase / 5), efficiency: 88,
+    let gregoriano = Calendar(identifier: .gregorian)
+    let hoy = gregoriano.startOfDay(for: Date())
+    var muestra: [DailyMetric] = []
+    for atras in stride(from: 27, through: 0, by: -1) {
+        let fecha = gregoriano.date(byAdding: .day, value: -atras, to: hoy)!
+        let clave = Repository.dayString(fecha)
+        let onda = Double(atras)
+        muestra.append(DailyMetric(
+            day: clave, totalSleepMin: 420 + 60 * sin(onda / 5), efficiency: 88,
             deepMin: 95, remMin: 110, lightMin: 200, disturbances: 4,
-            restingHr: 52 + (i % 5), avgHrv: 46 + 12 * sin(phase / 4),
-            recovery: min(max(60 + 30 * sin(phase / 6), 10), 99), strain: 9 + 5 * abs(sin(phase / 4)),
-            exerciseCount: i % 2, spo2Pct: 96 + sin(phase / 3),
-            skinTempDevC: 0.2 * sin(phase / 5), respRateBpm: 14 + sin(phase / 4)
+            restingHr: 52 + (atras % 5), avgHrv: 46 + 12 * sin(onda / 4),
+            recovery: min(max(60 + 30 * sin(onda / 6), 10), 99), strain: 9 + 5 * abs(sin(onda / 4)),
+            exerciseCount: atras % 2, spo2Pct: 96 + sin(onda / 3),
+            skinTempDevC: 0.2 * sin(onda / 5), respRateBpm: 14 + sin(onda / 4)
         ))
     }
-    repo.setDashboard(days: sample)
+    repo.setDashboard(days: muestra)
 
     // FER-985 — CASO CERRADO: el hotspot de type-check de este preview (~198 ms) es `AppModel.preview`
     // de abajo, y la causa es la expansión del macro @Observable sobre AppModel (~20 propiedades
