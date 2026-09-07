@@ -23,11 +23,26 @@ import Foundation
 //
 // Times are wall-clock unix seconds, the same clock as every other timestamp in this package.
 
-/// A contiguous sleep-stage segment. Times are wall-clock unix seconds.
+/// One unbroken stretch of a night spent in a single sleep stage — the unit a hypnogram is drawn
+/// from, and the unit a night is stored as.
+///
+/// This type IS the on-disk shape: an array of these, encoded, is the literal JSON text held in
+/// `CachedSleepSession.stagesJSON`. The three field NAMES and their ORDER are therefore a byte
+/// contract with every night already written on a device, and with the two readers that parse that
+/// JSON without importing this type. Rename nothing here.
 public struct StageSegment: Equatable, Sendable, Codable {
+
+    /// When the stretch begins — wall-clock unix seconds, the same clock as every other timestamp in
+    /// this package.
     public var start: Int
+
+    /// When it ends, in the same seconds. The next segment of a night starts here.
     public var end: Int
-    public var stage: String  // "wake" | "light" | "deep" | "rem"
+
+    /// The stage held for the whole stretch, from a CLOSED lower-case vocabulary: `"wake"`,
+    /// `"light"`, `"deep"`, `"rem"`. Anything else is dropped in silence by the screen that draws
+    /// the night, so an invented label does not fail loudly — it quietly loses those minutes.
+    public var stage: String
 
     public init(start: Int, end: Int, stage: String) {
         self.start = start
