@@ -41218,6 +41218,23 @@
         }
       }
     },
+    "Template applied · your routines are saved, edit your week whenever" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Template applied · your routines are saved, edit your week whenever"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plantilla aplicada · rutinas guardadas, edita tu semana cuando quieras"
+          }
+        }
+      }
+    },
     "Templates" : {
       "extractionState" : "manual",
       "localizations" : {
