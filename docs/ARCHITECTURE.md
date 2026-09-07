@@ -571,10 +571,12 @@ in the Frente D dead-code sweep (FER-1003). No column, no migration.
 
 ## 9. The math layer
 
-`AnalyticsEngine.analyzeDay(...)` is the entry point and it is a pure function: hand it a day's
-sample streams, the user's profile and their personal baselines, and it returns a `DayResult`. It
-opens no file and touches no database, which is what lets every engine below be proven against
-hand-computed reference values in a test that needs no device:
+There is **no single orchestrator**. The per-day entry point that once fanned out to every analyzer
+was retired along with the external-device path, and `AnalyticsEngine` is now four pure helpers:
+civil-day keying, local midnight, the future-day prune selector, and the sleep-stage JSON codec. The
+app composes the engines it needs, one call at a time, in `Repository`. What every engine below shares
+is that it opens no file and touches no database, which is what lets each be proven against a
+hand-computed reference in a test that needs no device:
 
 - `strengthSession.strainSource` / `sessionRpe` / `sessionRpeSource` / `trimpPerAU` / `source` / `title` /
   `programWeek` / `deload` (v42, ola 1 · FER-324) — where the session's strain came from (`hr` measured,
