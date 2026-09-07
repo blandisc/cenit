@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Report something in NOOP that doesn't work the way it should
+about: Report something in Cénit that doesn't work the way it should
 labels: bug
 ---
 
@@ -28,7 +28,7 @@ What you expected to happen instead.
 
 - Cénit version (Settings → About, or the release tag):
 - Platform: iOS — and its version:
-- Data source: Apple Health (live HealthKit) / Apple Health export import / historical WHOOP CSV import:
+- Data source: Apple Health (live HealthKit) or Apple Health export import:
 
 ## Logs or screenshots
 

@@ -1,15 +1,15 @@
-# ── macOS / Finder ──────────────────────────────────────────────
+# macOS / Finder cruft
 .DS_Store
 .AppleDouble
 .localized
 Icon?
-# iCloud Drive / Finder duplicate copies of synced files (e.g. "Units 2.kt").
-# A dupe source file silently breaks the build with redeclared symbols.
+# iCloud Drive can leave a duplicate copy of a synced file (e.g. "Units 2.kt") behind; a
+# stray duplicate silently breaks the build with redeclared symbols, so keep those out too.
 * [0-9].kt
 * [0-9].swift
 
-# ── Swift / Xcode ───────────────────────────────────────────────
-# Xcode project is generated from project.yml by XcodeGen — do not commit it.
+# Xcode / SwiftPM
+# The Xcode project is generated from project.yml by XcodeGen — never commit it.
 *.xcodeproj/
 *.xcworkspace/
 !*.xcworkspace/contents.xcworkspacedata
@@ -29,35 +29,34 @@ xcuserdata/
 *.dSYM
 timeline.xctimeline
 playground.xcworkspace
-# SwiftPM resolved file is fine to commit; uncomment to ignore:
+# Package.resolved is fine to commit; uncomment to ignore it instead:
 # Package.resolved
 
-# ── App bundles / build output ──────────────────────────────────
+# Build output
 *.app/
-NOOP.app/
+Cenit.app/
 
-# ── IDE / editor ────────────────────────────────────────────────
+# Editors
 .idea/
 .vscode/
 *.iml
 
-# ── Misc / secrets (never commit) ───────────────────────────────
+# Secrets — never commit
 *.log
 .env
 secrets.*
-# FER-722: EDB API key for the opt-in exercise-media downloader. The .example placeholder is
-# versioned; the real file is local-only.
+# FER-722: the API key for the opt-in exercise-media downloader. The .example placeholder is
+# versioned; the real file stays local-only.
 Cenit/Secrets.xcconfig
 !Cenit/Secrets.xcconfig.example
 
-# ── Personal data — NEVER publish (real WHOOP/Apple Health exports) ──
+# Personal data — NEVER publish (real Apple Health exports, local databases)
 Fixtures/
 *.sqlite
 *.sqlite-wal
 *.sqlite-shm
 export.xml
 export.zip
-*whoop_export*.zip
 *apple_health*.zip
 
 # Python bytecode
@@ -67,7 +66,7 @@ __pycache__/
 # Lazyweb design-tool scratch/cache (screenshots, references)
 .lazyweb/
 
-# ── Agent / tooling scratch (local only, never publish) ──
+# Agent / tooling scratch — local only, never publish
 .claude/
 .stitch/
 .tmp-capture/
