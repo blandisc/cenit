@@ -93,7 +93,13 @@ struct MetricDetailScreen: View {
     }
 
     @Environment(\.dismiss) private var dismiss
+    // `-noop.range` (FER-384 · mapa 100%) fija la ventana inicial para la captura; una corrida
+    // normal cae al `.month` de siempre (`TendenciasFixtures.debugRange()` es DEBUG-only).
+    #if DEBUG
+    @State private var range: ExploreRange = TendenciasFixtures.debugRange() ?? .month
+    #else
     @State private var range: ExploreRange = .month
+    #endif
     @State private var series: [(day: String, value: Double)] = []
     @State private var nightVitals: NightVitals = NightVitals(respiration: nil, restingHR: nil)
     @State private var whatMovesItFindings: [WhatMovesItFinding] = []

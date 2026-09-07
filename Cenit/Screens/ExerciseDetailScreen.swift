@@ -179,6 +179,11 @@ struct ExerciseDetailScreen: View {
                 mediaURL = await mediaCoordinator.mediaIfNeeded(for: exercise)
                 loadingMedia = false
             }
+            // FER-386 (mapa 100 %): fuerza el toast «No se pudo guardar» sin necesitar un fallo real
+            // de escritura — solo simulador.
+            #if os(iOS) && DEBUG
+            if UserDefaults.standard.string(forKey: "noop.saveError") == "YES" { saveError = true }
+            #endif
         }
         .sheet(item: $variant) { ex in
             NavigationStack {

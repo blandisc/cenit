@@ -36,11 +36,18 @@ enum ScreenshotFixtures {
         #if !targetEnvironment(simulator)
         return nil
         #else
-        guard let raw = UserDefaults.standard.string(forKey: "noop.fixture")?
-            .trimmingCharacters(in: .whitespaces).lowercased(),
-              ["primed", "strained", "balanced", "rundown", "insufficient",
-               "calibrating", "downloading", "train"].contains(raw) else { return nil }
-        return raw
+        guard let raw0 = UserDefaults.standard.string(forKey: "noop.fixture")?
+            .trimmingCharacters(in: .whitespaces), !raw0.isEmpty else { return nil }
+        let raw = raw0.lowercased()
+        // Estados históricos de este archivo (case-insensitive).
+        if ["primed", "strained", "balanced", "rundown", "insufficient",
+            "calibrating", "downloading", "train"].contains(raw) { return raw }
+        // FER-381 (mapa 100 %): cualquier estado que una familia registró en `FixtureRegistry` también
+        // es válido — SIN esto, esta lista blanca filtraría las claves nuevas ANTES de que `seed()`
+        // consulte el registro, y el fixture moriría en silencio (justo el falso verde que el mapa
+        // existe para matar). Se compara la clave como fue escrita (no `lowercased`) contra el registro.
+        if FixtureRegistry.all[raw0] != nil { return raw0 }
+        return nil
         #endif
     }
 

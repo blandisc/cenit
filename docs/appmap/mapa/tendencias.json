@@ -1,0 +1,2495 @@
+{
+  "familia": "tendencias",
+  "titulo": "Tendencias · Cuerpo",
+  "unidad": "estados",
+  "blurb": "Landing de Cuerpo + detalle de cada una de las 36 métricas de MetricCatalog en su rango por defecto (M) × 3 estados (con datos / sin lecturas / calibrando). Versión ligera: sin repetir por rango (regenerar con --full para los 6 rangos). Más Comparar/Explorar/ActivityRecovery/Fitness Age/Body Age. Ciclo omitido (vive en la familia Ajustes).",
+  "nodos": [
+    {
+      "id": "cuerpo-m",
+      "titulo": "Cuerpo · landing · rango M",
+      "condicion": "Landing de Tendencias con datos (`primed`), selector de rango en M.",
+      "fixture": "primed",
+      "args": [
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "nav": "body",
+          "settle": 5
+        }
+      ],
+      "frames": 2,
+      "png": "tendencias-cuerpo-m.png",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "id": "detalle-avg-hr-m-full",
+      "titulo": "Detalle · Average Heart Rate · M · full",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/avg_hr",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-avg-hr-m-full.png",
+      "x": 0,
+      "y": 200,
+      "fixture": "tendencias_full"
+    },
+    {
+      "id": "detalle-avg-hr-m-sin-lecturas",
+      "titulo": "Detalle · Average Heart Rate · M · sin-lecturas",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «sin-lecturas» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/avg_hr",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-avg-hr-m-sin-lecturas.png",
+      "x": 0,
+      "y": 260
+    },
+    {
+      "id": "detalle-avg-hr-m-calibrando",
+      "titulo": "Detalle · Average Heart Rate · M · calibrando",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «calibrando» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/avg_hr",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-avg-hr-m-calibrando.png",
+      "x": 0,
+      "y": 260,
+      "fixture": "tendencias_calibrando"
+    },
+    {
+      "id": "detalle-max-hr-m-full",
+      "titulo": "Detalle · Max Heart Rate · M · full",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/max_hr",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-max-hr-m-full.png",
+      "x": 0,
+      "y": 460,
+      "fixture": "tendencias_full"
+    },
+    {
+      "id": "detalle-max-hr-m-sin-lecturas",
+      "titulo": "Detalle · Max Heart Rate · M · sin-lecturas",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «sin-lecturas» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/max_hr",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-max-hr-m-sin-lecturas.png",
+      "x": 0,
+      "y": 520
+    },
+    {
+      "id": "detalle-max-hr-m-calibrando",
+      "titulo": "Detalle · Max Heart Rate · M · calibrando",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «calibrando» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/max_hr",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-max-hr-m-calibrando.png",
+      "x": 0,
+      "y": 520,
+      "fixture": "tendencias_calibrando"
+    },
+    {
+      "id": "detalle-energy-kcal-m-full",
+      "titulo": "Detalle · Calories · M · full",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/energy_kcal",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-energy-kcal-m-full.png",
+      "x": 0,
+      "y": 720,
+      "fixture": "tendencias_full"
+    },
+    {
+      "id": "detalle-energy-kcal-m-sin-lecturas",
+      "titulo": "Detalle · Calories · M · sin-lecturas",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «sin-lecturas» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/energy_kcal",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-energy-kcal-m-sin-lecturas.png",
+      "x": 0,
+      "y": 780
+    },
+    {
+      "id": "detalle-energy-kcal-m-calibrando",
+      "titulo": "Detalle · Calories · M · calibrando",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «calibrando» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/energy_kcal",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-energy-kcal-m-calibrando.png",
+      "x": 0,
+      "y": 780,
+      "fixture": "tendencias_calibrando"
+    },
+    {
+      "id": "detalle-vo2max-m-full",
+      "titulo": "Detalle · VO₂ Max · M · full",
+      "condicion": "metricSpec (ruta directa, MetricDetailScreen) · estado «full» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/vo2max",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-vo2max-m-full.png",
+      "x": 0,
+      "y": 980,
+      "fixture": "tendencias_full"
+    },
+    {
+      "id": "detalle-vo2max-m-sin-lecturas",
+      "titulo": "Detalle · VO₂ Max · M · sin-lecturas",
+      "condicion": "metricSpec (ruta directa, MetricDetailScreen) · estado «sin-lecturas» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/vo2max",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-vo2max-m-sin-lecturas.png",
+      "x": 0,
+      "y": 1040
+    },
+    {
+      "id": "detalle-vo2max-m-calibrando",
+      "titulo": "Detalle · VO₂ Max · M · calibrando",
+      "condicion": "metricSpec (ruta directa, MetricDetailScreen) · estado «calibrando» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/vo2max",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-vo2max-m-calibrando.png",
+      "x": 0,
+      "y": 1040,
+      "fixture": "tendencias_calibrando"
+    },
+    {
+      "id": "detalle-recovery-m-full",
+      "titulo": "Detalle · Recovery · M · full",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/recovery",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-recovery-m-full.png",
+      "x": 0,
+      "y": 1240,
+      "fixture": "tendencias_full"
+    },
+    {
+      "id": "detalle-recovery-m-sin-lecturas",
+      "titulo": "Detalle · Recovery · M · sin-lecturas",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «sin-lecturas» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/recovery",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-recovery-m-sin-lecturas.png",
+      "x": 0,
+      "y": 1300
+    },
+    {
+      "id": "detalle-recovery-m-calibrando",
+      "titulo": "Detalle · Recovery · M · calibrando",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «calibrando» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/recovery",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-recovery-m-calibrando.png",
+      "x": 0,
+      "y": 1300,
+      "fixture": "tendencias_calibrando"
+    },
+    {
+      "id": "detalle-hrv-m-full",
+      "titulo": "Detalle · Heart Rate Variability · M · full",
+      "condicion": "metricSpec (ruta directa, MetricDetailScreen) · estado «full» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/hrv",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-hrv-m-full.png",
+      "x": 0,
+      "y": 1500,
+      "fixture": "tendencias_full"
+    },
+    {
+      "id": "detalle-hrv-m-sin-lecturas",
+      "titulo": "Detalle · Heart Rate Variability · M · sin-lecturas",
+      "condicion": "metricSpec (ruta directa, MetricDetailScreen) · estado «sin-lecturas» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/hrv",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-hrv-m-sin-lecturas.png",
+      "x": 0,
+      "y": 1560
+    },
+    {
+      "id": "detalle-hrv-m-calibrando",
+      "titulo": "Detalle · Heart Rate Variability · M · calibrando",
+      "condicion": "metricSpec (ruta directa, MetricDetailScreen) · estado «calibrando» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/hrv",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-hrv-m-calibrando.png",
+      "x": 0,
+      "y": 1560,
+      "fixture": "tendencias_calibrando"
+    },
+    {
+      "id": "detalle-rhr-m-full",
+      "titulo": "Detalle · Resting Heart Rate · M · full",
+      "condicion": "metricSpec (ruta directa, MetricDetailScreen) · estado «full» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/rhr",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-rhr-m-full.png",
+      "x": 0,
+      "y": 1760,
+      "fixture": "tendencias_full"
+    },
+    {
+      "id": "detalle-rhr-m-sin-lecturas",
+      "titulo": "Detalle · Resting Heart Rate · M · sin-lecturas",
+      "condicion": "metricSpec (ruta directa, MetricDetailScreen) · estado «sin-lecturas» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/rhr",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-rhr-m-sin-lecturas.png",
+      "x": 0,
+      "y": 1820
+    },
+    {
+      "id": "detalle-rhr-m-calibrando",
+      "titulo": "Detalle · Resting Heart Rate · M · calibrando",
+      "condicion": "metricSpec (ruta directa, MetricDetailScreen) · estado «calibrando» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/rhr",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-rhr-m-calibrando.png",
+      "x": 0,
+      "y": 1820,
+      "fixture": "tendencias_calibrando"
+    },
+    {
+      "id": "detalle-resp-rate-m-full",
+      "titulo": "Detalle · Respiratory Rate · M · full",
+      "condicion": "metricSpec (ruta directa, MetricDetailScreen) · estado «full» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/resp_rate",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-resp-rate-m-full.png",
+      "x": 0,
+      "y": 2020,
+      "fixture": "tendencias_full"
+    },
+    {
+      "id": "detalle-resp-rate-m-sin-lecturas",
+      "titulo": "Detalle · Respiratory Rate · M · sin-lecturas",
+      "condicion": "metricSpec (ruta directa, MetricDetailScreen) · estado «sin-lecturas» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/resp_rate",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-resp-rate-m-sin-lecturas.png",
+      "x": 0,
+      "y": 2080
+    },
+    {
+      "id": "detalle-resp-rate-m-calibrando",
+      "titulo": "Detalle · Respiratory Rate · M · calibrando",
+      "condicion": "metricSpec (ruta directa, MetricDetailScreen) · estado «calibrando» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/resp_rate",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-resp-rate-m-calibrando.png",
+      "x": 0,
+      "y": 2080,
+      "fixture": "tendencias_calibrando"
+    },
+    {
+      "id": "detalle-spo2-m-full",
+      "titulo": "Detalle · Blood Oxygen · M · full",
+      "condicion": "metricSpec (ruta directa, MetricDetailScreen) · estado «full» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/spo2",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-spo2-m-full.png",
+      "x": 0,
+      "y": 2280,
+      "fixture": "tendencias_full"
+    },
+    {
+      "id": "detalle-spo2-m-sin-lecturas",
+      "titulo": "Detalle · Blood Oxygen · M · sin-lecturas",
+      "condicion": "metricSpec (ruta directa, MetricDetailScreen) · estado «sin-lecturas» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/spo2",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-spo2-m-sin-lecturas.png",
+      "x": 0,
+      "y": 2340
+    },
+    {
+      "id": "detalle-spo2-m-calibrando",
+      "titulo": "Detalle · Blood Oxygen · M · calibrando",
+      "condicion": "metricSpec (ruta directa, MetricDetailScreen) · estado «calibrando» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/spo2",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-spo2-m-calibrando.png",
+      "x": 0,
+      "y": 2340,
+      "fixture": "tendencias_calibrando"
+    },
+    {
+      "id": "detalle-skin-temp-m-full",
+      "titulo": "Detalle · Skin Temperature · M · full",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/skin_temp",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-skin-temp-m-full.png",
+      "x": 0,
+      "y": 2540,
+      "fixture": "tendencias_full"
+    },
+    {
+      "id": "detalle-skin-temp-m-sin-lecturas",
+      "titulo": "Detalle · Skin Temperature · M · sin-lecturas",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «sin-lecturas» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/skin_temp",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-skin-temp-m-sin-lecturas.png",
+      "x": 0,
+      "y": 2600
+    },
+    {
+      "id": "detalle-skin-temp-m-calibrando",
+      "titulo": "Detalle · Skin Temperature · M · calibrando",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «calibrando» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/skin_temp",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-skin-temp-m-calibrando.png",
+      "x": 0,
+      "y": 2600,
+      "fixture": "tendencias_calibrando"
+    },
+    {
+      "id": "detalle-sleep-performance-m-full",
+      "titulo": "Detalle · Sleep Performance · M · full",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/sleep_performance",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-sleep-performance-m-full.png",
+      "x": 0,
+      "y": 2800,
+      "fixture": "tendencias_full"
+    },
+    {
+      "id": "detalle-sleep-performance-m-sin-lecturas",
+      "titulo": "Detalle · Sleep Performance · M · sin-lecturas",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «sin-lecturas» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/sleep_performance",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-sleep-performance-m-sin-lecturas.png",
+      "x": 0,
+      "y": 2860
+    },
+    {
+      "id": "detalle-sleep-performance-m-calibrando",
+      "titulo": "Detalle · Sleep Performance · M · calibrando",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «calibrando» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/sleep_performance",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-sleep-performance-m-calibrando.png",
+      "x": 0,
+      "y": 2860,
+      "fixture": "tendencias_calibrando"
+    },
+    {
+      "id": "detalle-in-bed-min-m-full",
+      "titulo": "Detalle · Time in Bed · M · full",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/in_bed_min",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-in-bed-min-m-full.png",
+      "x": 0,
+      "y": 3060,
+      "fixture": "tendencias_full"
+    },
+    {
+      "id": "detalle-in-bed-min-m-sin-lecturas",
+      "titulo": "Detalle · Time in Bed · M · sin-lecturas",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «sin-lecturas» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/in_bed_min",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-in-bed-min-m-sin-lecturas.png",
+      "x": 0,
+      "y": 3120
+    },
+    {
+      "id": "detalle-in-bed-min-m-calibrando",
+      "titulo": "Detalle · Time in Bed · M · calibrando",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «calibrando» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/in_bed_min",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-in-bed-min-m-calibrando.png",
+      "x": 0,
+      "y": 3120,
+      "fixture": "tendencias_calibrando"
+    },
+    {
+      "id": "detalle-sleep-total-min-m-full",
+      "titulo": "Detalle · Asleep Time · M · full",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/sleep_total_min",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-sleep-total-min-m-full.png",
+      "x": 0,
+      "y": 3320,
+      "fixture": "tendencias_full"
+    },
+    {
+      "id": "detalle-sleep-total-min-m-sin-lecturas",
+      "titulo": "Detalle · Asleep Time · M · sin-lecturas",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «sin-lecturas» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/sleep_total_min",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-sleep-total-min-m-sin-lecturas.png",
+      "x": 0,
+      "y": 3380
+    },
+    {
+      "id": "detalle-sleep-total-min-m-calibrando",
+      "titulo": "Detalle · Asleep Time · M · calibrando",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «calibrando» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/sleep_total_min",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-sleep-total-min-m-calibrando.png",
+      "x": 0,
+      "y": 3380,
+      "fixture": "tendencias_calibrando"
+    },
+    {
+      "id": "detalle-hours-vs-needed-pct-m-full",
+      "titulo": "Detalle · Hours vs Needed · M · full",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/hours_vs_needed_pct",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-hours-vs-needed-pct-m-full.png",
+      "x": 0,
+      "y": 3580,
+      "fixture": "tendencias_full"
+    },
+    {
+      "id": "detalle-hours-vs-needed-pct-m-sin-lecturas",
+      "titulo": "Detalle · Hours vs Needed · M · sin-lecturas",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «sin-lecturas» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/hours_vs_needed_pct",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-hours-vs-needed-pct-m-sin-lecturas.png",
+      "x": 0,
+      "y": 3640
+    },
+    {
+      "id": "detalle-hours-vs-needed-pct-m-calibrando",
+      "titulo": "Detalle · Hours vs Needed · M · calibrando",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «calibrando» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/hours_vs_needed_pct",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-hours-vs-needed-pct-m-calibrando.png",
+      "x": 0,
+      "y": 3640,
+      "fixture": "tendencias_calibrando"
+    },
+    {
+      "id": "detalle-sleep-consistency-m-full",
+      "titulo": "Detalle · Sleep Consistency · M · full",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/sleep_consistency",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-sleep-consistency-m-full.png",
+      "x": 0,
+      "y": 3840,
+      "fixture": "tendencias_full"
+    },
+    {
+      "id": "detalle-sleep-consistency-m-sin-lecturas",
+      "titulo": "Detalle · Sleep Consistency · M · sin-lecturas",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «sin-lecturas» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/sleep_consistency",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-sleep-consistency-m-sin-lecturas.png",
+      "x": 0,
+      "y": 3900
+    },
+    {
+      "id": "detalle-sleep-consistency-m-calibrando",
+      "titulo": "Detalle · Sleep Consistency · M · calibrando",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «calibrando» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/sleep_consistency",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-sleep-consistency-m-calibrando.png",
+      "x": 0,
+      "y": 3900,
+      "fixture": "tendencias_calibrando"
+    },
+    {
+      "id": "detalle-restorative-pct-m-full",
+      "titulo": "Detalle · Restorative Sleep · M · full",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/restorative_pct",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-restorative-pct-m-full.png",
+      "x": 0,
+      "y": 4100,
+      "fixture": "tendencias_full"
+    },
+    {
+      "id": "detalle-restorative-pct-m-sin-lecturas",
+      "titulo": "Detalle · Restorative Sleep · M · sin-lecturas",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «sin-lecturas» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/restorative_pct",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-restorative-pct-m-sin-lecturas.png",
+      "x": 0,
+      "y": 4160
+    },
+    {
+      "id": "detalle-restorative-pct-m-calibrando",
+      "titulo": "Detalle · Restorative Sleep · M · calibrando",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «calibrando» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/restorative_pct",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-restorative-pct-m-calibrando.png",
+      "x": 0,
+      "y": 4160,
+      "fixture": "tendencias_calibrando"
+    },
+    {
+      "id": "detalle-restorative-min-m-full",
+      "titulo": "Detalle · Restorative Sleep · M · full",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/restorative_min",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-restorative-min-m-full.png",
+      "x": 0,
+      "y": 4360,
+      "fixture": "tendencias_full"
+    },
+    {
+      "id": "detalle-restorative-min-m-sin-lecturas",
+      "titulo": "Detalle · Restorative Sleep · M · sin-lecturas",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «sin-lecturas» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/restorative_min",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-restorative-min-m-sin-lecturas.png",
+      "x": 0,
+      "y": 4420
+    },
+    {
+      "id": "detalle-restorative-min-m-calibrando",
+      "titulo": "Detalle · Restorative Sleep · M · calibrando",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «calibrando» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/restorative_min",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-restorative-min-m-calibrando.png",
+      "x": 0,
+      "y": 4420,
+      "fixture": "tendencias_calibrando"
+    },
+    {
+      "id": "detalle-sleep-efficiency-m-full",
+      "titulo": "Detalle · Sleep Efficiency · M · full",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/sleep_efficiency",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-sleep-efficiency-m-full.png",
+      "x": 0,
+      "y": 4620,
+      "fixture": "tendencias_full"
+    },
+    {
+      "id": "detalle-sleep-efficiency-m-sin-lecturas",
+      "titulo": "Detalle · Sleep Efficiency · M · sin-lecturas",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «sin-lecturas» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/sleep_efficiency",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-sleep-efficiency-m-sin-lecturas.png",
+      "x": 0,
+      "y": 4680
+    },
+    {
+      "id": "detalle-sleep-efficiency-m-calibrando",
+      "titulo": "Detalle · Sleep Efficiency · M · calibrando",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «calibrando» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/sleep_efficiency",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-sleep-efficiency-m-calibrando.png",
+      "x": 0,
+      "y": 4680,
+      "fixture": "tendencias_calibrando"
+    },
+    {
+      "id": "detalle-sleep-deep-min-m-full",
+      "titulo": "Detalle · Deep (SWS) Sleep · M · full",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/sleep_deep_min",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-sleep-deep-min-m-full.png",
+      "x": 0,
+      "y": 4880,
+      "fixture": "tendencias_full"
+    },
+    {
+      "id": "detalle-sleep-deep-min-m-sin-lecturas",
+      "titulo": "Detalle · Deep (SWS) Sleep · M · sin-lecturas",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «sin-lecturas» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/sleep_deep_min",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-sleep-deep-min-m-sin-lecturas.png",
+      "x": 0,
+      "y": 4940
+    },
+    {
+      "id": "detalle-sleep-deep-min-m-calibrando",
+      "titulo": "Detalle · Deep (SWS) Sleep · M · calibrando",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «calibrando» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/sleep_deep_min",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-sleep-deep-min-m-calibrando.png",
+      "x": 0,
+      "y": 4940,
+      "fixture": "tendencias_calibrando"
+    },
+    {
+      "id": "detalle-sleep-rem-min-m-full",
+      "titulo": "Detalle · REM Sleep · M · full",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/sleep_rem_min",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-sleep-rem-min-m-full.png",
+      "x": 0,
+      "y": 5140,
+      "fixture": "tendencias_full"
+    },
+    {
+      "id": "detalle-sleep-rem-min-m-sin-lecturas",
+      "titulo": "Detalle · REM Sleep · M · sin-lecturas",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «sin-lecturas» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/sleep_rem_min",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-sleep-rem-min-m-sin-lecturas.png",
+      "x": 0,
+      "y": 5200
+    },
+    {
+      "id": "detalle-sleep-rem-min-m-calibrando",
+      "titulo": "Detalle · REM Sleep · M · calibrando",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «calibrando» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/sleep_rem_min",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-sleep-rem-min-m-calibrando.png",
+      "x": 0,
+      "y": 5200,
+      "fixture": "tendencias_calibrando"
+    },
+    {
+      "id": "detalle-sleep-light-min-m-full",
+      "titulo": "Detalle · Light Sleep · M · full",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/sleep_light_min",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-sleep-light-min-m-full.png",
+      "x": 0,
+      "y": 5400,
+      "fixture": "tendencias_full"
+    },
+    {
+      "id": "detalle-sleep-light-min-m-sin-lecturas",
+      "titulo": "Detalle · Light Sleep · M · sin-lecturas",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «sin-lecturas» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/sleep_light_min",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-sleep-light-min-m-sin-lecturas.png",
+      "x": 0,
+      "y": 5460
+    },
+    {
+      "id": "detalle-sleep-light-min-m-calibrando",
+      "titulo": "Detalle · Light Sleep · M · calibrando",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «calibrando» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/sleep_light_min",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-sleep-light-min-m-calibrando.png",
+      "x": 0,
+      "y": 5460,
+      "fixture": "tendencias_calibrando"
+    },
+    {
+      "id": "detalle-sleep-need-min-m-full",
+      "titulo": "Detalle · Sleep Need · M · full",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/sleep_need_min",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-sleep-need-min-m-full.png",
+      "x": 0,
+      "y": 5660,
+      "fixture": "tendencias_full"
+    },
+    {
+      "id": "detalle-sleep-need-min-m-sin-lecturas",
+      "titulo": "Detalle · Sleep Need · M · sin-lecturas",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «sin-lecturas» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/sleep_need_min",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-sleep-need-min-m-sin-lecturas.png",
+      "x": 0,
+      "y": 5720
+    },
+    {
+      "id": "detalle-sleep-need-min-m-calibrando",
+      "titulo": "Detalle · Sleep Need · M · calibrando",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «calibrando» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/sleep_need_min",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-sleep-need-min-m-calibrando.png",
+      "x": 0,
+      "y": 5720,
+      "fixture": "tendencias_calibrando"
+    },
+    {
+      "id": "detalle-sleep-debt-min-m-full",
+      "titulo": "Detalle · Sleep Debt · M · full",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/sleep_debt_min",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-sleep-debt-min-m-full.png",
+      "x": 0,
+      "y": 5920,
+      "fixture": "tendencias_full"
+    },
+    {
+      "id": "detalle-sleep-debt-min-m-sin-lecturas",
+      "titulo": "Detalle · Sleep Debt · M · sin-lecturas",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «sin-lecturas» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/sleep_debt_min",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-sleep-debt-min-m-sin-lecturas.png",
+      "x": 0,
+      "y": 5980
+    },
+    {
+      "id": "detalle-sleep-debt-min-m-calibrando",
+      "titulo": "Detalle · Sleep Debt · M · calibrando",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «calibrando» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/sleep_debt_min",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-sleep-debt-min-m-calibrando.png",
+      "x": 0,
+      "y": 5980,
+      "fixture": "tendencias_calibrando"
+    },
+    {
+      "id": "detalle-strain-m-full",
+      "titulo": "Detalle · Day Strain · M · full",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/strain",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-strain-m-full.png",
+      "x": 0,
+      "y": 6180,
+      "fixture": "tendencias_full"
+    },
+    {
+      "id": "detalle-strain-m-sin-lecturas",
+      "titulo": "Detalle · Day Strain · M · sin-lecturas",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «sin-lecturas» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/strain",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-strain-m-sin-lecturas.png",
+      "x": 0,
+      "y": 6240
+    },
+    {
+      "id": "detalle-strain-m-calibrando",
+      "titulo": "Detalle · Day Strain · M · calibrando",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «calibrando» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/strain",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-strain-m-calibrando.png",
+      "x": 0,
+      "y": 6240,
+      "fixture": "tendencias_calibrando"
+    },
+    {
+      "id": "detalle-steps-m-full",
+      "titulo": "Detalle · Steps · M · full",
+      "condicion": "metricSpec (ruta directa, MetricDetailScreen) · estado «full» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/steps",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-steps-m-full.png",
+      "x": 0,
+      "y": 6440,
+      "fixture": "tendencias_full"
+    },
+    {
+      "id": "detalle-steps-m-sin-lecturas",
+      "titulo": "Detalle · Steps · M · sin-lecturas",
+      "condicion": "metricSpec (ruta directa, MetricDetailScreen) · estado «sin-lecturas» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/steps",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-steps-m-sin-lecturas.png",
+      "x": 0,
+      "y": 6500
+    },
+    {
+      "id": "detalle-steps-m-calibrando",
+      "titulo": "Detalle · Steps · M · calibrando",
+      "condicion": "metricSpec (ruta directa, MetricDetailScreen) · estado «calibrando» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/steps",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-steps-m-calibrando.png",
+      "x": 0,
+      "y": 6500,
+      "fixture": "tendencias_calibrando"
+    },
+    {
+      "id": "detalle-hr-zones13-min-m-full",
+      "titulo": "Detalle · HR Zones 1–3 · M · full",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/hr_zones13_min",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-hr-zones13-min-m-full.png",
+      "x": 0,
+      "y": 6700,
+      "fixture": "tendencias_full"
+    },
+    {
+      "id": "detalle-hr-zones13-min-m-sin-lecturas",
+      "titulo": "Detalle · HR Zones 1–3 · M · sin-lecturas",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «sin-lecturas» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/hr_zones13_min",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-hr-zones13-min-m-sin-lecturas.png",
+      "x": 0,
+      "y": 6760
+    },
+    {
+      "id": "detalle-hr-zones13-min-m-calibrando",
+      "titulo": "Detalle · HR Zones 1–3 · M · calibrando",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «calibrando» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/hr_zones13_min",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-hr-zones13-min-m-calibrando.png",
+      "x": 0,
+      "y": 6760,
+      "fixture": "tendencias_calibrando"
+    },
+    {
+      "id": "detalle-hr-zones45-min-m-full",
+      "titulo": "Detalle · HR Zones 4–5 · M · full",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/hr_zones45_min",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-hr-zones45-min-m-full.png",
+      "x": 0,
+      "y": 6960,
+      "fixture": "tendencias_full"
+    },
+    {
+      "id": "detalle-hr-zones45-min-m-sin-lecturas",
+      "titulo": "Detalle · HR Zones 4–5 · M · sin-lecturas",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «sin-lecturas» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/hr_zones45_min",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-hr-zones45-min-m-sin-lecturas.png",
+      "x": 0,
+      "y": 7020
+    },
+    {
+      "id": "detalle-hr-zones45-min-m-calibrando",
+      "titulo": "Detalle · HR Zones 4–5 · M · calibrando",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «calibrando» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/hr_zones45_min",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-hr-zones45-min-m-calibrando.png",
+      "x": 0,
+      "y": 7020,
+      "fixture": "tendencias_calibrando"
+    },
+    {
+      "id": "detalle-hr-zones-all-min-m-full",
+      "titulo": "Detalle · HR Zones (All) · M · full",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/hr_zones_all_min",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-hr-zones-all-min-m-full.png",
+      "x": 0,
+      "y": 7220,
+      "fixture": "tendencias_full"
+    },
+    {
+      "id": "detalle-hr-zones-all-min-m-sin-lecturas",
+      "titulo": "Detalle · HR Zones (All) · M · sin-lecturas",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «sin-lecturas» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/hr_zones_all_min",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-hr-zones-all-min-m-sin-lecturas.png",
+      "x": 0,
+      "y": 7280
+    },
+    {
+      "id": "detalle-hr-zones-all-min-m-calibrando",
+      "titulo": "Detalle · HR Zones (All) · M · calibrando",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «calibrando» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/hr_zones_all_min",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-hr-zones-all-min-m-calibrando.png",
+      "x": 0,
+      "y": 7280,
+      "fixture": "tendencias_calibrando"
+    },
+    {
+      "id": "detalle-strength-min-m-full",
+      "titulo": "Detalle · Strength Activity Time · M · full",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/strength_min",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-strength-min-m-full.png",
+      "x": 0,
+      "y": 7480,
+      "fixture": "tendencias_full"
+    },
+    {
+      "id": "detalle-strength-min-m-sin-lecturas",
+      "titulo": "Detalle · Strength Activity Time · M · sin-lecturas",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «sin-lecturas» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/strength_min",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-strength-min-m-sin-lecturas.png",
+      "x": 0,
+      "y": 7540
+    },
+    {
+      "id": "detalle-strength-min-m-calibrando",
+      "titulo": "Detalle · Strength Activity Time · M · calibrando",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «calibrando» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/strength_min",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-strength-min-m-calibrando.png",
+      "x": 0,
+      "y": 7540,
+      "fixture": "tendencias_calibrando"
+    },
+    {
+      "id": "detalle-active-kcal-m-full",
+      "titulo": "Detalle · Active Energy · M · full",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/active_kcal",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-active-kcal-m-full.png",
+      "x": 0,
+      "y": 7740,
+      "fixture": "tendencias_full"
+    },
+    {
+      "id": "detalle-active-kcal-m-sin-lecturas",
+      "titulo": "Detalle · Active Energy · M · sin-lecturas",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «sin-lecturas» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/active_kcal",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-active-kcal-m-sin-lecturas.png",
+      "x": 0,
+      "y": 7800
+    },
+    {
+      "id": "detalle-active-kcal-m-calibrando",
+      "titulo": "Detalle · Active Energy · M · calibrando",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «calibrando» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/active_kcal",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-active-kcal-m-calibrando.png",
+      "x": 0,
+      "y": 7800,
+      "fixture": "tendencias_calibrando"
+    },
+    {
+      "id": "detalle-weight-m-full",
+      "titulo": "Detalle · Weight · M · full",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/weight",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-weight-m-full.png",
+      "x": 0,
+      "y": 8000,
+      "fixture": "tendencias_full"
+    },
+    {
+      "id": "detalle-weight-m-sin-lecturas",
+      "titulo": "Detalle · Weight · M · sin-lecturas",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «sin-lecturas» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/weight",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-weight-m-sin-lecturas.png",
+      "x": 0,
+      "y": 8060
+    },
+    {
+      "id": "detalle-weight-m-calibrando",
+      "titulo": "Detalle · Weight · M · calibrando",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «calibrando» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/weight",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-weight-m-calibrando.png",
+      "x": 0,
+      "y": 8060,
+      "fixture": "tendencias_calibrando"
+    },
+    {
+      "id": "detalle-body-fat-m-full",
+      "titulo": "Detalle · Body Fat · M · full",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/body_fat",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-body-fat-m-full.png",
+      "x": 0,
+      "y": 8260,
+      "fixture": "tendencias_full"
+    },
+    {
+      "id": "detalle-body-fat-m-sin-lecturas",
+      "titulo": "Detalle · Body Fat · M · sin-lecturas",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «sin-lecturas» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/body_fat",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-body-fat-m-sin-lecturas.png",
+      "x": 0,
+      "y": 8320
+    },
+    {
+      "id": "detalle-body-fat-m-calibrando",
+      "titulo": "Detalle · Body Fat · M · calibrando",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «calibrando» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/body_fat",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-body-fat-m-calibrando.png",
+      "x": 0,
+      "y": 8320,
+      "fixture": "tendencias_calibrando"
+    },
+    {
+      "id": "detalle-lean-mass-m-full",
+      "titulo": "Detalle · Lean Body Mass · M · full",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/lean_mass",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-lean-mass-m-full.png",
+      "x": 0,
+      "y": 8520,
+      "fixture": "tendencias_full"
+    },
+    {
+      "id": "detalle-lean-mass-m-sin-lecturas",
+      "titulo": "Detalle · Lean Body Mass · M · sin-lecturas",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «sin-lecturas» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/lean_mass",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-lean-mass-m-sin-lecturas.png",
+      "x": 0,
+      "y": 8580
+    },
+    {
+      "id": "detalle-lean-mass-m-calibrando",
+      "titulo": "Detalle · Lean Body Mass · M · calibrando",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «calibrando» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/lean_mass",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-lean-mass-m-calibrando.png",
+      "x": 0,
+      "y": 8580,
+      "fixture": "tendencias_calibrando"
+    },
+    {
+      "id": "detalle-bmi-m-full",
+      "titulo": "Detalle · BMI · M · full",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/bmi",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-bmi-m-full.png",
+      "x": 0,
+      "y": 8780,
+      "fixture": "tendencias_full"
+    },
+    {
+      "id": "detalle-bmi-m-sin-lecturas",
+      "titulo": "Detalle · BMI · M · sin-lecturas",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «sin-lecturas» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/bmi",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-bmi-m-sin-lecturas.png",
+      "x": 0,
+      "y": 8840
+    },
+    {
+      "id": "detalle-bmi-m-calibrando",
+      "titulo": "Detalle · BMI · M · calibrando",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «calibrando» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/bmi",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-bmi-m-calibrando.png",
+      "x": 0,
+      "y": 8840,
+      "fixture": "tendencias_calibrando"
+    },
+    {
+      "id": "detalle-stress-m-full",
+      "titulo": "Detalle · Day Stress · M · full",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/stress",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-stress-m-full.png",
+      "x": 0,
+      "y": 9040,
+      "fixture": "tendencias_full"
+    },
+    {
+      "id": "detalle-stress-m-sin-lecturas",
+      "titulo": "Detalle · Day Stress · M · sin-lecturas",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «sin-lecturas» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/stress",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-stress-m-sin-lecturas.png",
+      "x": 0,
+      "y": 9100
+    },
+    {
+      "id": "detalle-stress-m-calibrando",
+      "titulo": "Detalle · Day Stress · M · calibrando",
+      "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «calibrando» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/stress",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-stress-m-calibrando.png",
+      "x": 0,
+      "y": 9100,
+      "fixture": "tendencias_calibrando"
+    },
+    {
+      "id": "detalle-heart-rate-m-full",
+      "titulo": "Detalle · Heart Rate (intradía) · M · full",
+      "condicion": "metricSpec (ruta directa, MetricDetailScreen) · estado «full» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/heart_rate",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-heart-rate-m-full.png",
+      "x": 0,
+      "y": 9300,
+      "fixture": "tendencias_full"
+    },
+    {
+      "id": "detalle-heart-rate-m-sin-lecturas",
+      "titulo": "Detalle · Heart Rate (intradía) · M · sin-lecturas",
+      "condicion": "metricSpec (ruta directa, MetricDetailScreen) · estado «sin-lecturas» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/heart_rate",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-heart-rate-m-sin-lecturas.png",
+      "x": 0,
+      "y": 9360
+    },
+    {
+      "id": "detalle-heart-rate-m-calibrando",
+      "titulo": "Detalle · Heart Rate (intradía) · M · calibrando",
+      "condicion": "metricSpec (ruta directa, MetricDetailScreen) · estado «calibrando» · rango M.",
+      "args": [
+        "-noop.route",
+        "tendencias/heart_rate",
+        "-noop.range",
+        "M"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-detalle-heart-rate-m-calibrando.png",
+      "x": 0,
+      "y": 9360,
+      "fixture": "tendencias_calibrando"
+    },
+    {
+      "id": "comparar-full",
+      "titulo": "Comparar dos métricas superpuestas · full",
+      "condicion": "Comparar dos métricas superpuestas, estado con datos.",
+      "args": [
+        "-noop.route",
+        "tendencias/comparar"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-comparar-full.png",
+      "x": 3200,
+      "y": 0,
+      "fixture": "tendencias_full"
+    },
+    {
+      "id": "comparar-vacio",
+      "titulo": "Comparar dos métricas superpuestas · vacio",
+      "condicion": "Comparar dos métricas superpuestas, estado vacío (sin fixture, freshStore).",
+      "args": [
+        "-noop.route",
+        "tendencias/comparar"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-comparar-vacio.png",
+      "x": 3200,
+      "y": 260
+    },
+    {
+      "id": "explorar-full",
+      "titulo": "Explorar · catálogo de métricas (la lista, sin drill-down) · full",
+      "condicion": "Explorar · catálogo de métricas (la lista, sin drill-down), estado con datos.",
+      "args": [
+        "-noop.route",
+        "tendencias/explorar"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-explorar-full.png",
+      "x": 3580,
+      "y": 0,
+      "fixture": "tendencias_full"
+    },
+    {
+      "id": "explorar-vacio",
+      "titulo": "Explorar · catálogo de métricas (la lista, sin drill-down) · vacio",
+      "condicion": "Explorar · catálogo de métricas (la lista, sin drill-down), estado vacío (sin fixture, freshStore).",
+      "args": [
+        "-noop.route",
+        "tendencias/explorar"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-explorar-vacio.png",
+      "x": 3580,
+      "y": 260
+    },
+    {
+      "id": "actividad-full",
+      "titulo": "Cómo despiertas después de cada deporte (ActivityRecoverySheet) · full",
+      "condicion": "Cómo despiertas después de cada deporte (ActivityRecoverySheet), estado con datos.",
+      "args": [
+        "-noop.route",
+        "tendencias/actividad"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-actividad-full.png",
+      "x": 3960,
+      "y": 0,
+      "fixture": "tendencias_full"
+    },
+    {
+      "id": "actividad-vacio",
+      "titulo": "Cómo despiertas después de cada deporte (ActivityRecoverySheet) · vacio",
+      "condicion": "Cómo despiertas después de cada deporte (ActivityRecoverySheet), estado vacío (sin fixture, freshStore).",
+      "args": [
+        "-noop.route",
+        "tendencias/actividad"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-actividad-vacio.png",
+      "x": 3960,
+      "y": 260
+    },
+    {
+      "id": "edad-fisica-full",
+      "titulo": "Edad física / Fitness Age · full",
+      "condicion": "Edad física / Fitness Age, estado con datos.",
+      "args": [
+        "-noop.route",
+        "tendencias/edad-fisica"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-edad-fisica-full.png",
+      "x": 4340,
+      "y": 0,
+      "fixture": "tendencias_full"
+    },
+    {
+      "id": "edad-fisica-vacio",
+      "titulo": "Edad física / Fitness Age · vacio",
+      "condicion": "Edad física / Fitness Age, estado vacío (sin fixture, freshStore).",
+      "args": [
+        "-noop.route",
+        "tendencias/edad-fisica"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-edad-fisica-vacio.png",
+      "x": 4340,
+      "y": 260
+    },
+    {
+      "id": "edad-corporal-full",
+      "titulo": "Edad corporal / Body Age · full",
+      "condicion": "Edad corporal / Body Age, estado con datos.",
+      "args": [
+        "-noop.route",
+        "tendencias/edad-corporal"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-edad-corporal-full.png",
+      "x": 4720,
+      "y": 0,
+      "fixture": "tendencias_full"
+    },
+    {
+      "id": "edad-corporal-vacio",
+      "titulo": "Edad corporal / Body Age · vacio",
+      "condicion": "Edad corporal / Body Age, estado vacío (sin fixture, freshStore).",
+      "args": [
+        "-noop.route",
+        "tendencias/edad-corporal"
+      ],
+      "pasos": [
+        {
+          "wait": 2
+        }
+      ],
+      "frames": 1,
+      "png": "tendencias-edad-corporal-vacio.png",
+      "x": 4720,
+      "y": 260
+    },
+    {
+      "id": "ciclo",
+      "titulo": "Fase del ciclo (CyclePhaseView)",
+      "condicion": "Sin nodo capturable desde esta familia.",
+      "omitido": "CyclePhaseView se presenta SOLO desde AjustesView.showCyclePhase (familia Ajustes) — no hay palanca en Cuerpo/Tendencias sin tocar AjustesView.swift, fuera del alcance de este lane (FER-384).",
+      "x": 5100,
+      "y": 0
+    }
+  ],
+  "aristas": [
+    {
+      "de": "cuerpo-m",
+      "a": "detalle-hrv-m-full",
+      "etiqueta": "toca HRV"
+    },
+    {
+      "de": "cuerpo-m",
+      "a": "detalle-vo2max-m-full",
+      "etiqueta": "toca VO₂max"
+    },
+    {
+      "de": "cuerpo-m",
+      "a": "comparar-full",
+      "etiqueta": "Comparar"
+    },
+    {
+      "de": "cuerpo-m",
+      "a": "explorar-full",
+      "etiqueta": "Ver todas las métricas"
+    },
+    {
+      "de": "cuerpo-m",
+      "a": "actividad-full",
+      "etiqueta": "Cómo despiertas por deporte"
+    },
+    {
+      "de": "cuerpo-m",
+      "a": "edad-fisica-full",
+      "etiqueta": "Edad física"
+    },
+    {
+      "de": "cuerpo-m",
+      "a": "edad-corporal-full",
+      "etiqueta": "Edad corporal"
+    },
+    {
+      "de": "explorar-full",
+      "a": "detalle-weight-m-full",
+      "etiqueta": "fila → detalle genérico"
+    }
+  ]
+}
