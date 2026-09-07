@@ -288,6 +288,13 @@ targets:
     deploymentTarget: "17.0"
     sources:
       - CenitUITests
+      # FER-381: los manifiestos del mapa se empacan como recursos del bundle de pruebas para que
+      # `test_mapa` los lea con `Bundle(for:).urls(forResourcesWithExtension:)`. (NOOP_MAPA_DIR los
+      # sobreescribe desde el host para iterar sin recompilar.)
+      - path: docs/appmap/mapa
+        buildPhase: resources
+        includes:
+          - "*.json"
     dependencies:
       - target: Cenit
     settings:

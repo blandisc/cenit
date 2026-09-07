@@ -201,10 +201,12 @@ final class CenitScreenshotTests: XCTestCase {
     func test_captureAllScreens() throws {
         continueAfterFailure = true
 
+        // FER-381: se quitaron `coach` y `automations` — eran claves `nav` muertas que capturaban la
+        // pantalla ANTERIOR con nombre ajeno y el test seguía verde (falso verde). Toda clave aquí
+        // resuelve a una pantalla real.
         let screens: [(key: String, id: String)] = [
             ("today",       "today"),
             ("body",        "trends"),      // Cuerpo (snapshot histórico «trends»)
-            ("coach",       "coach"),
             // Entrenar hub → the active-session tools.
             ("breathe",     "breathing"),
             ("intervals",   "interval"),
@@ -214,7 +216,6 @@ final class CenitScreenshotTests: XCTestCase {
             ("workouts",    "workouts"),
             ("applehealth", "apple-health"),
             ("datasources", "data-sources"),
-            ("automations", "automations"),
             ("support",     "support"),
             ("explore",     "explore"),     // last (FER-171 fixed the old exit crash)
         ]
@@ -276,6 +277,120 @@ final class CenitScreenshotTests: XCTestCase {
             snap("component_\(name)", app: a)
             a.terminate()
         }
+    }
+
+    // MARK: - Mapa 100 % (FER-381 · manifiesto JSON por familia)
+
+    /// Recorre los manifiestos `docs/appmap/mapa/<familia>.json` (empacados como recursos de este
+    /// bundle, o desde `NOOP_MAPA_DIR` si el entorno lo fija) y captura un PNG por nodo × frame. Un
+    /// solo test para TODAS las familias — filtra con `NOOP_MAPA_FAMILIA=hoy,entrenar` para una corrida
+    /// por lane. Cada nodo se relanza limpio con `-noop.freshStore` (base hermética) + su `fixture`/`args`,
+    /// ejecuta sus `pasos` de navegación y snapea. Un nodo que falle NO detiene a los demás (se listan
+    /// al final); `Tools/check-shots.py` valida después que ningún PNG salió en blanco o repetido.
+    func test_mapa() throws {
+        continueAfterFailure = true
+        let manifests = Self.loadMapManifests()
+        XCTAssertFalse(manifests.isEmpty,
+                       "mapa: sin manifiesto (ni recursos del bundle ni NOOP_MAPA_DIR) — ¿falta empacar docs/appmap/mapa?")
+        var failed: [String] = []
+
+        for m in manifests {
+            let fam = m["familia"] as? String ?? "?"
+            let nodos = m["nodos"] as? [[String: Any]] ?? []
+            for n in nodos {
+                guard let id = n["id"] as? String else { continue }
+                if n["omitido"] != nil { continue }   // estado sin palanca viable, declarado a propósito (A2)
+
+                let a = XCUIApplication()
+                var args = Self.baseArgs + ["-noop.freshStore", "YES"]
+                if let fx = n["fixture"] as? String, !fx.isEmpty { args += ["-noop.fixture", fx] }
+                if let extra = n["args"] as? [String] { args += extra }
+                a.launchArguments = args
+                a.launch()
+
+                guard a.wait(for: .runningForeground, timeout: 15) else {
+                    XCTFail("\(fam)/\(id): la app no llegó al foreground")
+                    failed.append("\(fam)/\(id)"); a.terminate(); continue
+                }
+                wait(3)   // coreografía de entrada (~2.8 s, FER-41)
+
+                var ok = true
+                for step in (n["pasos"] as? [[String: Any]] ?? []) {
+                    if !applyMapStep(step, app: a) {
+                        XCTFail("\(fam)/\(id): un paso de navegación no encontró su objetivo → \(step)")
+                        ok = false; break
+                    }
+                }
+                if ok {
+                    snap(Self.mapFrameName(node: n, familia: fam, frame: 0), app: a)
+                    let frames = (n["frames"] as? Int) ?? 1
+                    if frames > 1 {
+                        for f in 1..<frames { a.swipeUp(); wait(1); snap(Self.mapFrameName(node: n, familia: fam, frame: f), app: a) }
+                    }
+                } else {
+                    failed.append("\(fam)/\(id)")
+                }
+                a.terminate()
+            }
+        }
+        if !failed.isEmpty { XCTFail("mapa: nodos fallidos → \(failed.joined(separator: ", "))") }
+    }
+
+    /// Carga los manifiestos: `NOOP_MAPA_DIR` (host) tiene prioridad para iterar sin recompilar; si no,
+    /// los recursos JSON empacados en el bundle de pruebas. Filtra por `NOOP_MAPA_FAMILIA` (coma-lista).
+    private static func loadMapManifests() -> [[String: Any]] {
+        let env = ProcessInfo.processInfo.environment
+        let fams = (env["NOOP_MAPA_FAMILIA"] ?? "").split(separator: ",")
+            .map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+        var urls: [URL] = []
+        if let dir = env["NOOP_MAPA_DIR"],
+           let items = try? FileManager.default.contentsOfDirectory(
+               at: URL(fileURLWithPath: dir), includingPropertiesForKeys: nil) {
+            urls = items.filter { $0.pathExtension == "json" }
+        }
+        if urls.isEmpty {
+            urls = Bundle(for: CenitScreenshotTests.self).urls(forResourcesWithExtension: "json", subdirectory: nil) ?? []
+        }
+        var out: [[String: Any]] = []
+        for u in urls.sorted(by: { $0.lastPathComponent < $1.lastPathComponent }) {
+            guard let data = try? Data(contentsOf: u),
+                  let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  obj["nodos"] != nil else { continue }   // solo manifiestos del mapa, no otro JSON del bundle
+            let fam = obj["familia"] as? String ?? u.deletingPathExtension().lastPathComponent
+            if fams.isEmpty || fams.contains(fam) { out.append(obj) }
+        }
+        return out
+    }
+
+    /// Nombre (sin `.png`, que `snap` añade) del frame de un nodo: frame 0 = nombre de muro (`png`) o
+    /// `<familia>-<id>`; frames de scroll = `<base>-f<n>` — igual que `_frame_png` en build-appmap.py.
+    private static func mapFrameName(node: [String: Any], familia: String, frame: Int) -> String {
+        let base = (node["png"] as? String) ?? "\(familia)-\(node["id"] as? String ?? "x").png"
+        let stem = (base as NSString).deletingPathExtension
+        return frame == 0 ? stem : "\(stem)-f\(frame)"
+    }
+
+    /// Ejecuta un paso del manifiesto. Devuelve `false` si un `tapText`/`tapId` no encontró su objetivo
+    /// (nunca no-op silencioso: eso es exactamente el falso verde que este sistema mata).
+    private func applyMapStep(_ step: [String: Any], app a: XCUIApplication) -> Bool {
+        if let key = step["nav"] as? String {
+            nav(key, app: a, settle: (step["settle"] as? Double) ?? 2); return true
+        }
+        if let t = step["tapText"] as? String {
+            let btn = a.buttons[t].firstMatch
+            if btn.waitForExistence(timeout: 4) { btn.tap(); wait(1); return true }
+            let txt = a.staticTexts[t].firstMatch
+            if txt.waitForExistence(timeout: 2) { txt.tap(); wait(1); return true }
+            return false
+        }
+        if let idn = step["tapId"] as? String {
+            let el = a.descendants(matching: .any).matching(identifier: idn).firstMatch
+            if el.waitForExistence(timeout: 4) { el.tap(); wait(1); return true }
+            return false
+        }
+        if let n = step["swipeUp"] as? Int { for _ in 0..<max(1, n) { a.swipeUp(); wait(1) }; return true }
+        if let s = step["wait"] as? Double { wait(s); return true }
+        return true   // paso desconocido: no rompe (una familia futura puede introducir uno nuevo)
     }
 
     // MARK: - Today detail (top → bottom scroll for design review)

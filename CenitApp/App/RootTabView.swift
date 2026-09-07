@@ -372,6 +372,18 @@ struct RootTabView: View {
                 }
             }
         }
+        // FER-381: `-noop.route <familia/clave>` lleva la captura del mapa a una pantalla sin atajo
+        // `nav`. La Ola 1 solo selecciona la TAB por la familia; cada pantalla consume su propia clave
+        // (`DebugRoute.key(for:)`) y empuja su destino en su ola de captura.
+        .onAppear {
+            switch DebugRoute.family {
+            case "hoy":                    selection = .today
+            case "tendencias", "cuerpo", "body": selection = .body
+            case "entrenar", "train":      selection = .train
+            case "ajustes", "settings":    selection = .settings
+            default:                       break
+            }
+        }
         #endif
         // NOTE: the launch refresh is owned by AppModel.init (one source of truth). A second
         // `.task { repo.refresh() }` here ran a full-history load concurrently with that one at

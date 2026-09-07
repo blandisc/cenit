@@ -11,11 +11,12 @@ import SwiftUI
 /// Supported screen keys (FER-182 — 4-tab shell after FER-240):
 ///   Tabs: today · body (aliases: trends, sleep — Sueño lives inside Cuerpo now) ·
 ///     train (alias: entrenar) · settings (aliases: ajustes, more)
-///   // FER-240: «coach» (Patrones) archived — key accepted by Darwin list but navigates nowhere.
-///   Pushed onto a hub: breathe · intervals · routineToday · dieta ·
+///   Pushed onto a hub: breathe · intervals · routineToday ·
 ///     library · weeklyplan · misrutinas · workouthistory ·
 ///     explore · compare · workouts ·
-///     applehealth · datasources · automations · support
+///     applehealth · datasources · support
+///   // FER-381: `coach`/`dieta`/`automations` retiradas (claves muertas → falso verde). Para llegar a
+///   // una pantalla sin `nav` (marcas, volumen, tickets…) usa `-noop.route <familia/clave>`.
 ///   (En vivo is no longer a key — it opens as a cover from Today's "beat by beat".)
 ///
 /// The list below must stay in sync with `RootTabView.SecondaryScreen`'s raw values: the handler
@@ -44,13 +45,15 @@ final class DebugNavWatcher {
     private init() {}
 
     private static let prefix = "noop.nav."
+    // FER-381: se quitaron las claves muertas `coach` (Patrones archivada), `dieta` (retirada del enum)
+    // y `automations` (sin destino) — capturaban la pantalla ANTERIOR con nombre ajeno y el test seguía
+    // verde (falso verde que `Tools/check-shots.py` ahora mata). Toda clave aquí resuelve a una pantalla real.
     private static let screens = [
-        // FER-240: «coach» kept so old screenshot scripts don't error on Darwin notify; RootTabView ignores it.
-        "today", "body", "trends", "coach", "train", "entrenar", "settings", "ajustes", "more",
-        "breathe", "intervals", "routineToday", "dieta",
+        "today", "body", "trends", "train", "entrenar", "settings", "ajustes", "more",
+        "breathe", "intervals", "routineToday",
         "library", "weeklyplan", "misrutinas", "workouthistory",
         "sleep", "explore", "compare", "workouts",
-        "applehealth", "datasources", "automations", "support",
+        "applehealth", "datasources", "support",
     ]
 
     func start() {
