@@ -353,8 +353,15 @@ struct WorkoutEditSheet: View {
             set: { raw in
                 buffers[ref] = raw
                 guard let v = Self.parseDouble(raw) else { return }
-                if ref.field == .weight { groups[ref.g].sets[ref.s].weightKg = max(0, storedKg(fromDisplay: v)) }
-                else { groups[ref.g].sets[ref.s].reps = max(0, Int(v.rounded())) }
+                // FER-468: parseDouble ya descarta no-finito, pero un FINITO enorme (paste de 19+ dígitos)
+                // hace `Int(v.rounded())` un trap. Descarta magnitudes absurdas antes de convertir/guardar.
+                if ref.field == .weight {
+                    guard v < 1e6 else { return }
+                    groups[ref.g].sets[ref.s].weightKg = max(0, storedKg(fromDisplay: v))
+                } else {
+                    guard v <= 999 else { return }
+                    groups[ref.g].sets[ref.s].reps = max(0, Int(v.rounded()))
+                }
             })
         // Cromo compartido (2026-07-19): celda con subrayado vía `setCellChrome`; el TextField
         // vive en `LiquidCampoTexto` (FER-339) sin superficie de vidrio.
