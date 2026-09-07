@@ -2,7 +2,7 @@
   "familia": "entrenar",
   "titulo": "Entrenar · flujo de fuerza",
   "unidad": "estados",
-  "blurb": "El hub del tracker (plan sembrado: split Empuje/Jalón/Pierna, Empuje = hoy) → la sesión guiada serie por serie. El corazón del tracker de fuerza.",
+  "blurb": "El hub del tracker (plan sembrado: split Empuje/Jalón/Pierna, Empuje = hoy) → la sesión guiada serie por serie. Ola 2 (FER-386/388): hub completo (5 estados), Tu Plan + editor, historial (5 estados × filtro), biblioteca + detalle de ejercicio, marcas/volumen/tickets, 6 de los 8 estados de sesión viva, y 8 herramientas alcanzables por taps deterministas.",
   "nodos": [
     {
       "id": "hub",
@@ -39,6 +39,844 @@
           "wait": 3
         }
       ]
+    },
+    {
+      "id": "hub-sin-plan",
+      "titulo": "Entrenar · hub · sin plan (primer uso)",
+      "condicion": "split vacío → héroe «Arma tu semana» + plantillas destacadas + rutas alternas, sin Tu Plan/marcas",
+      "pasos": [
+        {
+          "nav": "train",
+          "settle": 5
+        }
+      ]
+    },
+    {
+      "id": "hub-sesion-viva",
+      "titulo": "Entrenar · hub · sesión viva (píldora)",
+      "fixture": "train",
+      "condicion": "sesión de fuerza en curso, minimizada → píldora flotante sobre el mosaico del hub",
+      "pasos": [
+        {
+          "nav": "train",
+          "settle": 3
+        },
+        {
+          "tapText": "Empezar"
+        },
+        {
+          "wait": 3
+        },
+        {
+          "tapText": "Minimizar sesión"
+        },
+        {
+          "wait": 2
+        }
+      ]
+    },
+    {
+      "id": "hub-descanso",
+      "titulo": "Entrenar · hub · descanso",
+      "condicion": "hoy sin rutina asignada (split no vacío) → héroe de descanso + mosaico",
+      "omitido": "sin palanca determinista: forzar «hoy = descanso» exige rotar el día vía WeekEditorSheet, cuyo único disparador es una fila cuyo texto accesible incluye el nombre del día de la semana (cambia cada día de captura) — ningún tapText estático es correcto todos los días, y ScreenshotFixtures.swift (fuera de alcance) es el único lugar donde se podría anclar un split que deje hoy sin rutina de forma reproducible"
+    },
+    {
+      "id": "hub-sin-marcas",
+      "titulo": "Entrenar · hub · sin marcas",
+      "condicion": "con plan pero cero PRs registrados → tesela «Marcas» solo con el rótulo, sin numeral",
+      "omitido": "sin palanca determinista: el único fixture que puebla un plan (`train`, vía ScreenshotFixtures.seedTrainingPlan) siempre siembra semanas de sesiones completadas → siempre hay PRs. Aplicar una plantilla por UI (StarterTemplatesSheet) tampoco sirve: `applyTemplateGroup` asigna al primer día LIBRE en orden lunes-primero, no a «hoy» — el grupo «Cuerpo completo» trae una sola rutina, así que solo cae en «hoy» si la captura corre un lunes. ScreenshotFixtures.swift (el único lugar para sembrar plan-sin-sesiones) está fuera del alcance de este lane"
+    },
+    {
+      "id": "rutina-hoy",
+      "titulo": "Rutina de hoy · editor (La Hoja, .editing)",
+      "fixture": "train",
+      "condicion": "«La Hoja» fría de la rutina de hoy (Día A — Empuje): tarjeta abierta única + acordeón",
+      "pasos": [
+        {
+          "nav": "routineToday",
+          "settle": 4
+        }
+      ]
+    },
+    {
+      "id": "sesion-superserie",
+      "titulo": "Sesión viva · superserie A1/A2",
+      "fixture": "train",
+      "condicion": "«···» → Superserie con el siguiente: par A1/A2 agrupado en una sola tarjeta",
+      "pasos": [
+        {
+          "nav": "train",
+          "settle": 3
+        },
+        {
+          "tapText": "Empezar"
+        },
+        {
+          "wait": 3
+        },
+        {
+          "tapText": "Más opciones para Press de banca con barra agarre medio"
+        },
+        {
+          "tapText": "Superserie con el siguiente"
+        },
+        {
+          "wait": 1
+        }
+      ]
+    },
+    {
+      "id": "sesion-serie-nueva",
+      "titulo": "Sesión viva · serie recién agregada",
+      "fixture": "train",
+      "condicion": "+ Serie: una cuarta fila pendiente sobre las 3 planeadas — la «fila gorda»",
+      "pasos": [
+        {
+          "nav": "train",
+          "settle": 3
+        },
+        {
+          "tapText": "Empezar"
+        },
+        {
+          "wait": 3
+        },
+        {
+          "tapText": "Agregar serie"
+        },
+        {
+          "wait": 1
+        }
+      ]
+    },
+    {
+      "id": "sesion-foco",
+      "titulo": "Sesión viva · modo Foco",
+      "fixture": "train",
+      "condicion": "overlay de captura a pantalla completa de la serie activa",
+      "pasos": [
+        {
+          "nav": "train",
+          "settle": 3
+        },
+        {
+          "tapText": "Empezar"
+        },
+        {
+          "wait": 3
+        },
+        {
+          "tapText": "Foco"
+        },
+        {
+          "wait": 1
+        }
+      ]
+    },
+    {
+      "id": "sesion-descanso",
+      "titulo": "Sesión viva · descanso",
+      "fixture": "train",
+      "condicion": "serie confirmada → banda de descanso fijo (90 s) anclada a la tarjeta activa",
+      "pasos": [
+        {
+          "nav": "train",
+          "settle": 3
+        },
+        {
+          "tapText": "Empezar"
+        },
+        {
+          "wait": 3
+        },
+        {
+          "tapText": "Marcar serie como hecha"
+        },
+        {
+          "wait": 2
+        }
+      ]
+    },
+    {
+      "id": "sesion-acta",
+      "titulo": "Sesión viva · acta (resumen)",
+      "fixture": "train",
+      "condicion": "sesión terminada y guardada → LiveStrengthSheet con el resumen",
+      "pasos": [
+        {
+          "nav": "train",
+          "settle": 3
+        },
+        {
+          "tapText": "Empezar"
+        },
+        {
+          "wait": 3
+        },
+        {
+          "tapText": "Marcar serie como hecha"
+        },
+        {
+          "wait": 2
+        },
+        {
+          "tapText": "Terminar"
+        },
+        {
+          "wait": 1
+        },
+        {
+          "tapText": "Terminar y guardar"
+        },
+        {
+          "wait": 3
+        }
+      ]
+    },
+    {
+      "id": "tu-plan",
+      "titulo": "Tu Plan · editor semanal",
+      "fixture": "train",
+      "condicion": "semana + programa + volumen por grupo + lista de rutinas (Día A/B/C)",
+      "pasos": [
+        {
+          "nav": "weeklyplan",
+          "settle": 4
+        }
+      ]
+    },
+    {
+      "id": "editor-rutina",
+      "titulo": "Editor de una rutina existente (Mis rutinas → Día B)",
+      "fixture": "train",
+      "condicion": "«La Hoja» fría abierta para una rutina que NO es la de hoy, desde la lista de Tu Plan",
+      "pasos": [
+        {
+          "nav": "weeklyplan",
+          "settle": 4
+        },
+        {
+          "tapText": "Día B — Tirón"
+        },
+        {
+          "wait": 1
+        }
+      ]
+    },
+    {
+      "id": "editor-semana",
+      "titulo": "Tu semana · editor rápido (WeekEditorSheet)",
+      "condicion": "hoja rápida para rotar el día — Descanso ⇄ rutinas del split",
+      "omitido": "el único disparador (tocar un tile que no sea el de hoy) tiene un accessibilityLabel compuesto con el nombre del día de la semana (\"{día}, planned, {familia}\"/\"{día}, rest day\") — cambia cada día de captura, ningún tapText estático es correcto siempre; el botón «EDIT» del hub abre WeeklyPlanEditorView completo, no esta hoja"
+    },
+    {
+      "id": "historial-vacio",
+      "titulo": "Historial · vacío (dialecto Fuerza)",
+      "condicion": "sin sesiones, filtro Fuerza por defecto → estado vacío, sin aviso de Apple Salud",
+      "pasos": [
+        {
+          "nav": "workouthistory",
+          "settle": 4
+        }
+      ]
+    },
+    {
+      "id": "historial-sin-permiso",
+      "titulo": "Historial · sin permiso de Apple Salud",
+      "condicion": "filtro Todo sin permiso ni actividad → degradación honesta al dialecto Fuerza + aviso azul",
+      "pasos": [
+        {
+          "nav": "workouthistory",
+          "settle": 4
+        },
+        {
+          "tapText": "Todo"
+        },
+        {
+          "wait": 1
+        }
+      ]
+    },
+    {
+      "id": "historial-fuerza-datos",
+      "titulo": "Historial · con datos (dialecto Fuerza)",
+      "fixture": "train",
+      "condicion": "Tu mes + Ciclos de subida + Volumen por músculo + Sesiones (calendario) + Progreso + Mis tickets",
+      "pasos": [
+        {
+          "nav": "workouthistory",
+          "settle": 5
+        }
+      ]
+    },
+    {
+      "id": "historial-todo-datos",
+      "titulo": "Historial · con datos (dialecto Todo)",
+      "fixture": "train",
+      "condicion": "línea de tiempo fundida fuerza+actividad, tiles del periodo, por deporte",
+      "pasos": [
+        {
+          "nav": "workouthistory",
+          "settle": 4
+        },
+        {
+          "tapText": "Todo"
+        },
+        {
+          "wait": 1
+        }
+      ]
+    },
+    {
+      "id": "historial-readerror",
+      "titulo": "Historial · error de lectura",
+      "args": [
+        "-noop.readError",
+        "YES"
+      ],
+      "condicion": "`repo.storeHandle()` inaccesible → banner «no se pudo leer»",
+      "pasos": [
+        {
+          "nav": "workouthistory",
+          "settle": 4
+        }
+      ]
+    },
+    {
+      "id": "historial-saveerror",
+      "titulo": "Historial · error al guardar (toast)",
+      "fixture": "train",
+      "args": [
+        "-noop.saveError",
+        "YES"
+      ],
+      "condicion": "toast «No se pudo guardar el entrenamiento» sobre la carga ya exitosa",
+      "pasos": [
+        {
+          "nav": "workouthistory",
+          "settle": 3
+        }
+      ]
+    },
+    {
+      "id": "sesion-detalle",
+      "titulo": "Detalle de una sesión de fuerza (WorkoutSessionRoute)",
+      "condicion": "detalle rico de una sesión completada: sets, marcas, esfuerzo, notas",
+      "omitido": "`WorkoutSessionRoute` exige un id de sesión real (UUID aleatorio de seedTrainingPlan, desconocido al escribir el manifiesto) — la única forma de alcanzarlo por UI es tocar una fila de EntrenarFilaFuerza, cuyo accessibilityLabel compuesto incluye la fecha real formateada del día de captura (`sessionMeta`, .weekday().day().month()) — cambia cada día, ningún tapText estático es correcto siempre; el calendario-heatmap tampoco expone celdas accesibles por texto/id (comentario propio del archivo: «no es el camino accesible»)"
+    },
+    {
+      "id": "actividad-detalle",
+      "titulo": "Detalle de una actividad de terceros (WorkoutRow)",
+      "condicion": "detalle de una actividad de Apple Salud / registro manual (cardio)",
+      "omitido": "`seedTrainingPlan` no siembra ningún `WorkoutRow` de cardio que sobreviva el dedup contra las StrengthSession (los únicos WorkoutRow que siembra son las 3 filas de zonas de FC de sesiones de fuerza, que UnifiedWorkoutHistory funde con su StrengthSession — no aparecen como fila de actividad independiente); registrar uno a mano exige escribir en un formulario, fuera del vocabulario de pasos actual"
+    },
+    {
+      "id": "biblioteca-cargando",
+      "titulo": "Biblioteca · cargando",
+      "condicion": "catálogo aún sin leer del store — kicker + lista en blanco",
+      "omitido": "la ventana real de `!loaded` dura milisegundos (catálogo embebido + SQLite) — no es observable de forma determinista sin un debug-sleep artificial en `reload()`, que no vale la pena introducir solo por esta captura"
+    },
+    {
+      "id": "biblioteca-sin-resultados",
+      "titulo": "Biblioteca · sin resultados",
+      "condicion": "filtro Músculo=Cuello + Equipo=Barra → cero coincidencias (el cuello no se entrena con barra)",
+      "pasos": [
+        {
+          "nav": "library",
+          "settle": 4
+        },
+        {
+          "tapText": "Músculo"
+        },
+        {
+          "tapText": "Cuello"
+        },
+        {
+          "tapText": "Equipo"
+        },
+        {
+          "tapText": "Barra"
+        },
+        {
+          "wait": 1
+        }
+      ]
+    },
+    {
+      "id": "biblioteca-datos",
+      "titulo": "Biblioteca · con datos",
+      "fixture": "train",
+      "condicion": "«Con historial tuyo» (Press de banca arriba) + el resto agrupado por músculo",
+      "pasos": [
+        {
+          "nav": "library",
+          "settle": 4
+        }
+      ]
+    },
+    {
+      "id": "ejercicio-loadingmedia",
+      "titulo": "Ejercicio · detalle · cargando media",
+      "condicion": "placeholder de carga del GIF guía mientras se resuelve",
+      "omitido": "`loadingMedia` se resuelve casi de inmediato (`mediaIfNeeded` cacheado/no-op) — ventana no capturable de forma determinista sin un debug-sleep artificial"
+    },
+    {
+      "id": "ejercicio-sin-historia",
+      "titulo": "Ejercicio · detalle · sin historia",
+      "fixture": "train",
+      "condicion": "ejercicio nunca registrado (solo en el plan, jamás en una sesión) → «Aún sin registrar»",
+      "pasos": [
+        {
+          "nav": "library",
+          "settle": 4
+        },
+        {
+          "tapId": "exercise-row-Dumbbell_Lying_One-Arm_Rear_Lateral_Raise"
+        },
+        {
+          "wait": 1
+        }
+      ]
+    },
+    {
+      "id": "ejercicio-con-historia",
+      "titulo": "Ejercicio · detalle · con historia",
+      "fixture": "train",
+      "condicion": "Press de banca con barra — 9 sesiones sembradas: progreso, récords, historial de sets",
+      "pasos": [
+        {
+          "nav": "library",
+          "settle": 4
+        },
+        {
+          "tapId": "exercise-row-Barbell_Bench_Press_-_Medium_Grip"
+        },
+        {
+          "wait": 1
+        }
+      ]
+    },
+    {
+      "id": "ejercicio-saveerror",
+      "titulo": "Ejercicio · detalle · error al guardar (toast)",
+      "fixture": "train",
+      "args": [
+        "-noop.saveError",
+        "YES"
+      ],
+      "condicion": "toast «No se pudo guardar» tras un fallo simulado de escritura",
+      "pasos": [
+        {
+          "nav": "library",
+          "settle": 4
+        },
+        {
+          "tapId": "exercise-row-Barbell_Bench_Press_-_Medium_Grip"
+        },
+        {
+          "wait": 1
+        }
+      ]
+    },
+    {
+      "id": "marcas-vacio",
+      "titulo": "Tus marcas · vacío",
+      "args": [
+        "-noop.route",
+        "entrenar/marcas"
+      ],
+      "condicion": "sin ningún PR todavía",
+      "pasos": [
+        {
+          "wait": 4
+        }
+      ]
+    },
+    {
+      "id": "marcas-readerror",
+      "titulo": "Tus marcas · error de lectura",
+      "args": [
+        "-noop.route",
+        "entrenar/marcas",
+        "-noop.readError",
+        "YES"
+      ],
+      "condicion": "`repo.storeHandle()` inaccesible → estado de error",
+      "pasos": [
+        {
+          "wait": 3
+        }
+      ]
+    },
+    {
+      "id": "marcas-datos",
+      "titulo": "Tus marcas · con datos",
+      "fixture": "train",
+      "args": [
+        "-noop.route",
+        "entrenar/marcas"
+      ],
+      "condicion": "PRs derivados de la rampa de banca/deadlift/squat sembrada",
+      "pasos": [
+        {
+          "wait": 4
+        }
+      ]
+    },
+    {
+      "id": "volumen-vacio",
+      "titulo": "Tu cuerpo · volumen · vacío",
+      "args": [
+        "-noop.route",
+        "entrenar/volumen"
+      ],
+      "condicion": "sin sets registrados en la ventana",
+      "pasos": [
+        {
+          "wait": 4
+        }
+      ]
+    },
+    {
+      "id": "volumen-datos",
+      "titulo": "Tu cuerpo · volumen · con datos",
+      "fixture": "train",
+      "args": [
+        "-noop.route",
+        "entrenar/volumen"
+      ],
+      "condicion": "mapa de carga muscular sobre los sets sembrados",
+      "pasos": [
+        {
+          "wait": 4
+        }
+      ]
+    },
+    {
+      "id": "volumen-readerror",
+      "titulo": "Tu cuerpo · volumen · error de lectura",
+      "condicion": "estado de error de lectura",
+      "omitido": "`TrainingBodyScreen` no tiene ningún manejo de fallo de lectura (`load()`/`loadVolume()` degradan un store nulo a listas vacías, indistinguible de «sin datos») — no hay bandera `readError` que forzar sin inventar UI/estado nuevo, fuera de alcance de este manifiesto"
+    },
+    {
+      "id": "tickets-vacio",
+      "titulo": "Mis tickets · vacío",
+      "args": [
+        "-noop.route",
+        "entrenar/tickets"
+      ],
+      "condicion": "sin sesiones de fuerza completadas todavía",
+      "pasos": [
+        {
+          "wait": 4
+        }
+      ]
+    },
+    {
+      "id": "tickets-readerror",
+      "titulo": "Mis tickets · error de lectura",
+      "args": [
+        "-noop.route",
+        "entrenar/tickets",
+        "-noop.readError",
+        "YES"
+      ],
+      "condicion": "`repo.storeHandle()` inaccesible → estado de error",
+      "pasos": [
+        {
+          "wait": 3
+        }
+      ]
+    },
+    {
+      "id": "tickets-datos",
+      "titulo": "Mis tickets · con datos",
+      "fixture": "train",
+      "args": [
+        "-noop.route",
+        "entrenar/tickets"
+      ],
+      "condicion": "grilla de mini-recibos térmicos por cada sesión completada",
+      "pasos": [
+        {
+          "wait": 4
+        }
+      ]
+    },
+    {
+      "id": "progresion",
+      "titulo": "Herramienta · Progresión (ProgressionSetupScreen)",
+      "fixture": "train",
+      "condicion": "configuración de progresión del ejercicio abierto en La Hoja",
+      "pasos": [
+        {
+          "nav": "routineToday",
+          "settle": 3
+        },
+        {
+          "tapText": "Más opciones"
+        },
+        {
+          "tapText": "Progresión"
+        },
+        {
+          "wait": 1
+        }
+      ]
+    },
+    {
+      "id": "descanso-editor",
+      "titulo": "Herramienta · Editor de descanso (RestEditorScreen)",
+      "fixture": "train",
+      "condicion": "configura el descanso del ejercicio abierto — fijo o por FC",
+      "pasos": [
+        {
+          "nav": "routineToday",
+          "settle": 3
+        },
+        {
+          "tapText": "Editar descanso"
+        },
+        {
+          "wait": 1
+        }
+      ]
+    },
+    {
+      "id": "discos",
+      "titulo": "Herramienta · Calculadora de discos (PlatesScreen)",
+      "fixture": "train",
+      "condicion": "combinación de discos por lado para el peso objetivo de la serie activa",
+      "pasos": [
+        {
+          "nav": "train",
+          "settle": 3
+        },
+        {
+          "tapText": "Empezar"
+        },
+        {
+          "wait": 3
+        },
+        {
+          "tapText": "discos"
+        },
+        {
+          "wait": 1
+        }
+      ]
+    },
+    {
+      "id": "plantillas",
+      "titulo": "Herramienta · Plantillas de inicio (StarterTemplatesSheet)",
+      "fixture": "train",
+      "condicion": "catálogo completo de planes de arranque, desde «Crear plan» en Tu Plan",
+      "pasos": [
+        {
+          "nav": "weeklyplan",
+          "settle": 3
+        },
+        {
+          "tapText": "Crear plan"
+        },
+        {
+          "tapText": "Plantilla"
+        },
+        {
+          "wait": 1
+        }
+      ]
+    },
+    {
+      "id": "import-captura",
+      "titulo": "Herramienta · Importar plan de IA · paso 1 (Captura)",
+      "fixture": "train",
+      "condicion": "WorkoutImportView, fase Captura — pegar/subir el JSON del plan",
+      "pasos": [
+        {
+          "nav": "weeklyplan",
+          "settle": 3
+        },
+        {
+          "tapText": "Crear plan"
+        },
+        {
+          "tapText": "Importar"
+        },
+        {
+          "wait": 1
+        }
+      ]
+    },
+    {
+      "id": "import-mapear",
+      "titulo": "Herramienta · Importar plan de IA · paso 2 (Mapear)",
+      "condicion": "",
+      "omitido": "exige pegar/escribir el JSON del plan en el paso de Captura para avanzar — el vocabulario de pasos del harness (nav/tapText/tapId/swipeUp/wait) no tiene un primitivo de escritura de texto, y el init con `previewPhase` que salta fases es `fileprivate` (solo canvas)"
+    },
+    {
+      "id": "import-confirmar",
+      "titulo": "Herramienta · Importar plan de IA · paso 3 (Confirmar)",
+      "condicion": "",
+      "omitido": "mismo bloqueo que el paso 2 — depende de haber pegado un JSON válido primero"
+    },
+    {
+      "id": "import-listo",
+      "titulo": "Herramienta · Importar plan de IA · paso 4 (Listo)",
+      "condicion": "",
+      "omitido": "mismo bloqueo que el paso 2 — depende de haber completado los pasos previos"
+    },
+    {
+      "id": "manual",
+      "titulo": "Herramienta · Registrar entreno a mano (ManualWorkoutSheet)",
+      "fixture": "train",
+      "condicion": "alta manual de un entrenamiento, desde el pie de Historial",
+      "pasos": [
+        {
+          "nav": "workouthistory",
+          "settle": 4
+        },
+        {
+          "swipeUp": 2
+        },
+        {
+          "tapText": "Registrar entreno a mano"
+        },
+        {
+          "wait": 1
+        }
+      ]
+    },
+    {
+      "id": "trucos",
+      "titulo": "Herramienta · Trucos (WorkshopTricksScreen)",
+      "fixture": "train",
+      "condicion": "lo que Cénit sabe hacer — puerta permanente desde el «?» de la cabecera",
+      "pasos": [
+        {
+          "nav": "train",
+          "settle": 2
+        },
+        {
+          "tapText": "Trucos"
+        },
+        {
+          "wait": 1
+        }
+      ]
+    },
+    {
+      "id": "respira",
+      "titulo": "Herramienta · Respira (BreathingView)",
+      "condicion": "respiración guiada",
+      "pasos": [
+        {
+          "nav": "breathe",
+          "settle": 2
+        }
+      ]
+    },
+    {
+      "id": "intervalos",
+      "titulo": "Herramienta · Intervalos (IntervalTimerView)",
+      "condicion": "temporizador de intervalos",
+      "pasos": [
+        {
+          "nav": "intervals",
+          "settle": 2
+        }
+      ]
+    },
+    {
+      "id": "recibo",
+      "titulo": "Herramienta · Recibo térmico (ReceiptPrinterScreen)",
+      "fixture": "train",
+      "condicion": "recibo térmico de la sesión terminada — vía el acta al guardar",
+      "pasos": [
+        {
+          "nav": "train",
+          "settle": 3
+        },
+        {
+          "tapText": "Empezar"
+        },
+        {
+          "wait": 3
+        },
+        {
+          "tapText": "Marcar serie como hecha"
+        },
+        {
+          "wait": 2
+        },
+        {
+          "tapText": "Terminar"
+        },
+        {
+          "wait": 1
+        },
+        {
+          "tapText": "Terminar y guardar"
+        },
+        {
+          "wait": 3
+        },
+        {
+          "tapText": "Imprimir recibo"
+        },
+        {
+          "wait": 2
+        }
+      ]
+    },
+    {
+      "id": "comparte",
+      "titulo": "Herramienta · Compartir tarjeta (ShareCardView)",
+      "fixture": "train",
+      "condicion": "vista clásica del recibo, para compartir",
+      "pasos": [
+        {
+          "nav": "train",
+          "settle": 3
+        },
+        {
+          "tapText": "Empezar"
+        },
+        {
+          "wait": 3
+        },
+        {
+          "tapText": "Marcar serie como hecha"
+        },
+        {
+          "wait": 2
+        },
+        {
+          "tapText": "Terminar"
+        },
+        {
+          "wait": 1
+        },
+        {
+          "tapText": "Terminar y guardar"
+        },
+        {
+          "wait": 3
+        },
+        {
+          "tapText": "Imprimir recibo"
+        },
+        {
+          "wait": 2
+        },
+        {
+          "tapText": "Vista clásica"
+        },
+        {
+          "wait": 1
+        }
+      ]
     }
   ],
   "aristas": [
@@ -46,6 +884,156 @@
       "de": "hub",
       "a": "sesion",
       "etiqueta": "Empezar"
+    },
+    {
+      "de": "hub",
+      "a": "sesion",
+      "etiqueta": "Empezar"
+    },
+    {
+      "de": "hub-sin-plan",
+      "a": "hub",
+      "etiqueta": "arma tu semana"
+    },
+    {
+      "de": "hub",
+      "a": "hub-sesion-viva",
+      "etiqueta": "Empezar → Minimizar"
+    },
+    {
+      "de": "hub",
+      "a": "rutina-hoy",
+      "etiqueta": "rutina de hoy"
+    },
+    {
+      "de": "sesion",
+      "a": "sesion-superserie",
+      "etiqueta": "···"
+    },
+    {
+      "de": "sesion",
+      "a": "sesion-serie-nueva",
+      "etiqueta": "+ Serie"
+    },
+    {
+      "de": "sesion",
+      "a": "sesion-foco",
+      "etiqueta": "Foco"
+    },
+    {
+      "de": "sesion",
+      "a": "sesion-descanso",
+      "etiqueta": "serie hecha"
+    },
+    {
+      "de": "sesion-descanso",
+      "a": "sesion-acta",
+      "etiqueta": "Terminar y guardar"
+    },
+    {
+      "de": "sesion-acta",
+      "a": "recibo",
+      "etiqueta": "Imprimir recibo"
+    },
+    {
+      "de": "recibo",
+      "a": "comparte",
+      "etiqueta": "Vista clásica"
+    },
+    {
+      "de": "hub",
+      "a": "historial-fuerza-datos",
+      "etiqueta": "Historial"
+    },
+    {
+      "de": "historial-fuerza-datos",
+      "a": "historial-todo-datos",
+      "etiqueta": "Todo"
+    },
+    {
+      "de": "historial-fuerza-datos",
+      "a": "tickets-datos",
+      "etiqueta": "Mis tickets"
+    },
+    {
+      "de": "hub",
+      "a": "biblioteca-datos",
+      "etiqueta": "Biblioteca"
+    },
+    {
+      "de": "biblioteca-datos",
+      "a": "ejercicio-con-historia",
+      "etiqueta": "toca un ejercicio"
+    },
+    {
+      "de": "biblioteca-datos",
+      "a": "ejercicio-sin-historia",
+      "etiqueta": "toca un ejercicio"
+    },
+    {
+      "de": "hub",
+      "a": "tu-plan",
+      "etiqueta": "Tu Plan"
+    },
+    {
+      "de": "tu-plan",
+      "a": "editor-rutina",
+      "etiqueta": "toca una rutina"
+    },
+    {
+      "de": "tu-plan",
+      "a": "plantillas",
+      "etiqueta": "Crear plan → Plantilla"
+    },
+    {
+      "de": "tu-plan",
+      "a": "import-captura",
+      "etiqueta": "Crear plan → Importar"
+    },
+    {
+      "de": "hub",
+      "a": "marcas-datos",
+      "etiqueta": "Marcas"
+    },
+    {
+      "de": "hub",
+      "a": "volumen-datos",
+      "etiqueta": "Volumen"
+    },
+    {
+      "de": "rutina-hoy",
+      "a": "progresion",
+      "etiqueta": "··· → Progresión"
+    },
+    {
+      "de": "rutina-hoy",
+      "a": "descanso-editor",
+      "etiqueta": "Editar descanso"
+    },
+    {
+      "de": "sesion",
+      "a": "discos",
+      "etiqueta": "discos"
+    },
+    {
+      "de": "hub",
+      "a": "manual",
+      "etiqueta": "Historial → a mano"
+    },
+    {
+      "de": "hub",
+      "a": "trucos",
+      "etiqueta": "?"
+    },
+    {
+      "de": "hub",
+      "a": "respira",
+      "etiqueta": "Respira"
+    },
+    {
+      "de": "hub",
+      "a": "intervalos",
+      "etiqueta": "Intervalos"
     }
   ]
 }

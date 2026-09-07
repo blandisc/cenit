@@ -1310,6 +1310,15 @@ struct WorkoutHistoryScreen: View {
     }
 
     private func load() async {
+        // FER-386 (mapa 100 %): fuerza el estado «Error de lectura» sin necesitar un fallo real del
+        // store — solo simulador, mismo patrón que `ScreenshotFixtures.activeState()`.
+        #if os(iOS) && DEBUG
+        if UserDefaults.standard.string(forKey: "noop.readError") == "YES" {
+            readError = true
+            loaded = true
+            return
+        }
+        #endif
         // Estados → «Error de lectura»: adelantado al frente, la misma llamada que ya usaba la
         // clasificación de rutinas más abajo. nil = fallo persistente de apertura/migración
         // (`Repository.swift`, memoizado en `store`) — las demás llamadas volverían vacías de todos
@@ -1347,6 +1356,11 @@ struct WorkoutHistoryScreen: View {
             didSeedRange = true
         }
         self.loaded = true
+        // FER-386 (mapa 100 %): fuerza el toast «No se pudo guardar» sin necesitar un fallo real de
+        // escritura — simula haber intentado un undo/borrado que falló, sobre una carga ya exitosa.
+        #if os(iOS) && DEBUG
+        if UserDefaults.standard.string(forKey: "noop.saveError") == "YES" { saveError = true }
+        #endif
         // Classify each routine's movement family for the session rows AND the calendar (same
         // resolution as the hub).
         var regions: [String: RoutineRegion] = [:]

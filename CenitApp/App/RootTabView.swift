@@ -379,7 +379,18 @@ struct RootTabView: View {
             switch DebugRoute.family {
             case "hoy":                    selection = .today
             case "tendencias", "cuerpo", "body": selection = .body
-            case "entrenar", "train":      selection = .train
+            case "entrenar", "train":
+                selection = .train
+                // FER-386/388 (mapa 100 % · Entrenar): marcas/volumen/tickets no tienen atajo `nav`
+                // (son rutas empujadas por closure, sin tab-level key) — el push vive AQUÍ porque
+                // `EntrenarView` no es dueño de `trainStack`. Push directo, sin pasar por la pantalla
+                // que normalmente los abre (el hub / el historial).
+                switch DebugRoute.key(for: "entrenar") {
+                case "marcas":  trainStack.append(PersonalRecordsRoute())
+                case "volumen": trainStack.append(MuscleVolumeRoute())
+                case "tickets": trainStack.append(SavedTicketsRoute())
+                default:        break
+                }
             case "ajustes", "settings":    selection = .settings
             default:                       break
             }

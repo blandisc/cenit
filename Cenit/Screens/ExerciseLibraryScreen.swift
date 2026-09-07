@@ -296,6 +296,11 @@ struct ExerciseLibraryScreen: View {
         ) {
             ExerciseThumbView(exercise: ex, side: 52)
         }
+        // FER-386 (mapa 100 %): el label accesible de la fila combina nombre+meta+dato — sin un
+        // identificador propio, `tapId` no puede apuntar a UN ejercicio concreto de forma fiable.
+        #if os(iOS) && DEBUG
+        .accessibilityIdentifier("exercise-row-\(ex.id)")
+        #endif
     }
 
     /// Opens the row's detail — or, for a custom exercise still missing its muscle, the completion form
