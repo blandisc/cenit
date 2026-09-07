@@ -1,12 +1,10 @@
 import SwiftUI
 // MARK: - El color de un dato
-//
-// Aquí vive TODA ficha de color con la que Cénit pinta una medición: las rampas de recuperación y
-// esfuerzo, las etapas de sueño, las zonas de frecuencia cardiaca, las palabras de estado y el
-// acento compartido. Los hex son exactos según el spec de diseño: nunca se aproximan.
-//
-// Las fichas de superficie, tinta y filete que este enum también cargaba se retiraron cuando
-// «Instrumento diurno» quedó como el único lenguaje de superficie — hoy las dueña `Instrumento.swift`.
+//   Aquí vive TODA ficha de color con la que Cénit pinta una medición: las rampas de recuperación y
+//   esfuerzo, las etapas de sueño, las zonas de frecuencia cardiaca, las palabras de estado y el
+//   acento compartido. Los hex son exactos según el spec de diseño: nunca se aproximan.
+//   Las fichas de superficie, tinta y filete que este enum también cargaba se retiraron cuando
+//   «Instrumento diurno» quedó como único lenguaje de superficie: hoy las dueña `Instrumento.swift`.
 
 // MARK: Vocabulario compartido
 
@@ -244,6 +242,14 @@ extension Color { // el puente entre un hex del spec, SwiftUI y el color de la p
 }
 
 #if DEBUG
+/// Las medidas del muestrario. Solo viven en el `#Preview`, pero con nombre igual que en producción.
+private enum MedidasMuestrario {
+    static let canto: CGFloat = 8
+    static let altoDeTira: CGFloat = 32
+    static let ladoDeMuestra = CGSize(width: 56, height: 44)
+    static let vozDeMuestra: CGFloat = 9
+}
+
 /// Una tira de rampa: se ve dónde cae cada parada y cómo se mezclan entre ellas.
 private struct TiraDeRampa: View {
     let titulo: String
@@ -252,9 +258,9 @@ private struct TiraDeRampa: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(titulo).font(StrandFont.footnote).foregroundStyle(InstrumentoTheme.base.inkSecondary)
-            RoundedRectangle(cornerRadius: 8)
+            RoundedRectangle(cornerRadius: MedidasMuestrario.canto)
                 .fill(LinearGradient(gradient: rampa, startPoint: .leading, endPoint: .trailing))
-                .frame(height: 32)
+                .frame(height: MedidasMuestrario.altoDeTira)
         }
     }
 }
@@ -265,12 +271,17 @@ private struct FilaDeMuestras: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            ForEach(muestras, id: \.0) { rotulo, tinta in
-                VStack(spacing: 6) {
-                    RoundedRectangle(cornerRadius: 8).fill(tinta).frame(width: 56, height: 44)
-                    Text(rotulo).font(.system(size: 9)).foregroundStyle(InstrumentoTheme.base.inkSecondary)
-                }
-            }
+            ForEach(muestras, id: \.0) { rotulo, tinta in muestra(rotulo, tinta) }
+        }
+    }
+
+    private func muestra(_ rotulo: String, _ tinta: Color) -> some View {
+        VStack(spacing: 6) {
+            RoundedRectangle(cornerRadius: MedidasMuestrario.canto).fill(tinta)
+                .frame(width: MedidasMuestrario.ladoDeMuestra.width,
+                       height: MedidasMuestrario.ladoDeMuestra.height)
+            Text(rotulo).font(.system(size: MedidasMuestrario.vozDeMuestra))
+                .foregroundStyle(InstrumentoTheme.base.inkSecondary)
         }
     }
 }

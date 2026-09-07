@@ -10,7 +10,7 @@ import SwiftUI
 
 /// Where a displayed reading came from. Drives both the dot color and the es-MX source label.
 public enum DataOrigin: Sendable, Hashable {
-    /// The WHOOP strap/band.
+    /// An external band worn on the wrist.
     case band
     /// Apple Salud (HealthKit).
     case apple

@@ -150,7 +150,7 @@ public struct InstrumentoTheme: Equatable, Sendable {
 }
 
 public extension InstrumentoTheme {
-    /// Color de la batería del strap por nivel de carga — fuente ÚNICA para toda la app (Hoy, Ajustes…):
+    /// Color de la batería de un dispositivo por nivel de carga — fuente ÚNICA para toda la app:
     /// sana → `verdict` (verde); ≤20 % → `warning` (ámbar); ≤10 % → `critical` (rojo). El color vive solo
     /// en el dato (el glifo en Hoy, el número en Ajustes); el resto se queda en tinta.
     func batteryColor(forLevel pct: Double) -> Color {
@@ -298,7 +298,7 @@ public extension InstrumentoTheme {
 
     // Data-origin dots (6px): where a reading comes from, always visible. Aliases of
     // existing roles so origin and metric hues can never drift apart.
-    /// Origin dot — the strap/band.
+    /// Origin dot — an external band.
     var originBand: Color { dataRecovery }
     /// Origin dot — Apple Salud.
     var originApple: Color { dataSpO2 }
