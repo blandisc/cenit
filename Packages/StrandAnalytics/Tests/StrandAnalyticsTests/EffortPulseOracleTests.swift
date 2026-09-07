@@ -226,8 +226,6 @@ final class EffortPulseOracleTests: XCTestCase {
             OracleText.of(Double(RecoveryScorer.restingHRMinBinSamples)),
             OracleText.of(RecoveryScorer.restingHRMinBpm),
         ])
-        expect("band.cuts", [OracleText.of(RecoveryScorer.bandRedMax),
-                             OracleText.of(RecoveryScorer.bandYellowMax)])
     }
 
     // MARK: - Energy

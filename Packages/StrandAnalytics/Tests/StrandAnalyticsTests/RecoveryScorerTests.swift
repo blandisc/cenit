@@ -62,11 +62,4 @@ final class RecoveryScorerTests: XCTestCase {
         let answer = try? XCTUnwrap(RecoveryScorer.restingHR(hr, start: 0, end: 300))
         XCTAssertEqual(answer, 60, "one beat moves the average by 0.09 bpm, and rounds away")
     }
-
-    /// The band cuts split 0–100 into three roughly equal parts.
-    func testBandCutsAreTheThirdsOfTheScale() {
-        XCTAssertEqual(RecoveryScorer.bandRedMax, 34.0, accuracy: 1e-12)
-        XCTAssertEqual(RecoveryScorer.bandYellowMax, 67.0, accuracy: 1e-12)
-        XCTAssertLessThan(RecoveryScorer.bandRedMax, RecoveryScorer.bandYellowMax)
-    }
 }

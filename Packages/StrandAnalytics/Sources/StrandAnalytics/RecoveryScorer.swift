@@ -1,37 +1,22 @@
 import Foundation
 import BiometricStreams
 
-// RecoveryScorer.swift — nocturnal resting heart rate, and the three-way cuts of a 0–100 scale.
+// RecoveryScorer.swift — resting heart rate over a night, and nothing else any more.
 //
-// WHAT THIS FILE IS NOW. It used to also hold a composite 0–100 «recovery» score. That score is gone:
-// the column it was written to has been `nil` on every write path for a long time, nothing on screen
-// read it, and the app's verdict comes from `Preparedness` instead — a per-axis consensus with no
-// single number. Reimplementing several hundred lines that nobody calls, on top of a calibration
-// anchor borrowed from a third party's user base, would have been worse than useless. What survives
-// is the part that is defensible on its own.
+// WHAT THIS FILE IS NOW. It used to hold a composite 0–100 «recovery» score, and the three-way cuts
+// that turned that score into a colour. Both are gone: the column the score was written to has been
+// `nil` on every write path for a long time, nothing on screen read it, and the app's verdict comes
+// from `Preparedness` instead — a per-axis consensus with no single number. With no score left to
+// cut, the cuts had nothing to cut; two constants kept alive only by their own test are debt, not a
+// definition. What survives is the one estimator that is defensible on its own.
 //
-// NO CALLER TODAY. Everything here is consumer-free at the moment: the sleep classifier that read the
-// two guard constants was retired with FER-385, and the two places that compared against the band
-// cuts were comparing against a value that is always absent. The file stays because these are the
-// CANONICAL written-down definitions — the place where «resting heart rate at night» and «the thirds
-// of a 0–100 scale» are stated once and tested — and dissolving them into loose numbers elsewhere
-// would lose that. Before adding a caller, check `NocturnalRestingHR` first: that engine is the live
-// one, and it estimates the nightly nadir with a more careful method.
+// NO CALLER TODAY for that estimator either. It stays because this is where «resting heart rate at
+// night» is written down once and tested. Before adding a caller, check `NocturnalRestingHR` first:
+// that engine is the live one, and it estimates the nightly nadir with a more careful method.
 //
 // APPROXIMATE. Wrist optical heart rate over one night, not a clinical resting-heart-rate protocol.
 
 public enum RecoveryScorer {
-
-    // MARK: - Band cuts
-
-    /// Upper edge of the low third of a 0–100 scale (exclusive).
-    public static let bandRedMax: Double = 34.0
-    /// Upper edge of the middle third (exclusive); at or above it is the high band.
-    ///
-    /// Both cuts are RECALIBRATABLE — they are a product decision, not a published method. The
-    /// criterion if they are ever refixed: split 0–100 into three roughly equal parts, which is what
-    /// these two do.
-    public static let bandYellowMax: Double = 67.0
 
     // MARK: - Nocturnal resting heart rate
 

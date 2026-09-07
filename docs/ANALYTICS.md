@@ -21,7 +21,7 @@ The package contains more analytics than the app currently calls. This section i
 | Engine | File | Status in the app |
 |---|---|---|
 | `HRVAnalyzer` | `HRVAnalyzer.swift` | **Live, as a library.** `NocturnalHRV` builds the persisted `apple_rmssd_night` on its segmented RMSSD, `StressEngine` calls its cleaning path, and its `median` helper is shared by eight neighbouring engines. The app also computes RMSSD inline via `AppModel.rmssd(_:)` (same Task-Force formula) for the live stress nudge. APPROXIMATE. |
-| `RecoveryScorer` | `RecoveryScorer.swift` | **Retired down to two live pieces (FER-387).** The 0–100 composite is **deleted** — it had zero call sites, and `dailyMetric.recovery` is written `nil` on both surviving import routes. What remains is the nocturnal resting-HR estimator (consumed by the sleep path) and the three-way band cuts (consumed by `TrainingRegulation` and `ReadinessEngine`). APPROXIMATE. |
+| `RecoveryScorer` | `RecoveryScorer.swift` | **Retired down to one estimator (FER-387).** The 0–100 composite is **deleted** — it had zero call sites, and `dailyMetric.recovery` is written `nil` on both surviving import routes. The three-way band cuts that coloured it are deleted with it. What remains is the nocturnal resting-HR estimator, and it too is library-only today (`NocturnalRestingHR` is the live path). APPROXIMATE. |
 | `StrainScorer` | `StrainScorer.swift` | **Live — the most consumed engine in the package.** `AppleLoadEstimator` turns the day's Apple workouts into `dailyMetric.strain`; `AppModel+Strength` scores a strength session; `SourceFusion`, `SessionRPELoad` and `StrainCeiling` all travel through its logarithmic map and its inverse. APPROXIMATE. |
 | ~~`SleepStager`~~ | *(deleted)* | **Retired (FER-385).** The own sleep-stage classifier had no call site outside its own tests once the per-day orchestrator went away. Sleep phases come from Apple Health via `SleepHKDecoder`. Only the `StageSegment` type survived, in `StageSegment.swift`, because it is the on-disk JSON shape of a night's timeline. |
 | `Baselines` | `Baselines.swift` | **Live.** Folds the personal baselines that `ReadinessEngine`, `Preparedness`, `VitalBands` and the illness watch all read. The fold is **legacy-wearable-only**: Apple-only nights are excluded (a legacy-history filter, FER-519) because their HRV is **SDNN**, not the legacy wearable's **RMSSD** — different constructs with no published conversion (Shaffer & Ginsberg 2017). The only Apple→baseline bridge is the capped FER-60 prior, and (FER-634) only for **respiration** — breaths/min measured during sleep, the same metric across sources. Resting-HR is **not** seeded from Apple: the legacy wearable reads it from the sleep nadir while Apple estimates it from awake sedentary samples (~10–13 bpm higher; Fenland Study, Gonzales et al. 2023), so it takes the same honest cold-start as HRV. The illness early-warning in `AppModel` still uses its own trailing-window baseline math inline (see below). |
@@ -213,14 +213,22 @@ Source: `Preparedness.swift`, `SleepBands.swift` (both `StrandAnalytics`, pure).
 
 ---
 
-## `RecoveryScorer` — nocturnal resting heart rate, and three band cuts
+## `RecoveryScorer` — nocturnal resting heart rate
 
 Source: `RecoveryScorer.swift`. **The 0–100 recovery composite is gone (FER-387).** It had no call site
 anywhere in the app, and both surviving import routes write `dailyMetric.recovery` as `nil`, so the score
 was never computed and never shown. What replaced it on screen is the categorical verdict from
 `Preparedness`. Rows imported long ago may still carry a value in that column; nothing recomputes them.
 
-Two pieces survived, because live code reads them.
+**The three band cuts went with it.** They existed to colour that score, and with no score left they cut
+nothing; `band(_:)`, the `RecoveryBand` enum and the `bandRedMax` / `bandYellowMax` constants are all
+deleted. Nothing inherited them: `TrainingRegulation` and `ReadinessEngine`, named as their consumers in
+older notes, compared against a column that is always `nil`, and neither mentions the cuts today.
+Whether tonight's vital sign is «in range» is a different question with a different answer, and it
+belongs to `VitalBands`, which compares against the person's own dispersion rather than against thirds
+of a fixed scale.
+
+One estimator survives, and it is the whole file.
 
 ### Nocturnal resting heart rate
 
@@ -234,12 +242,6 @@ sensor dropout can win the minimum. Without the floor, a bin of artefacts manufa
 produces. When no bin qualifies the answer is `nil` — and `nil` is the honest answer, because this value
 feeds the personal baselines downstream, where an impossible number does lasting damage.
 
-### The band cuts
-
-`band(_:)` splits a 0–100 scale into three roughly equal thirds — low below `34`, mid below `67`, high
-above. The cuts are a product decision, not a published threshold; they are here because
-`TrainingRegulation` and `ReadinessEngine` both name them, and one definition beats two that drift. The
-function answers a `RecoveryBand` enum, not a colour string.
 ---
 
 ## `StrainScorer` — 0–21 logarithmic cardiovascular load

@@ -1,19 +1,4 @@
 {
-  "band" : [
-    "red",
-    "red",
-    "red",
-    "yellow",
-    "yellow",
-    "yellow",
-    "green",
-    "green",
-    "green"
-  ],
-  "band.cuts" : [
-    "34.0",
-    "67.0"
-  ],
   "constants" : [
     "600.0",
     "20.0",
