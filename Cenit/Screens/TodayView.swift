@@ -142,6 +142,8 @@ struct TodayView: View {
     /// FER-432 · rótulo local del botón alterno Separar/Unir (el Ecosistema no expone
     /// binding público de fase sin tocar CenitDesign — el lienzo sigue siendo el camino visual).
     @State private var señalesSeparadas = false
+    /// FER-432 · contador que pide al Ecosistema el mismo separar/unir que el tap del lienzo.
+    @State private var ecosistemaPedido = 0
     /// El fondo de Hoy en atmósfera (FER-118): lo que la pantalla le empuja al polvo de Metal
     /// —el desplazamiento del scroll para el parallax y si la pestaña está a la vista— SIN que
     /// esta vista se recomponga por cada cuadro de scroll: `body` solo pasa el objeto; quien lee
@@ -1137,10 +1139,11 @@ struct TodayView: View {
                 },
                 onSeparacion: {
                     ecosistemaSeparaciones = min(Self.maxSeparacionHints, ecosistemaSeparaciones + 1)
-                    señalesSeparadas = true
                     HoyEcosistemaTip.separado.sendDonation()
                     HoyEcosistemaTip().invalidate(reason: .actionPerformed)
-                })
+                },
+                alternarPedido: ecosistemaPedido,
+                onFase: { señalesSeparadas = $0 })
             // FER-432 · tip 3 + botón alterno DEBAJO del héroe (nunca sobre el orbe).
             hoyEcosistemaTipYBoton
             // FER-51 · La Matriz (estados T1–T5 + instrumento). Debajo del héroe.
@@ -1178,15 +1181,10 @@ struct TodayView: View {
                         : String(localized: "tip.hoy.ecosistema.boton", defaultValue: "Separate"),
                     variant: .quiet
                 ) {
-                    // Camino tocable del gesto (FER-432): dona + invalida el tip. GAP: sin API
-                    // pública de fase en CenitDesign el lienzo no anima desde aquí — el tap del
-                    // fondo del orbe sigue siendo el camino visual de separar/unir.
-                    señalesSeparadas.toggle()
-                    if señalesSeparadas {
-                        ecosistemaSeparaciones = min(Self.maxSeparacionHints, ecosistemaSeparaciones + 1)
-                        HoyEcosistemaTip.separado.sendDonation()
-                        HoyEcosistemaTip().invalidate(reason: .actionPerformed)
-                    }
+                    // Camino tocable del gesto (FER-432): el Ecosistema hace el MISMO alternar()
+                    // que el tap del lienzo (anima, y al separar dispara `onSeparacion`, que dona e
+                    // invalida el tip); `onFase` devuelve el estado para el rótulo.
+                    ecosistemaPedido += 1
                 }
                 .accessibilityLabel(Text(señalesSeparadas
                     ? String(localized: "Reunite the signals")
