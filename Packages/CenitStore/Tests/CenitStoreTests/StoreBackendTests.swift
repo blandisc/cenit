@@ -8,9 +8,17 @@ import BiometricStreams
 /// a snapshot read on the pool does NOT wait for a long write holding the actor's executor.
 final class StoreBackendTests: XCTestCase {
 
+    /// Borra la base y sus dos archivos satélite. En modo WAL, quedarse con el `-wal` y el `-shm`
+    /// deja basura en el temporal después de cada prueba.
+    private func removeDatabase(at path: String) {
+        for suffix in ["", "-wal", "-shm"] {
+            try? FileManager.default.removeItem(atPath: path + suffix)
+        }
+    }
+
     private func tmpPath(_ tag: String) -> String {
         FileManager.default.temporaryDirectory
-            .appendingPathComponent("whoop-backend-\(tag)-\(UUID().uuidString).sqlite").path
+            .appendingPathComponent("cenitstore-backend-\(tag)-\(UUID().uuidString).sqlite").path
     }
 
     private func seed(_ store: CenitStore) async throws {
@@ -18,15 +26,15 @@ final class StoreBackendTests: XCTestCase {
             DailyMetric(day: "2026-06-01", totalSleepMin: 400, efficiency: 88, deepMin: 70,
                         remMin: 90, lightMin: 200, disturbances: 2, restingHr: 55, avgHrv: 40,
                         recovery: 60, strain: 9.5, exerciseCount: 1, spo2Pct: 96, respRateBpm: 14),
-        ], deviceId: "my-whoop")
+        ], deviceId: "fuente-importada")
         _ = try await store.upsertSleepSessions([
             CachedSleepSession(startTs: 1_780_272_000, endTs: 1_780_300_800, efficiency: 90,
                                restingHr: 52, avgHrv: 45, stagesJSON: "[]"),
-        ], deviceId: "my-whoop")
+        ], deviceId: "fuente-importada")
     }
 
     private func request() -> DashboardReadRequest {
-        DashboardReadRequest(strapDeviceId: "my-whoop", computedDeviceId: "my-whoop-noop",
+        DashboardReadRequest(strapDeviceId: "fuente-importada", computedDeviceId: "fuente-derivada",
                              appleDeviceId: "apple-health", fromDay: "2026-05-30", toDay: "2026-06-03",
                              fromTs: 1_780_185_600, toTs: 1_780_531_200,
                              sleepLimit: 4000, includeApple: true, includeWhoopSeries: true)
@@ -34,21 +42,21 @@ final class StoreBackendTests: XCTestCase {
 
     func testPoolInitRunsMigrations() async throws {
         let path = tmpPath("pool-init")
-        defer { try? FileManager.default.removeItem(atPath: path) }
+        defer { removeDatabase(at: path) }
         let store = try await CenitStore(path: path, backend: .pool(maxReaders: 2))
         let tables = try await store.tableNames()
         XCTAssertTrue(tables.contains("dailyMetric"))
         XCTAssertTrue(tables.contains("hrSample"))
         try await seed(store)
-        let days = try await store.dailyMetrics(deviceId: "my-whoop", from: "2026-06-01", to: "2026-06-01")
+        let days = try await store.dailyMetrics(deviceId: "fuente-importada", from: "2026-06-01", to: "2026-06-01")
         XCTAssertEqual(days.count, 1)
     }
 
     func testPoolBackendMatchesQueueBackendFieldByField() async throws {
         let queuePath = tmpPath("q"), poolPath = tmpPath("p")
         defer {
-            try? FileManager.default.removeItem(atPath: queuePath)
-            try? FileManager.default.removeItem(atPath: poolPath)
+            removeDatabase(at: queuePath)
+            removeDatabase(at: poolPath)
         }
         let queueStore = try await CenitStore(path: queuePath)                       // default .queue
         let poolStore = try await CenitStore(path: poolPath, backend: .pool(maxReaders: 2))
@@ -65,7 +73,7 @@ final class StoreBackendTests: XCTestCase {
 
     func testCheckpointWALSucceedsOnPool() async throws {
         let path = tmpPath("ckpt")
-        defer { try? FileManager.default.removeItem(atPath: path) }
+        defer { removeDatabase(at: path) }
         let store = try await CenitStore(path: path, backend: .pool(maxReaders: 2))
         try await seed(store)
         _ = try await store.dashboardSnapshot(request())   // a reader existed and is closed
@@ -77,7 +85,7 @@ final class StoreBackendTests: XCTestCase {
     /// with the pre-write data well before the write finishes. Generous margins for CI.
     func testSnapshotReadDoesNotWaitForLongWriteOnPool() async throws {
         let path = tmpPath("concurrent")
-        defer { try? FileManager.default.removeItem(atPath: path) }
+        defer { removeDatabase(at: path) }
         let store = try await CenitStore(path: path, backend: .pool(maxReaders: 2))
         try await seed(store)
 

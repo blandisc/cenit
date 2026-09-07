@@ -123,8 +123,8 @@ extension CenitStore {
     public func journalEntries(deviceId: String, from: String, to: String) async throws -> [JournalEntry] {
         try syncRead { db in
             try Row.fetchAll(db, sql: """
-                SELECT day, question, answeredYes, notes FROM journal
-                WHERE deviceId = ? AND day >= ? AND day <= ?
+                SELECT day, question, answeredYes, notes
+                FROM journal WHERE deviceId = ? AND day BETWEEN ? AND ?
                 ORDER BY day ASC, question ASC
                 """, arguments: [deviceId, from, to])
                 .map {
@@ -185,10 +185,11 @@ extension CenitStore {
     public func workouts(deviceId: String, from: Int, to: Int, limit: Int) async throws -> [WorkoutRow] {
         try syncRead { db in
             try Row.fetchAll(db, sql: """
-                SELECT startTs, endTs, sport, source, durationS, energyKcal, avgHr, maxHr,
-                       strain, distanceM, zonesJSON, notes FROM workout
-                WHERE deviceId = ? AND startTs >= ? AND startTs <= ?
-                ORDER BY startTs ASC LIMIT ?
+                SELECT startTs, endTs, sport, source, durationS, energyKcal,
+                       avgHr, maxHr, strain, distanceM, zonesJSON, notes
+                FROM workout WHERE deviceId = ? AND startTs BETWEEN ? AND ?
+                ORDER BY startTs ASC
+                LIMIT ?
                 """, arguments: [deviceId, from, to, limit])
                 .map {
                     WorkoutRow(startTs: $0["startTs"], endTs: $0["endTs"], sport: $0["sport"],

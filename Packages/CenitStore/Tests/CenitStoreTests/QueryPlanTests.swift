@@ -2,32 +2,32 @@ import XCTest
 import GRDB
 @testable import CenitStore
 
-/// FER-29 — verify (and pin) that every hot read uses an index instead of a full-table scan.
+/// FER-29 — cada lectura caliente tiene que llegar a su tabla por índice, nunca barriéndola entera.
 ///
-/// The diagnosis was that the three v8 tables "probably already" had their hot reads covered by the
-/// composite primary keys. These tests confirm it with `EXPLAIN QUERY PLAN` and act as a regression
-/// guard: a future change to a WHERE/ORDER BY that silently dropped the index (forcing a full scan
-/// over a multi-year history) would fail here.
+/// El diagnóstico original era que las claves primarias compuestas «probablemente ya» cubrían estas
+/// consultas. Estas pruebas lo confirman con `EXPLAIN QUERY PLAN` y lo fijan: un cambio futuro a un
+/// `WHERE` o a un `ORDER BY` que dejara caer el índice —y con él pusiera a barrer años de historia—
+/// falla aquí.
 ///
-/// The SQL below mirrors the read methods in Reads.swift / MetricSeriesStore.swift /
-/// JournalWorkoutAppleCache.swift / MetricsCache.swift verbatim. The planner picks the same plan
-/// regardless of row count, so an empty in-memory store is enough; the bound values are dummies.
+/// El SQL de abajo espeja el de los métodos de lectura del paquete. El planificador elige el mismo
+/// plan sin importar cuántas filas haya, así que una base vacía en memoria basta; los valores ligados
+/// son de relleno, pero el NÚMERO de marcadores tiene que ser el de la consulta real.
 final class QueryPlanTests: XCTestCase {
 
-    /// Assert the plan reaches `table` through an index step (`… USING …`) and never via a bare
-    /// full-table `SCAN <table>` (a `SCAN … USING COVERING INDEX` is an index scan and is fine).
+    /// Afirma que el plan llega a `table` por un paso con índice (`… USING …`) y nunca por un `SCAN
+    /// <table>` pelado. Un `SCAN … USING COVERING INDEX` es un recorrido de índice y está bien.
     private func assertIndexed(_ plan: [String], table: String,
                                file: StaticString = #filePath, line: UInt = #line) {
         let joined = plan.joined(separator: " | ")
         let fullScan = plan.contains {
             $0.hasPrefix("SCAN") && $0.contains(table) && !$0.contains("USING")
         }
-        XCTAssertFalse(fullScan, "\(table): unexpected full-table SCAN — plan: [\(joined)]",
+        XCTAssertFalse(fullScan, "\(table): barrido completo inesperado — plan: [\(joined)]",
                        file: file, line: line)
         let indexed = plan.contains {
             ($0.contains("SEARCH") || $0.contains("SCAN")) && $0.contains(table) && $0.contains("USING")
         }
-        XCTAssertTrue(indexed, "\(table): expected an indexed access — plan: [\(joined)]",
+        XCTAssertTrue(indexed, "\(table): se esperaba un acceso por índice — plan: [\(joined)]",
                       file: file, line: line)
     }
 
@@ -36,8 +36,8 @@ final class QueryPlanTests: XCTestCase {
     func testMetricSeriesRangeReadUsesIndex() async throws {
         let store = try await CenitStore.inMemory()
         let plan = try await store.queryPlanForTest("""
-            SELECT day, key, value FROM metricSeries
-            WHERE deviceId = ? AND key = ? AND day >= ? AND day <= ?
+            SELECT day, key, value
+            FROM metricSeries WHERE deviceId = ? AND key = ? AND day BETWEEN ? AND ?
             ORDER BY day ASC
             """, arguments: ["d", "recovery", "2020-01-01", "2030-01-01"])
         assertIndexed(plan, table: "metricSeries")
@@ -54,18 +54,17 @@ final class QueryPlanTests: XCTestCase {
     func testMetricDaysMinMaxUsesIndex() async throws {
         let store = try await CenitStore.inMemory()
         let plan = try await store.queryPlanForTest("""
-            SELECT MIN(day) AS earliest, MAX(day) AS latest FROM metricSeries
-            WHERE deviceId = ? AND key = ?
+            SELECT MIN(day) AS earliest, MAX(day) AS latest
+            FROM metricSeries WHERE deviceId = ? AND key = ?
             """, arguments: ["d", "recovery"])
         assertIndexed(plan, table: "metricSeries")
     }
 
-    /// Multi-key range read (24 `act_hNN` hourly activity-count keys). ORDER BY must follow the
-    /// index `(deviceId, key, day)` so SQLite does not build a TEMP B-TREE; the store re-sorts to
-    /// day/key in memory for the public contract.
+    /// La lectura multi-clave (las 24 claves horarias `act_hNN`). El `ORDER BY` sigue al índice
+    /// `(deviceId, key, day)` para que SQLite no construya un B-TREE temporal; el orden público —día y
+    /// luego clave— se restablece en memoria.
     func testMetricSeriesMultiKeyRangeReadUsesIndexWithoutTempBTree() async throws {
         let store = try await CenitStore.inMemory()
-        // Mirror MetricSeriesStore.metricSeries(deviceId:keys:from:to:) SQL (24 placeholders like prod).
         let keys = (0..<24).map { String(format: "act_h%02d", $0) }
         let placeholders = Array(repeating: "?", count: keys.count).joined(separator: ", ")
         var args: [DatabaseValueConvertible?] = ["d"]
@@ -83,16 +82,16 @@ final class QueryPlanTests: XCTestCase {
                 || $0.localizedCaseInsensitiveContains("USE TEMP B-TREE")
         }
         XCTAssertFalse(usesTempBTree,
-                       "multi-key metricSeries must not sort via TEMP B-TREE — plan: [\(joined)]")
+                       "la lectura multi-clave no debe ordenar por B-TREE temporal — plan: [\(joined)]")
     }
 
-    // MARK: - v8 cache tables (composite PK)
+    // MARK: - Las cachés por día (clave primaria compuesta)
 
     func testJournalRangeReadUsesPrimaryKey() async throws {
         let store = try await CenitStore.inMemory()
         let plan = try await store.queryPlanForTest("""
-            SELECT day, question, answeredYes, notes FROM journal
-            WHERE deviceId = ? AND day >= ? AND day <= ?
+            SELECT day, question, answeredYes, notes
+            FROM journal WHERE deviceId = ? AND day BETWEEN ? AND ?
             ORDER BY day ASC, question ASC
             """, arguments: ["d", "2020-01-01", "2030-01-01"])
         assertIndexed(plan, table: "journal")
@@ -101,17 +100,18 @@ final class QueryPlanTests: XCTestCase {
     func testWorkoutsRangeReadUsesPrimaryKey() async throws {
         let store = try await CenitStore.inMemory()
         let plan = try await store.queryPlanForTest("""
-            SELECT startTs, endTs, sport, source, durationS, energyKcal, avgHr, maxHr,
-                   strain, distanceM, zonesJSON, notes FROM workout
-            WHERE deviceId = ? AND startTs >= ? AND startTs <= ?
-            ORDER BY startTs ASC LIMIT ?
+            SELECT startTs, endTs, sport, source, durationS, energyKcal,
+                   avgHr, maxHr, strain, distanceM, zonesJSON, notes
+            FROM workout WHERE deviceId = ? AND startTs BETWEEN ? AND ?
+            ORDER BY startTs ASC
+            LIMIT ?
             """, arguments: ["d", 0, 9_999_999_999, 100])
         assertIndexed(plan, table: "workout")
     }
 
+    /// La clave primaria es `(deviceId, startTs, sport)`: se busca por fuente y rango de inicio, y el
+    /// deporte se filtra después. Sigue siendo una búsqueda por índice, no un barrido.
     func testDeleteWorkoutsBySportUsesPrimaryKey() async throws {
-        // PK is (deviceId, startTs, sport): deviceId + startTs range seek, sport filtered after —
-        // still an indexed search, not a full scan.
         let store = try await CenitStore.inMemory()
         let plan = try await store.queryPlanForTest("""
             DELETE FROM workout WHERE deviceId = ? AND sport = ? AND startTs >= ? AND startTs <= ?
@@ -122,23 +122,22 @@ final class QueryPlanTests: XCTestCase {
     func testAppleDailyRangeReadUsesPrimaryKey() async throws {
         let store = try await CenitStore.inMemory()
         let plan = try await store.queryPlanForTest("""
-            SELECT day, steps, activeKcal, basalKcal, vo2max, avgHr, maxHr, walkingHr, weightKg
-            FROM appleDaily
-            WHERE deviceId = ? AND day >= ? AND day <= ?
+            SELECT day, steps, activeKcal, basalKcal, vo2max,
+                   avgHr, maxHr, walkingHr, weightKg
+            FROM appleDaily WHERE deviceId = ? AND day BETWEEN ? AND ?
             ORDER BY day ASC
             """, arguments: ["d", "2020-01-01", "2030-01-01"])
         assertIndexed(plan, table: "appleDaily")
     }
 
-    // MARK: - server-metric cache (composite PK)
-
     func testDailyMetricsRangeReadUsesPrimaryKey() async throws {
         let store = try await CenitStore.inMemory()
         let plan = try await store.queryPlanForTest("""
-            SELECT day, totalSleepMin, efficiency, deepMin, remMin, lightMin, disturbances,
-                   restingHr, avgHrv, recovery, strain, exerciseCount, steps, activeKcalEst
-            FROM dailyMetric
-            WHERE deviceId = ? AND day >= ? AND day <= ?
+            SELECT day, totalSleepMin, efficiency, deepMin, remMin, lightMin,
+                   disturbances, restingHr, avgHrv, recovery, strain, exerciseCount,
+                   spo2Pct, skinTempDevC, respRateBpm, steps, activeKcalEst,
+                   effortConfidence, restConfidence
+            FROM dailyMetric WHERE deviceId = ? AND day BETWEEN ? AND ?
             ORDER BY day ASC
             """, arguments: ["d", "2020-01-01", "2030-01-01"])
         assertIndexed(plan, table: "dailyMetric")
@@ -147,59 +146,55 @@ final class QueryPlanTests: XCTestCase {
     func testSleepSessionsRangeReadUsesPrimaryKey() async throws {
         let store = try await CenitStore.inMemory()
         let plan = try await store.queryPlanForTest("""
-            SELECT startTs, endTs, efficiency, restingHr, avgHrv, stagesJSON FROM sleepSession
-            WHERE deviceId = ? AND endTs >= ? AND startTs <= ?
-            ORDER BY startTs ASC LIMIT ?
-            """, arguments: ["d", 0, 9_999_999_999, 100])
+            SELECT startTs, endTs, efficiency, restingHr, avgHrv, stagesJSON
+            FROM sleepSession WHERE deviceId = ? AND startTs <= ? AND endTs >= ?
+            ORDER BY startTs ASC
+            LIMIT ?
+            """, arguments: ["d", 9_999_999_999, 0, 100])
         assertIndexed(plan, table: "sleepSession")
     }
 
-    // MARK: - biometric streams (PK (deviceId, ts))
+    // MARK: - Los latidos (WITHOUT ROWID: la clave primaria ES la tabla)
 
     func testHRSamplesRangeReadUsesPrimaryKey() async throws {
         let store = try await CenitStore.inMemory()
         let plan = try await store.queryPlanForTest("""
-            SELECT ts, bpm FROM hrSample
-            WHERE deviceId = ? AND ts >= ? AND ts <= ?
-            ORDER BY ts ASC LIMIT ?
-            """, arguments: ["d", 0, 9_999_999_999, 100])
+            SELECT ts, bpm FROM hrSample WHERE deviceId = ? AND ts BETWEEN ? AND ?
+            ORDER BY ts ASC
+            LIMIT ?
+            """, arguments: [1, 0, 9_999_999_999, 100])
         assertIndexed(plan, table: "hrSample")
     }
 
+    /// El `GROUP BY` puede agregar un b-tree temporal, pero el acceso a la tabla tiene que seguir
+    /// siendo por índice.
     func testHRBucketsAggregateUsesPrimaryKey() async throws {
-        // The GROUP BY may add a temp b-tree, but the table access itself must stay indexed.
         let store = try await CenitStore.inMemory()
         let plan = try await store.queryPlanForTest("""
-            SELECT (ts / ?) * ? AS bucket, AVG(bpm) AS avgBpm FROM hrSample
-            WHERE deviceId = ? AND ts >= ? AND ts <= ?
+            SELECT (ts / ?) * ? AS bucket, AVG(bpm) AS mean
+            FROM hrSample WHERE deviceId = ? AND ts BETWEEN ? AND ?
             GROUP BY ts / ?
-            ORDER BY bucket ASC
-            """, arguments: [300, 300, "d", 0, 9_999_999_999, 300])
+            ORDER BY bucket
+            """, arguments: [300, 300, 1, 0, 9_999_999_999, 300])
         assertIndexed(plan, table: "hrSample")
     }
 
     func testLatestHRSampleTsUsesPrimaryKey() async throws {
         let store = try await CenitStore.inMemory()
         let plan = try await store.queryPlanForTest(
-            "SELECT MAX(ts) FROM hrSample WHERE deviceId = ?", arguments: ["d"])
+            "SELECT MAX(ts) FROM hrSample WHERE deviceId = ?", arguments: [1])
         assertIndexed(plan, table: "hrSample")
     }
 
-    // v21 (FER-513): the 1 Hz tables are now WITHOUT ROWID — the PK *is* the table. The range reads must
-    // still seek through it, not full-scan. rrInterval is the risky one (3-column PK (deviceId, ts, rrMs)).
-
+    /// La arriesgada: `rrInterval` tiene una clave de tres columnas `(deviceId, ts, rrMs)` y el rango
+    /// tiene que seguir buscándola, no barrerla.
     func testRRIntervalsRangeReadUsesPrimaryKey() async throws {
         let store = try await CenitStore.inMemory()
         let plan = try await store.queryPlanForTest("""
-            SELECT ts, rrMs FROM rrInterval
-            WHERE deviceId = ? AND ts >= ? AND ts <= ?
-            ORDER BY ts ASC, rrMs ASC LIMIT ?
+            SELECT ts, rrMs FROM rrInterval WHERE deviceId = ? AND ts BETWEEN ? AND ?
+            ORDER BY ts ASC, rrMs ASC
+            LIMIT ?
             """, arguments: [1, 0, 9_999_999_999, 100])
         assertIndexed(plan, table: "rrInterval")
     }
-
-    // F7 (reduced scope): testGravitySamplesRangeReadUsesPrimaryKey removed — `gravitySample` is
-    // dropped in v37 (band-only, zero live consumer); `CenitStore.gravitySamples()` is kept (a
-    // dormant Repository caller survives) but its query plan is no longer testable at HEAD since the
-    // table it targets doesn't exist.
 }

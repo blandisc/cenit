@@ -955,11 +955,11 @@ final class StrengthStoreTests: XCTestCase {
     }
 
     /// Editing the date moves `startTs` (which `saveSession`'s upsert deliberately does NOT touch), and
-    /// never alters the strap's captured `strain`/`avgHr` — those ride through unchanged.
+    /// never alters the `strain`/`avgHr` the session captured — those ride through unchanged.
     func testEditMovesDateAndPreservesCapturedHR() async throws {
         let store = try await CenitStore.inMemory()
         let original = StrengthSession(id: "s1", startTs: 1000, endTs: 4000,
-                                       deviceId: "whoop", strain: 12.4, avgHr: 128)
+                                       deviceId: "fuente-importada", strain: 12.4, avgHr: 128)
         try await store.saveSession(original, sets: [
             SetEntry(id: "b", sessionId: "s1", exerciseId: "bench", position: 0, kind: .work,
                      weightKg: 60, reps: 8, done: true, ts: 1002)])
