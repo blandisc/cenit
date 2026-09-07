@@ -21,6 +21,18 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
 
 ## Unreleased
 
+### Los planes y programas que importas ahora se llaman `cenit.*` (FER-382)
+- El archivo que armas con tu LLM (rutina o plan de comida) pasa a identificarse como
+  `cenit.workout.v1` / `cenit.diet.v1`. **Los archivos que ya tienes siguen funcionando**: Cénit
+  acepta también el nombre anterior al leer, y solo escribe el nuevo. No hay nada que rehacer.
+
+### Importar tu export de Apple Health, por dentro (FER-382)
+- La lectura del `export.zip` se reescribió de cero. Para ti no cambia nada de lo que ves: los
+  mismos días, las mismas cifras y el mismo botón de cancelar a media importación. Por dentro
+  quedó anclada con pruebas nuevas para que un export de años —con su archivo con nombre en
+  español, sus bytes dañados y sus millones de lecturas— siga entrando completo y sin agotar la
+  memoria del teléfono.
+
 ### Primer uso de Entrenar más claro (FER-373, FER-376)
 - Los chips de plantilla ya no repiten cuántas rutinas trae cada uno (eso se ve dentro de la hoja) —
   traducen el split en lenguaje llano. El trío destacado se recura para quien empieza: «Full body»

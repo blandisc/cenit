@@ -1,12 +1,12 @@
 import Foundation
 import StrandTraining
 
-// MARK: - noop.workout.v1 — LLM-generated workout-program interchange format (FER-496)
+// MARK: - cenit.workout.v1 — LLM-generated workout-program interchange format (FER-496)
 //
 // A strength program a user builds by asking their own LLM (the "bring-your-own-LLM" path, mirroring
-// noop.diet.v1 / FER-370): NOOP hands out a prompt, the user runs it in their AI with their plan
-// (text / photo / PDF), and brings back this file. NOOP never calls the network — the user runs the
-// LLM step (same as importing a CSV). This is import-only: the file is produced outside NOOP.
+// cenit.diet.v1 / FER-370): Cénit hands out a prompt, the user runs it in their AI with their plan
+// (text / photo / PDF), and brings back this file. Cénit never calls the network — the user runs the
+// LLM step (same as importing a CSV). This is import-only: the file is produced outside Cénit.
 //
 // The wire keys are fixed Spanish (the interchange contract — one importer regardless of the plan's
 // language); Swift identifiers are English (repo convention). Exercise names are kept VERBATIM in the
@@ -43,7 +43,7 @@ public enum WorkoutWeightUnit: String, Codable, Sendable, Equatable, CaseIterabl
 /// One exercise slot of a routine: the LLM's exercise name (matched to the catalog later) plus its
 /// target scheme. Optional fields are nil when the plan doesn't declare them — never invented.
 public struct WorkoutExercise: Codable, Sendable, Equatable {
-    /// The catalog id the LLM picked from NOOP's list (FER-521). `nil` when the plan didn't carry one
+    /// The catalog id the LLM picked from Cénit's list (FER-521). `nil` when the plan didn't carry one
     /// (older plans, or an exercise the LLM couldn't place). When set, the importer matches by this id
     /// first — exact and language-proof — and only falls back to the name. An unknown id is ignored.
     public let id: String?                  // wire: "id"
@@ -97,7 +97,7 @@ public enum WorkoutProgramWarning: String, Codable, Sendable, Equatable, CaseIte
     case weeksDiffer
 }
 
-/// A workout program in the `noop.workout.v1` format: one or more routines (a multi-day split).
+/// A workout program in the `cenit.workout.v1` format: one or more routines (a multi-day split).
 ///
 /// Ola 1 · E10 adds the PROGRAM fields — how many weeks the block runs, what its light week does, and
 /// what happens when it ends. All optional and defaulted, so a v1 file written before they existed
@@ -130,8 +130,16 @@ public struct WorkoutProgram: Codable, Sendable, Equatable {
         self.warnings = warnings
     }
 
-    /// The only schema this importer accepts.
-    public static let currentSchema = "noop.workout.v1"
+    /// The schema a program is written with today. Emitted on every encode.
+    public static let currentSchema = "cenit.workout.v1"
+
+    /// The tag the format carried before the app was renamed. Still accepted on the way in:
+    /// files the user already has on their phone (and templates they saved) spell it this
+    /// way, and rejecting them would be a visible regression. Never emitted.
+    public static let legacySchema = "noop.workout.v1"
+
+    /// Every schema tag a payload may declare.
+    public static let acceptedSchemas: Set<String> = [currentSchema, legacySchema]
 
     /// The `Calendar` weekday (1 = Sunday … 7 = Saturday — `RoutineSchedule`'s convention) each routine
     /// lands on, index-aligned with `routines`. `nil` for a routine that couldn't be placed (more
@@ -160,7 +168,7 @@ public struct WorkoutProgram: Codable, Sendable, Equatable {
 
 // MARK: - Errors
 
-/// Why a candidate `noop.workout.v1` payload was rejected. Dedicated (like `DietPlanParseError`): every
+/// Why a candidate `cenit.workout.v1` payload was rejected. Dedicated (like `DietPlanParseError`): every
 /// case is an actionable schema-validation reason the import screen can surface. `description` is a
 /// diagnostic string; the UI localizes per case.
 public enum WorkoutProgramParseError: Error, Equatable, Sendable, CustomStringConvertible {
@@ -202,7 +210,7 @@ public enum WorkoutProgramParseError: Error, Equatable, Sendable, CustomStringCo
 
 // MARK: - Importer
 
-/// Parses and validates a `noop.workout.v1` payload into a `WorkoutProgram`. Parse-only — it does not
+/// Parses and validates a `cenit.workout.v1` payload into a `WorkoutProgram`. Parse-only — it does not
 /// touch the database or the exercise catalog (matching is a separate step, `WorkoutExerciseReconciler`).
 /// Mirrors `DietPlanImporter`.
 public struct WorkoutProgramImporter {
@@ -216,11 +224,13 @@ public struct WorkoutProgramImporter {
         catch { throw WorkoutProgramParseError.notJSON }
         guard let root = any as? [String: Any] else { throw WorkoutProgramParseError.notJSON }
 
-        // schema — must match exactly.
-        let schema = root["schema"] as? String ?? ""
-        guard schema == WorkoutProgram.currentSchema else {
-            throw WorkoutProgramParseError.unsupportedSchema(found: schema)
+        // schema — one of the accepted tags, normalized to the current one so what gets
+        // persisted and re-encoded always carries today's name.
+        let declaredSchema = root["schema"] as? String ?? ""
+        guard WorkoutProgram.acceptedSchemas.contains(declaredSchema) else {
+            throw WorkoutProgramParseError.unsupportedSchema(found: declaredSchema)
         }
+        let schema = WorkoutProgram.currentSchema
 
         // idioma — required, es | en.
         let idiomaRaw = root["idioma"] as? String ?? ""
@@ -283,7 +293,7 @@ public struct WorkoutProgramImporter {
                 guard !exName.isEmpty else {
                     throw WorkoutProgramParseError.exerciseWithoutName(routine: routineLabel)
                 }
-                // id — optional catalog id the LLM picked from NOOP's list (FER-521). Empty → nil. Its
+                // id — optional catalog id the LLM picked from Cénit's list (FER-521). Empty → nil. Its
                 // validity (exists in the catalog) is checked at reconciliation, not here.
                 let idTrimmed = (e["id"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
                 let exId = (idTrimmed?.isEmpty == false) ? idTrimmed : nil
@@ -387,7 +397,7 @@ public struct WorkoutProgramImporter {
 /// seed + the user's custom exercises). The format keeps names verbatim, so the same movement may be
 /// written many ways ("Press de banca con barra" vs "Barbell Bench Press"); here we only do a
 /// conservative exact match on a normalized name (lowercased, accent-stripped, whitespace-collapsed).
-/// Anything that doesn't match is surfaced to the user to map or create — NOOP never silently guesses.
+/// Anything that doesn't match is surfaced to the user to map or create — Cénit never silently guesses.
 /// Pure (takes the known exercises in), so it's swift-testable without a database.
 public struct WorkoutExerciseReconciler {
     private let byNormalizedName: [String: Exercise]

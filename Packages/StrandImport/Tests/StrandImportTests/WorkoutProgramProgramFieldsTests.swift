@@ -2,7 +2,7 @@ import XCTest
 @testable import StrandImport
 import StrandTraining
 
-/// Ola 1 · E10 (FER-329): los campos de PROGRAMA del formato `noop.workout.v1` — `semanas`,
+/// Ola 1 · E10 (FER-329): los campos de PROGRAMA del formato `cenit.workout.v1` — `semanas`,
 /// `semana_ligera`, `al_terminar` y el `dia` por rutina. Todos opcionales y retrocompatibles.
 final class WorkoutProgramProgramFieldsTests: XCTestCase {
 
@@ -10,7 +10,7 @@ final class WorkoutProgramProgramFieldsTests: XCTestCase {
 
     /// El payload v1 de siempre, sin un solo campo de programa.
     private let legacy = """
-    { "schema":"noop.workout.v1", "idioma":"es", "programa":"Fuerza",
+    { "schema":"cenit.workout.v1", "idioma":"es", "programa":"Fuerza",
       "rutinas":[ { "nombre":"A", "ejercicios":[ { "nombre":"Sentadilla", "series":3, "reps":5 } ] } ] }
     """
 
@@ -19,7 +19,7 @@ final class WorkoutProgramProgramFieldsTests: XCTestCase {
         [ { "nombre":"A", "ejercicios":[ { "nombre":"Sentadilla", "series":3, "reps":5 } ] } ]
         """
         return """
-        { "schema":"noop.workout.v1", "idioma":"es", "programa":"Fuerza", \(extra)
+        { "schema":"cenit.workout.v1", "idioma":"es", "programa":"Fuerza", \(extra)
           "rutinas": \(r) }
         """
     }

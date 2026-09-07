@@ -11,7 +11,7 @@ final class WorkoutProgramImporterTests: XCTestCase {
     /// Multi-routine Spanish program: a 2-day split with reps/weight/rest/warm-up/superset + a
     /// bodyweight exercise and an omitted-tipo exercise (→ defaults to weightReps).
     private let validES = """
-    { "schema":"noop.workout.v1", "idioma":"es", "unidad":"kg", "programa":"Fuerza 2 días",
+    { "schema":"cenit.workout.v1", "idioma":"es", "unidad":"kg", "programa":"Fuerza 2 días",
       "rutinas":[
         { "nombre":"Empuje", "etiqueta":"Lunes",
           "ejercicios":[
@@ -31,7 +31,7 @@ final class WorkoutProgramImporterTests: XCTestCase {
 
     func testParsesMultiRoutineProgram() throws {
         let p = try importer.parse(text: validES)
-        XCTAssertEqual(p.schema, "noop.workout.v1")
+        XCTAssertEqual(p.schema, "cenit.workout.v1")
         XCTAssertEqual(p.language, .es)
         XCTAssertEqual(p.name, "Fuerza 2 días")
         XCTAssertEqual(p.routines.count, 2)
@@ -68,7 +68,7 @@ final class WorkoutProgramImporterTests: XCTestCase {
 
     func testPoundsNormalizeToKilograms() throws {
         let lbProgram = """
-        { "schema":"noop.workout.v1", "idioma":"en", "unidad":"lb", "programa":"Imperial",
+        { "schema":"cenit.workout.v1", "idioma":"en", "unidad":"lb", "programa":"Imperial",
           "rutinas":[ { "nombre":"A", "ejercicios":[
             { "nombre":"Deadlift", "series":3, "reps":5, "peso":225 } ] } ] }
         """
@@ -79,7 +79,7 @@ final class WorkoutProgramImporterTests: XCTestCase {
 
     func testUnidadDefaultsToKilogramsWhenAbsent() throws {
         let noUnit = """
-        { "schema":"noop.workout.v1", "idioma":"es", "programa":"X",
+        { "schema":"cenit.workout.v1", "idioma":"es", "programa":"X",
           "rutinas":[ { "nombre":"A", "ejercicios":[
             { "nombre":"Sentadilla", "series":5, "reps":5, "peso":100 } ] } ] }
         """
@@ -89,7 +89,7 @@ final class WorkoutProgramImporterTests: XCTestCase {
 
     func testMissingSetsClampsToOne() throws {
         let noSets = """
-        { "schema":"noop.workout.v1", "idioma":"es", "programa":"X",
+        { "schema":"cenit.workout.v1", "idioma":"es", "programa":"X",
           "rutinas":[ { "nombre":"A", "ejercicios":[ { "nombre":"Plancha", "tipo":"time" } ] } ] }
         """
         let p = try importer.parse(text: noSets)
@@ -108,17 +108,17 @@ final class WorkoutProgramImporterTests: XCTestCase {
 
     func testRejectsUnknownSchema() {
         let s = """
-        { "schema":"noop.diet.v1", "idioma":"es", "rutinas":[
+        { "schema":"cenit.diet.v1", "idioma":"es", "rutinas":[
           { "nombre":"A", "ejercicios":[ { "nombre":"X", "series":1 } ] } ] }
         """
         XCTAssertThrowsError(try importer.parse(text: s)) {
-            XCTAssertEqual($0 as? WorkoutProgramParseError, .unsupportedSchema(found: "noop.diet.v1"))
+            XCTAssertEqual($0 as? WorkoutProgramParseError, .unsupportedSchema(found: "cenit.diet.v1"))
         }
     }
 
     func testRejectsUnknownIdioma() {
         let s = """
-        { "schema":"noop.workout.v1", "idioma":"de", "rutinas":[
+        { "schema":"cenit.workout.v1", "idioma":"de", "rutinas":[
           { "nombre":"A", "ejercicios":[ { "nombre":"X", "series":1 } ] } ] }
         """
         XCTAssertThrowsError(try importer.parse(text: s)) {
@@ -128,7 +128,7 @@ final class WorkoutProgramImporterTests: XCTestCase {
 
     func testRejectsUnknownUnidad() {
         let s = """
-        { "schema":"noop.workout.v1", "idioma":"es", "unidad":"stones", "rutinas":[
+        { "schema":"cenit.workout.v1", "idioma":"es", "unidad":"stones", "rutinas":[
           { "nombre":"A", "ejercicios":[ { "nombre":"X", "series":1 } ] } ] }
         """
         XCTAssertThrowsError(try importer.parse(text: s)) {
@@ -138,7 +138,7 @@ final class WorkoutProgramImporterTests: XCTestCase {
 
     func testRejectsUnknownTipo() {
         let s = """
-        { "schema":"noop.workout.v1", "idioma":"es", "rutinas":[
+        { "schema":"cenit.workout.v1", "idioma":"es", "rutinas":[
           { "nombre":"A", "ejercicios":[ { "nombre":"X", "tipo":"isometric", "series":1 } ] } ] }
         """
         XCTAssertThrowsError(try importer.parse(text: s)) {
@@ -147,7 +147,7 @@ final class WorkoutProgramImporterTests: XCTestCase {
     }
 
     func testRejectsNoRoutines() {
-        let s = #"{ "schema":"noop.workout.v1", "idioma":"es", "rutinas":[] }"#
+        let s = #"{ "schema":"cenit.workout.v1", "idioma":"es", "rutinas":[] }"#
         XCTAssertThrowsError(try importer.parse(text: s)) {
             XCTAssertEqual($0 as? WorkoutProgramParseError, .noRoutines)
         }
@@ -155,7 +155,7 @@ final class WorkoutProgramImporterTests: XCTestCase {
 
     func testRejectsRoutineWithoutExercises() {
         let s = """
-        { "schema":"noop.workout.v1", "idioma":"es", "rutinas":[
+        { "schema":"cenit.workout.v1", "idioma":"es", "rutinas":[
           { "nombre":"Empuje", "ejercicios":[] } ] }
         """
         XCTAssertThrowsError(try importer.parse(text: s)) {
@@ -165,7 +165,7 @@ final class WorkoutProgramImporterTests: XCTestCase {
 
     func testRejectsExerciseWithoutName() {
         let s = """
-        { "schema":"noop.workout.v1", "idioma":"es", "rutinas":[
+        { "schema":"cenit.workout.v1", "idioma":"es", "rutinas":[
           { "nombre":"Empuje", "ejercicios":[ { "series":4, "reps":8 } ] } ] }
         """
         XCTAssertThrowsError(try importer.parse(text: s)) {
@@ -193,7 +193,7 @@ final class WorkoutProgramImporterTests: XCTestCase {
     // MARK: - Catalog id (FER-521)
 
     private let withIds = """
-    { "schema":"noop.workout.v1", "idioma":"es", "programa":"P",
+    { "schema":"cenit.workout.v1", "idioma":"es", "programa":"P",
       "rutinas":[ { "nombre":"A", "ejercicios":[
         { "id":"Barbell_Squat", "nombre":"Sentadilla profunda rara", "series":4, "reps":8 },
         { "id":"  ", "nombre":"Press de banca con barra", "series":3 },
