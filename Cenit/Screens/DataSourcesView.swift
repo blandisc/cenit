@@ -24,8 +24,8 @@ import StrandImport
 
 struct DataSourcesView: View {
     @Environment(AppModel.self) var model
-    @EnvironmentObject var repo: Repository
-    @State private var showingImporter = false
+    @EnvironmentObject private var repo: Repository
+    @State private var importerOpen = false
     @State private var importTarget: ImportTarget = .appleHealth
     @Environment(\.dismiss) private var dismiss
     #if os(iOS)
@@ -50,11 +50,11 @@ struct DataSourcesView: View {
 
     // Backup & restore + automatic iCloud backup — migrated here from SettingsView for FER-337 so no
     // content is orphaned when the old Settings screen goes away.
-    @State private var backupBusy = false
-    @State private var backupAlertTitle = ""
-    @State private var backupAlertMessage = ""
-    @State private var showBackupAlert = false
-    @State private var backupAlertIsError = false
+    @State private var backupRunning = false
+    @State private var backupNoticeTitle = ""
+    @State private var backupNoticeBody = ""
+    @State private var showBackupNotice = false
+    @State private var backupNoticeIsError = false
     #if os(iOS)
     @EnvironmentObject private var autoBackup: AutoBackup
     #endif
@@ -80,35 +80,37 @@ struct DataSourcesView: View {
             .padding(.horizontal, LiquidSpace.s550)
             .padding(.top, LiquidSpace.s550)
             .padding(.bottom, LiquidSpace.s800)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: .infinity,
+               alignment: .leading)
         }
         .scrollIndicators(.hidden)
         .background { LiquidSheetFondo().ignoresSafeArea() }
-        // A single target-aware importer avoids SwiftUI collapsing competing importers on the same screen.
-        .fileImporter(isPresented: $showingImporter,
-                      allowedContentTypes: importTarget.allowedContentTypes,
-                      allowsMultipleSelection: false) { result in
-            handleImportResult(result, for: importTarget)
-        }
+        // UN solo importador que sabe a qué apunta: con dos importadores compitiendo en la misma
+        // pantalla, SwiftUI colapsa uno de ellos y deja de abrirse.
+        .fileImporter(
+            isPresented: $importerOpen,
+            allowedContentTypes: importTarget.allowedContentTypes,
+            allowsMultipleSelection: false,
+            onCompletion: { resultado in receiveImportedFile(resultado, for: importTarget) })
         // FER-837 / FER-280·2c: backup/export result → `LiquidAviso` (receta HealthAlert);
         // inset, tap-to-dismiss y auto-descarte de 8 s quedan en el caller.
         .overlay(alignment: .top) {
-            if showBackupAlert {
+            if showBackupNotice {
                 LiquidAviso(
-                    titulo: backupAlertTitle,
-                    cuerpo: backupAlertMessage,
-                    tono: backupAlertIsError ? LiquidColor.negativo : LiquidColor.positivo)
+                    titulo: backupNoticeTitle,
+                    cuerpo: backupNoticeBody,
+                    tono: backupNoticeIsError ? LiquidColor.negativo : LiquidColor.positivo)
                     .padding(.horizontal, LiquidSpace.s550)
                     .padding(.top, LiquidSpace.s300)
-                    .onTapGesture { showBackupAlert = false }
+                    .onTapGesture { showBackupNotice = false }
                     .transition(LiquidMotion.fallingFadeTransition)
                     .task {
                         try? await Task.sleep(for: .seconds(8))
-                        showBackupAlert = false
+                        showBackupNotice = false
                     }
             }
         }
-        .animation(LiquidMotion.glassOut(LiquidMotion.quick), value: showBackupAlert)
+        .animation(LiquidMotion.glassOut(LiquidMotion.quick), value: showBackupNotice)
         #if os(iOS) && DEBUG
         // FER-389 (mapa 100 %): `-cenit.readError <strengthCSV|backupOk|backupError>` fuerza, para la
         // captura, un estado que solo sale de un intento real de exportar/importar — nunca alcanzable
@@ -126,15 +128,15 @@ struct DataSourcesView: View {
             // Contenido demo, no localizado (nunca lo ve un dueño real) — literales planos, no
             // `String(localized:)`, para no meter una clave nueva al catálogo por un mensaje que
             // solo existe para la captura.
-            backupAlertTitle = "Backup exported"
-            backupAlertMessage = "Saved to cenit-backup.json. Copy this file to your other device and use Import there to restore everything."
-            backupAlertIsError = false
-            showBackupAlert = true
+            backupNoticeTitle = "Backup exported"
+            backupNoticeBody = "Saved to cenit-backup.json. Copy this file to your other device and use Import there to restore everything."
+            backupNoticeIsError = false
+            showBackupNotice = true
         case "backupError":
-            backupAlertTitle = "Backup problem"
-            backupAlertMessage = "Couldn't read that file."
-            backupAlertIsError = true
-            showBackupAlert = true
+            backupNoticeTitle = "Backup problem"
+            backupNoticeBody = "Couldn't read that file."
+            backupNoticeIsError = true
+            showBackupNotice = true
         default:
             break
         }
@@ -157,7 +159,8 @@ struct DataSourcesView: View {
                 .foregroundStyle(LiquidColor.tinta500)
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity,
+               alignment: .leading)
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(.isHeader)
     }
@@ -173,7 +176,8 @@ struct DataSourcesView: View {
                 .accessibilityAddTraits(.isHeader)
             content()
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity,
+               alignment: .leading)
     }
 
     /// A quiet block on the bare screen ground: a title + supporting copy, no surface. Import and the
@@ -213,29 +217,31 @@ struct DataSourcesView: View {
     }
 
     private var appleHealthImportBlock: some View {
-        let importingAppleHealth = model.isImporting(.appleHealth)
+        let corriendo = model.isImporting(.appleHealth)
         return blockPlano(
             String(localized: "Apple Health Export"),
             subtitle: String(localized: "Import an Apple Health export (Health app → profile → Export All Health Data → export.zip). 7 years of HR, HRV, sleep, SpO₂, steps and more: streamed locally. Large exports take a minute or two.")) {
             HStack(spacing: LiquidSpace.s300) {
-                LiquidGlassButton(importingAppleHealth ? String(localized: "Working…") : String(localized: "Choose export.zip…"),
-                                  variant: .glass) { presentImporter(.appleHealth) }
+                LiquidGlassButton(corriendo ? String(localized: "Working…") : String(localized: "Choose export.zip…"),
+                                  variant: .glass) { openImporter(.appleHealth) }
                     .disabled(model.hasActiveImport)
                     .opacity(model.hasActiveImport ? 0.6 : 1)
-                if importingAppleHealth {
+                if corriendo {
                     ProgressView().controlSize(.small).tint(LiquidColor.tinta500)
-                    if let n = model.appleHealthImportProgress {
-                        Text("\(n) records").font(LiquidType.unidadCompacta)
+                    if let leidos = model.appleHealthImportProgress {
+                        Text("\(leidos) records")
+                            .font(LiquidType.unidadCompacta)
                             .foregroundStyle(LiquidColor.tinta500)
                             .monospacedDigit()
                     }
                 }
                 Spacer(minLength: 0)
             }
-            if let s = model.appleHealthImportSummary {
-                // A failed import is a WARNING, not a crash: `atencionTexto` (the ámbar the paper's
-                // `theme.warning` used), never `negativo` (critical). FER-108 · Grok.
-                Text(verbatim: s).font(LiquidType.captionLectura)
+            if let resumen = model.appleHealthImportSummary {
+                // Un import fallido es un AVISO, no un choque: ámbar de atención, nunca el rojo
+                // crítico — el archivo sigue ahí y se puede volver a intentar.
+                Text(verbatim: resumen)
+                    .font(LiquidType.captionLectura)
                     .foregroundStyle(model.appleHealthImportFailed ? LiquidColor.atencionTexto : LiquidColor.positivo)
             }
             // FER-115: coverage grid — macOS only (iOS shows it in its own «Cobertura» section)
@@ -772,26 +778,31 @@ struct DataSourcesView: View {
 
     // MARK: - Import plumbing (unchanged)
 
-    private func presentImporter(_ target: ImportTarget) {
+    /// Apunta el importador y lo abre. Objetivo primero: el sistema lee los tipos permitidos del
+    /// objetivo vigente en el mismo cuadro en que la hoja aparece.
+    private func openImporter(_ target: ImportTarget) {
         importTarget = target
-        showingImporter = true
+        importerOpen = true
     }
 
-    private func handleImportResult(_ result: Result<[URL], Error>, for target: ImportTarget) {
-        guard case .success(let urls) = result, let url = urls.first else { return }
+    /// Lo que devuelve la hoja del sistema. Cancelar o volver sin archivo no es un error: no pasa nada.
+    private func receiveImportedFile(_ result: Result<[URL], Error>, for target: ImportTarget) {
+        guard case .success(let elegidos) = result, let archivo = elegidos.first else { return }
         switch target {
-        case .appleHealth:
-            model.importAppleHealth(url: url)
+        case .appleHealth: model.importAppleHealth(url: archivo)
         }
     }
 
+    /// A qué apunta el importador. Un solo caso hoy; el enum existe para que sumar otro origen no
+    /// obligue a un segundo `fileImporter` compitiendo en la misma pantalla.
     private enum ImportTarget {
         case appleHealth
 
+        /// Un export de Apple Health llega como .zip, como el .xml suelto de adentro, o como la
+        /// carpeta ya descomprimida.
         var allowedContentTypes: [UTType] {
             switch self {
-            case .appleHealth:
-                return [.zip, .xml, .folder]
+            case .appleHealth: return [.zip, .xml, .folder]
             }
         }
     }
@@ -837,10 +848,10 @@ struct DataSourcesView: View {
             VStack(alignment: .leading, spacing: LiquidSpace.s400) {
                 HStack(spacing: LiquidSpace.s300) {
                     LiquidGlassButton(String(localized: "Export…"), variant: .glass) { runExport() }
-                        .disabled(backupBusy).opacity(backupBusy ? 0.6 : 1)
+                        .disabled(backupRunning).opacity(backupRunning ? 0.6 : 1)
                     LiquidGlassButton(String(localized: "Import…"), variant: .glass) { runImport() }
-                        .disabled(backupBusy).opacity(backupBusy ? 0.6 : 1)
-                    if backupBusy { ProgressView().controlSize(.small).tint(LiquidColor.tinta500) }
+                        .disabled(backupRunning).opacity(backupRunning ? 0.6 : 1)
+                    if backupRunning { ProgressView().controlSize(.small).tint(LiquidColor.tinta500) }
                     Spacer(minLength: 0)
                 }
                 capilar
@@ -868,7 +879,7 @@ struct DataSourcesView: View {
                         }
                         .disabled(autoBackup.busy).opacity(autoBackup.busy ? 0.6 : 1)
                         LiquidGlassButton(String(localized: "Restore…"), variant: .glass) { runImport() }
-                            .disabled(backupBusy).opacity(backupBusy ? 0.6 : 1)
+                            .disabled(backupRunning).opacity(backupRunning ? 0.6 : 1)
                         if autoBackup.busy { ProgressView().controlSize(.small).tint(LiquidColor.tinta500) }
                         Spacer(minLength: 0)
                     }
@@ -880,7 +891,7 @@ struct DataSourcesView: View {
                             Task { await autoBackup.chooseFolder() }
                         }
                         LiquidGlassButton(String(localized: "Restore…"), variant: .glass) { runImport() }
-                            .disabled(backupBusy).opacity(backupBusy ? 0.6 : 1)
+                            .disabled(backupRunning).opacity(backupRunning ? 0.6 : 1)
                         Spacer(minLength: 0)
                     }
                 }
@@ -957,39 +968,41 @@ struct DataSourcesView: View {
     }
 
     private func runExport() {
-        backupBusy = true
+        backupRunning = true
         Task {
-            let result = await DataBackup.runExport(checkpoint: { await model.repo.checkpointForBackup() })
-            handleBackup(result)
+            let resultado = await DataBackup.runExport(
+                checkpoint: { await model.repo.checkpointForBackup() })
+            settleBackup(resultado)
         }
     }
     private func runImport() {
-        backupBusy = true
+        backupRunning = true
         Task {
             // P0-1: cerrar el store vivo antes del swap del archivo (cero escrituras al inodo huérfano).
             let result = await DataBackup.runImport(beforeSwap: { await model.repo.quiesceForRestore() })
-            handleBackup(result)
+            settleBackup(result)
         }
     }
+    /// Aterriza el resultado del respaldo en el aviso de la pantalla.
     @MainActor
-    private func handleBackup(_ result: DataBackup.BackupResult) {
-        backupBusy = false
-        switch result {
+    private func settleBackup(_ resultado: DataBackup.BackupResult) {
+        backupRunning = false
+        switch resultado {
         case .cancelled: return
         case .exported(let url):
-            backupAlertTitle = String(localized: "Backup exported")
-            backupAlertMessage = String(localized: "Saved to \(url.lastPathComponent). Copy this file to your other device and use Import there to restore everything.")
-            backupAlertIsError = false; showBackupAlert = true
+            backupNoticeTitle = String(localized: "Backup exported")
+            backupNoticeBody = String(localized: "Saved to \(url.lastPathComponent). Copy this file to your other device and use Import there to restore everything.")
+            backupNoticeIsError = false; showBackupNotice = true
         case .imported:
-            backupAlertTitle = String(localized: "Backup imported")
-            backupAlertMessage = String(localized: "Your data has been restored. Quit and reopen Cénit for it to take effect.")
-            backupAlertIsError = false; showBackupAlert = true
+            backupNoticeTitle = String(localized: "Backup imported")
+            backupNoticeBody = String(localized: "Your data has been restored. Quit and reopen Cénit for it to take effect.")
+            backupNoticeIsError = false; showBackupNotice = true
         case .failure(let message):
             // P0-1: si el swap falló, el .sqlite original quedó intacto — reabre ese archivo (no-op si
             // no se había quiescido, p. ej. un fallo de exportación).
             model.repo.unquiesceAfterFailedRestore()
-            backupAlertTitle = String(localized: "Backup problem"); backupAlertMessage = message
-            backupAlertIsError = true; showBackupAlert = true
+            backupNoticeTitle = String(localized: "Backup problem"); backupNoticeBody = message
+            backupNoticeIsError = true; showBackupNotice = true
         }
     }
 }
