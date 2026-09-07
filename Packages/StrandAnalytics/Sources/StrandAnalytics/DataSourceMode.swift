@@ -9,8 +9,9 @@ import StrandModels
 public enum DataSourceMode: String, Codable, CaseIterable, Sendable {
     /// On-device stream + Apple Health: the on-device row wins, Apple fills the gaps (the historical default).
     case combined
-    /// On-device stream only — Apple Health is excluded from every read (a night without it stays empty).
-    case whoopOnly
+    /// Legacy on-device stream only — Apple Health is excluded from every read (a night without it stays empty).
+    /// The raw value stays as it was written: any preference already saved on disk must still decode.
+    case legacyOnly = "whoopOnly"
     /// Apple Health only — the on-device stream is excluded from every read (its rows stay stored, just unused).
     case appleHealthOnly
 

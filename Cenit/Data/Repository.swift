@@ -389,10 +389,10 @@ final class Repository: ObservableObject {
         let snap: DashboardSnapshot
         do {
             snap = try await store.dashboardSnapshot(DashboardReadRequest(
-                strapDeviceId: deviceId, computedDeviceId: computedDeviceId, appleDeviceId: "apple-health",
+                legacyDeviceId: deviceId, computedDeviceId: computedDeviceId, appleDeviceId: "apple-health",
                 fromDay: fromDay, toDay: toDay, fromTs: lo, toTs: hi, sleepLimit: 4000,
                 includeApple: true,
-                includeWhoopSeries: false))
+                includeLegacySeries: false))
         } catch {
             // A failed read (e.g. SQLITE_BUSY past the 5 s timeout against a VACUUM/checkpoint barrier)
             // must NOT publish an empty snapshot as if it were the real dashboard: the previously

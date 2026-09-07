@@ -34,10 +34,10 @@ final class StoreBackendTests: XCTestCase {
     }
 
     private func request() -> DashboardReadRequest {
-        DashboardReadRequest(strapDeviceId: "fuente-importada", computedDeviceId: "fuente-derivada",
+        DashboardReadRequest(legacyDeviceId: "fuente-importada", computedDeviceId: "fuente-derivada",
                              appleDeviceId: "apple-health", fromDay: "2026-05-30", toDay: "2026-06-03",
                              fromTs: 1_780_185_600, toTs: 1_780_531_200,
-                             sleepLimit: 4000, includeApple: true, includeWhoopSeries: true)
+                             sleepLimit: 4000, includeApple: true, includeLegacySeries: true)
     }
 
     func testPoolInitRunsMigrations() async throws {
