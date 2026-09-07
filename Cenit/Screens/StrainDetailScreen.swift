@@ -684,13 +684,13 @@ struct StrainDetailModel {
 
 #if DEBUG
 private func sampleStrainSeries(days: Int = 60) -> [(day: String, value: Double)] {
-    let cal = Calendar(identifier: .gregorian)
-    let today = cal.startOfDay(for: Date())
-    let f = DayKey.utcFormatter
-    return (0..<days).map { i in
-        let date = cal.date(byAdding: .day, value: -(days - 1 - i), to: today)!
-        let v = 11 + 5 * sin(Double(i) / 5.0) + Double((i * 7) % 5) - 2
-        return (f.string(from: date), Swift.max(1, Swift.min(21, v)))
+    let gregoriano = Calendar(identifier: .gregorian)
+    let hoy = gregoriano.startOfDay(for: Date())
+    let formateador = DayKey.utcFormatter
+    return (0..<days).map { paso in
+        let fecha = gregoriano.date(byAdding: .day, value: -(days - 1 - paso), to: hoy)!
+        let valor = 11 + 5 * sin(Double(paso) / 5.0) + Double((paso * 7) % 5) - 2
+        return (formateador.string(from: fecha), Swift.max(1, Swift.min(21, valor)))
     }
 }
 

@@ -19,8 +19,8 @@ struct WorkoutEditSheet: View {
 
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var repo: Repository
-    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw = UnitSystem.metric.rawValue
-    private var system: UnitSystem { UnitSystem(rawValue: unitSystemRaw) ?? .metric }
+    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw: String = UnitSystem.metric.rawValue
+    private var system: UnitSystem { .init(rawValue: unitSystemRaw) ?? .metric }
 
     // MARK: Editable working copy
 

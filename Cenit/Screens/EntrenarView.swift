@@ -120,8 +120,8 @@ private struct EntrenarLanding: View {
     /// primera. FER-171 · Parte B: «EDITAR ›» del hub v18 (`EntrenarCapsulaPuerta` en
     /// `EntrenarHubSemana`) lleva directo a `WeeklyPlanEditorView` vía `openWeeklyPlan`, no a esta hoja.
     @State private var showWeekEditorSheet = false
-    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw = UnitSystem.metric.rawValue
-    private var unitSystem: UnitSystem { UnitSystem(rawValue: unitSystemRaw) ?? .metric }
+    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw: String = UnitSystem.metric.rawValue
+    private var unitSystem: UnitSystem { .init(rawValue: unitSystemRaw) ?? .metric }
     /// El MISMO «Marcar todo recuperado» que lee `TrainingBodyScreen` (FER-525): sin este filtro
     /// «Músculos cargados» seguía anunciando una espalda cargada después de que el atleta ya la
     /// marcó fresca en «Tu cuerpo» — la misma línea, dos respuestas.

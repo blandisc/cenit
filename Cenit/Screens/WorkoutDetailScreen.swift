@@ -30,8 +30,8 @@ struct WorkoutDetailScreen: View {
     @Environment(\.dismiss) private var dismiss
 
     /// Imperial/Metric display preference (display-only; nothing on disk changes). Same toggle the list reads.
-    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw = UnitSystem.metric.rawValue
-    private var unitSystem: UnitSystem { UnitSystem(rawValue: unitSystemRaw) ?? .metric }
+    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw: String = UnitSystem.metric.rawValue
+    private var unitSystem: UnitSystem { .init(rawValue: unitSystemRaw) ?? .metric }
 
     /// FER-362 · C4: a third-party strength envelope Apple Health already had (Strong, Hevy, Apple
     /// Fitness — surfaced honestly in «Fuerza», never a Cénit-measured session). Degrades several
@@ -429,10 +429,19 @@ struct WorkoutDetailScreen: View {
     /// A manual-source copy of an imported row, so "Duplicate as manual" pre-fills the add sheet without
     /// ever mutating the imported original (mirrors the list's old `asManualCopy`).
     private func asManualCopy(_ row: WorkoutRow) -> WorkoutRow {
-        WorkoutRow(startTs: row.startTs, endTs: row.endTs, sport: WorkoutSource.displaySport(row.sport),
-                   source: "manual", durationS: row.durationS, energyKcal: row.energyKcal,
-                   avgHr: row.avgHr, maxHr: row.maxHr, strain: row.strain, distanceM: row.distanceM,
-                   zonesJSON: row.zonesJSON, notes: row.notes)
+        // Sólo cambian el origen y el deporte ya legible; lo capturado viaja tal cual.
+        WorkoutRow(startTs: row.startTs,
+                   endTs: row.endTs,
+                   sport: WorkoutSource.displaySport(row.sport),
+                   source: "manual",
+                   durationS: row.durationS,
+                   energyKcal: row.energyKcal,
+                   avgHr: row.avgHr,
+                   maxHr: row.maxHr,
+                   strain: row.strain,
+                   distanceM: row.distanceM,
+                   zonesJSON: row.zonesJSON,
+                   notes: row.notes)
     }
 
     // MARK: - Formatting
