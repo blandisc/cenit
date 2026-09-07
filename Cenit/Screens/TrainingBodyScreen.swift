@@ -62,6 +62,10 @@ struct TrainingBodyScreen: View {
     /// segunda acta.
     @State private var showVeredictoActa = false
 
+    /// FER-470: idem — la columna del nombre de músculo (ancho fijo 96) se truncaba a Dynamic Type
+    /// grande. Escala con el texto; ancho exacto para que las filas alineen su filo.
+    @ScaledMetric(relativeTo: .body) private var muscleNameColWidth: CGFloat = 96
+
     /// All completed work sets in the trailing 84 days, expanded to per-muscle events (one fetch). The
     /// decay carries recency (no window, FER-719); the detail's weekly trend buckets the whole span.
     @State private var events: [MuscleFatigueMap.MuscleSetEvent] = []
@@ -694,7 +698,7 @@ struct TrainingBodyScreen: View {
             Text(MuscleAtlas.name(v.muscle))
                 .font(LiquidType.cuerpoLista).foregroundStyle(LiquidColor.tinta900)
                 .lineLimit(1).minimumScaleFactor(0.85)
-                .frame(width: 96, alignment: .leading)
+                .frame(width: muscleNameColWidth, alignment: .leading)
             GeometryReader { geo in
                 let w = geo.size.width
                 let lo = MuscleFatigueMap.weeklyBandLow / railTop

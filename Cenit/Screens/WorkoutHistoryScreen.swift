@@ -63,6 +63,11 @@ struct WorkoutHistoryScreen: View {
     /// Cuerpo `.all` (toda la actividad). Siembra `filtro`.
     let initialFilter: HistoryFilter
 
+    /// FER-470: la columna del nombre de músculo tenía ancho FIJO (86) — a Dynamic Type grande un
+    /// nombre localizado («Isquiotibiales») se truncaba. Escala con el texto (mismo patrón que
+    /// `EntrenarHubDosis`, ronda 3 · D5). Ancho EXACTO (no `minWidth`) para que las filas alineen su filo.
+    @ScaledMetric(relativeTo: .body) private var muscleNameColWidth: CGFloat = 86
+
     /// El único inicializador (FER-202): además de las clausuras/puerta, siembra el `@State filtro` con
     /// `initialFilter`. Sustituye al memberwise para poder sembrar el estado desde el argumento.
     init(initialFilter: HistoryFilter = .strength,
@@ -797,7 +802,7 @@ struct WorkoutHistoryScreen: View {
                         Text(MuscleAtlas.name(v.muscle))
                             .font(LiquidType.cuerpo).foregroundStyle(LiquidColor.tinta700)
                             .lineLimit(1).minimumScaleFactor(0.8)
-                            .frame(width: 86, alignment: .leading)
+                            .frame(width: muscleNameColWidth, alignment: .leading)
                         LiquidBarraProgreso(
                             fraccion: maxV > 0 ? min(v.setsPerWeek, maxV) / maxV : 0,
                             tono: v.setsPerWeek <= 0 ? LiquidColor.tinta10 : muscleTint(v.muscle),
