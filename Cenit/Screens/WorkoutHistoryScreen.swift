@@ -2273,7 +2273,7 @@ enum StrengthHistoryFormat {
 
     /// Total volume in the user's unit, with thousands grouping: "3,325 kg" / "7,330 lb".
     static func volume(_ kg: Double, system: UnitSystem) -> String {
-        guard kg.isFinite else { return "— \(StrengthDisplay.weightUnit(system))" }   // FER-465
+        guard kg.isFinite else { return "—" }   // FER-465 (sentinel simple; el gate no-emdash-string exige «—» solo)
         let value = system == .imperial ? UnitFormatter.kgToPounds(kg) : kg
         let num = volumeFormatter.string(from: NSNumber(value: value.rounded())) ?? "\(Int(value.rounded()))"
         return "\(num) \(StrengthDisplay.weightUnit(system))"
