@@ -1,0 +1,51 @@
+{
+  "familia": "entrenar",
+  "titulo": "Entrenar · flujo de fuerza",
+  "unidad": "estados",
+  "blurb": "El hub del tracker (plan sembrado: split Empuje/Jalón/Pierna, Empuje = hoy) → la sesión guiada serie por serie. El corazón del tracker de fuerza.",
+  "nodos": [
+    {
+      "id": "hub",
+      "titulo": "Entrenar · hub",
+      "fixture": "train",
+      "png": "entrenar-hub.png",
+      "x": 0,
+      "y": 0,
+      "condicion": "rutina de hoy («Empuje») + recuperación + «La sesión de hoy» + Tu Plan semanal + herramientas",
+      "pasos": [
+        {
+          "nav": "train",
+          "settle": 4
+        }
+      ]
+    },
+    {
+      "id": "sesion",
+      "titulo": "Sesión guiada de fuerza",
+      "fixture": "train",
+      "png": "entrenar-sesion.png",
+      "x": 520,
+      "y": 0,
+      "condicion": "«En curso» · foco serie×serie: tabla editable (kg/reps/RPE) + descanso por FC + siguientes ejercicios",
+      "pasos": [
+        {
+          "nav": "train",
+          "settle": 3
+        },
+        {
+          "tapText": "Empezar"
+        },
+        {
+          "wait": 3
+        }
+      ]
+    }
+  ],
+  "aristas": [
+    {
+      "de": "hub",
+      "a": "sesion",
+      "etiqueta": "Empezar"
+    }
+  ]
+}

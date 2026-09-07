@@ -49,6 +49,10 @@ enum ScreenshotFixtures {
     /// `refreshSeq` bump (which drives TodayView's `loadAll`, reading the workouts + HR we just wrote).
     @MainActor
     static func seed(_ model: AppModel, state: String) async {
+        // FER-381 (mapa 100 %): una familia de pantallas puede registrar su propio estado en
+        // `FixtureRegistry`. Si alguna lo toma, no seguimos con el switch histórico de este archivo —
+        // así las olas de captura agregan estados sin tocar `ScreenshotFixtures`.
+        if await FixtureRegistry.seed(named: state, model) { return }
         let cal = Calendar(identifier: .gregorian)
         let today = cal.startOfDay(for: Date())
 
