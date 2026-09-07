@@ -1663,7 +1663,11 @@ private struct CuerpoLanding: View {
         calibrating != nil ? "Calibrating your baseline" : "No reading yet"
     }
 
-    private func sleepText(_ mins: Double) -> String { "\(Int(mins) / 60)h \(Int(mins) % 60)m" }
+    private func sleepText(_ mins: Double) -> String {
+        guard mins.isFinite else { return "—" }   // FER-428: `Int(NaN/∞)` es trap.
+        let m = Swift.max(0, Int(mins.rounded()))
+        return "\(m / 60)h \(m % 60)m"
+    }
 
     private func intString(_ v: Double) -> String { CenitFormat.groupedInt(v) }
 

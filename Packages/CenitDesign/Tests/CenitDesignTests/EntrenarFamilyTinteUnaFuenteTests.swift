@@ -156,8 +156,11 @@ final class BotonEmpezarContrasteTests: XCTestCase {
     /// tres fallan» habría sido exagerar para justificar la decisión. La prueba clava el hecho
     /// exacto, y truena si algún día otro tinte cruza el piso en cualquier dirección.
     func testSoloElAmbarDeEmpujeReprobabaComoFondoDeTextoClaro() {
+        // FER-448: los tintes son `LiquidTheme.dynamic` desde A1/A2 y `rgbaComponents` los resuelve
+        // con la apariencia del HOST, así que en un Mac en modo oscuro las cuatro familias
+        // reprobaban. La prueba mide el modo claro: se resuelve explícito, como los tests de oscuro.
         let reprueban = EntrenarFamily.allCases.filter {
-            OKLab.contrastRatio(theme.paperHi, $0.tint(theme)) < 4.5
+            OKLab.contrastRatio(theme.paperHi, $0.tint(theme).resolved(at: .light)) < 4.5
         }
         XCTAssertEqual(reprueban, [.push],
                        "cambió qué familias reprueban como fondo: revisar la decisión del botón")

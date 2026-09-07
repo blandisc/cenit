@@ -296,7 +296,8 @@
         {
           "wait": 1
         }
-      ]
+      ],
+      "omitido": "no capturó (estado sin permiso HealthKit no forzado en captura) — backlog"
     },
     {
       "id": "historial-fuerza-datos",
@@ -326,7 +327,8 @@
         {
           "wait": 1
         }
-      ]
+      ],
+      "omitido": "no capturó (flaky en la corrida) — backlog re-captura"
     },
     {
       "id": "historial-readerror",
@@ -437,7 +439,8 @@
         {
           "wait": 1
         }
-      ]
+      ],
+      "omitido": "no capturó (flaky) — backlog re-captura"
     },
     {
       "id": "ejercicio-con-historia",
@@ -551,7 +554,8 @@
         {
           "wait": 4
         }
-      ]
+      ],
+      "omitido": "capturó igual que volumen-vacio — el fixture no pobló el volumen en captura (backlog)"
     },
     {
       "id": "volumen-readerror",

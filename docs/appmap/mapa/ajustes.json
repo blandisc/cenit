@@ -9,61 +9,100 @@
       "titulo": "Ajustes · raíz",
       "condicion": "Perfil inline (edad/sexo/peso/estatura/FC máx) + secciones App/Data/Biblioteca/Monitoreo/avisos/Experimental/More",
       "pasos": [
-        { "nav": "ajustes", "settle": 3 }
+        {
+          "nav": "ajustes",
+          "settle": 3
+        }
       ]
     },
     {
       "id": "unidades",
       "titulo": "Unidades y formato",
       "condicion": "Hoja `UnidadesSheet` — sistema métrico/imperial + temperatura, ajustada al contenido",
-      "args": ["-cenit.route", "ajustes/unidades"],
+      "args": [
+        "-cenit.route",
+        "ajustes/unidades"
+      ],
       "pasos": [
-        { "nav": "ajustes", "settle": 3 }
+        {
+          "nav": "ajustes",
+          "settle": 3
+        }
       ]
     },
     {
       "id": "fc-max",
       "titulo": "FC máxima",
       "condicion": "Hoja `MaxHRSheet` — Automático (Tanaka 208 − 0.7×edad) / Manual (rueda 100–230 bpm)",
-      "args": ["-cenit.route", "ajustes/fcmax"],
+      "args": [
+        "-cenit.route",
+        "ajustes/fcmax"
+      ],
       "pasos": [
-        { "nav": "ajustes", "settle": 3 }
+        {
+          "nav": "ajustes",
+          "settle": 3
+        }
       ]
     },
     {
       "id": "ciclo",
       "titulo": "Fase del ciclo · consentimiento",
       "condicion": "Hoja `CyclePhaseSheet` con el experimento apagado (default) — pantalla de consentimiento, qué hace/no hace",
-      "args": ["-cenit.route", "ajustes/ciclo"],
+      "args": [
+        "-cenit.route",
+        "ajustes/ciclo"
+      ],
       "pasos": [
-        { "nav": "ajustes", "settle": 3 }
+        {
+          "nav": "ajustes",
+          "settle": 3
+        }
       ]
     },
     {
       "id": "perfil-edad",
       "titulo": "Perfil · rueda de edad",
       "condicion": "`ProfileWheelSheet` — Picker de rueda 13…100 años",
-      "args": ["-cenit.route", "ajustes/perfil-edad"],
+      "args": [
+        "-cenit.route",
+        "ajustes/perfil-edad"
+      ],
       "pasos": [
-        { "nav": "ajustes", "settle": 3 }
+        {
+          "nav": "ajustes",
+          "settle": 3
+        }
       ]
     },
     {
       "id": "perfil-peso",
       "titulo": "Perfil · rueda de peso",
       "condicion": "`ProfileWheelSheet` — Picker de rueda en kg (o lb según preferencia de unidades)",
-      "args": ["-cenit.route", "ajustes/perfil-peso"],
+      "args": [
+        "-cenit.route",
+        "ajustes/perfil-peso"
+      ],
       "pasos": [
-        { "nav": "ajustes", "settle": 3 }
+        {
+          "nav": "ajustes",
+          "settle": 3
+        }
       ]
     },
     {
       "id": "perfil-altura",
       "titulo": "Perfil · rueda de estatura",
       "condicion": "`ProfileWheelSheet` — Picker de rueda en cm (o ft/in según preferencia de unidades)",
-      "args": ["-cenit.route", "ajustes/perfil-altura"],
+      "args": [
+        "-cenit.route",
+        "ajustes/perfil-altura"
+      ],
       "pasos": [
-        { "nav": "ajustes", "settle": 3 }
+        {
+          "nav": "ajustes",
+          "settle": 3
+        }
       ]
     },
     {
@@ -71,9 +110,16 @@
       "titulo": "Aviso matutino",
       "condicion": "`AvisoMatutinoSection` en su estado por defecto (apagado, permiso sin pedir) — toggle + glosa",
       "pasos": [
-        { "nav": "ajustes", "settle": 2 },
-        { "swipeUp": 3 },
-        { "wait": 1 }
+        {
+          "nav": "ajustes",
+          "settle": 2
+        },
+        {
+          "swipeUp": 3
+        },
+        {
+          "wait": 1
+        }
       ]
     },
     {
@@ -81,21 +127,40 @@
       "titulo": "Recordatorio de entreno",
       "condicion": "`RecordatorioEntrenoSection` en su estado por defecto (apagado, sin plan asignado aún)",
       "pasos": [
-        { "nav": "ajustes", "settle": 2 },
-        { "swipeUp": 4 },
-        { "wait": 1 }
-      ]
+        {
+          "nav": "ajustes",
+          "settle": 2
+        },
+        {
+          "swipeUp": 4
+        },
+        {
+          "wait": 1
+        }
+      ],
+      "omitido": "la ruta abrió la misma hoja que aviso-matutino en captura — afinar ruta (backlog)"
     },
     {
       "id": "historial-fa-informa",
       "titulo": "Historial de FA · informa",
       "condicion": "`HistorialFASection` visible (default sin evidencia de series densas) — las dos caras, qué afina / qué cuesta",
-      "args": ["-cenit.freshStore", "YES"],
+      "args": [
+        "-cenit.freshStore",
+        "YES"
+      ],
       "pasos": [
-        { "nav": "ajustes", "settle": 2 },
-        { "swipeUp": 5 },
-        { "wait": 1 }
-      ]
+        {
+          "nav": "ajustes",
+          "settle": 2
+        },
+        {
+          "swipeUp": 5
+        },
+        {
+          "wait": 1
+        }
+      ],
+      "omitido": "capturó igual que la hoja previa — ruta pendiente de afinar (backlog)"
     },
     {
       "id": "historial-fa-oculta",
@@ -103,10 +168,18 @@
       "condicion": "Con una noche `apple_rmssd_night` ya registrada, `HistorialFAPuerta.estado` da `.yaLleganSeries` y la sección desaparece del scroll",
       "fixture": "historialFAOculta",
       "pasos": [
-        { "nav": "ajustes", "settle": 2 },
-        { "swipeUp": 5 },
-        { "wait": 1 }
-      ]
+        {
+          "nav": "ajustes",
+          "settle": 2
+        },
+        {
+          "swipeUp": 5
+        },
+        {
+          "wait": 1
+        }
+      ],
+      "omitido": "capturó igual que la hoja previa — ruta pendiente de afinar (backlog)"
     },
     {
       "id": "descarga-animaciones-idle",
@@ -136,9 +209,15 @@
       "id": "fuentes-sin-conexion",
       "titulo": "Fuentes de datos · sin conexión",
       "condicion": "health.auth ∈ {.unknown, .denied} (default de simulador sin autorizar) — botón «Connect Apple Health»",
-      "args": ["-cenit.freshStore", "YES"],
+      "args": [
+        "-cenit.freshStore",
+        "YES"
+      ],
       "pasos": [
-        { "nav": "datasources", "settle": 3 }
+        {
+          "nav": "datasources",
+          "settle": 3
+        }
       ]
     },
     {
@@ -157,31 +236,57 @@
       "id": "fuentes-strengthcsv-error",
       "titulo": "Fuentes de datos · error de export CSV",
       "condicion": "strengthCSVError == true — nota de error bajo «Export strength history (CSV)»",
-      "args": ["-cenit.readError", "strengthCSV"],
+      "args": [
+        "-cenit.readError",
+        "strengthCSV"
+      ],
       "pasos": [
-        { "nav": "datasources", "settle": 2 },
-        { "swipeUp": 6 },
-        { "wait": 1 }
+        {
+          "nav": "datasources",
+          "settle": 2
+        },
+        {
+          "swipeUp": 6
+        },
+        {
+          "wait": 1
+        }
       ]
     },
     {
       "id": "fuentes-backup-ok",
       "titulo": "Fuentes de datos · backup exportado",
       "condicion": "LiquidAviso verde superior — «Backup exported»",
-      "args": ["-cenit.readError", "backupOk"],
+      "args": [
+        "-cenit.readError",
+        "backupOk"
+      ],
       "pasos": [
-        { "nav": "datasources", "settle": 2 },
-        { "wait": 1 }
+        {
+          "nav": "datasources",
+          "settle": 2
+        },
+        {
+          "wait": 1
+        }
       ]
     },
     {
       "id": "fuentes-backup-error",
       "titulo": "Fuentes de datos · problema de backup",
       "condicion": "LiquidAviso rojo superior — «Backup problem»",
-      "args": ["-cenit.readError", "backupError"],
+      "args": [
+        "-cenit.readError",
+        "backupError"
+      ],
       "pasos": [
-        { "nav": "datasources", "settle": 2 },
-        { "wait": 1 }
+        {
+          "nav": "datasources",
+          "settle": 2
+        },
+        {
+          "wait": 1
+        }
       ]
     },
     {
@@ -194,18 +299,30 @@
       "id": "apple-salud-cargando",
       "titulo": "Apple Salud · cargando",
       "condicion": "loaded == false — «Reading your Apple Health history…» con spinner",
-      "args": ["-cenit.slowLoad", "YES"],
+      "args": [
+        "-cenit.slowLoad",
+        "YES"
+      ],
       "pasos": [
-        { "nav": "applehealth", "settle": 1 }
+        {
+          "nav": "applehealth",
+          "settle": 1
+        }
       ]
     },
     {
       "id": "apple-salud-sin-filas",
       "titulo": "Apple Salud · sin filas",
       "condicion": "loaded == true, hasAnyData == false — «Nothing imported yet»",
-      "args": ["-cenit.freshStore", "YES"],
+      "args": [
+        "-cenit.freshStore",
+        "YES"
+      ],
       "pasos": [
-        { "nav": "applehealth", "settle": 3 }
+        {
+          "nav": "applehealth",
+          "settle": 3
+        }
       ]
     },
     {
@@ -214,7 +331,10 @@
       "condicion": "loaded == true, hasAnyData == true — grid de tiles + gráficas por sección (Heart & Vitals, Activity, Body, Sleep)",
       "fixture": "appleHealthDays",
       "pasos": [
-        { "nav": "applehealth", "settle": 3 }
+        {
+          "nav": "applehealth",
+          "settle": 3
+        }
       ]
     },
     {
@@ -222,28 +342,103 @@
       "titulo": "Acerca de y soporte",
       "condicion": "`SupportView` — versión + qué es Cénit",
       "pasos": [
-        { "nav": "support", "settle": 3 }
+        {
+          "nav": "support",
+          "settle": 3
+        }
       ]
     }
   ],
   "aristas": [
-    { "de": "raiz", "a": "unidades", "etiqueta": "Units & format" },
-    { "de": "raiz", "a": "fc-max", "etiqueta": "Max heart rate" },
-    { "de": "raiz", "a": "ciclo", "etiqueta": "Cycle phase" },
-    { "de": "raiz", "a": "perfil-edad", "etiqueta": "Age" },
-    { "de": "raiz", "a": "perfil-peso", "etiqueta": "Weight" },
-    { "de": "raiz", "a": "perfil-altura", "etiqueta": "Height" },
-    { "de": "raiz", "a": "aviso-matutino", "etiqueta": "scroll" },
-    { "de": "raiz", "a": "recordatorio-entreno", "etiqueta": "scroll" },
-    { "de": "raiz", "a": "historial-fa-informa", "etiqueta": "scroll" },
-    { "de": "historial-fa-informa", "a": "historial-fa-oculta", "etiqueta": "series densas" },
-    { "de": "raiz", "a": "fuentes-sin-conexion", "etiqueta": "Data Sources" },
-    { "de": "fuentes-sin-conexion", "a": "fuentes-strengthcsv-error", "etiqueta": "Export CSV falla" },
-    { "de": "fuentes-sin-conexion", "a": "fuentes-backup-ok", "etiqueta": "Export ok" },
-    { "de": "fuentes-sin-conexion", "a": "fuentes-backup-error", "etiqueta": "Export falla" },
-    { "de": "fuentes-sin-conexion", "a": "apple-salud-cargando", "etiqueta": "Ver datos importados" },
-    { "de": "apple-salud-cargando", "a": "apple-salud-sin-filas", "etiqueta": "carga" },
-    { "de": "apple-salud-sin-filas", "a": "apple-salud-con-filas", "etiqueta": "con datos" },
-    { "de": "raiz", "a": "soporte", "etiqueta": "About & support" }
+    {
+      "de": "raiz",
+      "a": "unidades",
+      "etiqueta": "Units & format"
+    },
+    {
+      "de": "raiz",
+      "a": "fc-max",
+      "etiqueta": "Max heart rate"
+    },
+    {
+      "de": "raiz",
+      "a": "ciclo",
+      "etiqueta": "Cycle phase"
+    },
+    {
+      "de": "raiz",
+      "a": "perfil-edad",
+      "etiqueta": "Age"
+    },
+    {
+      "de": "raiz",
+      "a": "perfil-peso",
+      "etiqueta": "Weight"
+    },
+    {
+      "de": "raiz",
+      "a": "perfil-altura",
+      "etiqueta": "Height"
+    },
+    {
+      "de": "raiz",
+      "a": "aviso-matutino",
+      "etiqueta": "scroll"
+    },
+    {
+      "de": "raiz",
+      "a": "recordatorio-entreno",
+      "etiqueta": "scroll"
+    },
+    {
+      "de": "raiz",
+      "a": "historial-fa-informa",
+      "etiqueta": "scroll"
+    },
+    {
+      "de": "historial-fa-informa",
+      "a": "historial-fa-oculta",
+      "etiqueta": "series densas"
+    },
+    {
+      "de": "raiz",
+      "a": "fuentes-sin-conexion",
+      "etiqueta": "Data Sources"
+    },
+    {
+      "de": "fuentes-sin-conexion",
+      "a": "fuentes-strengthcsv-error",
+      "etiqueta": "Export CSV falla"
+    },
+    {
+      "de": "fuentes-sin-conexion",
+      "a": "fuentes-backup-ok",
+      "etiqueta": "Export ok"
+    },
+    {
+      "de": "fuentes-sin-conexion",
+      "a": "fuentes-backup-error",
+      "etiqueta": "Export falla"
+    },
+    {
+      "de": "fuentes-sin-conexion",
+      "a": "apple-salud-cargando",
+      "etiqueta": "Ver datos importados"
+    },
+    {
+      "de": "apple-salud-cargando",
+      "a": "apple-salud-sin-filas",
+      "etiqueta": "carga"
+    },
+    {
+      "de": "apple-salud-sin-filas",
+      "a": "apple-salud-con-filas",
+      "etiqueta": "con datos"
+    },
+    {
+      "de": "raiz",
+      "a": "soporte",
+      "etiqueta": "About & support"
+    }
   ]
 }

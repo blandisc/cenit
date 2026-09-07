@@ -44,7 +44,7 @@ RANGES = [DEFAULT_RANGE]     # se sobreescribe a FULL_RANGES con --full en main(
 # Estados del detalle de métrica que SÍ tienen palanca en esta familia: con datos, vacío, calibrando.
 # `focus` (la profundidad de Hoy/TodayView) NO existe en Cuerpo — `MetricDetailScreen` abre siempre en
 # `.full` — así que ya no se emite (antes era un nodo `omitido` por métrica, puro relleno gris).
-STATES = ["full", "sin-lecturas", "calibrando"]
+STATES = ["full"]   # un estado por métrica (los vacío/calibrando no diferenciaban en captura, FER-392); --full-states los restaura
 
 
 def slug_range(r: str) -> str:
@@ -128,6 +128,10 @@ def aux_nodes() -> list[dict]:
         ("edad-corporal", "edad-corporal", "Edad corporal / Body Age"),
     ]
     nodes = []
+    # El «vacío» de comparar/explorar/actividad capturó idéntico al «con datos» (la pantalla muestra su
+    # estado por defecto poblado aunque el store esté vacío) — se marca omitido para no repetir foto
+    # (FER-392); afinar el estado vacío de esas tres es backlog. Edad física/corporal sí diferencian.
+    NO_DIFERENCIA_VACIO = {"comparar", "explorar", "actividad"}
     for i, (route_key, id_prefix, blurb) in enumerate(screens):
         for state, fixture in (("full", "tendencias_full"), ("vacio", None)):
             node = {
@@ -142,6 +146,8 @@ def aux_nodes() -> list[dict]:
             }
             if fixture:
                 node["fixture"] = fixture
+            if state == "vacio" and route_key in NO_DIFERENCIA_VACIO:
+                node["omitido"] = "el estado vacío capturó idéntico al de con datos (pantalla poblada por defecto) — afinar backlog"
             nodes.append(node)
     nodes.append({
         "id": "ciclo",

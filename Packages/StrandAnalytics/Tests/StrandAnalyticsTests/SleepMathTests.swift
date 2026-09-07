@@ -20,29 +20,34 @@ final class SleepMathTests: XCTestCase {
 
     // MARK: needMinutes
 
-    func testNeedFloorsAt7point5h() {
-        XCTAssertEqual(SleepMath.needMinutes([]), 450)                       // no data → floor
-        XCTAssertEqual(SleepMath.needMinutes(days([360, 360, 360])), 450)    // chronic short → floor, not 360
-    }
-
-    func testNeedIsMeanWhenAboveFloor() {
-        XCTAssertEqual(SleepMath.needMinutes(days([520, 540, 560])), 540, accuracy: 0.001)
+    // FER-409: need is a FIXED target (7.5 h), no longer the personal mean.
+    func testNeedIsFixedTargetRegardlessOfData() {
+        XCTAssertEqual(SleepMath.needMinutes([]), 450)                       // no data → target
+        XCTAssertEqual(SleepMath.needMinutes(days([360, 360, 360])), 450)    // chronic short → target, not 360
+        XCTAssertEqual(SleepMath.needMinutes(days([520, 540, 560])), 450)    // long sleeper → still 450, NOT the mean
     }
 
     // MARK: debtMinutes
 
-    func testNoDebtWhenAllAtOrAboveNeed() {
-        // mean = need = 540; every night meets it → zero debt.
+    func testNoDebtWhenAllAtOrAboveTarget() {
+        // Every night meets the 450 target → zero debt.
         XCTAssertEqual(SleepMath.debtMinutes(days([540, 540, 540])), 0, accuracy: 0.001)
     }
 
-    func testDebtSumsPerNightShortfallVsNeed() {
-        // need = max(450, mean[480,420]=450) = 450. debt = (450-480→0) + (450-420→30) = 30.
+    // The whole point of FER-409: a good sleeper with normal variance owes NOTHING. Under the old
+    // personal-mean need this vector had need=mean=540 and reported 120 min of "debt" despite a 9-h
+    // average; against the fixed 450 target every night is a surplus → 0.
+    func testHighAverageSleeperWithVarianceHasNoDebt() {
+        XCTAssertEqual(SleepMath.debtMinutes(days([600, 480, 600, 480])), 0, accuracy: 0.001)
+    }
+
+    func testDebtSumsPerNightShortfallVsTarget() {
+        // Fixed need = 450. debt = (450-480→0) + (450-420→30) = 30.
         XCTAssertEqual(SleepMath.debtMinutes(days([480, 420])), 30, accuracy: 0.001)
     }
 
     func testLongNightDoesNotPayOffShortNight() {
-        // need = max(450, mean[600,300]=450) = 450. Per-night floored: 0 + 150 = 150 (surplus ignored).
+        // Fixed need = 450. Per-night floored: 0 + 150 = 150 (surplus ignored).
         XCTAssertEqual(SleepMath.debtMinutes(days([600, 300])), 150, accuracy: 0.001)
     }
 

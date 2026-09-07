@@ -636,7 +636,7 @@ struct WeeklyPlanEditorView: View {
             ForEach(Array(vol.enumerated()), id: \.offset) { _, e in
                 LiquidBarraProgreso(fraccion: 1, tono: e.key.tint(), pista: e.key.tint(),
                                     altura: LiquidSpace.s100, animada: false)
-                    .frame(width: max(12, CGFloat(e.value) / CGFloat(maxV) * 34),
+                    .frame(width: max(12, CGFloat(e.value) / CGFloat(max(1, maxV)) * 34),
                            height: LiquidSpace.s100)
             }
         }

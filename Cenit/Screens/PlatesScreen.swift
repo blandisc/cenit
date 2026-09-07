@@ -259,10 +259,12 @@ struct PlatesScreen: View {
     // MARK: Formatting
 
     private func kg(_ v: Double) -> String {
-        v == v.rounded() ? String(Int(v.rounded())) : String(format: "%.2f", v).replacingOccurrences(of: ".", with: ",")
+        guard v.isFinite else { return "—" }   // FER-428: nunca `Int(.infinity)` (dato viejo envenenado).
+        return v == v.rounded() ? String(Int(v.rounded())) : String(format: "%.2f", v).replacingOccurrences(of: ".", with: ",")
     }
     /// A plate weight without a trailing «,0» (60, not 60,0) but keeping a half decimal (2,5 / 1,25).
     private func plate(_ v: Double) -> String {
+        guard v.isFinite else { return "—" }   // FER-428
         if v == v.rounded() { return String(Int(v.rounded())) }
         let s = (v * 100).truncatingRemainder(dividingBy: 100) == 25 ? String(format: "%.2f", v) : String(format: "%.1f", v)
         return s.replacingOccurrences(of: ".", with: ",")

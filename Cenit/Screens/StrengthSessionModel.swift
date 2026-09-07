@@ -101,7 +101,7 @@ struct StrengthSummary: Equatable {
         /// The volume change vs last time, as a rounded percent — single-sourced so the headline and
         /// the comparison bar never disagree. `nil` when there's no prior volume to compare against.
         func volumeDeltaPct(_ currentVolumeKg: Double) -> Int? {
-            guard prevVolumeKg > 0 else { return nil }
+            guard prevVolumeKg > 0, currentVolumeKg.isFinite else { return nil }
             return Int((((currentVolumeKg - prevVolumeKg) / prevVolumeKg) * 100).rounded())
         }
     }
@@ -882,6 +882,10 @@ final class StrengthSessionModel: ObservableObject {
     /// Set a row's weight (kg) directly from its cell. Used by the inline table; the Foco keeps its steppers.
     func setWeight(exercise ei: Int, set si: Int, kg: Double) {
         guard runs.indices.contains(ei), runs[ei].sets.indices.contains(si) else { return }
+        // FER-428: `Double("999…")` desborda a `.infinity`, no a nil, y `max(0, .infinity)` la deja
+        // pasar. Un peso no finito guardado truena después (`Int(.infinity)` en discos, división en el
+        // % de volumen). Chokepoint del modelo: un valor no finito no se escribe.
+        guard kg.isFinite else { return }
         runs[ei].sets[si].weightKg = max(0, kg)
         runs[ei].sets[si].touched = true
     }

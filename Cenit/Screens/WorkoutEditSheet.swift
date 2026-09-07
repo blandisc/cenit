@@ -503,7 +503,9 @@ struct WorkoutEditSheet: View {
 
     private static func parseDouble(_ raw: String) -> Double? {
         let trimmed = raw.trimmingCharacters(in: .whitespaces).replacingOccurrences(of: ",", with: ".")
-        return trimmed.isEmpty ? nil : Double(trimmed)
+        // FER-428: el teclado de sistema acepta PASTE («1e999»), y `Double` lo parsea a `.infinity`
+        // (no nil). Rechaza no-finito aquí para no guardar un peso envenenado que trueca en el historial.
+        return trimmed.isEmpty ? nil : Double(trimmed).flatMap { $0.isFinite ? $0 : nil }
     }
 
     /// A `SetEntry` snapshot for read-only time/distance display (the editor doesn't type those).
