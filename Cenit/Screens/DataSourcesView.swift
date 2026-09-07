@@ -109,7 +109,37 @@ struct DataSourcesView: View {
             }
         }
         .animation(LiquidMotion.glassOut(LiquidMotion.quick), value: showBackupAlert)
+        #if os(iOS) && DEBUG
+        // FER-389 (mapa 100 %): `-noop.readError <strengthCSV|backupOk|backupError>` fuerza, para la
+        // captura, un estado que solo sale de un intento real de exportar/importar — nunca alcanzable
+        // así en producción.
+        .onAppear { aplicarEstadoDebugSiPide() }
+        #endif
     }
+
+    #if os(iOS) && DEBUG
+    private func aplicarEstadoDebugSiPide() {
+        switch UserDefaults.standard.string(forKey: "noop.readError") {
+        case "strengthCSV":
+            strengthCSVError = true
+        case "backupOk":
+            // Contenido demo, no localizado (nunca lo ve un dueño real) — literales planos, no
+            // `String(localized:)`, para no meter una clave nueva al catálogo por un mensaje que
+            // solo existe para la captura.
+            backupAlertTitle = "Backup exported"
+            backupAlertMessage = "Saved to cenit-backup.json. Copy this file to your other device and use Import there to restore everything."
+            backupAlertIsError = false
+            showBackupAlert = true
+        case "backupError":
+            backupAlertTitle = "Backup problem"
+            backupAlertMessage = "Couldn't read that file."
+            backupAlertIsError = true
+            showBackupAlert = true
+        default:
+            break
+        }
+    }
+    #endif
 
     // MARK: - Header
 

@@ -153,6 +153,22 @@ private struct AjustesLanding: View {
             ProfileWheelSheet(wheel: wheel, profile: profile)
         }
         .sheet(item: $presentedSheet) { screen in sheetContent(screen) }
+        #if DEBUG
+        // FER-389 (mapa 100 %): `-noop.route ajustes/<clave>` abre directo la hoja/hija que esta
+        // pantalla no expone por `nav` (unidades, FC máx, ciclo, las 3 ruedas de perfil) — atajo de
+        // captura del harness, nunca alcanzable así en producción.
+        .onAppear {
+            switch DebugRoute.key(for: "ajustes") {
+            case "unidades":      showUnits = true
+            case "fcmax":         showMaxHR = true
+            case "ciclo":         showCyclePhase = true
+            case "perfil-edad":   profileWheel = .age
+            case "perfil-peso":   profileWheel = .weight
+            case "perfil-altura": profileWheel = .height
+            default: break
+            }
+        }
+        #endif
         // Confirm de recalibrar cuelga del landing ESTABLE (no del idle-branch de `recalibrateRow`):
         // si viviera solo en el `else`, el swap a «Deshacer» desmontaría al presentador a media salida.
         // El de borrar-animaciones vive en la tarjeta de Biblioteca (vista distinta) — dos
