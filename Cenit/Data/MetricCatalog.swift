@@ -38,6 +38,7 @@ struct MetricDescriptor: Identifiable, Hashable {
     }
 
     func format(_ v: Double) -> String {
+        guard v.isFinite else { return "—" }   // FER-465
         let n = decimals == 0 ? String(Int(v.rounded())) : String(format: "%.\(decimals)f", v)
         return unit.isEmpty ? n : "\(n) \(unit)"
     }
