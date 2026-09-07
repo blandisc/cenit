@@ -29,6 +29,19 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
   VoiceOver, igual que borrar una serie. La hoja de respiración deja de reservar un bloque «Tu
   patrón» que nunca se pintaba.
 
+### Quien no tiene reloj también ve el Ciclo / Without a watch you still see the Cycle (FER-431)
+### ES
+- Si llegas al onboarding sin frecuencia cardiaca en reposo o sin datos de Salud, después del
+  Perfil ya no sales a ciegas: pasa un Ciclo adaptado que nombra Hoy, Tendencias, Entrenar y
+  Ajustes con lo que cada una hace sin reloj, muestra el dock real y te deja en el destino que
+  elegiste. Sin aviso matutino ni promesa de veredicto.
+
+### EN
+- If onboarding lands without resting heart rate or without Health data, after Profile you no
+  longer exit blind: an adapted Cycle names Today, Trends, Train and Settings for what each does
+  without a watch, shows the real dock, and lands you where you chose. No morning reminder and no
+  made-up verdict.
+
 ### Los planes y programas que importas ahora se llaman `cenit.*` (FER-382)
 - El archivo que armas con tu LLM (rutina o plan de comida) pasa a identificarse como
   `cenit.workout.v1` / `cenit.diet.v1`. **Los archivos que ya tienes siguen funcionando**: Cénit

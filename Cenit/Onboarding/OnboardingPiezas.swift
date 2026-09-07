@@ -527,6 +527,50 @@ enum OnbCopy {
                defaultValue: "Resting counts too. There is no streak to lose here.")
     }
 
+    // Ciclo adaptado sin reloj (FER-431 · D3 = A). Nombres de pestaña: mismas claves que el
+    // dock (`LiquidTabRotulos+Cenit`: «Today» / «Trends» / «Train» / «Settings»).
+    static var cicloSinRelojOverline: String {
+        String(localized: "onb.6.sinreloj.overline", defaultValue: "And without a watch, what")
+    }
+    static var cicloSinRelojTitular: String {
+        String(localized: "onb.6.sinreloj.titular", defaultValue: "Train does. Today waits.")
+    }
+    static var cicloSinRelojCuerpo: String {
+        String(localized: "onb.6.sinreloj.cuerpo",
+               defaultValue: "Without your night's heart rate there is no morning word, and I won't make one up. What you do have, in full, is Train.")
+    }
+    static var cicloSinRelojOverlineMapa: String {
+        String(localized: "onb.6.sinreloj.overline.mapa", defaultValue: "What you'll find")
+    }
+    static var pestanaHoy: String { String(localized: "Today") }
+    static var pestanaTendencias: String { String(localized: "Trends") }
+    static var pestanaEntrenar: String { String(localized: "Train") }
+    static var pestanaAjustes: String { String(localized: "Settings") }
+    static var cicloSinRelojHoy: String {
+        String(localized: "onb.6.sinreloj.hoy",
+               defaultValue: "Stays quiet until you sleep with a watch. It tells you what's missing, never a made-up number.")
+    }
+    static var cicloSinRelojHoySinSalud: String {
+        String(localized: "onb.6.sinreloj.hoy.sinsalud",
+               defaultValue: "Stays quiet until you connect Apple Health and sleep with a watch. It tells you what's missing, never a made-up number.")
+    }
+    static var cicloSinRelojTendencias: String {
+        String(localized: "onb.6.sinreloj.tendencias",
+               defaultValue: "Your signals over time. From today: steps and workouts. The rest, once there's a watch.")
+    }
+    static var cicloSinRelojEntrenar: String {
+        String(localized: "onb.6.sinreloj.entrenar",
+               defaultValue: "Your week's plan, your routines, the live session and the progression that goes up on its own.")
+    }
+    static var cicloSinRelojAjustes: String {
+        String(localized: "onb.6.sinreloj.ajustes",
+               defaultValue: "This is where the watch connects the day you have one. Two taps.")
+    }
+    static var cicloSinRelojAjustesSinSalud: String {
+        String(localized: "onb.6.sinreloj.ajustes.sinsalud",
+               defaultValue: "This is where Apple Health connects, and the watch the day you have one.")
+    }
+
     // Salida · «Ahora no»
     static var salidaOverline: String { String(localized: "onb.salida.overline", defaultValue: "That's okay") }
     static var salidaTitular: String {

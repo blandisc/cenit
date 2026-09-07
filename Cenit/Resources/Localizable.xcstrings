@@ -59804,6 +59804,176 @@
         }
       }
     },
+    "onb.6.sinreloj.ajustes" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This is where the watch connects the day you have one. Two taps."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aquí se conecta el reloj el día que lo tengas. Dos toques."
+          }
+        }
+      }
+    },
+    "onb.6.sinreloj.ajustes.sinsalud" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This is where Apple Health connects, and the watch the day you have one."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aquí se conecta Apple Salud, y el reloj el día que lo tengas."
+          }
+        }
+      }
+    },
+    "onb.6.sinreloj.cuerpo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Without your night's heart rate there is no morning word, and I won't make one up. What you do have, in full, is Train."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin la frecuencia cardiaca de tu noche no hay palabra de la mañana, y no te la voy a inventar. Lo que sí hay, completo, es Entrenar."
+          }
+        }
+      }
+    },
+    "onb.6.sinreloj.entrenar" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your week's plan, your routines, the live session and the progression that goes up on its own."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu plan de la semana, tus rutinas, la sesión en vivo y la progresión que sube sola."
+          }
+        }
+      }
+    },
+    "onb.6.sinreloj.hoy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stays quiet until you sleep with a watch. It tells you what's missing, never a made-up number."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se queda callado hasta que duermas con un reloj. Te dice qué le falta, nunca un número falso."
+          }
+        }
+      }
+    },
+    "onb.6.sinreloj.hoy.sinsalud" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stays quiet until you connect Apple Health and sleep with a watch. It tells you what's missing, never a made-up number."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se queda callado hasta que conectes Apple Salud y duermas con un reloj. Te dice qué le falta, nunca un número falso."
+          }
+        }
+      }
+    },
+    "onb.6.sinreloj.overline" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "And without a watch, what"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Y sin reloj, qué"
+          }
+        }
+      }
+    },
+    "onb.6.sinreloj.overline.mapa" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What you'll find"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qué vas a encontrar"
+          }
+        }
+      }
+    },
+    "onb.6.sinreloj.tendencias" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your signals over time. From today: steps and workouts. The rest, once there's a watch."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tus señales en el tiempo. Desde hoy: pasos y entrenos. Lo demás, cuando haya reloj."
+          }
+        }
+      }
+    },
+    "onb.6.sinreloj.titular" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Train does. Today waits."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entrenar hace. Hoy espera."
+          }
+        }
+      }
+    },
     "onb.6.tarjeta.cuerpo" : {
       "extractionState" : "manual",
       "localizations" : {

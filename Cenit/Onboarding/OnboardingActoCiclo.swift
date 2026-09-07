@@ -13,14 +13,34 @@ import StrandAnalytics
 //
 // Sin confeti y sin celebración: el veredicto de mañana puede ser «Recupera», y un onboarding que
 // termina en fiesta le pone un tono a la app que la app no sostiene al día siguiente.
+//
+// FER-431: las ramas `.sinRitmoEnReposo` / `.sinDatos` también llegan aquí, con una variante que
+// nombra las cuatro pestañas sin reloj y no ofrece el aviso matutino.
 
 struct OnbActoCiclo: View {
 
     let landing: OnboardingLanding?
+    /// CTA final aterriza en Entrenar cuando es `true` (FER-431). La ruta con reloj pasa `false`.
+    let destinoEntrenar: Bool
     let onAtras: () -> Void
     let onEntrar: () -> Void
 
+    /// Variante adaptada para quien no tiene reloj (FER-431). Una sola definición vía
+    /// `OnboardingLanding.esSinReloj`.
+    private var sinReloj: Bool { landing?.esSinReloj == true }
+
     var body: some View {
+        if sinReloj {
+            cuerpoSinReloj
+        } else {
+            cuerpoConReloj
+        }
+    }
+
+    // MARK: Con reloj (cuerpo histórico — no mover)
+
+    @ViewBuilder
+    private var cuerpoConReloj: some View {
         // Los `Group` son puramente estructurales (tope de 10 hijos por builder); son
         // transparentes para el layout, así que cada pieza sigue siendo hermana directa del
         // `VStack` del shell y los `Spacer` siguen empujando el CTA al pie.
@@ -99,11 +119,78 @@ struct OnbActoCiclo: View {
         }
     }
 
-    /// ¿Hay noches con el reloj puesto? Decide qué cierre es honesto. OJO: el Ciclo solo se alcanza
-    /// desde lectura/calibrando (las ramas sin reloj de verdad salen antes), así que `false` solo
-    /// ocurre en `.calibrando(0)` —alguien CON reloj (hay FC en reposo) pero sin noches nocturnas—.
-    /// Por eso el cierre «sin reloj» le habla a quien tiene reloj y no ha dormido con él, no a quien
-    /// no tiene ninguno.
+    // MARK: Sin reloj (FER-431 · D3 = A)
+
+    @ViewBuilder
+    private var cuerpoSinReloj: some View {
+        let sinDatos: Bool = {
+            if case .sinDatos = landing { return true }
+            return false
+        }()
+        let destino: LiquidTab = destinoEntrenar ? .entrenar : .hoy
+        let cta = destinoEntrenar ? OnbCopy.sinFcCta : OnbCopy.entrar
+
+        OnbShell(indicadores: true) {
+            Group {
+                OnbAtras(accion: onAtras)
+
+                OnbOverline(OnbCopy.cicloSinRelojOverline)
+                    .padding(.top, LiquidSpace.s250)
+                OnbTitular(OnbCopy.cicloSinRelojTitular)
+                    .padding(.top, LiquidSpace.s250)
+                OnbCuerpo(OnbCopy.cicloSinRelojCuerpo)
+                    .padding(.top, LiquidSpace.s300)
+            }
+
+            Group {
+                OnbOverline(OnbCopy.cicloSinRelojOverlineMapa)
+                    .padding(.top, LiquidSpace.s800)
+                OnbFila(nombre: OnbCopy.pestanaHoy,
+                        tono: nil,
+                        glosa: sinDatos ? OnbCopy.cicloSinRelojHoySinSalud : OnbCopy.cicloSinRelojHoy)
+                OnbFila(nombre: OnbCopy.pestanaTendencias,
+                        tono: nil,
+                        glosa: OnbCopy.cicloSinRelojTendencias)
+                OnbFila(nombre: OnbCopy.pestanaEntrenar,
+                        tono: LiquidColor.verdePrimario,
+                        glosa: OnbCopy.cicloSinRelojEntrenar)
+                OnbFila(nombre: OnbCopy.pestanaAjustes,
+                        tono: nil,
+                        glosa: sinDatos ? OnbCopy.cicloSinRelojAjustesSinSalud : OnbCopy.cicloSinRelojAjustes)
+            }
+
+            Group {
+                OnbTarjeta {
+                    OnbCuerpo(OnbCopy.cicloTarjetaFuerte, fuerte: true)
+                    OnbCuerpo(OnbCopy.cicloTarjetaCuerpo)
+                }
+                .padding(.top, LiquidSpace.s600)
+            }
+
+            Group {
+                VStack(alignment: .leading, spacing: LiquidSpace.s250) {
+                    Text(OnbCopy.cicloDock)
+                        .groteskOverline()
+                        .foregroundStyle(LiquidColor.tinta500)
+                    LiquidTabBar(active: destino, rotulos: .cenit)
+                        .allowsHitTesting(false)
+                        .accessibilityHidden(true)
+                    OnbCuerpo(OnbCopy.cicloDockPie, tono: LiquidColor.tinta500)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.top, LiquidSpace.s600)
+
+                Spacer(minLength: LiquidSpace.s600)
+
+                LiquidGlassButton(cta, variant: .primary, expands: true, action: onEntrar)
+            }
+        }
+    }
+
+    /// ¿Hay noches con el reloj puesto? Decide qué cierre es honesto en la ruta CON reloj.
+    /// En `.calibrando(0)` —alguien CON reloj (hay FC en reposo) pero sin noches nocturnas—
+    /// el cierre «sin reloj» le habla a quien tiene reloj y no ha dormido con él. Las ramas
+    /// `.sinRitmoEnReposo` / `.sinDatos` ya no pasan por aquí (van a `cuerpoSinReloj`, FER-431).
     private var conReloj: Bool {
         switch landing {
         case let .lectura(_, noches, _):     return noches > 0
@@ -118,5 +205,17 @@ struct OnbActoCiclo: View {
     private var hayLectura: Bool {
         if case .lectura = landing { return true }
         return false
+    }
+}
+
+// MARK: - Predicado «sin reloj» (FER-431)
+
+extension OnboardingLanding {
+    /// `true` para `.sinRitmoEnReposo` y `.sinDatos`: decide el Ciclo adaptado (FER-431).
+    var esSinReloj: Bool {
+        switch self {
+        case .sinRitmoEnReposo, .sinDatos: return true
+        default: return false
+        }
     }
 }
