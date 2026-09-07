@@ -265,3 +265,9 @@ adversarial (`docs/specs/ola1-entrenar/`):
 - **Halo/glow es pieza (`LiquidGlow`).** Blur + fill a mano en pantallas queda prohibido por criterio; la pieza entra al catálogo.
 - **Texto de lectura con `@ScaledMetric` + `.system(size:)` NO es hallazgo** (Ronda 2 D2, hub Entrenar y RestEditor): escala con Dynamic Type por diseño; la auditoría lo excluye.
 
+
+## 2026-09-06 · Demolición R1 · decisiones del dueño (3 issues)
+
+- **Progresión ENCENDIDA por defecto en los 4 motores (FER-414, A).** Reafirma Ola 1 #11: «el lineal de novato sube cada sesión». El builder `Program.withProgression` configuraba el ritmo pero dejaba `progressionEnabled` en off, así que ningún motor subía ni descargaba. Ahora nace vivo; el motor sigue decidiendo QUÉ slot sube y cuándo (solo weightReps; barra ≤8 reps cada sesión, el resto cada dos). No cambia rutinas hechas a mano fuera de un programa.
+- **«Necesidad» de sueño = meta fija con respaldo, no la media propia (FER-409, A).** La media propia + clamp generaba deuda por construcción (las noches largas no pagaban las cortas). Se sustituye por una meta poblacional citada. Detalle en el PR de FER-409.
+- **Copy honesto ya sobre datos Apple (FER-407, A).** Corregir el subset factual del copy que dice «mientras duermes / RMSSD / RSA» sobre datos Apple despiertos/de todo el día. El resto (exponer el constructo real y variar el copy) queda como trabajo mayor en el mismo issue.

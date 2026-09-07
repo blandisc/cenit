@@ -229,6 +229,13 @@ public struct ProgramTemplate: Identifiable, Sendable, Equatable {
     /// sesión limpia; una mancuerna o un aislamiento piden las dos de siempre.
     private func withProgression(_ re: RoutineExercise) -> RoutineExercise {
         var out = re
+        // Los 4 motores (ProgramTemplate) se instalan con la progresión VIVA por defecto — es la
+        // promesa de «Lineal para empezar» y la decisión del dueño (DECISIONS · Ola 1 #11: «el lineal
+        // de novato sube cada sesión»). Antes este builder configuraba el ritmo (progressionSessions)
+        // pero nunca encendía el interruptor maestro, así que el programa nunca subía ni descargaba.
+        // El motor (`evaluate`) sigue decidiendo QUÉ slot sube y cuándo (solo weightReps; barra ≤8 reps
+        // cada sesión, el resto cada dos); esto solo garantiza que el interruptor no nazca apagado.
+        out.progressionEnabled = true
         out.progressionSessions = Self.progressesEverySession(re)
             ? barbellProgressionSessions : otherProgressionSessions
         out.progressionUseRPE = progressionUseRPE
