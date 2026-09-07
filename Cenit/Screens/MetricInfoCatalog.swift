@@ -165,7 +165,7 @@ extension MetricInfo {
         MetricInfo(
             id: "hrv",
             name: "HRV",
-            headline: "HRV is how much the time between your heartbeats varies, in milliseconds, while you sleep. More variation usually means a nervous system that's better rested. What matters isn't the number itself, but how it compares with your own average.",
+            headline: "HRV is how much the time between your heartbeats varies, in milliseconds. Apple Health records it in quiet moments through the day, not continuously overnight. More variation usually means a nervous system that's better rested. What matters isn't the number itself, but how it compares with your own average.",
             displayValue: value.map { "\(Int($0.rounded()))" } ?? "—",
             unit: String(localized: "ms"),
             headerTint: value == nil ? .neutral : .metric,
@@ -226,10 +226,10 @@ extension MetricInfo {
             unit: String(localized: "rpm"),
             headerTint: value == nil ? .neutral : .metric,
             bands: bands,
-            note: "Measured overnight from your heart rate during sleep. What matters is the change from your own baseline, not the absolute number.",
+            note: "Measured by your Apple Watch while you sleep. What matters is the change from your own baseline, not the absolute number.",
             method: Method(
-                prose: "We count your breaths across the night from the slow rise and fall in your heart-rate signal (respiratory sinus arrhythmia) and report the nightly mean.",
-                citation: "Respiration from RSA in the overnight inter-beat intervals; reported as the nightly mean."
+                prose: "Your Apple Watch measures your breathing while you sleep; Cénit reads the nightly average Apple Health records. It doesn't compute breathing from your heartbeats.",
+                citation: "Respiratory rate as recorded by Apple Health during sleep; reported as the nightly mean."
             ),
             levelsMetric: .respiration,
             // FER-73 · HJ-08: los cortes <20 / ≥20 son POBLACIONALES; quien compara contra TU
@@ -489,10 +489,10 @@ extension MetricInfo {
             unit: score == nil ? nil : "/ 3",
             headerTint: tint,
             bands: bands,
-            note: "Derived from your overnight resting heart rate and HRV: a transparent proxy for autonomic load, not a clinical stress measure.",
+            note: "Derived from your resting heart rate and HRV as Apple Health records them: a transparent proxy for autonomic load, not a clinical stress measure.",
             method: Method(
-                prose: "We take today's resting heart rate and HRV and express each as how far it sits from your 30-day average (a z-score). A resting HR above your norm and an HRV below it both add to the load; the two are summed and squashed onto a 0–3 scale where 0 is calm, 1.5 is your baseline, and 3 is highly activated.",
-                citation: "Combined resting-HR / HRV z-score through a logistic curve; HRV via RMSSD (Task Force, 1996)."
+                prose: "We take your resting heart rate and HRV and express each as how far it sits from your 30-day average (a z-score). A resting HR above your norm and an HRV below it both add to the load; the two are summed and squashed onto a 0–3 scale where 0 is calm, 1.5 is your baseline, and 3 is highly activated.",
+                citation: "Combined resting-HR / HRV z-score through a logistic curve; HRV is Apple's SDNN (Task Force, 1996)."
             ),
             levelsMetric: .stress,
             levelsTodayValue: score
