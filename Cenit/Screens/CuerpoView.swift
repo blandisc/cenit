@@ -1,5 +1,6 @@
 #if os(iOS)
 import SwiftUI
+import TipKit
 import CenitDesign
 import StrandAnalytics
 import CenitStore
@@ -276,12 +277,16 @@ private struct CuerpoLanding: View {
                 VStack(alignment: .leading, spacing: LiquidSpace.s100) {
                     titleBlock
                     periodSelector
+                    // FER-432 · tip 6 bajo el selector (nunca dentro del héroe).
+                    TipView(TendenciasPeriodoTip(), arrowEdge: .top)
                     // §8.7 landing micro-legend: today's values vs last month's trends (period selector above).
                     Text("Today's values \u{00B7} last month's trends")
                         .font(LiquidType.captionLectura).foregroundStyle(LiquidColor.tinta500)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 recoveryHero
+                // FER-432 · tip 7 DEBAJO del héroe (nunca encima de la palabra).
+                TipView(TendenciasPreparacionTip(), arrowEdge: .top)
                 restLoadCard
                 trainingLoadCard
                 vitalsCard
@@ -322,7 +327,23 @@ private struct CuerpoLanding: View {
             }
         }
         .animation(LiquidMotion.toque, value: detailPresented)
-        .task(id: repo.refreshSeq) { await loadAll() }
+        .task(id: repo.refreshSeq) { await loadAll(); alimentarTendenciasTips() }
+        .onAppear { activarTendenciasTipGroupSiCabe(); alimentarTendenciasTips() }
+        .onChange(of: selectedPeriod) { _, _ in
+            TendenciasPeriodoTip().invalidate(reason: .actionPerformed)
+            alimentarTendenciasTips()
+        }
+        .onChange(of: recoveryDetail?.id) { _, newID in
+            if newID != nil {
+                TendenciasPreparacionTip().invalidate(reason: .actionPerformed)
+            }
+        }
+        .onChange(of: showCompare) { _, open in
+            if open { TendenciasCompararTip().invalidate(reason: .actionPerformed) }
+        }
+        .onChange(of: showExplore) { _, open in
+            if open { TendenciasExplorarTip().invalidate(reason: .actionPerformed) }
+        }
         .sheet(item: $darkSheet) { sheet in darkSheetContent(sheet) }
         .sheet(isPresented: $showCompare) {
             // Comparar Liquid: tokens at the sheet root (they do not cross the `.sheet`
@@ -360,6 +381,50 @@ private struct CuerpoLanding: View {
         // Ola 1 ya seleccionó la tab `.body` en `RootTabView.onAppear`.
         .onAppear { openDebugRoute() }
         #endif
+    }
+
+    /// FER-432 · retiene el TipGroup ordenado (iOS 18+) para que TipKit muestre uno a la vez;
+    /// en iOS 17 la cadencia diaria ya limita. Los TipView siguen siendo por tip (anclajes distintos).
+    private func activarTendenciasTipGroupSiCabe() {
+        if #available(iOS 18, *) {
+            _ = TendenciasTipGroup.ordered
+        }
+    }
+
+    /// Alimenta `@Parameter` desde datos que el landing ya tiene (`displayDays` + veredicto de Hoy).
+    private func alimentarTendenciasTips() {
+        let dias = repo.displayDays
+        // Señal decisiva de Tendencias = preparación (VFC / FC en reposo de la noche).
+        let diasConDato = dias.filter { $0.avgHrv != nil || $0.restingHr != nil }.count
+        let diasConDosMetricas = dias.filter { dia in
+            var n = 0
+            if dia.avgHrv != nil { n += 1 }
+            if dia.restingHr != nil { n += 1 }
+            if dia.totalSleepMin != nil { n += 1 }
+            if dia.strain != nil { n += 1 }
+            if dia.spo2Pct != nil { n += 1 }
+            if dia.respRateBpm != nil { n += 1 }
+            if dia.steps != nil { n += 1 }
+            return n >= 2
+        }.count
+        let hayVeredicto: Bool = {
+            guard let prep = repo.todayPreparedness else { return false }
+            return prep.verdict != .lowSignal && prep.isNightAnchored
+        }()
+        // permisoCalendario: el detalle de estrés lo alimenta al abrir (stressDayMap.phase).
+        // Aquí no inventamos un lector de EventKit; dejamos el default si aún no hay mapa.
+        let permiso: Bool = {
+            guard let map = stressDayMap else { return TendenciasMapaDelDiaTip.permisoCalendario }
+            switch map.phase {
+            case .needsPermission, .denied, .restricted: return false
+            default: return true
+            }
+        }()
+        TendenciasTips.alimentarParametros(
+            diasConDato: diasConDato,
+            diasConDosMetricas: diasConDosMetricas,
+            hayVeredicto: hayVeredicto,
+            permisoCalendario: permiso)
     }
 
     #if os(iOS) && DEBUG
@@ -485,9 +550,10 @@ private struct CuerpoLanding: View {
             SleepDetailScreen(model: item.model,
                               sinPermiso: health.auth != .authorized && health.auth != .unavailable)
         } else if let item = stressDetail {
-            // FER-1027: el mapa intradía de estrés es de banda; en Apple-only no se muestra.
+            // FER-432: tip 10 vive sobre el mapa del día — se pasa `stressDayMap` (creado al abrir
+            // la fila). FER-1027 lo había anulado con `nil`; sin el bloque el tip no tiene anclaje.
             StressDetailScreen(model: item.model,
-                               dayMap: nil,
+                               dayMap: stressDayMap,
                                patternsLoader: { await StressDayMapPresenter.timeOfDayPatterns(
                                    repo: repo, maxHR: model.profile.hrMax, restingHR: stressRestingHR) },
                                eventPatternsLoader: { await StressDayMapPresenter.eventPatterns(
@@ -1209,12 +1275,17 @@ private struct CuerpoLanding: View {
     }
 
     private var footerActions: some View {
-        VStack(spacing: .zero) {
-            actionRow("Compare", icon: "arrow.left.arrow.right") { showCompare = true }
-            LiquidCapilar(eje: .horizontal).padding(.leading, 46)
-            actionRow("See all metrics", icon: "square.grid.2x2") { showExplore = true }
+        VStack(alignment: .leading, spacing: LiquidSpace.s150) {
+            // FER-432 · tips 8 y 9 justo sobre las filas Comparar / Explorar.
+            TipView(TendenciasCompararTip(), arrowEdge: .bottom)
+            TipView(TendenciasExplorarTip(), arrowEdge: .bottom)
+            VStack(spacing: .zero) {
+                actionRow("Compare", icon: "arrow.left.arrow.right") { showCompare = true }
+                LiquidCapilar(eje: .horizontal).padding(.leading, 46)
+                actionRow("See all metrics", icon: "square.grid.2x2") { showExplore = true }
+            }
+            .liquidGlass(.superficieSolida)
         }
-        .liquidGlass(.superficieSolida)
     }
 
     private func actionRow(_ label: LocalizedStringKey, icon: String, open: @escaping () -> Void) -> some View {

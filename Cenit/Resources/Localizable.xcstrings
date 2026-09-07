@@ -74877,6 +74877,482 @@
           }
         }
       }
+    },
+    "tip.hoy.hoja-metrica.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap a signal"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toca una señal"
+          }
+        }
+      }
+    },
+    "tip.hoy.hoja-metrica.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Each cell opens its sheet: what moves it and how it is calculated."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cada celda abre su hoja: qué la mueve y cómo se calcula."
+          }
+        }
+      }
+    },
+    "tip.hoy.scrub.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Read night by night"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lee noche por noche"
+          }
+        }
+      }
+    },
+    "tip.hoy.scrub.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drag across a chart and each night's value rises to the numeral."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrastra sobre una gráfica y el valor de cada noche sube al numeral."
+          }
+        }
+      }
+    },
+    "tip.hoy.scrub.gesto" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drag across a chart"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrastra sobre una gráfica"
+          }
+        }
+      }
+    },
+    "tip.hoy.scrub.boton" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap the cell: the sheet lists each night"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toca la celda: la hoja lista cada noche"
+          }
+        }
+      }
+    },
+    "tip.hoy.ecosistema.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your signals, one by one"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tus señales, una por una"
+          }
+        }
+      }
+    },
+    "tip.hoy.ecosistema.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap the orb's background to separate your signals; tap again to reunite them."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toca el fondo del orbe para separar tus señales; vuelve a tocar para unirlas."
+          }
+        }
+      }
+    },
+    "tip.hoy.ecosistema.gesto" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap the orb's background"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toca el fondo del orbe"
+          }
+        }
+      }
+    },
+    "tip.hoy.ecosistema.boton" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Separate"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Separar"
+          }
+        }
+      }
+    },
+    "tip.hoy.ecosistema.boton.unir" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reunite"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unir"
+          }
+        }
+      }
+    },
+    "tip.hoy.manuales.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The «?» explains how it works"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El «?» explica cómo funciona"
+          }
+        }
+      }
+    },
+    "tip.hoy.manuales.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Each shelf has its manual: who votes, what does not count, why context does not vote."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cada estante trae su manual: quién vota, qué no pesa, por qué el contexto no vota."
+          }
+        }
+      }
+    },
+    "tip.hoy.sincronizar.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pull to sync"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jala para sincronizar"
+          }
+        }
+      }
+    },
+    "tip.hoy.sincronizar.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A pull from the top brings what is new from Apple Health right away."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un arrastre desde arriba trae lo nuevo de Apple Salud ahora mismo."
+          }
+        }
+      }
+    },
+    "tip.hoy.sincronizar.gesto" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pull down from the top to sync with Apple Health"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jala hacia abajo desde arriba para sincronizar con Apple Salud"
+          }
+        }
+      }
+    },
+    "tip.hoy.sincronizar.boton" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sync"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sincronizar"
+          }
+        }
+      }
+    },
+    "tip.tendencias.periodo.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change the period"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cambia el periodo"
+          }
+        }
+      }
+    },
+    "tip.tendencias.periodo.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Week, month or year: every chart re-windows."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Semana, mes o año: todas las gráficas se vuelven a ventanear."
+          }
+        }
+      }
+    },
+    "tip.tendencias.preparacion.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your 30 mornings"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tus 30 mañanas"
+          }
+        }
+      }
+    },
+    "tip.tendencias.preparacion.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap the word to see how you woke up each day of the month."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toca la palabra para ver cómo amaneciste cada día del mes."
+          }
+        }
+      }
+    },
+    "tip.tendencias.comparar.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compare two signals"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compara dos señales"
+          }
+        }
+      }
+    },
+    "tip.tendencias.comparar.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Overlay two to four and see whether they move together. Association, not cause."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Superpón de dos a cuatro y mira si se mueven juntas. Asociación, no causa."
+          }
+        }
+      }
+    },
+    "tip.tendencias.explorar.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All your signals"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todas tus señales"
+          }
+        }
+      }
+    },
+    "tip.tendencias.explorar.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The full catalog, and what correlates with each one."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El catálogo completo, y qué correlaciona con cada una."
+          }
+        }
+      }
+    },
+    "tip.tendencias.mapa-del-dia.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cross your stress with your calendar"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cruza tu estrés con tu calendario"
+          }
+        }
+      }
+    },
+    "tip.tendencias.mapa-del-dia.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Which peak matches which event. Permission is asked here, when you want."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qué pico coincide con qué evento. El permiso se pide aquí, cuando quieras."
+          }
+        }
+      }
+    },
+    "tip.tendencias.mapa-del-dia.boton" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connect my calendar"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectar mi calendario"
+          }
+        }
+      }
     }
   },
   "version" : "1.1"

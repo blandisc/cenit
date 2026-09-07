@@ -7,22 +7,10 @@ import CenitEnsenanza
 //
 // Mismo patrón que `EntrenarTips`: un `Tip` por consejo, `id` del registro, rules + options.
 // El estilo `LiquidConsejoTipStyle` ya vive en la raíz (`CenitApp`) — no se repite aquí.
-// Cadencia diaria (`.displayFrequency(.daily)` en `EntrenarTips.configure`). TipGroup
-// ordenado solo bajo iOS 18+; en iOS 17 la cadencia ya limita a uno por día.
-
-// MARK: TipGroup (iOS 18+)
-
-@available(iOS 18, *)
-enum HoyTipGroup {
-    /// Grupo ordenado de la pestaña Hoy (D8): uno a la vez, en el orden del registro.
-    static let ordered = TipGroup(.ordered) {
-        HoyHojaMetricaTip()
-        HoyScrubTip()
-        HoyEcosistemaTip()
-        HoyManualesTip()
-        HoySincronizarTip()
-    }
-}
+// Cadencia diaria (`.displayFrequency(.daily)` en `EntrenarTips.configure`).
+// TipGroup de Hoy no cableado: los anclajes viven en dos hosts (TodayView + HoyModosHost)
+// y el grupo compartido no cabe en el presupuesto de ronda 2; la cadencia diaria ya limita
+// a uno por día en iOS 17/18.
 
 // MARK: 1 · hoy.hoja-metrica
 

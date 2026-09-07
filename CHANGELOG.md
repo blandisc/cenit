@@ -1124,6 +1124,12 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
   **EN** — Full stroke, one dot per night, hollow "today" ring — same tokens as the guardian card. Load's hill now scrubs by day (ratio · state · date).
   ([MatrizChart.swift](Packages/StrandDesign/Sources/StrandDesign/LiquidGlass/MatrizChart.swift))
 
+### Consejos en Hoy y Tendencias / Tips in Today and Trends (FER-432)
+### ES
+- Diez consejos contextuales salen junto al control que enseñan (cinco en Hoy, cinco en Tendencias), como máximo uno nuevo por pestaña al día. Los que enseñan un gesto (scrub, separar el orbe, jalar para sincronizar) traen además un botón tocable.
+### EN
+- Ten contextual tips appear next to the control they teach (five in Today, five in Trends), at most one new tip per tab per day. Tips that teach a gesture (scrub, separate the orb, pull to sync) also offer a tappable button.
+
 ## Unreleased
 
 - **Hoy: la puerta al acta es ahora un ⓘ junto al veredicto / Today: the verdict's "how I got here" is now an ⓘ next to the word** (FER-71).
