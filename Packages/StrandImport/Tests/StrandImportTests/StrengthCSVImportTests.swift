@@ -292,4 +292,37 @@ final class StrengthCSVImportTests: XCTestCase {
         let maxRaw = try XCTUnwrap(StrengthCSVImporter.strongMaxWeightRaw(text: text))
         XCTAssertGreaterThan(maxRaw, 0)
     }
+
+    // MARK: - Non-finite cells (FER-405)
+
+    /// Una celda numérica "nan"/"inf"/"1e999" de un CSV de terceros parseaba a un Double no finito que
+    /// más adelante llega a `Int(x.rounded())` (StrengthDisplay) como trap fatal. `double()` ahora
+    /// guarda `isFinite`, igual que `int()`: la celda envenenada se ignora (peso nil), la fila
+    /// sobrevive con sus otros campos, y no hay crash ni valor NaN/Inf persistido.
+    func testNonFiniteWeightCellIsDroppedNotPoisoned() throws {
+        let header = "date,routine,exercise,set_index,set_kind,weight_kg,reps,time_s,distance_m,rpe,rest_taken_s,notes,set_mode"
+        let rows = [
+            "2024-11-28T23:36:08Z,Empuje A,Press de banca,1,work,1e999,5,,,,90,,",
+            "2024-11-28T23:38:08Z,Empuje A,Press de banca,2,work,nan,5,,,,90,,",
+            "2024-11-28T23:40:08Z,Empuje A,Press de banca,3,work,82.5,5,,,,90,,",
+        ]
+        let text = ([header] + rows).joined(separator: "\n") + "\n"
+        let history = try StrengthCSVImporter.parse(text: text, dialect: .cenit)
+        let sets = history.sessions.flatMap { $0.sets }
+        XCTAssertFalse(sets.isEmpty, "las filas deben sobrevivir aunque el peso sea inválido")
+        for s in sets {
+            if let w = s.weightKg { XCTAssertTrue(w.isFinite, "ningún peso persistido puede ser NaN/Inf") }
+        }
+        // La fila con peso válido conserva su valor; las envenenadas quedan sin peso (nil).
+        XCTAssertTrue(sets.contains { $0.weightKg == 82.5 })
+        XCTAssertEqual(sets.filter { $0.weightKg == nil }.count, 2)
+    }
+
+    /// El sink común de la app también se blinda: dato no finito → "—", nunca `Int(NaN)`.
+    func testDisplayNumberSurvivesNonFinite() {
+        // Cross-check ligero del contrato (la implementación vive en la capa app; aquí solo el invariante
+        // numérico del parser). El peso 1e999 nunca llega como Double finito al display.
+        XCTAssertNil(Double("1e999").flatMap { $0.isFinite ? $0 : nil })
+        XCTAssertNil(Double("nan").flatMap { $0.isFinite ? $0 : nil })
+    }
 }

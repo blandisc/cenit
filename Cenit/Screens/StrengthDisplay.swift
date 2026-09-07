@@ -108,6 +108,10 @@ enum StrengthDisplay {
     /// sesión activa se quedó con el decimal: la MISMA serie se leía «182 lb» en editar y «181.9 lb»
     /// en la sesión — el mismo número contradiciéndose entre dos pantallas.
     static func displayNumber(_ value: Double, system: UnitSystem) -> String {
+        // Un valor no finito (NaN/Inf, p. ej. de un CSV de terceros con celda "nan"/"1e999") convierte
+        // `Int(value.rounded())` en un trap fatal. La guarda de origen vive en StrengthCSVImport.double(),
+        // pero este es el sink común de toda la app, así que blinda aquí también: dato malo → "—", no crash.
+        guard value.isFinite else { return "—" }
         switch system {
         case .imperial: return "\(Int(value.rounded()))"
         case .metric:   return isWhole(value) ? "\(Int(value.rounded()))" : String(format: "%.1f", value)
@@ -141,6 +145,7 @@ enum StrengthDisplay {
     /// incremento conserva su decimal en las dos unidades.
     static func incrementNumber(_ kg: Double, system: UnitSystem) -> String {
         let v = system == .imperial ? UnitFormatter.kgToPounds(kg) : kg
+        guard v.isFinite else { return "—" }
         return isWhole(v) ? "\(Int(v.rounded()))" : String(format: "%.1f", v)
     }
 
