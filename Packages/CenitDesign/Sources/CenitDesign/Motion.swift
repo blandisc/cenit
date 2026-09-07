@@ -1,45 +1,52 @@
 import SwiftUI
 // MARK: - El ritmo del sistema
-//
-// El movimiento de Cénit es fisiológico —respirar, latir, fluir— y nunca un rebote de caricatura.
-// `LiquidMotion` es el lenguaje vivo; lo que queda aquí es de dos clases:
-//
-//   · ALIAS DEPRECADOS de piezas de LiquidMotion, con el MISMO valor, para que los call sites que
-//     todavía no migran sigan compilando (con su aviso).
-//   · Las duraciones y curvas que aún no tienen gemelo en Liquid, `drawIn` y `breathe`, que siguen
-//     vivas para los estados de carga y de escucha.
-public enum StrandMotion {
-    // MARK: Duraciones — la fuente de los números, citada por las curvas de abajo
-    /// Transición estándar: aparecer una tarjeta, un fundido.
-    public static let durationStandard: Double = 0.30
-    /// Lenta, de trazado: el arco de un anillo, encender una onda.
-    public static let durationSlow: Double = 0.9
-    /// Un ciclo completo de respiración, para el pulso ambiental.
-    public static let breathPeriod: Double = 3.2
+//   El movimiento de Cénit es fisiológico —respirar, latir, fluir— y nunca un rebote de caricatura.
+//   `LiquidMotion` es el dialecto vivo y la fuente de los números; `StrandMotion` es el nombre viejo
+//   que todavía usan las pantallas sin migrar, y aquí no vuelve a decidir nada: cada pieza reenvía a
+//   su gemela de Liquid, así que un ajuste de tempo se hace en UN lugar y las dos superficies lo
+//   heredan. Solo el trazado y la respiración siguen naciendo aquí: no tienen gemela todavía.
 
-    // MARK: Curvas vivas
+/// Los dos ritmos que este archivo aún origina, con su número a la vista.
+private enum Compases {
+    /// 900 ms: lo que tarda un anillo en dibujarse de cero a su valor.
+    static let trazado: Double = 0.9
+    /// 3.2 s: ida y vuelta completa de una respiración ambiental.
+    static let respiracion: Double = 3.2
+}
+
+public enum StrandMotion {
+
+    // MARK: Duraciones
+
+    /// Transición estándar: aparecer una tarjeta, un fundido. Es la de Liquid, no una segunda cifra.
+    public static let durationStandard = LiquidMotion.fundidoDuration
+    /// Lenta, de trazado: el arco de un anillo, encender una onda.
+    public static let durationSlow = Compases.trazado
+    /// Un ciclo completo de respiración, para el pulso ambiental.
+    public static let breathPeriod = Compases.respiracion
+
+    // MARK: Curvas propias de este archivo
+
     /// Trazado de un anillo o un medidor cuando su valor cambia.
-    public static let drawIn = Animation.easeOut(duration: durationSlow)
+    public static let drawIn: Animation = .easeOut(duration: Compases.trazado)
     /// Respiración en bucle, para halos y estados de escucha. Es `var` y no `let` a propósito:
     /// `repeatForever` construye una animación nueva cada vez que se pide.
-    public static var breathe: Animation { .easeInOut(duration: breathPeriod).repeatForever(autoreverses: true) }
+    public static var breathe: Animation {
+        .easeInOut(duration: Compases.respiracion).repeatForever(autoreverses: true)
+    }
 
-    // MARK: Alias deprecados — mismo valor que su gemelo de Liquid
-    /// Manipulación directa: presionar, arrastrar, deslizar un panel.
-    @available(*, deprecated, message: "usa LiquidMotion.toque (mismo valor)")
-    public static let interactive = Animation.interactiveSpring(response: 0.28, dampingFraction: 0.82, blendDuration: 0.1)
-    /// El resorte de la casa para un cambio de valor: anillos, medidores.
-    @available(*, deprecated, message: "usa LiquidMotion.suave (mismo valor)")
-    public static let gentle = Animation.spring(response: 0.5, dampingFraction: 0.8)
-    /// Más lento y deliberado: la entrada de un héroe, el primer anillo que se materializa.
-    @available(*, deprecated, message: "usa LiquidMotion.heroe (mismo valor)")
-    public static let hero = Animation.spring(response: 0.85, dampingFraction: 0.85)
-    /// Fundido estándar.
-    @available(*, deprecated, message: "usa LiquidMotion.fundido (mismo valor)")
-    public static let fade = Animation.easeInOut(duration: durationStandard)
-    /// Los numerales de un recibo contando una sola vez, al guardar.
-    @available(*, deprecated, message: "usa LiquidMotion.conteo (mismo valor)")
-    public static let countUp = Animation.easeOut(duration: 0.75)
+    // MARK: Nombres viejos, valor de Liquid
+
+    /// Manipulación directa: presionar, arrastrar, deslizar un panel. → `LiquidMotion.toque`.
+    public static let interactive = LiquidMotion.toque
+    /// El resorte de la casa para un cambio de valor: anillos, medidores. → `LiquidMotion.suave`.
+    public static let gentle = LiquidMotion.suave
+    /// Más lento y deliberado: la entrada de un héroe. → `LiquidMotion.heroe`.
+    public static let hero = LiquidMotion.heroe
+    /// Fundido estándar. → `LiquidMotion.fundido`.
+    public static let fade = LiquidMotion.fundido
+    /// Los numerales de un recibo contando una sola vez, al guardar. → `LiquidMotion.conteo`.
+    public static let countUp = LiquidMotion.conteo
 }
 
 // MARK: - Entrance keyframes ("Detalle de Tendencias Final")

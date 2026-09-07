@@ -1,18 +1,22 @@
 import SwiftUI
 import Charts
+// MARK: - Gráfica de tendencia (§9.4)
+//   La línea de una métrica a lo largo del tiempo, teñida con su propia rampa: recuperación, VFC,
+//   FC en reposo, esfuerzo. Detrás puede llevar bandas de clasificación («Óptimo 7–9 h»); dentro,
+//   una regla de referencia punteada y un punto marcado; encima, el raspado con cruz, punto y globo.
 
-// MARK: - Trend Chart (§9.4 Trends)
-//
-// A line/area chart whose stroke is gradient-colored by value — reusable for recovery / HRV / RHR /
-// strain trends. Defaults to the recovery scale, but any gradient + value range works.
-
-/// One point on a trend line.
+/// Una lectura de la serie: cuándo se midió y cuánto dio.
 public struct TrendPoint: Identifiable, Sendable, Equatable {
-    public var date: Date, value: Double
-    public let id = UUID()
+    /// El instante que ancla la lectura sobre el eje del tiempo.
+    public var date: Date
+    /// El valor, en las unidades de quien lo pide.
+    public var value: Double
+    /// Identidad de pieza para SwiftUI: dos lecturas con el mismo dato siguen siendo dos puntos.
+    public let id: UUID = .init()
 
-    public init(date: Date, value: Double) {
-        (self.date, self.value) = (date, value)
+    public init(date fecha: Date, value valor: Double) {
+        self.date = fecha
+        self.value = valor
     }
 }
 
@@ -135,342 +139,433 @@ public struct BandTrendSummary: Equatable {
     public enum Relation: Equatable { case same, lower, higher }
 }
 
-// MARK: - The chart
+// MARK: - La gráfica
+
+/// Las medidas del trazo, con nombre. Son geometría de dato —no fichas del sistema—: viven aquí
+/// porque solo esta gráfica las usa, y con nombre para que un ajuste se haga en un lugar.
+private enum MedidasTendencia {
+    /// Grosor de la línea de valor.
+    static let grosorDeLinea: CGFloat = 2.5
+    /// Área del punto por muestra, y el techo de muestras a partir del cual se dejan de dibujar:
+    /// arriba de eso los puntos son estorbo (y costo de trazado), no información.
+    static let areaDelPunto: CGFloat = 18
+    static let techoDePuntos = 60
+    /// Área del punto marcado, sólido; y las dos del aro cuando se pide hueco.
+    static let areaDelMarcado: CGFloat = 70
+    static let areaDelAro: CGFloat = 92
+    static let areaDelCentroDelAro: CGFloat = 34
+    /// Opacidad del lavado de área bajo la curva.
+    static let veloDelLavado = 0.28
+    /// Canal derecho reservado cuando hay bandas rotuladas, y el respiro mínimo cuando no.
+    static let canalDeRotulos: CGFloat = 64
+    static let respiroMinimo: CGFloat = 8
+    /// Relleno y filos de la banda activa.
+    static let veloDeBandaActiva = 0.16
+    static let filoDeBandaActiva = 0.5
+    /// Alto en puntos que una banda inactiva necesita para ganarse su rótulo.
+    static let altoMinimoParaRotular: CGFloat = 16
+    /// Aire que el rótulo de banda deja contra el filo derecho del lienzo, y cuánto sube su base.
+    static let sangriaDelRotulo: CGFloat = 6
+    static let alzaDelRotulo: CGFloat = 8
+    /// Opacidad de la retícula.
+    static let veloDeReticula = 0.4
+    /// Raya y grosor de la regla de referencia.
+    static let rayaDeReferencia: [CGFloat] = [3, 3]
+    static let grosorDeReferencia: CGFloat = 1
+    /// Los cinco cortes del eje del tiempo, como fracción del tramo medido.
+    static let cortesDelTiempo: [Double] = [0, 0.25, 0.5, 0.75, 1]
+    /// Los dos quiebres que eligen la plantilla de fecha del eje: intradía y ~10 meses.
+    static let tramoIntradia: TimeInterval = 36 * 3600
+    static let tramoLargo: TimeInterval = 300 * 86_400
+}
 
 public struct TrendChart: View {
 
-    public var points: [TrendPoint]
-    public var gradient: Gradient
-    public var valueRange: ClosedRange<Double>
-    public var showsArea: Bool
-    public var height: CGFloat
-    public var showsScrub: Bool
-    public var valueFormat: (Double) -> String
-    public var dateFormat: (Date) -> String
-    public var axisLabelColor: Color
-    public var gridLineColor: Color
-    public var bands: [TrendBand]
-    public var bandColor: Color
-    public var yAxisValues: [Double]?
-    /// Points below this value are drawn in `alertColor` instead of the gradient (e.g. a low SpO₂ night).
-    public var alertThreshold: Double?
-    public var alertColor: Color
-    /// A dashed horizontal reference line (e.g. the night's resting HR under an HR curve).
-    public var referenceLine: Double?
-    public var referenceLineColor: Color
-    /// A single point emphasised with a larger dot (e.g. the day's peak).
-    public var markedPoint: TrendPoint?
-    /// Draws `markedPoint` as a hollow ring (a `markedPointRingFill`-filled centre) instead of solid, so
-    /// it still reads as "today" even while a DIFFERENT band is highlighted.
-    public var markedPointHollow: Bool
-    public var markedPointRingFill: Color
-    /// Draws bands (fill + edge lines) WITHOUT their right-aligned label, dropping the gutter it needs.
-    public var bandLabelsHidden: Bool
-    /// When true and there are no right-side band labels, the trailing inset shrinks to a thin breath so
-    /// the curve reaches the edge.
-    public var tightTrailing: Bool
-    public var yTickCount: Int
-    /// Appended to the scrub tooltip's value line (e.g. "avg 7d") — never shown on the Y-axis labels.
-    public var valueSuffix: String?
-    public var accessibilityLabel: LocalizedStringKey?
-    public var accessibilityValueText: String?
+    // MARK: El dato y su escala
+    //
+    // Todo se fija al construir la gráfica —por eso son `let`— y nada de esto se muta después:
+    // una gráfica distinta es otra gráfica, no la misma con otro valor encima.
+
+    public let points: [TrendPoint]
+    public let gradient: Gradient
+    public let valueRange: ClosedRange<Double>
+
+    // MARK: Qué se dibuja y qué tan alto
+
+    public let showsArea: Bool
+    public let height: CGFloat
+    public let showsScrub: Bool
+
+    // MARK: Cómo se lee
+
+    public let valueFormat: (Double) -> String
+    public let dateFormat: (Date) -> String
+    public let axisLabelColor: Color
+    public let gridLineColor: Color
+
+    // MARK: Bandas de clasificación
+
+    public let bands: [TrendBand]
+    public let bandColor: Color
+    public let yAxisValues: [Double]?
+    /// Dibuja las bandas (relleno + filos) SIN su rótulo a la derecha, y suelta el canal que pedía.
+    public let bandLabelsHidden: Bool
+
+    // MARK: Señales sueltas sobre la curva
+
+    /// Los puntos por debajo de este valor se pintan en `alertColor` y no con la rampa (p. ej. una
+    /// noche de SpO₂ baja).
+    public let alertThreshold: Double?
+    public let alertColor: Color
+    /// Regla horizontal punteada (p. ej. la FC en reposo de la noche bajo la curva de la noche).
+    public let referenceLine: Double?
+    public let referenceLineColor: Color
+    /// Un punto enfatizado con un disco más grande (p. ej. el pico del día).
+    public let markedPoint: TrendPoint?
+    /// Dibuja `markedPoint` como aro hueco (centro relleno de `markedPointRingFill`) en vez de
+    /// sólido, para que siga leyéndose como «hoy» aunque la banda resaltada sea OTRA.
+    public let markedPointHollow: Bool
+    public let markedPointRingFill: Color
+
+    // MARK: Ajustes finos de marco y de voz
+
+    /// Con esto y sin rótulos de banda a la derecha, el canal derecho se encoge a un respiro y la
+    /// curva alcanza el filo.
+    public let tightTrailing: Bool
+    public let yTickCount: Int
+    /// Se pega a la línea de valor del globo de raspado (p. ej. «prom 7 d»); nunca al eje Y.
+    public let valueSuffix: String?
+    public let accessibilityLabel: LocalizedStringKey?
+    public let accessibilityValueText: String?
 
     public init(
-        points: [TrendPoint],
-        gradient: Gradient = StrandPalette.recoveryGradient,
-        valueRange: ClosedRange<Double> = 0...100,
-        showsArea: Bool = true,
-        height: CGFloat = 220,
-        showsScrub: Bool = true,
-        valueFormat: @escaping (Double) -> String = { String(Int($0.rounded())) },
-        dateFormat: @escaping (Date) -> String = { TrendChart.defaultDateString($0) },
-        axisLabelColor: Color = InstrumentoTheme.base.inkTertiary,
-        gridLineColor: Color = InstrumentoTheme.base.hairline,
-        bands: [TrendBand] = [],
-        bandColor: Color = .clear,
-        yAxisValues: [Double]? = nil,
-        alertThreshold: Double? = nil,
-        alertColor: Color = .clear,
-        referenceLine: Double? = nil,
-        referenceLineColor: Color = .clear,
-        markedPoint: TrendPoint? = nil,
-        markedPointHollow: Bool = false,
-        markedPointRingFill: Color = .clear,
-        bandLabelsHidden: Bool = false,
-        tightTrailing: Bool = false,
-        yTickCount: Int = 4,
-        valueSuffix: String? = nil,
-        accessibilityLabel: LocalizedStringKey? = nil,
-        accessibilityValueText: String? = nil
+        points puntos: [TrendPoint],
+        gradient rampa: Gradient = StrandPalette.recoveryGradient,
+        valueRange rango: ClosedRange<Double> = 0...100,
+        showsArea conLavado: Bool = true,
+        height alto: CGFloat = 220,
+        showsScrub conRaspado: Bool = true,
+        valueFormat formatoDeValor: @escaping (Double) -> String = { String(Int($0.rounded())) },
+        dateFormat formatoDeFecha: @escaping (Date) -> String = { TrendChart.defaultDateString($0) },
+        axisLabelColor tintaDeEje: Color = InstrumentoTheme.base.inkTertiary,
+        gridLineColor tintaDeReticula: Color = InstrumentoTheme.base.hairline,
+        bands bandas: [TrendBand] = [],
+        bandColor tintaDeBanda: Color = .clear,
+        yAxisValues cortesEnY: [Double]? = nil,
+        alertThreshold umbralDeAlerta: Double? = nil,
+        alertColor tintaDeAlerta: Color = .clear,
+        referenceLine reglaDeReferencia: Double? = nil,
+        referenceLineColor tintaDeLaRegla: Color = .clear,
+        markedPoint puntoMarcado: TrendPoint? = nil,
+        markedPointHollow marcadoHueco: Bool = false,
+        markedPointRingFill rellenoDelAro: Color = .clear,
+        bandLabelsHidden sinRotulosDeBanda: Bool = false,
+        tightTrailing filoApretado: Bool = false,
+        yTickCount cortesDeseadosEnY: Int = 4,
+        valueSuffix sufijoDeValor: String? = nil,
+        accessibilityLabel rotuloAccesible: LocalizedStringKey? = nil,
+        accessibilityValueText valorAccesible: String? = nil
     ) {
-        self.points = points.sorted { $0.date < $1.date }
-        self.gradient = gradient
-        self.valueRange = valueRange
-        self.showsArea = showsArea
-        self.height = height
-        self.showsScrub = showsScrub
-        self.valueFormat = valueFormat
-        self.dateFormat = dateFormat
-        self.axisLabelColor = axisLabelColor
-        self.gridLineColor = gridLineColor
-        self.bands = bands
-        self.bandColor = bandColor
-        self.yAxisValues = yAxisValues
-        self.alertThreshold = alertThreshold
-        self.alertColor = alertColor
-        self.referenceLine = referenceLine
-        self.referenceLineColor = referenceLineColor
-        self.markedPoint = markedPoint
-        self.markedPointHollow = markedPointHollow
-        self.markedPointRingFill = markedPointRingFill
-        self.bandLabelsHidden = bandLabelsHidden
-        self.tightTrailing = tightTrailing
-        self.yTickCount = yTickCount
-        self.valueSuffix = valueSuffix
-        self.accessibilityLabel = accessibilityLabel
-        self.accessibilityValueText = accessibilityValueText
+        // La serie llega en cualquier orden y la gráfica la asume cronológica: se ordena una vez, aquí.
+        self.points = puntos.sorted(by: Self.enOrdenCronologico)
+        (self.gradient, self.valueRange) = (rampa, rango)
+        (self.showsArea, self.height, self.showsScrub) = (conLavado, alto, conRaspado)
+        (self.valueFormat, self.dateFormat) = (formatoDeValor, formatoDeFecha)
+        (self.axisLabelColor, self.gridLineColor) = (tintaDeEje, tintaDeReticula)
+        (self.bands, self.bandColor, self.yAxisValues) = (bandas, tintaDeBanda, cortesEnY)
+        self.bandLabelsHidden = sinRotulosDeBanda
+        (self.alertThreshold, self.alertColor) = (umbralDeAlerta, tintaDeAlerta)
+        (self.referenceLine, self.referenceLineColor) = (reglaDeReferencia, tintaDeLaRegla)
+        (self.markedPoint, self.markedPointHollow) = (puntoMarcado, marcadoHueco)
+        self.markedPointRingFill = rellenoDelAro
+        (self.tightTrailing, self.yTickCount) = (filoApretado, cortesDeseadosEnY)
+        self.valueSuffix = sufijoDeValor
+        (self.accessibilityLabel, self.accessibilityValueText) = (rotuloAccesible, valorAccesible)
     }
 
-    /// Right inset on the X-scale: a wide gutter for a labelled band, else the default inset — or a thin
-    /// breath when `tightTrailing` opts the curve into reaching the edge.
-    private var trailingInset: CGFloat {
-        if !(bands.isEmpty || bandLabelsHidden) { return 64 }
-        return tightTrailing ? 8 : CenitMetrics.chartXTrailingInset
+    /// El criterio de orden de la serie, con nombre para que el `init` se lea de corrido.
+    private static func enOrdenCronologico(_ izquierda: TrendPoint, _ derecha: TrendPoint) -> Bool {
+        izquierda.date < derecha.date
     }
 
-    @State private var hoverX: CGFloat? = nil
-    /// The point under the finger while scrubbing — drives the VoiceOver value.
-    @State private var scrubbedPoint: TrendPoint? = nil
+    // MARK: Estado del raspado
 
-    private static let sharedDateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "EEE d MMM"
-        return formatter
+    /// Dónde está el dedo (o el cursor) sobre el lienzo. `nil` = nadie está raspando.
+    @State private var dedoX: CGFloat?
+    /// La muestra bajo el dedo, que es la que VoiceOver lee mientras se raspa.
+    @State private var muestraBajoElDedo: TrendPoint?
+
+    // MARK: Formato
+
+    /// Un solo `DateFormatter` para todas las gráficas: construirlo es caro y el resultado no cambia.
+    private static let formatoDiaCorto: DateFormatter = {
+        let formateador = DateFormatter()
+        formateador.dateFormat = "EEE d MMM"
+        return formateador
     }()
 
+    /// Formato por omisión del globo y del eje («EEE d MMM»).
+    public static func defaultDateString(_ date: Date) -> String { formatoDiaCorto.string(from: date) }
+
+    /// Lo que VoiceOver dice: el valor bajo el dedo si se está raspando, si no el último de la serie.
     private var resolvedAccessibilityValue: String {
         if let custom = accessibilityValueText { return custom }
-        guard let reading = scrubbedPoint ?? points.last else { return "No data" }
-        let valueText = valueSuffix.map { "\(valueFormat(reading.value)) · \($0)" } ?? valueFormat(reading.value)
-        return "\(valueText), \(dateFormat(reading.date))"
+        guard let reading = muestraBajoElDedo ?? points.last else { return "No data" }
+        return "\(valorConSufijo(reading.value)), \(dateFormat(reading.date))"
     }
 
-    /// Default tooltip/axis date format ("EEE d MMM").
-    public static func defaultDateString(_ date: Date) -> String {
-        sharedDateFormatter.string(from: date)
+    /// El valor formateado, con el sufijo pegado cuando lo hay. Lo comparten VoiceOver y el globo,
+    /// para que digan exactamente lo mismo.
+    private func valorConSufijo(_ valor: Double) -> String {
+        guard let valueSuffix else { return valueFormat(valor) }
+        return "\(valueFormat(valor)) · \(valueSuffix)"
     }
 
-    private func nearestPoint(toX x: CGFloat, proxy: ChartProxy, plot: CGRect) -> TrendPoint? {
-        guard !points.isEmpty else { return nil }
-        guard let hoveredDate: Date = proxy.value(atX: x - plot.minX) else { return nil }
-        return points.min { lhs, rhs in
-            abs(lhs.date.timeIntervalSince(hoveredDate)) < abs(rhs.date.timeIntervalSince(hoveredDate))
-        }
+    // MARK: Geometría
+
+    /// Canal derecho de la escala X: ancho si hay una banda rotulada que llenar, el respiro mínimo
+    /// si el llamador pidió que la curva alcance el filo, y el inset de casa en los demás casos.
+    private var trailingInset: CGFloat {
+        if !(bands.isEmpty || bandLabelsHidden) { return MedidasTendencia.canalDeRotulos }
+        return tightTrailing ? MedidasTendencia.respiroMinimo : CenitMetrics.chartXTrailingInset
     }
 
-    /// Maps a raw value onto 0...1 within `valueRange`, clamped.
-    private func unit(_ value: Double) -> Double {
-        let domainFloor = valueRange.lowerBound, domainCeiling = valueRange.upperBound
-        guard domainCeiling > domainFloor else { return 0 }
-        let fraction = (value - domainFloor) / (domainCeiling - domainFloor)
-        return Swift.min(Swift.max(fraction, 0), 1)
+    /// El valor llevado a 0...1 dentro del dominio, recortado a los extremos.
+    private func fraccion(de valor: Double) -> Double {
+        let piso = valueRange.lowerBound, techo = valueRange.upperBound
+        guard techo > piso else { return 0 }
+        return Swift.min(Swift.max((valor - piso) / (techo - piso), 0), 1)
     }
 
-    private var valueGradient: LinearGradient {
+    /// La tinta que le toca a un valor dentro de la rampa de la métrica.
+    private func tinta(de valor: Double) -> Color {
+        StrandPalette.sample(stops: gradient.toStops(), at: fraccion(de: valor))
+    }
+
+    /// La rampa montada sobre el eje vertical: el trazo cambia de color según a qué altura va.
+    private var rampaVertical: LinearGradient {
         LinearGradient(gradient: gradient, startPoint: .bottom, endPoint: .top)
     }
 
-    public var body: some View {
-        Chart {
-            if let referenceLine {
-                RuleMark(y: .value("Reference", referenceLine))
-                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [3, 3]))
-                    .foregroundStyle(referenceLineColor)
-            }
-            if showsArea {
-                ForEach(points) { point in
-                    // yStart pins to the domain floor, NOT an implicit zero baseline: with a tight
-                    // domain (e.g. HR 64...145) zero sits below it, so a plain fill would bleed clear to
-                    // the plot's bottom edge, straight behind the X-axis labels.
-                    AreaMark(x: .value("Date", point.date),
-                             yStart: .value("Floor", valueRange.lowerBound),
-                             yEnd: .value("Value", point.value))
-                        // monotone, not catmullRom — Catmull-Rom can overshoot past the data on a
-                        // tightly-oscillating series, dipping the curve below the domain.
-                        .interpolationMethod(.monotone)
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [
-                                    StrandPalette.sample(stops: gradient.toStops(), at: unit(averageValue)).opacity(0.28),
-                                    Color.clear,
-                                ],
-                                startPoint: .top, endPoint: .bottom
-                            )
-                        )
-                }
-            }
-            ForEach(points) { point in
-                LineMark(x: .value("Date", point.date), y: .value("Value", point.value))
-                    .interpolationMethod(.monotone)
-                    .lineStyle(StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
-                    .foregroundStyle(valueGradient)
-            }
-            // Per-point dots only on short series — a dense multi-month line skips them (clutter + cost).
-            if points.count <= 60 {
-                ForEach(points) { point in
-                    PointMark(x: .value("Date", point.date), y: .value("Value", point.value))
-                        .symbolSize(18)
-                        .foregroundStyle(
-                            (alertThreshold.map { point.value < $0 } ?? false)
-                                ? alertColor
-                                : StrandPalette.sample(stops: gradient.toStops(), at: unit(point.value))
-                        )
-                }
-            }
-            if let marked = markedPoint {
-                let hue = StrandPalette.sample(stops: gradient.toStops(), at: unit(marked.value))
-                if markedPointHollow {
-                    PointMark(x: .value("Date", marked.date), y: .value("Value", marked.value))
-                        .symbolSize(92).foregroundStyle(hue)
-                    PointMark(x: .value("Date", marked.date), y: .value("Value", marked.value))
-                        .symbolSize(34).foregroundStyle(markedPointRingFill)
-                } else {
-                    PointMark(x: .value("Date", marked.date), y: .value("Value", marked.value))
-                        .symbolSize(70).foregroundStyle(hue)
-                }
-            }
-        }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(accessibilityLabel ?? "Trend chart"))
-        .accessibilityValue(Text(resolvedAccessibilityValue))
-        // Switching the whole series (e.g. a period toggle) snaps in — no point-by-point draw-on morph.
-        .animation(.none, value: points)
-        .chartYScale(domain: valueRange, range: .plotDimension(startPadding: CenitMetrics.chartXLabelBand, endPadding: 0))
-        .chartXScale(range: .plotDimension(startPadding: 0, endPadding: trailingInset))
-        .chartXAxis {
-            // Five ticks spread across the ACTUAL data span — `.automatic` snaps to calendar boundaries
-            // and can bunch every tick into one side of a short window.
-            AxisMarks(values: xAxisTicks) { value in
-                AxisGridLine().foregroundStyle(gridLineColor.opacity(0.4))
-                AxisValueLabel(anchor: xLabelAnchor(value.index, count: value.count)) {
-                    if let date = value.as(Date.self) { Text(xAxisLabel(date)) }
-                }
-                .foregroundStyle(axisLabelColor)
-                .font(StrandFont.footnote)
-            }
-        }
-        .chartYAxis {
-            if let yAxisValues {
-                AxisMarks(position: .leading, values: yAxisValues) { value in
-                    AxisGridLine().foregroundStyle(gridLineColor.opacity(0.4))
-                    AxisValueLabel {
-                        if let v = value.as(Double.self) { Text(valueFormat(v)) }
-                    }
-                    .foregroundStyle(axisLabelColor)
-                    .font(StrandFont.footnote)
-                }
-            } else {
-                AxisMarks(position: .leading, values: .automatic(desiredCount: yTickCount)) { _ in
-                    AxisGridLine().foregroundStyle(gridLineColor.opacity(0.4))
-                    AxisValueLabel().foregroundStyle(axisLabelColor).font(StrandFont.footnote)
-                }
-            }
-        }
-        .chartBackground { proxy in
-            GeometryReader { geo in
-                let plot = proxy.plotFrame.map { geo[$0] } ?? .zero
-                ZStack(alignment: .topLeading) {
-                    ForEach(bands) { band in bandLayer(band, proxy: proxy, plot: plot) }
-                }
-            }
-        }
-        .chartOverlay { proxy in
-            GeometryReader { geo in
-                let plot = proxy.plotFrame.map { geo[$0] } ?? .zero
-                let snappedIndex: Int? = (showsScrub ? hoverX : nil).flatMap { x in
-                    nearestPoint(toX: x, proxy: proxy, plot: plot).flatMap { points.firstIndex(of: $0) }
-                }
-                ZStack(alignment: .topLeading) {
-                    // A full-bleed transparent layer gives the scrub gesture a hittable area from the
-                    // very first touch — without it this ZStack is 0×0 until a point is already scrubbed.
-                    Color.clear
-                        .onChange(of: snappedIndex) { _, idx in
-                            if let idx {
-                                ChartHaptics.datumChanged()
-                                scrubbedPoint = points[idx]
-                            } else {
-                                scrubbedPoint = nil
-                            }
-                        }
-                    if showsScrub, let x = hoverX,
-                       let point = nearestPoint(toX: x, proxy: proxy, plot: plot),
-                       let plotX = proxy.position(forX: point.date),
-                       let plotY = proxy.position(forY: point.value) {
-                        let anchorPoint = CGPoint(x: plotX + plot.minX, y: plotY + plot.minY)
-                        let color = StrandPalette.sample(stops: gradient.toStops(), at: unit(point.value))
-                        CrosshairRule(x: anchorPoint.x, height: geo.size.height)
-                        HighlightDot(color: color).position(anchorPoint)
-                        PositionedTooltip(
-                            anchor: anchorPoint,
-                            container: geo.size,
-                            tooltip: ChartTooltip(
-                                value: valueSuffix.map { "\(valueFormat(point.value)) · \($0)" } ?? valueFormat(point.value),
-                                label: dateFormat(point.date),
-                                accent: color
-                            )
-                        )
-                    }
-                }
-                .animation(StrandMotion.fade, value: hoverX)
-                .contentShape(Rectangle())
-                .scrubGesture(enabled: showsScrub, hoverX: $hoverX)
-            }
-        }
-        .frame(height: height)
-    }
-
-    private var averageValue: Double {
+    /// El promedio de la serie, que decide con qué tinta se lava el área.
+    private var promedioDeLaSerie: Double {
         guard !points.isEmpty else { return valueRange.lowerBound }
-        return points.map(\.value).reduce(0, +) / Double(points.count)
+        let suma = points.reduce(into: 0.0) { total, punto in total += punto.value }
+        return suma / Double(points.count)
     }
 
-    /// Five tick dates at 0/25/50/75/100% of the data's ACTUAL time span — anchored to the data, not the
-    /// calendar, so the labels always span the chart's full width.
-    private var xAxisTicks: [Date] {
-        guard let first = points.first?.date, let last = points.last?.date else { return [] }
-        let span = last.timeIntervalSince(first)
-        guard span > 0 else { return [first] }
-        return [0.0, 0.25, 0.5, 0.75, 1.0].map { first.addingTimeInterval(span * $0) }
-    }
-
-    /// Keeps the first label leading-aligned and the last trailing-aligned so neither clips at the plot
-    /// edge; the gridline still sits exactly on the tick.
-    private func xLabelAnchor(_ index: Int, count: Int) -> UnitPoint {
-        if index == 0 { return .topLeading }
-        if index == count - 1 { return .topTrailing }
-        return .top
-    }
-
-    /// Picks a label template by how wide the window is: intraday → hour, up to ~10 months → day+month,
-    /// longer → month+year.
-    private func xAxisLabel(_ date: Date) -> String {
-        let span = (points.last?.date.timeIntervalSince(points.first?.date ?? date)) ?? 0
-        let formatter = TrendChart.axisFormatter
-        if span <= 36 * 3600 {
-            formatter.setLocalizedDateFormatFromTemplate("ha")
-        } else if span <= 300 * 86_400 {
-            formatter.setLocalizedDateFormatFromTemplate("dMMM")
-        } else {
-            formatter.setLocalizedDateFormatFromTemplate("MMMyy")
+    /// La muestra más cercana a una X del lienzo: se devuelve la X al eje del tiempo y se busca la
+    /// lectura con la fecha menos lejana.
+    private func muestraMasCercana(aX x: CGFloat, proxy: ChartProxy, lienzo: CGRect) -> TrendPoint? {
+        guard !points.isEmpty, let instante: Date = proxy.value(atX: x - lienzo.minX) else { return nil }
+        return points.min { izquierda, derecha in
+            abs(izquierda.date.timeIntervalSince(instante)) < abs(derecha.date.timeIntervalSince(instante))
         }
-        return formatter.string(from: date)
     }
 
-    private static let axisFormatter = DateFormatter()
+    // MARK: Las capas de la gráfica, de atrás hacia adelante
 
-    /// Draws one classification band: the active band gets a soft fill + edge lines; any band tall
-    /// enough gets a right-aligned label (the active one always does, even when geometrically thin — the
-    /// one band you most need named shouldn't be the one that goes unlabelled).
+    @ChartContentBuilder
+    private var capas: some ChartContent {
+        capaDeReferencia
+        capaDeLavado
+        capaDeLinea
+        capaDeMuestras
+        capaDelPuntoMarcado
+    }
+
+    @ChartContentBuilder
+    private var capaDeReferencia: some ChartContent {
+        if let referenceLine {
+            RuleMark(y: .value("Reference", referenceLine))
+                .lineStyle(StrokeStyle(lineWidth: MedidasTendencia.grosorDeReferencia,
+                                       dash: MedidasTendencia.rayaDeReferencia))
+                .foregroundStyle(referenceLineColor)
+        }
+    }
+
+    /// El lavado bajo la curva. Arranca en el PISO DEL DOMINIO y no en un cero implícito: con un
+    /// dominio apretado (FC 64...145) el cero queda por debajo y el relleno se derramaría hasta el
+    /// filo inferior del lienzo, justo detrás de las etiquetas del eje.
+    @ChartContentBuilder
+    private var capaDeLavado: some ChartContent {
+        if showsArea {
+            ForEach(points) { punto in
+                AreaMark(x: .value("Date", punto.date),
+                         yStart: .value("Floor", valueRange.lowerBound),
+                         yEnd: .value("Value", punto.value))
+                    .interpolationMethod(.monotone)
+                    .foregroundStyle(velo)
+            }
+        }
+    }
+
+    /// El velo del lavado: la tinta del promedio arriba, desvaneciéndose a nada abajo.
+    private var velo: LinearGradient {
+        LinearGradient(colors: [tinta(de: promedioDeLaSerie).opacity(MedidasTendencia.veloDelLavado), .clear],
+                       startPoint: .top, endPoint: .bottom)
+    }
+
+    /// La curva. `monotone` y no `catmullRom`: Catmull-Rom rebasa el dato en una serie que oscila
+    /// apretado y hunde la curva por debajo del dominio.
+    private var capaDeLinea: some ChartContent {
+        ForEach(points) { punto in
+            LineMark(x: .value("Date", punto.date), y: .value("Value", punto.value))
+                .interpolationMethod(.monotone)
+                .lineStyle(StrokeStyle(lineWidth: MedidasTendencia.grosorDeLinea,
+                                       lineCap: .round, lineJoin: .round))
+                .foregroundStyle(rampaVertical)
+        }
+    }
+
+    /// Un disco por muestra, solo en series cortas: una línea de varios meses los deja fuera.
+    @ChartContentBuilder
+    private var capaDeMuestras: some ChartContent {
+        if points.count <= MedidasTendencia.techoDePuntos {
+            ForEach(points) { punto in
+                PointMark(x: .value("Date", punto.date), y: .value("Value", punto.value))
+                    .symbolSize(MedidasTendencia.areaDelPunto)
+                    .foregroundStyle(enAlerta(punto) ? alertColor : tinta(de: punto.value))
+            }
+        }
+    }
+
+    /// Si la muestra cae por debajo del umbral de alerta. Sin umbral, nada está en alerta.
+    private func enAlerta(_ punto: TrendPoint) -> Bool {
+        guard let alertThreshold else { return false }
+        return punto.value < alertThreshold
+    }
+
+    /// El punto enfatizado: un disco sólido, o un aro (disco grande con el centro tapado) cuando
+    /// hace falta que se lea como «este» aunque la banda resaltada sea otra.
+    @ChartContentBuilder
+    private var capaDelPuntoMarcado: some ChartContent {
+        if let marked = markedPoint {
+            let hue = tinta(de: marked.value)
+            if markedPointHollow {
+                disco(marked, area: MedidasTendencia.areaDelAro, relleno: hue)
+                disco(marked, area: MedidasTendencia.areaDelCentroDelAro, relleno: markedPointRingFill)
+            } else {
+                disco(marked, area: MedidasTendencia.areaDelMarcado, relleno: hue)
+            }
+        }
+    }
+
+    private func disco(_ punto: TrendPoint, area: CGFloat, relleno: Color) -> some ChartContent {
+        PointMark(x: .value("Date", punto.date), y: .value("Value", punto.value))
+            .symbolSize(area)
+            .foregroundStyle(relleno)
+    }
+
+    // MARK: El cuerpo
+
+    public var body: some View {
+        lienzo(alto: height)
+    }
+
+    private func lienzo(alto: CGFloat) -> some View {
+        Chart { capas }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text(accessibilityLabel ?? "Trend chart"))
+            .accessibilityValue(Text(resolvedAccessibilityValue))
+            // Cambiar la serie entera (p. ej. el selector de periodo) entra de golpe: nada de
+            // remorfear punto por punto.
+            .animation(.none, value: points)
+            .chartYScale(domain: valueRange,
+                         range: .plotDimension(startPadding: CenitMetrics.chartXLabelBand, endPadding: 0))
+            .chartXScale(range: .plotDimension(startPadding: 0, endPadding: trailingInset))
+            .chartXAxis(content: ejeDelTiempo)
+            .chartYAxis(content: ejeDeValores)
+            .chartBackground(content: fondoDeBandas)
+            .chartOverlay(content: capaDeRaspado)
+            .frame(height: alto)
+    }
+
+    // MARK: Los ejes
+
+    /// Cinco cortes repartidos sobre el TRAMO REALMENTE MEDIDO: `.automatic` se pega a fronteras de
+    /// calendario y puede amontonar los cinco de un solo lado en una ventana corta.
+    @AxisContentBuilder
+    private func ejeDelTiempo() -> some AxisContent {
+        AxisMarks(values: xAxisTicks) { corte in
+            AxisGridLine().foregroundStyle(gridLineColor.opacity(MedidasTendencia.veloDeReticula))
+            AxisValueLabel(anchor: anclaDeCorte(corte.index, de: corte.count)) {
+                if let fecha = corte.as(Date.self) { Text(xAxisLabel(fecha)) }
+            }
+            .font(StrandFont.footnote).foregroundStyle(axisLabelColor)
+        }
+    }
+
+    /// Cortes explícitos cuando el llamador los da (los umbrales de banda sirven de pista); si no,
+    /// los que Swift Charts elija alrededor de `yTickCount`.
+    @AxisContentBuilder
+    private func ejeDeValores() -> some AxisContent {
+        if let yAxisValues {
+            AxisMarks(position: .leading, values: yAxisValues) { corte in
+                AxisGridLine().foregroundStyle(gridLineColor.opacity(MedidasTendencia.veloDeReticula))
+                AxisValueLabel {
+                    if let valor = corte.as(Double.self) { Text(valueFormat(valor)) }
+                }
+                .font(StrandFont.footnote).foregroundStyle(axisLabelColor)
+            }
+        } else {
+            AxisMarks(position: .leading, values: .automatic(desiredCount: yTickCount)) { _ in
+                AxisGridLine().foregroundStyle(gridLineColor.opacity(MedidasTendencia.veloDeReticula))
+                AxisValueLabel().font(StrandFont.footnote).foregroundStyle(axisLabelColor)
+            }
+        }
+    }
+
+    /// Las cinco fechas de los cortes, a 0/25/50/75/100 % del tramo medido — ancladas al dato y no
+    /// al calendario, para que las etiquetas cubran siempre todo el ancho.
+    private var xAxisTicks: [Date] {
+        guard let primera = points.first?.date, let ultima = points.last?.date else { return [] }
+        let tramo = ultima.timeIntervalSince(primera)
+        guard tramo > 0 else { return [primera] }
+        return MedidasTendencia.cortesDelTiempo.map { primera.addingTimeInterval(tramo * $0) }
+    }
+
+    /// La primera etiqueta se alinea a la izquierda y la última a la derecha, para que ninguna se
+    /// corte contra el filo; la retícula sigue cayendo exactamente sobre el corte.
+    private func anclaDeCorte(_ indice: Int, de total: Int) -> UnitPoint {
+        switch indice {
+        case 0: return .topLeading
+        case total - 1: return .topTrailing
+        default: return .top
+        }
+    }
+
+    /// La plantilla de fecha la elige el ancho de la ventana: intradía → hora; hasta ~10 meses →
+    /// día y mes; más largo → mes y año.
+    private func xAxisLabel(_ fecha: Date) -> String {
+        let tramo = (points.last?.date.timeIntervalSince(points.first?.date ?? fecha)) ?? 0
+        let formateador = TrendChart.formatoDeEje
+        if tramo <= MedidasTendencia.tramoIntradia {
+            formateador.setLocalizedDateFormatFromTemplate("ha")
+        } else if tramo <= MedidasTendencia.tramoLargo {
+            formateador.setLocalizedDateFormatFromTemplate("dMMM")
+        } else {
+            formateador.setLocalizedDateFormatFromTemplate("MMMyy")
+        }
+        return formateador.string(from: fecha)
+    }
+
+    private static let formatoDeEje = DateFormatter()
+
+    // MARK: Las bandas, detrás de la curva
+
+    private func fondoDeBandas(_ proxy: ChartProxy) -> some View {
+        GeometryReader { geo in
+            let lienzo = proxy.plotFrame.map { geo[$0] } ?? .zero
+            ZStack(alignment: .topLeading) {
+                ForEach(bands) { banda in bandLayer(banda, proxy: proxy, plot: lienzo) }
+            }
+        }
+    }
+
+    /// Dibuja una banda: la activa se lleva un velo suave y sus dos filos; el rótulo a la derecha lo
+    /// gana cualquier banda con alto suficiente —y SIEMPRE la activa, aunque quede geométricamente
+    /// delgada: la única banda que de verdad necesitas leer no puede ser la que se queda sin nombre.
     @ViewBuilder
     private func bandLayer(_ band: TrendBand, proxy: ChartProxy, plot: CGRect) -> some View {
         let top = min(band.upper ?? valueRange.upperBound, valueRange.upperBound)
@@ -479,63 +574,118 @@ public struct TrendChart: View {
             let yTop = plot.minY + min(pTop, pBottom)
             let bandHeight = abs(pBottom - pTop)
             if band.isActive {
-                Rectangle().fill(bandColor.opacity(0.16))
-                    .frame(width: plot.width, height: bandHeight).offset(x: plot.minX, y: yTop)
-                Rectangle().fill(bandColor.opacity(0.5))
-                    .frame(width: plot.width, height: 1).offset(x: plot.minX, y: yTop)
-                Rectangle().fill(bandColor.opacity(0.5))
-                    .frame(width: plot.width, height: 1).offset(x: plot.minX, y: yTop + bandHeight - 1)
+                franja(bandColor.opacity(MedidasTendencia.veloDeBandaActiva),
+                       ancho: plot.width, alto: bandHeight, x: plot.minX, y: yTop)
+                franja(bandColor.opacity(MedidasTendencia.filoDeBandaActiva),
+                       ancho: plot.width, alto: 1, x: plot.minX, y: yTop)
+                franja(bandColor.opacity(MedidasTendencia.filoDeBandaActiva),
+                       ancho: plot.width, alto: 1, x: plot.minX, y: yTop + bandHeight - 1)
             }
-            if !bandLabelsHidden, bandHeight >= 16 || band.isActive {
+            if !bandLabelsHidden, bandHeight >= MedidasTendencia.altoMinimoParaRotular || band.isActive {
                 Text(band.label)
-                    .font(StrandFont.footnote)
-                    .fontWeight(band.isActive ? .semibold : .regular)
+                    .font(StrandFont.footnote).fontWeight(band.isActive ? .semibold : .regular)
                     .lineLimit(1)
                     .foregroundStyle(band.isActive ? bandColor : axisLabelColor.opacity(0.8))
-                    .frame(width: plot.width - 6, alignment: .trailing)
-                    .offset(x: plot.minX, y: yTop + bandHeight / 2 - 8)
+                    .frame(width: plot.width - MedidasTendencia.sangriaDelRotulo, alignment: .trailing)
+                    .offset(x: plot.minX, y: yTop + bandHeight / 2 - MedidasTendencia.alzaDelRotulo)
             }
         }
     }
+
+    /// Un rectángulo plano colocado en el lienzo: el relleno y los dos filos de la banda activa.
+    private func franja(_ tinta: Color, ancho: CGFloat, alto: CGFloat, x: CGFloat, y: CGFloat) -> some View {
+        Rectangle().fill(tinta).frame(width: ancho, height: alto).offset(x: x, y: y)
+    }
+
+    // MARK: El raspado, encima de la curva
+
+    private func capaDeRaspado(_ proxy: ChartProxy) -> some View {
+        GeometryReader { geo in
+            let lienzo = proxy.plotFrame.map { geo[$0] } ?? .zero
+            let indiceBajoElDedo: Int? = (showsScrub ? dedoX : nil).flatMap { x in
+                muestraMasCercana(aX: x, proxy: proxy, lienzo: lienzo).flatMap { points.firstIndex(of: $0) }
+            }
+            ZStack(alignment: .topLeading) {
+                // Una capa transparente a todo lo ancho le da al gesto algo que tocar desde el primer
+                // contacto: sin ella este ZStack mide 0×0 hasta que ya hay una muestra raspada.
+                Color.clear.onChange(of: indiceBajoElDedo) { _, indice in seguir(indice) }
+                if showsScrub, let x = dedoX,
+                   let muestra = muestraMasCercana(aX: x, proxy: proxy, lienzo: lienzo),
+                   let plotX = proxy.position(forX: muestra.date),
+                   let plotY = proxy.position(forY: muestra.value) {
+                    señales(de: muestra,
+                            en: CGPoint(x: plotX + lienzo.minX, y: plotY + lienzo.minY),
+                            dentro: geo.size)
+                }
+            }
+            .animation(StrandMotion.fade, value: dedoX)
+            .contentShape(.rect)
+            .scrubGesture(enabled: showsScrub, hoverX: $dedoX)
+        }
+    }
+
+    /// Cruz, disco y globo sobre la muestra que el dedo tiene encima.
+    @ViewBuilder
+    private func señales(de muestra: TrendPoint, en ancla: CGPoint, dentro contenedor: CGSize) -> some View {
+        let color = tinta(de: muestra.value)
+        CrosshairRule(x: ancla.x, height: contenedor.height)
+        HighlightDot(color: color).position(ancla)
+        PositionedTooltip(anchor: ancla, container: contenedor,
+                          tooltip: ChartTooltip(value: valorConSufijo(muestra.value),
+                                                label: dateFormat(muestra.date),
+                                                accent: color))
+    }
+
+    /// Al cambiar de muestra: un golpecito háptico y la muestra que VoiceOver va a leer.
+    private func seguir(_ indice: Int?) {
+        guard let indice else {
+            muestraBajoElDedo = nil
+            return
+        }
+        ChartHaptics.datumChanged()
+        muestraBajoElDedo = points[indice]
+    }
 }
 
-// MARK: - Platform scrub gesture
+// MARK: - El gesto de raspado, compartido por las gráficas del paquete
 //
-// Shared (module-internal, not file-private) so sibling charts in the package inherit the exact same
-// finger-drag/hover affordance instead of re-implementing it.
-extension View {
-    /// Attaches the chart-scrub affordance: a `DragGesture` on iOS (no minimum distance, so the
-    /// crosshair appears on first touch), pointer hover on macOS, a no-op on watchOS (which never
-    /// renders a scrubbable chart from this package but must still build). Both platforms drive the same
-    /// `hoverX` binding a caller's overlay reads to draw its crosshair + tooltip.
+//   Vive aquí (interno al módulo, no fileprivate) para que Sparkline y compañía hereden EXACTAMENTE
+//   la misma forma de raspar en vez de reimplementarla cada una.
+
+/// Escribe la X del dedo sin animar. El cursor debe pegarse al dedo, no perseguirlo con un resorte.
+private func fijarSinAnimar(_ destino: Binding<CGFloat?>, _ x: CGFloat?) {
+    var transaccion = Transaction()
+    transaccion.disablesAnimations = true
+    withTransaction(transaccion) { destino.wrappedValue = x }
+}
+
+public extension View {
+    /// Engancha el raspado: arrastre en iOS (sin distancia mínima, para que la cruz aparezca desde el
+    /// primer contacto), cursor en macOS, y nada en watchOS —que nunca dibuja una gráfica raspable de
+    /// este paquete, pero tiene que compilar igual. Las dos plataformas escriben el mismo `hoverX`
+    /// que la capa de quien llama lee para pintar su cruz y su globo.
     ///
-    /// `.highPriorityGesture` on iOS is deliberate: these charts live inside a ScrollView, and a plain
-    /// `.gesture()` loses the touch to the parent's vertical pan.
+    /// En iOS es `highPriorityGesture` a propósito: estas gráficas viven dentro de un ScrollView y un
+    /// `.gesture()` normal pierde el toque contra el arrastre vertical del padre.
     @ViewBuilder
-    public func scrubGesture(enabled: Bool, hoverX: Binding<CGFloat?>) -> some View {
+    func scrubGesture(enabled: Bool, hoverX: Binding<CGFloat?>) -> some View {
         #if os(iOS)
-        self.highPriorityGesture(
+        highPriorityGesture(
             DragGesture(minimumDistance: 0)
-                .onChanged { drag in
-                    guard enabled else { return }
-                    var tx = Transaction(); tx.disablesAnimations = true
-                    withTransaction(tx) { hoverX.wrappedValue = drag.location.x }
+                .onChanged { arrastre in
+                    if enabled { fijarSinAnimar(hoverX, arrastre.location.x) }
                 }
                 .onEnded { _ in
-                    guard enabled else { return }
-                    var tx = Transaction(); tx.disablesAnimations = true
-                    withTransaction(tx) { hoverX.wrappedValue = nil }
+                    if enabled { fijarSinAnimar(hoverX, nil) }
                 }
         )
         #elseif os(macOS)
-        self.onContinuousHover(coordinateSpace: .local) { phase in
+        onContinuousHover(coordinateSpace: .local) { fase in
             guard enabled else { return }
-            var tx = Transaction(); tx.disablesAnimations = true
-            withTransaction(tx) {
-                switch phase {
-                case .active(let location): hoverX.wrappedValue = location.x
-                case .ended: hoverX.wrappedValue = nil
-                }
+            if case .active(let posicion) = fase {
+                fijarSinAnimar(hoverX, posicion.x)
+            } else {
+                fijarSinAnimar(hoverX, nil)
             }
         }
         #else
@@ -544,63 +694,64 @@ extension View {
     }
 }
 
-// MARK: - Gradient → stops bridge
+// MARK: - Puente de la rampa a sus paradas
 
 extension Gradient {
-    /// Reconstructs ordered stops from a `Gradient` for the sampler above.
-    func toStops() -> [Gradient.Stop] { self.stops }
+    /// Las paradas en orden, que es lo que el muestreador de `StrandPalette` sabe interpolar.
+    func toStops() -> [Gradient.Stop] { stops }
 }
 
 #if DEBUG
-private struct SyntheticSeries {
-    let base: Double, amplitude: Double
-    func points(days: Int) -> [TrendPoint] {
-        let today = Date()
-        return stride(from: 0, to: days, by: 1).map { offset in
-            let daysAgo = days - 1 - offset
-            let date = Calendar.current.date(byAdding: .day, value: -daysAgo, to: today) ?? today
-            let wobble = amplitude * sin(Double(offset) / 3.0)
-            let noise = Double((offset * 17) % 9) - 4.0
-            return TrendPoint(date: date, value: Swift.max(0.0, base + wobble + noise))
+/// Una serie sintética con oscilación y ruido, para que la curva tenga forma de dato y no de seno.
+private struct SerieDeMuestra {
+    let piso: Double
+    let vaiven: Double
+
+    func dias(_ cuantos: Int) -> [TrendPoint] {
+        let hoy = Date()
+        return (0..<cuantos).map { paso in
+            let atras = cuantos - 1 - paso
+            let fecha = Calendar.current.date(byAdding: .day, value: -atras, to: hoy) ?? hoy
+            let onda = vaiven * sin(Double(paso) / 3.0)
+            let ruido = Double((paso * 17) % 9) - 4.0
+            return TrendPoint(date: fecha, value: Swift.max(0, piso + onda + ruido))
         }
     }
 }
 
-private struct TrendChartPreviewCard<Extra: View>: View {
-    let caption: String
-    let series: [TrendPoint]
-    @ViewBuilder var extra: () -> Extra
-    @ViewBuilder var chart: () -> TrendChart
+/// La tarjeta del muestrario: un rótulo, una nota opcional y la gráfica sobre papel.
+private struct TarjetaDeTendencia<Nota: View, Grafica: View>: View {
+    let rotulo: String
+    @ViewBuilder var nota: () -> Nota
+    @ViewBuilder var grafica: () -> Grafica
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(caption).strandOverline()
-            extra()
-            chart()
+            Text(rotulo).strandOverline()
+            nota()
+            grafica()
         }
-        .padding(28)
-        .frame(width: 720, height: 340)
-        .background(InstrumentoTheme.base.paper)
-        .preferredColorScheme(.light)
+        .padding(28).frame(width: 720, height: 340)
+        .background(InstrumentoTheme.base.paper).preferredColorScheme(.light)
     }
 }
 
-#Preview("TrendChart — recovery") {
-    let series = SyntheticSeries(base: 62, amplitude: 22).points(days: 30)
-    return TrendChartPreviewCard(caption: "Recovery — 30 days", series: series) {
-        Text("Hover the line: crosshair + dot + date/value tooltip.")
+#Preview("TrendChart · recuperación") {
+    let serie = SerieDeMuestra(piso: 62, vaiven: 22).dias(30)
+    return TarjetaDeTendencia(rotulo: "Recovery — 30 days") {
+        Text(verbatim: "Raspa la línea: cruz, punto y globo con fecha y valor.")
             .font(StrandFont.footnote).foregroundStyle(InstrumentoTheme.base.inkTertiary)
-    } chart: {
-        TrendChart(points: series)
+    } grafica: {
+        TrendChart(points: serie)
     }
 }
 
-#Preview("TrendChart — HRV") {
-    let series = SyntheticSeries(base: 58, amplitude: 14).points(days: 30)
-    return TrendChartPreviewCard(caption: "HRV (ms) — 30 days", series: series) {
+#Preview("TrendChart · VFC") {
+    let serie = SerieDeMuestra(piso: 58, vaiven: 14).dias(30)
+    return TarjetaDeTendencia(rotulo: "HRV (ms) — 30 days") {
         EmptyView()
-    } chart: {
-        TrendChart(points: series, valueRange: 20...100, valueFormat: { "\(Int($0.rounded())) ms" })
+    } grafica: {
+        TrendChart(points: serie, valueRange: 20...100, valueFormat: { "\(Int($0.rounded())) ms" })
     }
 }
 #endif

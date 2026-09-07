@@ -1,8 +1,6 @@
 import SwiftUI
 // MARK: - La voz tipográfica
-//
-// SF Pro. Conviven aquí dos familias de fichas, y la diferencia entre ellas es deliberada:
-//
+//   SF Pro. Conviven aquí dos familias de fichas, y la diferencia entre ellas es deliberada:
 //   · Las de LECTURA se anclan a un estilo nativo (`Font.system(.subheadline)`), así que crecen y
 //     encogen con el tamaño de texto que la persona eligió en iOS.
 //   · Las NUMÉRICAS y las de glifo se declaran en puntos FIJOS. Viven dentro de un dibujo —anillos,
@@ -71,9 +69,9 @@ public enum StrandFont { // fichas de tipo: nadie escribe `.font(.system(size:))
 // entera para que ninguna pantalla la arme a medias (sin tracking, o con otra tinta).
 private struct VozDeSobrelinea: ViewModifier {
     func body(content: Content) -> some View {
-        content.font(StrandFont.overline)
-            .tracking(StrandFont.overlineTracking)
+        content
             .textCase(.uppercase)
+            .font(StrandFont.overline).tracking(StrandFont.overlineTracking)
             .foregroundStyle(InstrumentoTheme.base.inkSecondary)
     }
 }
@@ -107,13 +105,22 @@ private let muestrario: [MuestraDeVoz] = [
     .init(rotulo: "Mono 0x1F 0x0A crc=91b2", voz: StrandFont.mono, atenuada: true),
 ]
 
-/// Un dato con su unidad, para ver `captionNumber` y `unit` uno junto al otro.
+/// Un dato con su unidad: rótulo, numeral y unidad, cada uno con su ficha, para verlas juntas.
 private struct MuestraDeDato: View {
+    /// Aire entre rótulo, numeral y unidad — cifra de muestrario, no ficha del sistema.
+    private let aireEntrePiezas: CGFloat = 4
+
+    private var piezas: [(String, Font, Color)] {
+        [("HRV", StrandFont.caption, InstrumentoTheme.base.inkSecondary),
+         ("62", StrandFont.captionNumber, InstrumentoTheme.base.ink),
+         ("ms", StrandFont.unit, InstrumentoTheme.base.inkTertiary)]
+    }
+
     var body: some View {
-        HStack(spacing: 4) {
-            Text("HRV").font(StrandFont.caption).foregroundStyle(InstrumentoTheme.base.inkSecondary)
-            Text("62").font(StrandFont.captionNumber).foregroundStyle(InstrumentoTheme.base.ink)
-            Text("ms").font(StrandFont.unit).foregroundStyle(InstrumentoTheme.base.inkTertiary)
+        HStack(spacing: aireEntrePiezas) {
+            ForEach(piezas, id: \.0) { texto, voz, tinta in
+                Text(texto).font(voz).foregroundStyle(tinta)
+            }
         }
     }
 }
@@ -125,7 +132,7 @@ private struct MuestraDeDato: View {
                 Text(fila.rotulo).font(fila.voz)
                     .foregroundStyle(fila.atenuada ? InstrumentoTheme.base.inkSecondary : InstrumentoTheme.base.ink)
             }
-            Text("Overline").strandOverline()
+            Text(verbatim: "Overline").strandOverline()
             MuestraDeDato()
         }
         .padding(28).frame(maxWidth: .infinity, alignment: .leading)
