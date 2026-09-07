@@ -1,91 +1,111 @@
 # Contributing to Cénit
 
-Thanks for your interest in contributing. Cénit is a fully **offline** health app
-on **Apple Health** — it syncs HealthKit into on-device SQLite and computes
-recovery / strain / HRV / sleep locally. No servers, no accounts, no data
-leaving the device, with two narrow, opt-in, off-by-default exceptions: a
-bring-your-own-key AI Coach and an exercise media downloader. See
-[`README.md`](README.md#privacy).
+Thanks for looking. Cénit is a fully offline health companion built on Apple Health: it syncs
+HealthKit into an on-device SQLite database and computes recovery, effort, variability and sleep
+locally. There is no server, no account, and **no reachable network code at all** — see
+[`docs/PRIVACY_SECURITY.md`](docs/PRIVACY_SECURITY.md) for the evidence, including the commands to
+check that claim yourself.
 
-This file is a quick orientation. The **full contributing guide** — repository
-layout, the design-system rules, how to add a metric / screen / migration, and
-the commit conventions — lives in [`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md).
-Read that before opening a non-trivial PR.
+This page is orientation. The working guide — repository layout, where code belongs, the design-system
+rules, how to add a metric, a screen or a migration, and the commit conventions — is
+[`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md). Read that before opening a non-trivial pull request.
 
 > Cénit is not a medical device. See [`DISCLAIMER.md`](DISCLAIMER.md).
 
 ---
 
-## Quick start
+## The fast loop
 
-The codebase is reusable Swift packages (`Packages/`) plus a thin iOS app layer
-(`Cenit/`, built by the `Cenit` target). The fastest feedback loop is the
-packages — they build and test on their own, no Xcode project needed.
-
-### Swift packages
+The codebase is eight cross-platform Swift packages under `Packages/` plus a thin iOS app layer. Most
+real work happens in the packages, and they build and test on their own with no Xcode project, no
+simulator and no signing:
 
 ```bash
-# Test just the package you touched (substitute the name):
 cd Packages/StrandAnalytics && swift build && swift test
 ```
 
-The packages are `BiometricStreams` (neutral biometric row vocabulary),
-`StrandModels` (shared model types), `CenitStore` (SQLite persistence),
-`StrandAnalytics` (recovery / strain / HRV / sleep math), `StrandTraining`
-(strength domain), `StrandImport` (Apple Health importers), and `CenitDesign`
-(the SwiftUI design system).
+| Package | What it holds |
+| --- | --- |
+| `BiometricStreams` | The neutral shapes of a decoded sample. Foundation-only, the root of the graph. |
+| `StrandModels` | Row types both storage and math need to name. |
+| `CenitStore` | SQLite persistence, the schema and the migration that installs it. |
+| `StrandAnalytics` | Every physiological computation, as pure functions. |
+| `StrandTraining` | The strength domain plus the bundled exercise catalog. |
+| `StrandImport` | Parsers for the files a user supplies. |
+| `CenitDesign` | The SwiftUI design system. |
+| `CenitEnsenanza` | The registry of what the app teaches and where. |
 
-### iOS app
+[`docs/LIBRARY.md`](docs/LIBRARY.md) is the reference for all eight.
 
-The Xcode project is generated from `project.yml` and is **not** committed.
+## The app loop
+
+The Xcode project is generated from `project.yml` and is **not** committed:
 
 ```bash
 brew install xcodegen
-xcodegen generate         # regenerate after any project.yml or file add/remove
+xcodegen generate
 ```
 
-Then open the project in Xcode, select the `Cenit` scheme, and run on your
-iPhone. For the full build guide (signing, installing on-device without a paid
-Apple ID), see [`docs/BUILD.md`](docs/BUILD.md).
+Then open it, pick the `Cenit` scheme and run. [`docs/BUILD.md`](docs/BUILD.md) covers the toolchain,
+installing on a device without a paid account, and the machine hygiene that keeps a full build from
+exhausting memory.
+
+## Verify before you push
+
+One command handles the linters, the touched packages and the app build when it is warranted:
+
+```bash
+Tools/verify.sh
+```
 
 ---
 
-## What CI checks
+## What continuous integration checks
 
-The **Swift Packages CI** workflow runs on every PR and push to the default
-branch that touches `Packages/**`. It compiles and runs unit tests only — no
-code signing, no secrets, no release.
+Six workflows run, but only two jobs are required to merge — both from the design-lint workflow, which
+runs on **every** pull request with no path filter.
 
-| Workflow | Trigger | What it does |
-|---|---|---|
-| **Swift Packages CI** (`.github/workflows/swift-packages.yml`) | changes under `Packages/**` | `swift build` + `swift test` for each package |
+| Workflow | Runs when | Checks |
+| --- | --- | --- |
+| **Design Lint** | Every pull request | The design-system rules, the gate-parity check, the teaching registry, the gate self-tests, and that the drift baseline only went down. **Required.** |
+| **Swift Packages** | Changes under `Packages/**` | Builds and tests seven packages, three of them on Linux. |
+| **iOS App** | Nightly, on dispatch, or with the `ci-app` label | Compiles the app and runs its unit tests on a simulator. |
+| **Design Tokens** | Design-system changes | Regenerates the tokens and fails if the committed output differs. |
+| **i18n guard** | App or package source changes | Spanish literals in code, forbidden dashes, and keys missing a Spanish localization. |
+| **Release** | A `v*` tag | Builds and publishes an unsigned binary. |
 
-If CI fails on your PR, fix the cause rather than working around it. Never commit
-generated output (`Cenit.xcodeproj/`) or any secrets, keystores, or `local.properties`.
+Apply the `ci-app` label **after** the pull request exists. Passing it at creation time has repeatedly
+caused the labeled run to be cancelled, leaving a job that reports skipped without ever running.
 
----
-
-## Submitting a PR
-
-1. One concern per PR where practical (keep schema and UI changes separate).
-2. Fill in the [PR template](.github/PULL_REQUEST_TEMPLATE.md).
-3. For analytics changes, add a test and cite the method.
-4. For UI changes, use `CenitDesign` tokens only — no hardcoded colors, fonts,
-   or spacing.
-
-By opening a pull request you agree your contribution is licensed under the same
-terms as the project — see [`LICENSE`](LICENSE).
+If a check fails, fix the cause rather than routing around it. Never commit generated output such as
+`Cenit.xcodeproj/`, and never commit secrets or keystores.
 
 ---
 
-## Reporting issues
+## Opening a pull request
 
-- **Bugs and feature requests:** open an issue using the templates in
-  [`.github/ISSUE_TEMPLATE`](.github/ISSUE_TEMPLATE). Cénit is on-device, so please
-  leave out anything that identifies you.
-- **Security issues:** see [`SECURITY.md`](SECURITY.md).
+1. One concern per pull request. Keep a schema change and a UI change apart.
+2. Fill in the [template](.github/PULL_REQUEST_TEMPLATE.md).
+3. For anything touching the math, add a test and cite the published method.
+4. For anything touching a screen, use design-system tokens only. A literal color, font size or
+   spacing value is a lint failure.
+5. If the change moves the architecture, update [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) in the
+   same pull request.
 
-## Code of conduct
+By opening a pull request you agree your contribution is licensed under the same terms as the project.
+See [`LICENSE`](LICENSE).
 
-This project follows a [Code of Conduct](CODE_OF_CONDUCT.md). Be respectful and
-keep discussion focused on the technical work.
+---
+
+## Reporting
+
+- **Bugs and features** — open an issue using the templates in
+  [`.github/ISSUE_TEMPLATE`](.github/ISSUE_TEMPLATE). Everything the app computes stays on your
+  device, so leave anything that identifies you out of the report.
+- **Security** — see [`SECURITY.md`](SECURITY.md). The most valuable report is evidence that the
+  offline claim is false.
+
+## Conduct
+
+This project follows a [Code of Conduct](CODE_OF_CONDUCT.md). Keep discussion respectful and focused
+on the technical work.
