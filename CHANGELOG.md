@@ -63,6 +63,11 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
   without a watch, shows the real dock, and lands you where you chose. No morning reminder and no
   made-up verdict.
 
+### Los consejos de Entrenar ahora salen uno por día (FER-430)
+- Antes podían aparecer varios consejos nuevos en la misma sesión; ahora, como mucho uno al día.
+  Por dentro, cada funcionalidad del app queda registrada con un id estable — la base para que
+  Ayuda, Novedades y los hitos se mantengan al día solos.
+
 ### Los planes y programas que importas ahora se llaman `cenit.*` (FER-382)
 - El archivo que armas con tu LLM (rutina o plan de comida) pasa a identificarse como
   `cenit.workout.v1` / `cenit.diet.v1`. **Los archivos que ya tienes siguen funcionando**: Cénit

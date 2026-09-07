@@ -80,6 +80,7 @@ Packages/                       Cross-platform Swift packages (base `.iOS(.v16)`
 ├── BiometricStreams/           neutral vocabulary of decoded rows (`Streams`, `ParsedValue`) — no deps; still linked into the app (CenitStore/StrandAnalytics depend on it)
 ├── CenitStore/                 GRDB/SQLite persistence (actor)
 ├── StrandTraining/             strength domain types + bundled exercise catalog (free-exercise-db, FER-923; pure, no DB)
+├── CenitEnsenanza/             registro tipado de funcionalidades (qué se enseña, dónde, con qué pieza); pure, no deps (FER-430)
 ├── StrandAnalytics/            HRV/recovery/strain/sleep/correlation math
 ├── StrandImport/               Apple Health importer (export.xml, streaming) + StrengthCSVImporter (Strong/Hevy/Cénit CSV)
 └── CenitDesign/               SwiftUI design system (palette, components, charts)
@@ -96,7 +97,7 @@ CenitWatch/                     watchOS 10 companion app (single target, FER-740
 The app target is **`Cenit`** (Swift module `Cenit`, product `Cenit.app`): its shell (scene, HealthKit,
 widgets, intents) lives in **`CenitApp/`**, and it compiles the app-layer under **`Cenit/`** (screens,
 data, media). Its linked packages (`project.yml`) are `BiometricStreams`, `CenitStore`,
-`StrandAnalytics`, `StrandImport`, `CenitDesign` and `StrandTraining` (FER-398 dropped `Inject`: the
+`StrandAnalytics`, `StrandImport`, `CenitDesign`, `StrandTraining` and `CenitEnsenanza` (FER-398 dropped `Inject`: the
 hot-reload shim now lives in-repo at `Cenit/System/HotReload.swift`, so no dev-only third-party code
 ships in the store binary). The user-visible name
 stays **Cénit** (`CFBundleDisplayName`); the visible rebrand to "Cénit" is tracked separately. The macOS
@@ -169,6 +170,7 @@ Each package has a narrow contract. The dependency graph is acyclic and the leaf
 CenitDesign        (no deps — pure SwiftUI)
 StrandTraining      (no deps — pure domain types + bundled exercise catalog)
 StrandModels        (no deps — shared daily-metric value types: DailyMetric, CachedSleepSession, DietMealStatus)
+CenitEnsenanza      (no deps — the typed teaching registry: 68 features × {pestaña, requiere, piezas}; linked to the app only)
 
 BiometricStreams    (no deps — the ROOT: the neutral vocabulary of decoded biometric rows)
 
@@ -198,6 +200,7 @@ StrandImport ───────▶ CenitStore + StrandTraining + ZIPFoundatio
 | **StrandImport** | Parse Apple Health exports the user already owns (`export.xml`, streaming). | `ImportCoordinator.detectAndImport`, `AppleHealthImporter`, `AppleHealthAggregator`, `SleepHKEncoder`/`SleepHKDecoder` | **Parsing only** — returns normalized model arrays; the app maps them into the store. |
 | **CenitDesign** | The SwiftUI design system: palette, typography, motion, charts, components. | `StrandPalette`, `liquidGlass(_:)`, `RecoveryZoneGauge`, `Hypnogram`, `TrendChart`, `Sparkline`, `YearHeatStrip` (full index: [CATALOGO.md](design-system/CATALOGO.md)) | No data or protocol deps — pure presentation. |
 | **StrandTraining** | Strength-tracker domain types + the bundled, read-only exercise catalog (**free-exercise-db**, 873 exercises with native slug ids; FER-923, was ExerciseDB OSS in FER-779). The value models CenitStore persists and StrandAnalytics computes over. | `Exercise`, `ExerciseType`, `ExerciseCatalog`, `Routine`, `RoutineExercise` (with `supersetGroup` FER-346; optional fixed note seeded into each session and never copied to the session's acta, FER-166, v39), `RoutineSet` (per-set prescription, FER-492; optional per-set `RestConfig` override with exercise fallback, FER-715; optional `repsRangeTop` for a "floor-top" rep range, FER-94, migration v38), `RoutineSchedule` (the weekly split, FER-531), `StrengthSession` (with persisted `energyKcal`/`EnergySource`, FER-715), `SetEntry` (with `rpe` v34; `restTakenS` — the real rest that FOLLOWED the set, pause-excluded, captured by the live session, FER-167, v40), `PersonalRecord`; **the program engines** (ola 1 · FER-329): `Program` + `ProgramCalendar` (the ONE oracle of «which week am I in?» — derived from `startTs` + the weeks actually trained, never stored), `ProgramDeload` (the light-week rule; returns RAW kg, like `SetVariants`, because the plate rounding lives in `PlateMath`) and `ProgramTemplate` (the four engines, as data over `StarterTemplates`); `StarterGroupSchedule` + `WeeklySchedulePlanner` (FER-377 — the per-`StarterTemplate.Group` weekly frequency/spacing recipe and the pure, `taken`-aware placement of a group's routines across the week, best-effort; the app-layer `applyTemplateGroup` composes them) | **Pure** — Foundation only (no GRDB/UIKit). GRDB conformance lives in CenitStore by extension. (FER-345) |
+| **CenitEnsenanza** | The single declaration of how each feature is taught: `FuncionalidadID` (stable id = TipKit id), `Pestana`, `Requisito`, `Pieza` (`.vacio/.tip/.hito/.ayuda/.novedad/.gestoConBoton`), `Registro` (per-tab seed). Text and routes only — never logic or state. | `Registro.todas`, `Registro.por(_:)`, `Funcionalidad.nombreKey/paraQueKey/dondeViveKey` | **Leaf — Foundation only**, runs on Linux CI. Copy lives in the app catalog (keys `ensenanza.<id>.*`); `CenitDesign` never imports it (`LiquidVacio` takes `Text`). |
 
 > **Exercise type override (FER-541).** The user can override an exercise's `ExerciseType` — including a catalog entry's (e.g. mark a "Plank" as time-based). The override is *user data*, so it lives in CenitStore (`exerciseTypeOverride`, migration v24), **not** in the read-only bundled catalog. Precedence (user override > custom > catalog) is decided by the pure `ExerciseTypeResolver` and applied at a single resolver in `Cenit/Data/Repository+Strength.swift` (`resolvedExercise` / `allExercises`), which materializes the effective type into `Exercise.type`. Every downstream reader (guided session, builder, detail) sees the resolved type without bespoke logic; the catalog JSON is never mutated, so reverting is a plain delete.
 
@@ -956,6 +959,27 @@ own diff in review, not by the tooling — no text-level check can guard its own
   dictionary and the component index `docs/design-system/CATALOGO.md`, guarded by `design-tokens.yml`.
   `DesignDriftTokenTests` is the value oracle (token == wrapped literal); the `ImageRenderer`
   harnesses stay harnesses, never pixel assertions.
+
+### Enseñanza: el registro y el gate (épico FER-428 · L4/FER-430)
+
+Cada funcionalidad declara **una vez**, en `Packages/CenitEnsenanza`, cómo se enseña: id estable
+(`FuncionalidadID`, también el `id` de su tip), pestaña, requisitos declarativos (`.watch`,
+`.noches(n)`…), piezas (`.vacio`, `.tip`, `.hito`, `.ayuda`, `.novedad(version, mayor:)`,
+`.gestoConBoton`) y versión `desde`. El registro guarda texto (claves `ensenanza.<id>.*` del
+catálogo de la app) y rutas (la pestaña); nunca lógica ni estado. Un id nunca se renombra.
+
+**Consumidores.** Ayuda/Novedades (L2) iteran `Registro.por(pestana)`; los hitos (L3) y los tips
+(L5/L7) son `Tip`s de TipKit cuyo `id` sale del registro (`Tips.configure([.displayFrequency(.daily)])`,
+`MaxDisplayCount(3)` por defecto, los de primera sesión con `IgnoresDisplayFrequency(true)`);
+los vacíos (L6) pintan `CenitDesign.LiquidVacio`, que recibe `Text` — el sistema de diseño no
+importa el registro. Palanca DEBUG `-noop.tips <all|none|reset>` antes de `Tips.configure()`.
+
+**Gate.** `Tools/check-ensenanza.py` (design-lint + `verify.sh quick`): todo archivo nuevo en
+`Cenit/Screens/**` respecto a `Tools/ensenanza-baseline.txt` lleva `// ensenanza: <id>` con un id
+grepeado de `FuncionalidadID.swift`; el baseline solo baja (job `baseline-monotony`). Los tests del
+paquete leen `CHANGELOG.md` y `Localizable.xcstrings` vía `#filePath` (misma técnica que
+`CatalogEntryArchivoExisteTests`): ids únicos, ≥1 pieza, `.novedad` con encabezado `## v`, claves
+bajo `es`. Límite: el gate ve archivos, no sub-vistas dentro de uno existente.
 
 ---
 

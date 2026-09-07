@@ -191,13 +191,8 @@ targets:
       - package: StrandImport
       - package: CenitDesign
       - package: StrandTraining
-<<<<<<< HEAD
-=======
       # CenitEnsenanza — registro tipado de enseñanza (épico FER-428, L4/FER-430).
       - package: CenitEnsenanza
-      # Inject: recarga en caliente en Debug (dev-only, inerte en Release).
-      - package: Inject
->>>>>>> fae373709 (Registro de enseñanza, gate y tips (FER-430): cableado de CI y verify.sh)
       # FER-721: embed the Live Activity / widget extension into the app bundle.
       - target: CenitWidgets
       # FER-740: embed the watchOS companion app so it installs with the iPhone app.

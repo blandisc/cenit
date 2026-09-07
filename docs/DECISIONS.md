@@ -320,3 +320,33 @@ adversarial (`docs/specs/ola1-entrenar/`):
 - **2026-09-06 · El aviso temprano de enfermedad se reencuadra.** «Señales de carga inusual» en vez
   de «posible enfermedad» (título, descripción, notificación y catálogo de métricas), con el hedge
   «no es un diagnóstico» intacto (riesgo de revisión 1.4.1).
+
+## 2026-09-06 · Sistema de aprendizaje de Cénit (épico FER-428) · decisiones del dueño
+
+Diagnóstico: Cénit enseña bien el veredicto y casi nada de lo demás — quien no tiene reloj sale del
+onboarding sin ver el Acta ni el Ciclo, la noche 4 y la noche 14 pasan sin que nadie lo diga, nada se
+puede volver a aprender (tips de una vez, sin Ayuda ni Novedades), Tendencias no se nombra en ningún
+copy, y el sistema se pudre solo (README/FEATURES.md/tarjeta del taller desfasados). Opción elegida:
+3 («todo, incluido el onboarding»). Diez decisiones, no se re-litigan:
+
+- **D1 Onboarding: «La espera enseña»** (las frases durante el sync). El Acta sigue siendo pantalla,
+  como en FER-109. «Te leo en voz alta» queda como segundo movimiento SOLO si el dueño reabre
+  explícitamente el Acta; «El relevo» no.
+- **D2 Novedades:** fila en Ajustes con punto de no leído + tarjeta de una vez al fondo de Hoy solo
+  en cambios mayores. Nunca un modal.
+- **D3 Sin reloj:** sí ve un Ciclo adaptado (sin aviso matutino), 5 toques.
+- **D4 Hitos** (noche 4, noche 14…): tarjeta de una vez debajo del héroe, con puerta al Acta. Nunca
+  encima de la palabra.
+- **D5** Registro en Swift tipado. **D6** El gate falla la build para pantallas nuevas (baseline
+  para las existentes).
+- **D7 Ayuda** = «Cómo funciona Cénit» en Ajustes **y** un «?» en la cabecera de las cuatro pestañas
+  que abre esa misma pantalla en la sección de la pestaña.
+- **D8** Tips con cadencia diaria, grupo ordenado por pestaña, hasta 3 apariciones; los de la
+  primera sesión de fuerza exentos.
+- **D9** Los tips inline no reabren la decisión anti coach-marks (uno a la vez, junto al control,
+  nunca sobre la palabra, nunca repitiendo el Acta).
+- **D10** Sin checklist de arranque.
+
+Cinco principios que van en cada lote del épico: (1) después de la palabra, nada; (2) se enseña en
+el momento en que ocurre; (3) todo lo que se enseña una vez se puede volver a ver; (4) cada gesto
+tiene un botón; (5) una funcionalidad sin pieza de enseñanza no se mergea (D6, `Tools/check-ensenanza.py`).
