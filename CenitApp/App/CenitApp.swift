@@ -102,7 +102,9 @@ struct CenitApp: App {
                 // Ola 1 · E12: estilo «tinta sobre vidrio» de los consejos TipKit, UNA sola vez en la
                 // raíz — cada sitio de anclaje (EntrenarTips.swift) solo escribe `.popoverTip(_:)`/
                 // `TipView(_:)` y hereda este estilo del entorno.
-                .tipViewStyle(LiquidConsejoTipStyle())
+                // FER-429: los rótulos se declaran AQUÍ para que vivan en el catálogo de la app
+                // (CenitDesign no tiene catálogo propio; «Got it» → «Entendido», «Close» → «Cerrar»).
+                .tipViewStyle(LiquidConsejoTipStyle(entendido: Text("Got it"), cerrar: Text("Close")))
                 .environment(model)
                 .environmentObject(model.repo)
                 .environmentObject(model.profile)

@@ -81,8 +81,8 @@ The live shell is **four tabs**:
 | **Entrenar** | A training planner and guided strength-session logger: routines, sets/reps tracking, rest timers, and an optional **Apple Watch** companion that mirrors the session and logs sets independently from the wrist. |
 | **Ajustes** | Profile (age / sex / weight / height / HRmax), units, data sources & backup, recovery recalibration, opt-in exercise media downloads, illness watch, reminders, and About. |
 
-There is also a first-run **onboarding wizard**, Home-screen / Lock-screen
-**widgets**, and an in-app **"What's new"** changelog.
+There is also a first-run **onboarding wizard** and Home-screen / Lock-screen
+**widgets**.
 
 See [`docs/FEATURES.md`](docs/FEATURES.md) for the full feature guide.
 
@@ -212,5 +212,5 @@ your contribution is licensed under the same terms — see
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — the system map (pipeline, package boundaries, storage schema).
 - [`docs/PRIVACY_SECURITY.md`](docs/PRIVACY_SECURITY.md) — exactly what stays on-device.
 - [`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md) — repository layout, build/test, design-system rules.
-- [`CHANGELOG.md`](CHANGELOG.md) — release history and what to expect (also shown in-app under **What's new**).
+- [`CHANGELOG.md`](CHANGELOG.md) — release history and what to expect.
 - [`DISCLAIMER.md`](DISCLAIMER.md) · [`ATTRIBUTION.md`](ATTRIBUTION.md) — trademark/medical notice and full credits.
