@@ -354,7 +354,6 @@
         }
       }
     },
-
     "Bar %@ kg" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1035,16 +1034,6 @@
         }
       }
     },
-    "I cross your wrist temperature with your resting nighttime pulse to warn you early of a possible illness. It's approximate, not a diagnosis, and I need about two weeks of data. If it fires, you'll see it in %@ and, if you've allowed notifications, in a notification." : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cruzo tu temperatura de muñeca con tu pulso en reposo nocturno para avisarte temprano de una posible enfermedad. Es aproximado, no es un diagnóstico, y necesito unas dos semanas de datos. Si se dispara, lo verás en %@ y, si permitiste notificaciones, en un aviso."
-          }
-        }
-      }
-    },
     "Version %@ · what Cénit is" : {
       "localizations" : {
         "es" : {
@@ -1071,26 +1060,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Vigilancia"
-          }
-        }
-      }
-    },
-    "Watch for illness signs" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vigilar señales de enfermedad"
-          }
-        }
-      }
-    },
-    "Crosses your wrist temperature and nighttime resting heart rate to warn you early of possible illness. Approximate, not a diagnosis; needs about two weeks of data. If it fires, you'll see it in %@ and, if you've allowed notifications, in a notification." : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cruza tu temperatura de muñeca y tu pulso en reposo nocturno para avisarte temprano de una posible enfermedad. Aproximado, no es un diagnóstico; necesita unas dos semanas de datos. Si se dispara, lo verás en %@ y, si permitiste notificaciones, en un aviso."
           }
         }
       }
@@ -1772,6 +1741,12 @@
             "state" : "new",
             "value" : "%1$@ / %2$@ nights"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ / %2$@ noches"
+          }
         }
       }
     },
@@ -1871,7 +1846,20 @@
       }
     },
     "%@ bpm to ready" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%@ bpm to ready"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ bpm para estar listo"
+          }
+        }
+      }
     },
     "%@ bpm · %@" : {
       "extractionState" : "stale",
@@ -1891,10 +1879,36 @@
       }
     },
     "%@ breaths" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%@ breaths"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ respiraciones"
+          }
+        }
+      }
     },
     "%@ cm" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%@ cm"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ cm"
+          }
+        }
+      }
     },
     "%@ costs you Recovery" : {
       "extractionState" : "stale",
@@ -1980,6 +1994,12 @@
             "state" : "new",
             "value" : "%1$@ exercises · %2$@ sets · %3$@ done"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ ejercicios · %2$@ series · %3$@ hechas"
+          }
         }
       }
     },
@@ -2022,7 +2042,20 @@
       }
     },
     "%@ kg" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%@ kg"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ kg"
+          }
+        }
+      }
     },
     "%@ kg, %@ pairs" : {
       "localizations" : {
@@ -2041,7 +2074,20 @@
       }
     },
     "%@ lb" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%@ lb"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ lb"
+          }
+        }
+      }
     },
     "%@ lowers your %@." : {
       "extractionState" : "manual",
@@ -2088,7 +2134,20 @@
       }
     },
     "%@ min" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%@ min"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ min"
+          }
+        }
+      }
     },
     "%@ night" : {
       "extractionState" : "stale",
@@ -2141,6 +2200,12 @@
             "state" : "new",
             "value" : "%1$@ of %2$@ days"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ de %2$@ días"
+          }
         }
       }
     },
@@ -2150,6 +2215,12 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "%1$@ of %2$@ sets"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ de %2$@ series"
           }
         }
       }
@@ -2298,9 +2369,6 @@
         }
       }
     },
-    "%@ raising" : {
-
-    },
     "%@ ran off your usual" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2348,9 +2416,6 @@
         }
       }
     },
-    "%@ registros" : {
-
-    },
     "%@ rhythm" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2364,19 +2429,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "ritmo %@"
-          }
-        }
-      }
-    },
-    "%@ sessions this month" : {
-
-    },
-    "%@ sessions this month · %@ load raises" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@ sessions this month · %2$@ load raises"
           }
         }
       }
@@ -2691,6 +2743,12 @@
             "state" : "new",
             "value" : "%1$@ · %2$@h"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$@h"
+          }
         }
       }
     },
@@ -2813,7 +2871,20 @@
       }
     },
     "%@ ›" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%@ ›"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ ›"
+          }
+        }
+      }
     },
     "%@ ↔ %@" : {
       "localizations" : {
@@ -2849,7 +2920,20 @@
       }
     },
     "%@%%" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%@%%"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@%%"
+          }
+        }
+      }
     },
     "%@%@" : {
       "localizations" : {
@@ -2873,6 +2957,12 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "%1$@, %2$@%% last night"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@, %2$@%% anoche"
           }
         }
       }
@@ -3282,6 +3372,12 @@
         "en" : {
           "stringUnit" : {
             "state" : "new",
+            "value" : "%1$@′ %2$@″"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
             "value" : "%1$@′ %2$@″"
           }
         }
@@ -6055,7 +6151,20 @@
       }
     },
     "/ %@" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "/ %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "/ %@"
+          }
+        }
+      }
     },
     "/ %lld" : {
       "extractionState" : "stale",
@@ -6109,13 +6218,36 @@
       }
     },
     "/%@" : {
-
-    },
-    "/100" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "/%@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "/%@"
+          }
+        }
+      }
     },
     "0" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "0"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "0"
+          }
+        }
+      }
     },
     "1 day" : {
       "extractionState" : "stale",
@@ -7169,7 +7301,20 @@
       }
     },
     "=" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "="
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "="
+          }
+        }
+      }
     },
     "A bit short" : {
       "extractionState" : "manual",
@@ -10785,23 +10930,6 @@
         }
       }
     },
-    "Band" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Band"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Banda"
-          }
-        }
-      }
-    },
     "Band at %lld%%" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10974,19 +11102,12 @@
         }
       }
     },
-    "Baseline-relative skin temperature as an early illness signal (cf. Oura ~+0.5 °C). A wrist trend, not a clinical thermometer. Cénit is not a medical device." : {
-      "extractionState" : "manual",
+    "Baseline-relative skin temperature as a signal of unusual load (cf. Oura ~+0.5 °C). A wrist trend, not a clinical thermometer. Cénit is not a medical device." : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Baseline-relative skin temperature as an early illness signal (cf. Oura ~+0.5 °C). A wrist trend, not a clinical thermometer. Cénit is not a medical device."
-          }
-        },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Temperatura de piel relativa a tu base como señal temprana de enfermedad (cf. Oura ~+0.5 °C). Una tendencia de muñeca, no un termómetro clínico. Cénit no es un dispositivo médico."
+            "value" : "Temperatura de piel relativa a tu base como señal de carga inusual (cf. Oura ~+0.5 °C). Una tendencia de muñeca, no un termómetro clínico. Cénit no es un dispositivo médico."
           }
         }
       }
@@ -11377,7 +11498,20 @@
       }
     },
     "Best: %@" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Best: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mejor: %@"
+          }
+        }
+      }
     },
     "Best: %lld" : {
       "extractionState" : "manual",
@@ -11725,9 +11859,6 @@
           }
         }
       }
-    },
-    "Borrar media descargada" : {
-
     },
     "Both markers near your base today." : {
       "extractionState" : "stale",
@@ -14982,9 +15113,6 @@
         }
       }
     },
-    "Cruza tu temperatura de muñeca y tu pulso en reposo nocturno para avisarte temprano de una posible enfermedad. Aproximado, no es un diagnóstico; necesita unas dos semanas de datos." : {
-
-    },
     "Current cycle" : {
       "localizations" : {
         "en" : {
@@ -15346,10 +15474,6 @@
         }
       }
     },
-    "Cómo estimo tu tendencia" : {
-      "comment" : "A title for the \"How I estimate your trend\" section of the",
-      "isCommentAutoGenerated" : true
-    },
     "DAY BY DAY" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -15623,7 +15747,20 @@
       }
     },
     "Day %@" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Day %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Día %@"
+          }
+        }
+      }
     },
     "Day %lld" : {
       "extractionState" : "manual",
@@ -16189,9 +16326,6 @@
           }
         }
       }
-    },
-    "Descargar biblioteca de ejercicios" : {
-
     },
     "Deselect" : {
       "localizations" : {
@@ -18158,10 +18292,6 @@
         }
       }
     },
-    "Es una guía de dirección, no una medición médica ni una puntuación exacta." : {
-      "comment" : "A description of how the autonomic trend is calculated.",
-      "isCommentAutoGenerated" : true
-    },
     "Est. 1RM" : {
       "localizations" : {
         "en" : {
@@ -18306,9 +18436,6 @@
           }
         }
       }
-    },
-    "Estimated max heart rate · %@ bpm" : {
-
     },
     "Estimated max heart rate · %lld bpm" : {
       "extractionState" : "stale",
@@ -19438,7 +19565,20 @@
       }
     },
     "For %@ days" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "For %@ days"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Por %@ días"
+          }
+        }
+      }
     },
     "For %lld days" : {
       "extractionState" : "manual",
@@ -19933,16 +20073,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Objetivo %@"
-          }
-        }
-      }
-    },
-    "Goal today: %@×%@ with the new weight. Losing a rep or two on a raise is normal; you win them back in 1 or 2 sessions." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Goal today: %1$@×%2$@ with the new weight. Losing a rep or two on a raise is normal; you win them back in 1 or 2 sessions."
           }
         }
       }
@@ -20773,14 +20903,17 @@
       }
     },
     "Heart rate %@" : {
-
-    },
-    "Heart rate %@, zone %@, %@ percent of your maximum" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Heart rate %1$@, zone %2$@, %3$@ percent of your maximum"
+            "value" : "Heart rate %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frecuencia cardiaca %@"
           }
         }
       }
@@ -21557,19 +21690,12 @@
         }
       }
     },
-    "How many breaths you take per minute while you sleep. It's one of the steadiest signals your body has, so even a small rise from your own normal can be an early sign of strain, illness, or a late, heavy meal." : {
-      "extractionState" : "manual",
+    "How many breaths you take per minute while you sleep. It's one of the steadiest signals your body has, so even a small rise from your own normal can point to strain, an unusually demanding day, or a late, heavy meal." : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "How many breaths you take per minute while you sleep. It's one of the steadiest signals your body has, so even a small rise from your own normal can be an early sign of strain, illness, or a late, heavy meal."
-          }
-        },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cuántas respiraciones tomas por minuto mientras duermes. Es una de las señales más estables de tu cuerpo, así que incluso una subida pequeña respecto a tu normal puede ser un aviso temprano de carga, de que algo viene, o de una cena pesada y tardía."
+            "value" : "Cuántas respiraciones das por minuto mientras duermes. Es una de las señales más estables de tu cuerpo, así que hasta un pequeño aumento sobre tu normal puede apuntar a esfuerzo, un día especialmente demandante o una comida tardía y pesada."
           }
         }
       }
@@ -21807,6 +21933,16 @@
         }
       }
     },
+    "I cross your wrist temperature with your resting nighttime pulse to spot nights when your body is under more load than usual: a rough night, a hard day, or something you may be coming down with. It's approximate, not a diagnosis, and I need about two weeks of data. If it fires, you'll see it in %@ and, if you allow notifications, as a notification." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cruzo tu temperatura de muñeca con tu pulso en reposo nocturno para detectar noches en las que tu cuerpo carga más de lo normal: una mala noche, un día pesado o algo que podrías estar incubando. Es aproximado, no es un diagnóstico, y necesito unas dos semanas de datos. Si se activa, lo verás en %@ y, si permites notificaciones, como notificación."
+          }
+        }
+      }
+    },
     "I don't have one" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -21967,10 +22103,6 @@
           }
         }
       }
-    },
-    "I need at least 3 signals to work this out without guessing. You have %@." : {
-      "comment" : "A message in the hero when the Body Age reading is not yet available.",
-      "isCommentAutoGenerated" : true
     },
     "I need several weeks of nights with your Apple Watch worn to bed to read the rhythm of your temperature. Still watching." : {
       "localizations" : {
@@ -22219,23 +22351,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ignorar"
-          }
-        }
-      }
-    },
-    "Illness early-warning" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Illness early-warning"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aviso temprano de enfermedad"
           }
         }
       }
@@ -23846,16 +23961,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cumplido"
-          }
-        }
-      }
-    },
-    "Kept **%@ of %@** days." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Kept **%1$@ of %2$@** days."
           }
         }
       }
@@ -25848,9 +25953,6 @@
         }
       }
     },
-    "Mark your meals · 0 of %@" : {
-
-    },
     "Mark your meals · 0 of %lld" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -26615,10 +26717,6 @@
           }
         }
       }
-    },
-    "Miro la variabilidad de los latidos que tu reloj registra mientras duermes y la comparo con tu propio promedio, no con el de otra persona ni con un número fijo de población." : {
-      "comment" : "A description of how the autonomic trend is calculated.",
-      "isCommentAutoGenerated" : true
     },
     "Missed today · logged" : {
       "extractionState" : "stale",
@@ -28777,10 +28875,6 @@
         }
       }
     },
-    "No se pudo armar el recibo." : {
-      "comment" : "A message displayed when the receipt cannot be generated.",
-      "isCommentAutoGenerated" : true
-    },
     "No sets in this range" : {
       "localizations" : {
         "en" : {
@@ -30197,6 +30291,16 @@
         }
       }
     },
+    "On-device estimate (approximate): not a diagnosis." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estimado en tu dispositivo (aproximado): no es un diagnóstico."
+          }
+        }
+      }
+    },
     "Once you log a strength set (weight or reps), your best mark shows up here." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -31361,19 +31465,12 @@
         }
       }
     },
-    "Other signals from your body while you sleep. When they all rise together, something is taxing you (illness, alcohol, hard effort)." : {
-      "extractionState" : "manual",
+    "Other signals from your body while you sleep. When they all rise together, something is taxing you: alcohol, a hard effort, or maybe something you're coming down with." : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Other signals from your body while you sleep. When they all rise together, something is taxing you (illness, alcohol, hard effort)."
-          }
-        },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Otras señales de tu cuerpo mientras duermes. Si suben todas juntas, algo te está exigiendo (enfermedad, alcohol, mucho esfuerzo)."
+            "value" : "Otras señales de tu cuerpo mientras duermes. Cuando todas suben juntas, algo está exigiendo a tu cuerpo: alcohol, un esfuerzo fuerte o tal vez algo que podrías estar incubando."
           }
         }
       }
@@ -31945,23 +32042,6 @@
         }
       }
     },
-    "Paste the plan you built with your LLM · noop.workout.v1" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paste the plan you built with your LLM · noop.workout.v1"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "pega el plan que armaste con tu LLM · noop.workout.v1"
-          }
-        }
-      }
-    },
     "Paste the result here…" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -32251,19 +32331,12 @@
         }
       }
     },
-    "Percentage of haemoglobin carrying oxygen in your blood. Healthy adults typically stay above 95%. A drop can indicate altitude effects, sleep apnea, or respiratory illness." : {
-      "extractionState" : "manual",
+    "Percentage of haemoglobin carrying oxygen in your blood. Healthy adults typically stay above 95%. A drop can reflect altitude effects or how the sensor sat; a sustained one is worth mentioning to a doctor." : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Percentage of haemoglobin carrying oxygen in your blood. Healthy adults typically stay above 95%. A drop can indicate altitude effects, sleep apnea, or respiratory illness."
-          }
-        },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "El porcentaje de tu hemoglobina que lleva oxígeno. En adultos sanos suele mantenerse por encima del 95%. Una baja puede reflejar el efecto de la altitud, apnea del sueño o una afección respiratoria."
+            "value" : "Porcentaje de hemoglobina que transporta oxígeno en tu sangre. Los adultos sanos suelen mantenerse arriba de 95%. Una caída puede reflejar efectos de altitud o cómo quedó el sensor; una caída sostenida vale la pena mencionarla con un médico."
           }
         }
       }
@@ -34001,9 +34074,6 @@
           }
         }
       }
-    },
-    "Recalibrada el %@" : {
-
     },
     "Recalibrar desde hoy" : {
       "extractionState" : "manual",
@@ -41004,10 +41074,6 @@
         }
       }
     },
-    "Task Force 1996; Plews 2013" : {
-      "comment" : "A footnote with the authors of the original research.",
-      "isCommentAutoGenerated" : true
-    },
     "Temperature" : {
       "localizations" : {
         "es" : {
@@ -42266,19 +42332,12 @@
         }
       }
     },
-    "The temperature of your skin, read at your wrist while you sleep. It shifts with your circadian rhythm. What matters isn't the number itself, but how far it sits from your own baseline. A sustained rise can be an early sign of inflammation or a coming illness; that's why it's one of the signals behind your daily verdict." : {
-      "extractionState" : "manual",
+    "The temperature of your skin, read at your wrist while you sleep. It shifts with your circadian rhythm. What matters isn't the number itself, but how far it sits from your own baseline. A sustained rise can point to extra load on your body: training, poor sleep, or something you might be coming down with. That's why it's one of the signals behind your daily verdict." : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The temperature of your skin, read at your wrist while you sleep. It shifts with your circadian rhythm. What matters isn't the number itself, but how far it sits from your own baseline. A sustained rise can be an early sign of inflammation or a coming illness; that's why it's one of the signals behind your daily verdict."
-          }
-        },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La temperatura de tu piel, medida en la muñeca mientras duermes. Cambia con tu ritmo circadiano. Lo que importa no es el número en sí, sino qué tan lejos queda de tu propia base. Una subida sostenida puede ser una señal temprana de inflamación o de que te estás enfermando; por eso es una de las señales detrás de tu veredicto del día."
+            "value" : "La temperatura de tu piel, medida en tu muñeca mientras duermes. Cambia con tu ritmo circadiano. Lo que importa no es el número en sí, sino qué tan lejos está de tu propia base. Un aumento sostenido puede apuntar a carga extra en tu cuerpo: entrenamiento, mal sueño o algo que podrías estar incubando. Por eso es una de las señales detrás de tu veredicto diario."
           }
         }
       }
@@ -42388,9 +42447,6 @@
           }
         }
       }
-    },
-    "The «vs your base» bars show each signal's deviation in σ (above your base = right). HRV, resting heart rate and respiration are z-scored that way; sleep and skin temperature carry no σ, so they show their state, not a position. Your base and normal range are your recent average ± one σ. Steadiness is the coefficient of variation (CV). Training load is the acute:chronic workload ratio (ACWR): context for recovery, never an injury claim." : {
-
     },
     "Then re-nudge every" : {
       "extractionState" : "stale",
@@ -44319,6 +44375,16 @@
         }
       }
     },
+    "Unusual signals last night · take it easy" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Señales inusuales anoche · tómalo con calma"
+          }
+        }
+      }
+    },
     "Up vs last time" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -45003,9 +45069,6 @@
         }
       }
     },
-    "Vigilar señales de enfermedad" : {
-
-    },
     "Vista clásica" : {
       "localizations" : {
         "en" : {
@@ -45473,7 +45536,7 @@
     },
     "Watch + calculated" : {
       "extractionState" : "manual",
-      "comment" : "FER-226: revives the strength-session HR capturer — same energySource, new copy (no strap any more, F7).",
+      "comment" : "FER-226: revives the strength-session HR capturer — same energySource, new copy (no band any more, F7).",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -45489,19 +45552,12 @@
         }
       }
     },
-    "Watch for early-illness signs" : {
-      "extractionState" : "manual",
+    "Watch for unusual-load signals" : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Watch for early-illness signs"
-          }
-        },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vigilar señales tempranas de enfermedad"
+            "value" : "Vigilar señales de carga inusual"
           }
         }
       }
@@ -48116,19 +48172,12 @@
         }
       }
     },
-    "Your Apple Watch reads your skin temperature through the night; Cénit averages the worn, asleep portion and compares it with your own recent baseline, so what you see is the deviation in °C, not a raw temperature. Around your base is normal; a sustained rise of roughly +0.4 °C or more is a classic early illness marker, so Cénit flags it as running warm (~+0.4 °C) or well above (~+0.8 °C)." : {
-      "extractionState" : "manual",
+    "Your Apple Watch reads your skin temperature through the night; Cénit averages the worn, asleep portion and compares it with your own recent baseline, so what you see is the deviation in °C, not a raw temperature. Around your base is normal; a sustained rise of roughly +0.4 °C or more can point to extra load on your body: training, poor sleep, or something you might be coming down with. So Cénit flags it as running warm (~+0.4 °C) or well above (~+0.8 °C)." : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your Apple Watch reads your skin temperature through the night; Cénit averages the worn, asleep portion and compares it with your own recent baseline, so what you see is the deviation in °C, not a raw temperature. Around your base is normal; a sustained rise of roughly +0.4 °C or more is a classic early illness marker, so Cénit flags it as running warm (~+0.4 °C) or well above (~+0.8 °C)."
-          }
-        },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tu Apple Watch lee la temperatura de tu piel durante la noche; Cénit promedia la parte con el reloj puesto y dormido, y la compara con tu propia base reciente, así que lo que ves es la desviación en °C, no una temperatura cruda. Cerca de tu base es normal; una subida sostenida de alrededor de +0.4 °C o más es un marcador clásico de enfermedad temprana, así que Cénit la marca como corriendo caliente (~+0.4 °C) o muy por encima (~+0.8 °C)."
+            "value" : "Tu Apple Watch lee tu temperatura de piel durante la noche; Cénit promedia la parte puesta y dormida y la compara con tu propia base reciente, así que lo que ves es la desviación en °C, no una temperatura cruda. Cerca de tu base es normal; un aumento sostenido de más o menos +0.4 °C o más puede apuntar a carga extra en tu cuerpo (entrenamiento, mal sueño o algo que podrías estar incubando), así que Cénit lo marca como tibio (~+0.4 °C) o bien arriba (~+0.8 °C)."
           }
         }
       }
@@ -50421,7 +50470,20 @@
       }
     },
     "Z%@" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Z%@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Z%@"
+          }
+        }
+      }
     },
     "Z%lld" : {
       "extractionState" : "manual",
@@ -51379,16 +51441,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "activa"
-          }
-        }
-      }
-    },
-    "adherence · %@ of %@ meals" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "adherence · %1$@ of %2$@ meals"
           }
         }
       }
@@ -55364,13 +55416,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "On a wrist watch, HRV and stress aren't stable enough to decide with. Your watch's daytime HRV drifts about 29% from a chest-strap reference, so we show it as a quiet line where you usually sit, never as a range you crossed. Your resting heart rate and sleep carry the verdict; these ride along as context."
+            "value" : "On a wrist watch, HRV and stress aren't stable enough to decide with. Your watch's daytime HRV drifts about 29% from a chest-worn reference monitor, so we show it as a quiet line where you usually sit, never as a range you crossed. Your resting heart rate and sleep carry the verdict; these ride along as context."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "En un reloj de muñeca, la VFC y el estrés no son lo bastante estables para decidir con ellos. La VFC de día de tu reloj se aleja alrededor de 29% de una referencia de banda de pecho, así que la mostramos como una línea quieta donde sueles estar, nunca como un rango que cruzaste. Tu FC en reposo y tu sueño llevan el veredicto; estas van de acompañantes."
+            "value" : "En un reloj de muñeca, la VFC y el estrés no son lo bastante estables para decidir con ellos. La VFC de día de tu reloj se aleja alrededor de 29% de un monitor de referencia de pecho, así que la mostramos como una línea quieta donde sueles estar, nunca como un rango que cruzaste. Tu FC en reposo y tu sueño llevan el veredicto; estas van de acompañantes."
           }
         }
       }
@@ -56443,9 +56495,6 @@
         }
       }
     },
-    "max weight · %@ wk" : {
-
-    },
     "max weight · %lld wk" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -56771,9 +56820,6 @@
         }
       }
     },
-    "ms²" : {
-
-    },
     "muscleGroup.core" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -56985,16 +57031,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "noches seguidas"
-          }
-        }
-      }
-    },
-    "nights in a row · kept %@ of %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "nights in a row · kept %1$@ of %2$@"
           }
         }
       }
@@ -65837,7 +65873,20 @@
       }
     },
     "~%@%%" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "~%@%%"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "~%@%%"
+          }
+        }
+      }
     },
     "~%lld min" : {
       "extractionState" : "stale",
@@ -66010,7 +66059,20 @@
       }
     },
     "±%@" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "±%@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "±%@"
+          }
+        }
+      }
     },
     "±%lld% week to week · %@" : {
       "extractionState" : "manual",
@@ -66246,7 +66308,20 @@
       }
     },
     "×" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "×"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "×"
+          }
+        }
+      }
     },
     "σ" : {
       "extractionState" : "manual",
@@ -66365,10 +66440,36 @@
       }
     },
     "…" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "…"
+          }
+        }
+      }
     },
     "‹ %@" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "‹ %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "‹ %@"
+          }
+        }
+      }
     },
     "← rejuvenates you" : {
       "extractionState" : "manual",
@@ -66383,16 +66484,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "← te rejuvenece"
-          }
-        }
-      }
-    },
-    "↗ +%@ / %@ wk" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "↗ +%1$@ / %2$@ wk"
           }
         }
       }
@@ -66413,9 +66504,6 @@
           }
         }
       }
-    },
-    "↗ +%@%% vs. last month" : {
-
     },
     "↗ +%lld% vs. last month" : {
       "extractionState" : "stale",
@@ -66439,9 +66527,6 @@
         }
       }
     },
-    "↗ up %@ wk" : {
-
-    },
     "↗ up %lld wk" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -66458,9 +66543,6 @@
           }
         }
       }
-    },
-    "↘ −%@%% vs. last month" : {
-
     },
     "↘ −%lld% vs. last month" : {
       "extractionState" : "stale",
@@ -66642,6 +66724,12 @@
         "en" : {
           "stringUnit" : {
             "state" : "new",
+            "value" : "★ %1$@: %2$@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
             "value" : "★ %1$@: %2$@"
           }
         }
@@ -68394,8 +68482,7 @@
           }
         }
       }
-    }
-,
+    },
     "Your history, from Strong or Hevy" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -69534,8 +69621,7 @@
           }
         }
       }
-    }
-,
+    },
     "max" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -69705,8 +69791,7 @@
           }
         }
       }
-    }
-,
+    },
     "Drop set" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -69723,8 +69808,7 @@
           }
         }
       }
-    }
-,
+    },
     "Remove set" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -69860,8 +69944,7 @@
           }
         }
       }
-    }
-,
+    },
     "Maximum reps" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -69895,8 +69978,7 @@
           }
         }
       }
-    }
-,
+    },
     "No room to drop further" : {
       "extractionState" : "manual",
       "localizations" : {

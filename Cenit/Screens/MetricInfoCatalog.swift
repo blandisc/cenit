@@ -221,7 +221,7 @@ extension MetricInfo {
             // FER-73 · HJ-08: la Matriz, el guardián y su hoja dicen «Breathing»; el catálogo
             // decía «Respiratory Rate». Un dato, un nombre.
             name: "Breathing",
-            headline: "How many breaths you take per minute while you sleep. It's one of the steadiest signals your body has, so even a small rise from your own normal can be an early sign of strain, illness, or a late, heavy meal.",
+            headline: "How many breaths you take per minute while you sleep. It's one of the steadiest signals your body has, so even a small rise from your own normal can point to strain, an unusually demanding day, or a late, heavy meal.",
             displayValue: value.map { String(format: "%.1f", $0) } ?? "—",
             unit: String(localized: "rpm"),
             headerTint: value == nil ? .neutral : .metric,
@@ -373,7 +373,7 @@ extension MetricInfo {
         return MetricInfo(
             id: "spo2",
             name: "Blood Oxygen",
-            headline: "Percentage of haemoglobin carrying oxygen in your blood. Healthy adults typically stay above 95%. A drop can indicate altitude effects, sleep apnea, or respiratory illness.",
+            headline: "Percentage of haemoglobin carrying oxygen in your blood. Healthy adults typically stay above 95%. A drop can reflect altitude effects or how the sensor sat; a sustained one is worth mentioning to a doctor.",
             displayValue: value.map { String(format: "%.0f", $0) } ?? "—",
             unit: "%",
             headerTint: value == nil ? .neutral : .metric,
@@ -397,7 +397,7 @@ extension MetricInfo {
         MetricInfo(
             id: "skin_temp",
             name: "Skin Temperature",
-            headline: "The temperature of your skin, read at your wrist while you sleep. It shifts with your circadian rhythm. What matters isn't the number itself, but how far it sits from your own baseline. A sustained rise can be an early sign of inflammation or a coming illness; that's why it's one of the signals behind your daily verdict.",
+            headline: "The temperature of your skin, read at your wrist while you sleep. It shifts with your circadian rhythm. What matters isn't the number itself, but how far it sits from your own baseline. A sustained rise can point to extra load on your body: training, poor sleep, or something you might be coming down with. That's why it's one of the signals behind your daily verdict.",
             displayValue: value.map { String(format: "%+.1f", $0) } ?? "—",
             unit: "°C",
             headerTint: value == nil ? .neutral : .metric,
@@ -406,8 +406,8 @@ extension MetricInfo {
                 ? "No skin temperature last night. That can happen if you didn't wear your Apple Watch to sleep, or it hasn't gathered enough nights to set your baseline yet."
                 : "Measured at your wrist; the deviation from your personal baseline matters more than the absolute value. An isolated reading is usually noise, like a cold room or how the sensor sat. A sustained run is what's worth a look.",
             method: Method(
-                prose: "Your Apple Watch reads your skin temperature through the night; Cénit averages the worn, asleep portion and compares it with your own recent baseline, so what you see is the deviation in °C, not a raw temperature. Around your base is normal; a sustained rise of roughly +0.4 °C or more is a classic early illness marker, so Cénit flags it as running warm (~+0.4 °C) or well above (~+0.8 °C).",
-                citation: "Baseline-relative skin temperature as an early illness signal (cf. Oura ~+0.5 °C). A wrist trend, not a clinical thermometer. Cénit is not a medical device."),
+                prose: "Your Apple Watch reads your skin temperature through the night; Cénit averages the worn, asleep portion and compares it with your own recent baseline, so what you see is the deviation in °C, not a raw temperature. Around your base is normal; a sustained rise of roughly +0.4 °C or more can point to extra load on your body: training, poor sleep, or something you might be coming down with. So Cénit flags it as running warm (~+0.4 °C) or well above (~+0.8 °C).",
+                citation: "Baseline-relative skin temperature as a signal of unusual load (cf. Oura ~+0.5 °C). A wrist trend, not a clinical thermometer. Cénit is not a medical device."),
             levelsMetric: .skinTemp,
             levelsTodayValue: value
         )

@@ -39,7 +39,7 @@ enum IllnessNotifier {
         center.getNotificationSettings { settings in
             guard settings.authorizationStatus == .authorized else { return }
             let content = UNMutableNotificationContent()
-            content.title = String(localized: "Early warning: take it easy")
+            content.title = String(localized: "Unusual signals last night · take it easy")
             content.subtitle = String(localized: "On-device estimate (approximate): not a diagnosis.")
             content.body = message
             content.sound = .default

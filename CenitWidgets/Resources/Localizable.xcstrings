@@ -2,16 +2,68 @@
   "sourceLanguage" : "en",
   "strings" : {
     " / %@" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : " / %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " / %@"
+          }
+        }
+      }
     },
     "%@" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@"
+          }
+        }
+      }
     },
     "%@ " : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%@ "
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ "
+          }
+        }
+      }
     },
     "%@ beats per minute" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%@ beats per minute"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ latidos por minuto"
+          }
+        }
+      }
     },
     "%@ beats per minute, recovering toward %@" : {
       "localizations" : {
@@ -19,6 +71,12 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "%1$@ beats per minute, recovering toward %2$@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ latidos por minuto, recuperando hacia %2$@"
           }
         }
       }
@@ -28,6 +86,12 @@
         "en" : {
           "stringUnit" : {
             "state" : "new",
+            "value" : "%1$@/%2$@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
             "value" : "%1$@/%2$@"
           }
         }
@@ -85,7 +149,20 @@
       }
     },
     "→ %@" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "→ %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "→ %@"
+          }
+        }
+      }
     },
     "+30 s" : {
       "localizations" : {

@@ -17,11 +17,7 @@
 
 # --- Deuda heredada: copy en inglés que nunca llegó al catálogo (se resuelve en FER-124).
 '%d days ago'
-'Early warning: take it easy'
-'Measured by your band'
-'On-device estimate (approximate): not a diagnosis.'
-'This set'
-'What this means'
+'Measured by your earlier device'
 
 # --- Deuda heredada: literal en ESPAÑOL usado como clave, que nunca traduce al inglés
 #     (la misma clase que caza check-hardcoded-strings.py, en archivos fuera de su alcance; FER-124).

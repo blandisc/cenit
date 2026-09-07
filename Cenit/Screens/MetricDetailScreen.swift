@@ -307,7 +307,7 @@ struct MetricDetailScreen: View {
     /// `Localizable.xcstrings`. (FER-216)
     private func readingCopy(for block: BlockKind) -> LocalizedStringKey? {
         let nightVitals: LocalizedStringKey =
-            "Other signals from your body while you sleep. When they all rise together, something is taxing you (illness, alcohol, hard effort)."
+            "Other signals from your body while you sleep. When they all rise together, something is taxing you: alcohol, a hard effort, or maybe something you're coming down with."
         switch (spec.descriptor.key, block) {
         case ("hrv", .header):
             return "Higher HRV usually means better recovery. What matters is your trend, not any single day's number."

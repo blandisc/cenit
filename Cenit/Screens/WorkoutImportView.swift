@@ -7,7 +7,7 @@ import StrandTraining
 
 /// Import an LLM-generated workout program (FER-496) — the «trae-tu-propio-LLM» path, mirroring Diet
 /// capture (FER-371). NOOP hands out a prompt, the user runs it in their own AI with their plan, and
-/// brings back a `noop.workout.v1` file; importing it creates the real routines of the strength tracker.
+/// brings back a `cenit.workout.v1` file; importing it creates the real routines of the strength tracker.
 /// NOOP never calls the network — the user runs the LLM step.
 ///
 /// «Liquid Glass · El Eje»: there's no measured datum here, so the screen is all-ink on glass; the
@@ -298,9 +298,9 @@ struct WorkoutImportView: View {
                 // Ronda 2 (menor): el kicker es UNA sola cadena con el separador «·», como pide el
                 // spec — antes vivía partido en dos `Text` (nombre + metadato a la derecha).
                 // `.textCase(.uppercase)` de `liquidKicker()` gritaría también el sufijo
-                // (`NOOP.WORKOUT.V1`), así que solo «Rutinas leídas» se sube a mayúsculas a mano —
+                // (`CENIT.WORKOUT.V1`), así que solo «Rutinas leídas» se sube a mayúsculas a mano —
                 // el identificador de formato se queda tal cual.
-                Text(verbatim: String(localized: "Routines read").uppercased() + " · noop.workout.v1")
+                Text(verbatim: String(localized: "Routines read").uppercased() + " · cenit.workout.v1")
                     .font(LiquidType.kicker).tracking(LiquidType.kickerTracking)
                     .foregroundStyle(LiquidColor.tinta500)
                     .frame(minHeight: EntrenarMetrics.row, alignment: .leading)

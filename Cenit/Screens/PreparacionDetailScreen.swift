@@ -244,7 +244,7 @@ struct PreparacionDetailScreen: View {
                     LiquidNotaLine(String(localized: "prep.metodo.regla",
                                           defaultValue: "Two days in a row move the verdict."),
                                    tono: LiquidColor.tinta700)
-                    LiquidNotaLine("Hirshkowitz et al., 2015 (sleep need); Task Force of the European Society of Cardiology, 1996 (HRV); Mishra et al., 2020 (illness sentinel).")
+                    LiquidNotaLine("Hirshkowitz et al., 2015 (sleep need); Task Force of the European Society of Cardiology, 1996 (HRV); Mishra et al., 2020 (unusual-load sentinel).")
                 }
             }
         }
