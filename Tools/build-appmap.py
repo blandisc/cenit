@@ -27,9 +27,9 @@ MAP = [
            "barra gris sin lectura, tinta cuando hay número sin contexto.",
   "nodes": {
     "vacio":       ("hoy-vacio.png",       "Vacío · primer arranque",
-                    "sin strap visto y sin base → HeroState .waiting · tarjetas Conectar Apple Salud / Emparejar banda", 0, 520),
+                    "sin banda vista y sin base → HeroState .waiting · tarjetas Conectar Apple Salud / Emparejar banda", 0, 520),
     "calibrando":  ("hoy-calibrando.png",  "Calibrando",
-                    "strap visto, ownNights < 4 · overline «TU BASE SE AFINA» · numeral «··» · tiles vacíos", 460, 520),
+                    "banda vista, ownNights < 4 · overline «TU BASE SE AFINA» · numeral «··» · tiles vacíos", 460, 520),
     "descargando": ("hoy-descargando.png", "Descargando la noche",
                     "offload en curso (live.backfilling), sin recovery de hoy · «Sincronizando con tu banda…»", 920, 520),
     "apunto":      ("hoy-apunto.png",      "Veredicto · A punto",

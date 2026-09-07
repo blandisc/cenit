@@ -24,7 +24,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SIM="${1:-iPhone 17 Pro Max}"
 DEST="$ROOT/docs/fixtures"
-LOG="$(mktemp -t noop-screenmap-XXXXXX).log"
+LOG="$(mktemp -t cenit-screenmap-XXXXXX).log"
 
 # El simulador que bootea xcodebuild se queda prendido headless (~8 GB de RAM)
 # hasta el siguiente reinicio; apágalo al salir, pase lo que pase.
@@ -47,7 +47,7 @@ set -e
 
 echo "▶︎ Copiando fixtures a docs/fixtures/…"
 mkdir -p "$DEST"
-WRITTEN="$(mktemp -t noop-screenmap-written-XXXXXX)"
+WRITTEN="$(mktemp -t cenit-screenmap-written-XXXXXX)"
 n=0
 while IFS= read -r src; do
   [ -f "$src" ] || continue

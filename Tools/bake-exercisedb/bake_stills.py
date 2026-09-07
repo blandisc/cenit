@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Stage 6 of the ExerciseDB bake — bake the row thumbnails offline + prune dead media (FER-800).
 
-NOOP is offline: exercise ROW thumbnails must exist without the network or the opt-in media
+Cénit is offline: exercise ROW thumbnails must exist without the network or the opt-in media
 toggle. This step takes each catalog `gifUrl`, downloads the GIF once at build time, extracts its
 FIRST FRAME, and writes a small JPG to:
 
