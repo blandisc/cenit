@@ -287,20 +287,43 @@ final class CenitScreenshotTests: XCTestCase {
     /// por lane. Cada nodo se relanza limpio con `-noop.freshStore` (base hermética) + su `fixture`/`args`,
     /// ejecuta sus `pasos` de navegación y snapea. Un nodo que falle NO detiene a los demás (se listan
     /// al final); `Tools/check-shots.py` valida después que ningún PNG salió en blanco o repetido.
-    func test_mapa() throws {
+    // Un método POR FAMILIA (no uno solo): si el app crashea en un nodo, XCUITest aborta ESE método y
+    // reinicia en el siguiente — así una familia con un estado frágil no tumba la corrida entera (la
+    // primera corrida perdió Hoy/Onboarding/Tendencias porque un nodo de Entrenar crasheó el runner).
+    // `test_mapa` (sin sufijo) queda para correr una familia suelta vía `NOOP_MAPA_FAMILIA`.
+    func test_mapa() throws { try runMapa([]) }
+    func test_mapa_ajustes() throws { try runMapa(["ajustes"]) }
+    func test_mapa_componentes() throws { try runMapa(["componentes"]) }
+    func test_mapa_entrenar() throws { try runMapa(["entrenar"]) }
+    func test_mapa_hoy() throws { try runMapa(["hoy"]) }
+    func test_mapa_onboarding() throws { try runMapa(["onboarding"]) }
+    func test_mapa_tendencias() throws { try runMapa(["tendencias"]) }
+
+    private func runMapa(_ familiasOverride: [String]) throws {
         continueAfterFailure = true
-        let manifests = Self.loadMapManifests()
+        let manifests = Self.loadMapManifests(familiasOverride)
         XCTAssertFalse(manifests.isEmpty,
                        "mapa: sin manifiesto (ni recursos del bundle ni NOOP_MAPA_DIR) — ¿falta empacar docs/appmap/mapa?")
         var failed: [String] = []
 
+        // Lista PLANA de nodos capturables (familia, nodo), para poder cortar por rango. El simulador
+        // se degrada tras ~50 relanzamientos seguidos; el orquestador (`capture-mapa-all.sh`) corre
+        // trozos con `NOOP_MAPA_OFFSET`/`NOOP_MAPA_LIMIT` y un simulador fresco entre cada uno.
+        var flat: [(fam: String, node: [String: Any])] = []
         for m in manifests {
             let fam = m["familia"] as? String ?? "?"
-            let nodos = m["nodos"] as? [[String: Any]] ?? []
-            for n in nodos {
-                guard let id = n["id"] as? String else { continue }
-                if n["omitido"] != nil { continue }   // estado sin palanca viable, declarado a propósito (A2)
+            for n in (m["nodos"] as? [[String: Any]] ?? []) where n["omitido"] == nil {
+                flat.append((fam, n))
+            }
+        }
+        let env = ProcessInfo.processInfo.environment
+        let offset = Int(env["NOOP_MAPA_OFFSET"] ?? "") ?? 0
+        let limit = Int(env["NOOP_MAPA_LIMIT"] ?? "") ?? flat.count
+        let slice = Array(flat.dropFirst(offset).prefix(limit))
 
+        do {
+            for (fam, n) in slice {
+                let id = n["id"] as? String ?? "x"
                 let a = XCUIApplication()
                 var args = Self.baseArgs + ["-noop.freshStore", "YES"]
                 if let fx = n["fixture"] as? String, !fx.isEmpty { args += ["-noop.fixture", fx] }
@@ -338,10 +361,13 @@ final class CenitScreenshotTests: XCTestCase {
 
     /// Carga los manifiestos: `NOOP_MAPA_DIR` (host) tiene prioridad para iterar sin recompilar; si no,
     /// los recursos JSON empacados en el bundle de pruebas. Filtra por `NOOP_MAPA_FAMILIA` (coma-lista).
-    private static func loadMapManifests() -> [[String: Any]] {
+    private static func loadMapManifests(_ override: [String] = []) -> [[String: Any]] {
         let env = ProcessInfo.processInfo.environment
-        let fams = (env["NOOP_MAPA_FAMILIA"] ?? "").split(separator: ",")
-            .map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+        // El override del método por familia gana; si viene vacío, se honra NOOP_MAPA_FAMILIA (coma-lista).
+        let fams = override.isEmpty
+            ? (env["NOOP_MAPA_FAMILIA"] ?? "").split(separator: ",")
+                .map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+            : override
         var urls: [URL] = []
         if let dir = env["NOOP_MAPA_DIR"],
            let items = try? FileManager.default.contentsOfDirectory(
