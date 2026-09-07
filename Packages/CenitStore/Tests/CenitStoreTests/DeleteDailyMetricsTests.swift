@@ -13,8 +13,6 @@ final class DeleteDailyMetricsTests: XCTestCase {
 
     func testDeleteDailyMetricsRemovesOnlyNamedDaysForThatDevice() async throws {
         let store = try await CenitStore.inMemory()
-        try await store.upsertDevice(id: "dev1", mac: nil, name: nil)
-        try await store.upsertDevice(id: "other", mac: nil, name: nil)
         // Three computed days; "2026-06-18" is the spurious future-in-local orphan to prune.
         _ = try await store.upsertDailyMetrics(
             [day("2026-06-16", recovery: 60), day("2026-06-17", recovery: 61), day("2026-06-18", recovery: 62)],
@@ -33,7 +31,6 @@ final class DeleteDailyMetricsTests: XCTestCase {
 
     func testDeleteDailyMetricsEmptyListIsNoOp() async throws {
         let store = try await CenitStore.inMemory()
-        try await store.upsertDevice(id: "dev1", mac: nil, name: nil)
         _ = try await store.upsertDailyMetrics([day("2026-06-17", recovery: 61)], deviceId: "dev1")
         let deleted = try await store.deleteDailyMetrics(deviceId: "dev1", days: [])
         XCTAssertEqual(deleted, 0)
