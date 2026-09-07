@@ -1,182 +1,183 @@
 import Foundation
 
-// MARK: - Unit system preference
+// MARK: - Preferencia de unidades
 //
-// NOOP stores EVERYTHING in SI (km, kg, cm, °C) — the importers normalise on the way in, so this is a
-// purely cosmetic, display-only layer. There is no data migration and nothing on disk changes when the
-// user flips this. We keep one Metric/Imperial switch for length+mass with a SEPARATE temperature
-// override, because plenty of people think in kg/cm but still read body temperature in °F (and vice
-// versa). Default is Metric — most of the world, and it matches what we store.
+// Cénit guarda TODO en SI (km, kg, cm, °C): los importadores normalizan al entrar, así que esta capa
+// es puramente cosmética. Voltear el interruptor no migra nada ni cambia un byte en disco.
+// Longitud y masa comparten un interruptor; la temperatura tiene su propia anulación, porque mucha
+// gente piensa en kg y cm y aun así lee la temperatura del cuerpo en °F (y al revés). Por omisión,
+// métrico: es lo que ya guardamos y lo que usa casi todo el mundo.
 //
-// Persisted via @AppStorage (UserDefaults), the same mechanism every other macOS NOOP preference uses.
-// The Android side mirrors this exactly in Units.kt + NoopPrefs.
+// Se persiste con @AppStorage (UserDefaults), igual que el resto de preferencias de la app.
 
-/// The length+mass unit system. Temperature has its own override (see `UnitPrefs.temperature`).
+/// El sistema de longitud + masa. La temperatura se resuelve aparte (ver `UnitPrefs`).
 enum UnitSystem: String, CaseIterable, Identifiable {
     case metric
     case imperial
+
     var id: String { rawValue }
 
-    /// "follow the system" pairs temperature with the length/mass choice; an explicit case lets the
-    /// user pin °C or °F independently of whether distances are in km or miles.
-    var temperatureMatching: TemperatureUnit { self == .imperial ? .fahrenheit : .celsius }
+    /// La unidad de temperatura que «va con» este sistema cuando no hay anulación explícita.
+    var temperatureMatching: TemperatureUnit {
+        switch self {
+        case .metric:   return .celsius
+        case .imperial: return .fahrenheit
+        }
+    }
 }
 
-/// Temperature display unit. Kept separate from `UnitSystem` so it can be overridden on its own.
+/// Unidad de temperatura en pantalla. Vive aparte de `UnitSystem` para poder fijarla sola.
 enum TemperatureUnit: String, CaseIterable, Identifiable {
     case celsius
     case fahrenheit
+
     var id: String { rawValue }
 }
 
-/// UserDefaults keys for the two unit preferences. Public-ish (internal) so `AjustesView`'s
-/// `@AppStorage(UnitPrefs.systemKey)` and the formatter read the SAME key — no drift.
+/// Las dos llaves de UserDefaults y la regla que las resuelve. Ajustes (`@AppStorage`) y el
+/// formateador leen de aquí, para que no existan dos cadenas escritas a mano que se separen.
 enum UnitPrefs {
+    /// Guarda el rawValue de `UnitSystem`.
     static let systemKey = "units.system"
-    /// Temperature override. Empty string = "match the length/mass system" (the default).
+    /// Guarda el rawValue de `TemperatureUnit`. Cadena vacía = «la que vaya con el sistema».
     static let temperatureKey = "units.temperature"
 
-    /// Resolve the stored raw values into a concrete temperature unit, applying the
-    /// "match the system" default when no explicit override is set.
+    /// Manda la anulación explícita si es un rawValue válido; cualquier otra cosa sigue al sistema.
     static func resolveTemperature(system: UnitSystem, override raw: String) -> TemperatureUnit {
-        if let explicit = TemperatureUnit(rawValue: raw) { return explicit }
-        return system.temperatureMatching
+        TemperatureUnit(rawValue: raw) ?? system.temperatureMatching
     }
 }
 
-// MARK: - Pure conversion + formatting
+// MARK: - Conversión y formato
 
-/// Pure, dependency-free unit conversion and display formatting. Every site that prints a distance,
-/// mass, height or temperature goes through here so a unit toggle reaches all of them at once.
-///
-/// The conversion factors are pinned by `UnitFormatterTests` — a wrong factor can't ship silently.
-/// Nothing here reads UserDefaults: callers pass the resolved `UnitSystem` / `TemperatureUnit` in, which
-/// keeps the formatter trivially testable and side-effect free.
+/// Conversión y formato de unidades: puro, sin dependencias y sin leer UserDefaults — quien llama
+/// entrega ya resuelto el sistema, lo que deja esto trivial de probar y sin efectos secundarios.
+/// Es el único lugar donde viven los factores, y `UnitFormatterTests` los fija uno por uno: un
+/// factor equivocado desplazaría en silencio cada peso, distancia, estatura y temperatura de la app.
 enum UnitFormatter {
 
-    // MARK: Factors (single source of truth — tests pin these exact numbers)
+    // MARK: Factores (los tests fijan estos números exactos)
 
-    /// 1 kilometre = 0.621371 miles.
+    /// 1 km = 0.621371 mi.
     static let milesPerKilometer = 0.621371
-    /// 1 kilogram = 2.20462 pounds.
+    /// 1 kg = 2.20462 lb.
     static let poundsPerKilogram = 2.20462
-    /// 1 inch = 2.54 cm exactly → 1 cm = 1/2.54 inches.
+    /// 1 in = 2.54 cm, exacto por definición.
     static let centimetersPerInch = 2.54
 
-    // MARK: Distance (stored km)
+    /// 1 m = 1.09361 yd. Sólo se usa en el tramo corto en imperial.
+    private static let yardsPerMeter = 1.09361
+    /// Por debajo de una décima de milla (~160 m) la distancia se cuenta en yardas: «0.0 mi» no dice nada.
+    private static let yardThreshold = 0.1
+    /// La pendiente de la escala Fahrenheit. El corrimiento de +32 se aplica aparte, porque una
+    /// DIFERENCIA de temperatura escala pero no se corre.
+    private static let fahrenheitPerCelsius = 9.0 / 5.0
+    /// El cero de la escala Fahrenheit respecto a la Celsius.
+    private static let fahrenheitZeroOffset = 32.0
 
-    /// km → miles.
+    // MARK: Conversión pura
+
     static func kmToMiles(_ km: Double) -> Double { km * milesPerKilometer }
 
-    /// Format a distance given in METRES (the stored unit for workout distance).
-    /// Metric: "1.2 km" / "850 m". Imperial: "0.7 mi" / "230 yd" for sub-mile distances.
+    static func kgToPounds(_ kg: Double) -> Double { kg * poundsPerKilogram }
+
+    static func poundsToKg(_ lb: Double) -> Double { lb / poundsPerKilogram }
+
+    static func cmToInches(_ cm: Double) -> Double { cm / centimetersPerInch }
+
+    static func celsiusToFahrenheit(_ c: Double) -> Double {
+        c * fahrenheitPerCelsius + fahrenheitZeroOffset
+    }
+
+    // MARK: Distancia (los entrenamientos llegan en metros; los totales, en km)
+
+    /// Métrico: «1.2 km» a partir de un kilómetro, «850 m» por debajo.
+    /// Imperial: «3.1 mi» a partir de una décima de milla, «109 yd» por debajo.
     static func distanceFromMeters(_ meters: Double, system: UnitSystem) -> String {
+        let km = meters / 1000.0
         switch system {
         case .metric:
-            let km = meters / 1000.0
-            return km >= 1 ? oneDecimal(km) + " km" : "\(Int(meters.rounded())) m"
+            guard km >= 1 else { return measure(meters, decimals: 0, "m") }
+            return measure(km, decimals: 1, "km")
         case .imperial:
-            let miles = kmToMiles(meters / 1000.0)
-            if miles >= 0.1 { return oneDecimal(miles) + " mi" }
-            // Below ~160 m show yards rather than a "0.0 mi" that reads as nothing.
-            let yards = meters * 1.09361
-            return "\(Int(yards.rounded())) yd"
+            let miles = kmToMiles(km)
+            guard miles >= yardThreshold else {
+                return measure(meters * yardsPerMeter, decimals: 0, "yd")
+            }
+            return measure(miles, decimals: 1, "mi")
         }
     }
 
-    /// Format a distance given in KILOMETRES (e.g. the Workouts "Total Distance" sum), with one decimal
-    /// and a unit label. Metric: "12.4 km". Imperial: "7.7 mi".
+    /// Un decimal siempre: «12.4 km» / «7.7 mi».
     static func distanceFromKilometers(_ km: Double, system: UnitSystem) -> String {
-        switch system {
-        case .metric:   return oneDecimal(km) + " km"
-        case .imperial: return oneDecimal(kmToMiles(km)) + " mi"
-        }
+        measure(system == .imperial ? kmToMiles(km) : km, decimals: 1, distanceUnit(system))
     }
 
-    /// Unit label only, for sites that format the number separately. "km" / "mi".
+    /// Sólo la etiqueta, para quien arma el número por su cuenta.
     static func distanceUnit(_ system: UnitSystem) -> String {
         system == .imperial ? "mi" : "km"
     }
 
-    // MARK: Mass (stored kg)
+    // MARK: Masa (se guarda en kg)
 
-    /// kg → pounds.
-    static func kgToPounds(_ kg: Double) -> Double { kg * poundsPerKilogram }
-
-    /// pounds → kg.
-    static func poundsToKg(_ lb: Double) -> Double { lb / poundsPerKilogram }
-
-    /// Format a mass given in KILOGRAMS with one decimal + unit. Metric: "74.5 kg". Imperial: "164.2 lb".
+    /// Un decimal siempre: «74.5 kg» / «164.2 lb».
     static func massFromKilograms(_ kg: Double, system: UnitSystem) -> String {
-        switch system {
-        case .metric:   return oneDecimal(kg) + " kg"
-        case .imperial: return oneDecimal(kgToPounds(kg)) + " lb"
-        }
+        measure(system == .imperial ? kgToPounds(kg) : kg, decimals: 1, massUnit(system))
     }
 
-    /// Mass unit label only. "kg" / "lb".
     static func massUnit(_ system: UnitSystem) -> String {
         system == .imperial ? "lb" : "kg"
     }
 
-    // MARK: Height (stored cm)
+    // MARK: Estatura (se guarda en cm)
 
-    /// cm → total inches.
-    static func cmToInches(_ cm: Double) -> Double { cm / centimetersPerInch }
-
-    /// Decompose a height in CENTIMETRES into whole feet + inches (inches rounded, carried into feet).
+    /// Pulgadas enteras repartidas en pies y pulgadas. Se redondea ANTES de repartir, así que un
+    /// 11.5″ que sube a 12″ carga el pie por sí solo: nunca sale «5′ 12″».
     static func cmToFeetInches(_ cm: Double) -> (feet: Int, inches: Int) {
         let totalInches = Int(cmToInches(cm).rounded())
-        var feet = totalInches / 12
-        var inches = totalInches % 12
-        if inches == 12 { feet += 1; inches = 0 }   // rounding can push 11.5" → 12"
-        return (feet, inches)
+        return (totalInches / 12, totalInches % 12)
     }
 
-    /// Format a height given in CENTIMETRES. Metric: "178 cm". Imperial: "5′ 10″".
+    /// Métrico: «178 cm». Imperial: «5′ 10″».
     static func heightFromCentimeters(_ cm: Double, system: UnitSystem) -> String {
         switch system {
         case .metric:
-            return "\(Int(cm.rounded())) cm"
+            return measure(cm, decimals: 0, "cm")
         case .imperial:
-            let (ft, inch) = cmToFeetInches(cm)
-            // Prime/double-prime are the conventional ft/in glyphs and read cleanly at small sizes.
-            return "\(ft)′ \(inch)″"
+            let (feet, inches) = cmToFeetInches(cm)
+            // Prima y doble prima: los glifos convencionales de pie y pulgada, legibles en chico.
+            return "\(feet)′ \(inches)″"
         }
     }
 
-    // MARK: Temperature (stored °C — absolute)
+    // MARK: Temperatura (se guarda en °C)
 
-    /// °C → °F: F = C * 9/5 + 32.
-    static func celsiusToFahrenheit(_ c: Double) -> Double { c * 9.0 / 5.0 + 32.0 }
-
-    /// Format an ABSOLUTE temperature in CELSIUS. Metric: "33.4 °C". Imperial: "92.1 °F".
+    /// Una temperatura ABSOLUTA: «33.4 °C» / «92.1 °F».
     static func temperatureFromCelsius(_ c: Double, unit: TemperatureUnit, decimals: Int = 1) -> String {
-        switch unit {
-        case .celsius:    return decimalString(c, decimals) + " °C"
-        case .fahrenheit: return decimalString(celsiusToFahrenheit(c), decimals) + " °F"
-        }
+        let value = unit == .fahrenheit ? celsiusToFahrenheit(c) : c
+        return measure(value, decimals: decimals, temperatureUnit(unit))
     }
 
-    /// Format a temperature DEVIATION (a ±Δ°C, e.g. the skin-temp deviation pipeline). A delta scales by
-    /// 9/5 but does NOT add the +32 offset — that would be wrong for a difference.
+    /// Una DESVIACIÓN (±Δ°C, como la de temperatura de piel): escala por 9/5 y nada más. Sumarle
+    /// el corrimiento de +32 convertiría una diferencia en una temperatura absoluta.
     static func temperatureDeltaFromCelsius(_ dc: Double, unit: TemperatureUnit, decimals: Int = 1) -> String {
-        switch unit {
-        case .celsius:    return decimalString(dc, decimals) + " °C"
-        case .fahrenheit: return decimalString(dc * 9.0 / 5.0, decimals) + " °F"
-        }
+        let value = unit == .fahrenheit ? dc * fahrenheitPerCelsius : dc
+        return measure(value, decimals: decimals, temperatureUnit(unit))
     }
 
-    /// Temperature unit label only. "°C" / "°F".
     static func temperatureUnit(_ unit: TemperatureUnit) -> String {
         unit == .fahrenheit ? "°F" : "°C"
     }
 
-    // MARK: Helpers
+    // MARK: Armado de la cadena
 
-    private static func oneDecimal(_ v: Double) -> String { String(format: "%.1f", v) }
+    /// Número + espacio + etiqueta: la forma que usa toda la app.
+    private static func measure(_ value: Double, decimals: Int, _ unit: String) -> String {
+        number(value, decimals: decimals) + " " + unit
+    }
 
-    private static func decimalString(_ v: Double, _ decimals: Int) -> String {
-        decimals == 0 ? "\(Int(v.rounded()))" : String(format: "%.\(decimals)f", v)
+    /// Cero decimales imprime el entero redondeado; de ahí en adelante, decimales fijos.
+    private static func number(_ value: Double, decimals: Int) -> String {
+        decimals <= 0 ? String(Int(value.rounded())) : String(format: "%.\(decimals)f", value)
     }
 }
