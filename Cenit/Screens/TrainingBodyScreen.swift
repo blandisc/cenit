@@ -604,7 +604,10 @@ struct TrainingBodyScreen: View {
         let weeks = Self.trendDays / 7
         var buckets = [Double](repeating: 0, count: weeks)
         for e in events where e.muscle == muscle {
-            let w = min(e.daysAgo / 7, weeks - 1)
+            // FER-458: `daysAgo` puede ser NEGATIVO si un set quedó fechado en el futuro respecto al
+            // «hoy» del dispositivo (reloj movido, o drift Watch↔iPhone). `-7/7 = -1` → `buckets[12]`
+            // fuera de rango → crash. Clampea a [0, weeks-1]. (También se clampa en el origen, load().)
+            let w = min(max(0, e.daysAgo) / 7, weeks - 1)
             buckets[weeks - 1 - w] += e.involvement
         }
         return buckets
@@ -629,7 +632,9 @@ struct TrainingBodyScreen: View {
         for set in rawSets where set.startTs >= resetTs {
             guard let ex = byId[set.exerciseId] else { continue }
             let setDay = cal.startOfDay(for: Date(timeIntervalSince1970: TimeInterval(set.startTs)))
-            let daysAgo = cal.dateComponents([.day], from: setDay, to: startToday).day ?? 0
+            // FER-458: nunca negativo — un set fechado «en el futuro» (reloj movido / drift de dispositivos)
+            // daría un índice de semana fuera de rango aguas abajo (weeklyTrend).
+            let daysAgo = max(0, cal.dateComponents([.day], from: setDay, to: startToday).day ?? 0)
             for inv in ex.muscleInvolvement {
                 ev.append(.init(muscle: inv.muscle, involvement: inv.weight, daysAgo: daysAgo))
                 let primary = inv.weight >= Exercise.primaryWeight
