@@ -280,6 +280,9 @@ public struct LiquidHoyContent: View {
     private let fusionInicial: Bool
     private let onFusionArrancada: (() -> Void)?
     private let onSeparacion: (() -> Void)?
+    /// FER-432: botón alterno al gesto de separar/unir (ver `LiquidEcosistema.alternarPedido`).
+    private let alternarPedido: Int
+    private let onFase: ((Bool) -> Void)?
     /// SOLO tests/renders: fija la fase del Ecosistema (p. ej. `.separada`).
     let ecosistemaFase: EcosistemaSimulacion.Fase?
 
@@ -292,12 +295,15 @@ public struct LiquidHoyContent: View {
                 mostrarHintSeparar: Bool = true,
                 fusionInicial: Bool = false,
                 onFusionArrancada: (() -> Void)? = nil,
-                onSeparacion: (() -> Void)? = nil) {
+                onSeparacion: (() -> Void)? = nil,
+                alternarPedido: Int = 0,
+                onFase: ((Bool) -> Void)? = nil) {
         self.init(model: model, onTapMetric: onTapMetric, onTapSenal: onTapSenal,
                   onTapCarga: onTapCarga, onTapHero: onTapHero,
                   onTapGuardian: onTapGuardian,
                   mostrarHintSeparar: mostrarHintSeparar, fusionInicial: fusionInicial,
                   onFusionArrancada: onFusionArrancada, onSeparacion: onSeparacion,
+                  alternarPedido: alternarPedido, onFase: onFase,
                   ecosistemaFase: nil)
     }
 
@@ -311,6 +317,8 @@ public struct LiquidHoyContent: View {
          fusionInicial: Bool = false,
          onFusionArrancada: (() -> Void)? = nil,
          onSeparacion: (() -> Void)? = nil,
+         alternarPedido: Int = 0,
+         onFase: ((Bool) -> Void)? = nil,
          ecosistemaFase: EcosistemaSimulacion.Fase?) {
         self.model = model
         self.onTapMetric = onTapMetric
@@ -322,6 +330,8 @@ public struct LiquidHoyContent: View {
         self.fusionInicial = fusionInicial
         self.onFusionArrancada = onFusionArrancada
         self.onSeparacion = onSeparacion
+        self.alternarPedido = alternarPedido
+        self.onFase = onFase
         self.ecosistemaFase = ecosistemaFase
     }
 
@@ -346,7 +356,8 @@ public struct LiquidHoyContent: View {
                 compacto: false,
                 onTapVeredicto: onTapHero, onTapSenal: onTapSenal,
                 onTapGuardian: onTapGuardian,
-                onFusionArrancada: onFusionArrancada, onSeparacion: onSeparacion)
+                onFusionArrancada: onFusionArrancada, onSeparacion: onSeparacion,
+                alternarPedido: alternarPedido, onFase: onFase)
                 .padding(.top, LiquidSpace.s150)
                 .liquidEntrada(index: 1)
 
