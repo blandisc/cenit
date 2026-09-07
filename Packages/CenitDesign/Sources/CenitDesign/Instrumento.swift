@@ -150,7 +150,7 @@ public struct InstrumentoTheme: Equatable, Sendable {
 }
 
 public extension InstrumentoTheme {
-    /// Color de la batería del strap por nivel de carga — fuente ÚNICA para toda la app (Hoy, Ajustes…):
+    /// Color de la batería de un dispositivo por nivel de carga — fuente ÚNICA para toda la app:
     /// sana → `verdict` (verde); ≤20 % → `warning` (ámbar); ≤10 % → `critical` (rojo). El color vive solo
     /// en el dato (el glifo en Hoy, el número en Ajustes); el resto se queda en tinta.
     func batteryColor(forLevel pct: Double) -> Color {
@@ -298,7 +298,7 @@ public extension InstrumentoTheme {
 
     // Data-origin dots (6px): where a reading comes from, always visible. Aliases of
     // existing roles so origin and metric hues can never drift apart.
-    /// Origin dot — the strap/band.
+    /// Origin dot — an external band.
     var originBand: Color { dataRecovery }
     /// Origin dot — Apple Salud.
     var originApple: Color { dataSpO2 }
@@ -541,8 +541,7 @@ public extension InstrumentoTheme {
             swatches("Métricas", [("sleep", t.dataSleep), ("hrv", t.dataHrv), ("heart", t.dataHeart), ("spo2", t.dataSpO2), ("oxygen", t.dataOxygen), ("steps", t.dataSteps)], t)
             swatches("Entrenar", [("effort (RPE)", t.dataEffort)], t)
         }
-        .padding(28)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(28).frame(maxWidth: .infinity, alignment: .leading)
     }
     .background(t.paper)
 }
@@ -564,27 +563,39 @@ public extension InstrumentoTheme {
             swatches("Dato / estado", [("recovery", t.dataRecovery), ("strain", t.dataStrain), ("warning", t.warning), ("critical", t.critical)], t)
             swatches("Métricas", [("sleep", t.dataSleep), ("hrv", t.dataHrv), ("heart", t.dataHeart), ("spo2", t.dataSpO2), ("oxygen", t.dataOxygen), ("steps", t.dataSteps)], t)
         }
-        .padding(20)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(20).frame(maxWidth: .infinity, alignment: .leading)
     }
     .background(t.paper)
 }
 
+/// Las medidas del muestrario de fichas. Solo se usan aquí, en los `#Preview` de este archivo.
+private enum MedidasDeMuestrario {
+    static let canto: CGFloat = 8
+    static let lado = CGSize(width: 64, height: 44)
+    static let filete: CGFloat = 1
+    static let vozDelRotulo: CGFloat = 9
+}
+
+/// Una fila de fichas de color con su nombre debajo: el rótulo del grupo y una muestra por ficha.
 @ViewBuilder
 private func swatches(_ title: String, _ items: [(String, Color)], _ t: InstrumentoTheme) -> some View {
     VStack(alignment: .leading, spacing: 8) {
         Text(title).instrumentoOverline().foregroundStyle(t.inkTertiary)
         HStack(spacing: 10) {
-            ForEach(items, id: \.0) { name, color in
-                VStack(spacing: 6) {
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(color)
-                        .frame(width: 64, height: 44)
-                        .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(t.hairlineStrong, lineWidth: 1))
-                    Text(name).font(.system(size: 9)).foregroundStyle(t.inkSecondary)
-                }
-            }
+            ForEach(items, id: \.0) { nombre, tinta in muestra(nombre, tinta, t) }
         }
+    }
+}
+
+/// Una ficha suelta: el cuadro de color con su filete y, debajo, cómo se llama.
+private func muestra(_ nombre: String, _ tinta: Color, _ t: InstrumentoTheme) -> some View {
+    let canto = RoundedRectangle(cornerRadius: MedidasDeMuestrario.canto)
+    return VStack(spacing: 6) {
+        canto.fill(tinta)
+            .frame(width: MedidasDeMuestrario.lado.width, height: MedidasDeMuestrario.lado.height)
+            .overlay(canto.strokeBorder(t.hairlineStrong, lineWidth: MedidasDeMuestrario.filete))
+        Text(nombre).font(.system(size: MedidasDeMuestrario.vozDelRotulo))
+            .foregroundStyle(t.inkSecondary)
     }
 }
 

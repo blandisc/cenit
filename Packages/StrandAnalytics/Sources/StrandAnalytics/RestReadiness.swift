@@ -3,7 +3,7 @@ import Foundation
 // RestReadiness.swift — between-sets rest guided by heart-rate recovery (HRR). (FER-348)
 //
 // The strength tracker's differentiator: instead of a blind countdown, the rest between
-// sets watches the live heart rate from the strap and tells you when your pulse has
+// sets watches the live heart rate and tells you when your pulse has
 // settled back toward your own resting baseline — variant C2: the dominant number is
 // "N bpm to ready" counting down to 0 → «Ready».
 //
@@ -15,7 +15,7 @@ import Foundation
 // Method — heart-rate recovery (HRR): the bpm the heart rate falls after stopping effort
 // is an established marker of parasympathetic reactivation (Cole et al. 1999, NEJM
 // 341:1351–1357; Daanen et al. 2012, Int J Sports Physiol Perform 7:251–260, HRR for
-// monitoring training status). NOOP does NOT use absolute clinical HRR thresholds (those
+// monitoring training status). Cénit does NOT use absolute clinical HRR thresholds (those
 // are diagnostic). It uses an honest personal target: "recovered" = HR has returned near
 // the user's OWN resting HR. APPROXIMATE — a rest cue, not a medical verdict, no clinical
 // claim. (Note: the repo already uses "HRR" for Heart-Rate *Reserve* (Karvonen) in

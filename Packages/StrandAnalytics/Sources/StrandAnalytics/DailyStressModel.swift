@@ -8,7 +8,7 @@ import StrandModels
 // presentation (band copy/colors, explanation copy, calm-time strings) stays in the app.
 //
 // Source of the daily 0–3 value, in priority order:
-//   1. The persisted `stress` metric series ("strap") — if a day has a stored value we trust it.
+//   1. The persisted `stress` metric series — if a day has a stored value we trust it.
 //   2. Otherwise DERIVE it from how today's resting HR / HRV sit against a personal 30-day baseline:
 //        zRHR = (todayRHR − meanRHR) / sdRHR        // positive when RHR is UP
 //        zHRV = (meanHRV − todayHRV) / sdHRV        // positive when HRV is DOWN
@@ -88,7 +88,7 @@ public struct DailyStressModel {
     /// RHR runs systematically ~10–13 bpm higher (Fenland Study, Gonzales et al. 2023, PLoS One 18(5):
     /// e0285272: sleep 56.9 vs seated 67.6 bpm) — not the same number, no fixed offset (it varies per
     /// person). The z-score is the common currency; raw bpm/ms are never compared across sources (FER-633,
-    /// supersedes the old merged-RHR FER-519 policy). `appleDays == []` is the identity — strap-only unchanged.
+    /// supersedes the old merged-RHR FER-519 policy). `appleDays == []` is the identity — an on-device-only history is unchanged.
     public init?(days: [DailyMetric], stored: [(day: String, value: Double)], todayKey: String,
                  appleDays: Set<String> = []) {
         // Anchor the hero to the most recent LOCAL day (≤ today) that actually carries a reading — a
@@ -119,14 +119,14 @@ public struct DailyStressModel {
         // RHR baseline split by source (FER-633): band nights → sleep-nadir RHR, Apple nights → awake
         // sedentary RHR. Each reading is z-scored against the baseline of its own source; the two are never
         // mixed (systematic ~10–13 bpm gap, no fixed offset — see the init doc). `appleDays == []` →
-        // rhrAppleBase empty and every day routes to rhrBandBase == the old single base, so a strap-only
+        // rhrAppleBase empty and every day routes to rhrBandBase == the old single base, so an on-device-only
         // user's scores are bit-for-bit identical.
         let rhrBandBase  = baseline.filter { !appleDays.contains($0.day) }.compactMap { $0.restingHr }.map(Double.init)
         let rhrAppleBase = baseline.filter {  appleDays.contains($0.day) }.compactMap { $0.restingHr }.map(Double.init)
         // HRV baseline split by source (FER-623): band nights → RMSSD, Apple nights → SDNN. Each reading is
         // z-scored against the baseline of its own source; the two are never mixed (no published conversion).
         // `appleDays == []` → sdnnBase empty and every day routes to rmssdBase == the old single base, so a
-        // strap-only user's scores are bit-for-bit identical.
+        // history yields bit-for-bit identical scores.
         let rmssdBase = baseline.filter { !appleDays.contains($0.day) }.compactMap { $0.avgHrv }
         let sdnnBase  = baseline.filter {  appleDays.contains($0.day) }.compactMap { $0.avgHrv }
 

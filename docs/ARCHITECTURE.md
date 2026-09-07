@@ -196,7 +196,7 @@ StrandImport ───────▶ CenitStore + StrandTraining + ZIPFoundatio
 | **StrandModels** | Shared daily-metric value types used by both persistence and analytics — the durable shapes of cached scores, sleep sessions, and diet adherence status. | `DailyMetric` (+ `FieldUpdate`/`with(...)`), `CachedSleepSession`, `DietMealStatus` | **Leaf — zero dependencies, Foundation only.** No GRDB/UIKit. `CenitStore` depends on it and re-exports the names via `public typealias` (L3-C1a); `StrandAnalytics` depends on it directly (L3-C1b) so math never links GRDB. |
 | **BiometricStreams** | The neutral vocabulary of decoded biometric rows — the durable shapes everything downstream stores, computes over and serializes. Source-agnostic: nothing here names a frame, a byte, or a specific device. | `HRSample`, `RRInterval`, `StreamEvent`, `BatterySample`, `SpO2Sample`, `SkinTempSample`, `RespSample`, `GravitySample`, `StepSample`, `Streams` (+ `.empty`), `ParsedValue` | **Root of the graph — zero dependencies, Foundation only.** No CoreBluetooth/UIKit/AppKit/GRDB, and no CRC/UUID/CLIENT_HELLO/schema. (FER-993 · D2). **Still linked into the app binary** — `CenitStore` and `StrandAnalytics` depend on it (`project.yml` lists `BiometricStreams` under the `Cenit` target). |
 | **CenitStore** | Durable on-device persistence built on GRDB/SQLite. Migrations, decoded streams, metric caches, generic metric series, raw outbox, cursors. | `actor CenitStore`, `makeMigrator()`, `insert(_:deviceId:)`, `dailyMetrics`, `sleepSessions`, `metricSeries`, `pruneRaw`, `ClockRef`, `RawBatchMeta` | An **`actor`** — all writes/reads run off the main thread on its serial executor. |
-| **StrandAnalytics** | All physiological math, as pure functions over inputs. HRV, recovery, strain, sleep staging, workout detection, baselines, HR zones, correlation/comparison. | `AnalyticsEngine.analyzeDay(...)` → `DayResult`, `HRVAnalyzer`, `RecoveryScorer`, `StrainScorer`, `SleepStager`, `WorkoutDetector`, `Baselines`, `CorrelationEngine`, `Preparedness` (the «Preparación» morning verdict by axis-consensus over the user's Apple baselines — composed in `Repository.performRefresh`, published as `DashboardData.preparedness`, read by the Today hero; FER-1030), `WeeklySplit` (split → today's routine / day states / consistency streak, FER-531) | **Pure — never touches the database (literal):** depends on `BiometricStreams` + `StrandModels` only; no GRDB/CenitStore link (L3-C1b). Produces `DailyMetric`/`CachedSleepSession` shapes for the store. |
+| **StrandAnalytics** | All physiological math, as pure functions over inputs. HRV, strain, energy, baselines, HR zones, correlation/comparison. | `HRVAnalyzer`, `StrainScorer`, `Calories`, `Baselines`, `HRZones`, `ReadinessEngine`, `CorrelationEngine`, `Preparedness` (the «Preparación» morning verdict by axis-consensus over the user's Apple baselines — composed in `Repository.performRefresh`, published as `DashboardData.preparedness`, read by the Today hero; FER-1030), `WeeklySplit` (split → today's routine / day states / consistency streak, FER-531) | **Pure — never touches the database (literal):** depends on `BiometricStreams` + `StrandModels` only; no GRDB/CenitStore link (L3-C1b). Produces `DailyMetric`/`CachedSleepSession` shapes for the store. |
 | **StrandImport** | Parse Apple Health exports the user already owns (`export.xml`, streaming). | `ImportCoordinator.detectAndImport`, `AppleHealthImporter`, `AppleHealthAggregator`, `SleepHKEncoder`/`SleepHKDecoder` | **Parsing only** — returns normalized model arrays; the app maps them into the store. |
 | **CenitDesign** | The SwiftUI design system: palette, typography, motion, charts, components. | `StrandPalette`, `liquidGlass(_:)`, `RecoveryZoneGauge`, `Hypnogram`, `TrendChart`, `Sparkline`, `YearHeatStrip` (full index: [CATALOGO.md](design-system/CATALOGO.md)) | No data or protocol deps — pure presentation. |
 | **StrandTraining** | Strength-tracker domain types + the bundled, read-only exercise catalog (**free-exercise-db**, 873 exercises with native slug ids; FER-923, was ExerciseDB OSS in FER-779). The value models CenitStore persists and StrandAnalytics computes over. | `Exercise`, `ExerciseType`, `ExerciseCatalog`, `Routine`, `RoutineExercise` (with `supersetGroup` FER-346; optional fixed note seeded into each session and never copied to the session's acta, FER-166, v39), `RoutineSet` (per-set prescription, FER-492; optional per-set `RestConfig` override with exercise fallback, FER-715; optional `repsRangeTop` for a "floor-top" rep range, FER-94, migration v38), `RoutineSchedule` (the weekly split, FER-531), `StrengthSession` (with persisted `energyKcal`/`EnergySource`, FER-715), `SetEntry` (with `rpe` v34; `restTakenS` — the real rest that FOLLOWED the set, pause-excluded, captured by the live session, FER-167, v40), `PersonalRecord`; **the program engines** (ola 1 · FER-329): `Program` + `ProgramCalendar` (the ONE oracle of «which week am I in?» — derived from `startTs` + the weeks actually trained, never stored), `ProgramDeload` (the light-week rule; returns RAW kg, like `SetVariants`, because the plate rounding lives in `PlateMath`) and `ProgramTemplate` (the four engines, as data over `StarterTemplates`); `StarterGroupSchedule` + `WeeklySchedulePlanner` (FER-377 — the per-`StarterTemplate.Group` weekly frequency/spacing recipe and the pure, `taken`-aware placement of a group's routines across the week, best-effort; the app-layer `applyTemplateGroup` composes them) | **Pure** — Foundation only (no GRDB/UIKit). GRDB conformance lives in CenitStore by extension. (FER-345) |
@@ -337,35 +337,63 @@ download already fetched.
 
 ## 7. Storage model (CenitStore / SQLite)
 
-GRDB drives a migrator (the migrator currently reaches `v43`; see `Database.swift` — the source of
-truth is the migration list, not a constant). The schema groups into four
-concerns:
+GRDB drives a migrator with **exactly one** registered migration, `"v43"`, whose body is the whole
+DDL (`Schema.swift` — the source of truth is that list, never a hand-written constant).
 
-**Durable decoded streams** — natural key `(deviceId, ts)`, one row per sample:
-`hrSample`, `rrInterval`, `event`, `battery`, plus the type-47 biometrics `spo2Sample`,
-`skinTempSample`, `respSample`, `gravitySample`.
-- The five 1 Hz tables (`hrSample`, `rrInterval`, `skinTempSample`, `respSample`, `gravitySample`)
-  are **`WITHOUT ROWID` + `STRICT`** with an **integer `deviceId` surrogate** as of **v21 (FER-513)**.
-  A rowid table with a composite PK keeps a second `sqlite_autoindex` copy of the key + rowid on every
-  row (~46% of the DB); `WITHOUT ROWID` makes the natural PK *be* the table (no autoindex), and the int
-  surrogate replaces the repeated legacy device-id TEXT — together ~−60% on these tables, zero data loss.
-  The dead `synced` column (v5) is dropped from these five. `event`/`battery`/`stepSample`/`spo2Sample`
-  keep TEXT `deviceId` + rowid (marginal / empty — out of scope). `spo2Sample` is decoded but no longer
-  written (**v20, FER-511**) and its rows were purged; it survives empty for downgrade-safe reads.
-- The surrogate map is **`deviceIdMap(deviceId TEXT PK, intId INTEGER UNIQUE)`** — distinct from
-  `device` (hardware): writes/tests insert sample rows for source partitions that never have a `device`
-  row, so binding the surrogate to `device.rowid` would JOIN-drop them. `CenitStore` translates at the
-  actor boundary via a `[String: Int64]` cache (`resolvedDeviceId`), so the public read/write API still
-  takes `deviceId: String`. The write path creates the mapping on demand (never throws on an unknown id
-  → the Backfiller, which acks+trims history even when `insert` fails, can't lose acked data).
+The identifier is load-bearing (FER-393). A database installed before the clean-room rewrite carries
+the 43 identifiers `v1`…`v43` of the previous incremental history in its `grdb_migrations` ledger, and
+GRDB silently ignores applied identifiers a migrator doesn't know about — so that database reads
+`"v43"` as applied, finds nothing pending, and **executes not one schema statement**. A fresh install
+arrives with an empty ledger, runs `"v43"`, and gets the full schema. Two consequences, both pinned by
+tests: **the next migration is `"v44"`** (reusing `"v1"`…`"v42"` would be skipped in silence on an
+installed database, leaving its schema behind with no error), and **`eraseDatabaseOnSchemaChange`
+stays off** (with it on, GRDB would read those 43 unknown identifiers as a schema change and erase the
+file). The DDL is pasted verbatim from a `.schema` dump of a real migrated database
+(`Tests/CenitStoreTests/Resources/legacy-schema.sql`) and a test compares `sqlite_master` against it
+character by character; the guard against a second execution lives in Swift, checking `sqlite_master`
+per object, so the recorded text stays exact.
 
-**Metric caches** — the rolled-up shapes the screens read:
+The schema groups into five concerns:
+
+**Durable beat streams** — `hrSample` (`(deviceId, ts)`) and `rrInterval` (`(deviceId, ts, rrMs)`),
+one row per sample. The band-era stream tables (`event`, `battery`, `spo2Sample`, `skinTempSample`,
+`respSample`, `gravitySample`, `stepSample`, `rawBatch`, `device`, `circadianPhase`) were dropped and
+are not recreated; `Streams` still carries the dormant arrays, and `insert` simply does not persist
+them — writing to a table that isn't there would throw and take the beats down with it.
+- Both are **`WITHOUT ROWID` + `STRICT`** with an **integer `deviceId` surrogate**. A rowid table with
+  a composite PK keeps a second `sqlite_autoindex` copy of the key + rowid on every row (~46% of the
+  DB); `WITHOUT ROWID` makes the natural PK *be* the table, and the surrogate replaces a repeated TEXT
+  label on every one of ~86 000 rows per day of pulse. Neither carries the dead `synced` column of the
+  retired upload feature.
+- The surrogate map is **`deviceIdMap(deviceId TEXT PK, intId INTEGER UNIQUE)`**. `CenitStore`
+  translates at the actor boundary through a `[String: Int64]` cache it owns (the actor serializes
+  lookup-then-insert, so two callers can't assign two integers to one label), and the public read/write
+  API still takes `deviceId: String`. A read of an unknown partition returns empty instead of throwing;
+  a write creates the mapping on demand, so an insert can never fail for a missing surrogate.
+
+**Metric caches** — the rolled-up shapes the screens read. The name is a little misleading: there is
+no invalidation, no dirty flag and no notification anywhere in the package. They are durable rows of
+already-computed values, rewritten by whoever recomputes them.
 - `dailyMetric` — one row per `(deviceId, day)`: `recovery`, `strain`, sleep stage minutes,
-  `restingHr`, `avgHrv`, `spo2Pct`, `skinTempDevC`, `respRateBpm`, `exerciseCount`.
+  `restingHr`, `avgHrv`, `spo2Pct`, `skinTempDevC`, `respRateBpm`, `exerciseCount`, `steps`,
+  `activeKcalEst`, and the two confidence tiers. Its conflict rule is **not** a replacement: the
+  engine re-scores every night in its window on each pass, and a night whose sleep session isn't
+  detected yet comes back all nulls, so each column merges as `COALESCE(incoming, stored)` and a day
+  is cleared by DELETING it, never by writing nulls over it. `strain` merges by a narrower rule a
+  plain `COALESCE` gets wrong in one case — a stored `0` (usually a false rest from a pass without
+  pulse) may go back to NULL, while a stored load above 0 never degrades to rest or to «no data». The
+  seven cases are pinned one by one in `DayCacheStoreTests`.
 - `sleepSession` — one row per `(deviceId, startTs)` with `efficiency`, `restingHr`, `avgHrv`, and
-  a JSON `stagesJSON` hypnogram.
-- `journal`, `workout`, `appleDaily` — imported journal answers, workouts (legacy + Apple Health),
-  and Apple-Health daily aggregates.
+  a JSON `stagesJSON` hypnogram. Reads return the sessions that **overlap** the window, not the ones
+  that start inside it: falling asleep before local midnight puts the night's start outside the
+  window, and it is still that night.
+- `journal`, `workout`, `appleDaily` — journal answers, workouts (imported history + Apple Health),
+  and Apple-Health daily aggregates. All three arrive in batches, and SQLite refuses to resolve the
+  same conflict key twice inside one `INSERT … ON CONFLICT DO UPDATE`, so a batch is deduplicated
+  first, keeping the LAST appearance of each natural key in first-appearance order — «row by row, last
+  wins», resolved before the write. `dailyMetric` can't use that shortcut (its rule merges column by
+  column, so collapsing would lose what only the first appearance carried) and is split into passes
+  instead, which applied in order reproduce row-by-row semantics exactly.
 - `experiment` (v12, FER-307) — one row per N-of-1 experiment, natural key `id` (UUID): the lever
   (`behavior` × `outcome`), `startDay`/`windowDays`, `status` (running/completed/canceled), and the
   verdict columns filled on completion. Additive only; one experiment runs at a time (app-enforced),
@@ -421,9 +449,11 @@ aggregates. FER-868 added the daily motion derivatives under the same computed-s
 (the civil day's gravity motion volume, `StepsEstimateEngine.dayMotionIntensity` — the steps-estimate
 input) and `act_h00`…`act_h23` (the per-local-hour motion profile feeding `CircadianEngine`'s cosinor;
 a row exists iff the hour had samples, even at 0.0 — absent hour = no row, preserving the pooled-bins
-semantics). Persisting them means the engine reads each day's raw `gravitySample` rows ONCE when the
-day's data changes, instead of re-reading 60+14 days of gravity every 15-minute pass — and the derived
-motion history survives both an app relaunch and a raw-stream safe-trim.
+semantics). Persisting them meant the engine read each day's raw accelerometer rows ONCE when the
+day's data changed, instead of re-reading 60+14 days of them every 15-minute pass — and the derived
+motion history survives both an app relaunch and a raw-stream safe-trim. That raw table is gone now,
+so those scalars are read-only history: whatever a database already holds still reads back, and
+nothing writes new ones.
 
 FER-972 (P-05) adds two more per-night scalars under the same computed-source suffix: `night_dc_ms`
 (nocturnal Deceleration Capacity, ms, over the night's main in-bed session) and `night_warming_c`
@@ -441,37 +471,30 @@ heartbeat series; `Repository.autonomicTrend` reads `apple_rmssd_night` back to 
 baseline is a construct of its own and must never be pooled with the legacy wearable's RMSSD or with Apple's SDNN
 (three separate baselines — the "own baseline per construct" invariant, FER-629).
 
-**Circadian phase** — `circadianPhase(deviceId, day, tempMinHour, acrophaseHours, offsetMinutes,
-confidence, daysObserved, bedtimeHour, wakeHour, computedAt)`, PK `(deviceId, day)`: one structured
-record per local civil day holding `CircadianEngine`'s cosinor phase estimate for the «Tu reloj
-corporal» surface (FER-712). Written by the nightly `IntelligenceEngine` pass (gated to legacy wearables —
-the phase signal is the accelerometer rest-activity rhythm). A dedicated table, not `metricSeries`,
-because the record is multi-field including an enum confidence. `confidence` is stored as the raw
-`PhaseConfidence` string; `CenitStore` keeps no dependency on `StrandAnalytics`.
+**Bookkeeping** — `cursors(name TEXT PK, value INTEGER)`: one-shot flags and forward-only watermarks.
+Two name prefixes are contract, `highwater:<stream>` (upload mark) and `read:<stream>` (pull cursor);
+they have to differ so the two marks of one stream can't collide.
 
-**Raw outbox** — `rawBatch`: the compressed, **transient, prunable** record of original frames,
-captured only when the research toggle is on. Decoded data is always committed *before* raw is queued,
-so pruning raw (`PrunePolicy`: 24h window / 50MB cap) can never lose a metric. `cursors` holds durable
-watermarks such as a trim cursor for the legacy device path.
+`deviceId` is the per-source partition key. The app uses `"apple-health"` for imported Apple Health
+(the live source), `"strap"` for the band-era history it still holds, `"-noop"`-suffixed partitions
+for what it computes on top of each, and `"noop-journal"` for journal answers logged in Cénit — so
+per-source pages and cross-source "consensus" views read the same tables filtered by source. On
+`hrSample` and `rrInterval` the stored `deviceId` is the integer surrogate from `deviceIdMap`;
+everywhere else it is the TEXT label.
 
-`deviceId` is the per-source partition key. The app uses a dedicated legacy-device label for the
-retired wearable partition and `"apple-health"` for imported Apple Health, so per-source pages and
-cross-source "consensus" views read the same tables filtered by source. On the five v21 `WITHOUT ROWID` sample tables the stored
-`deviceId` is the integer surrogate from `deviceIdMap`; everywhere else it is still the TEXT partition
-key.
+The imported partition was labelled after the band's brand until **FER-993** relabelled it to the
+neutral `"strap"` (the app ships to the App Store, so the id written into the user's data can't carry
+a third-party brand). That relabel is history now — it is baked into the installed database and does
+not exist as a step any more — but it explains why the label lives in exactly one row of
+`deviceIdMap`: re-pointing millions of sample rows was a single UPDATE. `auto_vacuum=INCREMENTAL`
+keeps later deletes reclaimable, and `vacuum()` (off the launch path, gated by a `cursors` flag) is
+what returns freed pages to the OS.
 
-The legacy device partition originally carried a third-party brand name in its label until **v36
-(FER-993)**, which relabels it to a brand-neutral value (the app ships to the App Store, so the id it
-writes into the user's data can't carry a third-party brand). The relabel is lossless by two different mechanisms: the five v21 tables
-store the *surrogate*, so rewriting the single `deviceIdMap` row re-points all their rows at once
-without touching a sample row; every other table stores the label as TEXT and is swept in place. The
-sweep is driven off the **live schema** (`sqlite_master` + `pragma table_info`, TEXT `deviceId` columns
-only) rather than a hand-written table list — a forgotten table would silently orphan real rows, and
-reading the schema also self-corrects for the v21 tables (their `deviceId` is INTEGER, so it skips
-them). The derived computed partition follows by the same prefix rewrite, and
-`workout.source` — which stores the computed id for detector-derived bouts — moves in lockstep. A one-time VACUUM after the v21 rebuild (and after the v20 spo2 purge) returns the freed pages to
-the OS — each runs once per install, gated by a `cursors` flag (`rebuildVacuumV1Done` / `spo2VacuumV1Done`),
-off the launch path; `auto_vacuum=INCREMENTAL` (FER-511) keeps later deletes reclaimable.
+**Orphan, deliberately left alone:** `CircadianPhaseStore.swift` still reads and writes a
+`circadianPhase` table that no longer exists. Its calls throw at runtime and the app layer swallows
+them with `try?`, so «Tu reloj corporal» has read `nil` since the table was dropped. Preserving that
+status quo was the right call inside FER-393 (a fix is either retiring the file or recreating the
+table, and both are product decisions); it needs its own issue.
 
 ### Day-key convention (local civil day)
 
@@ -565,9 +588,10 @@ in the Frente D dead-code sweep (FER-1003). No column, no migration.
 
 ## 9. Analytics (StrandAnalytics)
 
-`AnalyticsEngine.analyzeDay(...)` is a pure function: given a day's raw streams (`hr`, `rr`, `resp`,
-`gravity`), a `UserProfile`, and personal `ProfileBaselines`, it runs the analyzers and returns a
-`DayResult`:
+There is no per-day orchestrator. Each engine below is a pure function called directly by whichever
+surface needs it — `Repository`, `HealthKitBridge`, `AppModel` or a screen — over the Apple Health rows
+already in the store. `AnalyticsEngine` itself is now only the civil-day key and the sleep-stage codec
+(FER-387).
 
 - `strengthSession.strainSource` / `sessionRpe` / `sessionRpeSource` / `trimpPerAU` / `source` / `title` /
   `programWeek` / `deload` (v42, ola 1 · FER-324) — where the session's strain came from (`hr` measured,
@@ -583,17 +607,23 @@ in the Frente D dead-code sweep (FER-1003). No column, no migration.
 - `program` (v43) — the one active program (PK `id = 'active'`): `name`, `weeks`, `startTs`, `deloadRule`,
   `endMode`, `templateId`, `createdTs`. The current week is DERIVED from `startTs` and the weeks actually
   trained (`ProgramCalendar`, E10), never stored. Deleting the row leaves routines and the weekly schedule.
-- **`SleepStager`** detects in-bed sessions and stages them (deep/REM/light), producing per-session
-  efficiency, resting HR, average HRV, and a hypnogram.
+- **Sleep phases** come from Apple Health, decoded by `SleepHKDecoder` in `StrandImport`. The own
+  stage classifier was **deleted** (FER-385): it scored nights offloaded from a device the app no longer
+  has, and had no call site outside its own tests. Only `StageSegment` survived, in its own file — it is
+  the on-disk JSON shape of a night's timeline, hand-mirrored in `StrandImport` and parsed by hand in
+  `SleepDetailScreen`, so its three fields are a byte contract in three directions at once.
 - **`HRVFreqDomain`** (FER-669) computes frequency-domain HRV (LF/HF/total power, ms²) from an R-R
   series via the Lomb-Scargle periodogram (Lomb 1976; Scargle 1982) on the uneven tachogram — no
   resampling — span-gated per Task Force (1996). **Additive**: feeds no recovery/strain/sleep output.
-  Surfaced in the HRV detail (FER-702): `analyzeDay` computes the nightly `Bands` over the SAME in-bed
+  Surfaced in the HRV detail (FER-702): the nightly `Bands` are computed over the SAME in-bed
   session R-R as `avgHrv` (coherent by construction), the app persists the three powers to
   `metricSeries` under a legacy computed-source suffix, and `HRVSpectralBaseline` labels each band vs "your normal" by reusing
   `Baselines.foldHistory(logDomain:)` + z-score (log-normal HRV powers, Plews 2013) — no new estimator.
-- **`RecoveryScorer`** normalizes nightly HRV/RHR (and a sleep-performance proxy) against baselines
-  into a `0–100` score.
+- **`RecoveryScorer`** is down to two live pieces (FER-387). The `0–100` composite was **deleted** — it
+  had no call site, and both surviving import routes write `dailyMetric.recovery` as `nil`, so it was
+  never computed nor shown; `Preparedness` is the hero. What remains is the nocturnal resting-HR
+  estimator (the minimum of qualifying five-minute bin means, not the lowest beat) and the three band
+  cuts that `TrainingRegulation` and `ReadinessEngine` name by symbol.
 - **Baseline recalibration (FER-677).** `ProfileStore.baselineEpoch` (a `YYYY-MM-DD` local day-key in
   UserDefaults, with one level of undo via `previousBaselineEpoch`) cuts every nightly baseline fold:
   `Baselines.foldHistory(_:epoch:cfg:)` drops nights with `day < epoch` before the replay (delegating to
@@ -628,7 +658,11 @@ in the Frente D dead-code sweep (FER-1003). No column, no migration.
   currency, raw ms are never compared across constructs.
 - **`StrainScorer`** integrates the day's HR window into a `0–21` cardiovascular load (Tanaka HRmax
   from age unless overridden).
-- **`WorkoutDetector`** segments exercise bouts from HR + motion.
+- **`WorkoutDetector`** was **deleted** (FER-387): it required a gravity series whose table was dropped
+  in migration `v37`, so it could only return an empty list. Apple supplies `HKWorkout` from the Watch
+  and `AppleLoadEstimator` turns those into the day's load. **`Calories`** survives and is live — Keytel
+  (2005) over heart rate, revised Harris–Benedict at rest, and a compendium MET value when a strength
+  session captured no heart rate; its output is mirrored to Apple Health as active energy.
 - **`Baselines`**, **`HRZones`**, **`CorrelationEngine`**, **`ComparisonEngine`**, and
   **`BehaviorInsights`** supply rolling baselines, zone math, and cross-metric/behaviour insights.
 - **`SleepRegularity`** (FER-218) scores schedule consistency from a rolling window of nights: the

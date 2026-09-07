@@ -48,8 +48,7 @@ struct EntrenarToolCard<Content: View>: View {
 
     var body: some View {
         content
-            .padding(padding)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(padding).frame(maxWidth: .infinity, alignment: .leading)
             .liquidGlass(.superficieSolida)
     }
 }

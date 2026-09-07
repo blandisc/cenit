@@ -108,7 +108,7 @@ let roles: [Role] = [
     Role(key: "moderate",         color: t.moderate,         isSurface: true,  desc: "«moderado» lane fill (FER-708)"),
     Role(key: "dataSleepDeep",    color: t.dataSleepDeep,    isSurface: true,  desc: "deep-sleep stage fill (FER-708)"),
     Role(key: "dataSleepLight",   color: t.dataSleepLight,   isSurface: true,  desc: "light-sleep stage fill (FER-708)"),
-    Role(key: "originBand",       color: t.originBand,       isSurface: true,  desc: "data-origin dot — band (= dataRecovery) (FER-708)"),
+    Role(key: "originBand",       color: t.originBand,       isSurface: true,  desc: "data-origin dot — external HR sensor (= dataRecovery) (FER-708)"),
     Role(key: "originApple",      color: t.originApple,      isSurface: true,  desc: "data-origin dot — Apple Salud (= dataSpO2) (FER-708)"),
     Role(key: "originComputed",   color: t.originComputed,   isSurface: true,  desc: "data-origin dot — computed on-device (= inkMuted) (FER-708)"),
 ]

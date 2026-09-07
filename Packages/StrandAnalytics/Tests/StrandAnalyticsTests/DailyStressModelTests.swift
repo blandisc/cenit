@@ -5,7 +5,7 @@ import StrandAnalytics
 /// Pins FER-224: `DailyStressModel` must anchor "today" to the device's LOCAL day and ignore a
 /// future-dated daily row (the UTC-bucketed ghost row of FER-226) — otherwise `days.last` reads that
 /// empty row and the tile falls to "—" even when today has RHR/HRV. It must also derive from whatever
-/// the layered `displayDays` provides (Apple-health fallback) on a strap-partial night.
+/// the layered `displayDays` provides (Apple-health fallback) on a partially covered night.
 final class DailyStressModelTests: XCTestCase {
 
     private func dm(_ day: String, rhr: Int? = nil, hrv: Double? = nil) -> DailyMetric {
@@ -31,7 +31,7 @@ final class DailyStressModelTests: XCTestCase {
         XCTAssertEqual(model?.hrvToday, 38)
     }
 
-    /// Strap-partial night where the layered row (displayDays) carries Apple's RHR/HRV: the tile
+    /// A partially covered night where the layered row (displayDays) carries Apple's RHR/HRV: the tile
     /// must show a value, like HRV / resting-HR do — not "—".
     func testPartialTodayWithFallbackDerives() {
         var days = baseline()
@@ -106,11 +106,11 @@ final class DailyStressModelTests: XCTestCase {
         XCTAssertEqual(model?.anchorDayKey, "2026-06-17")
     }
 
-    // MARK: - FER-623 — HRV baseline split by source (RMSSD band vs SDNN Apple)
+    // MARK: - FER-623 — HRV baseline split by source (on-device RMSSD vs Apple SDNN)
 
-    /// Solo-banda identity: an empty `appleDays` set leaves every reading on the single (RMSSD) base, so
-    /// the score and HRV delta are bit-for-bit the default-parameter behavior — a strap-only user unchanged.
-    func testSoloBandaIdentity() {
+    /// Single-source identity: an empty `appleDays` set leaves every reading on the one (RMSSD) base, so
+    /// the score and HRV delta are bit-for-bit the default-parameter behavior — a single-source history unchanged.
+    func testSingleSourceIdentity() {
         var days = baseline()
         days.append(dm("2026-06-17", rhr: 58, hrv: 38))
         let withParam = DailyStressModel(days: days, stored: [], todayKey: "2026-06-17", appleDays: [])

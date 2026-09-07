@@ -2,7 +2,7 @@ import Foundation
 import StrandModels
 
 // StrainCeiling.swift — a PERSONAL, recovery-scaled ceiling for today's day-strain, in
-// the same 0–21 log units the strain curve plots. NOT a fixed zone constant, NOT WHOOP's
+// the same 0–21 log units the strain curve plots. NOT a fixed zone constant, NOT anyone else's
 // proprietary "Strain Target" (independent implementation of published methods); NOT medical
 // advice — it is context, a guardrail you can read past.
 //
@@ -25,7 +25,7 @@ import StrandModels
 // Honesty about what is and isn't published: the 0.8–1.3 BAND is Gabbett 2016 (Br J Sports Med
 // 50:273 — the ACWR "sweet spot", the same heuristic ReadinessEngine cites). The linear map from
 // recovery onto that band (the `0.5` slope, the linearity) is NOT from Gabbett or anyone — it is a
-// NOOP product calibration: recovered → aim for the top of the band (you may push above chronic),
+// Product calibration: recovered → aim for the top of the band (you may push above chronic),
 // run-down → hold near the bottom. Physiologically sensible, but an unvalidated knob, not a
 // published result. What this ceiling inherits from the ACWR literature is only that the band is a
 // DEBATED heuristic, not a validated threshold — NOT the coupled-ratio artifact (Lolli 2019: acute

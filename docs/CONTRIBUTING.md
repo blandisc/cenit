@@ -386,16 +386,22 @@ to the Explore / Compare / tile UI. The catalog is the contract.
 
 ### Add a database column or table
 
-Schema lives in `Packages/CenitStore/Sources/CenitStore/Database.swift` as a **versioned GRDB
-`DatabaseMigrator`** (currently through `v35`).
+Schema lives in `Packages/CenitStore/Sources/CenitStore/Schema.swift` as a GRDB `DatabaseMigrator`
+with **one** registered migration, `"v43"`, that installs the whole DDL (FER-393).
 
-- **Never edit an existing migration.** They've already run on users' on-device databases. Add a
-  **new** `migrator.registerMigration("vN") { db in … }` block.
-- The early migrations create the durable decoded-stream tables (`hrSample`, `rrInterval`,
-  `spo2Sample`, `skinTempSample`, `respSample`, the raw outbox) keyed by `(deviceId, ts)`; later ones
-  add metric caches (`sleepSession`, `dailyMetric`, `metricSeries`), cursors, and more. Follow the
-  same shape and naming.
-- Add a `MigrationTests` case proving the migration applies cleanly on top of the prior version.
+- **The next migration is `"v44"`.** Never edit `"v43"` — it has already run — and never reuse
+  `"v1"`…`"v42"`: an installed database still lists all 43 of them in its `grdb_migrations` ledger, so
+  it would consider your migration applied and **skip it in silence**, leaving its schema behind with
+  no error anywhere.
+- **Never turn on `eraseDatabaseOnSchemaChange`.** With it on, GRDB reads those 43 unknown identifiers
+  as a schema change and erases the user's file. A test asserts it is off.
+- Add a **new** `migrator.registerMigration("vN") { db in … }` block, and put every `ADD COLUMN`
+  through `CenitStore.addColumnIfMissing` so re-running it against a database that already grew the
+  column is a no-op, not a "duplicate column" throw that wedges startup.
+- Add a `MigrationTests` case for the shape you added, and remember that
+  `LegacyFixtureTests` compares a fresh install's `sqlite_master` against
+  `Tests/CenitStoreTests/Resources/legacy-schema.sql` character by character — regenerate that dump in
+  the same PR when you change the schema.
 
 ---
 

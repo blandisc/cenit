@@ -5,7 +5,7 @@ import Foundation
 final class SleepRegularityTests: XCTestCase {
 
     // A fixed UTC calendar so weekday + local-noon math is deterministic across machines.
-    private var cal: Calendar = {
+    private var calendar: Calendar = {
         var c = Calendar(identifier: .gregorian)
         c.timeZone = TimeZone(identifier: "UTC")!
         return c
@@ -14,11 +14,11 @@ final class SleepRegularityTests: XCTestCase {
     /// Build a NightTiming from a base day (yyyy-MM-dd, UTC) with an onset clock hour (can be ≥24 for
     /// after-midnight) and a sleep length in hours.
     private func night(_ day: String, onsetHour: Double, hours: Double) -> SleepRegularity.NightTiming {
-        let f = DateFormatter()
-        f.locale = Locale(identifier: "en_US_POSIX")
-        f.timeZone = TimeZone(identifier: "UTC")!
-        f.dateFormat = "yyyy-MM-dd"
-        let base = f.date(from: day)!
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(identifier: "UTC")!
+        formatter.dateFormat = "yyyy-MM-dd"
+        let base = formatter.date(from: day)!
         let onset = Int(base.timeIntervalSince1970) + Int(onsetHour * 3600)
         let wake = onset + Int(hours * 3600)
         return SleepRegularity.NightTiming(onset: onset, wake: wake)
@@ -42,11 +42,11 @@ final class SleepRegularityTests: XCTestCase {
         XCTAssertEqual(SleepRegularity.effectiveNightCount([]), 0)
     }
 
-    /// Apple-derived nights (real onset/wake) feed compute() exactly like strap nights — the source is
+    /// Apple-derived nights (real onset/wake) feed compute() exactly like on-device nights — the source is
     /// irrelevant to the pure engine. This is the point of FER-1026: the app now passes `appleSleeps`.
     func testComputeWorksOnAppleDerivedNights() {
         let nights = (0..<7).map { i in night(String(format: "2026-05-%02d", i + 1), onsetHour: 23, hours: 8) }
-        XCTAssertNotNil(SleepRegularity.compute(nights, calendar: cal))
+        XCTAssertNotNil(SleepRegularity.compute(nights, calendar: calendar))
     }
 
     // MARK: - Gate: fewer than 7 nights → nil (calibration, not a fake number)
@@ -55,14 +55,14 @@ final class SleepRegularityTests: XCTestCase {
         let nights = (0..<6).map { i in
             night(String(format: "2026-03-%02d", i + 1), onsetHour: 23, hours: 8)
         }
-        XCTAssertNil(SleepRegularity.compute(nights, calendar: cal))
+        XCTAssertNil(SleepRegularity.compute(nights, calendar: calendar))
     }
 
     func testExactlyMinNightsIsPreliminary() {
         let nights = (0..<7).map { i in
             night(String(format: "2026-03-%02d", i + 1), onsetHour: 23, hours: 8)
         }
-        let r = SleepRegularity.compute(nights, calendar: cal)
+        let r = SleepRegularity.compute(nights, calendar: calendar)
         XCTAssertNotNil(r)
         XCTAssertEqual(r?.nights, 7)
         XCTAssertTrue(r?.preliminary == true, "7 nights is below the 14-night stable threshold")
@@ -72,7 +72,7 @@ final class SleepRegularityTests: XCTestCase {
         let nights = (0..<14).map { i in
             night(String(format: "2026-03-%02d", i + 1), onsetHour: 23, hours: 8)
         }
-        let r = SleepRegularity.compute(nights, calendar: cal)
+        let r = SleepRegularity.compute(nights, calendar: calendar)
         XCTAssertEqual(r?.nights, 14)
         XCTAssertFalse(r?.preliminary == true, "14 nights drops the preliminary flag")
     }
@@ -88,7 +88,7 @@ final class SleepRegularityTests: XCTestCase {
             let onsetHour = (i % 2 == 0) ? 23.5 : 24.5   // 24.5 = 00:30 the next calendar day
             nights.append(night(String(format: "2026-03-%02d", i + 1), onsetHour: onsetHour, hours: 8))
         }
-        let r = SleepRegularity.compute(nights, calendar: cal)!
+        let r = SleepRegularity.compute(nights, calendar: calendar)!
         // Two onset clusters 60 min apart, 8 h each → mids 60 min apart → SD well under 45 min.
         XCTAssertLessThan(r.midSleepSDMinutes, 45,
                           "midnight-crossing onsets must NOT inflate the SD; got \(r.midSleepSDMinutes)")
@@ -106,8 +106,8 @@ final class SleepRegularityTests: XCTestCase {
             let onset = (i % 2 == 0) ? 21.0 : 26.0   // 26.0 = 02:00 next day
             return night(String(format: "2026-03-%02d", i + 1), onsetHour: onset, hours: 8)
         }
-        let rSteady = SleepRegularity.compute(steady, calendar: cal)!
-        let rChaotic = SleepRegularity.compute(chaotic, calendar: cal)!
+        let rSteady = SleepRegularity.compute(steady, calendar: calendar)!
+        let rChaotic = SleepRegularity.compute(chaotic, calendar: calendar)!
 
         XCTAssertEqual(rSteady.midSleepSDMinutes, 0, accuracy: 1e-6, "identical nights → SD 0")
         XCTAssertGreaterThan(rChaotic.midSleepSDMinutes, rSteady.midSleepSDMinutes)
@@ -123,15 +123,15 @@ final class SleepRegularityTests: XCTestCase {
         var nights: [SleepRegularity.NightTiming] = []
         for dayNum in 2...15 {
             let day = String(format: "2026-03-%02d", dayNum)
-            let f = DateFormatter()
-            f.locale = Locale(identifier: "en_US_POSIX")
-            f.timeZone = TimeZone(identifier: "UTC")!
-            f.dateFormat = "yyyy-MM-dd"
-            let wd = cal.component(.weekday, from: f.date(from: day)!)
+            let formatter = DateFormatter()
+            formatter.locale = Locale(identifier: "en_US_POSIX")
+            formatter.timeZone = TimeZone(identifier: "UTC")!
+            formatter.dateFormat = "yyyy-MM-dd"
+            let wd = calendar.component(.weekday, from: formatter.date(from: day)!)
             let isWeekend = (wd == 6 || wd == 7)   // Fri or Sat onset
             nights.append(night(day, onsetHour: isWeekend ? 25.0 : 23.0, hours: 8))
         }
-        let r = SleepRegularity.compute(nights, calendar: cal)!
+        let r = SleepRegularity.compute(nights, calendar: calendar)!
         XCTAssertNotNil(r.weekendShiftMinutes)
         XCTAssertEqual(r.weekendShiftMinutes ?? 0, 120, accuracy: 5,
                        "Fri/Sat onsets 2 h later than weekdays → ~120 min social jetlag")
@@ -143,7 +143,7 @@ final class SleepRegularityTests: XCTestCase {
         let days = ["2026-03-02", "2026-03-03", "2026-03-04", "2026-03-05",
                     "2026-03-09", "2026-03-10", "2026-03-11"]   // all Mon–Thu
         let nights = days.map { night($0, onsetHour: 23, hours: 8) }
-        let r = SleepRegularity.compute(nights, calendar: cal)!
+        let r = SleepRegularity.compute(nights, calendar: calendar)!
         XCTAssertNil(r.weekendShiftMinutes, "no weekend nights → shift undefined")
     }
 
@@ -161,8 +161,8 @@ final class SleepRegularityTests: XCTestCase {
         }
         let nap = night("2026-03-07", onsetHour: 15, hours: 2)   // 15:00–17:00, ~11 h off the night mid
 
-        let withoutNap = SleepRegularity.compute(steady, calendar: cal)!
-        let withNap = SleepRegularity.compute(steady + [nap], calendar: cal)!
+        let withoutNap = SleepRegularity.compute(steady, calendar: calendar)!
+        let withNap = SleepRegularity.compute(steady + [nap], calendar: calendar)!
 
         XCTAssertEqual(withNap.midSleepSDMinutes, withoutNap.midSleepSDMinutes, accuracy: 1e-6,
                        "a 2 h nap must not change the mid-sleep SD")
@@ -184,7 +184,7 @@ final class SleepRegularityTests: XCTestCase {
         for i in 0..<14 {   // recent + steady
             nights.append(night(String(format: "2026-03-%02d", i + 1), onsetHour: 23, hours: 8))
         }
-        let r = SleepRegularity.compute(nights, calendar: cal)!
+        let r = SleepRegularity.compute(nights, calendar: calendar)!
         XCTAssertEqual(r.nights, 14)
         XCTAssertEqual(r.midSleepSDMinutes, 0, accuracy: 1e-6,
                        "only the steady most-recent 14 nights should drive the SD")

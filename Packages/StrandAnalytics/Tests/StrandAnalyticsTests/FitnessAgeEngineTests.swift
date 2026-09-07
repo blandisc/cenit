@@ -4,7 +4,7 @@ import XCTest
 final class FitnessAgeEngineTests: XCTestCase {
 
     // MARK: - VO₂max estimate (Nes 2011 waist-circumference variant, confirmed coefficients)
-    // NOTE: `restingHR` is NOCTURNAL (WHOOP domain); the engine adds the 7-bpm dip internally to recover
+    // NOTE: `restingHR` is NOCTURNAL, not seated; the engine adds the 7-bpm dip internally to recover
     // the seated-equivalent RHR the Nes equation was calibrated on (correction #1). So nocturnal 58
     // reproduces the classic seated-65 published value.
 

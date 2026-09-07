@@ -2,7 +2,7 @@ import Foundation
 
 // VitalityEngine.swift — a transparent 0–100 "Vitality" wellness score + a "Body Age in years".
 //
-// INDEPENDENT implementation of the published method WHOOP's "Healthspan / WHOOP Age" also uses
+// INDEPENDENT implementation of a published method other «fitness age» products also use
 // (NOT medical advice; a WELLNESS comparison, never a clinical/biological age): map each wearable-
 // measurable input to its published ALL-CAUSE-MORTALITY hazard ratio relative to a population
 // reference, sum the log-hazards with an overlap correction (the inputs are correlated, so the naive
@@ -17,12 +17,12 @@ import Foundation
 // steps. They deliberately share RHR/VO₂max signal — the presentation layer (FER-145) keeps the two
 // distinct; the overlap *among Vitality's own factors* is handled by the shrink below.
 //
-// ── NOOP corrections (FER-124) ──────────────────────────────────────────────────────────────────
+// ── Corrections (FER-124) ───────────────────────────────────────────────────────────────────────
 // An expert review of the upstream coefficients against current primary literature (logged on the
 // FER-124 issue) found the model portable but NOT verbatim. Six corrections keep it honest; each is
 // documented at its call site and verified by a test:
 //
-//   1. RESTING-HR DOMAIN [= FER-122]. The upstream reference (65 bpm) is SEATED/clinical RHR; WHOOP
+//   1. RESTING-HR DOMAIN [= FER-122]. The upstream reference (65 bpm) is SEATED/clinical RHR; this app
 //      reports NOCTURNAL RHR, ~7 bpm lower (Fenland 2023, PMC10174582: seated 64.5–67.6 vs sleep
 //      55.2–56.9). Against a seated 65, every user reads younger. Fix: re-anchor to the nocturnal
 //      domain by REUSING `FitnessAgeEngine.restingHRReference` (58) — one constant shared between the
@@ -38,7 +38,7 @@ import Foundation
 //   3. OVERLAP SHRINK — input-count-dependent. The factors are correlated (Jayedi 2022: steps lose
 //      ~35% of their effect when adjusted for intensity/fitness), so a naive log-hazard sum double-
 //      counts. The upstream FIXED 0.75 also unfairly penalizes a user with FEW signals (e.g. steps
-//      only, no strap — nothing to de-overlap, yet still cut 25%). Fix: derive the shrink from how
+//      only, one source — nothing to de-overlap, yet still cut 25%). Fix: derive the shrink from how
 //      many factors are present — `1/(1 + 0.35·(n−1))` → n=1: 1.0, n=2: 0.74, n=3: 0.59, n=4: 0.49.
 //
 //   4. HRV — attenuated + honest. The per-factor HR comes from SHORT-TERM CLINICAL ECG (Jarczok 2022;
@@ -92,7 +92,7 @@ public enum VitalityEngine {
     /// The wearable inputs Vitality reads. All optional — the score uses whatever is present (≥ minFactors).
     public struct Inputs: Equatable, Sendable {
         public var chronoAge: Double
-        public var restingHR: Double?          // bpm, NOCTURNAL (WHOOP domain — see correction #1)
+        public var restingHR: Double?          // bpm, NOCTURNAL, not seated — see correction #1
         public var vo2max: Double?             // ml/kg/min (e.g. from FitnessAgeEngine)
         public var expectedVO2max: Double?     // age/sex-expected ml/kg/min (the reference for vo2max)
         public var sleepHours: Double?         // mean nightly sleep

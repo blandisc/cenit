@@ -9,7 +9,7 @@ import Foundation
 //   .building    — usable but thin: enough to compute, but the sample is small / provisional.
 //   .solid       — full inputs present and the result is trusted.
 //
-// The tiers are a minimal port from upstream NoopApp/noop; the Charge / Effort /
+// The tiers are the repository's own coverage ladder; the Charge / Effort /
 // Rest derivers below are ADAPTED to this fork's own scoring types (DailyMetric,
 // StrainScorer output, SleepMath) rather than copied — the upstream helpers depend
 // on scoring types this fork packages differently (see FER-123). Derived in FER-676.
@@ -52,7 +52,7 @@ public enum ScoreConfidence: String, Equatable, Sendable, Codable {
     }
 
     /// Strain (`effort`) confidence from HR coverage of the active day. Sparse HR
-    /// (strap gaps / non-wear) → strain integrates over less time → under-estimate →
+    /// (recording gaps / non-wear) → strain integrates over less time → under-estimate →
     /// lower confidence. `hasEnoughData` is `StrainScorer.hasEnoughData` (the same
     /// floor that gates whether strain is scored at all); pass the day's sorted HR
     /// sample seconds (`HRSample.ts`).

@@ -1,13 +1,9 @@
-import SwiftUI
-
-/// Strand design system: palette, typography, motion, and signature components
-/// (Recovery Ring, Strain Gauge, Hypnogram, Trend/Sparkline charts, Year heat
-/// strip, cards, status chips). Dark-only, instrument-grade. See spec §9.
+/// Firma del sistema visual de Cénit.
 ///
-/// Token entry points:
-/// - `StrandPalette` — every semantic color token (§9.1), recovery/strain sampling.
-/// - `StrandFont` — the full type scale with tabular digits (§9.2).
-/// - `StrandMotion` — spring presets + durations (§9.6).
+/// Las fichas no viven aquí: están repartidas por rol — `StrandPalette` pinta el color de un dato,
+/// `StrandFont` da la voz tipográfica, `StrandMotion` marca el ritmo, y las piezas de gráfica y de
+/// componente se apoyan en las tres. Este enum solo pone nombre y número al conjunto.
 public enum CenitDesign {
+    /// Súbela cuando la superficie de fichas cambie de forma perceptible.
     public static let version = "0.1.0"
 }

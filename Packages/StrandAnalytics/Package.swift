@@ -22,6 +22,7 @@ let package = Package(
                 "StrandModels",
                 "BiometricStreams",
             ],
+            resources: [.copy("Resources/effort-pulse-oracle.json")],
             swiftSettings: [.enableExperimentalFeature("StrictConcurrency")]
         ),
     ]

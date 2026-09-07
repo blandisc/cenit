@@ -59,18 +59,20 @@ packages are platform-agnostic and reusable on their own.
 
 ## CenitStore
 
-On-device persistence built on **GRDB/SQLite**. Stream tables are durable; raw
-frames are a transient, compressed, prunable outbox. The store is an `actor`, so
-its API is `async` and all `DatabaseQueue` work runs off the main thread on the
-actor's serial executor.
+On-device persistence built on **GRDB/SQLite**. The store is an `actor`, so its
+API is `async` and all database work runs off the main thread on the actor's
+serial executor. The one exception is `dashboardSnapshot`, which is `nonisolated`
+so the whole dashboard is read in one transaction.
 
-**Sources:** `CenitStore.swift`, `Database.swift` (the migrator),
-`StreamStore.swift`, `Reads.swift`, `RawOutbox.swift`, `Cursors.swift`,
-`MetricsCache.swift`, `JournalWorkoutAppleCache.swift`, `MetricSeriesStore.swift`.
+**Sources:** `Store.swift` (the actor), `Schema.swift` (the single migration),
+`RowBatch.swift`, `BeatStore.swift`, `MarkStore.swift`, `SeriesStore.swift`,
+`DayCacheStore.swift`, `LogStore.swift`, plus the domain stores
+`StrengthStore.swift`, `DietStore.swift`, `ExperimentStore.swift`,
+`InProgressStrengthStore.swift` and `DashboardSnapshot.swift`.
 
-> **Note.** Schema version numbers and table inventories in this section may lag
-> the live migrator — see [`DATA_MODEL.md`](DATA_MODEL.md) and
-> `Packages/CenitStore/Sources/CenitStore/Database.swift` for ground truth.
+> **Note.** Table inventories in this section may lag the code — see
+> [`DATA_MODEL.md`](DATA_MODEL.md) and, for the byte-exact schema,
+> `Packages/CenitStore/Tests/CenitStoreTests/Resources/legacy-schema.sql`.
 
 ### Depend on it
 
@@ -89,20 +91,22 @@ targets: [
 
 ### Schema
 
-The migrator (`CenitStore.makeMigrator()`) runs versioned migrations on open. The
-store enables WAL journal mode, `synchronous = NORMAL`, a page cache, mmap, and a
-busy timeout so two handles to the same file don't deadlock.
+`CenitStore.makeMigrator()` registers ONE migration, `"v43"`, that installs the
+whole schema; the next one is `"v44"` (see [`DATA_MODEL.md`](DATA_MODEL.md) for
+why the name matters). The store enables incremental auto-vacuum, WAL journal
+mode, `synchronous = NORMAL`, a page cache, mmap, and a busy timeout so two
+handles to the same file don't deadlock.
 
 | Table | Purpose | Natural key |
 |---|---|---|
-| `device` | known devices (historical) | `id` |
-| `hrSample`, `rrInterval`, `event`, `battery` | decoded stream tables | `(deviceId, ts[, …])` |
-| `spo2Sample`, `skinTempSample`, `respSample`, `gravitySample` | biometric stream tables | `(deviceId, ts)` |
-| `rawBatch` | zlib-compressed raw-frame outbox | `batchId` |
-| `cursors` | named highwater/read cursors | `name` |
+| `deviceIdMap` | partition label → integer surrogate | `deviceId` |
+| `hrSample`, `rrInterval` | beat streams (`STRICT, WITHOUT ROWID`) | `(deviceId, ts[, rrMs])` |
+| `cursors` | named one-shot flags and watermarks | `name` |
 | `sleepSession`, `dailyMetric` | cached derived metrics | `(deviceId, startTs)` / `(deviceId, day)` |
 | `journal`, `workout`, `appleDaily` | journal + workouts + Apple-Health daily | various |
 | `metricSeries` | generic long-format (EAV) metric store | `(deviceId, day, key)` |
+| `experiment`, `dietPlan`, `dietAdherence` | N-of-1 experiments and diet adherence | `id` / `(deviceId, day, mealId)` |
+| the 16 strength tables | routines, sessions, sets, PRs, program | UUID strings |
 
 ### Key public API
 
@@ -117,42 +121,28 @@ public static let schemaVersion: Int             // on CenitStoreInfo
 **Write streams** (idempotent upsert by natural key; returns rows actually inserted)
 
 ```swift
-public func upsertDevice(id: String, mac: String?, name: String?) async throws
 @discardableResult
-public func insert(_ streams: Streams, deviceId: String) async throws
-    -> (hr: Int, rr: Int, events: Int, battery: Int,
-        spo2: Int, skinTemp: Int, resp: Int, gravity: Int)
+public func insert(_ streams: Streams, deviceId: String) async throws -> (hr: Int, rr: Int)
 ```
 
-**Range reads** (each `(deviceId, from, to, limit)`, oldest-first)
+**Range reads** (each `(deviceId, from, to, limit)`, oldest-first, both ends inclusive)
 
 ```swift
-public func hrSamples(...)  -> [HRSample]
+public func hrSamples(...)   -> [HRSample]
+public func hrBuckets(...)   -> [HRBucket]        // averaged in SQL, not in memory
 public func rrIntervals(...) -> [RRInterval]
-public func events(...)      -> [StreamEvent]
-public func batterySamples(...) -> [BatterySample]
-public func spo2Samples(...) / skinTempSamples(...) / respSamples(...) / gravitySamples(...)
 public func latestHRSampleTs(deviceId:) async throws -> Int?
-public func storageStats() async throws -> (decodedRows: Int, rawBatches: Int, rawBytes: Int)
+public func sampleCounts() async throws -> (hr: Int, rr: Int)
+public func integrityCheck() async throws -> Bool
 ```
 
-**Raw outbox** (`RawOutbox.swift`) — frames packed and zlib-compressed via
-Apple's Compression framework:
-
-```swift
-public func enqueueRawBatch(_ meta: RawBatchMeta, frames: [[UInt8]]) async throws
-public func rawFrames(batchId: String) async throws -> [[UInt8]]
-public func pendingRawBatches(limit:) async throws -> [RawBatchMeta]
-@discardableResult
-public func pruneRaw(now:keepWindowSeconds:maxUnsyncedBytes:) async throws -> Int
-```
 
 **Caches & cursors** — `upsertSleepSessions`, `upsertDailyMetrics`,
-`sleepSessions`, `dailyMetrics` (`MetricsCache.swift`); `upsertJournal`,
-`upsertWorkouts`, `upsertAppleDaily` (`JournalWorkoutAppleCache.swift`);
+`sleepSessions`, `dailyMetrics` (`DayCacheStore.swift`); `upsertJournal`,
+`upsertWorkouts`, `upsertAppleDaily`, `appleHealthCoverage` (`LogStore.swift`);
 `upsertMetricSeries`, `metricSeries`, `metricKeys`, `metricDays`
-(`MetricSeriesStore.swift`); `setCursor` / `cursor` / `setHighwater` /
-`highwater` (`Cursors.swift`). The cache row models — `DailyMetric`,
+(`SeriesStore.swift`); `setCursor` / `cursor` / `setHighwater` /
+`highwater` (`MarkStore.swift`). The cache row models — `DailyMetric`,
 `CachedSleepSession`, `JournalEntry`, `WorkoutRow`, `AppleDaily`, `MetricPoint`
 — are all public `Codable` structs.
 
@@ -162,14 +152,14 @@ public func pruneRaw(now:keepWindowSeconds:maxUnsyncedBytes:) async throws -> In
 import CenitStore
 
 let store = try await CenitStore(path: "/path/to/cenit.sqlite")
-try await store.upsertDevice(id: "device-1", mac: nil, name: "Apple Watch")
 
-// Persist stream rows (idempotent — safe to replay).
-let counts = try await store.insert(streams, deviceId: "device-1")
+// Persist stream rows (idempotent — safe to replay). The partition is created on
+// first write; nobody has to register it.
+let counts = try await store.insert(streams, deviceId: "apple-health")
 print("inserted HR:", counts.hr)
 
 // Read a day back out.
-let hr = try await store.hrSamples(deviceId: "device-1",
+let hr = try await store.hrSamples(deviceId: "apple-health",
                                    from: dayStart, to: dayEnd, limit: 100_000)
 ```
 
@@ -205,7 +195,7 @@ targets: [
 | Type | Entry points |
 |---|---|
 | `HRVAnalyzer` | `analyze(_:windowStart:windowEnd:)` and `analyze(rawRR:)` → `HRVResult` (RMSSD, SDNN, meanNN, pNN50). Range filter [300, 2000] ms + Malik 20%-local-median ectopic rejection; needs ≥ 20 clean beats. |
-| `RecoveryScorer` | `restingHR(_:start:end:)`; `recovery(...)` → 0–100 (HRV-dominant z-score + logistic composite); `band(_:)` → `"red"`/`"yellow"`/`"green"`. |
+| `RecoveryScorer` | `restingHR(_:start:end:)` → the night's lowest sustained bpm, or `nil`. The 0–100 composite and its band cuts are deleted (FER-387); `Preparedness` answers the morning verdict. |
 | `StrainScorer` | `strain(_:maxHR:restingHR:method:sex:denominator:)` → 0–21 (Edwards/Banister TRIMP, log-mapped); `tanakaHRmax(age:)`, `estimateHRmax(_:age:)`, `trimpToStrain(_:)`. |
 | `HRZones` | `zones(age:maxHROverride:)` → `HRZoneSet`; `timeInZone(_:zoneSet:)` → `TimeInZone`. |
 | `Baselines` | `update(_:value:cfg:)` → `BaselineState` (Winsorized-EWMA personal baselines + `BaselineStatus`); standard `metricCfg` for HRV / resting HR / resp / skin temp. |

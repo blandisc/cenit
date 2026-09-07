@@ -3,7 +3,7 @@ import Foundation
 // EventTitleCleaner.swift — turn a messy real calendar title into a short display label, conservatively.
 // Pure, DB-free. (FER-433)
 //
-// Real titles are "RE: FW: Revisión de diseño NOOP // Detalle (Sala 4B)", not "Junta". We strip known
+// Real titles are "RE: FW: Revisión de diseño Cénit // Detalle (Sala 4B)", not "Junta". We strip known
 // noise and cut at the first structural delimiter, but never guess so hard we lose meaning. The CALLER
 // always keeps the original (for VoiceOver / tap); this only computes the DISPLAY string. If cleaning
 // would empty the title, we fall back to the trimmed original. Truncation is the view's job, not ours.

@@ -1,23 +1,22 @@
-import SwiftUI
+import Foundation
 
-// MARK: - SleepInterval (§9.4 Sleep)
-//
-// FER-280·3c: el hypnograma de papel (`Hypnogram`, la vista) se podó — 0 usos reales, lo reemplazó
-// `LiquidHipnograma` (LiquidGlass/LiquidHipnograma.swift). `SleepInterval` sigue viva: la usan
-// `Cenit/Screens/SleepDetailScreen.swift` y `StrandAnalytics/NightThirds.swift`.
+/// Un tramo de una noche: qué etapa se durmió y entre qué segundos.
+///
+/// `start`/`end` se miden en segundos transcurridos desde el inicio de la noche, no en fechas
+/// absolutas: así todos los tramos de una misma noche caen sobre un solo eje `0...total` y el
+/// hipnograma los dibuja sin convertir nada.
+public struct SleepInterval: Sendable, Identifiable {
+    /// Identidad de pieza para SwiftUI: dos tramos iguales siguen siendo dos tramos.
+    public let id: UUID = .init()
+    /// Qué se durmió en este tramo.
+    public let stage: SleepStage
+    /// Segundos desde el inicio de la noche en que empieza y termina el tramo.
+    public let start: TimeInterval
+    public let end: TimeInterval
+    /// Lo que duró la etapa. Nunca negativo, ni siquiera con un par invertido.
+    public var duration: TimeInterval { Swift.max(0, end - start) }
 
-/// A single stage interval. `start`/`end` are seconds from the start of the night.
-public struct SleepInterval: Identifiable, Sendable {
-    public let id = UUID()
-    public var stage: SleepStage
-    public var start: TimeInterval
-    public var end: TimeInterval
-
-    public init(stage: SleepStage, start: TimeInterval, end: TimeInterval) {
-        self.stage = stage
-        self.start = start
-        self.end = end
+    public init(stage etapa: SleepStage, start desde: TimeInterval, end hasta: TimeInterval) {
+        (stage, start, end) = (etapa, desde, hasta)
     }
-
-    public var duration: TimeInterval { max(0, end - start) }
 }

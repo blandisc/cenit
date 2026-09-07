@@ -17,7 +17,7 @@ import BiometricStreams
 // for HRV on irregular tachograms (Laguna, Moody & Mark 1998; Clifford & Tarassenko 2005). So we compute it
 // directly on the (t_k, rr_k) pairs.
 //
-// This generalises the band-limited DFT already used in SleepStagerV2.respRegularity (a uniform-grid DFT
+// This generalises the band-limited DFT the respiratory-regularity read used (a uniform-grid DFT
 // restricted to the respiratory band): here the same "evaluate the spectrum only at the bins/frequencies we
 // care about" idea is applied, but with the Lomb-Scargle estimator so no resampling is needed and arbitrary
 // frequencies (the LF/HF band edges) can be probed.

@@ -31,7 +31,7 @@ public enum DietAdherence {
     /// A day counts as "followed the plan" at this adherence % or above (FER-385). The 80% cut is
     /// borrowed BY ANALOGY from the medication-adherence literature, where PDC/MPR ≥ 80% is the common
     /// "adherent" convention (Karve et al. 2009) — there is no validated 80% cutoff for *diet* adherence,
-    /// so this is a NOOP product convention, not a clinical threshold: high enough that a day is genuinely
+    /// so this is a product convention, not a clinical threshold: high enough that a day is genuinely
     /// on-plan, forgiving enough that one swap or skip out of several meals still counts.
     public static let adherentDayThreshold: Int = 80
 

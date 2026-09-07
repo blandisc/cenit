@@ -1,13 +1,13 @@
 import Foundation
 
 // CyclePhaseEngine.swift — on-device, retrospective estimate of the CURRENT menstrual-cycle phase
-// (follicular-lean vs luteal-lean) from the nightly skin-temperature deviation NOOP already persists.
+// (follicular-lean vs luteal-lean) from the nightly skin-temperature deviation Cénit already persists.
 // Pure, deterministic, DB-free. No decode, no persistence, no migration — it consumes `skinTempDevC`
 // (+ resting HR, HRV) from the existing daily metrics and recomputes on the fly.
 //
 // INDEPENDENT implementation of the well-established basal-temperature phase signature: core/skin
 // temperature runs HIGHER in the post-ovulatory LUTEAL phase (progesterone is thermogenic) and lower
-// in the FOLLICULAR phase. NOOP re-derives the PATTERN against the user's OWN recent window, in robust
+// in the FOLLICULAR phase. Cénit re-derives the PATTERN against the user's OWN recent window, in robust
 // dispersion units — never a population cutoff, never a calendar prediction.
 //
 // Verified physiology (each is an APPROXIMATE, documented driver — see docs/ANALYTICS.md):
@@ -18,17 +18,17 @@ import Foundation
 //     finger. Direct Apple-Watch validation: Human Reproduction 2025, 40(3):469: algorithms on Apple Watch
 //     overnight wrist temperature estimate ovulation retrospectively at MAE 1.22–1.59 days (~80–89% within
 //     ±2 days), signal threshold ≥0.2 °C — evidence that Apple's wrist signal is present and usable for a
-//     temperature-based cycle read. (That paper targets the ovulation DAY; NOOP claims less — only the
+//     temperature-based cycle read. (That paper targets the ovulation DAY; Cénit claims less — only the
 //     follicular/luteal LEAN — and never surfaces an ovulation or fertility estimate.)
 //     Corroborating finger-site value: Maijala et al. 2019, BMC Women's Health 19 (doi:10.1186/s12905-019-
-//     0844-9): nightly FINGER skin temp +0.30 °C (SD 0.12), p<0.001 (Oura ring). NOOP re-derives the
+//     0844-9): nightly FINGER skin temp +0.30 °C (SD 0.12), p<0.001 (a finger-worn ring). Cénit re-derives the
 //     PATTERN against the user's own window in robust units, so magnitude is never assumed from any one site.
 //   • Resting HR ↑ in luteal — consistent, small CORROBORATION. Shilaih et al. 2017, Sci Rep 7
 //     (doi:10.1038/s41598-017-01433-9): sleeping pulse +1.8 bpm (mid-luteal vs fertile), +3.8 vs menses.
 //   • HRV ↓ in luteal — the WEAKEST, MIXED driver, used ONLY as conditional confidence reinforcement,
 //     never as a term in the index (decision H1). The vagal-drop is real on AVERAGE (Schmalenberger
 //     et al. 2019 systematic review, PMID 31726666; 2020 J Clin Med 9(3):617, doi:10.3390/jcm9030617)
-//     BUT for RMSSD specifically — the HRV NOOP measures on-device — the effect is inconsistent/null
+//     BUT for RMSSD specifically — the HRV Cénit measures on-device — the effect is inconsistent/null
 //     (Yazar & Yazıcı 2016, Med Princ Pract 25(4), doi:10.1159/000444322: rMSSD 38±12 → 41±27 ms, n.s.).
 //     So HRV can only REINFORCE a lean that temp+RHR already agree on; it never votes on the phase.
 //

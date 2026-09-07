@@ -6,7 +6,7 @@ import Foundation
 // INDEPENDENT implementation of the published multi-parameter pre-symptomatic signature documented
 // across the wearable literature (e.g. the Stanford/Snyder resting-HR-elevation work and successor
 // studies): resting HR ↑, skin temperature ↑, HRV (RMSSD) ↓ and respiration ↑ tend to move TOGETHER,
-// days before symptoms. NOOP re-derives the PATTERN, transparently, against the user's OWN rolling
+// days before symptoms. Cénit re-derives the PATTERN, transparently, against the user's OWN rolling
 // baseline — never a population cutoff.
 //
 // This replaces the blunt 2-of-4 threshold rule in AppModel.evaluateIllness with:

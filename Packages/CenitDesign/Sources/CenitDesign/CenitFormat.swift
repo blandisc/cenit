@@ -8,10 +8,10 @@ public enum CenitFormat {
         groupedIntFormatter.string(from: NSNumber(value: v)) ?? "\(Int(v.rounded()))"
     }
     private static let groupedIntFormatter: NumberFormatter = {
-        let f = NumberFormatter()
-        f.numberStyle = .decimal
-        f.maximumFractionDigits = 0
-        return f
+        let formateador = NumberFormatter()
+        formateador.numberStyle = .decimal
+        formateador.maximumFractionDigits = 0
+        return formateador
     }()
 
     /// «Sáb 15 ago» — a short weekday+day+month heading, capitalized, in the current locale. Shared

@@ -46,7 +46,7 @@ public struct DashboardReadRequest: Sendable {
 ///
 /// ⚠️ `appleDays` is NEVER gated on `includeApple`: it feeds the stored-coverage diagnostic
 /// (FER-485, «nothing is deleted») and `DataSourcePolicy` — the mode gating for the dashboard
-/// itself happens in memory, in Repository. Same for the two raw strap sleep arrays.
+/// itself happens in memory, in Repository. Same for the two raw imported-source sleep arrays.
 public struct DashboardSnapshot: Sendable {
     public var importedDays: [DailyMetric] = []
     public var computedDays: [DailyMetric] = []
@@ -153,56 +153,76 @@ extension CenitStore {
 
     static func fetchDailyMetrics(_ db: Database, deviceId: String,
                                   from: String, to: String) throws -> [DailyMetric] {
-        try Row.fetchAll(db, sql: """
-            SELECT day, totalSleepMin, efficiency, deepMin, remMin, lightMin, disturbances,
-                   restingHr, avgHrv, recovery, strain, exerciseCount,
+        let rows = try Row.fetchAll(db, sql: """
+            SELECT day, totalSleepMin, efficiency, deepMin, remMin, lightMin,
+                   disturbances, restingHr, avgHrv, recovery, strain, exerciseCount,
                    spo2Pct, skinTempDevC, respRateBpm, steps, activeKcalEst,
-                   effortConfidence, restConfidence FROM dailyMetric
-            WHERE deviceId = ? AND day >= ? AND day <= ?
+                   effortConfidence, restConfidence
+            FROM dailyMetric WHERE deviceId = ? AND day BETWEEN ? AND ?
             ORDER BY day ASC
             """, arguments: [deviceId, from, to])
-            .map {
-                DailyMetric(day: $0["day"], totalSleepMin: $0["totalSleepMin"],
-                            efficiency: $0["efficiency"], deepMin: $0["deepMin"],
-                            remMin: $0["remMin"], lightMin: $0["lightMin"],
-                            disturbances: $0["disturbances"], restingHr: $0["restingHr"],
-                            avgHrv: $0["avgHrv"], recovery: $0["recovery"],
-                            strain: $0["strain"], exerciseCount: $0["exerciseCount"],
-                            spo2Pct: $0["spo2Pct"], skinTempDevC: $0["skinTempDevC"],
-                            respRateBpm: $0["respRateBpm"],
-                            steps: $0["steps"], activeKcalEst: $0["activeKcalEst"],
-                            effortConfidence: $0["effortConfidence"],
-                            restConfidence: $0["restConfidence"])
-            }
+        return rows.map { row in
+            DailyMetric(day: row["day"],
+                        totalSleepMin: row["totalSleepMin"],
+                        efficiency: row["efficiency"],
+                        deepMin: row["deepMin"],
+                        remMin: row["remMin"],
+                        lightMin: row["lightMin"],
+                        disturbances: row["disturbances"],
+                        restingHr: row["restingHr"],
+                        avgHrv: row["avgHrv"],
+                        recovery: row["recovery"],
+                        strain: row["strain"],
+                        exerciseCount: row["exerciseCount"],
+                        spo2Pct: row["spo2Pct"],
+                        skinTempDevC: row["skinTempDevC"],
+                        respRateBpm: row["respRateBpm"],
+                        steps: row["steps"],
+                        activeKcalEst: row["activeKcalEst"],
+                        effortConfidence: row["effortConfidence"],
+                        restConfidence: row["restConfidence"])
+        }
     }
 
     static func fetchSleepSessions(_ db: Database, deviceId: String,
                                    from: Int, to: Int, limit: Int) throws -> [CachedSleepSession] {
-        try Row.fetchAll(db, sql: """
-            SELECT startTs, endTs, efficiency, restingHr, avgHrv, stagesJSON FROM sleepSession
-            WHERE deviceId = ? AND endTs >= ? AND startTs <= ?
-            ORDER BY startTs ASC LIMIT ?
-            """, arguments: [deviceId, from, to, limit])
-            .map {
-                CachedSleepSession(startTs: $0["startTs"], endTs: $0["endTs"],
-                                   efficiency: $0["efficiency"], restingHr: $0["restingHr"],
-                                   avgHrv: $0["avgHrv"], stagesJSON: $0["stagesJSON"])
-            }
+        // Traslape, no inicio: la noche de quien se durmió antes de la medianoche local empezó fuera
+        // de la ventana y aun así es suya.
+        let rows = try Row.fetchAll(db, sql: """
+            SELECT startTs, endTs, efficiency, restingHr, avgHrv, stagesJSON
+            FROM sleepSession WHERE deviceId = ? AND startTs <= ? AND endTs >= ?
+            ORDER BY startTs ASC
+            LIMIT ?
+            """, arguments: [deviceId, to, from, limit])
+        return rows.map { row in
+            CachedSleepSession(startTs: row["startTs"],
+                               endTs: row["endTs"],
+                               efficiency: row["efficiency"],
+                               restingHr: row["restingHr"],
+                               avgHrv: row["avgHrv"],
+                               stagesJSON: row["stagesJSON"])
+        }
     }
 
     static func fetchAppleDaily(_ db: Database, deviceId: String,
                                 from: String, to: String) throws -> [AppleDaily] {
-        try Row.fetchAll(db, sql: """
-            SELECT day, steps, activeKcal, basalKcal, vo2max, avgHr, maxHr, walkingHr, weightKg
-            FROM appleDaily
-            WHERE deviceId = ? AND day >= ? AND day <= ?
+        let rows = try Row.fetchAll(db, sql: """
+            SELECT day, steps, activeKcal, basalKcal, vo2max,
+                   avgHr, maxHr, walkingHr, weightKg
+            FROM appleDaily WHERE deviceId = ? AND day BETWEEN ? AND ?
             ORDER BY day ASC
             """, arguments: [deviceId, from, to])
-            .map {
-                AppleDaily(day: $0["day"], steps: $0["steps"], activeKcal: $0["activeKcal"],
-                           basalKcal: $0["basalKcal"], vo2max: $0["vo2max"], avgHr: $0["avgHr"],
-                           maxHr: $0["maxHr"], walkingHr: $0["walkingHr"], weightKg: $0["weightKg"])
-            }
+        return rows.map { row in
+            AppleDaily(day: row["day"],
+                       steps: row["steps"],
+                       activeKcal: row["activeKcal"],
+                       basalKcal: row["basalKcal"],
+                       vo2max: row["vo2max"],
+                       avgHr: row["avgHr"],
+                       maxHr: row["maxHr"],
+                       walkingHr: row["walkingHr"],
+                       weightKg: row["weightKg"])
+        }
     }
 
     static func fetchStrengthLoads(_ db: Database, from: Int, to: Int) throws -> [StrengthSessionLoad] {
@@ -230,11 +250,13 @@ extension CenitStore {
 
     static func fetchMetricSeries(_ db: Database, deviceId: String, key: String,
                                   from: String, to: String) throws -> [MetricPoint] {
-        try Row.fetchAll(db, sql: """
-            SELECT day, key, value FROM metricSeries
-            WHERE deviceId = ? AND key = ? AND day >= ? AND day <= ?
+        let rows = try Row.fetchAll(db, sql: """
+            SELECT day, key, value
+            FROM metricSeries WHERE deviceId = ? AND key = ? AND day BETWEEN ? AND ?
             ORDER BY day ASC
             """, arguments: [deviceId, key, from, to])
-            .map { MetricPoint(day: $0["day"], key: $0["key"], value: $0["value"]) }
+        return rows.map { row in
+            MetricPoint(day: row["day"], key: row["key"], value: row["value"])
+        }
     }
 }

@@ -1,264 +1,83 @@
 import Foundation
 import BiometricStreams
 
-// StrainScorer.swift — cardiovascular load on a 0–21 logarithmic strain scale.
+// StrainScorer.swift — how much cardiovascular work a stretch of heart rate represents, on a 0–21 scale.
 //
-// Ported from server/ingest/app/analysis/strain.py. INDEPENDENT implementation of
-// published exercise-physiology methods (WHOOP-*like*, not a reproduction of the
-// proprietary algorithm; not medical advice).
+// An independent implementation of published methods. Nothing here is copied from, tuned against, or
+// meant to match any third-party product's score.
 //
-// Pipeline:
-//   1. Heart-Rate Reserve (Karvonen): HRR = HRmax − RHR.
-//   2. Per-sample intensity as %HRR = (HR − RHR) / HRR × 100, clamped 0..100.
-//   3. TRIMP accumulated over the window:
-//        a. Edwards 5-zone summation (default): sample contributes its zone weight
-//           (1..5 at 50/60/70/80/90 %HRR cut-offs) × duration.
-//        b. Banister exponential: sample contributes duration × x × 0.64 × e^(b·x).
-//   4. Logarithmic compression onto [0, 21]:
-//        strain = 21 × ln(TRIMP + 1) / ln(D),  D = STRAIN_DENOMINATOR.
+// THE CHAIN, and the citation behind each link:
 //
-// References: Karvonen 1957 (%HRR); Edwards 1993 (5-zone TRIMP); Banister 1991
-// (exponential TRIMP, b = 1.92 men / 1.67 women); Tanaka 2001 (HRmax = 208 − 0.7×age).
+//   1. HEART-RATE RESERVE — Karvonen, Kentala & Mustala (1957), Ann Med Exp Biol Fenn 35(3):307-315.
+//      Intensity is measured as the fraction of the distance between rest and maximum that a beat
+//      sits at, `%HRR = (HR − rest) / (max − rest)`, not as raw bpm. This is what makes one person's
+//      «hard» comparable to another's.
+//
+//   2. TRIMP (training impulse) — the time-weighted sum of that intensity, by either of two published
+//      methods:
+//      • Edwards (1993), «The Heart Rate Monitor Book» — five reserve bands, weights 1…5, summed.
+//        The DEFAULT, and the only one any caller uses today.
+//      • Banister (1991), in Green & Hughson (eds.), «Modeling elite athletic performance» — a
+//        continuous exponential weighting, with a coefficient that differs by sex.
+//
+//   3. LOGARITHMIC COMPRESSION to 0–21. TRIMP grows without bound and linearly with time, which makes
+//      a long easy day look like a hard one. `21 · ln(TRIMP + 1) / ln(D)` compresses it so that
+//      intensity, not duration, dominates the top of the scale.
+//
+// WHERE THE SCALE COMES FROM. `D` is DERIVED, not chosen: Edwards' ceiling is the top weight held all
+// day, `5 × 1440 min = 7200`, and because the formula takes `TRIMP + 1`, `D = 7201` makes that
+// ceiling land exactly on 21. The 0–21 range is published in the app's own method sheet and printed
+// next to the number on screen («N of 21»), so both constants are contract, not calibration.
+//
+// APPROXIMATE. TRIMP is a model of internal load from heart rate alone. It knows nothing about what
+// you lifted, how hot it was, or how you slept; it is not calorimetry and not a clinical measure.
 
 public enum StrainScorer {
 
-    // MARK: - Constants (strain.py)
+    // MARK: - Constants
+    //
+    // The three sufficiency thresholds are RECALIBRATABLE but COUPLED — see `hasEnoughData`. The two
+    // max-HR estimation knobs are recalibratable with the criteria stated at `estimateHRmax`. The
+    // rest are either published method or on-screen contract, and are transcribed as such.
 
-    /// Minimum HR readings before computing strain on a DENSE stream (≈10 min at 1 Hz).
+    /// Readings that make a dense series scoreable on their own (~10 min at 1 Hz).
     public static let minReadings: Int = 600
-    /// Sparse-stream acceptance (upstream #482/#480): a low-cadence strap — the WHOOP 5/MG sends
-    /// live standard HR only ~every 30 s — would need ~5 h of continuous wear to reach
-    /// `minReadings`, so strain sat un-scored (nil) for most of the day. Also accept once the HR
-    /// series SPANS at least `minSpanSeconds` of wall-clock with a small sample floor. This never
-    /// fabricates load: TRIMP still integrates honestly over whatever HR is there, so a genuine
-    /// low-HR day scores 0 either way — it just lets the gauge reflect TODAY instead of staying
-    /// nil. A dense 1 Hz stream is unaffected (it clears `minReadings` first).
+    /// Readings that make a series scoreable when it also spans `minSpanSeconds`.
     public static let minSparseReadings: Int = 20
-    /// Wall-clock coverage (seconds) that qualifies a sparse stream. 600 s = 10 min, matching the
-    /// dense gate's ≈10 min of 600 × 1 Hz samples, so both cadences trust the number at the same age.
+    /// Clock span a sparse series must cover to be scoreable.
     public static let minSpanSeconds: Int = 600
-    /// Top of the strain scale.
+    /// Top of the published scale.
     public static let maxStrain: Double = 21.0
-
-    /// Logarithmic-map denominator D. Chosen so the Edwards daily ceiling
-    /// (top zone weight 5 sustained 24 h = 7200) maps to exactly 21.0:
-    /// D = 7200 + 1 = 7201 makes ln(7201)/ln(7201) = 1.
+    /// Compression base: Edwards' all-day ceiling, `5 × 1440`, plus the 1 the formula adds.
     public static let strainDenominator: Double = 7201.0
-    static var lnStrainDenominator: Double { log(strainDenominator) }
-
-    /// Fallback per-sample duration (minutes) — 1 s at 1 Hz.
-    static let fallbackSampleMin: Double = 1.0 / 60.0
-
+    /// Age assumed when nothing better is known, for the last-resort maximum only.
     public static let defaultAge: Int = 30
-    public static let defaultRestingHR: Double = 60
-
-    /// Minimum HR samples before the observed high-percentile HRmax is trusted.
+    /// Resting heart rate assumed when the person's own is unknown (bpm). A population floor, not a
+    /// measurement — ten call sites take it as their default.
+    public static let defaultRestingHR: Double = 60.0
+    /// Readings required before an OBSERVED maximum is trusted over the age estimate.
     public static let hrmaxMinSamples: Int = 600
-    /// Upper percentile for the observed-HRmax estimate.
+    /// Percentile of the observed history taken as that maximum.
     public static let hrmaxPercentile: Double = 99.5
-
-    /// Banister coefficients.
+    /// Banister's scale factor.
     public static let banisterScale: Double = 0.64
+    /// Banister's exponential coefficient, men.
     public static let banisterBMen: Double = 1.92
+    /// Banister's exponential coefficient, women.
     public static let banisterBWomen: Double = 1.67
 
-    /// Edwards zone cut-offs as (%HRR threshold, weight), highest-first.
-    static let edwardsZones: [(threshold: Double, weight: Int)] = [
-        (90.0, 5), (80.0, 4), (70.0, 3), (60.0, 2), (50.0, 1),
-    ]
-
-    /// TRIMP accumulation method.
+    /// Which published TRIMP formulation to integrate with.
     public enum Method: Sendable { case edwards, banister }
 
-    // MARK: - HRmax helpers
-
-    /// Tanaka (2001): HRmax = 208 − 0.7 × age (gender-independent).
-    public static func tanakaHRmax(age: Double) -> Double { 208.0 - 0.7 * age }
-
-    /// Classic 220 − age. Last-resort fallback only.
-    public static func defaultMaxHR(age: Int = defaultAge) -> Int { 220 - age }
-
-    /// Linear-interpolated percentile of an already-sorted sequence (numpy-style).
-    static func percentile(_ sortedValues: [Double], _ pct: Double) -> Double {
-        let n = sortedValues.count
-        if n == 0 { return 0 }
-        if n == 1 { return sortedValues[0] }
-        let position = (pct / 100.0) * Double(n - 1)
-        let lower = Int(position)
-        let upper = min(lower + 1, n - 1)
-        let frac = position - Double(lower)
-        return sortedValues[lower] + frac * (sortedValues[upper] - sortedValues[lower])
-    }
-
-    /// Estimate a personalized HRmax from a trailing HR series.
-    /// Returns (hrmax bpm, source) where source ∈ {"observed", "tanaka", "unknown"}.
-    public static func estimateHRmax(_ hrHistory: [Double], age: Double?) -> (Double, String) {
-        let n = hrHistory.count
-        let tanaka = age.map { tanakaHRmax(age: $0) }
-
-        if n >= hrmaxMinSamples {
-            let observed = percentile(hrHistory.sorted(), hrmaxPercentile)
-            guard let t = tanaka else { return (observed, "observed") }
-            return observed >= t ? (observed, "observed") : (t, "tanaka")
-        }
-        if let t = tanaka { return (t, "tanaka") }
-        return (0.0, "unknown")
-    }
-
-    // MARK: - Karvonen %HRR and Edwards zone weight
-
-    /// Karvonen %HRR, clamped [0, 100].
-    /// A non-positive `hrReserve` (restingHR ≥ HRmax, i.e. invalid HRR) has no
-    /// meaningful %HRR; return 0 rather than dividing by zero.
-    static func pctHRR(_ bpm: Double, restingHR: Double, hrReserve: Double) -> Double {
-        guard hrReserve > 0 else { return 0 }
-        let pct = (bpm - restingHR) / hrReserve * 100.0
-        if pct < 0 { return 0 }
-        if pct > 100 { return 100 }
-        return pct
-    }
-
-    /// Edwards 5-zone weight (0–5) from %HRR (unclamped; extremes agree with
-    /// the clamped path at both ends). A non-positive `hrReserve` (invalid HRR)
-    /// yields zone 0 instead of a divide-by-zero.
-    static func zoneWeight(_ bpm: Double, restingHR: Double, hrReserve: Double) -> Int {
-        guard hrReserve > 0 else { return 0 }
-        let pct = (bpm - restingHR) / hrReserve * 100.0
-        for (threshold, weight) in edwardsZones where pct >= threshold { return weight }
-        return 0
-    }
-
-    // MARK: - TRIMP accumulation
-
-    /// Infer per-sample duration (minutes) from the MEDIAN plausible spacing
-    /// between consecutive timestamps — not the first pair. A single early gap
-    /// (strap reconnect, a distant first sample at ~1 Hz) must not inflate the
-    /// duration applied to every sample of the day. Reuses `HRZones.medianInterval`
-    /// (median of gaps in `(0, 300) s`; gaps beyond that are disconnections, not
-    /// active time), so the whole module shares one robust spacing estimate.
-    /// Falls back to 1 s when fewer than two samples or no plausible gap.
-    static func sampleDurationMinutes(_ hr: [HRSample]) -> Double {
-        guard hr.count >= 2 else { return fallbackSampleMin }
-        return HRZones.medianInterval(hr) / 60.0
-    }
-
-    static func edwardsTRIMP(_ hr: [HRSample], restingHR: Double, hrReserve: Double,
-                             sampleDurationMin: Double) -> Double {
-        var weighted = 0
-        for s in hr { weighted += zoneWeight(Double(s.bpm), restingHR: restingHR, hrReserve: hrReserve) }
-        return Double(weighted) * sampleDurationMin
-    }
-
-    static func banisterTRIMP(_ hr: [HRSample], restingHR: Double, hrReserve: Double,
-                              sampleDurationMin: Double, b: Double) -> Double {
-        var acc = 0.0
-        for s in hr {
-            let x = pctHRR(Double(s.bpm), restingHR: restingHR, hrReserve: hrReserve) / 100.0
-            if x > 0 { acc += sampleDurationMin * x * banisterScale * exp(b * x) }
-        }
-        return acc
-    }
-
-    // MARK: - Logarithmic map
-
-    /// Map accumulated TRIMP onto [0, 21] via 21 × ln(TRIMP+1) / ln(D), 2 dp.
-    /// TRIMP ≤ 0 → 0.
-    public static func trimpToStrain(_ trimp: Double, denominator: Double = strainDenominator) -> Double {
-        if trimp <= 0 { return 0 }
-        let value = maxStrain * log(trimp + 1.0) / log(denominator)
-        return (value * 100).rounded() / 100
-    }
-
-    /// Exact inverse of `trimpToStrain`: the TRIMP-like load a 0–21 strain stands for.
-    /// `strain ≤ 0` → 0. Public (ola 1 · E2) because the session-RPE calibration and the per-day
-    /// overlay both have to add loads in TRIMP space, OUTSIDE `ReadinessEngine` — which keeps its
-    /// `strainToLoad` as a one-line forwarder so there is exactly one copy of the inverse.
-    ///
-    /// Note `trimpToStrain` rounds to 2 dp, so the round trip is exact only to ~0.21 % relative
-    /// (0.005 · lnD / 21); compare with a RELATIVE tolerance, never ±1e-6 (gate estadístico H8).
-    public static func strainToTrimp(_ strain: Double, denominator: Double = strainDenominator) -> Double {
-        guard strain > 0 else { return 0 }
-        return max(0, exp(strain * log(denominator) / maxStrain) - 1.0)
-    }
-
-    // MARK: - Denominator calibration
-
-    /// Calibrate D from (TRIMP, reference_strain) pairs via the through-origin
-    /// least-squares line: ln(D) = 21 × Σ(x²) / Σ(xy), x = ln(TRIMP+1).
-    /// Throws when fewer than 2 usable pairs (TRIMP>0, strain>0) or degenerate.
-    public static func fitStrainDenominator(_ pairs: [(trimp: Double, strain: Double)]) throws -> Double {
-        let usable = pairs.filter { $0.trimp > 0 && $0.strain > 0 }
-        guard usable.count >= 2 else { throw StrainError.tooFewPairs }
-        var sumXX = 0.0, sumXY = 0.0
-        for (trimp, strain) in usable {
-            let x = log(trimp + 1.0)
-            sumXX += x * x
-            sumXY += x * strain
-        }
-        guard sumXY > 0 && sumXX > 0 else { throw StrainError.degenerate }
-        return exp(maxStrain * sumXX / sumXY)
-    }
-
+    /// Why a denominator fit could not be made.
     public enum StrainError: Error, Equatable, Sendable {
+        /// Fewer than two pairs survived the usability filter.
         case tooFewPairs
+        /// The least-squares sums are not positive, so no positive base exists.
         case degenerate
     }
 
-    // MARK: - Public API
-
-    /// Enough data to trust a strain score: a dense stream (≥ `minReadings` samples) OR a
-    /// sparse-but-sustained one (≥ `minSparseReadings` samples spanning ≥ `minSpanSeconds` of
-    /// wall-clock — the 5/MG's ~30 s live-HR cadence). Shared by `strain(_:)` and
-    /// `cumulativeStrain(_:)` so the intraday curve appears exactly when the score does and its
-    /// endpoint keeps matching the score (FER-650 invariant).
-    public static func hasEnoughData(_ hr: [HRSample]) -> Bool {
-        if hr.count >= minReadings { return true }
-        guard hr.count >= minSparseReadings else { return false }
-        let tss = hr.map(\.ts)
-        return (tss.max() ?? 0) - (tss.min() ?? 0) >= minSpanSeconds
-    }
-
-    /// Cardiovascular strain (0–21) from an HR series. APPROXIMATE.
-    ///
-    /// Returns nil when there isn't yet enough data to trust the number — fewer than
-    /// `minReadings` samples AND not a sparse-but-sustained stream (`minSparseReadings` /
-    /// `minSpanSeconds`, upstream #482) — or when maxHR ≤ restingHR (invalid HRR).
-    ///
-    /// - Parameters:
-    ///   - hr: time-ordered `[HRSample]`.
-    ///   - maxHR: HRmax (bpm). Defaults to 220 − defaultAge when nil.
-    ///   - restingHR: resting HR (bpm) for the HRR denominator (default 60).
-    ///   - method: `.edwards` (default) or `.banister`.
-    ///   - sex: "male"/"female" — selects the Banister coefficient (ignored by Edwards).
-    ///   - denominator: log-map D (default STRAIN_DENOMINATOR).
-    public static func strain(_ hr: [HRSample],
-                              maxHR: Double? = nil,
-                              restingHR: Double = defaultRestingHR,
-                              method: Method = .edwards,
-                              sex: String = "male",
-                              denominator: Double = strainDenominator) -> Double? {
-        let effMax = maxHR ?? Double(defaultMaxHR())
-        if !hasEnoughData(hr) || effMax <= restingHR { return nil }
-
-        let sampleDur = sampleDurationMinutes(hr)
-        let hrReserve = effMax - restingHR
-
-        let trimp: Double
-        switch method {
-        case .banister:
-            let b = sex.lowercased().hasPrefix("f") ? banisterBWomen : banisterBMen
-            trimp = banisterTRIMP(hr, restingHR: restingHR, hrReserve: hrReserve,
-                                  sampleDurationMin: sampleDur, b: b)
-        case .edwards:
-            trimp = edwardsTRIMP(hr, restingHR: restingHR, hrReserve: hrReserve,
-                                 sampleDurationMin: sampleDur)
-        }
-        return trimpToStrain(trimp, denominator: denominator)
-    }
-
-    // MARK: - Cumulative (intraday) strain
-
-    /// One step of the day's accumulated strain: the 0–21 strain reached by `date`.
+    /// One point of the running strain curve.
     public struct CumulativeStrainPoint: Equatable, Sendable {
         public let date: Date
         public let strain: Double
@@ -268,54 +87,259 @@ public enum StrainScorer {
         }
     }
 
-    /// The day's strain as it accumulates, sampled at `bucketSeconds` boundaries. APPROXIMATE.
+    // MARK: - Maximum heart rate
+
+    /// Maximum heart rate predicted from age — Tanaka, Monahan & Seals (2001), J Am Coll Cardiol
+    /// 37(1):153-156. Sex-independent. This is the estimator to prefer.
+    public static func tanakaHRmax(age: Double) -> Double { 208.0 - 0.7 * age }
+
+    /// The LAST-RESORT maximum, `220 − age`, used only when the caller supplied nothing at all.
     ///
-    /// TRIMP is additive, so this walks the (time-ordered) series once, accumulating the same
-    /// Edwards/Banister TRIMP that `strain(_:)` uses, and emits the compressed strain at the end of
-    /// each `bucketSeconds` bucket (plus the final sample). The result is monotonically
-    /// non-decreasing and its LAST point equals `strain(hr, …)` over the same window and parameters
-    /// — so a chart of this series ends exactly on the day's strain score.
+    /// It is deliberately the worst estimator available: `220 − age` overestimates in the young and
+    /// underestimates in the old, which is precisely why Tanaka (2001) replaced it. It survives here
+    /// as an explicit floor so a scoring path can never silently divide by an undefined reserve — not
+    /// because it is a good answer.
+    public static func defaultMaxHR(age: Int = defaultAge) -> Int { 220 - age }
+
+    /// Best available maximum heart rate, and the word for where it came from.
     ///
-    /// Returns `[]` under the same guard as `strain(_:)` (`hasEnoughData` — dense or
-    /// sparse-but-sustained) or maxHR ≤ restingHR (invalid HRR). Parameters mirror `strain(_:)` so
-    /// the caller can pass the SAME values it used for the daily score and get a matching endpoint.
-    public static func cumulativeStrain(_ hr: [HRSample],
-                                        bucketSeconds: Int = 900,
+    /// With enough history, take a very high percentile of the observed beats and keep whichever is
+    /// larger, that or the age estimate, labelled by the winner (`"observed"` / `"tanaka"`). Without
+    /// enough history, fall back to age; without age either, answer `(0, "unknown")` and let the
+    /// caller decide.
+    ///
+    /// Both knobs are RECALIBRATABLE. The percentile must be extreme enough to represent a near-maximal
+    /// effort rather than a stray artifact (≥ 99 %), and the sample minimum must be large enough for
+    /// that percentile to have support — on a short history the 99.5th percentile is just the sample
+    /// maximum, which is noise wearing a statistic's clothes.
+    public static func estimateHRmax(_ hrHistory: [Double], age: Double?) -> (Double, String) {
+        if hrHistory.count >= hrmaxMinSamples {
+            let observed = percentile(hrHistory.sorted(), hrmaxPercentile)
+            let byAge = age.map { tanakaHRmax(age: $0) } ?? 0
+            return observed >= byAge ? (observed, "observed") : (byAge, "tanaka")
+        }
+        if let age { return (tanakaHRmax(age: age), "tanaka") }
+        return (0, "unknown")
+    }
+
+    // MARK: - The 0–21 scale and its inverse
+
+    /// Compress a TRIMP into the 0–21 scale, rounded to two decimals (the precision the app shows).
+    /// Non-positive work is zero, never a negative logarithm.
+    ///
+    /// NOT clamped at the top: a TRIMP beyond Edwards' all-day ceiling reports above 21 rather than
+    /// pretending it stopped there. Callers that need a ceiling apply their own.
+    public static func trimpToStrain(_ trimp: Double, denominator: Double = strainDenominator) -> Double {
+        guard trimp > 0, denominator > 1 else { return 0 }
+        let s = maxStrain * log(trimp + 1) / log(denominator)
+        return (s * 100).rounded() / 100
+    }
+
+    /// The exact inverse: back from the 0–21 scale to TRIMP.
+    ///
+    /// Public on purpose, and the ONE copy of this arithmetic in the package. Two surfaces need to add
+    /// loads together, and loads may only be added on the linear TRIMP axis — summing compressed
+    /// scores would be adding logarithms, which multiplies rather than adds.
+    ///
+    /// Note the round trip is not exact in the other direction: `trimpToStrain` rounds to two
+    /// decimals, so `strain → TRIMP → strain` is faithful only to about 0.2 % relative. Compare these
+    /// with a RELATIVE tolerance, never `±1e-6`.
+    public static func strainToTrimp(_ strain: Double, denominator: Double = strainDenominator) -> Double {
+        guard strain > 0, denominator > 1 else { return 0 }
+        return max(0, exp(strain * log(denominator) / maxStrain) - 1)
+    }
+
+    /// Fit the compression base from observed (TRIMP, strain) pairs: least squares through the origin
+    /// in log space, `ln D = 21 · Σx² / Σ(x · strain)` with `x = ln(TRIMP + 1)`.
+    ///
+    /// Pairs with non-positive TRIMP or strain carry no information and are dropped. Fewer than two
+    /// usable pairs throws `.tooFewPairs`; non-positive sums throw `.degenerate`.
+    public static func fitStrainDenominator(_ pairs: [(trimp: Double, strain: Double)]) throws -> Double {
+        let usable = pairs.filter { $0.trimp > 0 && $0.strain > 0 }
+        guard usable.count >= 2 else { throw StrainError.tooFewPairs }
+        var sxx = 0.0, sxy = 0.0
+        for p in usable {
+            let x = log(p.trimp + 1)
+            sxx += x * x
+            sxy += x * p.strain
+        }
+        guard sxx > 0, sxy > 0 else { throw StrainError.degenerate }
+        return exp(maxStrain * sxx / sxy)
+    }
+
+    // MARK: - Sufficiency
+
+    /// Whether a series carries enough heart rate to be scored at all — the SINGLE gate, shared by
+    /// `strain` and `cumulativeStrain` so the curve exists exactly when the number does, and reused
+    /// by the coverage and confidence engines as their absolute floor.
+    ///
+    /// Two ways to pass: enough readings outright, or fewer readings spread over enough clock. The
+    /// second branch exists because a low-cadence source takes hours to accumulate `minReadings` and
+    /// would leave a genuinely covered day unscored. It cannot manufacture load — the TRIMP still
+    /// integrates only what is actually there, and a quiet day scores near zero through either branch.
+    ///
+    /// The three thresholds are RECALIBRATABLE TOGETHER: both branches must trust the same «amount of
+    /// data», and at 1 Hz `minReadings` samples is exactly `minSpanSeconds` of clock. Move one, move
+    /// the other.
+    public static func hasEnoughData(_ hr: [HRSample]) -> Bool {
+        if hr.count >= minReadings { return true }
+        guard hr.count >= minSparseReadings else { return false }
+        var lo = Int.max, hi = Int.min
+        for s in hr { lo = min(lo, s.ts); hi = max(hi, s.ts) }
+        return hi - lo >= minSpanSeconds
+    }
+
+    // MARK: - Scoring
+
+    /// Cardiovascular load for a series, 0–21, or `nil` when it cannot honestly be measured — too
+    /// little data, or a maximum that is not above the resting rate (no reserve to speak of).
+    ///
+    /// `nil` and `0` mean different things and must not be conflated: `nil` is «not measured», `0` is
+    /// «no effort». A caller that turns one into the other poisons every moving average downstream.
+    public static func strain(_ hr: [HRSample], maxHR: Double? = nil,
+                              restingHR: Double = defaultRestingHR, method: Method = .edwards,
+                              sex: String = "male",
+                              denominator: Double = strainDenominator) -> Double? {
+        guard let t = trimp(hr, maxHR: maxHR, restingHR: restingHR, method: method, sex: sex) else {
+            return nil
+        }
+        return trimpToStrain(t, denominator: denominator)
+    }
+
+    /// The strain curve as it built up through the series: one point at the last reading of every
+    /// `bucketSeconds` window (aligned to the epoch), plus always the last reading of the series.
+    ///
+    /// Four properties are the whole point of this function, and a change that breaks any of them is a
+    /// defect: the running total is accumulated in ONE pass; the values never decrease and stay on the
+    /// 0–21 scale; the final point equals `strain(...)` with the same arguments to the last bit — the
+    /// chart and the headline number can never contradict each other on screen; and `bucketSeconds`
+    /// changes only how many points come back, never where the curve ends.
+    ///
+    /// Empty when the same gate `strain` uses is not met, or when the bucket is not positive.
+    public static func cumulativeStrain(_ hr: [HRSample], bucketSeconds: Int = 900,
                                         maxHR: Double? = nil,
                                         restingHR: Double = defaultRestingHR,
-                                        method: Method = .edwards,
-                                        sex: String = "male",
+                                        method: Method = .edwards, sex: String = "male",
                                         denominator: Double = strainDenominator) -> [CumulativeStrainPoint] {
+        guard bucketSeconds > 0, hasEnoughData(hr) else { return [] }
+        let sorted = hr.sorted { $0.ts < $1.ts }
         let effMax = maxHR ?? Double(defaultMaxHR())
-        guard hasEnoughData(hr), effMax > restingHR, bucketSeconds > 0 else { return [] }
+        let reserve = effMax - restingHR
+        guard reserve > 0 else { return [] }
 
-        let sampleDur = sampleDurationMinutes(hr)
-        let hrReserve = effMax - restingHR
-        let b = sex.lowercased().hasPrefix("f") ? banisterBWomen : banisterBMen
-
-        var points: [CumulativeStrainPoint] = []
-        var weighted = 0       // Edwards: running Σ zone weight
-        var acc = 0.0          // Banister: running Σ contribution
-
-        for (i, s) in hr.enumerated() {
-            switch method {
-            case .edwards:
-                weighted += zoneWeight(Double(s.bpm), restingHR: restingHR, hrReserve: hrReserve)
-            case .banister:
-                let x = pctHRR(Double(s.bpm), restingHR: restingHR, hrReserve: hrReserve) / 100.0
-                if x > 0 { acc += sampleDur * x * banisterScale * exp(b * x) }
-            }
-            let isLast = (i == hr.count - 1)
-            // Emit once per bucket — at the last sample whose timestamp falls in that bucket — plus
-            // the final sample, whose cumulative TRIMP equals the full window's (endpoint == strain()).
-            let endsBucket = isLast || (hr[i + 1].ts / bucketSeconds) != (s.ts / bucketSeconds)
-            if endsBucket {
-                let trimp = method == .banister ? acc : Double(weighted) * sampleDur
-                points.append(CumulativeStrainPoint(
-                    date: Date(timeIntervalSince1970: TimeInterval(s.ts)),
-                    strain: trimpToStrain(trimp, denominator: denominator)))
-            }
+        let sampleMinutes = sampleDurationMinutes(sorted)
+        let b = banisterB(sex: sex)
+        var acc = 0.0
+        var out: [CumulativeStrainPoint] = []
+        for (i, s) in sorted.enumerated() {
+            acc += contribution(Double(s.bpm), restingHR: restingHR, reserve: reserve,
+                                method: method, b: b)
+            let isLast = i == sorted.count - 1
+            let bucketEnds = isLast
+                || floorDiv(sorted[i + 1].ts, bucketSeconds) != floorDiv(s.ts, bucketSeconds)
+            guard bucketEnds else { continue }
+            out.append(CumulativeStrainPoint(
+                date: Date(timeIntervalSince1970: TimeInterval(s.ts)),
+                strain: trimpToStrain(acc * sampleMinutes, denominator: denominator)))
         }
-        return points
+        return out
+    }
+
+    // MARK: - Internals shared with the incremental fold
+    //
+    // `StrainScorerIncremental` folds a live day without re-reading it, and reproduces the arithmetic
+    // below symbol by symbol. These three names and the twelve constants above are the package's most
+    // rigid interface: rename or re-define one and that file either stops compiling or, worse, keeps
+    // compiling while drifting away from the batch curve.
+
+    /// Percentile of an ALREADY SORTED series, by linear interpolation between order statistics —
+    /// type 7 of Hyndman & Fan (1996), «Sample quantiles in statistical packages», the definition
+    /// `numpy.percentile` uses by default and the one `CenitDesign.ReferenceRange` documents. The two
+    /// must agree.
+    static func percentile(_ sortedValues: [Double], _ pct: Double) -> Double {
+        guard !sortedValues.isEmpty else { return 0 }
+        guard sortedValues.count > 1 else { return sortedValues[0] }
+        let pos = (pct / 100.0) * Double(sortedValues.count - 1)
+        let i = Int(pos.rounded(.down))
+        let f = pos - Double(i)
+        let lo = sortedValues[max(0, min(i, sortedValues.count - 1))]
+        let hi = sortedValues[max(0, min(i + 1, sortedValues.count - 1))]
+        return lo + f * (hi - lo)
+    }
+
+    /// Karvonen intensity for one beat, as a percentage of heart-rate reserve, clamped to `[0, 100]`.
+    /// A non-positive reserve answers `0` — a missing maximum is not a reason to divide by zero.
+    static func pctHRR(_ bpm: Double, restingHR: Double, hrReserve: Double) -> Double {
+        guard hrReserve > 0 else { return 0 }
+        return min(100, max(0, (bpm - restingHR) / hrReserve * 100))
+    }
+
+    /// Edwards' zone weight (0…5) for one beat.
+    ///
+    /// Evaluated on the UNCLAMPED reserve percentage. At both ends it agrees with the clamped value
+    /// (under 50 gives 0, over 100 gives 5), but the two are written out separately on purpose so the
+    /// weighting stays legible instead of depending on a clamp elsewhere.
+    static func zoneWeight(_ bpm: Double, restingHR: Double, hrReserve: Double) -> Int {
+        guard hrReserve > 0 else { return 0 }
+        let p = (bpm - restingHR) / hrReserve * 100
+        if p >= 90 { return 5 }
+        if p >= 80 { return 4 }
+        if p >= 70 { return 3 }
+        if p >= 60 { return 2 }
+        if p >= 50 { return 1 }
+        return 0
+    }
+
+    // MARK: - Private
+
+    /// Total TRIMP for a series, or `nil` when it cannot be measured.
+    private static func trimp(_ hr: [HRSample], maxHR: Double?, restingHR: Double,
+                              method: Method, sex: String) -> Double? {
+        guard hasEnoughData(hr) else { return nil }
+        let sorted = hr.sorted { $0.ts < $1.ts }
+        let effMax = maxHR ?? Double(defaultMaxHR())
+        let reserve = effMax - restingHR
+        guard reserve > 0 else { return nil }
+
+        let b = banisterB(sex: sex)
+        var acc = 0.0
+        for s in sorted {
+            acc += contribution(Double(s.bpm), restingHR: restingHR, reserve: reserve,
+                                method: method, b: b)
+        }
+        return acc * sampleDurationMinutes(sorted)
+    }
+
+    /// One beat's contribution, still to be scaled by the per-sample duration.
+    private static func contribution(_ bpm: Double, restingHR: Double, reserve: Double,
+                                     method: Method, b: Double) -> Double {
+        switch method {
+        case .edwards:
+            return Double(zoneWeight(bpm, restingHR: restingHR, hrReserve: reserve))
+        case .banister:
+            let x = pctHRR(bpm, restingHR: restingHR, hrReserve: reserve) / 100.0
+            return x * banisterScale * exp(b * x)
+        }
+    }
+
+    /// Minutes each reading stands for: the series' median spacing.
+    ///
+    /// Using the median rather than the first gap is what stops one anomalous separation at the start
+    /// of a series from rescaling the load of the entire day.
+    private static func sampleDurationMinutes(_ sorted: [HRSample]) -> Double {
+        guard sorted.count >= 2 else { return 1.0 / 60.0 }
+        return HRZones.medianInterval(sorted) / 60.0
+    }
+
+    /// Banister's exponential coefficient. Anything beginning with «f» takes the female coefficient.
+    private static func banisterB(sex: String) -> Double {
+        sex.lowercased().hasPrefix("f") ? banisterBWomen : banisterBMen
+    }
+
+    /// Floor division that behaves for timestamps on either side of the epoch, so bucket boundaries
+    /// are evenly spaced everywhere rather than folding around zero.
+    private static func floorDiv(_ a: Int, _ b: Int) -> Int {
+        let q = a / b
+        return (a % b != 0 && (a < 0) != (b < 0)) ? q - 1 : q
     }
 }

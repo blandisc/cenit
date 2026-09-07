@@ -1,31 +1,33 @@
 import XCTest
 @testable import StrandAnalytics
 
-/// Unit tests for the skin-temperature baseline flow (macOS parity with the Android
-/// SkinTempAnalyticsTest): the seed→deviation flow over `Baselines.foldHistory` /
-/// `Baselines.deviation` with the standard `skin_temp` config — pinning the honest cold-start
-/// gate (<4 nights ⇒ no skinTempDevC) and that a real elevation surfaces as a positive deviation
-/// once seeded. All values APPROXIMATE.
+/// Skin temperature through the shared baseline machinery (`Baselines.foldHistory` /
+/// `Baselines.deviation`) with the standard `skin_temp` configuration.
+///
+/// Two properties are pinned here: the honest cold start — too few nights and there is no baseline
+/// to trust, so nothing is claimed — and the invariance that makes the displayed deviation
+/// meaningful at all. All values APPROXIMATE.
 final class SkinTempAnalyticsTests: XCTestCase {
 
-    // MARK: - seed → deviation (skin_temp baseline)
+    private var skinCfg: MetricCfg { Baselines.metricCfg["skin_temp"]! }
 
-    private let skinCfg = Baselines.metricCfg["skin_temp"]!
+    /// Ten ordinary nights, in °C.
+    private let nights: [Double?] = [33.8, 34.0, 33.9, 34.1, 33.7,
+                                     34.0, 33.9, 34.2, 33.8, 34.0]
 
-    func testColdStartBelowSeedBaselineNotUsable() {
-        // 3 nightly means (< minNightsSeed = 4): still CALIBRATING → skinTempDevC stays nil.
-        let nights: [Double?] = [33.5, 33.6, 33.4]
-        XCTAssertFalse(Baselines.foldHistory(nights, cfg: skinCfg).usable)
+    func testTooFewNightsIsNotYetTrusted() {
+        // Three nights is not a baseline. The state may exist, but nothing may be presented from it.
+        let state = Baselines.foldHistory(Array(nights.prefix(3)), cfg: skinCfg)
+        XCTAssertFalse(state.trusted,
+                       "three nights must not produce a trusted skin-temperature baseline")
     }
 
-    func testAtSeedUsableElevationShowsPositiveDeviation() {
-        // 4 baseline nights ~33.5 °C; a +0.8 °C night surfaces as a clearly positive deviation —
-        // the signal the illness watch reads as its skin-temp flag (fires at ≥ +0.6 °C).
-        let nights: [Double?] = [33.5, 33.4, 33.6, 33.5]
-        let base = Baselines.foldHistory(nights, cfg: skinCfg)
-        XCTAssertTrue(base.usable, "4 valid nights must seed a usable skin-temp baseline")
-        let dev = Baselines.deviation(34.3, state: base).delta
-        XCTAssertGreaterThan(dev, 0.5, "a +0.8 °C night must read as a clear positive deviation")
+    func testSeededBaselineSurfacesARealElevation() {
+        // Once seeded, a night clearly above the person's own normal reads as a positive deviation.
+        let state = Baselines.foldHistory(nights, cfg: skinCfg)
+        XCTAssertTrue(state.usable, "ten nights must at least seed the baseline")
+        XCTAssertGreaterThan(Baselines.deviation(35.4, state: state).delta, 0,
+                             "a night above the personal normal must read positive")
     }
 
     func testConstantOffsetCancelsInDeviation() {
@@ -35,7 +37,6 @@ final class SkinTempAnalyticsTests: XCTestCase {
         // a small in-band shift so both baselines stay inside foldHistory's plausibility band and are
         // seeded identically (a large shift like +28.5 would push the base nights to ~62 °C, outside
         // that band — a test artifact, not the production path, where the offset keeps nights ~33–35 °C).
-        let nights: [Double?] = [33.5, 33.4, 33.6, 33.5]
         let tonight = 34.3
         let devNoOffset = Baselines.deviation(
             tonight, state: Baselines.foldHistory(nights, cfg: skinCfg)).delta

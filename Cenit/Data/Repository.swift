@@ -45,7 +45,6 @@ final class Repository: ObservableObject {
     /// TodayView's parallel queries) share ONE open+migrate instead of racing `ensureStore`'s
     /// await window and opening the DB several times. @MainActor makes the set-before-await safe.
     private var storeInit: Task<CenitStore?, Never>?
-    private var receiptCache: (value: (counts: (hr: Int, rr: Int, spo2: Int, skinTemp: Int, resp: Int, gravity: Int), latestHRTs: Int?)?, at: Date)?
 
     /// The whole dashboard, republished as ONE value. Previously `days`/`sleeps`/`importedSleep`/
     /// `loaded`/`refreshSeq` were five separate `@Published`s, so a single `refresh()` fired up to
@@ -279,7 +278,6 @@ final class Repository: ObservableObject {
                 print("[FER-793] CenitStore failed to open at \(path): \(error)")
                 s = nil
             }
-            if let s { try? await s.upsertDevice(id: deviceId, mac: nil, name: "Historial de banda") }
             return s
         }
         storeInit = task              // published synchronously (still on @MainActor) before the await below
@@ -292,20 +290,6 @@ final class Repository: ObservableObject {
 
     /// Expose the shared store handle (used by the importer to persist mapped rows).
     func storeHandle() async -> CenitStore? { await ensureStore() }
-
-    /// One-shot snapshot for the Today "data receipt": stored raw-sample counts + the latest stored
-    /// HR sample time (proof the strap's streams are landing and current). nil if no store yet.
-    func dataReceipt() async -> (counts: (hr: Int, rr: Int, spo2: Int, skinTemp: Int, resp: Int, gravity: Int), latestHRTs: Int?)? {
-        if let cached = receiptCache, Date.now.timeIntervalSince(cached.at) < 120 {
-            return cached.value
-        }
-        guard let store = await ensureStore() else { return nil }
-        guard let counts = try? await store.sampleCounts() else { return nil }
-        let latest = (try? await store.latestHRSampleTs(deviceId: deviceId)) ?? nil
-        let value: (counts: (hr: Int, rr: Int, spo2: Int, skinTemp: Int, resp: Int, gravity: Int), latestHRTs: Int?)? = (counts, latest)
-        receiptCache = (value, Date.now)
-        return value
-    }
 
     /// "Verify my data": run the store's integrity check. false on any failure (incl. no store yet),
     /// so the UI prompts a retry rather than silently doing nothing.
@@ -615,8 +599,9 @@ final class Repository: ObservableObject {
     /// the dashboard with `loaded`/`fullyLoaded`/`seq` left at defaults — publication (and whether
     /// it happens at all) is the caller's @MainActor decision.
     nonisolated static func assembleDashboard(_ inputs: RefreshInputs) async -> DashboardData {
-        let strapSleeps = Self.mergeSleep(imported: inputs.impSleep, computed: inputs.compSleep)
-        let appleSleeps = Self.appleSleepsNotCoveredByStrap(apple: inputs.appleSleepRaw, strap: strapSleeps)
+        let onDeviceSleeps = Self.mergeSleep(imported: inputs.impSleep, computed: inputs.compSleep)
+        let appleSleeps = Self.appleSleepsNotCoveredOnDevice(apple: inputs.appleSleepRaw,
+                                                             onDevice: onDeviceSleeps)
 
         var fig: [String: ImportedSleepFigures] = [:]
         for p in inputs.perf { fig[p.day, default: ImportedSleepFigures()].performancePct = p.value }
@@ -731,7 +716,7 @@ final class Repository: ObservableObject {
         return DashboardData(
             days: overlaid.days,
             displayDays: overlaidDisplay,
-            sleeps: strapSleeps,
+            sleeps: onDeviceSleeps,
             appleSleeps: appleSleeps,
             importedSleep: fig,
             appleHealthDays: merged.appleDays,
@@ -855,13 +840,6 @@ final class Repository: ObservableObject {
         return (try? await store.rrIntervals(deviceId: deviceId, from: from, to: to, limit: limit)) ?? []
     }
 
-    /// Raw skin-temperature samples (`raw_adc`) for the strap in `[from, to]`. Range-scanned like
-    /// `rrIntervals`. Feeds the nocturnal thermal-stability surface (FER-850). °C = raw/128 + offset.
-    func skinTempSamples(from: Int, to: Int, limit: Int = 200_000) async -> [SkinTempSample] {
-        guard let store = await ensureStore() else { return [] }
-        return (try? await store.skinTempSamples(deviceId: deviceId, from: from, to: to, limit: limit)) ?? []
-    }
-
     /// FER-972 (P-05): day-keys (per scalar key) already attempted this app session whose night read
     /// unreadable/too-thin — don't re-read their raw samples on every sheet open. In-memory only:
     /// a relaunch (or the nightly pass re-scoring the night) retries naturally.
@@ -876,14 +854,6 @@ final class Repository: ObservableObject {
     func nocturnalWarmingMagnitudes(nights: Int = 28) async -> [Double?] {
         // FER-1003: strap thermal-stability path is dormant under Apple-only.
         return []
-    }
-
-    /// Gravity (accelerometer) samples for the strap in `[from, to]`. Read by the strap
-    /// motion gate for per-window stillness. Range-scanned like `rrIntervals` over `(deviceId, ts)`.
-    /// (FER-666; the strap partition — and this read — are dormant under the Apple-only pin.)
-    func gravitySamples(from: Int, to: Int, limit: Int = 200_000) async -> [GravitySample] {
-        guard let store = await ensureStore() else { return [] }
-        return (try? await store.gravitySamples(deviceId: deviceId, from: from, to: to, limit: limit)) ?? []
     }
 
     /// The latest persisted body-clock phase (computed source), for the «Tu reloj corporal» surface
@@ -924,11 +894,12 @@ final class Repository: ObservableObject {
         SourceFusion.mergeSleepSessions(imported: imported, computed: computed, apple: apple)
     }
 
-    /// Apple Health sleep sessions to surface in the Detalle when the band didn't cover that night — the
-    /// band wins per night, so an Apple session overlapping ANY strap session's span is dropped (FER-486).
+    /// Apple Health sleep sessions to surface in the Detalle when nothing on-device covered that night —
+    /// the on-device night wins, so an Apple session overlapping ANY on-device span is dropped (FER-486).
     /// Forwards to `SourceFusion` (single policy copy; plan 2026-07-20).
-    nonisolated static func appleSleepsNotCoveredByStrap(apple: [CachedSleepSession], strap: [CachedSleepSession]) -> [CachedSleepSession] {
-        SourceFusion.appleSleepsNotCoveredByStrap(apple: apple, strap: strap)
+    nonisolated static func appleSleepsNotCoveredOnDevice(apple: [CachedSleepSession],
+                                                          onDevice: [CachedSleepSession]) -> [CachedSleepSession] {
+        SourceFusion.appleSleepsNotCoveredOnDevice(apple: apple, onDevice: onDevice)
     }
 
     // MARK: - Metric explorer reads (generic substrate)
