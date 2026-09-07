@@ -67,6 +67,8 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
 - Antes podían aparecer varios consejos nuevos en la misma sesión; ahora, como mucho uno al día.
   Por dentro, cada funcionalidad del app queda registrada con un id estable — la base para que
   Ayuda, Novedades y los hitos se mantengan al día solos.
+- Al actualizar, cada consejo de Entrenar que ya habías cerrado puede aparecer una vez más (su
+  llave interna cambió al id del registro). Se cierra igual, con «Entendido».
 
 ### Los planes y programas que importas ahora se llaman `cenit.*` (FER-382)
 - El archivo que armas con tu LLM (rutina o plan de comida) pasa a identificarse como

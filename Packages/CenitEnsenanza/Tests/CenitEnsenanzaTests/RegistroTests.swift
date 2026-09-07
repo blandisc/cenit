@@ -22,7 +22,12 @@ final class RegistroTests: XCTestCase {
         XCTAssertEqual(
             Set(Registro.todas.map(\.id)),
             Set(FuncionalidadID.allCases),
-            "el registro no cubre exactamente los 68 ids de FuncionalidadID (falta uno, o hay uno repetido)"
+            "el registro no cubre exactamente los ids de FuncionalidadID (falta uno)"
+        )
+        // Un `Set` colapsa duplicados: el conteo es lo que caza una entrada repetida (qa FER-430, D1).
+        XCTAssertEqual(
+            Registro.todas.count, FuncionalidadID.allCases.count,
+            "hay una entrada repetida en el registro (Registro.todas la listaría dos veces)"
         )
     }
 
