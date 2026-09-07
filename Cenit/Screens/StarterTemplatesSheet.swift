@@ -26,7 +26,9 @@ struct StarterTemplatesSheet: View {
     /// Called after a template is copied (or a group is applied), so the hub reloads.
     var onAdded: () async -> Void
     /// Optional: fired after a successful group apply OR program install (toast / dismiss parent, ola 1 · E11), never on a single routine add.
-    var onApplied: (() -> Void)?
+    /// Tras aplicar: `fitFully` = si todas las sesiones de la receta cupieron en la semana (FER-377);
+    /// el presentador lo usa para un toast honesto. El flujo de programa lo ignora (`_ in`).
+    var onApplied: ((Bool) -> Void)?
     /// nil = catálogo completo; non-nil = solo ese grupo (FER-251).
     var grupo: StarterTemplate.Group?
     /// Ola 1 · E11 (FER-334): modo programa — la lista muestra los 4 motores (`ProgramTemplate.all`)
@@ -65,7 +67,7 @@ struct StarterTemplatesSheet: View {
     /// alcanzable sin ejercicios visibles — el preview aprobado por el dueño llega abierto).
     init(grupo: StarterTemplate.Group? = nil,
          programa: Bool = false,
-         onApplied: (() -> Void)? = nil,
+         onApplied: ((Bool) -> Void)? = nil,
          onAdded: @escaping () async -> Void) {
         self.grupo = grupo
         self.programa = programa
@@ -454,8 +456,9 @@ struct StarterTemplatesSheet: View {
                 await onAdded()
                 // «Programa listo · semana 1 de N» (ola 1 · E11): mismo canal que `applyTemplateGroup`
                 // ya usa para avisar tras cerrar — el toast vive en quien presenta la hoja, porque la
-                // hoja misma está a punto de desaparecer con `dismiss()`.
-                onApplied?()
+                // hoja misma está a punto de desaparecer con `dismiss()`. El programa instala su semana
+                // completa → `fitFully: true` (su presentador ignora el flag de todos modos).
+                onApplied?(true)
                 dismiss()
             } catch {
                 saving = false
@@ -505,13 +508,18 @@ struct StarterTemplatesSheet: View {
         }
     }
 
-    // MARK: - Apply group (FER-251 · misma lógica que CrearPlanScreen.applyTemplateGroup)
+    // MARK: - Apply group (FER-251 · el único call-site de aplicar un grupo — no existe CrearPlanScreen)
 
     /// Días lunes→domingo (Calendar weekday: 1 = domingo … 7 = sábado).
     private static let mondayFirstWeekdays = [2, 3, 4, 5, 6, 7, 1]
 
-    /// Copia CADA rutina del grupo y asigna cada una al primer día LIBRE — nunca pisa un día ya
-    /// asignado. Si falla el guardado: banner inline, la hoja NO se cierra, nada a medias.
+    /// Copia cada rutina del grupo y la agenda a su FRECUENCIA recomendada, repartida en la semana
+    /// (FER-377): Full body 3×, Upper/Lower cada mitad 2×, PPL 6 días… La receta (`StarterGroupSchedule`)
+    /// y el reparto (`WeeklySchedulePlanner`) son puros (StrandTraining); aquí solo materializamos y
+    /// escribimos. NUNCA pisa un día ya asignado, y es mejor esfuerzo si no caben todas las sesiones —
+    /// las rutinas se guardan igual. Una plantilla que cae en varios días es la MISMA rutina en varias
+    /// filas (`routineSchedule` lo soporta, PK=weekday). Si falla el guardado: banner inline, la hoja
+    /// NO se cierra, nada a medias.
     private func applyTemplateGroup() {
         guard let group = grupo, !saving else { return }
         saving = true
@@ -522,18 +530,26 @@ struct StarterTemplatesSheet: View {
             do {
                 let existing = (try? await store.routineSchedule()) ?? []
                 let taken = Set(existing.map(\.weekday))
-                var freeWeekdays = Self.mondayFirstWeekdays.filter { !taken.contains($0) }
+                let ideal = StarterGroupSchedule.ideal(for: group)
+                let plan = WeeklySchedulePlanner.place(ideal: ideal, taken: taken,
+                                                       weekOrder: Self.mondayFirstWeekdays)
                 let now = Int(Date().timeIntervalSince1970)
+                // Guarda SIEMPRE cada rutina del grupo (aunque no quepa en la semana); solo el agendado
+                // es mejor esfuerzo. La misma plantilla en varios días del plan reusa su routineId.
+                var routineIdByTemplate: [String: String] = [:]
                 for t in StarterTemplates.inGroup(group) {
                     let name = String(localized: templateName(t.id))
                     let (routine, exercises) = t.makeRoutine(name: name, now: now)
                     try await repo.saveRoutine(routine, exercises: exercises)
-                    if !freeWeekdays.isEmpty {
-                        try? await store.setRoutineSchedule(weekday: freeWeekdays.removeFirst(), routineId: routine.id)
+                    routineIdByTemplate[t.id] = routine.id
+                }
+                for session in plan {
+                    if let rid = routineIdByTemplate[session.templateId] {
+                        try? await store.setRoutineSchedule(weekday: session.weekday, routineId: rid)
                     }
                 }
                 await onAdded()
-                onApplied?()
+                onApplied?(plan.count == ideal.count)   // fitFully → toast honesto (AC#5)
                 dismiss()
             } catch {
                 saving = false

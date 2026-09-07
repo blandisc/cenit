@@ -176,7 +176,7 @@ struct WeeklyPlanEditorView: View {
         // Ola 1 · E11: «Programa · 4 a 6 semanas» (crear desde un motor, StarterTemplatesSheet en
         // modo programa) y «Convertir en programa ›» (la semana YA armada, sin motor).
         .sheet(isPresented: $showProgramCreate) {
-            StarterTemplatesSheet(programa: true, onApplied: { showProgramReadyToast = true }) { await load() }
+            StarterTemplatesSheet(programa: true, onApplied: { _ in showProgramReadyToast = true }) { await load() }
         }
         .sheet(isPresented: $showConvertToProgram, onDismiss: { convertStartsMonday = false }) {
             convertToProgramSheet

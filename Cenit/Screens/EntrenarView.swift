@@ -181,6 +181,8 @@ private struct EntrenarLanding: View {
     @State private var showTricks = false
     /// Success toast after a template group is applied — auto-dismisses.
     @State private var showPlanAppliedToast = false
+    /// FER-377: whether the applied group's full weekly frequency fit the week — drives an honest toast.
+    @State private var planAppliedFitFully = true
     /// FER-950: Quick / Mobility discs with a live strength session — confirm resume instead of
     /// silently re-presenting via `startStrengthSession`'s no-op guard (which looks like "start new").
     @State private var confirmResumeStrength = false
@@ -281,7 +283,9 @@ private struct EntrenarLanding: View {
         // compartido desde 2026-07-19 (era la misma copia en tres pantallas).
         .saveErrorToast(isPresented: $saveError)
         // FER-137/251: el eco de «Plantilla aplicada» tras aplicar un plan desde la hoja de plantillas.
-        .planAppliedToast(isPresented: $showPlanAppliedToast)
+        // FER-377: mensaje honesto — «tu semana quedó armada» si todo cupió, o «guardé tus rutinas» si
+        // la semana ya tenía días ocupados y no cupo la frecuencia completa.
+        .planAppliedToast(isPresented: $showPlanAppliedToast, fitFully: planAppliedFitFully)
         // La boleta del veredicto, dentro de Entrenar (FER-85): el mismo modelo y la misma vista
         // que sirve Hoy, así que las dos pantallas no pueden divergir ni en la tabla ni en la
         // gráfica de cajas. «Ver más» cierra la hoja sin cambiar de pestaña.
@@ -306,7 +310,10 @@ private struct EntrenarLanding: View {
         }
         // FER-251: plantillas — catálogo completo (`templatesGroup == nil`) o acotado al chip tocado.
         .sheet(isPresented: $showTemplates, onDismiss: { templatesGroup = nil }) {
-            StarterTemplatesSheet(grupo: templatesGroup, onApplied: { showPlanAppliedToast = true }) {
+            StarterTemplatesSheet(grupo: templatesGroup, onApplied: { fit in
+                planAppliedFitFully = fit
+                showPlanAppliedToast = true
+            }) {
                 await load()
             }
         }

@@ -11,6 +11,10 @@ import CenitDesign
 
 struct PlanAppliedToast: ViewModifier {
     @Binding var isPresented: Bool
+    /// FER-377: whether the applied group's full weekly frequency fit the week. When it didn't (the
+    /// user already had days scheduled), the message drops the «your week is set» promise and just
+    /// says the routines are saved.
+    var fitFully: Bool = true
     var seconds: Double = 3
 
     func body(content: Content) -> some View {
@@ -18,7 +22,9 @@ struct PlanAppliedToast: ViewModifier {
             .overlay(alignment: .bottom) {
                 if isPresented {
                     LiquidAviso(
-                        titulo: String(localized: "Template applied · your week is set, edit it whenever"),
+                        titulo: fitFully
+                            ? String(localized: "Template applied · your week is set, edit it whenever")
+                            : String(localized: "Template applied · your routines are saved, edit your week whenever"),
                         lineas: [],
                         tono: LiquidColor.positivo
                     )
@@ -36,9 +42,10 @@ struct PlanAppliedToast: ViewModifier {
 }
 
 extension View {
-    /// Píldora de éxito «Plantilla aplicada» que se descarta sola. Ver `PlanAppliedToast`.
-    func planAppliedToast(isPresented: Binding<Bool>) -> some View {
-        modifier(PlanAppliedToast(isPresented: isPresented))
+    /// Píldora de éxito «Plantilla aplicada» que se descarta sola. `fitFully` (FER-377) elige un
+    /// mensaje honesto cuando no cupo la frecuencia completa. Ver `PlanAppliedToast`.
+    func planAppliedToast(isPresented: Binding<Bool>, fitFully: Bool = true) -> some View {
+        modifier(PlanAppliedToast(isPresented: isPresented, fitFully: fitFully))
     }
 }
 #endif
