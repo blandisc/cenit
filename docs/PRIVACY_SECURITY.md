@@ -78,8 +78,9 @@ the app does not exercise. Three independent barriers, all in this release:
   both entry points guard on it before touching `URLSession`; the launch-time bulk download
   was removed outright.
 
-Media already cached on-device by an earlier version stays readable offline; nothing new is
-fetched. FER-919 revives the feature with first-party artwork and will restore the control.
+Media an earlier version cached on-device is no longer displayed (the same `isEnabled` gate feeds the
+exercise-detail hero and the rest card's thumbnail) but it is not deleted either — it stays on disk.
+FER-919 revives the feature with first-party artwork and will restore both the art and the control.
 
 **Cénit makes zero network connections.**
 

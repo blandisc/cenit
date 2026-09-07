@@ -39,8 +39,8 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
   de ejercicio: apuntaba a un servicio que ya no sirve el catálogo con el que se armó, así que
   encendía algo que no funcionaba. Era la única función que usaba la red, y queda apagada de raíz
   —sin control, sin preferencia guardada y sin código que la alcance—, así que ahora la app está
-  offline por completo. Si tenías animaciones descargadas, siguen viéndose. Vuelve más adelante con
-  arte propio.
+  offline por completo. Las animaciones que ya hubieras descargado dejan de mostrarse, pero no se
+  borran: siguen en tu iPhone. Vuelve más adelante con arte propio.
 
 ### Los planes y programas que importas ahora se llaman `cenit.*` (FER-382)
 - El archivo que armas con tu LLM (rutina o plan de comida) pasa a identificarse como
