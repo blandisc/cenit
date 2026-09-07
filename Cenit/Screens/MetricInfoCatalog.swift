@@ -166,7 +166,7 @@ extension MetricInfo {
             id: "hrv",
             name: "HRV",
             headline: "HRV is how much the time between your heartbeats varies, in milliseconds. Apple Health records it in quiet moments through the day, not continuously overnight. More variation usually means a nervous system that's better rested. What matters isn't the number itself, but how it compares with your own average.",
-            displayValue: value.map { "\(Int($0.rounded()))" } ?? "—",
+            displayValue: value.flatMap { $0.isFinite ? "\(Int($0.rounded()))" : nil } ?? "—",  // FER-465
             unit: String(localized: "ms"),
             headerTint: value == nil ? .neutral : .metric,
             bands: [],
@@ -264,7 +264,7 @@ extension MetricInfo {
             id: "sleep_performance",
             name: "Performance",
             headline: "How much you slept versus what your body needs. At 100% you fully covered last night's need.",
-            displayValue: pct.map { "\(Int(min(100, $0).rounded()))%" } ?? "—",
+            displayValue: pct.flatMap { $0.isFinite ? "\(Int(min(100, $0).rounded()))%" : nil } ?? "—",  // FER-465
             unit: nil,
             headerTint: pct == nil ? .neutral : .metric,
             bands: bands,
@@ -287,7 +287,7 @@ extension MetricInfo {
             id: "sleep_efficiency",
             name: "Efficiency",
             headline: "Of the time you spent in bed, how much you actually spent asleep. Above about 85% is considered healthy.",
-            displayValue: pct.map { "\(Int($0.rounded()))%" } ?? "—",
+            displayValue: pct.flatMap { $0.isFinite ? "\(Int($0.rounded()))%" : nil } ?? "—",  // FER-465
             unit: nil,
             headerTint: pct == nil ? .neutral : .metric,
             bands: bands,
@@ -315,7 +315,7 @@ extension MetricInfo {
             id: "sleep_restorative",
             name: "Restorative",
             headline: "The share of your sleep spent in deep and REM: the stages that physically and mentally restore you. Around 40–50% is typical for a healthy adult.",
-            displayValue: pct.map { "\(Int($0.rounded()))%" } ?? "—",
+            displayValue: pct.flatMap { $0.isFinite ? "\(Int($0.rounded()))%" : nil } ?? "—",  // FER-465
             unit: nil,
             headerTint: pct == nil ? .neutral : .metric,
             bands: bands,
@@ -356,7 +356,7 @@ extension MetricInfo {
             id: "sleep_latency",
             name: "Latency",
             headline: "The awake stretch your night opens with, before the first sleep stage. Ten to twenty minutes is a healthy range.",
-            displayValue: minutes.map { "\(Int($0.rounded())) min" } ?? "—",
+            displayValue: minutes.flatMap { $0.isFinite ? "\(Int($0.rounded())) min" : nil } ?? "—",  // FER-465
             unit: nil,
             headerTint: minutes == nil ? .neutral : .metric,
             bands: bands,

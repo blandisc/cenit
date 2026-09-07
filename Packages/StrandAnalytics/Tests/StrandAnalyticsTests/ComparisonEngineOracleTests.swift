@@ -191,4 +191,24 @@ final class ComparisonEngineOracleTests: XCTestCase {
         // Documented laxity: it validates RANGE, not calendar, so day 31 of a 30-day month parses.
         XCTAssertNotNil(ComparisonEngine.epochDay(of: "2026-04-31"))
     }
+
+    // MARK: - Non-finite hardening (FER-465)
+
+    /// A period whose mean is non-finite (a stored NaN/±Inf slipped past the origin guards) must yield
+    /// `pctChange == nil`, never a NaN percentage — downstream a NaN pct makes `Int(pct.rounded())` a
+    /// fatal trap in the bespoke formatters. `prev.mean != 0` alone let it through (`NaN != 0` is true).
+    func testNonFinitePreviousMeanYieldsNilPercentAndDoesNotCrash() {
+        let nanPrev = ComparisonEngine.compare(current: [10, 12], previous: [Double.nan, 5])
+        XCTAssertNil(nanPrev.pctChange, "a NaN previous mean must not produce a percentage")
+
+        let infPrev = ComparisonEngine.compare(current: [10, 12], previous: [Double.infinity])
+        XCTAssertNil(infPrev.pctChange, "an infinite previous mean must not produce a percentage")
+
+        let nanCur = ComparisonEngine.compare(current: [Double.nan, 3], previous: [4, 6])
+        XCTAssertNil(nanCur.pctChange, "a NaN current mean (→ NaN delta) must not produce a percentage")
+
+        // The finite baseline still computes a percentage as before (no regression).
+        let ok = ComparisonEngine.compare(current: [12, 12], previous: [10, 10])
+        XCTAssertEqual(try XCTUnwrap(ok.pctChange), 20.0, accuracy: 1e-9)
+    }
 }
