@@ -1,176 +1,197 @@
 import Foundation
 import CenitStore
 
-/// Locale-aware display formatting shared by the workouts list and the session detail (so the two never
-/// drift, and the list doesn't reach into the detail's private statics). Dates/times render in the device
-/// locale (es-MX → «mié 18 jun» / 24h per region).
+/// Formato de fecha, hora y duración compartido por la lista de entrenamientos y el detalle, para que
+/// las dos superficies no se separen y la lista no tenga que meter la mano en las estáticas privadas
+/// del detalle. Fecha y hora salen en el locale del dispositivo (es-MX → «mié 18 jun», y 12 o 24 h
+/// según la región).
 enum WorkoutFormat {
-    static func duration(_ s: Double) -> String {
-        let total = Int(s.rounded()), h = total / 3600, m = (total % 3600) / 60
-        return h > 0 ? "\(h)h \(m)m" : "\(m)m"
-    }
-    static func date(_ ts: Int) -> String { dateFmt.string(from: Date(timeIntervalSince1970: TimeInterval(ts))) }
-    static func time(_ ts: Int) -> String { timeFmt.string(from: Date(timeIntervalSince1970: TimeInterval(ts))) }
 
-    private static let dateFmt: DateFormatter = {
-        let f = DateFormatter(); f.locale = .current; f.setLocalizedDateFormatFromTemplate("EEE d MMM"); return f
-    }()
-    private static let timeFmt: DateFormatter = {
-        let f = DateFormatter(); f.locale = .current; f.setLocalizedDateFormatFromTemplate("j:mm"); return f
-    }()
+    /// Duración en horas y minutos: «45m» por debajo de la hora, «1h 30m» de ahí en adelante.
+    static func duration(_ seconds: Double) -> String {
+        let total = Int(seconds.rounded())
+        let hours = total / 3600
+        let minutes = (total % 3600) / 60
+        return hours > 0 ? "\(hours)h \(minutes)m" : "\(minutes)m"
+    }
+
+    static func date(_ ts: Int) -> String { dayFormatter.string(from: instant(ts)) }
+
+    static func time(_ ts: Int) -> String { clockFormatter.string(from: instant(ts)) }
+
+    private static func instant(_ ts: Int) -> Date { Date(timeIntervalSince1970: TimeInterval(ts)) }
+
+    /// Plantillas localizadas, no formatos fijos: la región decide el orden y el reloj de 12/24 h.
+    private static let dayFormatter = templateFormatter("EEE d MMM")
+    private static let clockFormatter = templateFormatter("j:mm")
+
+    private static func templateFormatter(_ template: String) -> DateFormatter {
+        let formatter = DateFormatter()
+        formatter.locale = .current
+        formatter.setLocalizedDateFormatFromTemplate(template)
+        return formatter
+    }
 }
 
-/// Origin of a workout row, classified from its stored `source` column. The macOS read model
-/// (`WorkoutRow`) carries no `deviceId`, so the row's origin has to be recovered from `source`.
-/// Stored values today:
-///   - "whoop"        — retired WHOOP CSV import (imported WHOOP session)
-///   - "apple_health" / "apple-health" — the XML export importer (`AppleHealthImport`); no app name
-///   - "apple-health:<name>" — live HealthKit sync (`HealthKitBridge.mapWorkouts`, FER-362 · C4): the
-///                       writing app's real name, e.g. "apple-health:Strong" — bare "apple-health"
-///                       when HealthKit reports no name. Every Apple-sourced workout carries this,
-///                       not just strength; see `appleAppName`.
-///   - "manual"       — AppModel.endWorkout (v1.67 live session) AND the retro add/edit sheet
-///   - "strap-noop"   — strap-detected bouts from the retired on-device analysis (source == the
-///                       computed deviceId, i.e. it ends in "-noop"). Historical/dormant under Apple-only.
+/// De dónde viene una fila de entrenamiento, deducido de su columna `source`. El modelo de lectura
+/// (`WorkoutRow`) no carga `deviceId`, así que el origen hay que recuperarlo de esa cadena.
 ///
-/// Classification order matters: "-noop" is checked BEFORE "whoop" so a computed id can never fall
-/// through to the legacy-import branch. It was load-bearing while the computed id was "my-whoop-noop"
-/// (which contains "whoop"); since FER-993 relabelled the partition to "strap" it is defensive only,
-/// and it stays that way so the rule survives the next id change.
+/// Aquí vive además la lógica pura de la edición de una fila: qué se puede descartar, qué se
+/// conserva al editar y qué entrada manual es honesta.
 enum WorkoutSource: Equatable {
-    case whoop, apple, detected, manual
+    /// Importación retirada desde un dispositivo de otra marca. Sigue existiendo porque hay filas suyas en disco.
+    case legacyWearable
+    /// Apple Health, ya sea del importador de archivo o de la sincronización viva.
+    case apple
+    /// Bout derivado en el teléfono por el análisis que ya se retiró.
+    case detected
+    /// Alta o edición hecha por la persona.
+    case manual
 
-    /// Common sports offered when re-labelling a detected bout — short and honest (the user can
-    /// fine-tune via Edit afterwards). Shared by the list's swipe action and the detail's menu.
+    /// Cadenas heredadas que siguen escritas en la columna `source` de filas viejas: se conservan textuales.
+    private enum Stored {
+        static let legacyWearable = "whoop"
+        static let derivedSuffix = "-noop"
+        static let manual = "manual"
+        static let applePrefixes = ["apple-health", "apple_health"]
+        static let namedApplePrefix = "apple-health:"
+    }
+
+    /// Deportes ofrecidos al reetiquetar un bout derivado: cortos y honestos (después se afina en
+    /// Editar). Los comparten el gesto de la lista y el menú del detalle.
     static let relabelSports = ["Running", "Walking", "Cycling", "Strength Training",
                                 "Swimming", "Rowing", "Yoga", "HIIT"]
 
+    /// El orden de estas pruebas ES el contrato; cada una de las dos primeras arregló un defecto real.
     static func classify(_ source: String) -> WorkoutSource {
         let s = source.lowercased()
-        if s.hasSuffix("-noop") { return .detected }   // BEFORE whoop (see the ordering note above)
-        if s == "manual" { return .manual }
-        // FER-362 · C4: the third-party app name now rides after "apple-health:" (`mapWorkouts`
-        // carries `w.sourceRevision.source.name`, e.g. "apple-health:Whoop" for WHOOP's own iOS app
-        // writing into Apple Health). Checked BEFORE the "whoop" substring test below — a real bug
-        // this fixes, since `classify("apple-health:Whoop")` used to fall through to `.whoop`.
-        if s.hasPrefix("apple-health") || s.hasPrefix("apple_health") { return .apple }
-        if s.contains("whoop") { return .whoop }
+        // 1) El sufijo del id derivado va PRIMERO: si no, un bout derivado cuyo id contuviera el
+        //    nombre de la marca heredada caería a la rama de importación y quedaría imposible de
+        //    descartar. Hoy es defensivo, y se queda para sobrevivir al próximo cambio de id.
+        if s.hasSuffix(Stored.derivedSuffix) { return .detected }
+        if s == Stored.manual { return .manual }
+        // 2) El prefijo de Apple va ANTES de buscar la marca heredada: la sincronización viva escribe
+        //    el nombre real de la app que grabó («apple-health:<nombre>»), y ese nombre puede ser el
+        //    de la otra marca. Antes de esta precedencia, esa fila se clasificaba mal.
+        if Stored.applePrefixes.contains(where: s.hasPrefix) { return .apple }
+        if s.contains(Stored.legacyWearable) { return .legacyWearable }
         return .apple
     }
 
-    /// The third-party app name carried after "apple-health:" (FER-362 · C4) — e.g. "Strong" from
-    /// "apple-health:Strong", written by `HealthKitBridge.mapWorkouts`. `nil` when the source has no
-    /// name (legacy bare "apple-health"/"apple_health", or a non-Apple source) — callers show the
-    /// honest "Other app" fallback for `nil`.
+    /// El nombre de la app que escribió la sesión, cuando la sincronización viva lo trae después de
+    /// «apple-health:» — por ejemplo «Strong». `nil` cuando la fuente no lleva nombre (una fila vieja
+    /// sin él, o una fuente que no es Apple); quien llama pinta el honesto «Otra app».
     static func appleAppName(_ source: String) -> String? {
-        guard source.hasPrefix("apple-health:") else { return nil }
-        let name = source.dropFirst("apple-health:".count)
+        guard source.hasPrefix(Stored.namedApplePrefix) else { return nil }
+        let name = source.dropFirst(Stored.namedApplePrefix.count)
         return name.isEmpty ? nil : String(name)
     }
 
-    /// Sport-cell text. Two clean-ups before display:
-    ///   - the detector stores the machine token "detected"; show it as a neutral "Activity"
-    ///     (we don't claim a sport we didn't actually classify);
-    ///   - Apple Health stores the raw HealthKit case name with no spaces
-    ///     ("TraditionalStrengthTraining"); split the camel-case so it reads
-    ///     "Traditional Strength Training" instead of one run-on, all-caps word. (FER-76)
+    /// El texto del deporte, con dos limpiezas antes de pintarlo:
+    /// el detector guarda el token de máquina «detected» y se muestra como una actividad neutra
+    /// (no afirmamos un deporte que nunca clasificamos); y Apple Health guarda el nombre crudo de
+    /// HealthKit sin espacios, que hay que separar para que se lea como palabras (FER-76).
     static func displaySport(_ sport: String) -> String {
         sport == "detected" ? "Activity" : spacedActivityName(sport)
     }
 
-    /// Insert a space at every camel-case boundary (lower/digit → Upper) so a run-on HealthKit
-    /// case name reads as words. Names that already contain a space (WHOOP / manual rows like
-    /// "Weight Training") are returned untouched, so this only ever expands the glued Apple names.
+    /// Mete un espacio en cada frontera camel-case (minúscula o dígito seguidos de mayúscula). Un
+    /// nombre que YA trae espacio se devuelve intacto, así que esto sólo abre los nombres pegados.
     static func spacedActivityName(_ raw: String) -> String {
         guard !raw.contains(" ") else { return raw }
-        var out = ""
-        var prev: Character?
-        for ch in raw {
-            if let p = prev, ch.isUppercase, p.isLowercase || p.isNumber { out.append(" ") }
-            out.append(ch)
-            prev = ch
+        var spaced = ""
+        var previous: Character?
+        for character in raw {
+            if let previous, character.isUppercase, previous.isLowercase || previous.isNumber {
+                spaced.append(" ")
+            }
+            spaced.append(character)
+            previous = character
         }
-        return out
+        return spaced
     }
 
-    /// SF Symbol for a sport, matched on the lowercased name. Shared by the list and the detail so the
-    /// same session shows the same glyph everywhere. Falls back to a neutral mixed-cardio figure.
+    /// El SF Symbol del deporte, buscado sobre el nombre en minúsculas. Lo comparten la lista y el
+    /// detalle para que la misma sesión traiga el mismo glifo en todos lados. Gana la primera
+    /// coincidencia; si nada pega, una figura de cardio mixto en vez de inventar disciplina.
     static func sfSymbol(for sport: String) -> String {
         let s = sport.lowercased()
-        switch true {
-        case s.contains("run"):                         return "figure.run"
-        case s.contains("walk") || s.contains("hike"):  return "figure.walk"
-        case s.contains("cycl") || s.contains("bike") || s.contains("ride"):
-                                                         return "figure.outdoor.cycle"
-        case s.contains("swim"):                        return "figure.pool.swim"
-        case s.contains("row"):                         return "figure.rower"
-        case s.contains("yoga"):                        return "figure.yoga"
-        case s.contains("strength") || s.contains("weight") || s.contains("lift"):
-                                                         return "dumbbell.fill"
-        case s.contains("box"):                         return "figure.boxing"
-        case s.contains("hiit") || s.contains("functional"):
-                                                         return "figure.highintensity.intervaltraining"
-        case s.contains("elliptical"):                  return "figure.elliptical"
-        case s.contains("ski"):                         return "figure.skiing.downhill"
-        case s.contains("tennis"):                      return "figure.tennis"
-        case s.contains("golf"):                        return "figure.golf"
-        case s.contains("soccer") || s.contains("football"):
-                                                         return "figure.soccer"
-        case s.contains("basketball"):                  return "figure.basketball"
-        case s.contains("dance"):                       return "figure.dance"
-        case s.contains("climb"):                       return "figure.climbing"
-        case s.contains("pilates"):                     return "figure.pilates"
-        case s.contains("meditat"):                     return "figure.mind.and.body"
-        default:                                        return "figure.mixed.cardio"
-        }
+        func any(_ needles: String...) -> Bool { needles.contains(where: s.contains) }
+
+        if any("run")                          { return "figure.run" }
+        if any("walk", "hike")                 { return "figure.walk" }
+        if any("cycl", "bike", "ride")         { return "figure.outdoor.cycle" }
+        if any("swim")                         { return "figure.pool.swim" }
+        if any("row")                          { return "figure.rower" }
+        if any("yoga")                         { return "figure.yoga" }
+        if any("strength", "weight", "lift")   { return "dumbbell.fill" }
+        if any("box")                          { return "figure.boxing" }
+        if any("hiit", "functional")           { return "figure.highintensity.intervaltraining" }
+        if any("elliptical")                   { return "figure.elliptical" }
+        if any("ski")                          { return "figure.skiing.downhill" }
+        if any("tennis")                       { return "figure.tennis" }
+        if any("golf")                         { return "figure.golf" }
+        if any("soccer", "football")           { return "figure.soccer" }
+        if any("basketball")                   { return "figure.basketball" }
+        if any("dance")                        { return "figure.dance" }
+        if any("climb")                        { return "figure.climbing" }
+        if any("pilates")                      { return "figure.pilates" }
+        if any("meditat")                      { return "figure.mind.and.body" }
+        return "figure.mixed.cardio"
     }
 
-    // MARK: - Third-party strength visibility (FER-362 · C4)
+    // MARK: - Fuerza de terceros (FER-362 · C4)
 
-    /// UserDefaults key for the "show third-party strength" toggle (`DataSourcesView`) — on by
-    /// default. `WorkoutHistoryScreen` reads the same key so the toggle and the «Fuerza» list never
-    /// drift out of sync on the string.
+    /// Llave de UserDefaults del interruptor «mostrar fuerza de otras apps» (encendido por omisión).
+    /// El interruptor de Ajustes y la lista de «Fuerza» leen ESTA misma llave, para que no se separen.
     static let showThirdPartyStrengthKey = "workouts.showThirdPartyStrength"
 
-    // MARK: - Dismissed detected bouts (durable across re-detection)
+    // MARK: - Bouts derivados descartados (#107)
     //
-    // The engine wipes + re-derives "detected" rows every run, so deleting a detected row from the
-    // table would only hide it until the next analyzeRecent recreates the same (startTs, sport) PK.
-    // The durable "this isn't a workout" record is a list of dismissed time spans persisted in
-    // UserDefaults (the macOS WorkoutRow lives in the CenitStore Journal file, which this layer must
-    // not extend with a new column). A detected row overlapping any dismissed span stays hidden.
-    // (#107)
+    // El motor borra y vuelve a derivar las filas detectadas en cada corrida, así que borrar una de
+    // la tabla sólo la escondería hasta la siguiente derivación, que recrea la misma llave. El
+    // registro durable de «esto no fue un entrenamiento» es una lista de lapsos en UserDefaults (la
+    // fila vive en el archivo de bitácora de CenitStore, y esta capa no puede agregarle columnas).
+    // Una fila derivada que traslape cualquier lapso descartado se queda oculta.
 
-    /// UserDefaults key holding the dismissed spans as "startTs:endTs" strings.
+    /// Llave de UserDefaults con los lapsos descartados, como cadenas «inicio:fin».
     static let dismissedDefaultsKey = "workouts.dismissedDetected"
 
-    /// Parse "startTs:endTs" spans (UserDefaults string array). Malformed / non-positive-width
-    /// entries are dropped so a corrupt value can never hide everything.
+    /// Separador del token de lapso. También es el que parte la cadena al leerla.
+    private static let spanSeparator: Character = ":"
+
+    /// Lee los lapsos «inicio:fin». Lo malformado y lo de ancho no positivo se cae, para que un valor
+    /// corrupto jamás pueda esconder la lista entera.
     static func parseDismissedSpans(_ raw: [String]) -> [(start: Int, end: Int)] {
-        raw.compactMap { s in
-            let parts = s.split(separator: ":")
-            guard parts.count == 2, let a = Int(parts[0]), let b = Int(parts[1]), b > a else { return nil }
-            return (a, b)
+        raw.compactMap { token in
+            let parts = token.split(separator: spanSeparator)
+            guard parts.count == 2,
+                  let start = Int(parts[0]), let end = Int(parts[1]),
+                  end > start
+            else { return nil }
+            return (start, end)
         }
     }
 
-    /// The "startTs:endTs" token persisted for a dismissed row (caller appends it to the defaults list).
-    static func dismissedToken(for row: WorkoutRow) -> String { "\(row.startTs):\(row.endTs)" }
-
-    /// Read-time filter: a DETECTED row overlapping any dismissed span is hidden. Imported / manual
-    /// rows are never auto-hidden (the user deletes those outright), so dismissal only applies to the
-    /// re-derived detected source. Half-open overlap test: `row.start < span.end && span.start < row.end`.
-    static func isDismissed(_ row: WorkoutRow, spans: [(start: Int, end: Int)]) -> Bool {
-        classify(row.source) == .detected
-            && spans.contains { row.startTs < $0.end && $0.start < row.endTs }
+    /// El token que se guarda por una fila descartada; quien llama lo agrega a la lista de defaults.
+    static func dismissedToken(for row: WorkoutRow) -> String {
+        "\(row.startTs)\(spanSeparator)\(row.endTs)"
     }
 
-    // MARK: - Building / preserving rows
+    /// Filtro de lectura: una fila DERIVADA que traslape algún lapso descartado se oculta. Las filas
+    /// importadas o manuales nunca se ocultan solas — ésas la persona las borra —, así que el
+    /// descarte aplica únicamente a la fuente que se vuelve a derivar. Traslape medio abierto.
+    static func isDismissed(_ row: WorkoutRow, spans: [(start: Int, end: Int)]) -> Bool {
+        guard classify(row.source) == .detected else { return false }
+        return spans.contains { row.startTs < $0.end && $0.start < row.endTs }
+    }
 
-    /// Carry the captured fields the add/edit sheet does NOT expose (maxHr, strain, distanceM,
-    /// zonesJSON, notes) over from the row being edited. A v1.67 live-tracked session has real
-    /// captured strain/maxHr; rebuilding the row from the sheet's inputs alone would silently wipe
-    /// them on an edit. No-op for a fresh add (`old == nil`).
+    // MARK: - Armar y conservar filas
+
+    /// Arrastra desde la fila que se está editando los campos capturados que la hoja NO expone
+    /// (`maxHr`, `strain`, `distanceM`, `zonesJSON`, `notes`). Una sesión seguida en vivo trae
+    /// esfuerzo y FC máxima reales: rearmar la fila sólo con lo que la hoja muestra los borraría en
+    /// silencio. Con `old == nil` (alta nueva) no hace nada.
     static func preservingCaptured(_ row: WorkoutRow, from old: WorkoutRow?) -> WorkoutRow {
         guard let old else { return row }
         return WorkoutRow(startTs: row.startTs, endTs: row.endTs, sport: row.sport,
@@ -180,21 +201,29 @@ enum WorkoutSource: Equatable {
                           zonesJSON: old.zonesJSON, notes: old.notes)
     }
 
-    /// Build a retroactive manual workout (source "manual", persisted under the strap deviceId by the
-    /// caller — where v1.67's live sessions live). Returns nil when the input can't make an honest row.
-    /// strain/zones stay nil: with no captured HR window an APPROXIMATE strain is never fabricated.
+    /// Arma un entrenamiento manual retroactivo. Devuelve `nil` cuando la entrada no da para una fila
+    /// honesta. El esfuerzo se queda en `nil` a propósito: sin ventana de FC capturada, un esfuerzo
+    /// aproximado sería un número inventado.
     static func buildManualRow(start: Date, durationMin: Int, sport: String,
                                avgHr: Int?, energyKcal: Double?, now: Date = Date()) -> WorkoutRow? {
-        guard durationMin > 0, durationMin <= 24 * 60 else { return nil }
-        let trimmed = sport.trimmingCharacters(in: .whitespaces)
-        guard !trimmed.isEmpty, start <= now else { return nil }
-        if let hr = avgHr, !(25...250).contains(hr) { return nil }
-        if let k = energyKcal, k < 0 || k > 20_000 { return nil }
-        let s = Int(start.timeIntervalSince1970)
-        guard s > 0 else { return nil }
-        return WorkoutRow(startTs: s, endTs: s + durationMin * 60, sport: trimmed, source: "manual",
-                          durationS: Double(durationMin) * 60, energyKcal: energyKcal,
-                          avgHr: avgHr, maxHr: nil, strain: nil, distanceM: nil,
-                          zonesJSON: nil, notes: nil)
+        let minutesAllowed = 1...(24 * 60)
+        let plausibleHr = 25...250
+        let plausibleKcal = 0.0...20_000.0
+
+        guard minutesAllowed.contains(durationMin), start <= now else { return nil }
+
+        let name = sport.trimmingCharacters(in: .whitespaces)
+        guard !name.isEmpty else { return nil }
+        if let avgHr, !plausibleHr.contains(avgHr) { return nil }
+        if let energyKcal, !plausibleKcal.contains(energyKcal) { return nil }
+
+        let startTs = Int(start.timeIntervalSince1970)
+        guard startTs > 0 else { return nil }
+
+        let seconds = Double(durationMin) * 60
+        return WorkoutRow(startTs: startTs, endTs: startTs + durationMin * 60,
+                          sport: name, source: Stored.manual,
+                          durationS: seconds, energyKcal: energyKcal, avgHr: avgHr,
+                          maxHr: nil, strain: nil, distanceM: nil, zonesJSON: nil, notes: nil)
     }
 }
