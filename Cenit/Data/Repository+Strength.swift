@@ -344,13 +344,13 @@ extension Repository {
     /// full snapshot of what was removed (FER-406) so «Deshacer» restaura TODO —notas, opt-outs y el
     /// pulso crudo—, no solo la sesión y sus series.
     @discardableResult
-    func deleteSession(id: String) async throws -> StrengthStore.DeletedStrengthSession? {
+    func deleteSession(id: String) async throws -> CenitStore.DeletedStrengthSession? {
         guard let store = await storeHandle() else { return nil }
         return try await store.deleteSession(id: id)
     }
 
     /// Restore a session removed by «Deshacer», con todo lo que borró (FER-406).
-    func restoreDeletedSession(_ snapshot: StrengthStore.DeletedStrengthSession) async throws {
+    func restoreDeletedSession(_ snapshot: CenitStore.DeletedStrengthSession) async throws {
         guard let store = await storeHandle() else { return }
         try await store.restoreDeletedSession(snapshot)
     }

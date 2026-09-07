@@ -36,7 +36,7 @@ struct SavedTicketsRoute: Hashable {}
         let id = UUID()
         // FER-406: guarda el SNAPSHOT completo (sesión, series, opt-outs, notas y pulso crudo) para que
         // «Deshacer» restaure todo, no solo la sesión y sus series. Equatable por id (el snapshot no lo es).
-        let snapshot: StrengthStore.DeletedStrengthSession
+        let snapshot: CenitStore.DeletedStrengthSession
         static func == (a: DeletedSession, b: DeletedSession) -> Bool { a.id == b.id }
     }
     @Published var pendingUndo: DeletedSession?
