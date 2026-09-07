@@ -3,7 +3,6 @@ import SwiftUI
 import CenitDesign
 import StrandAnalytics
 import CenitStore   // FER-202: `WorkoutRow` — destino de detalle de actividad en el trainStack (fusión de historiales)
-import Inject   // recarga en caliente (dev-only, inerte en Release)
 
 /// iOS navigation shell — the «IA de 3 capas» tab shell (FER-182). Four tabs over the «Barra de
 /// instrumento» (FER-163): **Hoy · Tendencias · Entrenar · Ajustes**. Patrones (Coach) was archived

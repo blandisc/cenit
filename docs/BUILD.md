@@ -151,19 +151,27 @@ cd Packages/CenitStore    && swift build && swift test
 cd Packages/StrandImport  && swift build && swift test
 ```
 
-#### Hot reload (Inject / InjectionNext)
+#### Hot reload (InjectionNext / InjectionIII)
 
 Swapping a screen's code in the running Simulator without relaunching. The wiring is already in the
 repo: `-Xlinker -interposable` + `EMIT_FRONTEND_COMMAND_LINES` on the app target's Debug config, the
 `INJECTION_PROJECT_ROOT: $(SRCROOT)` env var on the `Cenit` run scheme, and the bundle load in
-`CenitApp.swift`. A view opts in with `@ObserveInjection` + `.enableInjection()` (see `EntrenarView`).
+`CenitApp.init()` (`HotReload.loadBundleIfAvailable()`). A view opts in with `@ObserveInjection` +
+`.enableInjection()` (see `EntrenarView`).
+
+**FER-398:** those two hooks used to come from the `Inject` package. It behaved correctly in Release
+(everything inert) but still shipped inside the App Store binary — a third-party, development-only
+dependency in the `.ipa`. They now live in **`Cenit/System/HotReload.swift`**, `#if DEBUG` on both
+halves: in Release there is no observer, no notification and no `AnyView`, just the same two names as
+no-ops. Nothing changed at the call sites, and the bundle loader tries InjectionNext *and*
+InjectionIII, `iOSInjection.bundle` and `maciOSInjection.bundle`.
 
 InjectionNext has three modes and the *first* one wins: Xcode launched from the app (it reads Xcode's
 own compile commands), compiler-proxy, then build-log parsing. The scheme env var is what makes it also
 watch the filesystem, so edits made **outside** Xcode's editor — an agent, vim — trigger a reload too.
 Without it, only ⌘S inside Xcode counts.
 
-**Put the Inject hooks on the outermost non-`private` View of the file.** This is the one that will waste
+**Put the hot-reload hooks on the outermost non-`private` View of the file.** This is the one that will waste
 your afternoon. Swift emits the members of a `private` type as *local* symbols, and `-interposable` can
 only interpose *global* ones — so a `private` view's `body` is unreachable. Injection still reports
 `✅ Hot reload complete - Rebound N symbols` and the screen simply does not change. Measured on

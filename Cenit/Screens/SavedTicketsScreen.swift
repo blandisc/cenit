@@ -2,7 +2,6 @@
 import SwiftUI
 import CenitDesign
 import StrandTraining
-import Inject   // recarga en caliente (dev-only, inerte en Release)
 
 // SavedTicketsScreen.swift — «Tickets guardados»: grid of thermal mini-receipts for completed
 // strength sessions. Read-only — never edits or deletes. Pushed from WorkoutHistoryScreen via

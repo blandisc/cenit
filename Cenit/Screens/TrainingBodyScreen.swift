@@ -3,7 +3,6 @@ import SwiftUI
 import CenitDesign
 import StrandAnalytics
 import StrandTraining
-import Inject   // recarga en caliente (dev-only, inerte en Release)
 
 // MARK: - «Tu cuerpo» (Cuerpo) — FER-350 · rediseño «la respuesta lidera» · FER-91 · E10 fusión
 //

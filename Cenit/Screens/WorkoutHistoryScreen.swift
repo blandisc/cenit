@@ -4,7 +4,6 @@ import CenitDesign
 import StrandAnalytics
 import StrandTraining
 import CenitStore   // WorkoutRow — the journal join that carries zones / max HR (FER-952)
-import Inject   // recarga en caliente (dev-only, inerte en Release)
 
 // «Mis entrenamientos» (FER-504): sesiones de fuerza completadas en Liquid Glass · El Eje (tinta en
 // pesos/series; color solo en el dato fisiológico). Solo lectura; vive en el stack de Entrenar.

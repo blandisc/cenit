@@ -1,7 +1,6 @@
 #if os(iOS)
 import SwiftUI
 import CenitDesign
-import Inject   // recarga en caliente (dev-only, inerte en Release)
 
 // MARK: - «Lo que Cénit sabe hacer» (decisión Fer 2026-07-16)
 //

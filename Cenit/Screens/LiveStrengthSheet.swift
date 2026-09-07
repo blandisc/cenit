@@ -6,7 +6,6 @@ import StrandTraining
 import StrandAnalytics
 import CenitStore
 import TipKit
-import Inject   // recarga en caliente (dev-only, inerte en Release)
 
 // 2026-07-19: `plateNumber` y `massString` vivían aquí como copias privadas y se habían desfasado de
 // `StrengthDisplay`, que es lo que usa el editor: en imperial esta copia conservaba el decimal, así que

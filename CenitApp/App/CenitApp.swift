@@ -25,12 +25,12 @@ struct CenitApp: App {
         AppGroup.warnIfGroupUnprovisioned()
         configureInstrumentoControlAppearance()   // FER-408: warm the native segmented control once at launch
         EntrenarTips.configure()   // ola 1 · E12: TipKit datastore, 100% on-device (sin red)
-        // Inject/InjectionNext: carga el puente de recarga en caliente SOLO en Debug (inerte en Release).
-        // Con InjectionNext.app abierta (y Xcode lanzado DESDE ella) corriendo en el Simulador, intercambia
-        // el código de las pantallas al guardar, sin recompilar. InjectionNext es el sucesor de InjectionIII,
-        // hecho para Xcode 16.3+/26.x (el clásico ya no logra el redibujo en toolchains nuevos).
+        // Recarga en caliente SOLO en Debug (FER-398: el puente vive en `Cenit/System/HotReload.swift`,
+        // ya no en el paquete `Inject`, que viajaba dentro del binario de la tienda). Con
+        // InjectionNext.app abierta (y Xcode lanzado DESDE ella) sobre el Simulador, intercambia el
+        // código de las pantallas al guardar, sin recompilar.
         #if DEBUG
-        Bundle(path: "/Applications/InjectionNext.app/Contents/Resources/iOSInjection.bundle")?.load()
+        HotReload.loadBundleIfAvailable()
         #endif
         // Warm the bundled Space Grotesk registration OFF the main thread (perf): otherwise the first
         // Grotesk token during TodayView's first render pays the one-time CoreText registration on the

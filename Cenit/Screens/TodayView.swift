@@ -4,7 +4,6 @@ import StrandAnalytics
 import StrandTraining
 import CenitStore
 import Foundation
-import Inject   // recarga en caliente (dev-only, inerte en Release)
 
 
 // MARK: - Hoy (FER-709 · FER-1045 · FER-41)
