@@ -290,7 +290,7 @@ struct PositionedTooltip: View {
 }
 
 #if DEBUG
-#Preview("ChartTooltip") {
+#Preview("ChartTooltip · las tres lecturas") {
     let lecturas: [ChartTooltip] = [
         ChartTooltip(value: "Recovery 88", label: "Tue 3 Jun", accent: StrandPalette.recoveryColor(88)),
         ChartTooltip(value: "62 ms", label: "HRV · sample 14"),

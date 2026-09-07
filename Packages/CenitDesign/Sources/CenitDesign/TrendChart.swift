@@ -177,6 +177,8 @@ private enum MedidasTendencia {
     /// Los dos quiebres que eligen la plantilla de fecha del eje: intradía y ~10 meses.
     static let tramoIntradia: TimeInterval = 36 * 3600
     static let tramoLargo: TimeInterval = 300 * 86_400
+    /// Aire entre las piezas del muestrario del `#Preview`.
+    static let aireDelMuestrario: CGFloat = 12
 }
 
 public struct TrendChart: View {
@@ -296,11 +298,14 @@ public struct TrendChart: View {
     // MARK: Formato
 
     /// Un solo `DateFormatter` para todas las gráficas: construirlo es caro y el resultado no cambia.
-    private static let formatoDiaCorto: DateFormatter = {
+    private static let formatoDiaCorto = Self.formateadorDeDia("EEE d MMM")
+
+    /// Un `DateFormatter` con su plantilla ya puesta. Con nombre porque el eje arma el suyo aparte.
+    private static func formateadorDeDia(_ plantilla: String) -> DateFormatter {
         let formateador = DateFormatter()
-        formateador.dateFormat = "EEE d MMM"
+        formateador.dateFormat = plantilla
         return formateador
-    }()
+    }
 
     /// Formato por omisión del globo y del eje («EEE d MMM»).
     public static func defaultDateString(_ date: Date) -> String { formatoDiaCorto.string(from: date) }
@@ -688,8 +693,9 @@ public extension View {
 
 // MARK: - Puente de la rampa a sus paradas
 
-extension Gradient {
+fileprivate extension Gradient {
     /// Las paradas en orden, que es lo que el muestreador de `StrandPalette` sabe interpolar.
+    /// Vive aquí y no en el módulo: solo esta gráfica necesita el puente.
     func toStops() -> [Gradient.Stop] { stops }
 }
 
@@ -718,7 +724,7 @@ private struct TarjetaDeTendencia<Nota: View, Grafica: View>: View {
     @ViewBuilder var grafica: () -> Grafica
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: MedidasTendencia.aireDelMuestrario) {
             Text(rotulo).strandOverline()
             nota()
             grafica()

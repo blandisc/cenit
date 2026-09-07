@@ -39,6 +39,8 @@ private enum MedidasFranja {
     static let celdaMinima: CGFloat = 8
     static let celdaMaxima: CGFloat = 22
     static let celdaSinAncho: CGFloat = 14
+    /// Aire entre las piezas del muestrario del `#Preview`.
+    static let aireDelMuestrario: CGFloat = 12
 }
 
 struct YearHeatStrip: View {
@@ -432,8 +434,8 @@ private func anoDeMuestra(_ total: Int = 365) -> [RecoveryDay] {
     }
 }
 
-#Preview("YearHeatStrip") {
-    VStack(alignment: .leading, spacing: 12) {
+#Preview("YearHeatStrip · un año") {
+    VStack(alignment: .leading, spacing: MedidasFranja.aireDelMuestrario) {
         Text(verbatim: "Recuperación — el último año").strandOverline()
         Text(verbatim: "Pasa el cursor por un día: aro, fecha, puntaje y estado en palabras.")
             .font(StrandFont.footnote).foregroundStyle(InstrumentoTheme.base.inkTertiary)

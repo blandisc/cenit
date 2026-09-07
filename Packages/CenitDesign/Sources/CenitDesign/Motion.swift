@@ -172,7 +172,9 @@ private struct RitmoDemostrado: View {
 private struct MuestrarioDeRitmo: View {
     @State private var disparo = false
 
-    var body: some View {
+    var body: some View { filas }
+
+    private var filas: some View {
         VStack(alignment: .leading, spacing: 22) {
             RitmoDemostrado(rotulo: "drawIn · \(StrandMotion.durationSlow)s", tinta: StrandPalette.accent,
                             ritmo: StrandMotion.drawIn, enBucle: false, disparo: disparo)

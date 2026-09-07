@@ -295,24 +295,34 @@ private func pulsoDeMuestra(_ muestras: Int = 48) -> [Double] {
     }
 }
 
+/// Las medidas del muestrario: solo se usan en el `#Preview` de abajo.
+private enum MedidasDelMuestrario {
+    static let lineaEnFicha = CGSize(width: 160, height: 44)
+    static let numeral: CGFloat = 34
+    static let aireEnFicha: CGFloat = 8
+}
+
 /// Un numeral con su unidad y, pegada a la derecha, la línea comprimida: el caso de una ficha real.
 private struct FichaConLinea: View {
     let pulso: [Double]
 
     var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 8) {
-            Text(verbatim: "64").font(StrandFont.number(34)).foregroundStyle(InstrumentoTheme.base.ink)
-            Text(verbatim: "bpm").font(StrandFont.caption).foregroundStyle(InstrumentoTheme.base.inkTertiary)
+        HStack(alignment: .firstTextBaseline, spacing: MedidasDelMuestrario.aireEnFicha) {
+            Text(verbatim: "64").font(StrandFont.number(MedidasDelMuestrario.numeral))
+                .foregroundStyle(InstrumentoTheme.base.ink)
+            Text(verbatim: "bpm").font(StrandFont.caption)
+                .foregroundStyle(InstrumentoTheme.base.inkTertiary)
             Spacer(minLength: 0)
             Sparkline(values: pulso,
                       valueFormat: { "\(Int($0.rounded())) bpm" },
                       indexLabel: { "\($0)s ago" })
-                .frame(width: 160, height: 44)
+                .frame(width: MedidasDelMuestrario.lineaEnFicha.width,
+                       height: MedidasDelMuestrario.lineaEnFicha.height)
         }
     }
 }
 
-#Preview("Sparkline") {
+#Preview("Sparkline · pulso en vivo") {
     let pulso = pulsoDeMuestra()
     return VStack(alignment: .leading, spacing: 20) {
         FichaConLinea(pulso: pulso)
