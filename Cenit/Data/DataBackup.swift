@@ -299,9 +299,11 @@ final class AutoBackup: ObservableObject {
         let dest = folder.appendingPathComponent(fileName)
         let prev = folder.appendingPathComponent(fileName + ".prev")
         let legacy = folder.appendingPathComponent(legacyFileName)
+        let legacyPrev = folder.appendingPathComponent(legacyFileName + ".prev")
         // Offload the blocking file IO so a multi-MB copy doesn't hitch the UI.
         let error = await Task.detached {
-            AutoBackup.writeCopy(db: dbURL, to: dest, keepingPrev: prev, adopting: legacy)
+            AutoBackup.writeCopy(db: dbURL, to: dest, keepingPrev: prev,
+                                 adopting: legacy, adoptingPrev: legacyPrev)
         }.value
         if let error {
             lastError = String(localized: "Backup couldn't be saved: \(error.localizedDescription)")
@@ -337,8 +339,15 @@ final class AutoBackup: ObservableObject {
     /// yet, it is renamed into `dest` first, so this run rotates the SAME lineage instead of leaving
     /// a stale `NOOP-backup.sqlite` sitting next to a new file (two backups, one of them frozen and
     /// indistinguishable from the live one when the user picks a file to restore).
-    private nonisolated static func writeCopy(db: URL, to dest: URL, keepingPrev prev: URL,
-                                              adopting legacy: URL) -> Error? {
+    ///
+    /// `adoptingPrev` is that file's rollback copy, adopted the same way and for the same reason —
+    /// otherwise `NOOP-backup.sqlite.prev` would sit in the folder forever, a third SQLite file the
+    /// user has no way to tell apart from the live one in the restore picker. It is adopted BEFORE
+    /// the rotation, so a fresher rollback copy still wins the slot on this run.
+    /// `internal`, no `private`: `AutoBackupAdoptionTests` ejerce la adopción y la rotación sobre
+    /// archivos de un directorio temporal, sin iCloud ni carpeta elegida por el usuario.
+    nonisolated static func writeCopy(db: URL, to dest: URL, keepingPrev prev: URL,
+                                      adopting legacy: URL, adoptingPrev legacyPrev: URL) -> Error? {
         let coordinator = NSFileCoordinator()
         var coordError: NSError?
         var writeError: Error?
@@ -347,6 +356,9 @@ final class AutoBackup: ObservableObject {
             do {
                 if !fm.fileExists(atPath: target.path), fm.fileExists(atPath: legacy.path) {
                     try? fm.moveItem(at: legacy, to: target)   // best-effort: a failure just skips the rotation
+                }
+                if !fm.fileExists(atPath: prev.path), fm.fileExists(atPath: legacyPrev.path) {
+                    try? fm.moveItem(at: legacyPrev, to: prev)
                 }
                 if fm.fileExists(atPath: target.path) {
                     try? fm.removeItem(at: prev)

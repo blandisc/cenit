@@ -148,6 +148,28 @@ final class PrefMigrationTests: XCTestCase {
                        "and a same-named key in the wrong suite is left alone")
     }
 
+    /// FER-398 · la excepción a la migración: la descarga de animaciones perdió su control en Ajustes,
+    /// así que copiar su preferencia dejaría a quien la tenía ENCENDIDA con la red prendida y sin
+    /// interruptor. Estas dos claves salieron del enum a propósito y la migración las BORRA — la app
+    /// tiene que quedar en cero red, no en "red encendida sin apagador".
+    func testRetiredMediaKeysAreDeletedNotMigrated() {
+        standard.set(true, forKey: "noop.exerciseMediaEnabled")
+        standard.set(["bench-press"], forKey: "noop.exerciseMediaMissedIds")
+
+        migrate()
+
+        XCTAssertNil(standard.object(forKey: "cenit.exerciseMediaEnabled"),
+                     "la preferencia retirada no debe renacer bajo el nombre nuevo")
+        XCTAssertNil(standard.object(forKey: "cenit.exerciseMediaMissedIds"),
+                     "los ids fallidos tampoco viajan al nombre nuevo")
+        XCTAssertNil(standard.object(forKey: "noop.exerciseMediaEnabled"),
+                     "y la clave heredada se borra, no se queda esperando")
+        XCTAssertNil(standard.object(forKey: "noop.exerciseMediaMissedIds"))
+
+        XCTAssertFalse(PrefKey.allCases.contains { $0.rawValue.contains("exerciseMedia") },
+                       "si una de estas claves vuelve al enum, la migración volvería a copiarla")
+    }
+
     /// A fresh install has no legacy keys at all: the migration must not invent any.
     func testFreshInstallWritesNothing() {
         migrate()

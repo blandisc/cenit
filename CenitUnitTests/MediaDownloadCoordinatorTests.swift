@@ -14,6 +14,16 @@ final class MediaDownloadCoordinatorTests: XCTestCase {
         return suite
     }
 
+    /// FER-398: `isEnabled` ya no lee la preferencia — está forzado a `false` hasta que FER-919
+    /// reviva la feature. Aunque la clave quede escrita (una instalación vieja, un respaldo restaurado),
+    /// el coordinador sigue apagado: es lo que sostiene "cero red" sin un control en Ajustes.
+    func testEnabledIsForcedOffEvenWithThePreferenceOn() {
+        let suite = UserDefaults(suiteName: "MediaDownloadCoordinatorTests.\(UUID().uuidString)")!
+        suite.set(true, forKey: MediaDownloadCoordinator.enabledKey)
+        XCTAssertFalse(MediaDownloadCoordinator(userDefaults: suite).isEnabled,
+                       "la preferencia encendida no debe poder encender la descarga")
+    }
+
     func testDisabledBulkDownloadIsANoOp() async {
         let coordinator = MediaDownloadCoordinator(userDefaults: freshDefaults())
         await coordinator.bulkDownloadThumbsIfNeeded()

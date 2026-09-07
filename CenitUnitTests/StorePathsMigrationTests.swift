@@ -125,6 +125,66 @@ final class StorePathsMigrationTests: XCTestCase {
                        "the legacy container is left exactly as it was")
     }
 
+    /// Ronda 2 · D8. `Cenit/` existe pero VACÍA (una primera corrida interrumpida, o un helper de ruta
+    /// que la creó) y `OpenWhoop/` tiene los datos de verdad. El rename atómico no puede correr —el
+    /// destino está ocupado— y antes de esto la migración devolvía `.nothingToDo`: la app abría en
+    /// blanco con el historial completo del usuario intacto y invisible a un directorio de distancia.
+    func testMergesIntoAnExistingButEmptyContainer() throws {
+        try fm.createDirectory(at: newDir, withIntermediateDirectories: true)
+        try write("OpenWhoop/whoop.sqlite", "DB")
+        try write("OpenWhoop/whoop.sqlite-wal", "WAL")
+        try write("OpenWhoop/whoop.sqlite-shm", "SHM")
+        try write("OpenWhoop/cenit-replaced-2026-09-06-101010.sqlite", "ROLLBACK")
+        try write("OpenWhoop/MediaCache/media/Barbell_Bench_Press.gif", "GIF")
+
+        let outcome = StorePaths.migrateLegacyContainerIfNeeded(appSupport: appSupport)
+
+        XCTAssertEqual(outcome, .mergedIntoExisting)
+        XCTAssertEqual(try read(newDir.appendingPathComponent("cenit.sqlite")), "DB",
+                       "el historial tiene que quedar donde la app lo abre")
+        XCTAssertEqual(try read(newDir.appendingPathComponent("cenit.sqlite-wal")), "WAL")
+        XCTAssertEqual(try read(newDir.appendingPathComponent("cenit.sqlite-shm")), "SHM")
+        XCTAssertTrue(exists("Cenit/cenit-replaced-2026-09-06-101010.sqlite"),
+                      "el sidecar de rollback viaja igual que en el rename de carpeta")
+        XCTAssertEqual(try read(newDir.appendingPathComponent("MediaCache/media/Barbell_Bench_Press.gif")), "GIF")
+        XCTAssertFalse(exists("Cenit/whoop.sqlite"), "el nombre viejo no sobrevive")
+        XCTAssertFalse(fm.fileExists(atPath: legacyDir.path),
+                       "la cáscara vacía se retira; si no, cada arranque reportaría keptBothNewWins")
+
+        XCTAssertEqual(StorePaths.migrateLegacyContainerIfNeeded(appSupport: appSupport), .alreadyMigrated,
+                       "y el segundo arranque no vuelve a mover nada")
+    }
+
+    /// La mezcla NUNCA pisa: un archivo que ya está en `Cenit/` gana y su tocayo heredado se queda
+    /// para rescate a mano. La base sí falta, así que esa sí entra.
+    func testMergeNeverOverwritesWhatIsAlreadyThere() throws {
+        try write("Cenit/MediaCache/media/Barbell_Bench_Press.gif", "NEW-GIF")
+        try write("OpenWhoop/whoop.sqlite", "DB")
+        try write("OpenWhoop/MediaCache/media/Barbell_Bench_Press.gif", "OLD-GIF")
+
+        XCTAssertEqual(StorePaths.migrateLegacyContainerIfNeeded(appSupport: appSupport), .mergedIntoExisting)
+
+        XCTAssertEqual(try read(newDir.appendingPathComponent("cenit.sqlite")), "DB")
+        XCTAssertEqual(try read(newDir.appendingPathComponent("MediaCache/media/Barbell_Bench_Press.gif")),
+                       "NEW-GIF", "lo que ya estaba manda")
+        XCTAssertEqual(try read(legacyDir.appendingPathComponent("MediaCache/media/Barbell_Bench_Press.gif")),
+                       "OLD-GIF", "y lo que no cupo se queda para rescate, no se borra")
+    }
+
+    /// El `Cenit/` existente ya trae `whoop.sqlite` (una corrida que murió entre el rename de carpeta y
+    /// el del archivo) Y además quedó un `OpenWhoop/`. Manda el reanudado: la base que ya está adentro
+    /// es la más reciente. La heredada de afuera se conserva intacta.
+    func testAnInterruptedRenameWinsOverAStrayLegacyFolder() throws {
+        try write("Cenit/whoop.sqlite", "INSIDE")
+        try write("OpenWhoop/whoop.sqlite", "OUTSIDE")
+
+        XCTAssertEqual(StorePaths.migrateLegacyContainerIfNeeded(appSupport: appSupport), .resumedRenames)
+
+        XCTAssertEqual(try read(newDir.appendingPathComponent("cenit.sqlite")), "INSIDE")
+        XCTAssertEqual(try read(legacyDir.appendingPathComponent("whoop.sqlite")), "OUTSIDE",
+                       "la carpeta heredada sobrante no se toca")
+    }
+
     /// The crash that the sidecar-first / main-file-last order exists for: the process died after the
     /// `-wal` rename and before the main file's. The next launch has to finish the job, not stall.
     func testResumesAfterACrashBetweenTheSidecarAndTheMainFile() throws {

@@ -40,9 +40,13 @@ enum PrefKey: String, CaseIterable {
 
     // Feature state.
     case stressCalendarIDs = "cenit.stress.calendarIDs"
-    case exerciseMediaEnabled = "cenit.exerciseMediaEnabled"
-    case exerciseMediaMissedIds = "cenit.exerciseMediaMissedIds"
     case mirrorStrengthToWatch = "cenit.mirrorStrengthToWatch"
+
+    // NO están aquí, a propósito: `exerciseMediaEnabled` / `exerciseMediaMissedIds`. La descarga de
+    // animaciones se retiró de Ajustes (FER-398), así que migrar su valor dejaría una instalación que
+    // la tenía ENCENDIDA con la red prendida y sin ningún control para apagarla. `PrefMigration`
+    // BORRA sus claves heredadas en vez de copiarlas, y `MediaDownloadCoordinator.isEnabled` está
+    // forzado a `false` hasta que FER-919 reviva la feature con otra fuente.
 
     /// Shortcuts' action inbox — written by the App Intents extension, drained by the app, so it
     /// lives in the shared suite rather than the app's own.
@@ -84,6 +88,16 @@ enum PrefMigration {
                 defaults.set(legacyValue, forKey: key.rawValue)
             }
             defaults.removeObject(forKey: key.legacyKey)
+        }
+        // Retiradas del enum (FER-398): la descarga de animaciones ya no tiene control en Ajustes, así
+        // que su preferencia no se migra — se BORRA. Copiarla dejaría un `true` heredado encendiendo
+        // red que el usuario no podría apagar; borrarla deja la app en cero red por construcción.
+        // (Sin `cenit.*` equivalente: no hay a dónde copiarlo.)
+        // Se borran los DOS nombres: el heredado y el `cenit.*` que una compilación intermedia de
+        // FER-398 alcanzó a escribir. Así «migrado» significa, para esta feature, «no queda rastro».
+        for retired in ["exerciseMediaEnabled", "exerciseMediaMissedIds"] {
+            standard.removeObject(forKey: "noop." + retired)
+            standard.removeObject(forKey: "cenit." + retired)
         }
     }
 }

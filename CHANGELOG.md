@@ -35,9 +35,12 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
   que no viaja con la app.
 - **Tocar la Live Activity de descanso te lleva a tu sesión.** Antes solo abría Cénit donde lo
   hubieras dejado.
-- Se retiró de Ajustes la descarga de animaciones de ejercicio: apuntaba a un servicio que ya no
-  sirve el catálogo con el que se armó, así que encendía algo que no funcionaba. Vuelve más adelante
-  con arte propio.
+- **Cénit ya no hace ninguna conexión a internet.** Se retiró de Ajustes la descarga de animaciones
+  de ejercicio: apuntaba a un servicio que ya no sirve el catálogo con el que se armó, así que
+  encendía algo que no funcionaba. Era la única función que usaba la red, y queda apagada de raíz
+  —sin control, sin preferencia guardada y sin código que la alcance—, así que ahora la app está
+  offline por completo. Si tenías animaciones descargadas, siguen viéndose. Vuelve más adelante con
+  arte propio.
 
 ### Los planes y programas que importas ahora se llaman `cenit.*` (FER-382)
 - El archivo que armas con tu LLM (rutina o plan de comida) pasa a identificarse como

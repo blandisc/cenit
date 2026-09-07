@@ -14,8 +14,14 @@ import os
 /// file's name is the mark of "done": a crash halfway leaves `whoop.sqlite` in place and the next
 /// launch simply resumes.
 ///
-/// Nothing is ever deleted. If the move fails, the old folder stays exactly as it was and the app
-/// opens on an empty `Cenit/` — the user's history is recoverable by hand rather than gone.
+/// When `Cenit/` already exists but holds no database — an interrupted first run, or a folder a path
+/// helper created — the rename has nowhere to land, so the contents are **merged** into it instead,
+/// entry by entry and main file last. Without that step the app would open empty on top of a full
+/// `OpenWhoop/`: the history intact on disk and invisible.
+///
+/// Nothing is ever deleted (beyond the empty legacy shell a completed merge leaves behind). If the
+/// move fails, the old folder stays exactly as it was and the app opens on an empty `Cenit/` — the
+/// user's history is recoverable by hand rather than gone.
 enum StorePaths {
 
     // MARK: - Names
@@ -78,6 +84,10 @@ enum StorePaths {
         /// BOTH containers exist and the new one already has its DB. The legacy folder is left
         /// exactly as it is: the live database wins, and the old one stays for manual rescue.
         case keptBothNewWins
+        /// `Cenit/` already existed but held NO database (an interrupted first run, a folder created
+        /// by a path helper), while the legacy container still held the real data. The contents were
+        /// merged into the existing folder file by file instead of the app opening empty.
+        case mergedIntoExisting
     }
 
     /// Move the NOOP-era container onto the Cénit names, once. Idempotent and safe to call on every
@@ -114,6 +124,21 @@ enum StorePaths {
             }
         }
 
+        // ②b `Cenit/` ALREADY EXISTS but holds no database of either name, and the legacy container
+        //     still has the real data. The atomic rename above cannot run (the destination is taken),
+        //     and without this the app would open empty on top of a full `OpenWhoop/` — the user's
+        //     history intact on disk and invisible. So merge the CONTENTS, file by file, with the same
+        //     discipline as ③: everything else first, the main database LAST, so its arrival is the
+        //     "done" mark and an interrupted run resumes on the next launch. A destination that
+        //     already exists is never overwritten — it is skipped and left for manual rescue.
+        if !moved,
+           fm.fileExists(atPath: legacyContainer.path),
+           fm.fileExists(atPath: container.path),
+           !fm.fileExists(atPath: legacyDB.path),
+           mergeLegacyContents(from: legacyContainer, into: container, fm: fm) {
+            return .mergedIntoExisting
+        }
+
         // ③ Inside the container, rename the file itself. SIDECARS FIRST, main file LAST — the main
         //    file's name is the "done" mark, so an interrupted run resumes here on the next launch.
         guard fm.fileExists(atPath: legacyDB.path) else {
@@ -133,5 +158,52 @@ enum StorePaths {
             return .nothingToDo
         }
         return moved ? .movedFolder : .resumedRenames
+    }
+
+    /// Move every entry of the legacy container into an existing `Cenit/`, renaming the database and
+    /// its sidecars on the way. Returns whether the legacy database actually landed.
+    ///
+    /// Order is the whole point: the main database goes LAST, after its sidecars and everything else,
+    /// so a crash mid-merge leaves `whoop.sqlite` where it was and the next launch redoes the rest
+    /// harmlessly (each already-moved entry is skipped because its destination exists).
+    private static func mergeLegacyContents(from legacyContainer: URL, into container: URL,
+                                            fm: FileManager) -> Bool {
+        guard let entries = try? fm.contentsOfDirectory(at: legacyContainer,
+                                                        includingPropertiesForKeys: nil) else {
+            log.error("Could not read \(legacyFolderName, privacy: .public)/ to merge it; left untouched.")
+            return false
+        }
+        // A partition, not a `sorted` — the main file goes last and everything else keeps the order
+        // the filesystem gave. (`sorted` with a "is it the DB" predicate is not a strict weak
+        // ordering, so it is free to interleave.)
+        let ordered = entries.filter { $0.lastPathComponent != legacyDatabaseFileName }
+            + entries.filter { $0.lastPathComponent == legacyDatabaseFileName }
+        var landedDB = false
+        for from in ordered {
+            let name = from.lastPathComponent
+            // `whoop.sqlite`, `whoop.sqlite-wal`, `whoop.sqlite-shm` → the Cénit names; anything else
+            // (MediaCache/, a restore sidecar) keeps its own name.
+            let destName = name.hasPrefix(legacyDatabaseFileName)
+                ? databaseFileName + name.dropFirst(legacyDatabaseFileName.count)
+                : name
+            let to = container.appendingPathComponent(destName)
+            guard !fm.fileExists(atPath: to.path) else {
+                log.notice("Merge skipped \(destName, privacy: .public): already present in \(folderName, privacy: .public)/.")
+                continue
+            }
+            do {
+                try fm.moveItem(at: from, to: to)
+                if name == legacyDatabaseFileName { landedDB = true }
+            } catch {
+                log.error("Could not merge \(name, privacy: .public): \(error.localizedDescription, privacy: .public). Left in place.")
+            }
+        }
+        // Only the now-empty shell is removed — never data. Without this, every later launch would
+        // report `keptBothNewWins` over a folder with nothing in it.
+        if let left = try? fm.contentsOfDirectory(at: legacyContainer, includingPropertiesForKeys: nil),
+           left.isEmpty {
+            try? fm.removeItem(at: legacyContainer)
+        }
+        return landedDB
     }
 }

@@ -122,10 +122,9 @@ struct CenitApp: App {
                 .environmentObject(autoBackup)
                 .environmentObject(tabRouter)
                 .environmentObject(mediaCoordinator)
-                // Reanudar la descarga de media al abrir la app (FER-800): si el toggle opt-in está
-                // ON y quedó a medias (background/kill/red), la retoma sola. Guarda internamente en
-                // `isEnabled` → con el toggle OFF (default) es un no-op sin tocar red ni disco.
-                .task { await mediaCoordinator.bulkDownloadThumbsIfNeeded() }
+                // FER-398: se retiró el `.task` que reanudaba la descarga de media al abrir (FER-800).
+                // Sin tarjeta en Ajustes no hay forma de apagarla, así que el arranque ya no la llama
+                // en absoluto — una barrera más, además de `isEnabled == false`. FER-919 la repone.
                 // FER-95 · E14 — «Empezar» tocado en el widget con la app CERRADA: `.onChange(of:
                 // scenePhase)` abajo no ve una transición de fase en un arranque en frío (llega
                 // directo en `.active`), así que ese drain solo cubre reanudar desde segundo plano.
