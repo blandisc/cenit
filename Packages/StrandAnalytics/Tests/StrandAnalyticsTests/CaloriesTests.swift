@@ -63,6 +63,39 @@ final class CaloriesTests: XCTestCase {
         XCTAssertEqual(unknown, x, accuracy: 1e-12)
     }
 
+    // MARK: - What the equations do when an input is missing
+
+    /// A profile of zeroes must not price a body that weighs nothing. Weight, height and age each
+    /// stand in at 70 kg / 170 cm / 30 years, so neither equation can answer with its intercept alone.
+    ///
+    /// Derivation, male set, 120 bpm, gate cleared (rest 60, max 190 → gate 60 + 0.30 × 130 = 99):
+    ///   Keytel = 0.6309×120 + 0.1988×70 + 0.2017×30 − 55.0969 = 40.5781 kJ/min
+    ///          → ÷ 251.04 = 0.161640 kcal/s → × 600 s = 96.98 kcal.
+    /// Without the stand-in body the same call answers 49.26 kcal — the heart-rate term and the
+    /// intercept, and nothing else.
+    func testAnUnfilledProfileStandsInASeventyKilogramBodyOfOneSeventyAtThirty() {
+        let unfilled = UserProfile(weightKg: 0, heightCm: 0, age: 0, sex: "male")
+        XCTAssertEqual(Calories.estimateBoutCalories(series(600, bpm: 120), profile: unfilled,
+                                                     hrmax: 190, restingHR: 60).0,
+                       96.984, accuracy: 0.01)
+        // The basal rate stands in the same body: 88.362 + 13.397×70 + 4.799×170 − 5.677×30.
+        XCTAssertEqual(Calories.restingKcalPerDay(unfilled), 1671.672, accuracy: 0.01)
+    }
+
+    /// An unknown maximum falls back to TANAKA (208 − 0.7 × age), not to «220 − age» — at 30 that is
+    /// 187, not 190. The difference is visible because the pulse entering Keytel is CLAMPED to the
+    /// maximum first, so a session above it is priced at whichever ceiling was chosen.
+    func testAnUnknownMaximumFallsBackToTanaka() {
+        let hr = series(600, bpm: 220)
+        let auto = Calories.estimateBoutCalories(hr, profile: man, hrmax: nil, restingHR: 60).0
+        let tanaka = Calories.estimateBoutCalories(hr, profile: man, hrmax: 187, restingHR: 60).0
+        let twoTwentyMinusAge = Calories.estimateBoutCalories(hr, profile: man, hrmax: 190,
+                                                              restingHR: 60).0
+        XCTAssertEqual(auto, tanaka, accuracy: 1e-12)
+        XCTAssertNotEqual(auto, twoTwentyMinusAge, accuracy: 1.0,
+                          "«220 − age» would price the same session 4.5 kcal higher")
+    }
+
     // MARK: - Strength without a pulse (Ainsworth 2011)
 
     func testMETRouteIsMETTimesMassTimesHours() {

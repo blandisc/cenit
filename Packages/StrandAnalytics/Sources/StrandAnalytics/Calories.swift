@@ -103,8 +103,13 @@ public enum Calories {
     /// RECALIBRATABLE; the criterion is simply «above any plausible session». It exists so a corrupt
     /// end stamp produces a large-but-bounded number instead of an absurd one.
     private static let maxStrengthSeconds: Double = 6 * 3_600
-    /// Body mass assumed when none is known.
+    /// Body mass, height and age assumed when the profile does not carry them.
+    ///
+    /// A BACKSTOP, not a routine path: the app's own profile starts filled in at 30 years / 75 kg /
+    /// 178 cm, so nothing on screen can reach these today.
     private static let fallbackWeightKg: Double = 70.0
+    private static let fallbackHeightCm: Double = 170.0
+    private static let fallbackAge: Double = 30.0
 
     // MARK: - Public API
 
@@ -127,7 +132,7 @@ public enum Calories {
     /// Duration is clamped to `[0, maxStrengthSeconds]`; a non-positive mass falls back to 70 kg.
     public static func estimateStrengthCalories(durationSeconds: Double, profile: UserProfile) -> Double {
         let seconds = min(max(0, durationSeconds), maxStrengthSeconds)
-        let kg = profile.weightKg > 0 ? profile.weightKg : fallbackWeightKg
+        let kg = filled(profile).weightKg
         return resistanceTrainingMET * kg * (seconds / 3_600)
     }
 
@@ -149,17 +154,30 @@ public enum Calories {
 
     // MARK: - Rates
 
+    /// The profile with every unfilled field replaced by its fallback.
+    ///
+    /// Both equations are linear in weight, height and age, so a profile of zeroes does not fail —
+    /// it quietly answers the INTERCEPT ALONE, and that number is stored and mirrored to Apple
+    /// Health as if it meant something. Standing in a plausible body is the honest floor.
+    static func filled(_ profile: UserProfile) -> UserProfile {
+        UserProfile(weightKg: profile.weightKg > 0 ? profile.weightKg : fallbackWeightKg,
+                    heightCm: profile.heightCm > 0 ? profile.heightCm : fallbackHeightCm,
+                    age: profile.age > 0 ? profile.age : fallbackAge,
+                    sex: profile.sex)
+    }
+
     /// Basal metabolic rate in kcal/day — Roza & Shizgal (1984).
     ///
     /// The height coefficients are stated per CENTIMETRE, exactly as published, and applied to
     /// centimetres. Carrying them scaled and applying them to metres is arithmetically identical and
     /// an invitation to a unit error.
     static func restingKcalPerDay(_ profile: UserProfile) -> Double {
-        let c = coefficients(for: profile.sex)
+        let p = filled(profile)
+        let c = coefficients(for: p.sex)
         let kcal = c.bmrIntercept
-            + c.bmrWeight * profile.weightKg
-            + c.bmrHeight * profile.heightCm
-            + c.bmrAge * profile.age
+            + c.bmrWeight * p.weightKg
+            + c.bmrHeight * p.heightCm
+            + c.bmrAge * p.age
         return max(0, kcal)
     }
 
@@ -170,10 +188,11 @@ public enum Calories {
 
     /// Active expenditure in kcal per second at a given pulse — Keytel et al. (2005).
     static func activeKcalPerSecond(bpm: Double, profile: UserProfile) -> Double {
-        let c = coefficients(for: profile.sex)
+        let p = filled(profile)
+        let c = coefficients(for: p.sex)
         let kJPerMin = c.eeHR * bpm
-            + c.eeWeight * profile.weightKg
-            + c.eeAge * profile.age
+            + c.eeWeight * p.weightKg
+            + c.eeAge * p.age
             + c.eeIntercept
         return max(0, kJPerMin / kJPerMinutePerKcalPerSecond)
     }
@@ -194,7 +213,7 @@ public enum Calories {
         guard !hrSamples.isEmpty else { return 0 }
         let sorted = hrSamples.sorted { $0.ts < $1.ts }
         let rest = restingHR ?? StrainScorer.defaultRestingHR
-        let maxHR = hrmax ?? StrainScorer.tanakaHRmax(age: profile.age)
+        let maxHR = hrmax ?? StrainScorer.tanakaHRmax(age: filled(profile).age)
         let reserve = max(0, maxHR - rest)
         let gate = rest + activeFraction * reserve
         let restRate = restingKcalPerSecond(profile)

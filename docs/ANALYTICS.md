@@ -469,6 +469,11 @@ A third coefficient set covers an unstated or non-binary sex by averaging the tw
 average is an interpolation of ours, not a published result** — it exists because refusing an estimate,
 or forcing a declaration of biological sex, is the worse product. It is labelled as such in the source.
 
+**Missing inputs stand in, they do not zero.** An unknown maximum heart rate is estimated with **Tanaka
+(2001)** (`208 − 0.7 × age`), not `220 − age`; a profile field that was never filled in is priced as
+**70 kg / 170 cm / 30 years**. Both equations are linear in those fields, so a profile of zeroes would
+otherwise answer its intercept alone — a meaningless figure that still reaches Apple Health as energy.
+
 ### Two integration rules, deliberately different
 
 Both rates are per-second, so summing one per sample is only correct at exactly 1 Hz.
