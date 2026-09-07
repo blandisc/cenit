@@ -351,7 +351,7 @@ hue against the live paper so this 3:1 floor holds at every hour (FER-131 handof
 | `moderate` | `#E8C24B` | — | «moderado» lane fill (FER-708) |
 | `dataSleepDeep` | `#3F3C78` | — | deep-sleep stage fill (FER-708) |
 | `dataSleepLight` | `#8E8BC4` | — | light-sleep stage fill (FER-708) |
-| `originBand` | `#0C8F62` | — | data-origin dot — strap/band (= dataRecovery) (FER-708) |
+| `originBand` | `#0C8F62` | — | data-origin dot — external HR sensor (= dataRecovery) (FER-708) |
 | `originApple` | `#3B6FA0` | — | data-origin dot — Apple Salud (= dataSpO2) (FER-708) |
 | `originComputed` | `#AFAA9D` | — | data-origin dot — computed on-device (= inkMuted) (FER-708) |
 <!-- GENERATED:INSTRUMENTO-COLORS:END -->

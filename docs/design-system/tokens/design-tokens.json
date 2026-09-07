@@ -79,7 +79,7 @@
       "moderate":        { "$value": "#E8C24B", "$description": "«moderado» lane fill (FER-708)" },
       "dataSleepDeep":   { "$value": "#3F3C78", "$description": "deep-sleep stage fill (FER-708)" },
       "dataSleepLight":  { "$value": "#8E8BC4", "$description": "light-sleep stage fill (FER-708)" },
-      "originBand":      { "$value": "#0C8F62", "$description": "data-origin dot — strap/band (= dataRecovery) (FER-708)" },
+      "originBand":      { "$value": "#0C8F62", "$description": "data-origin dot — external HR sensor (= dataRecovery) (FER-708)" },
       "originApple":     { "$value": "#3B6FA0", "$description": "data-origin dot — Apple Salud (= dataSpO2) (FER-708)" },
       "originComputed":  { "$value": "#AFAA9D", "$description": "data-origin dot — computed on-device (= inkMuted) (FER-708)" }
     },
