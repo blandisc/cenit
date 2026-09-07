@@ -54,11 +54,27 @@ built and proven before the surface that will use them exists. Three tiers:
   sleep, zones, the source-fusion layer.
 - **Wired but inert.** Complete, tested, and reachable, but the input that would activate them has no
   producer today.
-- **Library-only.** Complete and tested, with no caller at all. `StrainCeiling` is one such: it
-  computes a load ceiling nothing currently asks for.
+- **Library-only.** Complete and tested, with no caller at all.
 
-An engine having no caller is not dead code by default — several are staged ahead of a surface. But
-it does mean its output has never been seen by a user, which is worth knowing before trusting it.
+The library-only list is worth stating plainly, because an engine's output that no user has ever seen
+deserves more scepticism than one that has been in front of people for months. As of this writing the
+following have **no reference anywhere outside the package**:
+
+| Engine | What it would do |
+| --- | --- |
+| `WorkoutDetector` | Retroactive bout detection from pulse and motion. The whole detection path is unreachable — though the `Calories` code that shares its file **is** live. |
+| `AnalysisScheduler` | Incremental recompute scheduling. |
+| `NocturnalDC` | Nocturnal deceleration capacity by phase-rectified signal averaging. |
+| `StrainCeiling` | A recovery-scaled load ceiling. |
+| `TrainingHabit` | Your habitual session hour. |
+| `StreakMath`, `WhatMovesStrain`'s driver type, `RestReadiness`'s top-level entry | Assorted staged surfaces. |
+
+One type, the baseline status enumeration, is referenced only by tests and never by production code.
+
+Two cautions on reading that list. First, it is derived from a whole-word search for the type name, so
+an engine reached only through type inference can look dead when it is not — most of the element types
+in the fuller audit are reachable through a live container. Second, an engine having no caller is not
+by itself a defect: several are deliberately staged ahead of the surface that will use them.
 
 ---
 
@@ -106,6 +122,14 @@ ought to correct it, and the center would sit wrong for weeks.
 Center and spread have **different half-lives on purpose** — 14 and 21 nights respectively for every
 shipped metric. The spread is meant to move slower than the center. And the spread reads the
 *unclamped* night, so a real shift widens the band instead of hiding inside it.
+
+What is stored as "spread" is a **mean absolute deviation, not a standard deviation**, which is why
+every consumer multiplies by 1.253 before treating it as one. The canonical robust alternative — the
+scaled median absolute deviation (Rousseeuw and Croux 1993) — is named in the source and explicitly
+rejected, because this estimator has to run one night at a time while retaining no history.
+
+The typical range this produces is **not a smallest-worthwhile-change**, and no copy is permitted to
+call it one.
 
 ### Confidence shrinkage
 
@@ -355,7 +379,21 @@ faster and would diverge, so it is deliberately not done.
 
 Synthesizes established sports-science signals into a readiness level and the drivers behind it:
 variability against baseline (Plews 2013, Buchheit 2014), resting-pulse drift, respiratory drift, the
-acute-to-chronic workload ratio over 7 and 28 days, and training monotony (Foster 1998).
+acute-to-chronic workload ratio, and training monotony (Foster 1998).
+
+The ratio uses the **coupled exponentially-weighted form** (Williams et al. 2017) rather than rolling
+averages, with decay constants of 2/(N+1) over 7 and 28 days — 0.25 and about 0.069. The replay walks
+explicit calendar days, and it distinguishes three states that a rolling mean would conflate: a
+missing day holds without advancing coverage, a rest day folds as a genuine zero, and a load day folds
+its impulse. It gates on 14 days of coverage, at least 4 active days in the window, and a positive
+chronic value.
+
+Monotony is the trailing seven **calendar** days, needing at least four loads and a nonzero spread. A
+documented behavior change: it no longer reaches back past a week to gather seven non-missing values.
+
+One nuance worth copying: every signal's displayed figure is the **raw** standardized distance, while
+the one that votes is orientation-adjusted and confidence-shrunk. Showing the shrunk number would
+misreport the measurement; voting on the raw one would over-trust a thin baseline.
 
 The ratio's treatment is the notable part. The 0.8-to-1.3 band comes from Gabbett (2016), but the
 engine treats it as a **load-balance descriptor, not an injury predictor**, and says why: the ratio is
@@ -615,6 +653,59 @@ its own header.
 
 ---
 
+## Where a number becomes a word
+
+Four small modules turn a value into something a screen can say. They are pure math and they carry
+citations, so they belong here rather than in the design system.
+
+**`MetricLevels`** holds the level cuts, and each is labeled by whether it has literature behind it.
+Step thresholds come from Tudor-Locke (2011); sleep duration from Hirshkowitz (2015); resting-pulse
+bands from conventional references plus Cooney (2010); the oxygen-saturation and respiration cuts are
+the conventional clinical conventions. Recovery, effort and stress levels are **explicitly product
+calibration, not peer-reviewed norms**, and are labeled as such.
+
+One naming decision is instructive. The top resting-pulse level is called "high", not "elevated",
+because above 80 is still inside the clinical normal range — a large cohort study puts the central 95%
+at roughly 50-80 and 53-82 by sex. The word was chosen so the interface does not imply a finding.
+
+**`VitalBands`** decides in-range or out-of-range for a passive tile, and it deliberately uses a
+**two-sigma** cut rather than the baseline's own one-sigma typical range, because one sigma would flag
+roughly a third of normal nights. It also applies an absolute-plausibility guard outside the personal
+band, so an impossible value reads as out of range no matter how wide your personal spread is.
+
+**`MetricFormat`** owns one grammar per metric across every surface, and guards non-finite values to a
+dash rather than letting a not-a-number reach a label. **`MetricLevelPhrase`** maps a metric and a
+level to a copy key by pure interpolation, returning nothing for pairs outside the contract rather
+than falling through to a default.
+
+**`ScoreConfidence`** grades a score's own certainty into three tiers. Its header carries the clearest
+statement of the discipline in the package: only one of its thresholds has published physiological
+backing, and every other count and duration cut is labeled a product-calibration knob **so the code
+never disguises a knob as a derived constant.** The backed one is a staging-plausibility guard —
+near-zero deep and REM at high efficiency is physiologically impossible.
+
+---
+
+## What the insight engine deliberately does not probe
+
+Three omissions are documented in the source, and each is a decision rather than an oversight.
+
+**No variability probe for night anomalies.** The available daily figure is an all-day
+standard-deviation construct being compared against a configuration tuned for nocturnal
+beat-difference variability. The probe was **removed rather than masked**, on the stated reasoning
+that masking invites its return.
+
+**No respiration probe yet.** The daily figure is a whole-calendar-day average contaminated by
+breathing exercises, and with the configured noise floor a two-sigma trigger fires at about 1.25
+breaths per minute — inside measurement noise.
+
+**No same-day anomaly.** Only the most recent *closed* day is probed, never today.
+
+The anomaly probe that does exist requires a **trusted** baseline of at least 14 nights, not merely a
+usable one of 4, because at four nights the spread is itself mostly noise.
+
+---
+
 ## Citation index
 
 | Source | What it backs |
@@ -648,8 +739,33 @@ its own header.
 | Ainsworth et al. 2011 | Metabolic equivalents for resistance training |
 | Wilcoxon 1945; Mann and Whitney 1947; Hodges and Lehmann 1963; Lehmann 1975 | The rank-sum test, its effect size and its approximation |
 | Benjamini and Hochberg 1995 | False-discovery-rate control |
-| Lomb 1976; Scargle 1982 | The periodogram used for frequency-domain variability |
+| Lomb 1976; Scargle 1982 | The periodogram used for frequency-domain variability, on the uneven series without resampling |
 | Cooper 1969 | Solar declination for the day-arc dial |
+| Williams et al. 2017 | The coupled exponentially-weighted load ratio and its decay constants |
+| Rousseeuw and Croux 1993 | The robust dispersion alternative that is named and deliberately rejected |
+| Huber 1964 | Bounded influence, behind the winsorization width |
+| Welch 1947; Satterthwaite 1946 | Unequal-variance comparison and its fractional degrees of freedom |
+| Cohen 1988 | The pooled standardized effect size |
+| Student 1908 | The significance of a correlation |
+| Zourdos et al. 2016; Helms et al. 2016 | Effort-anchored progression, and reducing load only when reps were missed |
+| Steele et al. 2017 | Why a habitual high effort-rater must not be frozen out of progression |
+| Epley 1985; Brzycki 1993 | The two one-repetition-maximum estimates |
+| LeSuer 1997; Reynolds 2006 | Their validity range, and the noise floor it implies |
+| Schoenfeld et al. 2017 | The weekly-set lower bound; the upper bound is explicitly a product convention |
+| MacDougall 1995; Damas et al. 2015 | The fatigue decay half-life |
+| Nes et al. 2011; Kurtze 2008 | Fitness age and its activity index |
+| Kaminsky et al. 2015 | The oxygen-uptake reference percentiles |
+| Kodama 2009; Cribb et al. 2023; Paluch 2022; Yin 2017; Cappuccio 2010 | The healthspan model's individual hazard terms |
+| Hillebrand 2013 | The variability hazard shape, with its endpoint scope flagged |
+| Bauer et al. 2006 | Phase-rectified signal averaging, with its clinical cut-offs deliberately not imported |
+| Kräuchi et al. 1999 | Distal warming at sleep onset |
+| Schyvens 2025; Herzig 2018 | The measured limits of consumer sleep staging |
+| Trinder et al. 2001 | The nocturnal pulse fall, and its circadian confound |
+| Tudor-Locke 2011; Cooney 2010; Quer 2020 | The step and resting-pulse level cuts, and the wording they force |
+| Billman 2013 | Why frequency-domain balance is not claimed as autonomic balance |
+| O'Grady 2024 | The measured error that put all-day variability out of the morning vote |
+| Ohayon 2017 | The sleep-efficiency floor |
+| Gonzales et al. 2023 | The instrument gap between seated and nocturnal resting pulse |
 
 ---
 
