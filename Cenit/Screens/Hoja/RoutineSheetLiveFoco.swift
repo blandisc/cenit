@@ -68,6 +68,15 @@ struct HojaFoco: View {
         withAnimation(vivo.reduceMotion ? nil : .snappy) { vivo.focusMode = false }
     }
 
+    /// L7 (FER-434): el botón del gesto — «Salir» visible en las tres fases de Foco (el asa sigue
+    /// cerrando por tap y por arrastre; principio 4 del épico: cada gesto tiene un botón). Botón
+    /// quiet del catálogo, sin estilo propio.
+    private var salirBoton: some View {
+        LiquidGlassButton(String(localized: "Exit"), variant: .quiet) { salir() }
+            .frame(maxWidth: .infinity)
+            .accessibilityHint(Text("Close focus mode"))
+    }
+
     // MARK: - D1 · Captura
 
     @ViewBuilder private var d1Captura: some View {
@@ -78,6 +87,10 @@ struct HojaFoco: View {
                         etiquetaCerrar: String(localized: "Close focus mode"))
             ScrollView {
                 VStack(spacing: .zero) {
+                    // L7 (FER-434): «Para salir» — junto al asa (el asa es lo más alto de Foco: el
+                    // consejo va justo debajo de la cabecera), solo en D1: nunca sobre la cuenta
+                    // regresiva del descanso (D2).
+                    EntrenarConsejoInline(tip: ParaSalirTip(), abajo: LiquidSpace.s400)
                     heroes(run: run, ei: ei)
                     if let ant = vivo.antPlayhead(run) {
                         Text(verbatim: ant)
@@ -103,6 +116,7 @@ struct HojaFoco: View {
                     }
                     prevNextBar(ei: ei)
                         .padding(.top, FocoMetrics.prevNextTop)
+                    salirBoton.padding(.top, FocoMetrics.salirTop)
                 }
                 .padding(.horizontal, LiquidSpace.s600)
                 .padding(.top, FocoMetrics.contentTop)
@@ -378,6 +392,7 @@ struct HojaFoco: View {
                         combustibleToggle.padding(.bottom, FocoMetrics.capsulasTop)
                     }
                     vivo.restBand(esRonda: esRonda, large: true, forzarTiempo: forzarVistaTiempo)
+                    salirBoton.padding(.top, FocoMetrics.salirTop)   // L7: debajo de la banda, nunca encima
                 }
                 .padding(.horizontal, LiquidSpace.s600)
                 .padding(.top, FocoMetrics.contentTop)
@@ -474,6 +489,7 @@ struct HojaFoco: View {
                     .foregroundStyle(LiquidColor.tintaSobreVerde)
                 }
                 .padding(.top, LiquidSpace.s700)
+                salirBoton.padding(.top, FocoMetrics.salirTop)   // L7 (FER-434): mismo aire que en D1/D2
                 Spacer(minLength: 0)
             }
             .padding(.horizontal, LiquidSpace.s600)
@@ -514,5 +530,7 @@ private enum FocoMetrics {
     static let ctaTop = LiquidSpace.s550
     static let prevNextTop = LiquidSpace.s450
     static let doneTitleTop = LiquidSpace.s300
+    /// L7 (FER-434): aire sobre el botón «Salir» en las tres fases de Foco.
+    static let salirTop = LiquidSpace.s450
 }
 #endif

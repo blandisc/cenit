@@ -36,7 +36,7 @@ extension Registro {
             id: .transversalGestos,
             pestana: .transversal,
             requiere: [],
-            piezas: [.ayuda(seccion: .transversal)],
+            piezas: [.ayuda(seccion: .transversal), .gestoConBoton(gesto: "gesto.entrenar.series.gesto", boton: "gesto.entrenar.series.boton"), .gestoConBoton(gesto: "gesto.entrenar.ronda.gesto", boton: "gesto.entrenar.ronda.boton"), .gestoConBoton(gesto: "gesto.entrenar.rutina.gesto", boton: "gesto.entrenar.rutina.boton"), .gestoConBoton(gesto: "gesto.hoy.hipnograma.gesto", boton: "gesto.hoy.hipnograma.boton")],
             desde: "1.85"
         ),
     ]

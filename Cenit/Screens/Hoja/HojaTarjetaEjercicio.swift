@@ -22,6 +22,12 @@ struct HojaTarjetaEjercicio: View {
         EntrenarModulo(tono: .neutro) {
             VStack(alignment: .leading, spacing: .zero) {
                 chead
+                // L7 (FER-434): «Sube solo» — en la tarjeta abierta de un ejercicio de peso×reps sin
+                // progresión (la regla `rutinaSinProgresion` la fija `RoutineSheet`; activar una la
+                // invalida). Solo peso×reps: es el único tipo con «Progresión» en su «···».
+                if type == .weightReps, !item.re.progressionEnabled {
+                    EntrenarConsejoInline(tip: SubeSoloTip(), arriba: LiquidSpace.s150)
+                }
                 if item.re.progressionEnabled {
                     ProgressionChip(re: item.re, system: sheet.system,
                                     derivedIncrementKg: PlateMath.minimumIncrement(
@@ -174,6 +180,14 @@ struct HojaTarjetaEjercicio: View {
             .accessibilityActions {
                 if !sheet.locked, item.re.sets.count > 1 {
                     Button("Delete set") { sheet.deleteSet(idx: idx, setId: setId) }
+                    // L7 (FER-434): el arrastre ≡ no es alcanzable por VoiceOver — el mismo camino
+                    // que el «···» de la tarjeta («Mover serie arriba / abajo»).
+                    if si > 0 {
+                        Button("Move set up") { sheet.moverSerie(idx: idx, setId: setId, delta: -1) }
+                    }
+                    if si < item.re.sets.count - 1 {
+                        Button("Move set down") { sheet.moverSerie(idx: idx, setId: setId, delta: 1) }
+                    }
                 }
             }
     }

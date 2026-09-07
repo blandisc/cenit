@@ -36,7 +36,7 @@ extension Registro {
             id: .entrenarOtraForma,
             pestana: .entrenar,
             requiere: [],
-            piezas: [.ayuda(seccion: .entrenar)],
+            piezas: [.ayuda(seccion: .entrenar), .tip(id: "entrenar.otra-forma")],
             desde: "1.85"
         ),
         Funcionalidad(
@@ -57,7 +57,7 @@ extension Registro {
             id: .entrenarProgresion,
             pestana: .entrenar,
             requiere: [],
-            piezas: [.ayuda(seccion: .entrenar), .tip(id: "entrenar.progresion.ritmo")],
+            piezas: [.ayuda(seccion: .entrenar), .tip(id: "entrenar.progresion.ritmo"), .tip(id: "entrenar.progresion.activar")],
             desde: "1.85"
         ),
         Funcionalidad(
@@ -78,7 +78,7 @@ extension Registro {
             id: .entrenarDescanso,
             pestana: .entrenar,
             requiere: [],
-            piezas: [.ayuda(seccion: .entrenar)],
+            piezas: [.ayuda(seccion: .entrenar), .tip(id: "entrenar.descanso.por-fc")],
             desde: "1.85"
         ),
         Funcionalidad(
@@ -106,7 +106,7 @@ extension Registro {
             id: .entrenarSesionViva,
             pestana: .entrenar,
             requiere: [],
-            piezas: [.ayuda(seccion: .entrenar)],
+            piezas: [.ayuda(seccion: .entrenar), .tip(id: "entrenar.sesion-viva.foco-entrar"), .tip(id: "entrenar.sesion-viva.foco-salir"), .tip(id: "entrenar.sesion-viva.discos"), .gestoConBoton(gesto: "gesto.entrenar.foco.gesto", boton: "gesto.entrenar.foco.boton"), .gestoConBoton(gesto: "gesto.entrenar.discos.gesto", boton: "gesto.entrenar.discos.boton")],
             desde: "1.85"
         ),
         Funcionalidad(

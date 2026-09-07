@@ -1145,6 +1145,25 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
 ### EN
 - Ten contextual tips appear next to the control they teach (five in Today, five in Trends), at most one new tip per tab per day. Tips that teach a gesture (scrub, separate the orb, pull to sync) also offer a tappable button.
 
+### Consejos en Entrenar y un botón para cada gesto / Tips in Train and a button for every gesture (FER-434)
+### ES
+- Seis consejos nuevos en Entrenar, cada uno donde ocurre lo que enseña: entrar a Foco (bajo la
+  tarjeta activa), salir de Foco (dentro de Foco), qué discos poner (tras tu primera serie con
+  peso, en ejercicios de barra), «Hoy descansas» (junto a «Otra forma», en día de descanso), «Sube
+  solo» (en la tarjeta de un ejercicio sin progresión) y «Descanso por pulso» (en el editor de
+  descanso, solo con Apple Watch). Salen uno a la vez; usar la función los cierra.
+- Cada gesto tiene ahora un botón: Foco trae «Salir»; el peso que la consola está editando se ve
+  tocable; reordenar series también se puede desde el «···» de la tarjeta («Mover serie arriba /
+  abajo», sobre la serie que estás editando) y desde el rotor de VoiceOver.
+
+### EN
+- Six new tips in Train, each where the thing it teaches happens: enter Focus, leave Focus, which
+  plates to load, "You rest today", "Raise on its own" and "Rest by pulse" (watch only). One at a
+  time; using the feature dismisses it.
+- Every gesture now has a button: Focus gets "Exit"; the weight the keypad is editing looks
+  tappable; reordering sets also works from the card's "···" ("Move set up / down", on the set you
+  are editing) and from the VoiceOver rotor.
+
 ## Unreleased
 
 - **Hoy: la puerta al acta es ahora un ⓘ junto al veredicto / Today: the verdict's "how I got here" is now an ⓘ next to the word** (FER-71).

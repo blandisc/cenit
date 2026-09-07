@@ -1,5 +1,6 @@
 #if os(iOS)
 import SwiftUI
+import TipKit
 import CenitDesign
 import StrandTraining
 import StrandAnalytics
@@ -370,6 +371,21 @@ private struct EntrenarLanding: View {
         .onChange(of: tabRouter.startTodaySession) { _, requested in
             if requested { consumeBriefStart() }
         }
+        // L7 (FER-434): el hub es quien sabe si hoy es descanso — la regla de «Hoy descansas» es
+        // EXACTAMENTE la rama ③ «Descanso» del cuerpo (cargado sin error, sin sesión viva, semana
+        // armada y sin rutina hoy): con cero rutinas el hub enseña «Arma tu semana», no un descanso.
+        .onChange(of: hoyEsDescanso, initial: true) { _, descansa in
+            HoyDescansasTip.hoyEsDescanso = descansa
+        }
+        .onChange(of: otraFormaAbierta) { _, abierto in
+            if abierto { HoyDescansasTip().invalidate(reason: .actionPerformed) }
+        }
+    }
+
+    /// L7 (FER-434): la regla de «Hoy descansas» — la misma condición con la que el cuerpo pinta
+    /// `heroSectionDescanso` (el único anclaje del consejo).
+    private var hoyEsDescanso: Bool {
+        loaded && !loadFailed && model.strengthSession == nil && !split.isEmpty && todayRoutine == nil
     }
 
     /// Consume the one-shot start request from the Daily Brief. Reuses `startToday()` (the same path as the
@@ -742,6 +758,9 @@ private struct EntrenarLanding: View {
                     }
                 }
                 .padding(.top, EntrenarMetrics.ctaRowTop)
+                // L7 (FER-434): «Hoy descansas» — junto al pliegue «Otra forma», solo en día de
+                // descanso (la regla `hoyEsDescanso` la fija esta pantalla; abrir el pliegue lo invalida).
+                EntrenarConsejoInline(tip: HoyDescansasTip(), arriba: LiquidSpace.s300)
                 otraFormaPliegue
             }
         }
