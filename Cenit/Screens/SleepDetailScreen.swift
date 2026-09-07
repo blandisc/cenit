@@ -122,7 +122,9 @@ struct SleepDetailScreen: View {
         }
         .sheet(item: $metricInfo) { info in
             // Cutover F6 (decisión D1 del revote): las submétricas de sueño abren la hoja Liquid.
-            LiquidMetricSheetView(info: info, trendLoader: trendLoader(for: info.id))
+            LiquidMetricSheetView(info: info, trendLoader: trendLoader(for: info.id),
+                                  // FER-438 · Solo Eficiencia tiene relación defendible entre las submétricas.
+                                  whatMovesIt: info.id == "sleep_efficiency" ? model.patronEficiencia : [])
         }
         .sheet(isPresented: $showStages) {
             SleepStagesInfoSheet()
@@ -1378,6 +1380,10 @@ struct SleepDetailModel {
     /// The full nightly respiratory-rate series (oldest → newest, `nil` = missing night) for the
     /// respiration-trend watch (FER-851). The engine derives its own baseline + deviation from it.
     let respNightly: [Double?]
+    /// «Tu patrón» of sleep efficiency (yesterday's strain → tonight's efficiency), gated by the one
+    /// `WhatMovesItEngine` family (FER-438); the Efficiency sheet opened from this screen renders it.
+    /// Defaulted so previews that build the model by hand keep compiling.
+    var patronEficiencia: [WhatMovesItFinding] = []
 
     // MARK: - Build
 
@@ -1566,7 +1572,8 @@ struct SleepDetailModel {
             restorativeTrend: restorativeTrend,
             respirationTrend: respirationTrend,
             awakeningsTrend: awakeningsTrend,
-            respNightly: respNightly)
+            respNightly: respNightly,
+            patronEficiencia: WhatMovesItEngine.findings(forMetricKey: "sleep_efficiency", days: days, today: todayKey))
     }
 
     /// Runs `build` off the MainActor (FER-953): snapshots the inputs from `repo` on the MainActor
