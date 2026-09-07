@@ -184,7 +184,7 @@ enum StorePaths {
             // `whoop.sqlite`, `whoop.sqlite-wal`, `whoop.sqlite-shm` → the Cénit names; anything else
             // (MediaCache/, a restore sidecar) keeps its own name.
             let destName = name.hasPrefix(legacyDatabaseFileName)
-                ? databaseFileName + name.dropFirst(legacyDatabaseFileName.count)
+                ? databaseFileName + String(name.dropFirst(legacyDatabaseFileName.count))
                 : name
             let to = container.appendingPathComponent(destName)
             guard !fm.fileExists(atPath: to.path) else {
