@@ -62,6 +62,10 @@ def pieza_swift(p, pestana):
         return f'.tip(id: "{p.split(":", 1)[1]}")'
     if p.startswith("hito:"):
         return f'.hito(id: "{p.split(":", 1)[1]}")'
+    if p.startswith("gesto:"):
+        # "gesto:<clave del gesto>|<clave del botón>" (FER-434: cada gesto tiene un botón).
+        gesto, boton = p.split(":", 1)[1].split("|", 1)
+        return f'.gestoConBoton(gesto: "{gesto}", boton: "{boton}")'
     raise ValueError(f"pieza desconocida: {p!r}")
 
 

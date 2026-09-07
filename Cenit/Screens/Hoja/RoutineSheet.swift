@@ -1,5 +1,6 @@
 #if os(iOS)
 import SwiftUI
+import TipKit
 import CenitDesign
 import StrandTraining
 import StrandAnalytics
@@ -149,6 +150,12 @@ struct RoutineSheet: View {
         return session.routineId != nil && session.routineId == routine?.id
     }
 
+    /// L7 (FER-434): la regla de «Sube solo» — editor cargado con ≥ 1 ejercicio de peso×reps (los
+    /// únicos con progresión) y ninguna progresión activa.
+    var rutinaSinProgresion: Bool {
+        loaded && items.contains { $0.exercise.type == .weightReps } && !items.contains { $0.re.progressionEnabled }
+    }
+
     /// Inject: los hooks van en la vista NO privada más externa del archivo.
     @ObserveInjection private var inject
     var body: some View {
@@ -199,6 +206,8 @@ struct RoutineSheet: View {
             return false
         }
         .safeAreaInset(edge: .bottom, spacing: .zero) { keypadInset }
+        // L7 (FER-434): esta hoja es quien conoce la prescripción — fija la regla de «Sube solo».
+        .onChange(of: rutinaSinProgresion, initial: true) { _, sin in SubeSoloTip.rutinaSinProgresion = sin }
         .navigationDestination(item: $restTarget) { t in
             RestEditorScreen(
                 exerciseName: StrengthDisplay.name(items[t.ei].exercise),
@@ -235,6 +244,7 @@ struct RoutineSheet: View {
                     items[t.ei].re.progressionUseRPE = useRPE
                     dirty = true
                     guard enabled else { return }
+                    SubeSoloTip().invalidate(reason: .actionPerformed)   // L7 (FER-434): usarla la cierra
                     for si in items[t.ei].re.sets.indices where items[t.ei].re.sets[si].kind == .work {
                         items[t.ei].re.sets[si].reps = targetReps
                         // R4: este es un camino de escritura directo (no pasa por el binding

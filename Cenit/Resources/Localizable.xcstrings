@@ -75435,6 +75435,465 @@
           }
         }
       }
+    },
+    "tip.entrenar.foco-entrar.titulo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter Focus"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entra a Foco"
+          }
+        }
+      }
+    },
+    "tip.entrenar.foco-entrar.mensaje" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap ⤢ on the card and the set takes the whole screen: set, rest, done."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toca ⤢ en la tarjeta y la serie ocupa toda la pantalla: serie, descanso, hecho."
+          }
+        }
+      }
+    },
+    "tip.entrenar.foco-salir.titulo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To leave"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para salir"
+          }
+        }
+      }
+    },
+    "tip.entrenar.foco-salir.mensaje" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drag the handle down, or tap Exit."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrastra el asa hacia abajo, o toca Salir."
+          }
+        }
+      }
+    },
+    "tip.entrenar.discos.titulo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Which plates to load"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qué discos poner"
+          }
+        }
+      }
+    },
+    "tip.entrenar.discos.mensaje" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap the weight, then «plates» on the keypad: you'll see what to load per side, with the warm-up ramp."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toca el peso y luego «discos» en el teclado: verás qué cargar por lado, con la rampa de calentamiento."
+          }
+        }
+      }
+    },
+    "tip.entrenar.otra-forma.titulo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You rest today"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoy descansas"
+          }
+        }
+      }
+    },
+    "tip.entrenar.otra-forma.mensaje" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In «Other ways» there's Breathe, Intervals and Mobility, no guilt."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En «Otra forma» hay Respira, Intervalos y Movilidad, sin culpa."
+          }
+        }
+      }
+    },
+    "tip.entrenar.progresion.titulo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Raise on its own"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sube solo"
+          }
+        }
+      }
+    },
+    "tip.entrenar.progresion.mensaje" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn on progression from each card's «···»: hit your reps and the routine raises the weight."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activa la progresión en el «···» de cada tarjeta: cumple tus reps y la rutina sube el peso."
+          }
+        }
+      }
+    },
+    "tip.entrenar.descanso-fc.titulo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rest by pulse"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Descanso por pulso"
+          }
+        }
+      }
+    },
+    "tip.entrenar.descanso-fc.mensaje" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "With a watch, rest can end when your pulse drops. Choose it here."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Con reloj, el descanso puede terminar cuando tu pulso baja. Elígelo aquí."
+          }
+        }
+      }
+    },
+    "Exit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exit"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salir"
+          }
+        }
+      }
+    },
+    "Move set up" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move set up"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mover serie arriba"
+          }
+        }
+      }
+    },
+    "Move set down" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move set down"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mover serie abajo"
+          }
+        }
+      }
+    },
+    "gesto.entrenar.foco.gesto" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drag the handle down to leave Focus"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrastra el asa hacia abajo para salir de Foco"
+          }
+        }
+      }
+    },
+    "gesto.entrenar.foco.boton" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The «Exit» button in Focus"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El botón «Salir» en Foco"
+          }
+        }
+      }
+    },
+    "gesto.entrenar.discos.gesto" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap a set's weight"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toca el peso de una serie"
+          }
+        }
+      }
+    },
+    "gesto.entrenar.discos.boton" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The «plates» key on the keypad"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La tecla «discos» del teclado"
+          }
+        }
+      }
+    },
+    "gesto.entrenar.series.gesto" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drag ≡ to reorder a set"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrastra ≡ para reordenar una serie"
+          }
+        }
+      }
+    },
+    "gesto.entrenar.series.boton" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«···» on the card → «Move set up» / «Move set down»"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«···» de la tarjeta → «Mover serie arriba» / «Mover serie abajo»"
+          }
+        }
+      }
+    },
+    "gesto.entrenar.ronda.gesto" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Long-press a superset row to remove its last round"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantén una fila de la superserie para quitar la última ronda"
+          }
+        }
+      }
+    },
+    "gesto.entrenar.ronda.boton" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«···» on the superset → «Remove last round»"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«···» de la superserie → «Quitar la última ronda»"
+          }
+        }
+      }
+    },
+    "gesto.entrenar.rutina.gesto" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Swipe a routine to delete it"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desliza una rutina para eliminarla"
+          }
+        }
+      }
+    },
+    "gesto.entrenar.rutina.boton" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«···» on the routine → «Delete routine», with Undo"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«···» de la rutina → «Eliminar rutina», con Deshacer"
+          }
+        }
+      }
+    },
+    "gesto.hoy.hipnograma.gesto" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scrub the hypnogram to read each stretch"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recorre el hipnograma con el dedo para leer cada tramo"
+          }
+        }
+      }
+    },
+    "gesto.hoy.hipnograma.boton" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The stage list already shows the minutes"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La lista de etapas ya muestra los minutos"
+          }
+        }
+      }
     }
   },
   "version" : "1.1"

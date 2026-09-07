@@ -341,7 +341,11 @@ struct HojaTarjetaEjercicioSesion: View {
                 } else {
                     TapZonesSesion(
                         onPeso: { vivo.beginEditing(.weight(ei, si)) },
-                        onReps: { vivo.beginEditing(.reps(ei, si)) }
+                        onReps: { vivo.beginEditing(.reps(ei, si)) },
+                        // L7 (FER-434): el peso se ve tocable — la señal de celda activa bajo el
+                        // peso que la consola edita (`effectiveCell`: la tocada, o la de la serie
+                        // activa mientras nadie toca otra).
+                        pesoActivo: vivo.effectiveCell == .weight(ei, si)
                     )
                 }
             }
@@ -523,22 +527,32 @@ struct HojaTarjetaEjercicioSesion: View {
 private struct TapZonesSesion: View {
     let onPeso: (() -> Void)?
     let onReps: (() -> Void)?
+    /// L7 (FER-434): el peso se ve tocable — la MISMA señal de celda activa que el editor
+    /// (`HojaFilaSerieTapZones.zone(active:)`: regla `tinta900` de `EntrenarMetrics.currentEdge`),
+    /// sin estilo nuevo, bajo el peso que la consola está editando.
+    var pesoActivo: Bool = false
 
     var body: some View {
         HStack(spacing: HojaMetrics.filaGap) {
             Color.clear.frame(width: HojaMetrics.colNumero)
-            zone(onPeso).frame(width: HojaMetrics.colPesoSesion)
+            zone(onPeso, active: pesoActivo).frame(width: HojaMetrics.colPesoSesion)
             zone(onReps).frame(maxWidth: .infinity)
             Color.clear.frame(width: HojaMetrics.colMarca).allowsHitTesting(false)
         }
         .padding(.horizontal, HojaMetrics.filaHPad)
     }
 
-    @ViewBuilder private func zone(_ action: (() -> Void)?) -> some View {
+    @ViewBuilder private func zone(_ action: (() -> Void)?, active: Bool = false) -> some View {
         Color.clear
             .contentShape(Rectangle())
             .onTapGesture { action?() }
             .allowsHitTesting(action != nil)
+            .overlay(alignment: .bottom) {
+                if active {
+                    Rectangle().fill(LiquidColor.tinta900).frame(height: EntrenarMetrics.currentEdge)
+                        .padding(.bottom, LiquidSpace.s150)
+                }
+            }
     }
 }
 

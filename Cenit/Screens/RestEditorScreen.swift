@@ -1,4 +1,5 @@
 import SwiftUI
+import TipKit
 import CenitDesign
 import StrandTraining
 import StrandAnalytics
@@ -88,6 +89,8 @@ struct RestEditorScreen: View {
     @State private var applyToAll: Bool
     @State private var saveToRoutine: Bool
     @ScaledMetric(relativeTo: .footnote) private var lectura = LiquidType.lecturaHojaBase
+    /// L7 (FER-434): solo para `watchPaired` — la regla de «Descanso por pulso» (sin reloj nunca aparece).
+    @Environment(AppModel.self) private var model
 
     init(exerciseName: String, setNumber: Int?, current: RestConfig,
          persistsToRoutine: Bool, restingHR: Double?, maxHR: Double?, defaultApplyToAll: Bool,
@@ -167,6 +170,9 @@ struct RestEditorScreen: View {
                                      icon: { $0 == .restingMargin ? "heart.fill" : nil }) {
                     $0 == .fixed ? String(localized: "By time") : String(localized: "Over your rest")
                 }
+                // L7 (FER-434): «Descanso por pulso» — inline, bajo el control de las dos formas; solo
+                // con Apple Watch emparejado (regla `relojEmparejado`); elegir una forma por FC lo invalida.
+                EntrenarConsejoInline(tip: DescansoPorPulsoTip())
                 if mode == .heartRate {
                     hrSection
                     capNote   // the 5-min cap only exists on an HR rest — by time there's nothing to cap
@@ -196,6 +202,12 @@ struct RestEditorScreen: View {
         // FER-988: el gesto de volver, vetado a favor de `onCancel` — la salida de esta pantalla
         // aplica/descarta según su modo, y un pop crudo se la saltaría. Inerte como hoja (`.close`).
         .keepsSwipeBack { onCancel(); return false }
+        // L7 (FER-434): la regla del consejo se fija al aparecer (el reloj no cambia a media hoja);
+        // pasar a cualquier forma por FC es «usar la función».
+        .onAppear { DescansoPorPulsoTip.relojEmparejado = model.watchPaired }
+        .onChange(of: mode) { _, nuevo in
+            if nuevo == .heartRate { DescansoPorPulsoTip().invalidate(reason: .actionPerformed) }
+        }
         .enableInjection()   // Inject: recarga en caliente (no-op en Release)
     }
 

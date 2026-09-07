@@ -388,6 +388,24 @@ extension RoutineSheet {
         dragSet = nil
     }
 
+    /// L7 (FER-434): el botón del arrastre ≡ — mueve UNA serie un lugar arriba (`delta: -1`) o
+    /// abajo (`+1`). Misma identidad que `dragSetChanged` (`setId` FROZEN, nunca un `si` de
+    /// posición), mismo `renumber`/`dirty`. La consola sigue a la serie movida (o a la vecina que
+    /// ocupó su lugar) para poder moverla otra vez sin volver a tocarla.
+    func moverSerie(idx: Int, setId: String, delta: Int) {
+        guard !locked, items.indices.contains(idx),
+              let si = items[idx].re.sets.firstIndex(where: { $0.id == setId }) else { return }
+        let dest = si + delta
+        guard items[idx].re.sets.indices.contains(dest) else { return }
+        withAnimation(.snappy) { items[idx].re.sets.swapAt(si, dest) }
+        renumber(idx)
+        if let cell = activeCell, cell.idx == idx {
+            if cell.si == si { activeCell = EditorCell(idx: idx, si: dest, field: cell.field) }
+            else if cell.si == dest { activeCell = EditorCell(idx: idx, si: si, field: cell.field) }
+        }
+        dirty = true
+    }
+
     /// Mismo criterio de identidad que `dragSetChanged`, para reordenar MIEMBROS de una superserie
     /// entre sí (el mock también dibuja «≡» en cada `.ssrow`). `dragID` = `RoutineExercise.id` del
     /// miembro arrastrado; `lo`/`hi` acotan el rango del grupo (fijo mientras dura el gesto — un
@@ -611,6 +629,23 @@ extension RoutineSheet {
             rows.append(.init(String(localized: "Equalize all sets"), systemImage: "equal.square") {
                 equalizeTarget = idx
             })
+        }
+        // L7 (FER-434): el botón del arrastre ≡ — «Mover serie arriba / abajo» sobre la serie que
+        // la consola está editando en ESTA tarjeta (toca su peso o sus reps y luego «···»). Solo en
+        // la tarjeta de un ejercicio suelto (`includeWarmup`): la de superserie tiene una fila por
+        // miembro con rondas espejadas, ahí no se reordenan series.
+        if includeWarmup, let cell = activeCell, cell.idx == idx, item.re.sets.indices.contains(cell.si) {
+            let setId = item.re.sets[cell.si].id
+            if cell.si > 0 {
+                rows.append(.init(String(localized: "Move set up"), systemImage: "chevron.up") {
+                    moverSerie(idx: idx, setId: setId, delta: -1)
+                })
+            }
+            if cell.si < item.re.sets.count - 1 {
+                rows.append(.init(String(localized: "Move set down"), systemImage: "chevron.down") {
+                    moverSerie(idx: idx, setId: setId, delta: 1)
+                })
+            }
         }
         let res = items.map(\.re)
         if idx > 0 {

@@ -1,5 +1,6 @@
 #if os(iOS)
 import SwiftUI
+import TipKit
 import CenitDesign
 import StrandTraining
 import StrandAnalytics
@@ -568,6 +569,10 @@ extension HojaSesionViva {
                 session.setRPE(exercise: session.runs[ei].id, set: registered.id, rpe: rpe)
             }
             checkForPR(ei: ei, set: registered)   // R16
+            // L7 (FER-434): la regla de «Qué discos poner» — una serie de TRABAJO con peso real.
+            if registered.kind == .work, registered.weightKg > 0 {
+                EntrenarTipEvents.serieDeTrabajoConPeso.sendDonation()
+            }
         }
         selectedRIR = nil
         selectedRIRTarget = nil

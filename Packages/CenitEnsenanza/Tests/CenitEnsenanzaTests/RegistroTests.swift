@@ -169,4 +169,31 @@ final class RegistroTests: XCTestCase {
             )
         }
     }
+
+    // MARK: 8. los 6 tips de L7 (FER-434) están en el registro, y los 6 gestos traen su botón
+
+    func test_tipsYGestosDeL7EstanEnElRegistro() {
+        let idsDeTips: Set<String> = [
+            FuncionalidadID.entrenarSesionViva.rawValue + ".foco-entrar",
+            FuncionalidadID.entrenarSesionViva.rawValue + ".foco-salir",
+            FuncionalidadID.entrenarSesionViva.rawValue + ".discos",
+            FuncionalidadID.entrenarOtraForma.rawValue,
+            FuncionalidadID.entrenarProgresion.rawValue + ".activar",
+            FuncionalidadID.entrenarDescanso.rawValue + ".por-fc",
+        ]
+        for id in idsDeTips {
+            XCTAssertTrue(
+                Registro.tipIDs.contains(id),
+                "\(id) no está en Registro.tipIDs — falta la pieza .tip correspondiente (FER-434)"
+            )
+        }
+        let gestos = Set(Registro.todas.flatMap(\.piezas).compactMap { pieza -> String? in
+            if case .gestoConBoton(let gesto, _) = pieza { return gesto }
+            return nil
+        })
+        for gesto in ["gesto.entrenar.foco.gesto", "gesto.entrenar.discos.gesto", "gesto.entrenar.series.gesto",
+                      "gesto.entrenar.ronda.gesto", "gesto.entrenar.rutina.gesto", "gesto.hoy.hipnograma.gesto"] {
+            XCTAssertTrue(gestos.contains(gesto), "\(gesto) no está registrado como .gestoConBoton (FER-434)")
+        }
+    }
 }

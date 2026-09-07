@@ -1,5 +1,6 @@
 #if os(iOS)
 import SwiftUI
+import TipKit
 import CenitDesign
 import StrandTraining
 import StrandAnalytics
@@ -173,6 +174,24 @@ struct HojaSesionViva: View {
         // no-op mientras no hay `restEndsAt` fijo en vuelo (ver `RestAutoSkipModifier`).
         .modifier(restAutoSkipModifier())
         .task(id: session.routineId) { await loadRoutineREs() }
+        // L7 (FER-434): las reglas de los consejos de la sesión viva. `sesionIniciada` se dona al
+        // montar la Hoja (la regla solo pide ≥ 1); entrar/salir de Foco invalida el consejo que se
+        // acaba de cumplir y dona el evento del que depende el siguiente; abrir la calculadora de
+        // discos (por cualquiera de sus puertas: tecla «discos», atajo de Foco, «Añadir
+        // calentamiento») invalida «Qué discos poner».
+        .task { EntrenarTipEvents.sesionIniciada.sendDonation() }
+        .onChange(of: focusMode) { _, activo in
+            if activo {
+                EntrarAFocoTip().invalidate(reason: .actionPerformed)
+                EntrenarTipEvents.focoEntrado.sendDonation()
+            } else {
+                ParaSalirTip().invalidate(reason: .actionPerformed)
+                EntrenarTipEvents.focoSalido.sendDonation()
+            }
+        }
+        .onChange(of: platesTarget != nil) { _, abierta in
+            if abierta { QueDiscosPonerTip().invalidate(reason: .actionPerformed) }
+        }
         // R16 · Nancy ronda 2: se re-dispara cuando cambia el elenco de ejercicios (B8 «Agregar»,
         // «Sustituir», o una restauración post-crash), para traer los PR del movimiento nuevo.
         .task(id: session.runs.map(\.exerciseId).joined(separator: "|")) { await loadPersonalRecords() }
@@ -420,16 +439,28 @@ struct HojaSesionViva: View {
                 // R1 (ronda 2 del gate, Grok G1/G4, bloqueante): F3 NO pliega las tarjetas de
                 // superserie — con 2+ bloques en la misma sesión, esta rama se evalúa una vez POR
                 // bloque. `esActiva` decide cuál de ellos (a lo más uno) es la «Now Playing» real.
-                focoDoor(esActiva: members.contains(accordionIndex)) {
+                let esActiva = members.contains(accordionIndex)
+                focoDoor(esActiva: esActiva) {
                     HojaTarjetaSuperserieSesion(vivo: self, members: members)
                 }
+                if esActiva { consejosBajoTarjetaActiva(barra: members.contains { usesBarbell($0) }) }
             }
         } else if ei == accordionIndex {
             // Esta rama solo se evalúa para el ÚNICO `ei` que iguala `accordionIndex` — siempre activa.
             focoDoor(esActiva: true) { HojaTarjetaEjercicioSesion(vivo: self, ei: ei) }
+            consejosBajoTarjetaActiva(barra: usesBarbell(ei))
         } else {
             HojaPlegadaSesion(vivo: self, ei: ei)
         }
+    }
+
+    /// L7 (FER-434): los consejos de la sesión viva, bajo la tarjeta activa y en el orden de la
+    /// pantalla (uno a la vez): «Entra a Foco» y luego «Qué discos poner» — este solo con barra,
+    /// porque la tecla «discos» de la consola solo vive ahí (`platesEnabled`). Fuera de la tarjeta
+    /// (no dentro del vidrio) y nunca sobre la consola: van en el scroll, la consola es un inset.
+    @ViewBuilder private func consejosBajoTarjetaActiva(barra: Bool) -> some View {
+        if puedeEnfocar { EntrenarConsejoInline(tip: EntrarAFocoTip()) }
+        if barra { EntrenarConsejoInline(tip: QueDiscosPonerTip(), antes: [EntrarAFocoTip()]) }
     }
 
     /// D0 (FER-170 · F5): la puerta de Foco es la tarjeta activa misma (como Now Playing). Este
