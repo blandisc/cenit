@@ -88,6 +88,28 @@ private struct RunningTotal {
     }
 }
 
+/// A per-source daily total for CUMULATIVE quantities (steps, active/basal energy). FER-411: the
+/// export often carries the same day recorded by BOTH the iPhone and the Apple Watch; summing across
+/// sources double-counts. This mirrors the live path's `HKStatisticsCollectionQuery` (without
+/// `.separateBySource`), which dedupes cumulative types by source: we sub-total per source and, on
+/// read, keep the SINGLE largest-contributing source of the day — never the sum across sources. A
+/// nil/absent source folds into one bucket (key ""), so an export without `sourceName` behaves exactly
+/// like a single source (back-compat: values still add up within that one bucket). `nil` until the day
+/// has any reading, so "zero" and "no data" stay distinct.
+private struct SourcedTotal {
+    private var bySource: [String: Double] = [:]
+
+    mutating func add(_ amount: Double, source: String?) {
+        bySource[source ?? "", default: 0] += amount
+    }
+
+    /// The largest single-source total; ties broken deterministically by the lexicographically smaller
+    /// source key so the result never depends on record order.
+    var value: Double? {
+        bySource.max { a, b in a.value != b.value ? a.value < b.value : a.key > b.key }?.value
+    }
+}
+
 /// A running maximum.
 private struct RunningMax {
     private(set) var value: Double?
@@ -119,9 +141,9 @@ private struct DayRollup {
     var spo2 = RunningMean()
     var heartRate = RunningMean()
     var heartRateMax = RunningMax()
-    var steps = RunningTotal()
-    var activeKcal = RunningTotal()
-    var basalKcal = RunningTotal()
+    var steps = SourcedTotal()        // FER-411: cross-source dedup (max source/day, not the sum)
+    var activeKcal = SourcedTotal()
+    var basalKcal = SourcedTotal()
     var vo2max = LatestOfDay()
     var weight = LatestOfDay()
     var leanMass = LatestOfDay()
@@ -165,6 +187,7 @@ public final class AppleHealthDayAggregator {
     /// "last reading of the day" metrics. A reading with no usable value is ignored outright
     /// and does not bring its day into existence.
     public func addRecord(type: String, value: Double?, unit: String?,
+                          source: String? = nil,
                           start: Date, tzOffsetMin: Int, end: Date) {
         guard let raw = value else { return }
 
@@ -181,9 +204,9 @@ public final class AppleHealthDayAggregator {
         case .heartRate:
             rollup.heartRate.add(raw)
             rollup.heartRateMax.offer(raw)
-        case .steps:       rollup.steps.add(raw)
-        case .activeKcal:  rollup.activeKcal.add(raw)
-        case .basalKcal:   rollup.basalKcal.add(raw)
+        case .steps:       rollup.steps.add(raw, source: source)
+        case .activeKcal:  rollup.activeKcal.add(raw, source: source)
+        case .basalKcal:   rollup.basalKcal.add(raw, source: source)
         case .vo2max:      rollup.vo2max.offer(raw, at: end)
         case .weight:      rollup.weight.offer(Self.asKilograms(raw, unit: unit), at: end)
         case .leanMass:    rollup.leanMass.offer(Self.asKilograms(raw, unit: unit), at: end)
@@ -313,6 +336,7 @@ public enum AppleHealthAggregator {
         let engine = AppleHealthDayAggregator()
         for sample in samples {
             engine.addRecord(type: sample.type, value: sample.value, unit: sample.unit,
+                             source: sample.sourceName,
                              start: sample.start, tzOffsetMin: sample.tzOffsetMin, end: sample.end)
         }
         return engine.sampleDaily()
@@ -336,6 +360,7 @@ public enum AppleHealthAggregator {
         let engine = AppleHealthDayAggregator()
         for sample in samples {
             engine.addRecord(type: sample.type, value: sample.value, unit: sample.unit,
+                             source: sample.sourceName,
                              start: sample.start, tzOffsetMin: sample.tzOffsetMin, end: sample.end)
         }
         for interval in sleepIntervals {

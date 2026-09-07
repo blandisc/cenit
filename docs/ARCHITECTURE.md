@@ -521,6 +521,8 @@ or Apple-Health-only) draws the same per-epoch hypnogram as a legacy-wearable ni
 band win per night by interval overlap. No migration — the `sleepSession` table already partitions by
 `deviceId`.
 
+**Cross-source daily dedup (FER-411).** The Apple Health export often carries the same civil day recorded by BOTH the iPhone and the Apple Watch. The historical fold (`AppleHealthDayAggregator`, `DailyRollup.swift`) sub-totals the **cumulative** types (`steps`, `activeKcal`, `basalKcal`) per `(day, source)` via `SourcedTotal` and, on read, keeps the **single largest-contributing source** of the day (deterministic tie-break by source key) — never the sum across sources. This mirrors the live path's `HKStatisticsCollectionQuery` (without `.separateBySource`), which dedupes cumulative types by source. **Discrete** types (heart rate, HRV, resting HR, respiration, SpO₂) keep averaging cross-source (identical to the live path); *latest-of-day* types take the most recent. An export without `sourceName` folds into one bucket, so it behaves exactly like a single source (values still add up). No migration: it changes the number computed *before* the write; a re-import corrects old days.
+
 **Third-party strength dedup (FER-362, ola 2 · C4).** Apple Health often already holds strength
 workouts a user logged in *another* app (Strong, Hevy, Apple's own Fitness) — surfacing those honestly
 under Cénit's «Fuerza» dialect risks two failure modes: double-counting a workout the user *also*

@@ -132,6 +132,7 @@ private final class HealthExportCollector: NSObject, XMLParserDelegate {
             if type == "OxygenSaturation", let raw = value { value = raw * 100 }
 
             engine.addRecord(type: type, value: value, unit: attributes["unit"],
+                             source: attributes["sourceName"],
                              start: start.utc, tzOffsetMin: offset, end: end.utc)
         }
 
