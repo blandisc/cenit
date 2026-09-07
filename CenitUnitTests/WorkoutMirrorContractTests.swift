@@ -117,7 +117,10 @@ final class WorkoutMirrorContractTests: XCTestCase {
     // MARK: INV-3 — the shared idempotency key matches HealthKitBridge's format exactly
 
     func testExternalUUIDFormat() {
-        XCTAssertEqual(WorkoutMirrorKey.externalUUID(for: "42"), "noop:strength:42")
+        // FER-398 moved the prefix off the NOOP name. Safe only because the delete-by-key that
+        // precedes every save accepts BOTH spellings — see `WorkoutExternalUUIDDedupeTests`.
+        XCTAssertEqual(WorkoutMirrorKey.externalUUID(for: "42"), "cenit:strength:42")
+        XCTAssertEqual(WorkoutMirrorKey.legacyExternalUUID(for: "42"), "noop:strength:42")
         // Same session id ⇒ same key on both devices (the whole point of the invariant).
         XCTAssertEqual(WorkoutMirrorKey.externalUUID(for: "xyz"),
                        WorkoutMirrorKey.externalUUID(for: "xyz"))
