@@ -143,3 +143,28 @@ public enum OnboardingLandingDecider {
         return .lectura(verdict: prep.verdict, noches: noches, diasHistoria: totalDays)
     }
 }
+
+#if os(iOS) && DEBUG
+extension OnboardingLanding {
+    /// El desenlace fijo que pide `-noop.onboardingLanding <caso>`, para el mapa 100 % (FER-391).
+    /// Los números son de vitrina — el mismo TIPO que produciría `OnboardingLandingDecider.decidir`,
+    /// nunca un caso vivo: sirven para que el acto 4 tenga algo honesto que revelar sin correr el
+    /// sync real de HealthKit, que es justo lo que el arnés de captura no puede esperar de forma
+    /// determinista. `lectura-lowsignal` no lo produce el decisor real (su guarda del paso 3 lo
+    /// manda a `.calibrando` antes) pero el ENUM sí lo admite, y `OnbActoEncendido` sí lo pinta
+    /// (comparte copy con `.easy`) — se incluye para que el mapa cubra los cuatro veredictos que
+    /// declara `Preparedness.Verdict`, no solo los que el camino feliz alcanza.
+    static func debugFixture(_ raw: String) -> OnboardingLanding? {
+        switch raw {
+        case "lectura-full":      return .lectura(verdict: .full, noches: 18, diasHistoria: 40)
+        case "lectura-caution":   return .lectura(verdict: .caution, noches: 10, diasHistoria: 25)
+        case "lectura-easy":      return .lectura(verdict: .easy, noches: 14, diasHistoria: 30)
+        case "lectura-lowsignal": return .lectura(verdict: .lowSignal, noches: 8, diasHistoria: 20)
+        case "calibrando":        return .calibrando(noches: 2, faltan: 2, diasHistoria: 6)
+        case "sinritmo":          return .sinRitmoEnReposo(diasHistoria: 9)
+        case "sindatos":          return .sinDatos
+        default:                  return nil
+        }
+    }
+}
+#endif

@@ -41,6 +41,29 @@ struct OnboardingWizard: View {
 
     init(onFinished: @escaping () -> Void) {
         self.onFinished = onFinished
+        #if os(iOS) && DEBUG
+        // FER-391 (mapa 100 %): `-noop.onboardingActo <acto>` MUESTRA el wizard directo en ese
+        // acto — el opuesto de `-noop.onboarded YES`, que lo SALTA entero (`ContentView` agrega
+        // el OR que lo deja entrar). `-noop.onboardingLanding <caso>` fija además el desenlace:
+        // sin él, el acto 4 (dentro de `.encendido`) correría el sync real de HealthKit, que es
+        // justo lo que el arnés de captura no puede esperar de forma determinista. Ninguno de los
+        // dos escribe en la base — es puro `@State` en memoria del wizard — así que no hace falta
+        // el candado a simulador (el README solo lo pide «donde toque datos»).
+        let d = UserDefaults.standard
+        let actoForzado = d.string(forKey: "noop.onboardingActo").flatMap(OnbActo.debugFixture)
+        let landingForzado = d.string(forKey: "noop.onboardingLanding").flatMap(OnboardingLanding.debugFixture)
+        _acto = State(initialValue: actoForzado ?? .promesa)
+        _landing = State(initialValue: landingForzado)
+        if let landingForzado, (actoForzado ?? .encendido) == .encendido {
+            // `correr()` en `OnbActoEncendido` salta el sync SOLO cuando `landing` ya no es
+            // `nil` (ver su primer `if`), pero eso corre dentro de un `.task` — un cuadro
+            // DESPUÉS del primero. Fijando `revelado`/`densidad`/`tenido` aquí, el primer cuadro
+            // capturable ya nace en el desenlace correcto, sin ese parpadeo intermedio.
+            _revelado = State(initialValue: true)
+            _densidad = State(initialValue: landingForzado.densidadHonesta)
+            _tenido = State(initialValue: landingForzado.revelaColor ? 1 : 0)
+        }
+        #endif
     }
 
     @EnvironmentObject private var health: HealthKitBridge
@@ -256,6 +279,25 @@ enum OnbActo: Hashable {
     /// La salida de «Ahora no».
     case salida
 }
+
+#if os(iOS) && DEBUG
+extension OnbActo {
+    /// El acto que pide `-noop.onboardingActo <acto>`, para el mapa 100 % (FER-391). Claves = los
+    /// nombres del enum, tal cual — sin alias ni abreviaturas que memorizar aparte.
+    static func debugFixture(_ raw: String) -> OnbActo? {
+        switch raw {
+        case "promesa":   return .promesa
+        case "permiso":   return .permiso
+        case "encendido": return .encendido
+        case "acta":      return .acta
+        case "perfil":    return .perfil
+        case "ciclo":     return .ciclo
+        case "salida":    return .salida
+        default:          return nil
+        }
+    }
+}
+#endif
 
 // MARK: - El lienzo
 

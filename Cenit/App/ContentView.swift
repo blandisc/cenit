@@ -56,6 +56,38 @@ struct ContentView: View {
     @State private var restoreSucceeded = true
     #endif
 
+    // MARK: - FER-391 (mapa 100 %) · palancas DEBUG de esta familia
+    //
+    // Un arranque normal sin argumentos se comporta EXACTO como hoy: cada propiedad de abajo cae
+    // a `false` fuera de iOS+DEBUG o sin su argumento puesto. Van con un OR sobre la condición que
+    // ya existe, nunca reescribiendo el dueño del estado — `Repository.storeOpenFailed` es
+    // `private(set)` (esta familia no puede tocar `Repository.swift`), y `onboarded` decide un
+    // ZStack entero que tampoco es de esta familia.
+
+    /// `-noop.onboardingActo`/`-noop.onboardingLanding` MUESTRAN el wizard aun con
+    /// `-noop.onboarded YES` puesto — el arg que hoy lo SALTA. El mapa necesita las dos cosas en
+    /// el mismo lanzamiento: el arranque base (fija el idioma, salta el onboarding para el resto
+    /// de familias) y el wizard forzado a un acto/aterrizaje concreto para ÉSTA.
+    private var onboardingWizardForzadoDebug: Bool {
+        #if os(iOS) && DEBUG
+        let d = UserDefaults.standard
+        return d.string(forKey: "noop.onboardingActo") != nil
+            || d.string(forKey: "noop.onboardingLanding") != nil
+        #else
+        return false
+        #endif
+    }
+
+    /// `-noop.storeFailed YES` SIMULA `repo.storeOpenFailed` sin romper el store de verdad — solo
+    /// se suma a la condición que decide si `StoreFailureView` se pinta.
+    private var storeFailedForzadoDebug: Bool {
+        #if os(iOS) && DEBUG
+        return UserDefaults.standard.string(forKey: "noop.storeFailed") == "YES"
+        #else
+        return false
+        #endif
+    }
+
     var body: some View {
         ZStack {
             RootTabView(isTodayActive: $isTodayTab)
@@ -68,7 +100,7 @@ struct ContentView: View {
                     .zIndex(99)
             }
             #endif
-            if !onboarded {
+            if !onboarded || onboardingWizardForzadoDebug {
                 OnboardingWizard(onFinished: {
                     // FER-109: la entrada de partículas se cuenta como YA CORRIDA al cerrar el
                     // onboarding. Sin esto, `mostrandoEntrada` se vuelve cierto en el instante en que
@@ -87,7 +119,7 @@ struct ContentView: View {
             // FER-969 (X-03): the store didn't open (wedged migration / corrupt file) — an honest
             // paper state with ways out, never an eternally empty dashboard. Only for onboarded users
             // (a fresh install has its own restore-offer path); the Terms gate stays on top.
-            if onboarded && repo.storeOpenFailed {
+            if onboarded && (repo.storeOpenFailed || storeFailedForzadoDebug) {
                 StoreFailureView(onRetry: { Task { await repo.retryStoreOpen() } },
                                  onRestore: { Task { await runRestore() } })
                     .transition(LiquidMotion.fadeTransition)
@@ -147,6 +179,12 @@ struct ContentView: View {
         // fresh install / reinstall, where `onboarded` flips false→true after this view appears).
         .task { await maybeOfferRestore() }
         .onChange(of: onboarded) { _, done in if done { Task { await maybeOfferRestore() } } }
+        #if DEBUG
+        // FER-391 (mapa 100 %): `-noop.restore offer|result` fuerza el estado SIN correr
+        // `maybeOfferRestore()` (que depende de HealthKit real) ni tocar el store — puro estado
+        // local del gate, la misma variable que ya pinta el alert/banner de producción.
+        .task { await forzarRestoreDebug() }
+        #endif
         // Velo BAJO el alert de restore (dueño 2026-08-15): el alert nativo es
         // translúcido y el CTA verde «Connect Apple Health» del estado vacío quedaba justo
         // detrás — sangraba a través del material como una mancha verde sobre el mensaje
@@ -213,7 +251,16 @@ struct ContentView: View {
     /// veces en medio minuto (entrada → Términos → acto 1), con dos significados distintos, y eso no
     /// se lee como poesía sino como que la app se repite. La entrada se GANA: vuelve en el segundo
     /// arranque, cuando ya hay una lectura suya que revelar.
-    private var mostrandoEntrada: Bool { onboarded && !entradaLista && !EntradaDeArranque.yaCorrio }
+    private var mostrandoEntrada: Bool {
+        // FER-391 (mapa 100 %): `-noop.entrada YES` la deja puesta sin importar el reloj de
+        // `LiquidOrbeEntrada` — la coreografía real dura ~2.8 s y el arnés no tiene forma de
+        // congelar un frame a mitad de una animación, así que sin esto la captura sería una
+        // carrera contra un timer.
+        #if os(iOS) && DEBUG
+        if UserDefaults.standard.string(forKey: "noop.entrada") == "YES" { return true }
+        #endif
+        return onboarded && !entradaLista && !EntradaDeArranque.yaCorrio
+    }
 
     /// El clima al que la entrada tiñe el orbe: el MISMO mapeo veredicto → ambiente que usa la
     /// superficie de Hoy, para que el color con el que el orbe asienta sea exactamente el que la
@@ -266,6 +313,25 @@ struct ContentView: View {
             break
         }
     }
+
+    #if DEBUG
+    /// Ver la nota de `.task { forzarRestoreDebug() }` arriba.
+    @MainActor private func forzarRestoreDebug() {
+        switch UserDefaults.standard.string(forKey: "noop.restore") {
+        case "offer":
+            showRestoreOffer = true
+        case "result":
+            // El único camino real a este banner es la falla (`runRestore`'s `.failure`; el
+            // éxito bloquea con `RestoredNeedsReopenView` en vez de este overlay) — el demo
+            // reproduce esa misma rama.
+            restoreMessage = "No se pudo leer el respaldo: el archivo parece dañado o es de otra versión de Cénit."
+            restoreSucceeded = false
+            showRestoreResult = true
+        default:
+            break
+        }
+    }
+    #endif
     #endif
 }
 
