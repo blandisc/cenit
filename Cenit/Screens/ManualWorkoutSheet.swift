@@ -231,7 +231,7 @@ struct ManualWorkoutSheet: View {
     private var trimmedHrText: String { avgHrText.trimmingCharacters(in: .whitespaces) }
     private var trimmedKcalText: String { kcalText.trimmingCharacters(in: .whitespaces) }
 
-    /// FC media escrita: nil si el campo está en blanco; fuera de banda lo atrapa `buildManualRow`.
+    /// FC media escrita: nil si el campo está en blanco; fuera de rango lo atrapa `buildManualRow`.
     private var avgHr: Int? { Int(trimmedHrText) }
 
     // FER-428: `Double("nan"/"1e999")` da NaN/±∞, y toda comparación con NaN es false, así que «nan»

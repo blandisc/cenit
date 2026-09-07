@@ -6,7 +6,7 @@ import CenitDesign
 ///
 /// Se elige un ritmo, se pulsa iniciar y se sigue el orbe: un reloj marca la inhalación y
 /// la exhalación, con un pulso al inhalar y dos al exhalar. No hay biofeedback de HRV —
-/// se retiró junto con la banda (FER-1003): respirar en solitario no tiene fuente de R-R
+/// se retiró junto con el accesorio de pecho (FER-1003): respirar en solitario no tiene R-R
 /// en vivo, así que lo único que se muestra es el ritmo que el propio marcapasos impone
 /// (el copy tampoco promete respuesta de HRV — FER-242 / H-020).
 ///
@@ -374,8 +374,8 @@ struct BreathingView: View {
 
     // MARK: - Lectura
 
-    // FER-1003: la lectura de HRV/RMSSD en vivo y la tarjeta de coherencia se retiraron con la
-    // banda — respirar en solitario no tiene fuente de R-R (el espejo del reloj es sólo fuerza),
+    // FER-1003: la lectura de HRV/RMSSD en vivo y la tarjeta de coherencia se retiraron con el
+    // accesorio de pecho. Respirar en solitario no tiene R-R (el espejo del reloj es sólo fuerza),
     // así que ambas vivían clavadas en «—» / «Sin datos». Queda el ritmo, que sí sale del pacer.
     private var readoutRow: some View {
         readoutTile(
