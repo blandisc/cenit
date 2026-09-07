@@ -100,19 +100,9 @@ struct ContentView: View {
             }
             #endif
             if !onboarded || onboardingWizardForzadoDebug {
-                OnboardingWizard(onFinished: {
-                    // FER-109: la entrada de partículas se cuenta como YA CORRIDA al cerrar el
-                    // onboarding. Sin esto, `mostrandoEntrada` se vuelve cierto en el instante en que
-                    // `onboarded` pasa a true y el usuario recibe 2.8 s más de coreografía JUSTO
-                    // después del reveal de su palabra — y si venía por la salida a Entrenar, el
-                    // orbe aterrizaría sobre el frame del héroe de Hoy, que no es la pestaña activa.
-                    // `yaCorrio` es estático por proceso, así que el próximo arranque la entrada
-                    // vuelve sola, que es cuando por fin hay un veredicto que revelar.
-                    EntradaDeArranque.marcarCorrida()
-                    onboarded = true
-                })
-                .transition(LiquidMotion.fadeTransition)
-                .zIndex(1)
+                OnboardingWizard(onFinished: cerrarOnboarding)
+                    .transition(LiquidMotion.fadeTransition)
+                    .zIndex(1)
             }
             #if os(iOS)
             // FER-969 (X-03): the store didn't open (wedged migration / corrupt file) — an honest
@@ -133,10 +123,11 @@ struct ContentView: View {
                     .zIndex(3)
             }
             #endif
-            // Terms acknowledgment gate — over EVERYTHING (before onboarding/pairing/Bluetooth) until
-            // the current terms version is accepted; re-appears if the terms materially change.
+            // El gate de Términos va sobre TODO lo anterior —onboarding y cualquier acceso a los
+            // datos incluidos— mientras la versión aceptada no sea la vigente; y vuelve a salir si
+            // los términos cambian de fondo.
             if acceptedTerms != Terms.currentVersion {
-                TermsGateView(onAccept: { acceptedTerms = Terms.currentVersion })
+                TermsGateView(onAccept: aceptarTerminos)
                     .transition(LiquidMotion.fadeTransition)
                     .zIndex(2)
             }
@@ -222,6 +213,23 @@ struct ContentView: View {
         .animation(LiquidMotion.fundido, value: showRestoreResult)
         #endif
         .enableInjection()   // Inject: activa la recarga en caliente para esta vista (no-op en Release)
+    }
+
+    /// Cierra el onboarding. La entrada de partículas se da por CORRIDA en este proceso: sin eso,
+    /// `mostrandoEntrada` se vuelve cierto en el mismo instante en que `onboarded` pasa a true, y el
+    /// usuario se lleva 2.8 s más de coreografía justo después del reveal de su palabra — con el orbe
+    /// aterrizando sobre el frame del héroe de Hoy aunque haya salido hacia Entrenar. La marca es
+    /// estática por proceso, así que el próximo arranque la entrada vuelve sola: ahí sí hay veredicto
+    /// que revelar.
+    private func cerrarOnboarding() {
+        EntradaDeArranque.marcarCorrida()
+        onboarded = true
+    }
+
+    /// Guarda la versión de términos que el usuario acaba de aceptar. Es todo el registro de
+    /// consentimiento que existe: local, sin cuenta y sin red.
+    private func aceptarTerminos() {
+        acceptedTerms = Terms.currentVersion
     }
 
     /// The Terms gate is light «Instrumento» paper (FER-416) and sits over everything until accepted →
@@ -374,7 +382,9 @@ private struct StoreFailureView: View {
             Spacer()
         }
         .padding(.horizontal, LiquidSpace.s550)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity,
+               maxHeight: .infinity,
+               alignment: .leading)
         .background(LiquidColor.fondoGradient.ignoresSafeArea())
     }
 }
@@ -402,7 +412,9 @@ private struct RestoredNeedsReopenView: View {
             Spacer()
         }
         .padding(.horizontal, LiquidSpace.s550)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity,
+               maxHeight: .infinity,
+               alignment: .leading)
         .background(LiquidColor.fondoGradient.ignoresSafeArea())
     }
 }

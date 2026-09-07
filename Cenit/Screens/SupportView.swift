@@ -45,7 +45,8 @@ struct SupportView: View {
             Text("\(ProjectInfo.appName): all your data, none uploaded.")
                 .font(LiquidType.cuerpo)
                 .foregroundStyle(LiquidColor.tinta500)
-                .fixedSize(horizontal: false, vertical: true)
+                .fixedSize(horizontal: false,
+                           vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
@@ -73,7 +74,8 @@ struct SupportView: View {
             Text("A health app built on Apple Health. It all runs on this device: your history, your nights, your numbers. Cénit uploads nothing. \(ProjectInfo.appName) is an independent, experimental project.")
                 .font(LiquidType.cuerpo)
                 .foregroundStyle(LiquidColor.tinta500)
-                .fixedSize(horizontal: false, vertical: true)
+                .fixedSize(horizontal: false,
+                           vertical: true)
         }
         .liquidTarjetaSeccion()
     }
@@ -152,7 +154,8 @@ struct SupportView: View {
         Text("Not a medical device.")
             .font(LiquidType.captionLectura)
             .foregroundStyle(LiquidColor.tinta500)
-            .fixedSize(horizontal: false, vertical: true)
+            .fixedSize(horizontal: false,
+                       vertical: true)
     }
 }
 
