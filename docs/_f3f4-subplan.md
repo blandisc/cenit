@@ -1,6 +1,6 @@
 # Sub-plan técnico — F3+F4 (épico «La banda nunca existió»)
 
-> Arquitecto. Rama `claude/demolicion-banda-nunca-existio`. Fuente maestra: `docs/_demolicion-banda-plan.md`.
+> Arquitecto. Rama `claude/demolicion-banda-nunca-existio`. Fuente maestra: plan histórico (ya no versionado).
 > F3 y F4 van **como UNA sola fase compile-válida** (un commit verde). Este doc es el contrato que `/implement` ejecuta.
 > Baseline verificado: `StrandAnalytics` compila y `swift test --filter DataSourceModeTests|CircadianEngineTests|StepsEstimateEngineTests` → **42 tests, 0 fallas** (2026-07-21).
 

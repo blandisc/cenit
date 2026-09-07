@@ -1,6 +1,6 @@
 # Sub-plan técnico — F5 (épico «La banda nunca existió»)
 
-> Arquitecto. Rama `claude/demolicion-banda-nunca-existio`. Fuente maestra: `docs/_demolicion-banda-plan.md`.
+> Arquitecto. Rama `claude/demolicion-banda-nunca-existio`. Fuente maestra: plan histórico (ya no versionado).
 > F5 es UNA fase compile-válida (un commit verde). Este doc es el contrato que `/implement` ejecuta.
 > Baseline verificado 2026-07-21: `StrandAnalytics` y `CenitDesign` compilan; con los 3 motores + sus
 > 3 tests movidos fuera, `StrandAnalytics` **build y test-target compilan verde** (nada más los referencia).

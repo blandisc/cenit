@@ -1,6 +1,6 @@
 # Sub-plan técnico — F6 (épico «La banda nunca existió») — LA FASE DE CIENCIA
 
-> Arquitecto. Rama `claude/demolicion-banda-nunca-existio`. Fuente maestra: `docs/_demolicion-banda-plan.md`.
+> Arquitecto. Rama `claude/demolicion-banda-nunca-existio`. Fuente maestra: plan histórico (ya no versionado).
 > F6 es UNA fase compile-válida (un commit verde). Este doc es el contrato que `/implement` ejecuta.
 > **Diseñado contra el estado POST-F5** (los bloques `RecoveryImpact`/`RecoveryChange`/`ImpactRows`/`FiveRules`
 > y sus secciones de UI ya NO existen; F6 no los menciona).

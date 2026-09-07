@@ -1,7 +1,7 @@
 # Diseño técnico — F7: esquema greenfield v1 + naming `banda`→`apple`
 
 > Sub-plan de la Fase 7 del épico «la banda nunca existió». Fuente de verdad del épico:
-> `docs/_demolicion-banda-plan.md`. F1–F6 YA están DONE y committeadas en
+> plan histórico (ya no versionado). F1–F6 YA están DONE y committeadas en
 > `claude/demolicion-banda-nunca-existio`. Este doc es diseño técnico (arquitecto), NO
 > implementación. Cada afirmación de código está verificada contra el árbol actual.
 
