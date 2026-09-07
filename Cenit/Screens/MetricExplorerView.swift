@@ -223,7 +223,13 @@ struct MetricDetailView: View {
         return displayUnit.isEmpty ? cuerpo : "\(cuerpo) \(displayUnit)"
     }
 
+    // `-noop.range` (FER-384 · mapa 100%) fija la ventana inicial para la captura; una corrida
+    // normal cae al `.month` de siempre (`TendenciasFixtures.debugRange()` es DEBUG-only).
+    #if DEBUG
+    @State private var range: ExploreRange = TendenciasFixtures.debugRange() ?? .month
+    #else
     @State private var range: ExploreRange = .month
+    #endif
     /// The field's ⓘ opens the uniform «What we measure» card beneath it (D3/C-17, calco
     /// StrainDetailScreen.infoOpen). ONE card for all 35 metrics — no per-metric essay.
     @State private var infoOpen = false
