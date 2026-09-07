@@ -35,8 +35,10 @@ final class DataBackupSwapTests: XCTestCase {
         XCTAssertEqual(try String(contentsOf: db, encoding: .utf8), "NEW")
         XCTAssertEqual(try String(contentsOf: sidecar, encoding: .utf8), "OLD",
                        "the rollback sidecar preserves the replaced DB")
+        // FER-441: the stale WAL/SHM are dropped as part of the swap (before it completes), so the new
+        // .sqlite is never left beside the old DB's WAL — replaying it would corrupt the new database.
         XCTAssertFalse(FileManager.default.fileExists(atPath: db.path + "-wal"),
-                       "the stale WAL is dropped AFTER the swap")
+                       "the stale WAL is gone once the swap completes")
         XCTAssertFalse(FileManager.default.fileExists(atPath: db.path + "-shm"))
     }
 

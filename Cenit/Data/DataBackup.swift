@@ -128,13 +128,19 @@ enum DataBackup {
             .appendingPathComponent("cenit-incoming-\(timestamp()).sqlite")
         removeIfPresent(incoming)
         try fm.copyItem(at: source, to: incoming)
+        // FER-441: drop the OLD DB's WAL/SHM *before* the swap, not after. `beforeSwap()` already
+        // closed the live store (checkpointing its WAL into the .sqlite), so these sidecars are stale.
+        // If we removed them AFTER the atomic swap (two separate syscalls), a kill in that window left
+        // the NEW .sqlite beside the OLD -wal, and the next launch could replay stale WAL frames onto
+        // the new database and corrupt it. Removing them first closes that window: a kill before the
+        // swap leaves the old (checkpointed) DB intact; a kill after leaves the new DB with no stale WAL.
+        removeIfPresent(URL(fileURLWithPath: dbPath + "-wal"))
+        removeIfPresent(URL(fileURLWithPath: dbPath + "-shm"))
         if fm.fileExists(atPath: dbURL.path) {
             _ = try fm.replaceItemAt(dbURL, withItemAt: incoming)
         } else {
             try fm.moveItem(at: incoming, to: dbURL)
         }
-        removeIfPresent(URL(fileURLWithPath: dbPath + "-wal"))
-        removeIfPresent(URL(fileURLWithPath: dbPath + "-shm"))
         return sidecar
     }
 
