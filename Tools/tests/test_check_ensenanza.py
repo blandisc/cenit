@@ -114,6 +114,21 @@ class CheckEnsenanza(unittest.TestCase):
             problems = gate.check(tmp, base_path=base_baseline)
             self.assertEqual(problems, [])
 
+    def test_base_ausente_o_vacia_es_alta_estructural_no_falla(self):
+        # La primera vez que Tools/ensenanza-baseline.txt existe (este mismo PR), la rama base
+        # todavía no lo tiene: `git show` no encuentra el archivo y el step de CI escribe un
+        # /tmp/ens-base.txt vacío (`|| true`). Eso es el nacimiento del baseline, no una subida.
+        with tempfile.TemporaryDirectory() as tmp:
+            _repo(tmp, {"Vieja.swift": "struct Vieja {}\n"}, baseline_lines=["Cenit/Screens/Vieja.swift"])
+            base_baseline = os.path.join(tmp, "base-baseline-vacia.txt")
+            open(base_baseline, "w").close()  # existe pero vacío, como el `|| true` del CI
+            problems = gate.check(tmp, base_path=base_baseline)
+            self.assertEqual(problems, [])
+
+            base_inexistente = os.path.join(tmp, "no-existe.txt")
+            problems = gate.check(tmp, base_path=base_inexistente)
+            self.assertEqual(problems, [])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -59,6 +59,10 @@ packages:
     path: Packages/CenitDesign
   StrandTraining:
     path: Packages/StrandTraining
+  # CenitEnsenanza — el registro tipado de cómo se enseña cada funcionalidad (épico FER-428,
+  # L4/FER-430). Foundation-only, sin dependencias.
+  CenitEnsenanza:
+    path: Packages/CenitEnsenanza
   # FER-398: el paquete `Inject` (github.com/krzysztofzablocki/Inject) se RETIRÓ. Era inerte en
   # Release, pero igual viajaba dentro del binario de la tienda — una dependencia de terceros solo
   # para desarrollo, en el .ipa. Lo que la app usaba de él vive ahora en `Cenit/System/HotReload.swift`,
@@ -187,6 +191,13 @@ targets:
       - package: StrandImport
       - package: CenitDesign
       - package: StrandTraining
+<<<<<<< HEAD
+=======
+      # CenitEnsenanza — registro tipado de enseñanza (épico FER-428, L4/FER-430).
+      - package: CenitEnsenanza
+      # Inject: recarga en caliente en Debug (dev-only, inerte en Release).
+      - package: Inject
+>>>>>>> fae373709 (Registro de enseñanza, gate y tips (FER-430): cableado de CI y verify.sh)
       # FER-721: embed the Live Activity / widget extension into the app bundle.
       - target: CenitWidgets
       # FER-740: embed the watchOS companion app so it installs with the iPhone app.

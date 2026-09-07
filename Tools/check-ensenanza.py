@@ -125,11 +125,15 @@ def check(repo=".", base_path=None):
 
     if base_path is not None:
         base_baseline = load_baseline(base_path)
-        subidas = sorted(baseline - base_baseline)
-        if subidas:
-            problems.append(
-                "❌ ensenanza: el baseline solo puede bajar — subió con: " + ", ".join(subidas)
-            )
+        # Base vacía (el archivo no existe todavía en la rama base, o existe sin líneas): es el
+        # alta ESTRUCTURAL del propio baseline — nace aquí, no es una subida (mismo criterio que
+        # check-baseline-monotony.py con una regla ausente en la base: "todo es alta legítima").
+        if base_baseline:
+            subidas = sorted(baseline - base_baseline)
+            if subidas:
+                problems.append(
+                    "❌ ensenanza: el baseline solo puede bajar — subió con: " + ", ".join(subidas)
+                )
 
     return problems
 
