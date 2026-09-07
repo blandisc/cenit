@@ -50,10 +50,8 @@ enum EntrenarTips {
         }
         #endif
         do {
-            // .daily (D8, épico FER-428): entre tips DISTINTOS hay como máximo uno por día — antes
-            // era `.immediate`, que podía mostrar varios consejos nuevos en la misma sesión. Los
-            // cuatro tips de la primera sesión llevan `IgnoresDisplayFrequency(true)` y se saltan
-            // este límite: se enseñan en el momento exacto en que ocurre su concepto.
+            // .daily (D8): como máximo un tip DISTINTO por día; los de primera sesión se saltan el
+            // límite con `IgnoresDisplayFrequency(true)` (ver la cabecera del archivo).
             try Tips.configure([.displayFrequency(.daily)])
         } catch {
             // Nunca bloquear el arranque de la app por un consejo — mismo criterio que el resto
@@ -66,10 +64,9 @@ enum EntrenarTips {
 }
 
 /// «Serie «las que puedas»» — la primera vez que una fila de sesión muestra el chip AMRAP
-/// (`HojaFilaSerie` en `RoutineSheetLiveTarjeta`, ola 1 · E7). Tip de primera sesión (D8): se
-/// enseña en el momento exacto en que ocurre, sin esperar la cadencia diaria.
+/// (`HojaFilaSerie` en `RoutineSheetLiveTarjeta`, ola 1 · E7).
 struct LasQuePuedasTip: Tip {
-    var id: String { FuncionalidadID.entrenarAmrapDrop.rawValue + ".amrap" }
+    var id: String { Registro.tipID(.entrenarAmrapDrop, sufijo: "amrap") }
     var title: Text { Text("The as-many-as-you-can set") }
     var message: Text? {
         Text("Do every rep you can with good form and log how many you got. It counts for your records and to raise.")
@@ -78,9 +75,8 @@ struct LasQuePuedasTip: Tip {
 }
 
 /// «Bajar y seguir» — la primera vez que una fila de sesión muestra el chip de escalón drop.
-/// Tip de primera sesión (D8).
 struct BajarYSeguirTip: Tip {
-    var id: String { FuncionalidadID.entrenarAmrapDrop.rawValue + ".drop" }
+    var id: String { Registro.tipID(.entrenarAmrapDrop, sufijo: "drop") }
     var title: Text { Text("About drop and continue") }
     var message: Text? {
         Text("When you finish the set, drop the weight and keep going without resting. It adds volume; it doesn't count to raise or for records.")
@@ -89,9 +85,8 @@ struct BajarYSeguirTip: Tip {
 }
 
 /// «Reps en reserva» — el teclado de sesión, la primera vez que se registra una serie de trabajo.
-/// Tip de primera sesión (D8).
 struct RepsEnReservaTip: Tip {
-    var id: String { FuncionalidadID.entrenarRir.rawValue }
+    var id: String { Registro.tipID(.entrenarRir) }
     var title: Text { Text("About reps in reserve") }
     var message: Text? {
         Text("How many more reps you had left when you finished. 0 means you hit failure. The app uses it to decide whether you raise.")
@@ -100,9 +95,8 @@ struct RepsEnReservaTip: Tip {
 }
 
 /// «¿Qué tan duro estuvo?» — el primer recibo que trae la pregunta de esfuerzo (ola 1 · E3).
-/// Tip de primera sesión (D8).
 struct EsfuerzoEstimadoTip: Tip {
-    var id: String { FuncionalidadID.entrenarEsfuerzoEstimado.rawValue }
+    var id: String { Registro.tipID(.entrenarEsfuerzoEstimado) }
     var title: Text { Text("About how hard it was") }
     var message: Text? {
         Text("One tap when you finish. With minutes and effort, your session enters your load even without a watch.")
@@ -111,9 +105,8 @@ struct EsfuerzoEstimadoTip: Tip {
 }
 
 /// «Semana ligera» — la primera vez que Tu Plan la muestra en el kicker del programa (ola 1 · E11).
-/// Respeta la cadencia diaria (no es de primera sesión).
 struct SemanaLigeraTip: Tip {
-    var id: String { FuncionalidadID.entrenarPlan.rawValue + ".semana-ligera" }
+    var id: String { Registro.tipID(.entrenarPlan, sufijo: "semana-ligera") }
     var title: Text { Text("About the light week") }
     var message: Text? {
         Text("The last week of the cycle: half the sets, the same weight. You rest without stopping training.")
@@ -121,10 +114,9 @@ struct SemanaLigeraTip: Tip {
     var options: [any Tip.Option] { [Tip.MaxDisplayCount(1)] }
 }
 
-/// «Ritmo de subida» — la sección «Ritmo» de `ProgressionSetupScreen` (ola 1 · E5). Respeta la
-/// cadencia diaria (no es de primera sesión).
+/// «Ritmo de subida» — la sección «Ritmo» de `ProgressionSetupScreen` (ola 1 · E5).
 struct RitmoDeSubidaTip: Tip {
-    var id: String { FuncionalidadID.entrenarProgresion.rawValue + ".ritmo" }
+    var id: String { Registro.tipID(.entrenarProgresion, sufijo: "ritmo") }
     var title: Text { Text("About the raise rhythm") }
     var message: Text? {
         Text("Steady raises after 2 sessions in a row met; fast after 1; by reps in reserve, it raises 1 if you had 2 to spare and waits if you hit failure.")

@@ -111,4 +111,8 @@ jobs:
           # `|| true`: si la base todavía no tiene este archivo (su propia alta, este PR), queda
           # vacío — check-ensenanza.py trata una base vacía como alta estructural, no como subida.
           git show "FETCH_HEAD:Tools/ensenanza-baseline.txt" > /tmp/ens-base.txt 2>/dev/null || true
-          python3 Tools/check-ensenanza.py --base /tmp/ens-base.txt
+          # El guardia corre desde la BASE (igual que check-monotony arriba: un PR no trae su propio
+          # gate parchado); si la base todavía no lo tiene (su propia alta), el del PR es el único.
+          git show "FETCH_HEAD:Tools/check-ensenanza.py" > /tmp/check-ensenanza.py 2>/dev/null \
+            || cp Tools/check-ensenanza.py /tmp/check-ensenanza.py
+          python3 /tmp/check-ensenanza.py --base /tmp/ens-base.txt

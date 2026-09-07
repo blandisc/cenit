@@ -84,6 +84,8 @@ def markers_in(path):
     return ids
 
 
+SIN_ENUM = f"❌ ensenanza: no encontré {FID_PATH} — ¿se movió el paquete CenitEnsenanza?"
+
 MENSAJE_SIN_MARCADOR = (
     "❌ ensenanza: {rel} es una pantalla nueva sin entrada de enseñanza. Agrega "
     "« // ensenanza: <id> » con un id de FuncionalidadID.swift, o crea la funcionalidad "
@@ -95,7 +97,7 @@ MENSAJE_SIN_MARCADOR = (
 def check(repo=".", base_path=None):
     ids = load_ids(repo)
     if ids is None:
-        return [f"❌ ensenanza: no encontré {FID_PATH} — ¿se movió el paquete CenitEnsenanza?"]
+        return [SIN_ENUM]
     if not ids:
         return [f"❌ ensenanza: no pude leer ningún id de {FID_PATH} — ¿cambió el formato del enum?"]
 
@@ -144,15 +146,11 @@ def main(argv):
     ap.add_argument("--base", default=None, help="ruta al ensenanza-baseline.txt de la rama base")
     args = ap.parse_args(argv)
 
-    if load_ids(args.repo) is None:
-        print(f"❌ ensenanza: no encontré {FID_PATH}")
-        return 2
-
     problems = check(args.repo, args.base)
     if problems:
         for p in problems:
             print(p)
-        return 1
+        return 2 if problems == [SIN_ENUM] else 1
     print("✅ ensenanza: toda pantalla de Cenit/Screens está en el baseline o lleva un marcador válido")
     return 0
 

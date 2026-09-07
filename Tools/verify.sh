@@ -112,19 +112,17 @@ run_lint() {
     python3 Tools/check-xcstrings-es.py || fail "i18n: falta una clave en el catálogo, o su traducción es."
   fi
   # D6 (épico FER-428): toda pantalla nueva bajo Cenit/Screens/** lleva « // ensenanza: <id> ».
-  # Corre SIEMPRE (barre el árbol entero, no el diff) — mismo criterio que la paridad de gates.
-  if [ -f Tools/check-ensenanza.py ]; then
-    python3 Tools/check-ensenanza.py || fail "enseñanza: falta « // ensenanza: <id> » en una pantalla nueva (Tools/check-ensenanza.py)."
-    # Espejo local del «solo baja»: el baseline de enseñanza no puede subir respecto a origin/iOS.
-    if [ -f Tools/ensenanza-baseline.txt ] && git rev-parse --verify -q origin/iOS >/dev/null; then
-      ens_base=$(mktemp)
-      if git show origin/iOS:Tools/ensenanza-baseline.txt > "$ens_base" 2>/dev/null; then
-        python3 Tools/check-ensenanza.py --base "$ens_base" \
-          || fail "el baseline de enseñanza SUBIÓ respecto a origin/iOS (Tools/ensenanza-baseline.txt)."
-      fi
-      rm -f "$ens_base"
-    fi
+  # Corre SIEMPRE (barre el árbol entero, no el diff) y, cuando origin/iOS ya tiene el baseline, en
+  # la MISMA pasada vigila que solo baje (espejo del job `baseline-monotony`). Sin guard de
+  # existencia del script a propósito: si desaparece, esto FALLA en vez de callar.
+  ens_base=""
+  if git rev-parse --verify -q origin/iOS >/dev/null; then
+    ens_base=$(mktemp)
+    git show origin/iOS:Tools/ensenanza-baseline.txt > "$ens_base" 2>/dev/null || { rm -f "$ens_base"; ens_base=""; }
   fi
+  python3 Tools/check-ensenanza.py ${ens_base:+--base "$ens_base"} \
+    || fail "enseñanza: pantalla nueva sin « // ensenanza: <id> », o el baseline SUBIÓ respecto a origin/iOS (Tools/check-ensenanza.py)."
+  if [ -n "$ens_base" ]; then rm -f "$ens_base"; fi
   echo "verify: linters OK"
 }
 

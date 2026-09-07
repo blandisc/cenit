@@ -21,4 +21,9 @@ enum RepoFiles {
     static func read(_ relativePath: String) throws -> String {
         try String(contentsOf: repoRoot.appendingPathComponent(relativePath), encoding: .utf8)
     }
+
+    /// Para lo que se consume como JSON: sin pasar por `String` (el catálogo pesa ~2 MB).
+    static func readData(_ relativePath: String) throws -> Data {
+        try Data(contentsOf: repoRoot.appendingPathComponent(relativePath))
+    }
 }

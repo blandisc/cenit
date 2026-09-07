@@ -45,18 +45,22 @@ final class RegistroTests: XCTestCase {
     // MARK: 3. toda .novedad tiene su línea en CHANGELOG.md
 
     func test_novedadTieneLineaEnChangelog() throws {
-        let changelog = try RepoFiles.read("CHANGELOG.md")
-        for funcionalidad in Registro.todas {
-            for pieza in funcionalidad.piezas {
-                guard case .novedad(let version, _) = pieza else { continue }
-                let patron = "^## " + NSRegularExpression.escapedPattern(for: version) + #"\b"#
-                let regex = try NSRegularExpression(pattern: patron, options: [.anchorsMatchLines])
-                let rango = NSRange(changelog.startIndex..., in: changelog)
-                XCTAssertNotNil(
-                    regex.firstMatch(in: changelog, range: rango),
-                    "\(funcionalidad.id.rawValue) declara .novedad(\(version)) sin encabezado `## \(version)` en CHANGELOG.md"
-                )
-            }
+        let versiones = Set(Registro.todas.flatMap(\.piezas).compactMap { pieza -> String? in
+            if case .novedad(let version, _) = pieza { return version }
+            return nil
+        })
+        guard !versiones.isEmpty else { return }
+        let encabezados = try RepoFiles.read("CHANGELOG.md")
+            .split(separator: "\n")
+            .filter { $0.hasPrefix("## ") }
+            .map(String.init)
+        for version in versiones.sorted() {
+            let patron = "^## " + NSRegularExpression.escapedPattern(for: version) + #"\b"#
+            let regex = try NSRegularExpression(pattern: patron)
+            XCTAssertTrue(
+                encabezados.contains { regex.firstMatch(in: $0, range: NSRange($0.startIndex..., in: $0)) != nil },
+                "hay una .novedad(\(version)) sin encabezado `## \(version)` en CHANGELOG.md"
+            )
         }
     }
 
@@ -79,9 +83,9 @@ final class RegistroTests: XCTestCase {
     // MARK: 5. toda clave referida existe en el catálogo, con valor `es`
 
     func test_todaClaveExisteEnCatalogoBajoEs() throws {
-        let catalogoTexto = try RepoFiles.read("Cenit/Resources/Localizable.xcstrings")
+        let catalogo = try RepoFiles.readData("Cenit/Resources/Localizable.xcstrings")
         guard
-            let json = try JSONSerialization.jsonObject(with: Data(catalogoTexto.utf8)) as? [String: Any],
+            let json = try JSONSerialization.jsonObject(with: catalogo) as? [String: Any],
             let strings = json["strings"] as? [String: Any]
         else {
             XCTFail("no pude parsear Cenit/Resources/Localizable.xcstrings como JSON")

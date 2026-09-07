@@ -27,13 +27,6 @@ CATALOG = os.path.join(REPO, "Cenit/Resources/Localizable.xcstrings")
 ID_RE = re.compile(r"^[a-z]+(?:\.[a-z0-9-]+)+$")
 
 PESTANAS_ORDEN = ["hoy", "tendencias", "entrenar", "ajustes", "transversal"]
-PESTANA_ARCHIVO = {
-    "hoy": "Hoy",
-    "tendencias": "Tendencias",
-    "entrenar": "Entrenar",
-    "ajustes": "Ajustes",
-    "transversal": "Transversal",
-}
 
 
 def camel_id(fid):
@@ -108,7 +101,7 @@ def gen_funcionalidad_id(entradas):
     for e in entradas:
         by_pestana[e["pestana"]].append(e)
     for p in PESTANAS_ORDEN:
-        lines.append(f"    // MARK: - {PESTANA_ARCHIVO[p]}")
+        lines.append(f"    // MARK: - {p.capitalize()}")
         lines.append("")
         for e in by_pestana[p]:
             lines.append(f'    case {camel_id(e["id"])} = "{e["id"]}"')
@@ -121,7 +114,7 @@ def gen_funcionalidad_id(entradas):
 
 
 def gen_registro_extension(pestana, entradas_pestana):
-    archivo = PESTANA_ARCHIVO[pestana]
+    archivo = pestana.capitalize()
     lines = [
         "import Foundation",
         "",
@@ -183,14 +176,15 @@ def insert_catalog_entries(entradas):
     keys = []
     for e in entradas:
         fid = e["id"]
-        for campo, sufijo in (("nombre", "nombre"), ("paraQue", "paraQue"), ("dondeVive", "dondeVive")):
-            key = f"ensenanza.{fid}.{sufijo}"
+        for campo in ("nombre", "paraQue", "dondeVive"):
+            key = f"ensenanza.{fid}.{campo}"
             en = e[campo]["en"]
             es = e[campo]["es"]
             keys.append((key, en, es))
     keys.sort(key=lambda t: t[0])
+    existentes = set(re.findall(r'^\s*"([^"]+)" : \{', text, re.M))
     for key, _, _ in keys:
-        if f'"{key}"' in text:
+        if key in existentes:
             raise SystemExit(f"la clave {key!r} ya existe en el catálogo — ¿ya se corrió este generador?")
     blocks = ",\n".join(catalog_entry_text(k, en, es) for k, en, es in keys)
     # El último elemento de "strings" no lleva coma final; el marcador es la línea `  },\n  "version"`.
@@ -221,7 +215,7 @@ def main():
     for e in entradas:
         by_pestana[e["pestana"]].append(e)
     for p in PESTANAS_ORDEN:
-        path = os.path.join(SRC, f"Registro+{PESTANA_ARCHIVO[p]}.swift")
+        path = os.path.join(SRC, f"Registro+{p.capitalize()}.swift")
         open(path, "w", encoding="utf-8").write(gen_registro_extension(p, by_pestana[p]))
         print(f"escrito {path} ({len(by_pestana[p])} entradas)")
 

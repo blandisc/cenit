@@ -8,7 +8,9 @@ import Foundation
 // fast loop (`swift test`) y en la matriz de ubuntu de `swift-packages.yml`.
 
 /// Las cuatro pestañas del app + «transversal» (widgets, Live Activity, Watch, avisos, gestos:
-/// nada que viva en una sola pestaña).
+/// nada que viva en una sola pestaña). Espejo de `CenitDesign.LiquidTab` (+ `transversal`): aquí
+/// no se importa SwiftUI (este paquete corre en Linux), así que los nombres se mantienen a mano en
+/// los dos enums.
 public enum Pestana: String, CaseIterable, Sendable {
     case hoy, tendencias, entrenar, ajustes, transversal
 }
@@ -74,4 +76,11 @@ public struct Funcionalidad: Identifiable, Equatable, Sendable {
     public var nombreKey: String { "ensenanza.\(id.rawValue).nombre" }
     public var paraQueKey: String { "ensenanza.\(id.rawValue).paraQue" }
     public var dondeViveKey: String { "ensenanza.\(id.rawValue).dondeVive" }
+
+    /// Texto resuelto contra el catálogo de la app (`Bundle.main`); fuera de la app (tests del
+    /// paquete, Linux) devuelve la clave. El paquete no depende de SwiftUI: la vista envuelve el
+    /// `String` en `Text(verbatim:)`.
+    public var nombre: String { Localizado.texto(nombreKey) }
+    public var paraQue: String { Localizado.texto(paraQueKey) }
+    public var dondeVive: String { Localizado.texto(dondeViveKey) }
 }
