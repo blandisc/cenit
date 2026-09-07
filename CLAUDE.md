@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-Cénit is a fully **offline, on-device** health companion built on **Apple Health**: it syncs HealthKit into local SQLite and computes recovery / strain / HRV / sleep on-device. No server, no account, no network by default. Not affiliated with WHOOP; not a medical device (see [DISCLAIMER.md](DISCLAIMER.md)).
+Cénit is a fully **offline, on-device** health companion built on **Apple Health**: it syncs HealthKit into local SQLite and computes recovery / strain / HRV / sleep on-device. No server, no account, no network by default. Not a medical device (see [DISCLAIMER.md](DISCLAIMER.md)).
 
 **[docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) is the full guide** — repository layout, build/test, the design-system rules, and how to add a metric / screen / DB migration. Read it before any non-trivial change. This file is the high-signal summary, not a replacement.
 
@@ -29,7 +29,7 @@ Cross-platform **Swift packages do the real work**; thin platform apps wrap them
 
 **`Tools/verify.sh` is the one verification command — run it before finishing any change that touches Swift.** Modes: no args = auto (linters + build/test of touched packages + app `build-for-testing` if the app layer changed), `quick` (linters only), `package <N>`, `app`, `app-tests` (runs `CenitUnitTests` on a simulator, signed — an unsigned build compiles but cannot RUN: without the App Group entitlement the app aborts before the first test, which is how the suite rotted unseen until FER-49. CI now runs it too, nightly / on `ci-app`, so this is the local mirror of that gate, not the only place it happens). It encapsulates the whole resource choreography below (wait-for-idle, `-jobs 4`, DerivedData prune, simulator shutdown) so you don't have to. A Stop-hook blocks ending the turn with unverified `.swift` edits; live-iteration sessions (`/canvas`, `/inject`) opt out by creating `.claude/live-session` (delete it when the session ends — the user is the eye there).
 
-Packages are the fast loop (no Xcode, no strap):
+Packages are the fast loop (no Xcode needed):
 
 ```bash
 cd Packages/<Name> && swift build && swift test

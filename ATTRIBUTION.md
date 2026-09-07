@@ -1,15 +1,10 @@
 # Attribution
 
-Cénit is an independent, unofficial, local-first iOS app. It is not affiliated
-with, endorsed by, or connected to WHOOP, Inc.
+Cénit is an independent, unofficial, local-first iOS app built on Apple Health.
 
-## Dependencies
-
-- **GRDB.swift** (`groue/GRDB.swift`) — SQLite persistence (via Swift Package Manager).
-- **ZIPFoundation** (`weichsel/ZIPFoundation`) — archive handling for Apple Health
-  exports (via Swift Package Manager).
-
-Cénit contains no WHOOP proprietary code, binaries, firmware, logos, or assets, and
-performs no DRM circumvention. It operates only with the user's own device and data.
-Cénit is **not a medical device**; all metrics (HR, HRV, recovery, strain, sleep,
-SpO₂, temperature) are approximations and not clinically validated.
+Third-party components and their licenses are listed in full in
+[`NOTICE`](NOTICE) — dependencies (GRDB.swift, ZIPFoundation, Space Grotesk) and
+the exercise catalog data source (free-exercise-db). Nothing in this repository
+is redistributed proprietary code, firmware, or brand assets from any device
+maker; Cénit operates only on the user's own device and data through Apple's
+public HealthKit API.

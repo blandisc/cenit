@@ -1,6 +1,6 @@
-# Cénit (NOOP)
+# Cénit
 
-Companion offline y on-device sobre **Apple Health**: sincroniza HealthKit, guarda todo en SQLite local y computa recuperación/esfuerzo/HRV/sueño en el dispositivo. El soporte de banda WHOOP fue retirado (FER-1003); los datos históricos importados se conservan. Este glosario cubre el lenguaje del dominio, empezando por el motor de coaching proactivo (en diseño).
+Companion offline y on-device sobre **Apple Health**: sincroniza HealthKit, guarda todo en SQLite local y computa recuperación/esfuerzo/HRV/sueño en el dispositivo. Cénit es 100% Apple Watch — no empareja hardware externo. Este glosario cubre el lenguaje del dominio, empezando por el motor de coaching proactivo (en diseño).
 
 ## Language
 
