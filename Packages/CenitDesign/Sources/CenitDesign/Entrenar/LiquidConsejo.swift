@@ -23,10 +23,20 @@ import TipKit
 /// ya evita que vuelva a aparecer; el botón es el camino principal, documentado en el criterio de
 /// aceptación del issue.
 public struct LiquidConsejoTipStyle: TipViewStyle {
-    public init() {}
+    /// Los dos rótulos los pone la APP (FER-429): `CenitDesign` no tiene catálogo de cadenas propio,
+    /// así que un literal declarado aquí solo se traduce si el catálogo de la app conserva la clave
+    /// «stale». Recibiéndolos, la extracción ocurre donde vive el catálogo. Los defaults sirven al
+    /// `#Preview` del paquete.
+    private let entendido: Text
+    private let cerrar: Text
+
+    public init(entendido: Text = Text(verbatim: "Got it"), cerrar: Text = Text(verbatim: "Close")) {
+        self.entendido = entendido
+        self.cerrar = cerrar
+    }
 
     public func makeBody(configuration: TipViewStyle.Configuration) -> some View {
-        LiquidConsejoBody(configuration: configuration)
+        LiquidConsejoBody(configuration: configuration, entendido: entendido, cerrar: cerrar)
     }
 }
 
@@ -34,6 +44,8 @@ public struct LiquidConsejoTipStyle: TipViewStyle {
 /// sin ambigüedad dentro de `makeBody`.
 private struct LiquidConsejoBody: View {
     let configuration: TipViewStyle.Configuration
+    let entendido: Text
+    let cerrar: Text
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
@@ -57,12 +69,12 @@ private struct LiquidConsejoBody: View {
                         .foregroundStyle(LiquidColor.tinta500)
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel(Text("Close"))
+                .accessibilityLabel(cerrar)
             }
             Button {
                 configuration.tip.invalidate(reason: .actionPerformed)
             } label: {
-                Text("Got it")
+                entendido
                     .font(LiquidType.cuerpo.weight(.semibold))
                     .foregroundStyle(LiquidColor.verdePrimario)
             }

@@ -41,6 +41,14 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
   —sin control, sin preferencia guardada y sin código que la alcance—, así que ahora la app está
   offline por completo. Las animaciones que ya hubieras descargado dejan de mostrarse, pero no se
   borran: siguen en tu iPhone. Vuelve más adelante con arte propio.
+### El onboarding ya no promete un aviso que no puede sonar (FER-429)
+- Mientras Cénit todavía te está conociendo («Noche N de 4»), la última pantalla del primer
+  arranque ya no ofrece el recordatorio de la mañana: no hay palabra que recordar hasta que haya
+  palabra. Con lectura, se ofrece igual que antes.
+- Los consejos de Entrenar cierran con «Entendido» y «Cerrar» garantizados en español (los rótulos
+  ahora viven en el catálogo de la app). Quitar la última ronda de una superserie ya tiene acción de
+  VoiceOver, igual que borrar una serie. La hoja de respiración deja de reservar un bloque «Tu
+  patrón» que nunca se pintaba.
 
 ### Los planes y programas que importas ahora se llaman `cenit.*` (FER-382)
 - El archivo que armas con tu LLM (rutina o plan de comida) pasa a identificarse como

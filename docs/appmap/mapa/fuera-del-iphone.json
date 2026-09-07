@@ -1,0 +1,182 @@
+{
+  "familia": "fuera-del-iphone",
+  "titulo": "Fuera del iPhone · widgets, Live Activity, Watch",
+  "unidad": "estados",
+  "blurb": "Superficies que test_mapa no alcanza porque no son una pantalla del iPhone navegable con -noop.nav: los widgets de HomeScreen (TrainTodayWidget/WeekWidget), la Live Activity de la sesión de fuerza (RestLiveActivity) y las pantallas del Apple Watch. Mapa 100 % Ola 4 (FER-394) investigó renderizarlas aparte con ImageRenderer (SwiftUI → PNG, «render, no captura del simulador») en vez de capturarlas. Los tres quedaron NO VIABLES dentro del alcance «toca solo estos archivos» de la ola — cada nodo documenta el estado que se hubiera renderizado y por qué no se pudo, como backlog explícito (ver docs/appmap/mapa/README.md § omitido).",
+  "nodos": [
+    {
+      "id": "widget-hoy-con-rutina",
+      "titulo": "Widget Hoy · con rutina",
+      "condicion": "TrainTodayWidgetView, snapshot.today con rutina asignada sin sesión viva — preview «Con rutina» de TrainTodayWidget.swift",
+      "omitido": "Vive solo en el target de extensión CenitWidgets (CenitWidgets/HomeWidgets/TrainTodayWidget.swift). project.yml no declara `target: CenitWidgets` como dependencia de CenitUnitTests — solo el modelo (TrainWidgetSnapshot) llega al app vía CenitWidgets/Shared, la vista no. Agregar esa dependencia resolvería el import pero es un cambio a project.yml (archivo de build compartido), fuera del alcance «toca solo» de esta ola — reportado, no aplicado."
+    },
+    {
+      "id": "widget-hoy-descanso",
+      "titulo": "Widget Hoy · día de descanso",
+      "condicion": "snapshot.today == nil, veredicto «Ve leve hoy» — preview «Día de descanso»",
+      "omitido": "Mismo bloqueo de import que widget-hoy-con-rutina (target CenitWidgets no alcanzable desde CenitUnitTests sin tocar project.yml)."
+    },
+    {
+      "id": "widget-hoy-sesion-viva",
+      "titulo": "Widget Hoy · sesión ya viva",
+      "condicion": "today.sessionLive == true, sin veredicto (la sesión ya está en curso) — preview «Sesión ya viva»",
+      "omitido": "Mismo bloqueo de import que widget-hoy-con-rutina."
+    },
+    {
+      "id": "widget-hoy-snapshot-rancio",
+      "titulo": "Widget Hoy · snapshot rancio",
+      "condicion": "writtenAt hace 5 días → isStale(asOf:) == true, cae a OpenAppBody() — preview «Snapshot rancio»",
+      "omitido": "Mismo bloqueo de import que widget-hoy-con-rutina."
+    },
+    {
+      "id": "widget-hoy-sin-snapshot",
+      "titulo": "Widget Hoy · sin snapshot (primera instalación)",
+      "condicion": "snapshot == nil, antes de que AppModel publique el primero — preview «Sin snapshot (primera instalación)»",
+      "omitido": "Mismo bloqueo de import que widget-hoy-con-rutina."
+    },
+    {
+      "id": "widget-semana-con-rutina",
+      "titulo": "Widget Semana · con rutina",
+      "condicion": "WeekWidgetView, WeekProvider.sample (semana con datos) — preview «Con rutina» de WeekWidget.swift",
+      "omitido": "Vive solo en CenitWidgets/HomeWidgets/WeekWidget.swift (target de extensión). Mismo bloqueo de import que la familia widget-hoy-*: requiere `target: CenitWidgets` en CenitUnitTests (project.yml), fuera de alcance de esta ola."
+    },
+    {
+      "id": "widget-semana-descanso",
+      "titulo": "Widget Semana · día de descanso",
+      "condicion": "today == nil, veredicto «Getting to know you» (hollow) — preview «Día de descanso»",
+      "omitido": "Mismo bloqueo de import que widget-semana-con-rutina."
+    },
+    {
+      "id": "widget-semana-sesion-viva",
+      "titulo": "Widget Semana · sesión ya viva",
+      "condicion": "today.sessionLive == true, sin veredicto — preview «Sesión ya viva»",
+      "omitido": "Mismo bloqueo de import que widget-semana-con-rutina."
+    },
+    {
+      "id": "widget-semana-snapshot-rancio",
+      "titulo": "Widget Semana · snapshot rancio",
+      "condicion": "writtenAt hace 5 días, isStale — preview «Snapshot rancio»",
+      "omitido": "Mismo bloqueo de import que widget-semana-con-rutina."
+    },
+    {
+      "id": "widget-semana-sin-snapshot",
+      "titulo": "Widget Semana · sin snapshot (primera instalación)",
+      "condicion": "snapshot == nil — preview «Sin snapshot (primera instalación)»",
+      "omitido": "Mismo bloqueo de import que widget-semana-con-rutina."
+    },
+    {
+      "id": "live-activity-set-activo",
+      "titulo": "Live Activity · set activo",
+      "condicion": "SessionLockScreenCard con resolvedPhase == .activeSet — hero «Serie X de Y», barra de segmentos activa, acción «Completar»",
+      "omitido": "CenitWidgets/RestLiveActivity.swift no tiene ni un #Preview propio (0 encontrados) ni es importable desde CenitUnitTests — mismo bloqueo de target que los widgets de HomeScreen (vive en el target de extensión CenitWidgets, no declarado como dependencia de CenitUnitTests en project.yml). Habría que añadir la dependencia Y autorar #Preview con RestActivityAttributes.ContentState de muestra antes de poder renderizarla — ninguna de las dos cabe en «toca solo» de esta ola."
+    },
+    {
+      "id": "live-activity-descanso-timer",
+      "titulo": "Live Activity · descanso por cronómetro",
+      "condicion": "resolvedPhase == .resting, isHRMode == false — hero countdown, barra drenando, acciones −30/+30/Saltar",
+      "omitido": "Mismo bloqueo que live-activity-set-activo."
+    },
+    {
+      "id": "live-activity-descanso-hr",
+      "titulo": "Live Activity · descanso guiado por pulso",
+      "condicion": "isHRRest == true — hero de pulso, «Tope m:ss» en vez del chip",
+      "omitido": "Mismo bloqueo que live-activity-set-activo."
+    },
+    {
+      "id": "live-activity-pausa",
+      "titulo": "Live Activity · en pausa",
+      "condicion": "resolvedPhase == .paused — hero «En pausa», barra inerte, acción «Reanudar»",
+      "omitido": "Mismo bloqueo que live-activity-set-activo."
+    },
+    {
+      "id": "live-activity-rancia",
+      "titulo": "Live Activity · viva pero obsoleta",
+      "condicion": "context.isStale == true — render mudo, sin acciones, «Abre Cénit para continuar»",
+      "omitido": "Mismo bloqueo que live-activity-set-activo."
+    },
+    {
+      "id": "live-activity-isla-dinamica",
+      "titulo": "Live Activity · Isla Dinámica",
+      "condicion": "SessionDynamicIsland.make(state:) — presentación compacta/expandida/minimal sobre LiquidOLED",
+      "omitido": "Mismo bloqueo que live-activity-set-activo."
+    },
+    {
+      "id": "watch-idle-con-veredicto",
+      "titulo": "Watch · idle con veredicto",
+      "condicion": "WatchIdleView(couldNotConnect: false), veredicto «En rango» / rutina «Empuje» — preview «Idle · con veredicto» de WatchSessionRootView.swift",
+      "omitido": "CenitWatch es platform: watchOS y CenitUnitTests es platform: iOS — un XCTest del bundle iOS no puede importar un módulo watchOS (SDKs distintos; no es un problema de dependencias en project.yml, es un límite de plataforma). Renderizarla exigiría un target de pruebas watchOS nuevo — cambio estructural (candidato a /arquitecto), no forzado en esta ola best-effort."
+    },
+    {
+      "id": "watch-idle-veredicto-atenuada",
+      "titulo": "Watch · idle con veredicto, pantalla atenuada",
+      "condicion": "mismo estado que watch-idle-con-veredicto con la pantalla del reloj atenuada (always-on) — preview «Idle · con veredicto, pantalla atenuada»",
+      "omitido": "Mismo bloqueo de plataforma que watch-idle-con-veredicto."
+    },
+    {
+      "id": "watch-idle-sin-lectura-fallo-health",
+      "titulo": "Watch · sin lectura + fallo de Health",
+      "condicion": "WatchIdleView(couldNotConnect: true), authorizationRequestFailed — preview «Idle · sin lectura + fallo de Health»",
+      "omitido": "Mismo bloqueo de plataforma que watch-idle-con-veredicto."
+    },
+    {
+      "id": "watch-idle-ax5",
+      "titulo": "Watch · idle, Dynamic Type AX5",
+      "condicion": "mismo idle con veredicto «Recupera» bajo el tamaño de accesibilidad más grande — preview «Idle · AX5»",
+      "omitido": "Mismo bloqueo de plataforma que watch-idle-con-veredicto."
+    },
+    {
+      "id": "watch-healthkit-fallo-arranque",
+      "titulo": "Watch · fallo de HealthKit al arrancar",
+      "condicion": "WatchHealthKitFailureView() — preview «Fallo de HealthKit al arrancar»",
+      "omitido": "Mismo bloqueo de plataforma que watch-idle-con-veredicto."
+    },
+    {
+      "id": "watch-descanso-pulso-esperando",
+      "titulo": "Watch · descanso por pulso, esperando lectura",
+      "condicion": "WatchFaceMetrics(), hrTarget 110 sin heartRate — preview «Descanso por pulso · esperando lectura» de WatchLiveFaceView.swift",
+      "omitido": "Mismo bloqueo de plataforma que watch-idle-con-veredicto."
+    },
+    {
+      "id": "watch-descanso-pulso-faltan-lpm",
+      "titulo": "Watch · descanso por pulso, te faltan N lpm",
+      "condicion": "hrTarget 110, heartRate 132 (por encima del tope) — preview «Descanso por pulso · te faltan N lpm»",
+      "omitido": "Mismo bloqueo de plataforma que watch-idle-con-veredicto."
+    },
+    {
+      "id": "watch-descanso-pulso-almost",
+      "titulo": "Watch · descanso por pulso, casi (Almost)",
+      "condicion": "hrTarget 110, heartRate 113 — gap 3, dentro de la banda de honestidad (5) — preview «Descanso por pulso · Almost»",
+      "omitido": "Mismo bloqueo de plataforma que watch-idle-con-veredicto."
+    },
+    {
+      "id": "watch-descanso-pulso-ready",
+      "titulo": "Watch · descanso por pulso, Ready",
+      "condicion": "hrTarget 110, heartRate 108 — preview «Descanso por pulso · Ready»",
+      "omitido": "Mismo bloqueo de plataforma que watch-idle-con-veredicto."
+    },
+    {
+      "id": "watch-descanso-sigue-siguiente-ejercicio",
+      "titulo": "Watch · descanso, sigue con el próximo ejercicio",
+      "condicion": "nextExercise (Fondos, lastSet: true) — preview «Descanso · SIGUE con el próximo ejercicio»",
+      "omitido": "Mismo bloqueo de plataforma que watch-idle-con-veredicto."
+    },
+    {
+      "id": "watch-descanso-pulso-ax5",
+      "titulo": "Watch · descanso por pulso, Dynamic Type AX5",
+      "condicion": "mismo estado «te faltan N lpm» bajo .accessibility5 — preview «Descanso por pulso · AX5»",
+      "omitido": "Mismo bloqueo de plataforma que watch-idle-con-veredicto."
+    },
+    {
+      "id": "watch-standalone-live",
+      "titulo": "Watch · sesión autónoma en vivo (C1 FER-361)",
+      "condicion": "WatchStandaloneLiveView — el reloj como logger de fuerza sin el iPhone cerca",
+      "omitido": "Mismo bloqueo de plataforma que watch-idle-con-veredicto. Además el archivo no trae #Preview propio (0 encontrados en CenitWatch/Screens/WatchStandaloneLiveView.swift) — habría que autorarlo primero, incluso si el límite de plataforma no existiera."
+    },
+    {
+      "id": "watch-resumen-sesion",
+      "titulo": "Watch · resumen de sesión",
+      "condicion": "WatchSummaryView — resumen al terminar el entreno",
+      "omitido": "Mismo bloqueo de plataforma que watch-idle-con-veredicto. Además el archivo no trae #Preview propio (0 encontrados en CenitWatch/Screens/WatchSummaryView.swift) — habría que autorarlo primero, incluso si el límite de plataforma no existiera."
+    }
+  ]
+}

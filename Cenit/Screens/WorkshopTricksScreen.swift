@@ -7,8 +7,9 @@ import CenitDesign
 // La página del taller: los trucos distintivos que viven medio escondidos en el flujo Entrenar —
 // progresión, descanso por FC, importar el plan de una IA, calentamientos en rampa, calculadora de
 // discos, tickets térmicos. NO es un tutorial: una fila por truco, dicho en una línea, con el color
-// solo en el glifo (§8.4). Dos puertas: el chip «? Trucos» del hub (permanente) y una tarjeta de
-// una-sola-vez en el hub (se descarta con ✕ y no vuelve — `hubTricksCardDismissed`).
+// solo en el glifo (§8.4). Una puerta: el «?» de la cabecera del hub (permanente). La tarjeta de
+// una sola vez que se planeó aquí nunca se implementó (FER-429); la puerta permanente por pestaña
+// llega con «Cómo funciona Cénit» (épico FER-428).
 
 struct WorkshopTricksScreen: View {
     /// Inject: recarga en caliente para esta pantalla (dev-only, no-op en Release).

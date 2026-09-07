@@ -26,7 +26,7 @@ body over time), **Entrenar** (Train), and **Ajustes** (Settings):
 
 | Tab | What it is |
 | --- | --- |
-| **Hoy** | The verdict home — today's readiness word and the SEÑALES grid. |
+| **Hoy** | The verdict home — today's readiness word (El Ecosistema) and La Matriz of signals. |
 | **Tendencias** | Your body over time — the trend of every signal, plus sleep, stress, vitals, body composition and longevity. |
 | **Entrenar** | The training planner — plan, routines, a guided live strength session, plus Breathe and Intervals. |
 | **Ajustes** | Profile, units, data & backup, illness watch, reminders, support. |
@@ -46,7 +46,7 @@ Every metric is an approximation computed locally. Nothing is uploaded.
 **Tab: Hoy · the verdict home. Works from Apple Health data, computed on-device.**
 
 `TodayView.swift` (with the `Cenit/Screens/Hoy/` builders) is the home screen — «El Ecosistema».
-A header with the short date and the **24-hour dial seal** (no live BPM), then, when you have data:
+A header with the short date (the 24-hour dial seal was retired on 2026-08-06), then, when you have data:
 
 - **The verdict hero** — the orb, with **one dominant word** — today's *Preparedness* reading
   (**In range**, **Go light today**, or **Recover**, and **Getting to know you** while the baseline
@@ -55,10 +55,12 @@ A header with the short date and the **24-hour dial seal** (no live BPM), then, 
   screens can disagree.
 - **Training load** — a strip with your ACWR band (recent vs. your usual) when there's enough
   recorded strain.
-- **SEÑALES** — a uniform tile grid, each with a sparkline: **Sleep, HRV, Resting HR, Day strain,
-  Steps, Skin temp, Respiration, Stress**. Resting HR is your **nocturnal** rate, measured by your
-  Apple Watch during sleep and read through Apple Health. Tapping a tile opens its metric sheet
-  (14-day curve, bands, level table); "Ver más" escalates to the rich detail screen.
+- **La Matriz** — three shelves of instrument cells («Deciden tu día», «Te vigila», «Contexto»):
+  **Sleep, Resting HR, the guardian pair (skin temp + respiration), Training load, Day strain, HRV,
+  Stress, Steps**, each with its own chart. Resting HR is your **nocturnal** rate, measured by your
+  Apple Watch during sleep and read through Apple Health. Tapping a cell opens its metric sheet
+  (14-day curve, bands, level table); "Ver más" escalates to the rich detail screen. Dragging across a
+  chart reads it night by night.
 - **Manuals & guardian** — «¿Qué decide tu día?» and «Tu contexto» explain the reading; the
   **guardian sheet** shows the sentinel pair (skin temp + respiration) and why it only votes when
   both drift together.
@@ -92,8 +94,6 @@ hero's "vs your average" delta at once. Top to bottom:
   sparkline column.
 - **Training load** — the ACWR band in a word (Low / Optimal / High) with the ratio and a
   mini-trend; "—" and a calibration note under ~2 weeks of recorded strain.
-- **Your body** — a card that opens the **muscle map** (`TrainingBodyScreen`): per-muscle load
-  crossed with your recovery.
 - **Vitals** — a grid of **HRV, Resting HR, Blood Oxygen, Heart Rate** (intraday average),
   **Respiratory** and **Skin temp**, each tappable to its detail screen.
 - **Activity** — Steps and Workouts (7d), plus "how you wake after each sport" (a per-sport
