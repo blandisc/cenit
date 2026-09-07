@@ -58,6 +58,10 @@ struct ExerciseLibraryScreen: View {
     @State private var customIds: Set<String> = []
     /// The exercise being completed/edited in the sheet.
     @State private var editingExercise: Exercise? = nil
+    /// FER-458: surface a failed custom-exercise write instead of swallowing it with `try?` (same
+    /// honesty contract as WorkoutHistoryScreen/WorkoutDetailScreen) — a disk-full/SQLITE_BUSY save
+    /// used to fail silently and the user thought their exercise was saved.
+    @State private var saveError = false
     @State private var filtered: [Exercise] = []
     @State private var mine: [Exercise] = []
     @State private var rest: [Exercise] = []
@@ -113,16 +117,17 @@ struct ExerciseLibraryScreen: View {
         }
         .sheet(isPresented: $showCreate) {
             CreateExerciseSheet(catalog: exercises) { ex in
-                Task { try? await repo.saveCustomExercise(ex); await reload() }
+                Task { await saveCustom(ex) }
             }
         }
         // FER-995: completing an exercise created before the muscle was required — the same form,
         // pre-filled, keeping the id so the save edits in place.
         .sheet(item: $editingExercise) { ex in
             CreateExerciseSheet(catalog: exercises, editing: ex) { updated in
-                Task { try? await repo.saveCustomExercise(updated); await reload() }
+                Task { await saveCustom(updated) }
             }
         }
+        .saveErrorToast(isPresented: $saveError)   // FER-458: un guardado fallido se ve, no se traga
         .enableInjection()
     }
 
@@ -351,6 +356,17 @@ struct ExerciseLibraryScreen: View {
     }
 
     // MARK: - Data
+
+    /// FER-458: persist a created/edited custom exercise and surface a failure instead of swallowing it
+    /// with `try?`. A disk-full/`SQLITE_BUSY` write used to fail silently and the user believed it saved.
+    private func saveCustom(_ ex: Exercise) async {
+        do {
+            try await repo.saveCustomExercise(ex)
+            await reload()
+        } catch {
+            saveError = true
+        }
+    }
 
     private func reload() async {
         exercises = await repo.allExercises()
