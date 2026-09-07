@@ -19,7 +19,7 @@ public enum SleepWindowClock {
 
     /// Bedtime / wake of the most recent sleep session as LOCAL clock hours (0...24, in the
     /// `calendar`'s time zone), or `nil` when there is no session — or the latest one ended
-    /// more than `freshnessHours` before `now` (so a strap unworn for days doesn't surface a
+    /// more than `freshnessHours` before `now` (so a device unworn for days doesn't surface a
     /// stale band). Does NOT wrap midnight: `bedtime` may be greater than `wake` (e.g. 23.25
     /// → 6.75); the dial wraps the arc itself, so the honest, unwrapped hours are returned.
     public static func recent(_ sessions: [CachedSleepSession],

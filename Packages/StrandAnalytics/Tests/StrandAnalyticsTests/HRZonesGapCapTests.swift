@@ -3,15 +3,15 @@ import BiometricStreams
 @testable import StrandAnalytics
 
 // FER-647 — HRZones.timeInZone must cap each per-sample duration at the median inter-sample
-// gap, so a large POSITIVE gap (a strap disconnection recorded as one interval) is NOT credited
-// in full to the zone of the sample that precedes it. Before the fix, `timeInZone` substituted
-// the median only when the gap was <= 0; a big positive gap inflated the bucket by the whole
-// disconnection (the CDO audit measured 3607 s where the robust value is ~4 s).
+// gap, so a large POSITIVE gap (an interruption in recording, arriving as one long interval) is NOT
+// credited in full to the zone of the sample that precedes it. Before the fix, `timeInZone`
+// substituted the median only when the gap was <= 0; a big positive gap inflated the bucket by the
+// whole interruption (the CDO audit measured 3607 s where the robust value is ~4 s).
 final class HRZonesGapCapTests: XCTestCase {
 
     func testMidStreamGapIsCappedAtMedian() {
         let zs = HRZones.zones(maxHR: 200)     // z1 lower edge = 100 bpm
-        // Three 1 Hz z1 samples, then a ~1 h disconnection, then one more z1 sample.
+        // Three 1 Hz z1 samples, then a ~1 h interruption, then one more z1 sample.
         let hr = [
             HRSample(ts: 0, bpm: 110),
             HRSample(ts: 1, bpm: 110),

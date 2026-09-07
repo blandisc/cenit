@@ -1415,7 +1415,7 @@ struct SleepDetailModel {
         }()
 
         // --- Regularity: onset/wake from real sessions, Apple + strap (FER-1026). `appleSleeps` carry
-        // real startTs/endTs (FER-486) and never overlap strap nights (`appleSleepsNotCoveredByStrap`),
+        // real startTs/endTs (FER-486) and never overlap on-device nights (`appleSleepsNotCoveredOnDevice`),
         // so the union is every real night; the engine drops naps itself via `SleepMainNight`. Without
         // this, Apple-only users had an empty `timing` → "calibrating" forever. `realSessions` (the union
         // minus the degenerate daily fallback, start == end) also feeds the nap disclosure below. ---
@@ -1657,7 +1657,7 @@ struct SleepDetailModel {
     }
 
     /// Decode the COMPUTED stagesJSON segment array [{start,end,stage}] into stage totals + the real
-    /// timeline (seconds relative to the session start). The on-device SleepStager calls awake "wake".
+    /// timeline (seconds relative to the session start). The stored vocabulary calls awake "wake".
     private static func decodeSegments(_ json: String?, sessionStart: Int) -> (stages: Stages, intervals: [SleepInterval])? {
         guard let json, let data = json.data(using: .utf8),
               let arr = (try? JSONSerialization.jsonObject(with: data)) as? [[String: Any]],

@@ -10,9 +10,9 @@ final class FusionResolverTests: XCTestCase {
     // MARK: - 1. Trust ordering ("best signal wins")
 
     func testStepsPhoneCountBeatsStrapFigure() {
-        // The phone pedometer COUNTS steps (tier 0); the strap figure is motion-derived (tier 3).
+        // The phone pedometer COUNTS steps (tier 0); the other figure is motion-derived (tier 3).
         let point = FusionResolver.resolve(metricKey: "steps", inputs: [
-            FusionInput(source: .noopComputed, value: 6000),   // strap motion figure
+            FusionInput(source: .noopComputed, value: 6000),   // a motion-derived figure
             FusionInput(source: .appleHealth, value: 8420),    // counts directly
         ])
         XCTAssertEqual(point?.winningSource, .appleHealth)
@@ -21,7 +21,7 @@ final class FusionResolverTests: XCTestCase {
     }
 
     func testSleepWhoopBeatsPhoneBuckets() {
-        // Imported WHOOP timeline (tier 0) beats phone sleep buckets (tier 2).
+        // An imported timeline (tier 0) beats phone sleep buckets (tier 2).
         let point = FusionResolver.resolve(metricKey: "sleep_total_min", inputs: [
             FusionInput(source: .appleHealth, value: 400),
             FusionInput(source: .whoopImport, value: 432),
@@ -33,7 +33,7 @@ final class FusionResolverTests: XCTestCase {
 
     func testSleepTieOnSameTierBrokenStablyBySourcePriority() {
         // Imported (priority 0) and computed (priority 1) never share a tier for sleep, so exercise
-        // the tiebreak with two same-tier strap sources on steps (both tier 3): whoopImport wins.
+        // the tiebreak with two same-tier sources on steps (both tier 3): the imported one wins.
         let point = FusionResolver.resolve(metricKey: "steps", inputs: [
             FusionInput(source: .noopComputed, value: 6100),
             FusionInput(source: .whoopImport, value: 6000),

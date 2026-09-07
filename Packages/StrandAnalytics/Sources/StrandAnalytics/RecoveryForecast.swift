@@ -57,7 +57,7 @@ import Foundation
 //     MAGNITUDE (the points of drag) is a product-calibration knob, not a validated coefficient.
 //
 // The constants below (window sizes, damping, caps, band width, debt scale) are product-calibration
-// knobs, not validated quantities — tuned for an honest, humble readout, not WHOOP parity.
+// knobs, not validated quantities — tuned for an honest, humble readout, not parity with anyone.
 
 public enum RecoveryForecast {
 

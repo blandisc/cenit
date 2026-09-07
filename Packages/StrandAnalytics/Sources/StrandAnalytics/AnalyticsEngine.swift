@@ -1,28 +1,45 @@
 import Foundation
 
-// AnalyticsEngine.swift — day-key + stage-JSON helpers.
+// AnalyticsEngine.swift — the two small conversions the whole app agrees on: civil-day keys and the
+// sleep-stage codec.
 //
-// The per-day orchestration path (`analyzeDay`) was retired with the WHOOP band
-// (épico «la banda nunca existió»): the shipping app is Apple-only and never
-// called it. What remains here are the small PURE helpers that outlived that
-// path and are still used across the app + packages:
-//   • civil-day keying (`dayString`, `localMidnight`, `futureLocalDaysToPrune`)
-//   • the sleep-stage JSON codec (`encodeStages` / `decodeStages`).
+// Nothing here computes anything about the body. These are pure translations between a form the code
+// uses and a form the database stores, and they live together because both are *naming* decisions
+// that, once written to disk, can never drift:
+//
+//   • Civil-day keying (`dayString`, `localMidnight`, `futureLocalDaysToPrune`). Every daily row is
+//     addressed by a `"yyyy-MM-dd"` string. Change how that string is produced and every row already
+//     stored answers to a different name.
+//   • The sleep-stage codec (`encodeStages` / `decodeStages`) — the text form of a night's timeline.
+//
+// Pure, deterministic, database-free: the timezone arrives as a parameter, never from a clock.
 
 public enum AnalyticsEngine {
 
+    /// The one formatter behind every day key. Three settings carry the whole contract, and all three
+    /// are load-bearing:
+    ///
+    ///   • `en_US_POSIX` — so the pattern means what it says regardless of the device's region. Under
+    ///     a locale with its own calendar, `yyyy-MM-dd` would render a different year entirely.
+    ///   • UTC — the day boundary is applied by the caller, by shifting the instant. The formatter
+    ///     itself must never move a date.
+    ///   • `yyyy-MM-dd` — fixed width, zero-padded, so a plain string `<` between two keys is exactly
+    ///     chronological order. Half the queries in the app lean on that.
+    ///
+    /// Built once and shared: constructing a `DateFormatter` per call is expensive enough to show up
+    /// when keying a few thousand rows.
     private static let isoDay: DateFormatter = {
-        let f = DateFormatter()
-        f.locale = Locale(identifier: "en_US_POSIX")
-        f.timeZone = TimeZone(identifier: "UTC")
-        f.dateFormat = "yyyy-MM-dd"
-        return f
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
     }()
 
     /// Format a unix-seconds timestamp as a `YYYY-MM-DD` day string in a wall-clock zone
     /// `tzOffsetSeconds` east of UTC. Default 0 = UTC, which keeps pure-function callers and tests on
     /// UTC. The device's LOCAL civil day is obtained by shifting the instant by the offset and
-    /// formatting in UTC — the same trick the WHOOP CSV import used with `tzOffsetMin`, so day-keys stay
+    /// formatting in UTC — one displacement instead of a calendar, which is what keeps day-keys
     /// deterministic and dedup-stable across sources. (FER-226: `dailyMetric.day` is the local civil day.)
     public static func dayString(_ ts: Int, tzOffsetSeconds: Int = 0) -> String {
         isoDay.string(from: Date(timeIntervalSince1970: TimeInterval(ts + tzOffsetSeconds)))
@@ -47,7 +64,14 @@ public enum AnalyticsEngine {
         stored.filter { $0 > today && !written.contains($0) }
     }
 
-    /// JSON-encode stage segments to the verbatim array shape CachedSleepSession stores.
+    /// Serialize a night's timeline to the text stored in `CachedSleepSession.stagesJSON`, or `nil`
+    /// if it cannot be encoded. The result is a JSON ARRAY of segments — `[{start,end,stage}]` — which
+    /// is exactly the form `decodeStages` expects and the form `StrandImport` writes by hand.
+    ///
+    /// Two shapes live in the stored column and must keep living side by side: this array, and an
+    /// older imported shape that is a dictionary of totals per stage with no timeline at all. The
+    /// decoder tells them apart by failing on the second, so callers can fall back to a single coarse
+    /// interval. Encoding only ever produces the array.
     static func encodeStages(_ stages: [StageSegment]) -> String? {
         guard let data = try? JSONEncoder().encode(stages) else { return nil }
         return String(data: data, encoding: .utf8)

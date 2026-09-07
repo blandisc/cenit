@@ -10,9 +10,9 @@ import XCTest
 final class ActivityCostInputsTests: XCTestCase {
 
     private func utcCalendar() -> Calendar {
-        var cal = Calendar(identifier: .gregorian)
-        cal.timeZone = TimeZone(identifier: "UTC")!
-        return cal
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "UTC")!
+        return calendar
     }
 
     /// Unix seconds for a wall-clock UTC instant (deterministic; no `Date()`).
@@ -54,7 +54,7 @@ final class ActivityCostInputsTests: XCTestCase {
     // MARK: - End-to-end: keys built here line up with recovery keys in evaluate()
 
     func testPipelineAlignsSessionsToNextMorning() {
-        let cal = utcCalendar()
+        let calendar = utcCalendar()
         // Rest block far before the sessions, untouched (not tagged, outside any D+1…D+7 window).
         var rec: [String: Double] = [:]
         for i in 0..<5 { rec[String(format: "2026-01-%02d", i + 1)] = 70 }
@@ -63,8 +63,8 @@ final class ActivityCostInputsTests: XCTestCase {
         var sessions: [ActivityCostInputs.Session] = []
         for d in stride(from: 2, through: 12, by: 2) {
             sessions.append(.init(startTs: utcTs(2026, 3, d), sport: "Running"))
-            let nm = cal.date(from: DateComponents(year: 2026, month: 3, day: d + 1))!
-            let c = cal.dateComponents([.year, .month, .day], from: nm)
+            let nm = calendar.date(from: DateComponents(year: 2026, month: 3, day: d + 1))!
+            let c = calendar.dateComponents([.year, .month, .day], from: nm)
             rec[String(format: "%04d-%02d-%02d", c.year!, c.month!, c.day!)] = 50
         }
 

@@ -2,7 +2,7 @@ import Foundation
 
 // MARK: - Vitality inputs builder (FER-145 — orchestration, pure half)
 //
-// Aggregates a window of raw nightly/daily NOOP signals into a `VitalityEngine.Inputs`, so the app
+// Aggregates a window of raw nightly/daily signals into a `VitalityEngine.Inputs`, so the app
 // layer only has to EXTRACT the arrays from `repo.days` and hand them over (the database-touching half
 // stays in the app; this stays pure and testable, like the rest of StrandAnalytics).
 //

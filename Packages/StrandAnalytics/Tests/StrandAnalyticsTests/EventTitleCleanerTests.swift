@@ -5,8 +5,8 @@ final class EventTitleCleanerTests: XCTestCase {
 
     func testStripsStackedPrefixesAndCutsAtDoubleSlash() {
         XCTAssertEqual(
-            EventTitleCleaner.clean("RE: FW: Revisión de diseño NOOP // Detalle de Estrés (Sala 4B)"),
-            "Revisión de diseño NOOP")
+            EventTitleCleaner.clean("RE: FW: Revisión de diseño Cénit // Detalle de Estrés (Sala 4B)"),
+            "Revisión de diseño Cénit")
     }
 
     func testStripsBracketTagAndCutsAtEmDash() {

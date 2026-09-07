@@ -4,11 +4,11 @@ import BiometricStreams
 @testable import StrandAnalytics
 
 /// Pins the FER-62 dashboard merge: Apple Health is the lowest-precedence base, on-device computed
-/// rows fill its gaps, and imported strap rows win over everything — so the strap always beats Apple
+/// rows fill its gaps, and imported rows win over everything — so an on-device row always beats Apple
 /// Health. `appleDays` tracks only the days that stayed Apple-sourced, for the source badge. The
-/// FER-149 block below pins the display-only Apple back-fill: an empty-strap day shows Apple's HRV in
+/// FER-149 block below pins the display-only Apple back-fill: a day with an empty on-device row shows Apple's HRV in
 /// `displayDays` (sparkline/trend) while `days` (the recovery baseline / ownNights source) stays
-/// strap-only.
+/// on-device-only.
 final class RepositoryMergeTests: XCTestCase {
 
     private func dm(_ day: String, hrv: Double? = nil) -> DailyMetric {
@@ -22,14 +22,14 @@ final class RepositoryMergeTests: XCTestCase {
                                       computed: [dm("2026-06-10", hrv: 99)],
                                       apple: [dm("2026-06-10", hrv: 77)])
         XCTAssertEqual(r.days.count, 1)
-        XCTAssertEqual(r.days[0].avgHrv, 50)                 // imported strap wins
-        XCTAssertFalse(r.appleDays.contains("2026-06-10"))   // strap-covered → not an Apple day
+        XCTAssertEqual(r.days[0].avgHrv, 50)                 // the imported row wins
+        XCTAssertFalse(r.appleDays.contains("2026-06-10"))   // on-device-covered → not an Apple day
     }
 
     func testComputedStrapBeatsAppleWhenNoImport() {
         let r = SourceFusion.mergeDaily(imported: [], computed: [dm("2026-06-10", hrv: 60)],
                                       apple: [dm("2026-06-10", hrv: 77)])
-        XCTAssertEqual(r.days[0].avgHrv, 60)                 // on-device strap beats Apple
+        XCTAssertEqual(r.days[0].avgHrv, 60)                 // the on-device row beats Apple
         XCTAssertFalse(r.appleDays.contains("2026-06-10"))
     }
 
@@ -39,7 +39,7 @@ final class RepositoryMergeTests: XCTestCase {
         XCTAssertEqual(r.days.count, 2)
         XCTAssertEqual(r.days.first(where: { $0.day == "2026-06-09" })?.avgHrv, 70)  // apple-only day
         XCTAssertTrue(r.appleDays.contains("2026-06-09"))
-        XCTAssertFalse(r.appleDays.contains("2026-06-10"))   // strap day, even though Apple had it too
+        XCTAssertFalse(r.appleDays.contains("2026-06-10"))   // on-device day, even though Apple had it too
     }
 
     func testResultSortedByDayAscending() {
@@ -49,36 +49,36 @@ final class RepositoryMergeTests: XCTestCase {
         XCTAssertEqual(r.appleDays, ["2026-06-10", "2026-06-11", "2026-06-12"])
     }
 
-    // MARK: - FER-149 — display-only Apple back-fill for empty-strap days
+    // MARK: - FER-149 — display-only Apple back-fill for days with an empty on-device row
 
-    /// A strap-covered day whose HRV is nil (a partial-connection day: the strap pass wrote a
+    /// An on-device-covered day whose HRV is nil (a partial-connection day: the on-device pass wrote a
     /// `daily` with HRV/recovery nil) must show Apple Health's HRV in the DISPLAY rows (sparkline/trend)
-    /// while the strap-only `days` keep nil — so the value fills the sparkline without inflating the
+    /// while the on-device-only `days` keep nil — so the value fills the sparkline without inflating the
     /// recovery calibration (`ownNights` maps `repo.days`, never `displayDays`).
     func testEmptyStrapDayBackfillsHrvFromAppleInDisplayOnly() {
         let r = SourceFusion.mergeDaily(imported: [],
-                                      computed: [dm("2026-06-14", hrv: nil)],   // empty strap row
+                                      computed: [dm("2026-06-14", hrv: nil)],   // empty on-device row
                                       apple: [dm("2026-06-14", hrv: 46.7)])
         // display uses Apple — the sparkline/trend sees the value, no gap
         XCTAssertEqual(r.displayDays.first(where: { $0.day == "2026-06-14" })?.avgHrv, 46.7)
-        // ownNights ignores Apple — the strap-only row stays nil (calibration counter untouched)
+        // ownNights ignores Apple — the on-device-only row stays nil (calibration counter untouched)
         XCTAssertNil(r.days.first(where: { $0.day == "2026-06-14" })?.avgHrv)
-        // a strap row exists, so the day is NOT badged Apple (unchanged FER-62 semantics)
+        // an on-device row exists, so the day is NOT badged Apple (unchanged FER-62 semantics)
         XCTAssertFalse(r.appleDays.contains("2026-06-14"))
     }
 
-    /// When the strap DID decode HRV that day, the strap value wins in BOTH `days` and `displayDays` —
-    /// Apple never overwrites a real strap reading.
+    /// When the on-device pass DID decode HRV that day, its value wins in BOTH `days` and `displayDays` —
+    /// Apple never overwrites a real on-device reading.
     func testStrapHrvWinsOverAppleInDisplay() {
         let r = SourceFusion.mergeDaily(imported: [],
                                       computed: [dm("2026-06-15", hrv: 57.1)],
                                       apple: [dm("2026-06-15", hrv: 35.7)])
-        XCTAssertEqual(r.days.first?.avgHrv, 57.1)          // strap wins for analytics
-        XCTAssertEqual(r.displayDays.first?.avgHrv, 57.1)   // strap wins for display (Apple doesn't pisa)
+        XCTAssertEqual(r.days.first?.avgHrv, 57.1)          // the on-device row wins for analytics
+        XCTAssertEqual(r.displayDays.first?.avgHrv, 57.1)   // the on-device row wins for display (Apple doesn't pisa)
     }
 
-    /// The whole real-data scenario from the issue (jun 14 empty, jun 15 strap, jun 16 empty): the
-    /// DISPLAY HRV series has no gaps (46.7, 57.1, 37.9), while the strap-only `days` series the baseline
+    /// The whole real-data scenario from the issue (jun 14 empty, jun 15 on-device, jun 16 empty): the
+    /// DISPLAY HRV series has no gaps (46.7, 57.1, 37.9), while the on-device-only `days` series the baseline
     /// reads keeps the two empty days nil (only 57.1 survives) — proving the baseline input is unchanged.
     func testIssueScenarioDisplayHasNoGapsButAnalyticsStaysStrapOnly() {
         let r = SourceFusion.mergeDaily(
@@ -86,27 +86,27 @@ final class RepositoryMergeTests: XCTestCase {
             computed: [dm("2026-06-14", hrv: nil), dm("2026-06-15", hrv: 57.1), dm("2026-06-16", hrv: nil)],
             apple:    [dm("2026-06-14", hrv: 46.7), dm("2026-06-15", hrv: 35.7), dm("2026-06-16", hrv: 37.9)])
         XCTAssertEqual(r.displayDays.map(\.avgHrv), [46.7, 57.1, 37.9])   // display: no gaps
-        XCTAssertEqual(r.days.compactMap(\.avgHrv), [57.1])               // analytics: strap-only
+        XCTAssertEqual(r.days.compactMap(\.avgHrv), [57.1])               // analytics: on-device only
     }
 
-    /// Back-fill is field-wise and only fills genuine nils — RHR fills from Apple while a present strap
+    /// Back-fill is field-wise and only fills genuine nils — RHR fills from Apple while a present on-device
     /// field is untouched. (The sparkline tiles for RHR/sleep/SpO₂ read the same display rows.)
     func testBackfillIsFieldWiseAndOnlyFillsNils() {
-        let strap = DailyMetric(day: "2026-06-14", totalSleepMin: nil, efficiency: nil, deepMin: nil,
+        let onDevice = DailyMetric(day: "2026-06-14", totalSleepMin: nil, efficiency: nil, deepMin: nil,
                                 remMin: nil, lightMin: nil, disturbances: nil, restingHr: nil,
                                 avgHrv: nil, recovery: nil, strain: 12.3, exerciseCount: nil)
         let apple = DailyMetric(day: "2026-06-14", totalSleepMin: 420, efficiency: nil, deepMin: nil,
                                 remMin: nil, lightMin: nil, disturbances: nil, restingHr: 52,
                                 avgHrv: 46.7, recovery: nil, strain: 99, exerciseCount: nil)
-        let r = SourceFusion.mergeDaily(imported: [], computed: [strap], apple: [apple])
+        let r = SourceFusion.mergeDaily(imported: [], computed: [onDevice], apple: [apple])
         let d = r.displayDays.first
         XCTAssertEqual(d?.avgHrv, 46.7)          // nil → filled from Apple
         XCTAssertEqual(d?.restingHr, 52)         // nil → filled from Apple
         XCTAssertEqual(d?.totalSleepMin, 420)    // nil → filled from Apple
-        XCTAssertEqual(d?.strain, 12.3)          // present strap value wins, NOT overwritten by Apple's 99
+        XCTAssertEqual(d?.strain, 12.3)          // the present on-device value wins, NOT overwritten by Apple's 99
     }
 
-    /// An Apple-only day (no strap row at all) is unchanged by the display pass: `displayDays` equals the
+    /// An Apple-only day (no on-device row at all) is unchanged by the display pass: `displayDays` equals the
     /// Apple row and the day stays badged Apple.
     func testAppleOnlyDayUnchangedInDisplay() {
         let r = SourceFusion.mergeDaily(imported: [], computed: [],
@@ -118,7 +118,7 @@ final class RepositoryMergeTests: XCTestCase {
 
     // MARK: - FER-484 / FER-1003 — DataSourcePolicy is pinned to Apple-only
 
-    /// Under the Apple-only product pin, `filter` always drops strap arrays and passes Apple through,
+    /// Under the Apple-only product pin, `filter` always drops the on-device arrays and passes Apple through,
     /// regardless of the mode argument (mode remains for persistence/raw-value stability).
     func testFilterAlwaysAppleOnly() {
         let f = DataSourcePolicy.filter(.combined,
@@ -223,7 +223,7 @@ final class RepositoryMergeTests: XCTestCase {
     }
 
     /// FER-883 (/cso finding 1): the threaded HRmax actually changes the estimate — the Apple «Carga del
-    /// día» must use the user's HRmax (the same the strap live path uses), not a fixed default. A lower
+    /// día» must use the user's HRmax (the same the live path uses), not a fixed default. A lower
     /// HRmax ⇒ higher %HRR ⇒ higher Edwards load.
     func testAppleStrainEstimatesHRmaxAffectsResult() {
         let day = "2026-06-10"

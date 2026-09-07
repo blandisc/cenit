@@ -1,7 +1,7 @@
 import XCTest
 @testable import StrandAnalytics
 
-/// Invariants for the cycle-phase estimate. Pure math — no app, strap, or CoreBluetooth.
+/// Invariants for the cycle-phase estimate. Pure math — no app, no hardware, no CoreBluetooth.
 /// The hard product rules (never a date, never fertility, gate respected, states are the default)
 /// are asserted here so a regression trips a red test, not a shipped claim.
 final class CyclePhaseEngineTests: XCTestCase {

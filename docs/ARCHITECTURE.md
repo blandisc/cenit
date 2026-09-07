@@ -194,7 +194,7 @@ StrandImport ───────▶ CenitStore + StrandTraining + ZIPFoundatio
 | **StrandModels** | Shared daily-metric value types used by both persistence and analytics — the durable shapes of cached scores, sleep sessions, and diet adherence status. | `DailyMetric` (+ `FieldUpdate`/`with(...)`), `CachedSleepSession`, `DietMealStatus` | **Leaf — zero dependencies, Foundation only.** No GRDB/UIKit. `CenitStore` depends on it and re-exports the names via `public typealias` (L3-C1a); `StrandAnalytics` depends on it directly (L3-C1b) so math never links GRDB. |
 | **BiometricStreams** | The neutral vocabulary of decoded biometric rows — the durable shapes everything downstream stores, computes over and serializes. Source-agnostic: nothing here names a frame, a byte, or a specific device. | `HRSample`, `RRInterval`, `StreamEvent`, `BatterySample`, `SpO2Sample`, `SkinTempSample`, `RespSample`, `GravitySample`, `StepSample`, `Streams` (+ `.empty`), `ParsedValue` | **Root of the graph — zero dependencies, Foundation only.** No CoreBluetooth/UIKit/AppKit/GRDB, and no CRC/UUID/CLIENT_HELLO/schema. (FER-993 · D2). **Still linked into the app binary** — `CenitStore` and `StrandAnalytics` depend on it (`project.yml` lists `BiometricStreams` under the `Cenit` target). |
 | **CenitStore** | Durable on-device persistence built on GRDB/SQLite. Migrations, decoded streams, metric caches, generic metric series, raw outbox, cursors. | `actor CenitStore`, `makeMigrator()`, `insert(_:deviceId:)`, `dailyMetrics`, `sleepSessions`, `metricSeries`, `pruneRaw`, `ClockRef`, `RawBatchMeta` | An **`actor`** — all writes/reads run off the main thread on its serial executor. |
-| **StrandAnalytics** | All physiological math, as pure functions over inputs. HRV, recovery, strain, sleep staging, workout detection, baselines, HR zones, correlation/comparison. | `AnalyticsEngine.analyzeDay(...)` → `DayResult`, `HRVAnalyzer`, `RecoveryScorer`, `StrainScorer`, `SleepStager`, `WorkoutDetector`, `Baselines`, `CorrelationEngine`, `Preparedness` (the «Preparación» morning verdict by axis-consensus over the user's Apple baselines — composed in `Repository.performRefresh`, published as `DashboardData.preparedness`, read by the Today hero; FER-1030), `WeeklySplit` (split → today's routine / day states / consistency streak, FER-531) | **Pure — never touches the database (literal):** depends on `BiometricStreams` + `StrandModels` only; no GRDB/CenitStore link (L3-C1b). Produces `DailyMetric`/`CachedSleepSession` shapes for the store. |
+| **StrandAnalytics** | All physiological math, as pure functions over inputs. HRV, strain, energy, baselines, HR zones, correlation/comparison. | `HRVAnalyzer`, `StrainScorer`, `Calories`, `Baselines`, `HRZones`, `ReadinessEngine`, `CorrelationEngine`, `Preparedness` (the «Preparación» morning verdict by axis-consensus over the user's Apple baselines — composed in `Repository.performRefresh`, published as `DashboardData.preparedness`, read by the Today hero; FER-1030), `WeeklySplit` (split → today's routine / day states / consistency streak, FER-531) | **Pure — never touches the database (literal):** depends on `BiometricStreams` + `StrandModels` only; no GRDB/CenitStore link (L3-C1b). Produces `DailyMetric`/`CachedSleepSession` shapes for the store. |
 | **StrandImport** | Parse Apple Health exports the user already owns (`export.xml`, streaming). | `ImportCoordinator.detectAndImport`, `AppleHealthImporter`, `AppleHealthAggregator`, `SleepHKEncoder`/`SleepHKDecoder` | **Parsing only** — returns normalized model arrays; the app maps them into the store. |
 | **CenitDesign** | The SwiftUI design system: palette, typography, motion, charts, components. | `StrandPalette`, `liquidGlass(_:)`, `RecoveryZoneGauge`, `Hypnogram`, `TrendChart`, `Sparkline`, `YearHeatStrip` (full index: [CATALOGO.md](design-system/CATALOGO.md)) | No data or protocol deps — pure presentation. |
 | **StrandTraining** | Strength-tracker domain types + the bundled, read-only exercise catalog (**free-exercise-db**, 873 exercises with native slug ids; FER-923, was ExerciseDB OSS in FER-779). The value models CenitStore persists and StrandAnalytics computes over. | `Exercise`, `ExerciseType`, `ExerciseCatalog`, `Routine`, `RoutineExercise` (with `supersetGroup` FER-346; optional fixed note seeded into each session and never copied to the session's acta, FER-166, v39), `RoutineSet` (per-set prescription, FER-492; optional per-set `RestConfig` override with exercise fallback, FER-715; optional `repsRangeTop` for a "floor-top" rep range, FER-94, migration v38), `RoutineSchedule` (the weekly split, FER-531), `StrengthSession` (with persisted `energyKcal`/`EnergySource`, FER-715), `SetEntry` (with `rpe` v34; `restTakenS` — the real rest that FOLLOWED the set, pause-excluded, captured by the live session, FER-167, v40), `PersonalRecord`; **the program engines** (ola 1 · FER-329): `Program` + `ProgramCalendar` (the ONE oracle of «which week am I in?» — derived from `startTs` + the weeks actually trained, never stored), `ProgramDeload` (the light-week rule; returns RAW kg, like `SetVariants`, because the plate rounding lives in `PlateMath`) and `ProgramTemplate` (the four engines, as data over `StarterTemplates`); `StarterGroupSchedule` + `WeeklySchedulePlanner` (FER-377 — the per-`StarterTemplate.Group` weekly frequency/spacing recipe and the pure, `taken`-aware placement of a group's routines across the week, best-effort; the app-layer `applyTemplateGroup` composes them) | **Pure** — Foundation only (no GRDB/UIKit). GRDB conformance lives in CenitStore by extension. (FER-345) |
@@ -583,9 +583,10 @@ in the Frente D dead-code sweep (FER-1003). No column, no migration.
 
 ## 9. Analytics (StrandAnalytics)
 
-`AnalyticsEngine.analyzeDay(...)` is a pure function: given a day's raw streams (`hr`, `rr`, `resp`,
-`gravity`), a `UserProfile`, and personal `ProfileBaselines`, it runs the analyzers and returns a
-`DayResult`:
+There is no per-day orchestrator. Each engine below is a pure function called directly by whichever
+surface needs it — `Repository`, `HealthKitBridge`, `AppModel` or a screen — over the Apple Health rows
+already in the store. `AnalyticsEngine` itself is now only the civil-day key and the sleep-stage codec
+(FER-387).
 
 - `strengthSession.strainSource` / `sessionRpe` / `sessionRpeSource` / `trimpPerAU` / `source` / `title` /
   `programWeek` / `deload` (v42, ola 1 · FER-324) — where the session's strain came from (`hr` measured,
@@ -601,17 +602,23 @@ in the Frente D dead-code sweep (FER-1003). No column, no migration.
 - `program` (v43) — the one active program (PK `id = 'active'`): `name`, `weeks`, `startTs`, `deloadRule`,
   `endMode`, `templateId`, `createdTs`. The current week is DERIVED from `startTs` and the weeks actually
   trained (`ProgramCalendar`, E10), never stored. Deleting the row leaves routines and the weekly schedule.
-- **`SleepStager`** detects in-bed sessions and stages them (deep/REM/light), producing per-session
-  efficiency, resting HR, average HRV, and a hypnogram.
+- **Sleep phases** come from Apple Health, decoded by `SleepHKDecoder` in `StrandImport`. The own
+  stage classifier was **deleted** (FER-385): it scored nights offloaded from a device the app no longer
+  has, and had no call site outside its own tests. Only `StageSegment` survived, in its own file — it is
+  the on-disk JSON shape of a night's timeline, hand-mirrored in `StrandImport` and parsed by hand in
+  `SleepDetailScreen`, so its three fields are a byte contract in three directions at once.
 - **`HRVFreqDomain`** (FER-669) computes frequency-domain HRV (LF/HF/total power, ms²) from an R-R
   series via the Lomb-Scargle periodogram (Lomb 1976; Scargle 1982) on the uneven tachogram — no
   resampling — span-gated per Task Force (1996). **Additive**: feeds no recovery/strain/sleep output.
-  Surfaced in the HRV detail (FER-702): `analyzeDay` computes the nightly `Bands` over the SAME in-bed
+  Surfaced in the HRV detail (FER-702): the nightly `Bands` are computed over the SAME in-bed
   session R-R as `avgHrv` (coherent by construction), the app persists the three powers to
   `metricSeries` under a legacy computed-source suffix, and `HRVSpectralBaseline` labels each band vs "your normal" by reusing
   `Baselines.foldHistory(logDomain:)` + z-score (log-normal HRV powers, Plews 2013) — no new estimator.
-- **`RecoveryScorer`** normalizes nightly HRV/RHR (and a sleep-performance proxy) against baselines
-  into a `0–100` score.
+- **`RecoveryScorer`** is down to two live pieces (FER-387). The `0–100` composite was **deleted** — it
+  had no call site, and both surviving import routes write `dailyMetric.recovery` as `nil`, so it was
+  never computed nor shown; `Preparedness` is the hero. What remains is the nocturnal resting-HR
+  estimator (the minimum of qualifying five-minute bin means, not the lowest beat) and the three band
+  cuts that `TrainingRegulation` and `ReadinessEngine` name by symbol.
 - **Baseline recalibration (FER-677).** `ProfileStore.baselineEpoch` (a `YYYY-MM-DD` local day-key in
   UserDefaults, with one level of undo via `previousBaselineEpoch`) cuts every nightly baseline fold:
   `Baselines.foldHistory(_:epoch:cfg:)` drops nights with `day < epoch` before the replay (delegating to
@@ -646,7 +653,11 @@ in the Frente D dead-code sweep (FER-1003). No column, no migration.
   currency, raw ms are never compared across constructs.
 - **`StrainScorer`** integrates the day's HR window into a `0–21` cardiovascular load (Tanaka HRmax
   from age unless overridden).
-- **`WorkoutDetector`** segments exercise bouts from HR + motion.
+- **`WorkoutDetector`** was **deleted** (FER-387): it required a gravity series whose table was dropped
+  in migration `v37`, so it could only return an empty list. Apple supplies `HKWorkout` from the Watch
+  and `AppleLoadEstimator` turns those into the day's load. **`Calories`** survives and is live — Keytel
+  (2005) over heart rate, revised Harris–Benedict at rest, and a compendium MET value when a strength
+  session captured no heart rate; its output is mirrored to Apple Health as active energy.
 - **`Baselines`**, **`HRZones`**, **`CorrelationEngine`**, **`ComparisonEngine`**, and
   **`BehaviorInsights`** supply rolling baselines, zone math, and cross-metric/behaviour insights.
 - **`SleepRegularity`** (FER-218) scores schedule consistency from a rolling window of nights: the

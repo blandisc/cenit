@@ -12,11 +12,11 @@ final class WhatMovesStrainTests: XCTestCase {
 
     /// Add `i` days to 2026-01-01 in UTC → "yyyy-MM-dd". Lets fixtures span > a month deterministically.
     private func day(_ i: Int) -> String {
-        var cal = Calendar(identifier: .gregorian)
-        cal.timeZone = TimeZone(identifier: "UTC")!
-        let base = cal.date(from: DateComponents(year: 2026, month: 1, day: 1))!
-        let d = cal.date(byAdding: .day, value: i, to: base)!
-        let c = cal.dateComponents([.year, .month, .day], from: d)
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "UTC")!
+        let base = calendar.date(from: DateComponents(year: 2026, month: 1, day: 1))!
+        let d = calendar.date(byAdding: .day, value: i, to: base)!
+        let c = calendar.dateComponents([.year, .month, .day], from: d)
         return String(format: "%04d-%02d-%02d", c.year!, c.month!, c.day!)
     }
 

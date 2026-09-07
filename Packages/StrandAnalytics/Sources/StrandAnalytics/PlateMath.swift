@@ -16,7 +16,7 @@ import Foundation
 //     load they can't build. The percentages/reps are the mock's scheme (bar ×10, 55% ×6, 80% ×3).
 //
 // Pure & framework-free: operates on `Double` kilograms and a plain inventory list, so it runs in
-// `swift test` with no app, DB, or strap. The screen owns persistence of the inventory and the mapping
+// `swift test` with no app, DB, or hardware. The screen owns persistence of the inventory and the mapping
 // of a warm-up set into the live session.
 
 public enum PlateMath {

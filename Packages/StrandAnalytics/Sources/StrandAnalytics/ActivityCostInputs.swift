@@ -31,7 +31,7 @@ public enum ActivityCostInputs {
 
     /// Group sessions into `[sport: Set<day-key>]`, mapping each `startTs` to a
     /// "yyyy-MM-dd" key in `timeZone`. A `Set` collapses same-day duplicates of a sport
-    /// (e.g. the same run imported from both WHOOP and Apple Health, or a morning and an
+    /// (e.g. the same run imported from two sources at once, or a morning and an
     /// evening run) to a single day — exactly the de-duplication the engine assumes.
     /// The key format matches `CorrelationEngine.shiftDay`'s output so D→D+1 lines up.
     public static func activityDaysBySport(_ sessions: [Session],

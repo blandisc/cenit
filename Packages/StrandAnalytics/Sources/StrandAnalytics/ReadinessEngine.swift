@@ -1,42 +1,61 @@
 import Foundation
 import StrandModels
 
-/// On-device "Readiness" intelligence.
-///
-/// Synthesizes a handful of established, non-medical sports-science signals from the daily-metrics
-/// history into a single readiness read plus the drivers behind it. Everything here is a pure,
-/// deterministic function of the rows you pass in — no networking, no strap commands, no state.
-///
-/// Signals and their references:
-/// - **HRV readiness** — z-score of today's HRV against the personal trailing baseline. A drop of
-///   roughly half a standard deviation flags autonomic fatigue (Plews et al. 2013; Buchheit 2014).
-/// - **Resting-HR drift** — elevated resting HR vs baseline is a classic overtraining / illness
-///   signal (Buchheit 2014, Front Physiol 5:73 — resting / exercise / recovery HR for training-status
-///   monitoring; Lamberts et al. 2004 covers *submaximal-exercise* HR, a different measure).
-/// - **Respiratory-rate drift** — a rise in sleeping respiratory rate is an early illness signal.
-/// - **Training Stress Balance (ACWR)** — acute (7-day) vs chronic (28-day) strain. The 0.8–1.3
-///   band reads as balanced load (Gabbett 2016). NOOP treats it as a load-balance descriptor, not an
-///   injury predictor: the "sweet spot" and the ACWR→injury link are a debated heuristic, not a
-///   validated threshold — the coupled ratio (acute is inside chronic) inflates correlation (Lolli
-///   et al. 2019, BJSM) and the metric's statistical properties undercut causal use (Impellizzeri
-///   et al. 2020, Int J Sports Physiol Perform 15(6):907).
-/// - **Training monotony** — mean/SD of daily strain over a week; high monotony (low variety) is
-///   associated with higher strain and illness (Foster 1998).
-///
-/// Not medical advice. These are approximations from a consumer strap; they describe trends in
-/// *your own* data, nothing more.
+// ReadinessEngine.swift — today's signals, and the training load behind them, read as one verdict.
+//
+// WHAT IT ANSWERS. Given the daily rows the app already stores, it reports where each signal sits
+// against THIS person's own recent normal, where recent training load sits against their usual, and
+// a single word for the two together. Pure and deterministic: no network, no stored state, no clock —
+// «today» is an argument.
+//
+// THE SIGNALS, and the method behind each:
+//
+//   • HRV against the personal baseline — Plews et al. (2013), Sports Med 43(9):773-781, on
+//     monitoring lnRMSSD relative to a person's own rolling normal rather than to a population.
+//   • Resting-heart-rate drift — Buchheit (2014), Front Physiol 5:73, on resting, exercise and
+//     recovery heart rate as training-status markers. A citation that is easy to get wrong here:
+//     Lamberts et al. (2004) is about SUBMAXIMAL heart rate DURING exercise, which is a different
+//     measurement; if it is ever cited, say so explicitly.
+//   • Respiratory rate and skin temperature, each against the person's own nights.
+//   • Acute:chronic training load — the 7-day and 28-day horizons of Gabbett (2016), Br J Sports Med
+//     50:273-280.
+//   • Training monotony — Foster (1998), Med Sci Sports Exerc 30(7):1164-1168: the week's mean load
+//     divided by its standard deviation.
+//
+// THE LOAD RATIO DESCRIBES BALANCE. IT DOES NOT ANTICIPATE INJURY. This is a hard limit on what the
+// engine and its copy may say, and there are two independent reasons for it:
+//
+//   1. The popular link between a «sweet spot» in this ratio and injury risk was never validated. It
+//      is a widely repeated heuristic, not an established threshold (Lolli et al. 2019, BJSM).
+//   2. Separately from what it might mean, the ratio's own construction forbids the reading: the
+//      acute window is CONTAINED IN the chronic one, so the two are mathematically coupled and their
+//      correlation with any outcome is inflated by that alone. Those statistical properties rule out
+//      a causal interpretation regardless of the physiology (Impellizzeri et al. 2020, Int J Sports
+//      Physiol Perform 15(6):907, and Br J Sports Med 54:1451-1462).
+//
+// So every sentence this file produces about load says where recent effort sits relative to usual
+// effort, and stops there. No imperative about fatigue, no warning about getting hurt.
+//
+// NOT MEDICAL ADVICE, and not a diagnosis. These are descriptions of trends in a person's own data,
+// nothing more.
+
 public enum ReadinessEngine {
 
-    // MARK: Output types
-
+    /// The verdict, coarsest possible: five words for a whole morning.
     public enum Level: String, Sendable, Equatable {
-        case primed       // signals aligned, load supported
-        case balanced     // nothing notable either way
-        case strained     // one meaningful signal down / load high
-        case rundown      // several recovery signals down
-        case insufficient // not enough history yet
+        /// Signals aligned and load supported.
+        case primed
+        /// Nothing flagging.
+        case balanced
+        /// Something is flagging, but only one thing.
+        case strained
+        /// Several signals down at once.
+        case rundown
+        /// Not enough history to say anything honest.
+        case insufficient
     }
 
+    /// How one signal reads: its valence, never its direction.
     public enum Flag: String, Sendable, Equatable {
         case good, neutral, watch, bad
 
@@ -54,15 +73,11 @@ public enum ReadinessEngine {
     }
 
     /// Why the verdict reads the way it does, as one small decision the UI turns into a single
-    /// reconciling sentence ("you woke up recovered, but your load is the thing to watch"). Kept
-    /// separate from the copy so the *decision* is unit-testable without asserting localized
-    /// strings. "Recovery high" everywhere here means recovery ≥ `RecoveryScorer.bandYellowMax`
-    /// (the green band) — one source of truth, shared with the score's own coloring.
+    /// sentence. Kept separate from the copy so the *decision* is unit-testable without asserting
+    /// localized strings.
     public enum BridgeKind: String, Sendable, Equatable {
-        case divergenceLoad   // recovery high, but training load (ACWR) is the lead flag
-        case divergenceBody   // recovery high, but a body signal (HRV/RHR/temp/resp) is flagging
         case aligned          // primed / balanced — nothing meaningfully flagging
-        case strainedFlat     // strained without a high-recovery divergence to explain
+        case strainedFlat     // strained — one thing is flagging
         case rundown          // several signals down at once
         case none             // insufficient history — no verdict to reconcile
     }
@@ -73,7 +88,7 @@ public enum ReadinessEngine {
     public enum LoadBand: String, Sendable, Equatable {
         case rampingDown   // < 0.8  — backing off, room to build
         case sweetSpot     // 0.8–1.3 — the productive band
-        case buildingFast  // 1.3–1.5 — ramping hard, watch fatigue
+        case buildingFast  // 1.3–1.5 — ramping hard
         case spiking       // ≥ 1.5  — load well above your usual; a context signal, not an injury claim
 
         /// Short, glanceable label for the verdict row. Localized against the host app catalog.
@@ -98,10 +113,15 @@ public enum ReadinessEngine {
         }
     }
 
+    /// One row of the morning read.
     public struct Signal: Sendable, Equatable {
-        public let key: String      // "hrv" | "rhr" | "respRate" | "acwr" | "monotony"
-        public let label: String    // short human label
-        public let detail: String   // one-line plain-English read
+        /// Stable identifier: `"hrv"` | `"rhr"` | `"respRate"` | `"skinTemp"` | `"acwr"` | `"monotony"`.
+        public let key: String
+        /// Localized name.
+        public let label: String
+        /// Localized sentence saying how this signal reads today.
+        public let detail: String
+        /// The valence of that reading.
         public let flag: Flag
         /// A compact, glanceable read-out of HOW FAR this signal sits from its personal baseline — the
         /// engine's own currency exposed for the instrument cluster's «Señales» row (FER-292 v2). Signed
@@ -123,14 +143,18 @@ public enum ReadinessEngine {
         }
     }
 
+    /// Everything the morning read produces.
     public struct Readiness: Sendable, Equatable {
         public let level: Level
+        /// Localized verdict word.
         public let headline: String
+        /// Localized sentence under it.
         public let summary: String
+        /// The signals that could be computed today, in the order they were considered.
         public let signals: [Signal]
-        /// Acute:chronic workload ratio (nil if not enough strain history).
+        /// The acute:chronic load ratio, or `nil` when the emission gate did not pass.
         public let acwr: Double?
-        /// Foster training monotony over the last week (nil if not enough strain history).
+        /// Foster monotony over the trailing calendar week, or `nil`.
         public let monotony: Double?
         /// True when last night's sleep ran short enough to undermine the morning's HRV/recovery read
         /// — the verdict still stands, but surfaces should flag it (caveat line + "Low conf" on HRV)
@@ -140,12 +164,13 @@ public enum ReadinessEngine {
         public let confidenceNote: String?
         /// Why the verdict reads the way it does — the testable decision behind `bridge`.
         public let bridgeKind: BridgeKind
-        /// A localized one-liner reconciling recovery vs. the verdict for the user
-        /// ("you woke up recovered, but your load is the thing to watch"). nil only for `.none`.
+        /// A localized one-liner restating the verdict for the user. nil only for `.none`.
         public let bridge: String?
         /// Short localized noun for what's behind the verdict, for the verdict card sublabel
         /// ("from your training load"). nil when nothing is to blame (aligned / insufficient).
         public let culpritNoun: String?
+
+        /// The defaults on the last five are CONTRACT: call sites build this without them.
         public init(level: Level, headline: String, summary: String,
                     signals: [Signal], acwr: Double?, monotony: Double?,
                     confidenceLow: Bool = false, confidenceNote: String? = nil,
@@ -163,13 +188,24 @@ public enum ReadinessEngine {
         public var loadBand: LoadBand? { acwr.map(ReadinessEngine.loadBand(forACWR:)) }
     }
 
-    // MARK: Tunables (named so the thresholds are auditable)
+    // MARK: - Windows
+    //
+    // The two load horizons are METHOD (Gabbett 2016). The other three are RECALIBRATABLE, each with
+    // its own criterion.
 
-    private static let baselineWindow = 30   // days for HRV / RHR / RR baselines
-    private static let minBaseline    = 7    // need at least this many baseline nights
-    private static let acuteWindow    = 7
-    private static let chronicWindow  = 28
-    private static let minChronic     = 14   // need at least this much strain history for ACWR
+    /// Nights of history a personal baseline is folded over. Criterion: enough nights for a stable
+    /// centre and spread, without dragging a whole season into today's comparison.
+    private static let baselineWindow = 30
+    /// Fewest valid nights before a z-score is trusted at all. Criterion: below this a sample standard
+    /// deviation is noise, and a flag raised on it would be noise too.
+    private static let minBaseline = 7
+    /// Acute load horizon, days.
+    private static let acuteWindow = 7
+    /// Chronic load horizon, days.
+    private static let chronicWindow = 28
+    /// Days of load history before a ratio may be emitted. Criterion: half the chronic horizon.
+    private static let minChronic = 14
+
     /// Coupled EWMA time-constants (Williams et al. 2017): λ = 2/(N+1) over the same
     /// acute (7) / chronic (28) horizons the old rigid means used.
     private static let lambdaAcute: Double   = 2.0 / (Double(acuteWindow) + 1)     // 2/8  = 0.25
@@ -182,7 +218,6 @@ public enum ReadinessEngine {
     /// Below this much sleep last night the morning read is flagged low-confidence (a short night
     /// suppresses HRV and inflates resting HR independent of true recovery). 6 hours.
     private static let shortNightMinutes: Double = 360
-
     // Respiratory-rate plausibility + thresholds (FER-675). The nightly RR is RSA-derived and
     // noisy; an implausible estimate scored against a tight baseline SD would fabricate a spurious
     // `.bad` and flip the verdict to RUNDOWN. Both today's value and the baseline samples are gated
@@ -194,54 +229,61 @@ public enum ReadinessEngine {
     private static let respWatchZ: Double = 1.0
     private static let respBadZ: Double = 1.5
 
-    // MARK: Entry point
+    // MARK: - The read
 
-    /// Evaluate readiness from daily metrics. `days` may be in any order; the most recent day is
-    /// treated as "today" unless `today` (a YYYY-MM-DD string) is given.
+    /// Today's readiness from the daily rows.
+    ///
+    /// `today` names the row to read, and when it is given the match must be EXACT. A stale import
+    /// must not be able to synthesize a morning read out of whichever row happens to be newest — that
+    /// row could be months old. With no `today`, the most recent row is used.
+    ///
+    /// Signals are appended in a fixed order — HRV, resting heart rate, breathing, skin temperature,
+    /// then load and monotony — and that order matters downstream: the reconciliation takes the FIRST
+    /// worst-flagged signal as the natural culprit.
     public static func evaluate(days: [DailyMetric], today: String? = nil) -> Readiness {
         let sorted = days.sorted { $0.day < $1.day }
-        // When an explicit `today` is given (the dashboard passes the device's real local day key), use
-        // the row for THAT day and nothing else: a stale historical import has no row for today, so the
-        // readiness card reads "insufficient" rather than synthesizing off the newest stored — possibly
-        // months-old — row (issue #23/#24). With no `today` (live-strap default callers) fall back to the
-        // most recent row exactly as before, so nothing wearing the strap nightly changes.
         let latestRow: DailyMetric?
-        if let today { latestRow = sorted.first { $0.day == today } } else { latestRow = sorted.last }
+        if let today {
+            latestRow = sorted.last { $0.day == today }
+        } else {
+            latestRow = sorted.last
+        }
         guard let latest = latestRow else {
             return Readiness(level: .insufficient,
                              headline: appLocalized("Readiness"),
-                             summary: appLocalized("Wear the strap for a few nights and your readiness read will appear here."),
+                             summary: appLocalized("A few more nights of data and your readiness read will sharpen."),
                              signals: [], acwr: nil, monotony: nil)
         }
-        let history = sorted.filter { $0.day < latest.day }   // everything before today
+        let history = sorted.filter { $0.day < latest.day }
 
         var signals: [Signal] = []
+        var acwr: Double?
+        var monotony: Double?
 
-        // HRV readiness ------------------------------------------------------
-        let hrvSignal = zSignal(
+        if let s = zSignal(
             value: latest.avgHrv,
             history: history.map { $0.avgHrv }, cfg: Baselines.hrvCfg,
-            key: "hrv", label: appLocalized("HRV"),
             higherIsBetter: true,
+            key: "hrv", label: appLocalized("HRV"),
             goodText: appLocalized("above your baseline — well recovered"),
             neutralText: appLocalized("in your normal range"),
             watchText: appLocalized("slightly below your usual"),
-            badText: appLocalized("suppressed — a sign of autonomic fatigue"))
-        if let s = hrvSignal { signals.append(s) }
+            badText: appLocalized("suppressed — a sign of autonomic fatigue")) {
+            signals.append(s)
+        }
 
-        // Resting-HR drift ---------------------------------------------------
-        let rhrSignal = zSignal(
+        if let s = zSignal(
             value: latest.restingHr.map(Double.init),
             history: history.map { $0.restingHr.map(Double.init) }, cfg: Baselines.restingHRCfg,
-            key: "rhr", label: appLocalized("Resting HR"),
             higherIsBetter: false,
+            key: "rhr", label: appLocalized("Resting HR"),
             goodText: appLocalized("at or below baseline"),
             neutralText: appLocalized("in your normal range"),
             watchText: appLocalized("running a little high"),
-            badText: appLocalized("elevated — overtraining or illness can do this"))
-        if let s = rhrSignal { signals.append(s) }
+            badText: appLocalized("elevated — overtraining or illness can do this")) {
+            signals.append(s)
+        }
 
-        // Respiratory-rate drift (illness early signal) ----------------------
         // Plausibility gate (8–25 bpm): a noisy RSA-derived RR outside the physiological sleeping
         // band must produce NO signal, so it can't fabricate a spurious `.bad` and flip the verdict
         // to RUNDOWN (FER-675). Today's value and the baseline samples are both gated.
@@ -277,45 +319,30 @@ public enum ReadinessEngine {
             }
         }
 
-        // Training Stress Balance (ACWR) + monotony --------------------------
         // Coupled EWMA over the EXPLICIT calendar-day sequence (Williams 2017),
         // computed on TRIMP-like LINEAR load via strainToLoad so a spike reads as
         // a spike. rest(0) folds/decays the acute leg; missing (nil strain) holds.
         // Gate: coverageDays ≥ minChronic AND activeInWindow ≥ minActiveDays AND chronic > 0
         // — so 14 pure-rest zeros never emit a ratio.
         let replay = ewmaReplay(sorted)
-        var acwr: Double? = nil
-        var monotony: Double? = nil
         if let point = replay.points.first(where: { $0.day == latest.day }), gatePasses(point) {
             let ratio = point.acute / point.chronic
             acwr = ratio
-            signals.append(acwrSignal(ratio))
+            signals.append(acwrSignal(ratio: ratio))
 
-            // Foster monotony (1998) over the TRAILING `acuteWindow` (7) CALENDAR days ending today,
-            // rest(0) folded in (it's part of the week), missing days skipped (can't estimate an unknown).
-            // This is the one behavior change from before: previously `strainSeries.compactMap` could reach
-            // BACK PAST a week to gather 7 non-nil values when a gap existed; now the week is a true
-            // trailing calendar week, so it can hold fewer than 7 values when days are missing.
-            if let latestIdx = DayKey.parseUTC(latest.day) {
-                var weekLoads: [Double] = []
-                var d = latestIdx
-                for _ in 0..<acuteWindow {
-                    let key = DayKey.utc(d)
-                    if let s = replay.rowByDay[key]?.strain { weekLoads.append(strainToLoad(s)) }
-                    guard let prev = DayKey.utcCalendar.date(byAdding: .day, value: -1, to: d) else { break }
-                    d = prev
-                }
-                if weekLoads.count >= 4, let sd = sampleSD(weekLoads), sd > 0, let m = mean(weekLoads) {
-                    let mono = m / sd
-                    monotony = mono
-                    if mono >= 2.0 {
-                        signals.append(Signal(key: "monotony", label: appLocalized("Training variety"),
-                            detail: appLocalized("low — similar strain every day raises strain/illness risk"),
-                            flag: .watch, value: String(format: "%.1f", mono)))
-                    }
-                }
+            // Foster (1998) monotony over the calendar week that ends today. A rest day counts as a
+            // zero — a week of unrelenting work is precisely what the ratio exists to expose — while a
+            // day with no reading at all is skipped rather than imputed. The window is a literal
+            // calendar week: when days are missing it simply carries fewer values, and it never
+            // reaches further back to top the count up, which would quietly measure this week
+            // against an older one.
+            if let weekly = weeklyMonotony(endingOn: latest.day, replay: replay) {
+                monotony = weekly.value
+                if let signal = weekly.signal { signals.append(signal) }
             }
         }
+
+        let (level, headline, summary) = synthesize(signals: signals, history: history)
 
         // Confidence: a short night suppresses HRV / lifts resting HR regardless of true recovery,
         // so the morning read is honestly flagged low-confidence (drives the verdict caveat + the
@@ -325,13 +352,10 @@ public enum ReadinessEngine {
             ? appLocalized("Based on a short night — confidence low.")
             : nil
 
-        let (level, headline, summary) = synthesize(signals: signals,
-                                                    hasHistory: !history.isEmpty || acwr != nil)
-        // Reconciliation line: recovery and the verdict are two different reads and can diverge
-        // (a high recovery with a "Strained" verdict is the classic case). Decide WHY in one place
-        // (testable), then localize it. recovery comes from today's row; nil → not "high".
+        // Name the one signal most responsible for the verdict, decide the sentence in one place
+        // (testable), then localize it.
         let lead = leadSignal(signals)
-        let kind = bridgeKind(level: level, recovery: latest.recovery, lead: lead)
+        let kind = bridgeKind(level: level, lead: lead)
         return Readiness(level: level, headline: headline, summary: summary,
                          signals: signals, acwr: acwr, monotony: monotony,
                          confidenceLow: confidenceLow, confidenceNote: confidenceNote,
@@ -339,19 +363,26 @@ public enum ReadinessEngine {
                          culpritNoun: verdictCulprit(kind: kind, lead: lead))
     }
 
-    // MARK: Signal builders
+    // MARK: - Signals
 
-    /// Build a z-score signal for a metric, scored against the SAME robust EWMA
-    /// baseline (winsorized center + abs-dev spread) that RecoveryScorer consumes —
-    /// so the readiness read and the recovery score never tell two different stories
-    /// about the same HRV / resting-HR night. `history` is the ordered nightly series
+    /// Build a z-score signal for a metric, scored against the SAME robust EWMA baseline (winsorized
+    /// centre + abs-dev spread) the rest of the package consumes — so two surfaces can never tell
+    /// different stories about the same HRV / resting-HR night. `history` is the ordered nightly series
     /// before today (oldest → newest), with nils for missing nights (skip-and-hold).
+    ///
+    /// `nil` when there is no value, or no baseline solid enough to compare against.
+    ///
+    /// The dissociation between the printed number and the flag is DELIBERATE and is screen contract:
+    /// `value` and `z` carry the UNORIENTED deviation (above baseline is `+`, whatever that means for
+    /// the metric), while the flag carries valence. A high resting heart rate therefore reads «+1.2σ»
+    /// with a warning dot, and a high HRV reads «+1.4σ» with a good one. Do not «fix» this by
+    /// orienting the number: the number is direction, the dot is valence.
     private static func zSignal(value: Double?, history: [Double?], cfg: MetricCfg,
-                                key: String, label: String, higherIsBetter: Bool,
+                                higherIsBetter: Bool, key: String, label: String,
                                 goodText: String, neutralText: String,
                                 watchText: String, badText: String) -> Signal? {
         guard let v = value else { return nil }
-        let state = Baselines.foldHistory(history, cfg: cfg)
+        let state = Baselines.foldHistory(Array(history.suffix(baselineWindow)), cfg: cfg)
         guard state.nValid >= minBaseline, state.spread > 0 else { return nil }
         // deviation.z = (value − baseline) / (1.253 × spread); orient so positive
         // always means "better" (invert for lower-is-better metrics like resting HR).
@@ -367,13 +398,11 @@ public enum ReadinessEngine {
         case .watch:   text = watchText
         case .bad:     text = badText
         }
-        // The compact read-out shows the RAW deviation from baseline (above = `+`), in σ — the unit the
-        // flag itself is decided in. `dev.z` is unoriented (not flipped for lower-is-better metrics), so a
-        // high resting-HR reads `+1.2σ` (raw direction) with a `.watch`/`.bad` dot, while a high HRV reads
-        // `+1.4σ` with `.good`: the number is direction, the dot is valence.
         let valueText = String(format: "%+.1fσ", dev.z)
         return Signal(key: key, label: label, detail: text, flag: flag, value: valueText, z: dev.z)
     }
+
+    // MARK: - Load
 
     /// The acute:chronic thresholds, public so UI scales (the Tendencias sheet's band bar and the
     /// mini-trend's shaded balance zone, FER-705) draw the SAME numbers `loadBand` cuts on and can
@@ -490,13 +519,13 @@ public enum ReadinessEngine {
         p.coverageDays >= minChronic && p.activeInWindow >= minActiveDays && p.chronic > 0
     }
 
-    private static func acwrSignal(_ ratio: Double) -> Signal {
-        let pct = String(format: "%.2f", ratio)
+    /// The load signal. `value` is the BARE ratio to ONE decimal — no σ, because load is already a
+    /// normalized ratio rather than a deviation from a baseline — while the sentence glosses it to TWO.
+    static func acwrSignal(ratio: Double) -> Signal {
         let label = appLocalized("Training load")
         let band = loadBand(forACWR: ratio)
-        // The compact read-out is the bare acute:chronic ratio (one decimal) — a load of 1.0 means acute
-        // == chronic. No σ here: load is already a normalized ratio, not a deviation from a baseline.
         let value = String(format: "%.1f", ratio)
+        let pct = String(format: "%.2f", ratio)
         // Copy is PURELY DESCRIPTIVE of the acute↔chronic relationship — no injury-risk imperative
         // ("watch fatigue", "ease off"): Impellizzeri et al. 2020 (Br J Sports Med 54:1451–1462) show the
         // ACWR does NOT predict injury, so the sentence states where your recent load sits vs your usual,
@@ -518,28 +547,41 @@ public enum ReadinessEngine {
         }
     }
 
-    // MARK: Synthesis
+    // MARK: - Monotony
+    //
+    // Foster (1998): the week's mean load over its standard deviation. Both knobs are RECALIBRATABLE.
+    // The watch threshold is the value usually cited alongside the method — a high monotony is
+    // associated with more strain and more illness. The four-value minimum is there because a sample
+    // standard deviation over fewer observations is too unstable to raise anything on.
 
-    private static func synthesize(signals: [Signal], hasHistory: Bool) -> (Level, String, String) {
-        guard hasHistory, !signals.isEmpty else {
+    private static let monotonyWatchAt: Double = 2.0
+    private static let monotonyMinDays = 4
+
+    // MARK: - Verdict
+
+    /// The verdict, from the flags alone. Evaluated in this order, and the order IS the definition.
+    ///
+    /// The set of keys that count as «the body» INCLUDES skin temperature.
+    private static func synthesize(signals: [Signal], history: [DailyMetric]) -> (Level, String, String) {
+        guard !signals.isEmpty, !history.isEmpty else {
             return (.insufficient, appLocalized("Readiness"),
                     appLocalized("A few more nights of data and your readiness read will sharpen."))
         }
-        let bad = signals.filter { $0.flag == .bad }
-        let watch = signals.filter { $0.flag == .watch }
-        let good = signals.filter { $0.flag == .good }
         let recoveryDown = signals.contains { ["hrv", "rhr", "respRate", "skinTemp"].contains($0.key) && ($0.flag == .bad) }
         let loadHigh = signals.contains { $0.key == "acwr" && $0.flag == .bad }
+        let badCount = signals.filter { $0.flag == .bad }.count
+        let goodCount = signals.filter { $0.flag == .good }.count
+        let anyWatch = signals.contains { $0.flag == .watch }
 
-        if bad.count >= 2 || (recoveryDown && loadHigh) {
+        if badCount >= 2 || (recoveryDown && loadHigh) {
             return (.rundown, appLocalized("Run down"),
                     appLocalized("Several signals are down at once. Treat today as recovery — easy movement, real sleep tonight."))
         }
-        if recoveryDown || loadHigh || bad.count >= 1 {
+        if recoveryDown || loadHigh || badCount >= 1 {
             return (.strained, appLocalized("Strained"),
                     appLocalized("One of your signals is flagging. You can train, but keep it controlled and bank the recovery."))
         }
-        if good.count >= 2 && watch.isEmpty {
+        if goodCount >= 2 && !anyWatch {
             return (.primed, appLocalized("Primed"),
                     appLocalized("Your signals are aligned and your load is supported. A harder session is well backed today."))
         }
@@ -547,7 +589,7 @@ public enum ReadinessEngine {
                 appLocalized("Nothing's flagging. Train to feel — your body's holding steady."))
     }
 
-    // MARK: Reconciliation (recovery vs. verdict)
+    // MARK: Naming what drove the verdict
 
     /// The single signal most responsible for the verdict, for the reconciling sentence: the
     /// worst-flagged one (`.bad` before `.watch`), taken in append order so the first match is the
@@ -556,25 +598,19 @@ public enum ReadinessEngine {
         signals.first { $0.flag == .bad } ?? signals.first { $0.flag == .watch }
     }
 
-    /// The reconciliation decision (pure, deterministic, testable). `recovery` is today's 0–100
-    /// recovery score (nil while calibrating). "High" reuses `RecoveryScorer.bandYellowMax` so the
-    /// "you woke up recovered" claim and the score's green band can never disagree.
-    static func bridgeKind(level: Level, recovery: Double?, lead: Signal?) -> BridgeKind {
-        let recoveryHigh = (recovery ?? 0) >= RecoveryScorer.bandYellowMax
+    /// The sentence decision (pure, deterministic, testable): a straight restatement of the verdict,
+    /// since the verdict is the only thing there is to reconcile.
+    static func bridgeKind(level: Level, lead: Signal?) -> BridgeKind {
         switch level {
-        case .insufficient:    return .none
+        case .insufficient:      return .none
         case .primed, .balanced: return .aligned
-        case .rundown:         return .rundown
-        case .strained:
-            // Only a genuinely high recovery makes this a "great everywhere except X" divergence;
-            // otherwise it's a flat caution with nothing to reconcile.
-            guard recoveryHigh, let lead else { return .strainedFlat }
-            return lead.key == "acwr" ? .divergenceLoad : .divergenceBody
+        case .rundown:           return .rundown
+        case .strained:          return .strainedFlat
         }
     }
 
-    /// Possessive noun for a signal, for the divergence sentence ("…what needs care is {your HRV}")
-    /// and the verdict card's sublabel ("from {your training load}"). One source so both agree.
+    /// Possessive noun for a signal, for the verdict card's sublabel ("from {your training load}").
+    /// One source so every surface agrees.
     private static func signalNoun(_ key: String) -> String {
         switch key {
         case "acwr":     return appLocalized("your training load")
@@ -594,12 +630,12 @@ public enum ReadinessEngine {
             return nil
         case .rundown:
             return appLocalized("several signals")
-        case .divergenceLoad, .divergenceBody, .strainedFlat:
+        case .strainedFlat:
             return lead.map { signalNoun($0.key) }
         }
     }
 
-    /// The localized reconciling sentence for a bridge decision (nil only for `.none`).
+    /// The localized sentence for a verdict decision (nil only for `.none`).
     static func bridgeCopy(_ kind: BridgeKind, lead: Signal?) -> String? {
         switch kind {
         case .none:
@@ -610,24 +646,57 @@ public enum ReadinessEngine {
             return appLocalized("Several signals are down at once. Treat today as recovery.")
         case .strainedFlat:
             return appLocalized("One of your signals is flagging. You can train, but keep it controlled.")
-        case .divergenceLoad:
-            return appLocalized("You woke up well recovered. What needs care today is your training load, not your body.")
-        case .divergenceBody:
-            return appLocalized("Your recovery is high, but \(signalNoun(lead?.key ?? "")) is flagging — keep an eye on that today.")
         }
     }
 
-    // MARK: Stats helpers
+    // MARK: - Small statistics
 
+    /// Arithmetic mean; `nil` for an empty set, which has no mean to report.
     static func mean(_ xs: [Double]) -> Double? {
         xs.isEmpty ? nil : xs.reduce(0, +) / Double(xs.count)
     }
 
-    /// Sample standard deviation (n-1). nil for fewer than 2 points.
+    /// Sample standard deviation (`n − 1`); `nil` with fewer than two values, which is when the
+    /// denominator has nothing to divide by.
     static func sampleSD(_ xs: [Double]) -> Double? {
         guard xs.count >= 2, let m = mean(xs) else { return nil }
-        let ss = xs.reduce(0) { $0 + ($1 - m) * ($1 - m) }
+        var ss = 0.0
+        for x in xs {
+            let d = x - m
+            ss += d * d
+        }
         return (ss / Double(xs.count - 1)).squareRoot()
+    }
+
+    /// Foster (1998) monotony for the calendar week ending on `day`: the mean daily dose divided by
+    /// its sample spread, both taken over the linearized load so a spike reads as a spike. Answers
+    /// `nil` when the week carries too few readings for a sample spread to mean anything, or when
+    /// the dose never varies at all and the ratio has no denominator. The value is reported on its
+    /// own; the signal rides along only once the ratio reaches the watch threshold.
+    private static func weeklyMonotony(endingOn day: String,
+                                       replay: EwmaReplay) -> (value: Double, signal: Signal?)? {
+        guard let lastDay = DayKey.parseUTC(day) else { return nil }
+        var loads: [Double] = []
+        var cursor = lastDay
+        for _ in 0..<acuteWindow {
+            if let strain = replay.rowByDay[DayKey.utc(cursor)]?.strain {
+                loads.append(strainToLoad(strain))
+            }
+            guard let previousDay = DayKey.utcCalendar.date(byAdding: .day, value: -1, to: cursor)
+            else { break }
+            cursor = previousDay
+        }
+        guard loads.count >= monotonyMinDays,
+              let spread = sampleSD(loads), spread > 0,
+              let average = mean(loads)
+        else { return nil }
+        let ratio = average / spread
+        guard ratio >= monotonyWatchAt else { return (ratio, nil) }
+        return (ratio, Signal(key: "monotony",
+                              label: appLocalized("Training variety"),
+                              detail: appLocalized("low — similar strain every day raises strain/illness risk"),
+                              flag: .watch,
+                              value: String(format: "%.1f", ratio)))
     }
 
     /// Linearize a 0–21 logarithmic strain back to a TRIMP-like load (the inverse

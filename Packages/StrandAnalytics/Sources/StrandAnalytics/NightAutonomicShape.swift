@@ -3,8 +3,8 @@ import BiometricStreams
 
 // NightAutonomicShape.swift — the SHAPE of the nocturnal heart-rate fall (FER-678). Pure, DB-free.
 //
-// We already find the nightly HR nadir (SleepStager exposes `restingHR` = "lowest 5-min rolling-mean
-// HR during the session") but throw away its FORM and TIMING. This engine keeps them and derives three
+// We already find the nightly HR nadir — the lowest 5-minute rolling mean of heart rate during the
+// session — but throw away its FORM and TIMING. This engine keeps them and derives three
 // read-outs a resting-HR number alone can't show:
 //
 //   1. dip%          — how far HR fell from your waking reference to the night's valley, as a percent
@@ -20,7 +20,7 @@ import BiometricStreams
 //   paper reports HR ALSO carries a circadian time-of-night effect on top of the sleep-stage effect, so
 //   the fall we measure is not attributable to parasympathetic tone alone — one more reason to surface it
 //   as a descriptive shape, never a clean autonomic read-out. The nadir
-//   is the minimum of a 5-minute rolling mean (same primitive SleepStager uses for `restingHR`), which
+//   is the minimum of a 5-minute rolling mean (the same primitive the resting-HR estimate uses), which
 //   suppresses single-beat noise from wrist PPG. This uses ONLY mean HR — no beat-to-beat R-R — so
 //   sensor risk is essentially nil (the epic's "best value-per-risk").
 //
@@ -34,7 +34,8 @@ public enum NightAutonomicShape {
 
     // MARK: - Tuning constants (pinned by test)
 
-    /// Rolling-window length for the nadir search (seconds) — matches SleepStager's 5-min resting-HR window.
+    /// Rolling-window length for the nadir search (seconds) — the same 5-minute nocturnal averaging
+    /// window `RecoveryScorer.restingHRWindowS` uses.
     public static let nadirWindowSec: Int = 300
     /// Minimum asleep span (seconds) before we'll report a shape — under ~3 h the night is too short to
     /// read the autonomic fall honestly. 3 h = 10_800 s.
@@ -92,7 +93,7 @@ public enum NightAutonomicShape {
     // MARK: - Inputs
 
     /// One asleep span (wall-clock unix seconds). The caller passes the session's non-wake stage spans
-    /// (from `SleepStager` staging); pass a single [start, end] span when staging is unavailable.
+    /// (from the night's staging); pass a single [start, end] span when staging is unavailable.
     public struct AsleepSpan: Equatable, Sendable {
         public let start: Int
         public let end: Int
@@ -174,7 +175,7 @@ public enum NightAutonomicShape {
 
     /// Minimum of the centered-forward 5-min rolling mean of HR, and the timestamp at its center.
     /// For each sample i, average all samples in [ts_i, ts_i + windowSec); the returned ts is `ts_i`
-    /// (the window's start). The same primitive SleepStager uses for `restingHR`, kept with its time.
+    /// (the window's start). The same primitive the resting-HR estimate uses, kept with its time.
     static func rollingMeanMinimum(_ hr: [HRSample], windowSec: Int) -> (bpm: Double, ts: Int) {
         var best = Double.greatestFiniteMagnitude
         var bestTs = hr.first!.ts

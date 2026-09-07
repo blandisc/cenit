@@ -599,8 +599,9 @@ final class Repository: ObservableObject {
     /// the dashboard with `loaded`/`fullyLoaded`/`seq` left at defaults — publication (and whether
     /// it happens at all) is the caller's @MainActor decision.
     nonisolated static func assembleDashboard(_ inputs: RefreshInputs) async -> DashboardData {
-        let strapSleeps = Self.mergeSleep(imported: inputs.impSleep, computed: inputs.compSleep)
-        let appleSleeps = Self.appleSleepsNotCoveredByStrap(apple: inputs.appleSleepRaw, strap: strapSleeps)
+        let onDeviceSleeps = Self.mergeSleep(imported: inputs.impSleep, computed: inputs.compSleep)
+        let appleSleeps = Self.appleSleepsNotCoveredOnDevice(apple: inputs.appleSleepRaw,
+                                                             onDevice: onDeviceSleeps)
 
         var fig: [String: ImportedSleepFigures] = [:]
         for p in inputs.perf { fig[p.day, default: ImportedSleepFigures()].performancePct = p.value }
@@ -715,7 +716,7 @@ final class Repository: ObservableObject {
         return DashboardData(
             days: overlaid.days,
             displayDays: overlaidDisplay,
-            sleeps: strapSleeps,
+            sleeps: onDeviceSleeps,
             appleSleeps: appleSleeps,
             importedSleep: fig,
             appleHealthDays: merged.appleDays,
@@ -893,11 +894,12 @@ final class Repository: ObservableObject {
         SourceFusion.mergeSleepSessions(imported: imported, computed: computed, apple: apple)
     }
 
-    /// Apple Health sleep sessions to surface in the Detalle when the band didn't cover that night — the
-    /// band wins per night, so an Apple session overlapping ANY strap session's span is dropped (FER-486).
+    /// Apple Health sleep sessions to surface in the Detalle when nothing on-device covered that night —
+    /// the on-device night wins, so an Apple session overlapping ANY on-device span is dropped (FER-486).
     /// Forwards to `SourceFusion` (single policy copy; plan 2026-07-20).
-    nonisolated static func appleSleepsNotCoveredByStrap(apple: [CachedSleepSession], strap: [CachedSleepSession]) -> [CachedSleepSession] {
-        SourceFusion.appleSleepsNotCoveredByStrap(apple: apple, strap: strap)
+    nonisolated static func appleSleepsNotCoveredOnDevice(apple: [CachedSleepSession],
+                                                          onDevice: [CachedSleepSession]) -> [CachedSleepSession] {
+        SourceFusion.appleSleepsNotCoveredOnDevice(apple: apple, onDevice: onDevice)
     }
 
     // MARK: - Metric explorer reads (generic substrate)
