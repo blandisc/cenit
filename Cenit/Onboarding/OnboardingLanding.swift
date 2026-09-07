@@ -146,7 +146,7 @@ public enum OnboardingLandingDecider {
 
 #if os(iOS) && DEBUG
 extension OnboardingLanding {
-    /// El desenlace fijo que pide `-noop.onboardingLanding <caso>`, para el mapa 100 % (FER-391).
+    /// El desenlace fijo que pide `-cenit.onboardingLanding <caso>`, para el mapa 100 % (FER-391).
     /// Los números son de vitrina — el mismo TIPO que produciría `OnboardingLandingDecider.decidir`,
     /// nunca un caso vivo: sirven para que el acto 4 tenga algo honesto que revelar sin correr el
     /// sync real de HealthKit, que es justo lo que el arnés de captura no puede esperar de forma

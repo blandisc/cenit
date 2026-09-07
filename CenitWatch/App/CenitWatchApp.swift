@@ -26,7 +26,7 @@ struct CenitWatchApp: App {
 
 /// Receives the workout configuration when the iPhone wakes the app, and starts the mirrored session.
 final class WatchAppDelegate: NSObject, WKApplicationDelegate {
-    private let log = Logger(subsystem: "com.noopapp.noop.watch", category: "WatchApp")
+    private let log = Logger(subsystem: "com.feriracheta.cenit.watch", category: "WatchApp")
 
     func handle(_ workoutConfiguration: HKWorkoutConfiguration) {
         Task { @MainActor in

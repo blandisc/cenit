@@ -284,7 +284,7 @@ final class CenitScreenshotTests: XCTestCase {
     /// Recorre los manifiestos `docs/appmap/mapa/<familia>.json` (empacados como recursos de este
     /// bundle, o desde `NOOP_MAPA_DIR` si el entorno lo fija) y captura un PNG por nodo × frame. Un
     /// solo test para TODAS las familias — filtra con `NOOP_MAPA_FAMILIA=hoy,entrenar` para una corrida
-    /// por lane. Cada nodo se relanza limpio con `-noop.freshStore` (base hermética) + su `fixture`/`args`,
+    /// por lane. Cada nodo se relanza limpio con `-cenit.freshStore` (base hermética) + su `fixture`/`args`,
     /// ejecuta sus `pasos` de navegación y snapea. Un nodo que falle NO detiene a los demás (se listan
     /// al final); `Tools/check-shots.py` valida después que ningún PNG salió en blanco o repetido.
     func test_mapa() throws {
@@ -302,8 +302,8 @@ final class CenitScreenshotTests: XCTestCase {
                 if n["omitido"] != nil { continue }   // estado sin palanca viable, declarado a propósito (A2)
 
                 let a = XCUIApplication()
-                var args = Self.baseArgs + ["-noop.freshStore", "YES"]
-                if let fx = n["fixture"] as? String, !fx.isEmpty { args += ["-noop.fixture", fx] }
+                var args = Self.baseArgs + ["-cenit.freshStore", "YES"]
+                if let fx = n["fixture"] as? String, !fx.isEmpty { args += ["-cenit.fixture", fx] }
                 if let extra = n["args"] as? [String] { args += extra }
                 a.launchArguments = args
                 a.launch()

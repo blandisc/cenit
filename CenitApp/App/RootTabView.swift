@@ -17,7 +17,7 @@ struct RootTabView: View {
     // FER-240: `.coach` (Patrones) removed with the screen.
     private enum Tab: Hashable { case today, body, train, settings }
 
-    /// Every screen reachable by pushing onto a hub tab's stack. Raw values match the `noop.nav.<key>`
+    /// Every screen reachable by pushing onto a hub tab's stack. Raw values match the `cenit.nav.<key>`
     /// debug-navigation keys (`ScreenshotNav.swift`) so screenshot automation still reaches each one.
     private enum SecondaryScreen: String, Hashable {
         case library                              // Entrenar hub — exercise library (FER-346)
@@ -383,7 +383,7 @@ struct RootTabView: View {
                 }
             }
         }
-        // FER-381: `-noop.route <familia/clave>` lleva la captura del mapa a una pantalla sin atajo
+        // FER-381: `-cenit.route <familia/clave>` lleva la captura del mapa a una pantalla sin atajo
         // `nav`. La Ola 1 solo selecciona la TAB por la familia; cada pantalla consume su propia clave
         // (`DebugRoute.key(for:)`) y empuja su destino en su ola de captura.
         .onAppear {

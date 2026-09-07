@@ -110,7 +110,7 @@ struct DataSourcesView: View {
         }
         .animation(LiquidMotion.glassOut(LiquidMotion.quick), value: showBackupAlert)
         #if os(iOS) && DEBUG
-        // FER-389 (mapa 100 %): `-noop.readError <strengthCSV|backupOk|backupError>` fuerza, para la
+        // FER-389 (mapa 100 %): `-cenit.readError <strengthCSV|backupOk|backupError>` fuerza, para la
         // captura, un estado que solo sale de un intento real de exportar/importar — nunca alcanzable
         // así en producción.
         .onAppear { aplicarEstadoDebugSiPide() }
@@ -119,7 +119,7 @@ struct DataSourcesView: View {
 
     #if os(iOS) && DEBUG
     private func aplicarEstadoDebugSiPide() {
-        switch UserDefaults.standard.string(forKey: "noop.readError") {
+        switch UserDefaults.standard.string(forKey: "cenit.readError") {
         case "strengthCSV":
             strengthCSVError = true
         case "backupOk":

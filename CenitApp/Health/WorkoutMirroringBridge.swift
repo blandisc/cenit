@@ -31,7 +31,7 @@ final class WorkoutMirroringBridge: NSObject, ObservableObject {
     static let mirrorToWatchKey = PrefKey.mirrorStrengthToWatch.rawValue
 
     private let healthStore = HKHealthStore()
-    private let log = Logger(subsystem: "com.noopapp.noop", category: "WatchMirror")
+    private let log = Logger(subsystem: "com.feriracheta.cenit", category: "WatchMirror")
 
     /// The mirrored session HealthKit hands us once the watch starts mirroring. Retained so we can push
     /// rest snapshots to the wrist and receive its data.

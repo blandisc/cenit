@@ -8,133 +8,133 @@
       "id": "promesa",
       "titulo": "Acto 1 · la promesa",
       "condicion": "densidad dispersa, sin veredicto — la primera pantalla del wizard, CTA «Empezar»",
-      "args": ["-noop.onboardingActo", "promesa"],
+      "args": ["-cenit.onboardingActo", "promesa"],
       "pasos": [{ "wait": 1 }]
     },
     {
       "id": "permiso",
       "titulo": "Acto 2 · el permiso",
       "condicion": "el diagrama de pesos + el permiso de Salud; CTA «Conectar Apple Salud» / «Ahora no»",
-      "args": ["-noop.onboardingActo", "permiso"],
+      "args": ["-cenit.onboardingActo", "permiso"],
       "pasos": [{ "wait": 1 }]
     },
     {
       "id": "encendido",
       "titulo": "Actos 3-4 · el encendido (leyendo → revelado)",
-      "condicion": "LA MISMA pantalla que se transforma; forzado con `-noop.onboardingLanding lectura-full` para que el primer cuadro capturable ya sea el desenlace, sin depender del sync real de HealthKit",
-      "args": ["-noop.onboardingActo", "encendido", "-noop.onboardingLanding", "lectura-full"],
+      "condicion": "LA MISMA pantalla que se transforma; forzado con `-cenit.onboardingLanding lectura-full` para que el primer cuadro capturable ya sea el desenlace, sin depender del sync real de HealthKit",
+      "args": ["-cenit.onboardingActo", "encendido", "-cenit.onboardingLanding", "lectura-full"],
       "pasos": [{ "wait": 1 }]
     },
     {
       "id": "perfil",
       "titulo": "Acto 6 · el perfil",
       "condicion": "los cuatro campos (edad/sexo/peso/estatura); sin Salud conectada en esta captura, sin sello de autollenado — «Lo puse yo» de fábrica",
-      "args": ["-noop.onboardingActo", "perfil"],
+      "args": ["-cenit.onboardingActo", "perfil"],
       "pasos": [{ "wait": 1 }]
     },
     {
       "id": "acta",
       "titulo": "Acto 5 · el acta",
       "condicion": "de qué está hecha la palabra — ejes, pesos, contra qué compara; sin landing forzado usa el tono de «calibrando» por default",
-      "args": ["-noop.onboardingActo", "acta"],
+      "args": ["-cenit.onboardingActo", "acta"],
       "pasos": [{ "wait": 1 }]
     },
     {
       "id": "ciclo",
       "titulo": "Acto 7 · el ciclo y la mañana",
       "condicion": "cómo se traduce la palabra + el dock real; sin landing forzado, cierre «sin reloj» (`conReloj == false`)",
-      "args": ["-noop.onboardingActo", "ciclo"],
+      "args": ["-cenit.onboardingActo", "ciclo"],
       "pasos": [{ "wait": 1 }]
     },
     {
       "id": "salida",
       "titulo": "La salida de «Ahora no»",
       "condicion": "quien tocó «Ahora no» en el permiso; CTA «Reconsiderar» vuelve al permiso, «Entrar» sigue al perfil sin haber conectado Salud",
-      "args": ["-noop.onboardingActo", "salida"],
+      "args": ["-cenit.onboardingActo", "salida"],
       "pasos": [{ "wait": 1 }]
     },
     {
       "id": "lectura-full",
       "titulo": "Aterrizaje · lectura, veredicto «En rango»",
       "condicion": "OnboardingLanding.lectura(.full) — base firme (18/14 noches), sin banner de confianza, tinte verde",
-      "args": ["-noop.onboardingActo", "encendido", "-noop.onboardingLanding", "lectura-full"],
+      "args": ["-cenit.onboardingActo", "encendido", "-cenit.onboardingLanding", "lectura-full"],
       "pasos": [{ "wait": 1 }]
     },
     {
       "id": "lectura-caution",
       "titulo": "Aterrizaje · lectura, veredicto «Ve leve»",
       "condicion": "OnboardingLanding.lectura(.caution) — base joven (10/14 noches), banner «Confianza: 10 de 14 noches», tinte ámbar",
-      "args": ["-noop.onboardingActo", "encendido", "-noop.onboardingLanding", "lectura-caution"],
+      "args": ["-cenit.onboardingActo", "encendido", "-cenit.onboardingLanding", "lectura-caution"],
       "pasos": [{ "wait": 1 }]
     },
     {
       "id": "lectura-easy",
       "titulo": "Aterrizaje · lectura, veredicto «Recupera»",
       "condicion": "OnboardingLanding.lectura(.easy) — base firme (14/14 noches), tinte rojo",
-      "args": ["-noop.onboardingActo", "encendido", "-noop.onboardingLanding", "lectura-easy"],
+      "args": ["-cenit.onboardingActo", "encendido", "-cenit.onboardingLanding", "lectura-easy"],
       "pasos": [{ "wait": 1 }]
     },
     {
       "id": "lectura-lowsignal",
       "titulo": "Aterrizaje · lectura, veredicto «Baja señal»",
       "condicion": "OnboardingLanding.lectura(.lowSignal) — el decisor real nunca produce este veredicto dentro de .lectura (su guarda lo manda a .calibrando antes), pero el enum lo admite y OnbActoEncendido lo pinta (comparte copy con .easy) — se incluye para cubrir los 4 casos de Preparedness.Verdict",
-      "args": ["-noop.onboardingActo", "encendido", "-noop.onboardingLanding", "lectura-lowsignal"],
+      "args": ["-cenit.onboardingActo", "encendido", "-cenit.onboardingLanding", "lectura-lowsignal"],
       "pasos": [{ "wait": 1 }]
     },
     {
       "id": "calibrando",
       "titulo": "Aterrizaje · calibrando",
       "condicion": "OnboardingLanding.calibrando — hay FC en reposo pero la base es joven (2 de 4 noches, faltan 2); cero palabra, conteo honesto",
-      "args": ["-noop.onboardingActo", "encendido", "-noop.onboardingLanding", "calibrando"],
+      "args": ["-cenit.onboardingActo", "encendido", "-cenit.onboardingLanding", "calibrando"],
       "pasos": [{ "wait": 1 }]
     },
     {
       "id": "sinritmo",
       "titulo": "Aterrizaje · sin FC en reposo",
       "condicion": "OnboardingLanding.sinRitmoEnReposo — llegaron señales pero cero FC en reposo, el TOPE del veredicto (nunca cuaja, ni esperando); ofrece Entrenar y la puerta a Salud",
-      "args": ["-noop.onboardingActo", "encendido", "-noop.onboardingLanding", "sinritmo"],
+      "args": ["-cenit.onboardingActo", "encendido", "-cenit.onboardingLanding", "sinritmo"],
       "pasos": [{ "wait": 1 }]
     },
     {
       "id": "sindatos",
       "titulo": "Aterrizaje · sin datos",
       "condicion": "OnboardingLanding.sinDatos — no llegó ni una fila (negó la lectura o Salud está vacío, indistinguibles desde aquí)",
-      "args": ["-noop.onboardingActo", "encendido", "-noop.onboardingLanding", "sindatos"],
+      "args": ["-cenit.onboardingActo", "encendido", "-cenit.onboardingLanding", "sindatos"],
       "pasos": [{ "wait": 1 }]
     },
     {
       "id": "terms-gate",
       "titulo": "Gate · términos sin aceptar",
       "condicion": "`acceptedTerms != Terms.currentVersion` — overlay sobre TODO, incluso onboarding/pairing; requiere el switch de consentimiento antes de habilitar Aceptar",
-      "args": ["-noop.acceptedTermsVersion", "1.0"],
+      "args": ["-cenit.acceptedTermsVersion", "1.0"],
       "pasos": [{ "wait": 1 }]
     },
     {
       "id": "store-failure",
       "titulo": "Gate · store roto",
-      "condicion": "`repo.storeOpenFailed` (FER-969) — migración atorada o archivo corrupto; Reintentar o Restaurar del respaldo, forzado con `-noop.storeFailed YES` sin romper el store de verdad",
-      "args": ["-noop.storeFailed", "YES"],
+      "condicion": "`repo.storeOpenFailed` (FER-969) — migración atorada o archivo corrupto; Reintentar o Restaurar del respaldo, forzado con `-cenit.storeFailed YES` sin romper el store de verdad",
+      "args": ["-cenit.storeFailed", "YES"],
       "pasos": [{ "wait": 1 }]
     },
     {
       "id": "restore-offer",
       "titulo": "Gate · oferta de restaurar",
       "condicion": "alert nativo tras un primer arranque sin datos con Salud ya conectada — «Restore from a backup file?»; forzado sin correr `maybeOfferRestore()` (depende de HealthKit real)",
-      "args": ["-noop.restore", "offer"],
+      "args": ["-cenit.restore", "offer"],
       "pasos": [{ "wait": 1 }]
     },
     {
       "id": "restore-result",
       "titulo": "Gate · resultado de restaurar (falla)",
       "condicion": "banner inline `LiquidAviso` en tono negativo — el único camino real a este overlay es la falla del import (el éxito bloquea con «reabre Cénit» en su lugar)",
-      "args": ["-noop.restore", "result"],
+      "args": ["-cenit.restore", "result"],
       "pasos": [{ "wait": 1 }]
     },
     {
       "id": "entrada-arranque",
       "titulo": "Entrada · coreografía de arranque",
-      "condicion": "`LiquidOrbeEntrada` sobre TODO (incluso el gate de Términos) — el ascenso de partículas hacia el frame del héroe; forzada a quedarse puesta con `-noop.entrada YES` (la real dura ~2.8 s y el arnés no puede congelar un frame a mitad de una animación)",
-      "args": ["-noop.entrada", "YES"],
+      "condicion": "`LiquidOrbeEntrada` sobre TODO (incluso el gate de Términos) — el ascenso de partículas hacia el frame del héroe; forzada a quedarse puesta con `-cenit.entrada YES` (la real dura ~2.8 s y el arnés no puede congelar un frame a mitad de una animación)",
+      "args": ["-cenit.entrada", "YES"],
       "pasos": [{ "wait": 1 }]
     }
   ],

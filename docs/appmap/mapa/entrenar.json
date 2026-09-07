@@ -332,7 +332,7 @@
       "id": "historial-readerror",
       "titulo": "Historial · error de lectura",
       "args": [
-        "-noop.readError",
+        "-cenit.readError",
         "YES"
       ],
       "condicion": "`repo.storeHandle()` inaccesible → banner «no se pudo leer»",
@@ -348,7 +348,7 @@
       "titulo": "Historial · error al guardar (toast)",
       "fixture": "train",
       "args": [
-        "-noop.saveError",
+        "-cenit.saveError",
         "YES"
       ],
       "condicion": "toast «No se pudo guardar el entrenamiento» sobre la carga ya exitosa",
@@ -462,7 +462,7 @@
       "titulo": "Ejercicio · detalle · error al guardar (toast)",
       "fixture": "train",
       "args": [
-        "-noop.saveError",
+        "-cenit.saveError",
         "YES"
       ],
       "condicion": "toast «No se pudo guardar» tras un fallo simulado de escritura",
@@ -483,7 +483,7 @@
       "id": "marcas-vacio",
       "titulo": "Tus marcas · vacío",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "entrenar/marcas"
       ],
       "condicion": "sin ningún PR todavía",
@@ -497,9 +497,9 @@
       "id": "marcas-readerror",
       "titulo": "Tus marcas · error de lectura",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "entrenar/marcas",
-        "-noop.readError",
+        "-cenit.readError",
         "YES"
       ],
       "condicion": "`repo.storeHandle()` inaccesible → estado de error",
@@ -514,7 +514,7 @@
       "titulo": "Tus marcas · con datos",
       "fixture": "train",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "entrenar/marcas"
       ],
       "condicion": "PRs derivados de la rampa de banca/deadlift/squat sembrada",
@@ -528,7 +528,7 @@
       "id": "volumen-vacio",
       "titulo": "Tu cuerpo · volumen · vacío",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "entrenar/volumen"
       ],
       "condicion": "sin sets registrados en la ventana",
@@ -543,7 +543,7 @@
       "titulo": "Tu cuerpo · volumen · con datos",
       "fixture": "train",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "entrenar/volumen"
       ],
       "condicion": "mapa de carga muscular sobre los sets sembrados",
@@ -563,7 +563,7 @@
       "id": "tickets-vacio",
       "titulo": "Mis tickets · vacío",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "entrenar/tickets"
       ],
       "condicion": "sin sesiones de fuerza completadas todavía",
@@ -577,9 +577,9 @@
       "id": "tickets-readerror",
       "titulo": "Mis tickets · error de lectura",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "entrenar/tickets",
-        "-noop.readError",
+        "-cenit.readError",
         "YES"
       ],
       "condicion": "`repo.storeHandle()` inaccesible → estado de error",
@@ -594,7 +594,7 @@
       "titulo": "Mis tickets · con datos",
       "fixture": "train",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "entrenar/tickets"
       ],
       "condicion": "grilla de mini-recibos térmicos por cada sesión completada",

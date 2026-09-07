@@ -66,7 +66,7 @@ public enum AppGroup {
     /// This fires in Release too, so a device build still reports the problem in Console.app.
     private static let warnUnsharedGroupOnce: Void = {
         guard !isGroupShared else { return }
-        Logger(subsystem: "com.noopapp.noop", category: "AppGroup").fault(
+        Logger(subsystem: "com.feriracheta.cenit", category: "AppGroup").fault(
             "App Group '\(suiteName, privacy: .public)' unavailable — entitlement missing on this target. Writes stay private to this process.")
     }()
 }

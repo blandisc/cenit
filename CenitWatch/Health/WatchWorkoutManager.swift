@@ -95,7 +95,7 @@ final class WatchWorkoutManager: NSObject, ObservableObject {
     @Published private(set) var startNeedsPhone = false
 
     private let healthStore = HKHealthStore()
-    private let log = Logger(subsystem: "com.noopapp.noop.watch", category: "WatchWorkout")
+    private let log = Logger(subsystem: "com.feriracheta.cenit.watch", category: "WatchWorkout")
 
     private var session: HKWorkoutSession?
     private var builder: HKLiveWorkoutBuilder?

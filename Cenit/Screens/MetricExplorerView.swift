@@ -223,7 +223,7 @@ struct MetricDetailView: View {
         return displayUnit.isEmpty ? cuerpo : "\(cuerpo) \(displayUnit)"
     }
 
-    // `-noop.range` (FER-384 · mapa 100%) fija la ventana inicial para la captura; una corrida
+    // `-cenit.range` (FER-384 · mapa 100%) fija la ventana inicial para la captura; una corrida
     // normal cae al `.month` de siempre (`TendenciasFixtures.debugRange()` es DEBUG-only).
     #if DEBUG
     @State private var range: ExploreRange = TendenciasFixtures.debugRange() ?? .month

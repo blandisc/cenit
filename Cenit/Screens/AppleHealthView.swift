@@ -285,10 +285,10 @@ struct AppleHealthView: View {
         }
 
         #if DEBUG
-        // FER-389 (mapa 100 %): `-noop.slowLoad YES` alarga la ventana con `loaded == false` — la
+        // FER-389 (mapa 100 %): `-cenit.slowLoad YES` alarga la ventana con `loaded == false` — la
         // lectura real del store es casi instantánea, así que sin esto el estado «cargando» nunca dura
         // lo bastante para un screenshot determinista del harness.
-        if UserDefaults.standard.string(forKey: "noop.slowLoad")?.lowercased() == "yes" {
+        if UserDefaults.standard.string(forKey: "cenit.slowLoad")?.lowercased() == "yes" {
             try? await Task.sleep(for: .seconds(3))
         }
         #endif

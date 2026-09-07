@@ -149,7 +149,7 @@ private struct AjustesLanding: View {
         }
         .sheet(item: $presentedSheet) { screen in sheetContent(screen) }
         #if DEBUG
-        // FER-389 (mapa 100 %): `-noop.route ajustes/<clave>` abre directo la hoja/hija que esta
+        // FER-389 (mapa 100 %): `-cenit.route ajustes/<clave>` abre directo la hoja/hija que esta
         // pantalla no expone por `nav` (unidades, FC máx, ciclo, las 3 ruedas de perfil) — atajo de
         // captura del harness, nunca alcanzable así en producción.
         .onAppear {

@@ -24,7 +24,7 @@ struct CenitApp: App {
         // PendingIntents) can mask it. Logs a fault on device, asserts in the Simulator.
         AppGroup.warnIfGroupUnprovisioned()
         // FER-398 · las dos migraciones de identificador, en ESTE orden y ANTES de `AppModel()`:
-        // ① las preferencias (`noop.*` → `cenit.*`), porque `AppModel` y los `@AppStorage` de la
+        // ① las preferencias (el prefijo heredado → `cenit.*`; ver `PrefKey.legacyKey`), porque `AppModel` y los `@AppStorage` de la
         //    primera pantalla leen su valor; si corriera después, el usuario vería el onboarding otra
         //    vez y la app escribiría un default nuevo encima del suyo.
         // ② el contenedor en disco (`OpenWhoop/whoop.sqlite` → `Cenit/cenit.sqlite`), porque

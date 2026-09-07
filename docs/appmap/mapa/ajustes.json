@@ -16,7 +16,7 @@
       "id": "unidades",
       "titulo": "Unidades y formato",
       "condicion": "Hoja `UnidadesSheet` — sistema métrico/imperial + temperatura, ajustada al contenido",
-      "args": ["-noop.route", "ajustes/unidades"],
+      "args": ["-cenit.route", "ajustes/unidades"],
       "pasos": [
         { "nav": "ajustes", "settle": 3 }
       ]
@@ -25,7 +25,7 @@
       "id": "fc-max",
       "titulo": "FC máxima",
       "condicion": "Hoja `MaxHRSheet` — Automático (Tanaka 208 − 0.7×edad) / Manual (rueda 100–230 bpm)",
-      "args": ["-noop.route", "ajustes/fcmax"],
+      "args": ["-cenit.route", "ajustes/fcmax"],
       "pasos": [
         { "nav": "ajustes", "settle": 3 }
       ]
@@ -34,7 +34,7 @@
       "id": "ciclo",
       "titulo": "Fase del ciclo · consentimiento",
       "condicion": "Hoja `CyclePhaseSheet` con el experimento apagado (default) — pantalla de consentimiento, qué hace/no hace",
-      "args": ["-noop.route", "ajustes/ciclo"],
+      "args": ["-cenit.route", "ajustes/ciclo"],
       "pasos": [
         { "nav": "ajustes", "settle": 3 }
       ]
@@ -43,7 +43,7 @@
       "id": "perfil-edad",
       "titulo": "Perfil · rueda de edad",
       "condicion": "`ProfileWheelSheet` — Picker de rueda 13…100 años",
-      "args": ["-noop.route", "ajustes/perfil-edad"],
+      "args": ["-cenit.route", "ajustes/perfil-edad"],
       "pasos": [
         { "nav": "ajustes", "settle": 3 }
       ]
@@ -52,7 +52,7 @@
       "id": "perfil-peso",
       "titulo": "Perfil · rueda de peso",
       "condicion": "`ProfileWheelSheet` — Picker de rueda en kg (o lb según preferencia de unidades)",
-      "args": ["-noop.route", "ajustes/perfil-peso"],
+      "args": ["-cenit.route", "ajustes/perfil-peso"],
       "pasos": [
         { "nav": "ajustes", "settle": 3 }
       ]
@@ -61,7 +61,7 @@
       "id": "perfil-altura",
       "titulo": "Perfil · rueda de estatura",
       "condicion": "`ProfileWheelSheet` — Picker de rueda en cm (o ft/in según preferencia de unidades)",
-      "args": ["-noop.route", "ajustes/perfil-altura"],
+      "args": ["-cenit.route", "ajustes/perfil-altura"],
       "pasos": [
         { "nav": "ajustes", "settle": 3 }
       ]
@@ -90,7 +90,7 @@
       "id": "historial-fa-informa",
       "titulo": "Historial de FA · informa",
       "condicion": "`HistorialFASection` visible (default sin evidencia de series densas) — las dos caras, qué afina / qué cuesta",
-      "args": ["-noop.freshStore", "YES"],
+      "args": ["-cenit.freshStore", "YES"],
       "pasos": [
         { "nav": "ajustes", "settle": 2 },
         { "swipeUp": 5 },
@@ -136,7 +136,7 @@
       "id": "fuentes-sin-conexion",
       "titulo": "Fuentes de datos · sin conexión",
       "condicion": "health.auth ∈ {.unknown, .denied} (default de simulador sin autorizar) — botón «Connect Apple Health»",
-      "args": ["-noop.freshStore", "YES"],
+      "args": ["-cenit.freshStore", "YES"],
       "pasos": [
         { "nav": "datasources", "settle": 3 }
       ]
@@ -157,7 +157,7 @@
       "id": "fuentes-strengthcsv-error",
       "titulo": "Fuentes de datos · error de export CSV",
       "condicion": "strengthCSVError == true — nota de error bajo «Export strength history (CSV)»",
-      "args": ["-noop.readError", "strengthCSV"],
+      "args": ["-cenit.readError", "strengthCSV"],
       "pasos": [
         { "nav": "datasources", "settle": 2 },
         { "swipeUp": 6 },
@@ -168,7 +168,7 @@
       "id": "fuentes-backup-ok",
       "titulo": "Fuentes de datos · backup exportado",
       "condicion": "LiquidAviso verde superior — «Backup exported»",
-      "args": ["-noop.readError", "backupOk"],
+      "args": ["-cenit.readError", "backupOk"],
       "pasos": [
         { "nav": "datasources", "settle": 2 },
         { "wait": 1 }
@@ -178,7 +178,7 @@
       "id": "fuentes-backup-error",
       "titulo": "Fuentes de datos · problema de backup",
       "condicion": "LiquidAviso rojo superior — «Backup problem»",
-      "args": ["-noop.readError", "backupError"],
+      "args": ["-cenit.readError", "backupError"],
       "pasos": [
         { "nav": "datasources", "settle": 2 },
         { "wait": 1 }
@@ -194,7 +194,7 @@
       "id": "apple-salud-cargando",
       "titulo": "Apple Salud · cargando",
       "condicion": "loaded == false — «Reading your Apple Health history…» con spinner",
-      "args": ["-noop.slowLoad", "YES"],
+      "args": ["-cenit.slowLoad", "YES"],
       "pasos": [
         { "nav": "applehealth", "settle": 1 }
       ]
@@ -203,7 +203,7 @@
       "id": "apple-salud-sin-filas",
       "titulo": "Apple Salud · sin filas",
       "condicion": "loaded == true, hasAnyData == false — «Nothing imported yet»",
-      "args": ["-noop.freshStore", "YES"],
+      "args": ["-cenit.freshStore", "YES"],
       "pasos": [
         { "nav": "applehealth", "settle": 3 }
       ]
