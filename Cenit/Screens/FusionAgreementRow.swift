@@ -32,7 +32,7 @@ struct FusionAgreementRow: View {
         }
     }
 
-    /// "Apple Health 8,100 · Band 6,000" — winner first (the resolver's order), values verbatim.
+    /// "Apple Health 8,100 · Estimated 6,000" — winner first (the resolver's order), values verbatim.
     private var values: String {
         point.contributors.map { "\(name($0.source)) \(format($0.value))" }.joined(separator: " · ")
     }
@@ -40,7 +40,7 @@ struct FusionAgreementRow: View {
     private func name(_ source: FusionSource) -> String {
         switch source {
         case .whoopImport:  return String(localized: "Imported")
-        case .noopComputed: return String(localized: "Band")
+        case .noopComputed: return String(localized: "Estimated")
         case .appleHealth:  return String(localized: "Apple Health")
         }
     }

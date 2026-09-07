@@ -3,7 +3,7 @@ import Foundation
 /// The copy-paste prompt the Diet capture screen puts on the clipboard (FER-371).
 ///
 /// The user pastes it into their own LLM (ChatGPT/Claude) together with their plan (PDF/photo); the
-/// LLM returns a `noop.diet.v1` file the user then imports. Bundled here as the single source — not
+/// LLM returns a `cenit.diet.v1` file the user then imports. Bundled here as the single source — not
 /// scattered string literals. Two languages: the device language picks one, but **each prompt accepts
 /// a plan written in Spanish OR English** (the model detects it and never translates the food names).
 /// NOOP itself never makes a network call — the user runs the LLM step.
@@ -19,7 +19,7 @@ enum DietPrompt {
     El plan puede venir en español o en inglés (texto o imagen). Devuelve ÚNICAMENTE el JSON
     válido, sin texto antes ni después, con EXACTAMENTE este formato:
 
-    { "schema":"noop.diet.v1", "idioma":"", "nombre":"", "ciclo":"diario",
+    { "schema":"cenit.diet.v1", "idioma":"", "nombre":"", "ciclo":"diario",
       "comidas":[ {"id":"","nombre":"","hora_sugerida":"",
         "opciones":[{"alimentos":[]}], "notas":""} ],
       "objetivos_diarios":{}, "reglas":[] }
@@ -51,7 +51,7 @@ enum DietPrompt {
     in Spanish or English (text or image). Return ONLY the valid JSON, with no text before or
     after, in EXACTLY this format:
 
-    { "schema":"noop.diet.v1", "idioma":"", "nombre":"", "ciclo":"diario",
+    { "schema":"cenit.diet.v1", "idioma":"", "nombre":"", "ciclo":"diario",
       "comidas":[ {"id":"","nombre":"","hora_sugerida":"",
         "opciones":[{"alimentos":[]}], "notas":""} ],
       "objetivos_diarios":{}, "reglas":[] }
