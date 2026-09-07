@@ -125,6 +125,9 @@ targets:
         # FER-721: required to start any Live Activity (the guided-session rest timer on the lock
         # screen + Dynamic Island). The extension that renders it is the CenitWidgets target below.
         NSSupportsLiveActivities: true
+        # Los avisos de permiso se traducen en `Cenit/Resources/InfoPlist.xcstrings` (FER-398): sin ese
+        # catálogo, un iPhone en español veía las cinco cadenas de abajo en inglés. Aquí vive el DEFAULT
+        # en inglés (la lengua base del proyecto); el catálogo aporta `es`.
         NSHealthShareUsageDescription: "Cénit reads your own Apple Health data on-device: sleep, heart rate, heart-rate variability, workouts, and related samples, to show your days and nightly trends. Cénit never uploads it. No server, no account."
         NSHealthUpdateUsageDescription: "Cénit saves your strength workouts into Apple Health, on-device and only when you allow it."
         NSPhotoLibraryAddUsageDescription: "Cénit saves the workout card you choose to share to your photo library. It only saves the image you explicitly ask it to."
@@ -219,8 +222,10 @@ targets:
         # times out to «El reloj no respondió». Matches Apple's multidevice-workout sample.
         WKBackgroundModes:
           - workout-processing
-        NSHealthShareUsageDescription: "Cénit lee tu frecuencia cardiaca en el reloj durante la sesión de fuerza para grabar el entrenamiento. Cénit nunca lo sube. Sin servidor ni cuenta."
-        NSHealthUpdateUsageDescription: "Cénit guarda tu sesión de fuerza como entrenamiento en Apple Salud, en el dispositivo y solo cuando tú lo permites."
+        # Los avisos de permiso se traducen en `CenitWatch/Resources/InfoPlist.xcstrings` (FER-398).
+        # El valor de aquí es el DEFAULT en inglés (la lengua base del proyecto); el catálogo aporta `es`.
+        NSHealthShareUsageDescription: "Cénit reads your heart rate on the watch during a strength session, to record the workout. Cénit never uploads it. No server, no account."
+        NSHealthUpdateUsageDescription: "Cénit saves your strength session into Apple Health as a workout, on-device and only when you allow it."
     entitlements:
       path: CenitWatch/Resources/CenitWatch.entitlements
       properties:

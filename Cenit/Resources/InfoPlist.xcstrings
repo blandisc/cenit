@@ -1,0 +1,91 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "NSCalendarsFullAccessUsageDescription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cénit crosses your calendar events with your day's stress, on your iPhone, to show what your most activated moments coincided with. Cénit never uploads it. No server, no account."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cénit cruza los eventos de tu calendario con el estrés de tu día, en tu iPhone, para mostrarte con qué coincidieron tus momentos más activados. Cénit nunca los sube. Sin servidor ni cuenta."
+          }
+        }
+      }
+    },
+    "NSCalendarsUsageDescription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cénit crosses your calendar events with your day's stress, on your iPhone, to show what your most activated moments coincided with. Cénit never uploads it. No server, no account."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cénit cruza los eventos de tu calendario con el estrés de tu día, en tu iPhone, para mostrarte con qué coincidieron tus momentos más activados. Cénit nunca los sube. Sin servidor ni cuenta."
+          }
+        }
+      }
+    },
+    "NSHealthShareUsageDescription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cénit reads your own Apple Health data on-device: sleep, heart rate, heart-rate variability, workouts, and related samples, to show your days and nightly trends. Cénit never uploads it. No server, no account."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cénit lee tus propios datos de Apple Salud en el dispositivo: sueño, frecuencia cardiaca, variabilidad, entrenamientos y muestras relacionadas, para mostrarte tus días y tus tendencias de cada noche. Cénit nunca los sube. Sin servidor ni cuenta."
+          }
+        }
+      }
+    },
+    "NSHealthUpdateUsageDescription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cénit saves your strength workouts into Apple Health, on-device and only when you allow it."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cénit guarda tus entrenamientos de fuerza en Apple Salud, en el dispositivo y solo cuando tú lo permites."
+          }
+        }
+      }
+    },
+    "NSPhotoLibraryAddUsageDescription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cénit saves the workout card you choose to share to your photo library. It only saves the image you explicitly ask it to."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cénit guarda en tus fotos la tarjeta de entrenamiento que elijas compartir. Solo guarda la imagen que tú le pidas."
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}
