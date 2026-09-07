@@ -5,11 +5,9 @@ import CenitStore
 import Foundation
 
 // MARK: - Apple Health · dossier por fuente (Liquid Glass · El Eje)
-//
-// Lector de UNA fuente: enseña, sin adornos, todo lo que «apple-health» dejó en la base local de
-// este iPhone. No sincroniza, no escribe y no sale a ningún lado — la puerta de entrada es
+// Lector de UNA sola fuente: enseña, sin adornos, todo lo que «apple-health» dejó en la base local
+// de este iPhone. No sincroniza, no escribe y no sale a ningún lado — la puerta de entrada es
 // «Ver datos importados ›» en Fuentes de datos.
-//
 // Tres capas, deliberadamente separadas:
 //   1. `AppleHealthSpan`     — el vocabulario de ventanas (W · M · 3M · 6M · 1Y · ALL).
 //   2. `AppleHealthDossier`  — el recorte, resuelto UNA vez por carga y por toque del selector.
@@ -288,7 +286,7 @@ struct AppleHealthView: View {
                             legend: windowLegend,
                             legendNeedsAttention: dossier.holdsWidenedSeries,
                             stamp: span.stamp)
-                    tileGrid
+                    metricGrid
                     vitalsGroup
                     activityGroup
                     bodyGroup
@@ -326,12 +324,11 @@ struct AppleHealthView: View {
         if let seed {
             dailyRows = seed.days.sorted { $0.day < $1.day }
             loggedWorkouts = seed.workouts
-            rawSeries = seed.series
+            rawSeries = seed.history
             rebuild()
             finishedReading = true
             return
         }
-
         #if DEBUG
         await stallForScreenshotHarness()
         #endif
@@ -437,12 +434,9 @@ struct AppleHealthView: View {
         ]
     }
 
-    private var tileGrid: some View {
-        LazyVGrid(
-            columns: [GridItem(.adaptive(minimum: 168), spacing: LiquidSpace.s200)],
-            alignment: .leading,
-            spacing: LiquidSpace.s200
-        ) {
+    private var metricGrid: some View {
+        let columnas = [GridItem(.adaptive(minimum: 168), spacing: LiquidSpace.s200)]
+        return LazyVGrid(columns: columnas, alignment: .leading, spacing: LiquidSpace.s200) {
             ForEach(tileRecipes, id: \.key) { recipe in
                 tile(recipe)
             }
@@ -816,7 +810,9 @@ private struct LoneReadingWell: View {
                 .tracking(LiquidType.valorTileTracking)
                 .foregroundStyle(tone)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity,
+               maxHeight: .infinity,
+               alignment: .leading)
     }
 }
 
@@ -827,7 +823,9 @@ private struct NoReadingsWell: View {
             .font(LiquidType.cuerpo)
             .foregroundStyle(LiquidColor.tinta500)
             .multilineTextAlignment(.center)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            .frame(maxWidth: .infinity,
+                   maxHeight: .infinity,
+                   alignment: .center)
             .background(LiquidColor.tinta7,
                         in: RoundedRectangle(cornerRadius: LiquidRadius.control, style: .continuous))
     }
@@ -841,7 +839,7 @@ extension AppleHealthView {
     fileprivate struct Seed {
         var days: [AppleDaily]
         var workouts: [WorkoutRow]
-        var series: [String: [(day: String, value: Double)]]
+        var history: [String: [(day: String, value: Double)]]
     }
 }
 
@@ -883,15 +881,16 @@ private func seededAppleHealth() -> AppleHealthView.Seed {
         let peso = 78.0 - 5.0 * sin(t / 220.0) + 0.6 * sin(t / 13.0)
         let grasa = 18.0 - 3.0 * sin(t / 240.0) + 0.4 * sin(t / 11.0)
 
-        days.append(AppleDaily(day: dia,
-                               steps: Int(max(0, pasos).rounded()),
-                               activeKcal: activas,
-                               basalKcal: 1600,
-                               vo2max: vo2,
-                               avgHr: 72,
-                               maxHr: 148,
-                               walkingHr: 96,
-                               weightKg: peso))
+        days.append(AppleDaily(
+            day: dia,
+            steps: Int(max(0, pasos).rounded()),
+            activeKcal: activas,
+            basalKcal: 1580,
+            vo2max: vo2,
+            avgHr: 71,
+            maxHr: 151,
+            walkingHr: 98,
+            weightKg: peso))
 
         series["steps"]?.append((dia, max(0, pasos)))
         series["active_kcal"]?.append((dia, activas))
@@ -931,18 +930,22 @@ private func seededAppleHealth() -> AppleHealthView.Seed {
         }
     }
 
-    return AppleHealthView.Seed(days: days, workouts: workouts, series: series)
+    return AppleHealthView.Seed(days: days, workouts: workouts, history: series)
+}
+
+/// El canvas necesita un `Repository` montado aunque la pantalla lea de la semilla.
+@MainActor
+private func appleHealthCanvas(_ seed: AppleHealthView.Seed, alto: CGFloat) -> some View {
+    AppleHealthView(seed: seed)
+        .environmentObject(Repository(deviceId: "preview"))
+        .frame(width: 920, height: alto)
 }
 
 #Preview("Apple Health: seeded") {
-    AppleHealthView(seed: seededAppleHealth())
-        .environmentObject(Repository(deviceId: "preview"))
-        .frame(width: 920, height: 980)
+    appleHealthCanvas(seededAppleHealth(), alto: 980)
 }
 
 #Preview("Apple Health: empty") {
-    AppleHealthView(seed: .init(days: [], workouts: [], series: [:]))
-        .environmentObject(Repository(deviceId: "preview"))
-        .frame(width: 920, height: 600)
+    appleHealthCanvas(.init(days: [], workouts: [], history: [:]), alto: 600)
 }
 #endif
