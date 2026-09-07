@@ -1,15 +1,15 @@
 import SwiftUI
 // MARK: - La franja de calor de un año
-//
-// Un calendario al estilo GitHub: cada columna es una semana, cada fila un día de la semana
-// (empezando en lunes). Un día con lectura se tiñe con la rampa que le pase quien la usa; un día
-// dentro del rango pero sin lectura dibuja un cuadro hueco. Pasar el dedo/puntero saca un aro y una
-// tarjeta de lectura; y como `onContinuousHover` nunca dispara en pantalla táctil, un manejador de
-// toque opcional agrega la selección por dedo.
+//   Un calendario al estilo GitHub: cada columna es una semana, cada fila un día de la semana
+//   (empezando en lunes). Un día con lectura se tiñe con la rampa que le pase quien la usa; un día
+//   dentro del rango pero sin lectura dibuja un cuadro hueco. Pasar el dedo/puntero saca un aro y
+//   una tarjeta de lectura; y como `onContinuousHover` nunca dispara en pantalla táctil, un
+//   manejador de toque opcional agrega la selección por dedo.
 
 /// El puntaje de un día. `score == nil` significa que ese día no tiene lectura.
 public struct RecoveryDay: Sendable, Identifiable {
-    public let id = UUID()
+    /// Identidad de pieza para SwiftUI, independiente de la fecha.
+    public let id: UUID = .init()
     public var date: Date
     public var score: Double?
 
@@ -72,28 +72,31 @@ struct YearHeatStrip: View {
     /// Si está puesto, tocar un día lo llama — la contraparte táctil del puntero.
     var onSelect: ((RecoveryDay) -> Void)?
 
-    init(
-        days: [RecoveryDay],
-        cellSize: CGFloat = 12, spacing: CGFloat = 3,
-        showsMonthLabels: Bool = true, showsScrub: Bool = true,
-        tint: @escaping (Double) -> Color = { StrandPalette.recoveryColor($0) },
-        emptyFill: Color = InstrumentoTheme.base.hairline,
-        emptyStroke: Color = InstrumentoTheme.base.hairline.opacity(0.6),
-        labelColor: Color = InstrumentoTheme.base.inkTertiary,
-        onSelect: ((RecoveryDay) -> Void)? = nil,
-        selectionColor: Color = InstrumentoTheme.base.hairlineStrong,
-        cellCornerRadius: CGFloat = 2.5,
-        valueFormat: @escaping (Double) -> String = { "Recovery \(Int($0.rounded()))" },
-        valueWord: String = "recovery"
-    ) {
+    init(days lecturas: [RecoveryDay],
+         cellSize lado: CGFloat = 12, spacing aire: CGFloat = 3,
+         showsMonthLabels conMeses: Bool = true, showsScrub conRaspado: Bool = true,
+         tint rampa: @escaping (Double) -> Color = { StrandPalette.recoveryColor($0) },
+         emptyFill rellenoHueco: Color = InstrumentoTheme.base.hairline,
+         emptyStroke filoHueco: Color = InstrumentoTheme.base.hairline.opacity(0.6),
+         labelColor tintaDeRotulo: Color = InstrumentoTheme.base.inkTertiary,
+         onSelect alSeleccionar: ((RecoveryDay) -> Void)? = nil,
+         selectionColor tintaDeSeleccion: Color = InstrumentoTheme.base.hairlineStrong,
+         cellCornerRadius cantoDeCelda: CGFloat = 2.5,
+         valueFormat formatoDeValor: @escaping (Double) -> String = { "Recovery \(Int($0.rounded()))" },
+         valueWord palabraDeValor: String = "recovery") {
         // Ordenados por fecha desde la entrada: toda la construcción de semanas de abajo asume que
         // los días llegan en orden, y arreglarlo aquí es una sola vez en vez de una por pasada.
-        self.days = days.sorted { $0.date < $1.date }
-        (self.cellSize, self.spacing, self.cellCornerRadius) = (cellSize, spacing, cellCornerRadius)
-        (self.showsMonthLabels, self.showsScrub) = (showsMonthLabels, showsScrub)
-        (self.tint, self.emptyFill, self.emptyStroke) = (tint, emptyFill, emptyStroke)
-        (self.labelColor, self.selectionColor) = (labelColor, selectionColor)
-        (self.valueFormat, self.valueWord, self.onSelect) = (valueFormat, valueWord, onSelect)
+        self.days = lecturas.sorted(by: Self.enOrdenCronologico)
+        (cellSize, spacing, cellCornerRadius) = (lado, aire, cantoDeCelda)
+        (showsMonthLabels, showsScrub) = (conMeses, conRaspado)
+        (tint, emptyFill, emptyStroke) = (rampa, rellenoHueco, filoHueco)
+        (labelColor, selectionColor) = (tintaDeRotulo, tintaDeSeleccion)
+        (valueFormat, valueWord, onSelect) = (formatoDeValor, palabraDeValor, alSeleccionar)
+    }
+
+    /// El criterio de orden de los días, con nombre para que el `init` se lea de corrido.
+    private static func enOrdenCronologico(_ izquierda: RecoveryDay, _ derecha: RecoveryDay) -> Bool {
+        izquierda.date < derecha.date
     }
 
     // MARK: - La ventana móvil de 90 días
@@ -127,7 +130,7 @@ struct YearHeatStrip: View {
         return contenido(semanas, cuadricula)
             .frame(width: cuadricula.ancho, height: cuadricula.alto, alignment: .topLeading)
             .overlay(aroYTarjeta(semanas, cuadricula))
-            .contentShape(Rectangle())
+            .contentShape(.rect)
             #if os(iOS)
             .onContinuousHover(coordinateSpace: .local) { fase in
                 guard showsScrub else { return }
@@ -143,16 +146,26 @@ struct YearHeatStrip: View {
     private func contenido(_ semanas: [Rejilla.Semana], _ cuadricula: Cuadricula) -> some View {
         VStack(alignment: .leading, spacing: spacing) {
             if showsMonthLabels { tiraDeMeses(semanas, cuadricula) }
-            HStack(alignment: .top, spacing: spacing) {
-                canalDeDias
-                ForEach(Array(semanas.enumerated()), id: \.element.id) { columna, semana in
-                    VStack(spacing: spacing) {
-                        ForEach(0..<MedidasFranja.filas, id: \.self) { fila in
-                            celda(semana.dias[fila],
-                                  resaltada: celdaBajoElDedo == Rejilla.Coordenada(columna: columna, fila: fila))
-                        }
-                    }
-                }
+            rejilla(semanas)
+        }
+    }
+
+    /// El canal de días a la izquierda y, a su derecha, una columna por semana.
+    private func rejilla(_ semanas: [Rejilla.Semana]) -> some View {
+        HStack(alignment: .top, spacing: spacing) {
+            canalDeDias
+            ForEach(Array(semanas.enumerated()), id: \.element.id) { orden, semana in
+                columna(semana, en: orden)
+            }
+        }
+    }
+
+    /// Una semana, de lunes arriba a domingo abajo.
+    private func columna(_ semana: Rejilla.Semana, en orden: Int) -> some View {
+        VStack(spacing: spacing) {
+            ForEach(0..<MedidasFranja.filas, id: \.self) { fila in
+                celda(semana.dias[fila],
+                      resaltada: celdaBajoElDedo == Rejilla.Coordenada(columna: orden, fila: fila))
             }
         }
     }
@@ -162,20 +175,21 @@ struct YearHeatStrip: View {
         HStack(spacing: spacing) {
             Color.clear.frame(width: cuadricula.origenX - spacing, height: MedidasFranja.rotuloDeMes)
             ForEach(semanas) { semana in
-                Text(semana.rotuloDeMes ?? "")
-                    .font(StrandFont.footnote).foregroundStyle(labelColor)
-                    .frame(width: cellSize, alignment: .leading)
+                rotulo(semana.rotuloDeMes ?? "").frame(width: cellSize, alignment: .leading)
             }
         }
+    }
+
+    /// La voz de los rótulos de la franja: meses arriba, días a la izquierda, la misma ficha.
+    private func rotulo(_ texto: String) -> some View {
+        Text(texto).font(StrandFont.footnote).foregroundStyle(labelColor)
     }
 
     /// El canal izquierdo: solo lun/mié/vie/dom llevan rótulo, para que no se apelmace.
     private var canalDeDias: some View {
         VStack(alignment: .trailing, spacing: spacing) {
-            ForEach(Array(Rejilla.rotulosDeFila.enumerated()), id: \.offset) { _, rotulo in
-                Text(rotulo)
-                    .font(StrandFont.footnote).foregroundStyle(labelColor)
-                    .frame(width: MedidasFranja.canal, height: cellSize, alignment: .trailing)
+            ForEach(Array(Rejilla.rotulosDeFila.enumerated()), id: \.offset) { _, dia in
+                rotulo(dia).frame(width: MedidasFranja.canal, height: cellSize, alignment: .trailing)
             }
         }
     }
@@ -194,20 +208,23 @@ struct YearHeatStrip: View {
             ))
     }
 
-    @ViewBuilder
-    private func cuerpoDeCelda(_ dia: RecoveryDay?, canto: RoundedRectangle, resaltada: Bool) -> some View {
+    @ViewBuilder private func cuerpoDeCelda(_ dia: RecoveryDay?, canto: RoundedRectangle,
+                                            resaltada: Bool) -> some View {
         if let dia, let puntaje = dia.score {
-            canto.fill(tint(puntaje))
-                .frame(width: cellSize, height: cellSize)
+            canto.fill(tint(puntaje)).enCelda(cellSize)
                 .opacity(resaltada || celdaBajoElDedo == nil ? 1.0 : MedidasFranja.atenuadas)
-                .help("\(CalendarFormatters.day.string(from: dia.date)) · \(valueWord) \(Int(puntaje.rounded()))")
+                .help(vozDeAyuda(dia, puntaje: puntaje))
         } else if dia != nil {
-            canto.fill(emptyFill)
-                .overlay(canto.stroke(emptyStroke, lineWidth: MedidasFranja.hueco))
-                .frame(width: cellSize, height: cellSize)
+            canto.fill(emptyFill).overlay(canto.stroke(emptyStroke, lineWidth: MedidasFranja.hueco))
+                .enCelda(cellSize)
         } else {
-            canto.fill(Color.clear).frame(width: cellSize, height: cellSize)
+            canto.fill(Color.clear).enCelda(cellSize)
         }
+    }
+
+    /// Lo que dice el `.help` (y VoiceOver de escritorio) de un día con lectura.
+    private func vozDeAyuda(_ dia: RecoveryDay, puntaje: Double) -> String {
+        "\(CalendarFormatters.day.string(from: dia.date)) · \(valueWord) \(Int(puntaje.rounded()))"
     }
 
     private var aroDeSeleccion: some View {
@@ -218,30 +235,37 @@ struct YearHeatStrip: View {
     }
 
     /// El aro y la tarjeta de lectura de la celda bajo el dedo, en una capa encima de la rejilla.
-    @ViewBuilder
-    private func aroYTarjeta(_ semanas: [Rejilla.Semana], _ cuadricula: Cuadricula) -> some View {
+    /// No recibe toques: es información sobre la rejilla, no otra cosa que tocar.
+    @ViewBuilder private func aroYTarjeta(_ semanas: [Rejilla.Semana],
+                                          _ cuadricula: Cuadricula) -> some View {
         if showsScrub, let donde = celdaBajoElDedo, donde.columna < semanas.count,
            let dia = semanas[donde.columna].dias[donde.fila], let puntaje = dia.score {
             let centro = cuadricula.centro(de: donde)
             ZStack(alignment: .topLeading) {
-                RoundedRectangle(cornerRadius: MedidasFranja.aroRadio, style: .continuous)
-                    .stroke(InstrumentoTheme.base.hairlineStrong, lineWidth: MedidasFranja.aroGrosor)
-                    .frame(width: cellSize + MedidasFranja.aroCrecimiento,
-                           height: cellSize + MedidasFranja.aroCrecimiento)
-                    .position(centro)
-                PositionedTooltip(
-                    anchor: centro, container: CGSize(width: cuadricula.ancho, height: cuadricula.alto),
-                    tooltip: ChartTooltip(
-                        value: valueFormat(puntaje),
-                        label: "\(CalendarFormatters.day.string(from: dia.date)) · \(StrandPalette.recoveryState(puntaje))",
-                        accent: tint(puntaje)
-                    )
-                )
+                aroDeRaspado.position(centro)
+                PositionedTooltip(anchor: centro,
+                                  container: CGSize(width: cuadricula.ancho, height: cuadricula.alto),
+                                  tooltip: globo(dia, puntaje: puntaje))
             }
-            .animation(StrandMotion.fade, value: donde.columna)
-            .animation(StrandMotion.fade, value: donde.fila)
+            .animation(StrandMotion.fade, value: donde)
             .allowsHitTesting(false)
         }
+    }
+
+    /// El aro que enmarca la celda bajo el dedo, un poco más grande que ella.
+    private var aroDeRaspado: some View {
+        RoundedRectangle(cornerRadius: MedidasFranja.aroRadio, style: .continuous)
+            .stroke(InstrumentoTheme.base.hairlineStrong, lineWidth: MedidasFranja.aroGrosor)
+            .frame(width: cellSize + MedidasFranja.aroCrecimiento,
+                   height: cellSize + MedidasFranja.aroCrecimiento)
+    }
+
+    /// Lo que dice la tarjeta: el valor formateado y, abajo, la fecha con el estado en palabras.
+    private func globo(_ dia: RecoveryDay, puntaje: Double) -> ChartTooltip {
+        let fecha = CalendarFormatters.day.string(from: dia.date)
+        return ChartTooltip(value: valueFormat(puntaje),
+                            label: "\(fecha) · \(StrandPalette.recoveryState(puntaje))",
+                            accent: tint(puntaje))
     }
 
     /// Lo que VoiceOver lee de una celda seleccionable.
@@ -374,7 +398,7 @@ private struct TappableCell: ViewModifier {
     func body(content: Content) -> some View {
         if enabled {
             content
-                .contentShape(Rectangle())
+                .contentShape(.rect)
                 .onTapGesture(perform: action)
                 .accessibilityElement()
                 .accessibilityLabel(label)
@@ -383,6 +407,11 @@ private struct TappableCell: ViewModifier {
             content
         }
     }
+}
+
+private extension View {
+    /// Fija el cuadro de una celda: el mismo lado en alto y ancho, en un solo lugar.
+    func enCelda(_ lado: CGFloat) -> some View { frame(width: lado, height: lado) }
 }
 
 private enum CalendarFormatters {
@@ -405,13 +434,12 @@ private func anoDeMuestra(_ total: Int = 365) -> [RecoveryDay] {
 
 #Preview("YearHeatStrip") {
     VStack(alignment: .leading, spacing: 12) {
-        Text("Recovery — past year").strandOverline()
-        Text("Hover a cell: ring + date, score and recovery-state tooltip.")
+        Text(verbatim: "Recuperación — el último año").strandOverline()
+        Text(verbatim: "Pasa el cursor por un día: aro, fecha, puntaje y estado en palabras.")
             .font(StrandFont.footnote).foregroundStyle(InstrumentoTheme.base.inkTertiary)
         YearHeatStrip(days: anoDeMuestra())
     }
-    .padding(28)
-    .frame(width: 900, height: 240)
+    .padding(28).frame(width: 900, height: 240)
     .background(InstrumentoTheme.base.paper).preferredColorScheme(.light)
 }
 #endif

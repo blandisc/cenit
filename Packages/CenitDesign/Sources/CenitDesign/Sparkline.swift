@@ -1,9 +1,8 @@
 import SwiftUI
 // MARK: - Sparkline
-//
-// La línea chiquita que cabe dentro de una ficha: la FC en vivo, la tendencia comprimida de un
-// mosaico. Se traza con la rampa de color de su métrica, con un punto vivo en la última muestra y un
-// lavado tenue por debajo. Opcionalmente carga una banda de referencia y una regla de promedio.
+//   La línea chiquita que cabe dentro de una ficha: la FC en vivo, la tendencia comprimida de un
+//   mosaico. Se traza con la rampa de color de su métrica, con un punto vivo en la última muestra y
+//   un lavado tenue por debajo. Opcionalmente carga una banda de referencia y una regla de promedio.
 
 /// Las proporciones del trazo, con nombre. Son geometría de dato, no fichas del sistema: viven aquí
 /// porque solo esta pieza las usa.
@@ -29,81 +28,88 @@ private enum MedidasSpark {
 public struct Sparkline: View {
 
     // MARK: El dato y su rampa
+    //
+    // Todo se fija al construir la línea —por eso son `let`—: otra serie es otra Sparkline, no la
+    // misma con un valor distinto encima.
 
-    public var values: [Double]
-    public var gradient: Gradient
+    public let values: [Double]
+    public let gradient: Gradient
     /// Rango de valores explícito; si no, se ajusta solo con un respiro arriba y abajo.
-    public var range: ClosedRange<Double>?
+    public let range: ClosedRange<Double>?
 
     // MARK: Referencias opcionales, siempre en tinta y nunca en color de dato
 
     /// Banda de referencia opcional (p. ej. un rango típico p25–p75) dibujada tenue DETRÁS de la
     /// línea, en tono de tinta — nunca un color de dato, para que el valor de hoy se lea en contexto
     /// en vez de competir con el fondo.
-    public var referenceBand: ClosedRange<Double>?
-    public var bandColor: Color
+    public let referenceBand: ClosedRange<Double>?
+    public let bandColor: Color
     /// Regla discontinua de promedio, sobre el mismo eje que la línea.
-    public var meanLine: Double?
-    public var meanLineColor: Color
+    public let meanLine: Double?
+    public let meanLineColor: Color
 
     // MARK: Qué se dibuja
 
-    public var lineWidth: CGFloat
-    public var showsArea: Bool
-    public var showsHead: Bool
-    public var showsScrub: Bool
+    public let lineWidth: CGFloat
+    public let showsArea: Bool
+    public let showsHead: Bool
+    public let showsScrub: Bool
 
     // MARK: Cómo se lee
 
-    public var valueFormat: (Double) -> String
+    public let valueFormat: (Double) -> String
     /// Etiqueta secundaria de una muestra por índice (p. ej. una hora). Si falta, dice «sample N».
-    public var indexLabel: ((Int) -> String)?
+    public let indexLabel: ((Int) -> String)?
 
-    public init(
-        values: [Double],
-        gradient: Gradient = StrandPalette.recoveryGradient,
-        range: ClosedRange<Double>? = nil,
-        referenceBand: ClosedRange<Double>? = nil,
-        bandColor: Color = InstrumentoTheme.base.hairlineStrong,
-        meanLine: Double? = nil,
-        meanLineColor: Color = InstrumentoTheme.base.hairlineStrong,
-        lineWidth: CGFloat = 2,
-        showsArea: Bool = true,
-        showsHead: Bool = true,
-        showsScrub: Bool = true,
-        valueFormat: @escaping (Double) -> String = { Sparkline.defaultValueString($0) },
-        indexLabel: ((Int) -> String)? = nil
-    ) {
-        (self.values, self.gradient, self.range) = (values, gradient, range)
-        (self.referenceBand, self.bandColor) = (referenceBand, bandColor)
-        (self.meanLine, self.meanLineColor) = (meanLine, meanLineColor)
-        (self.lineWidth, self.showsArea, self.showsHead, self.showsScrub) = (lineWidth, showsArea, showsHead, showsScrub)
-        (self.valueFormat, self.indexLabel) = (valueFormat, indexLabel)
+    public init(values serie: [Double],
+                gradient rampa: Gradient = StrandPalette.recoveryGradient,
+                range rangoFijo: ClosedRange<Double>? = nil,
+                referenceBand banda: ClosedRange<Double>? = nil,
+                bandColor tintaDeBanda: Color = InstrumentoTheme.base.hairlineStrong,
+                meanLine promedio: Double? = nil,
+                meanLineColor tintaDelPromedio: Color = InstrumentoTheme.base.hairlineStrong,
+                lineWidth grosor: CGFloat = 2,
+                showsArea conLavado: Bool = true,
+                showsHead conCabeza: Bool = true,
+                showsScrub conRaspado: Bool = true,
+                valueFormat formatoDeValor: @escaping (Double) -> String = { Sparkline.defaultValueString($0) },
+                indexLabel rotuloDeMuestra: ((Int) -> String)? = nil) {
+        (values, gradient, range) = (serie, rampa, rangoFijo)
+        (referenceBand, bandColor) = (banda, tintaDeBanda)
+        (meanLine, meanLineColor) = (promedio, tintaDelPromedio)
+        (lineWidth, showsArea) = (grosor, conLavado)
+        (showsHead, showsScrub) = (conCabeza, conRaspado)
+        (valueFormat, indexLabel) = (formatoDeValor, rotuloDeMuestra)
     }
 
-    @State private var hoverX: CGFloat? = nil
+    /// Dónde está el dedo (o el cursor) sobre la línea. `nil` = nadie está raspando.
+    @State private var dedoX: CGFloat?
 
     /// Plano (sin halo ni destello) en el lenguaje claro de «Instrumento diurno».
     @Environment(\.instrumentoFlat) private var flat
 
     /// Entero cuando el valor es redondo; si no, con un decimal.
-    public static func defaultValueString(_ v: Double) -> String {
-        v == v.rounded() ? String(Int(v)) : String(format: "%.1f", v)
+    public static func defaultValueString(_ v: Double) -> String { v == v.rounded() ? String(Int(v)) : String(format: "%.1f", v) }
+
+    public var body: some View { lienzo }
+
+    /// El lienzo mide, proyecta la serie una sola vez y apila encima las cuatro capas del dibujo.
+    private var lienzo: some View {
+        GeometryReader { geo in
+            capas(sobre: Trazo(valores: values, extremos: extremos, lienzo: geo.size))
+        }
     }
 
-    public var body: some View {
-        GeometryReader { geo in
-            let trazo = Trazo(valores: values, extremos: extremos, lienzo: geo.size)
-            ZStack {
-                referencias(trazo)
-                curva(trazo)
-                cabeza(trazo)
-                lupa(trazo)
-            }
-            .animation(StrandMotion.fade, value: hoverX)
-            .contentShape(Rectangle())
-            .scrubGesture(enabled: showsScrub, hoverX: $hoverX)
+    private func capas(sobre trazo: Trazo) -> some View {
+        ZStack {
+            referencias(trazo)
+            curva(trazo)
+            cabeza(trazo)
+            lupa(trazo)
         }
+        .animation(StrandMotion.fade, value: dedoX)
+        .contentShape(.rect)
+        .scrubGesture(enabled: showsScrub, hoverX: $dedoX)
     }
 
     // MARK: - Las cuatro capas del dibujo
@@ -131,19 +137,25 @@ public struct Sparkline: View {
     /// no hay recorrido que trazar.
     @ViewBuilder private func curva(_ trazo: Trazo) -> some View {
         if trazo.puntos.count > 1 {
-            if showsArea {
-                trazo.area.fill(
-                    LinearGradient(
-                        colors: [tinta(en: MedidasSpark.lecturaDelLavado).opacity(MedidasSpark.veloDelLavado), .clear],
-                        startPoint: .top, endPoint: .bottom
-                    )
-                )
-            }
-            trazo.linea.stroke(
-                LinearGradient(gradient: gradient, startPoint: .leading, endPoint: .trailing),
-                style: StrokeStyle(lineWidth: lineWidth, lineCap: .round, lineJoin: .round)
-            )
+            if showsArea { trazo.area.fill(velo) }
+            trazo.linea.stroke(rampaHorizontal, style: pluma)
         }
+    }
+
+    /// El lavado bajo la línea: la rampa leída a dos tercios, desvaneciéndose a nada hacia abajo.
+    private var velo: LinearGradient {
+        LinearGradient(colors: [tinta(en: MedidasSpark.lecturaDelLavado).opacity(MedidasSpark.veloDelLavado), .clear],
+                       startPoint: .top, endPoint: .bottom)
+    }
+
+    /// La rampa tendida a lo largo del tiempo: la línea cambia de color conforme avanza.
+    private var rampaHorizontal: LinearGradient {
+        LinearGradient(gradient: gradient, startPoint: .leading, endPoint: .trailing)
+    }
+
+    /// La pluma con la que se traza la línea, de puntas y codos redondos.
+    private var pluma: StrokeStyle {
+        StrokeStyle(lineWidth: lineWidth, lineCap: .round, lineJoin: .round)
     }
 
     /// El punto vivo en la última muestra: plano sobre papel, con halo en el sistema oscuro.
@@ -163,20 +175,27 @@ public struct Sparkline: View {
 
     /// El cromo de raspado: raya vertical, punto resaltado y la tarjeta que lo nombra.
     @ViewBuilder private func lupa(_ trazo: Trazo) -> some View {
-        if showsScrub, let x = hoverX,
+        if showsScrub, let x = dedoX,
            let indice = ChartScrubMath.nearestIndex(toX: x, count: values.count, width: trazo.lienzo.width),
            indice < trazo.puntos.count {
             let punto = trazo.puntos[indice]
             let tono = tinta(en: values.count > 1 ? Double(indice) / Double(values.count - 1) : 1.0)
             CrosshairRule(x: punto.x, height: trazo.lienzo.height)
-            HighlightDot(color: tono, diameter: max(MedidasSpark.puntoRaspadoMinimo, lineWidth * 3)).position(punto)
-            PositionedTooltip(
-                anchor: punto, container: trazo.lienzo,
-                tooltip: ChartTooltip(value: valueFormat(values[indice]),
-                                      label: indexLabel?(indice) ?? String(localized: "sample \(indice + 1)", bundle: .main),
-                                      accent: tono)
-            )
+            HighlightDot(color: tono, diameter: ladoDelPuntoRaspado).position(punto)
+            PositionedTooltip(anchor: punto, container: trazo.lienzo, tooltip: globo(indice, tono: tono))
         }
+    }
+
+    /// Diámetro del punto de raspado: proporcional al grosor, con un piso para que una línea muy
+    /// delgada no lo deje invisible.
+    private var ladoDelPuntoRaspado: CGFloat {
+        Swift.max(MedidasSpark.puntoRaspadoMinimo, lineWidth * 3)
+    }
+
+    /// Lo que dice el globo de una muestra: su valor formateado y cómo se llama esa muestra.
+    private func globo(_ indice: Int, tono: Color) -> ChartTooltip {
+        let nombre = indexLabel?(indice) ?? String(localized: "sample \(indice + 1)", bundle: .main)
+        return ChartTooltip(value: valueFormat(values[indice]), label: nombre, accent: tono)
     }
 
     // MARK: - Ayudas
@@ -193,7 +212,8 @@ public struct Sparkline: View {
     /// El recorrido de valores contra el que se dibuja, con la banda de referencia plegada dentro
     /// para que nunca quede cortada.
     private var extremos: (piso: Double, techo: Double) {
-        if let range { return (range.lowerBound, range.upperBound) }
+        // Un rango explícito manda: nadie recalcula lo que el llamador ya decidió.
+        guard range == nil else { return (range!.lowerBound, range!.upperBound) }
 
         var piso = values.min()
         var techo = values.max()
@@ -221,13 +241,20 @@ private struct Trazo {
     init(valores: [Double], extremos: (piso: Double, techo: Double), lienzo: CGSize) {
         self.lienzo = lienzo
         (piso, techo) = extremos
+        puntos = Self.proyectar(valores, entre: extremos, en: lienzo)
+    }
 
+    /// Reparte las muestras parejo a lo ancho y las cuelga de su valor. Una sola muestra se planta a
+    /// media anchura: no hay reparto que hacer con un punto.
+    private static func proyectar(_ valores: [Double],
+                                  entre extremos: (piso: Double, techo: Double),
+                                  en lienzo: CGSize) -> [CGPoint] {
         let total = valores.count
         let recorrido = Swift.max(extremos.techo - extremos.piso, 0.0001)
-        puntos = valores.enumerated().map { orden, valor in
+        return valores.enumerated().map { orden, valor in
             let x = total > 1 ? CGFloat(orden) / CGFloat(total - 1) * lienzo.width : lienzo.width / 2
-            let alto = (valor - extremos.piso) / recorrido
-            return CGPoint(x: x, y: lienzo.height - CGFloat(alto) * lienzo.height)
+            let alto = CGFloat((valor - extremos.piso) / recorrido)
+            return CGPoint(x: x, y: lienzo.height - alto * lienzo.height)
         }
     }
 
@@ -240,17 +267,17 @@ private struct Trazo {
 
     /// La polilínea que une las muestras.
     var linea: Path {
-        var camino = Path()
-        guard let arranque = puntos.first else { return camino }
-        camino.move(to: arranque)
-        puntos.dropFirst().forEach { camino.addLine(to: $0) }
-        return camino
+        Path { camino in
+            guard let arranque = puntos.first else { return }
+            camino.move(to: arranque)
+            puntos.dropFirst().forEach { camino.addLine(to: $0) }
+        }
     }
 
     /// La misma polilínea, cerrada contra el piso del lienzo, para el lavado de área.
     var area: Path {
+        guard let arranque = puntos.first, let final = puntos.last else { return linea }
         var camino = linea
-        guard let arranque = puntos.first, let final = puntos.last else { return camino }
         camino.addLine(to: CGPoint(x: final.x, y: lienzo.height))
         camino.addLine(to: CGPoint(x: arranque.x, y: lienzo.height))
         camino.closeSubpath()
@@ -268,22 +295,32 @@ private func pulsoDeMuestra(_ muestras: Int = 48) -> [Double] {
     }
 }
 
+/// Un numeral con su unidad y, pegada a la derecha, la línea comprimida: el caso de una ficha real.
+private struct FichaConLinea: View {
+    let pulso: [Double]
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text(verbatim: "64").font(StrandFont.number(34)).foregroundStyle(InstrumentoTheme.base.ink)
+            Text(verbatim: "bpm").font(StrandFont.caption).foregroundStyle(InstrumentoTheme.base.inkTertiary)
+            Spacer(minLength: 0)
+            Sparkline(values: pulso,
+                      valueFormat: { "\(Int($0.rounded())) bpm" },
+                      indexLabel: { "\($0)s ago" })
+                .frame(width: 160, height: 44)
+        }
+    }
+}
+
 #Preview("Sparkline") {
     let pulso = pulsoDeMuestra()
     return VStack(alignment: .leading, spacing: 20) {
-        HStack(alignment: .firstTextBaseline, spacing: 8) {
-            Text("64").font(StrandFont.number(34)).foregroundStyle(InstrumentoTheme.base.ink)
-            Text("bpm").font(StrandFont.caption).foregroundStyle(InstrumentoTheme.base.inkTertiary)
-            Spacer()
-            Sparkline(values: pulso, valueFormat: { "\(Int($0.rounded())) bpm" }, indexLabel: { "\($0)s ago" })
-                .frame(width: 160, height: 44)
-        }
+        FichaConLinea(pulso: pulso)
         Sparkline(values: pulso, gradient: StrandPalette.strainGradient).frame(height: 60)
-        Text("Hover a sparkline to read the sample under the cursor.")
+        Text(verbatim: "Raspa una línea para leer la muestra que queda bajo el cursor.")
             .font(StrandFont.footnote).foregroundStyle(InstrumentoTheme.base.inkTertiary)
     }
-    .padding(24)
-    .frame(width: 380, height: 220)
+    .padding(24).frame(width: 380, height: 220)
     .background(InstrumentoTheme.base.surface).preferredColorScheme(.light)
 }
 #endif

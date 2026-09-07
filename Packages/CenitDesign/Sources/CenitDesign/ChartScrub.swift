@@ -3,12 +3,11 @@ import SwiftUI
 import UIKit
 #endif
 // MARK: - La lupa de una gráfica
-//
-// En iOS no hay puntero que pase por encima, así que «explorar el dato» es arrastrar el dedo y que
-// la lectura se pegue al dato más cercano. Este archivo es el ÚNICO lugar donde viven esa
-// matemática de pegado, la tarjeta de lectura, dónde se coloca, la raya vertical y el punto
-// resaltado — para que TrendChart, Sparkline, YearHeatStrip y la familia LiquidGlass se lean igual
-// en vez de reinventarse cada una la suya. En macOS lo mismo lo maneja el puntero, no el arrastre.
+//   En iOS no hay puntero que pase por encima, así que «explorar el dato» es arrastrar el dedo y que
+//   la lectura se pegue al dato más cercano. Este archivo es el ÚNICO lugar donde viven esa
+//   matemática de pegado, la tarjeta de lectura, dónde se coloca, la raya vertical y el punto
+//   resaltado — para que TrendChart, Sparkline, YearHeatStrip y la familia LiquidGlass se lean
+//   igual en vez de reinventarse cada una la suya. En macOS eso lo maneja el puntero, no el dedo.
 
 /// Las medidas de la lupa, con nombre. Un literal suelto repetido en tres vistas es exactamente lo
 /// que este enum evita.
@@ -105,8 +104,7 @@ private struct TarjetaDeLectura: ViewModifier {
             .overlay(canto.stroke(LiquidColor.tinta10, lineWidth: MedidasDeLupa.filete))
             .shadow(color: Color.black.opacity(flat ? 0.14 : 0.45), radius: flat ? 4 : 10, x: 0, y: flat ? 2 : 6)
             .fixedSize()
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(vozDeVoiceOver)
+            .accessibilityElement(children: .ignore).accessibilityLabel(vozDeVoiceOver)
     }
 }
 
@@ -210,13 +208,13 @@ struct CrosshairRule: View {
 /// El punto que marca la muestra raspada sobre una línea. En el sistema oscuro florece; sobre papel
 /// cálido (`\.instrumentoFlat`) se lee como una manija plana más grande, sin halo.
 struct HighlightDot: View {
-    var color: Color
-    var diameter: CGFloat = MedidasDeLupa.puntoDiametro
+    let color: Color
+    let diameter: CGFloat
 
     @Environment(\.instrumentoFlat) private var flat
 
-    init(color: Color, diameter: CGFloat = MedidasDeLupa.puntoDiametro) {
-        (self.color, self.diameter) = (color, diameter)
+    init(color tono: Color, diameter lado: CGFloat = MedidasDeLupa.puntoDiametro) {
+        (color, diameter) = (tono, lado)
     }
 
     var body: some View { cuerpo.inerte() }
@@ -235,12 +233,20 @@ struct HighlightDot: View {
     /// Sistema oscuro: halo difuminado + núcleo, para que el punto se despegue de la curva.
     private var puntoQueFlorece: some View {
         ZStack {
-            Circle().fill(color)
-                .frame(width: diameter * 1.8, height: diameter * 1.8)
-                .blur(radius: diameter * 0.6).opacity(0.7).blendMode(.plusLighter)
-            Circle().fill(LiquidColor.fondoAlto).frame(width: diameter, height: diameter)
-            Circle().fill(color).frame(width: diameter - 3, height: diameter - 3)
+            halo
+            disco(LiquidColor.fondoAlto, lado: diameter)
+            disco(color, lado: diameter - 3)
         }
+    }
+
+    /// El halo: el mismo tono, más grande y difuminado, sumándose a la luz de abajo.
+    private var halo: some View {
+        disco(color, lado: diameter * 1.8)
+            .blur(radius: diameter * 0.6).opacity(0.7).blendMode(.plusLighter)
+    }
+
+    private func disco(_ tono: Color, lado: CGFloat) -> some View {
+        Circle().fill(tono).frame(width: lado, height: lado)
     }
 }
 
@@ -250,23 +256,26 @@ struct HighlightDot: View {
 /// contenedor — así `ChartTooltipPlacement` siempre trabaja con el tamaño REAL, no con una
 /// suposición.
 struct PositionedTooltip: View {
-    var anchor: CGPoint
-    var container: CGSize
-    var tooltip: ChartTooltip
+    let anchor: CGPoint
+    let container: CGSize
+    let tooltip: ChartTooltip
 
     @State private var medida: CGSize = .zero
 
-    init(anchor: CGPoint, container: CGSize, tooltip: ChartTooltip) {
-        (self.anchor, self.container, self.tooltip) = (anchor, container, tooltip)
+    init(anchor ancla: CGPoint, container contenedor: CGSize, tooltip tarjeta: ChartTooltip) {
+        (anchor, container, tooltip) = (ancla, contenedor, tarjeta)
+    }
+
+    /// Mientras la cinta no haya reportado nada, se coloca con un tamaño supuesto; en cuanto mide,
+    /// se recoloca con el real.
+    private var donde: CGPoint {
+        ChartTooltipPlacement.position(anchor: anchor,
+                                       tooltipSize: medida == .zero ? MedidasDeLupa.tarjetaSinMedir : medida,
+                                       in: container)
     }
 
     var body: some View {
-        tooltip
-            .background { cinta }
-            .position(ChartTooltipPlacement.position(anchor: anchor,
-                                                     tooltipSize: medida == .zero ? MedidasDeLupa.tarjetaSinMedir : medida,
-                                                     in: container))
-            .transition(.opacity).inerte()
+        tooltip.background { cinta }.position(donde).transition(.opacity).inerte()
     }
 
     /// Cinta métrica invisible: reporta el tamaño real de la tarjeta al primer layout y a cada
@@ -282,13 +291,15 @@ struct PositionedTooltip: View {
 
 #if DEBUG
 #Preview("ChartTooltip") {
-    VStack(spacing: 24) {
-        ChartTooltip(value: "Recovery 88", label: "Tue 3 Jun", accent: StrandPalette.recoveryColor(88))
-        ChartTooltip(value: "62 ms", label: "HRV · sample 14")
-        ChartTooltip(value: "18.7", label: "STRAIN · all-out", accent: StrandPalette.strainColor(18.7))
+    let lecturas: [ChartTooltip] = [
+        ChartTooltip(value: "Recovery 88", label: "Tue 3 Jun", accent: StrandPalette.recoveryColor(88)),
+        ChartTooltip(value: "62 ms", label: "HRV · sample 14"),
+        ChartTooltip(value: "18.7", label: "STRAIN · all-out", accent: StrandPalette.strainColor(18.7)),
+    ]
+    return VStack(spacing: 24) {
+        ForEach(Array(lecturas.enumerated()), id: \.offset) { _, lectura in lectura }
     }
-    .padding(40)
-    .frame(width: 320, height: 240)
+    .padding(40).frame(width: 320, height: 240)
     .background(LiquidColor.fondoAlto).preferredColorScheme(.light)
 }
 #endif
