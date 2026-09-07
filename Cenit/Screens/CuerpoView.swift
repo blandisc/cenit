@@ -1778,7 +1778,7 @@ private struct LiquidLenteTenidaModifier: ViewModifier {
     // Nota: los otros tres previews que FER-985 listaba como caros (TodayView, OnboardingWizard,
     // IntervalTimerView) ya NO aparecen sobre el umbral de 100 ms; bajaron solos con FER-981/984.
     let appModel = AppModel.preview
-    let health = HealthKitBridge(repo: repo, appleDeviceId: "preview-apple", noopDeviceId: "preview")
+    let health = HealthKitBridge(repo: repo, appleDeviceId: "preview-apple")
     return CuerpoView()
         .environmentObject(repo)
         .environment(appModel)

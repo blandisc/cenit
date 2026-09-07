@@ -4,14 +4,15 @@ import HealthKit
 
 /// FER-1004 — the structural guard against Cénit re-reading its own write-back.
 ///
-/// Cénit mirrors derived metrics INTO Apple Health: `writeBack` saves resting HR, HRV, SpO2 and
-/// respiratory rate plus the staged hypnogram, and `saveStrengthWorkout` saves an `HKWorkout` per
-/// strength session. Every READ therefore has to exclude this app's own source, or the next sync
-/// pulls those samples straight back in as if Apple had measured them.
+/// Cénit writes into Apple Health: `saveStrengthWorkoutIfEnabled` saves an `HKWorkout` per strength
+/// session, and until FER-398 the retired `writeBack` also mirrored resting HR, HRV, SpO2 and
+/// respiratory rate plus the staged hypnogram. Every READ therefore has to exclude this app's own
+/// source, or the next sync pulls those samples straight back in as if Apple had measured them —
+/// and the samples the old mirror already left in a long-time user's vault are still there.
 ///
 /// Two things went wrong when it did:
 ///   1. The Apple baselines that `DailyStressModel` z-scores against
-///      were fed the band's own numbers — and `writeBack` mirrors the band's RMSSD under Apple's
+///      were fed the band's own numbers — and the old mirror wrote the band's RMSSD under Apple's
 ///      *SDNN* identifier, so the value coming back was mislabelled on top of being foreign. Same
 ///      contamination class as FER-519/623/629/631/632/633/635/639/640/670/882, reached through
 ///      the mirror instead of the merge.
@@ -142,13 +143,29 @@ final class HealthKitReadPredicateGuardTests: XCTestCase {
     }
 
     /// The write path keeps scoping its DELETEs to our own source. The guard is symmetric: reads
-    /// exclude us, writes only ever delete us. Losing this would make write-back delete Apple's data.
+    /// exclude us, writes only ever delete us. Losing this would make a save delete Apple's data.
+    /// FER-398 retired the quantity + sleep mirrors, so the only remaining delete site is the
+    /// strength workout's idempotency delete; `readPredicate` itself is the second occurrence.
     func testWritePathStillScopesDeletesToOurOwnSource() throws {
         let source = try bridgeSource
         let scoped = source.components(separatedBy: "HKQuery.predicateForObjects(from: HKSource.default())").count - 1
-        XCTAssertGreaterThanOrEqual(scoped, 3, """
-            The write path must keep scoping deletes to `HKSource.default()` — one per delete site \
-            (strength workout, quantity mirror, sleep mirror). Found \(scoped).
+        XCTAssertGreaterThanOrEqual(scoped, 2, """
+            The write path must keep scoping deletes to `HKSource.default()` (the strength-workout \
+            delete), and `readPredicate` must keep negating it. Found \(scoped).
             """)
+    }
+
+    /// FER-398 — connecting Apple Health must ask for READ scopes only. Asking to SHARE resting HR /
+    /// HRV / SpO₂ / respiratory rate / sleep was permission to write data the app stopped writing in
+    /// FER-1003: a prompt that lies. The one write left (the strength `HKWorkout`) asks separately,
+    /// from its own opt-in toggle.
+    func testConnectPromptRequestsNoShareScopes() throws {
+        let code = normalisedCode(try bridgeSource)
+        XCTAssertTrue(code.contains("requestAuthorization(toShare:[],read:readTypes)"),
+                      "`requestAuthorization()` must request an EMPTY share set (FER-398).")
+        XCTAssertFalse(code.contains("quantityWriteIds"),
+                       "`quantityWriteIds` is the retired write-back's scope list — it must stay gone.")
+        XCTAssertTrue(code.contains("requestAuthorization(toShare:workoutShareTypes,read:[])"),
+                      "The opt-in workout share (FER-390) must survive untouched.")
     }
 }

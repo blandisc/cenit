@@ -577,17 +577,13 @@ struct DataSourcesView: View {
         "steps", "active_kcal", "vo2max",
     ]
 
-    /// Permissions affordance: a one-line write-back tally (the status HealthKit *does* expose
-    /// reliably) plus a deep link to Settings to grant any missing scope, then Sync again.
+    /// Permissions affordance: a deep link to Settings to grant any missing read scope, then Sync
+    /// again. FER-398 dropped the «write-back: N/M enabled» tally that used to sit above it: the
+    /// write-back it counted has been off since FER-1003, so the line reported permissions for
+    /// something the app no longer writes — and the app no longer even asks for them.
     @ViewBuilder
     private var appleHealthPermissionsFooter: some View {
-        let writes = health.writePermissions
         VStack(alignment: .leading, spacing: LiquidSpace.s200) {
-            if !writes.isEmpty {
-                let granted = writes.filter { $0.status == .sharingAuthorized }.count
-                Text(String(localized: "Write-back to Apple Health: \(granted)/\(writes.count) enabled"))
-                    .font(LiquidType.captionLectura).foregroundStyle(LiquidColor.tinta500)
-            }
             settingsButton
         }
     }

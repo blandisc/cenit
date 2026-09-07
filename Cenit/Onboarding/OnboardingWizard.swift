@@ -342,8 +342,7 @@ private struct OnboardingPreview: View {
             .environmentObject(model.profile)
             .environmentObject(TabRouter())
             .environmentObject(HealthKitBridge(repo: model.repo,
-                                               appleDeviceId: "preview-apple",
-                                               noopDeviceId: "preview"))
+                                               appleDeviceId: "preview-apple"))
             .frame(width: 390, height: 800)
     }
 }

@@ -1882,7 +1882,7 @@ private struct LiquidGuardianHojaHost: View {
         // Apple Health connect nudge); inject both so the iOS canvas renders instead of trapping on a
         // missing environment object.
         .environment(AppModel.preview)
-        .environmentObject(HealthKitBridge(repo: repo, appleDeviceId: "preview-apple", noopDeviceId: "preview"))
+        .environmentObject(HealthKitBridge(repo: repo, appleDeviceId: "preview-apple"))
         #endif
         .frame(width: 920, height: 940)
 }
@@ -1913,7 +1913,7 @@ private struct LiquidGuardianHojaHost: View {
         .environmentObject(TabRouter())
         #if os(iOS)
         .environment(AppModel.preview)
-        .environmentObject(HealthKitBridge(repo: repo, appleDeviceId: "preview-apple", noopDeviceId: "preview"))
+        .environmentObject(HealthKitBridge(repo: repo, appleDeviceId: "preview-apple"))
         #endif
         .frame(width: 920, height: 940)
         .dynamicTypeSize(.accessibility5)

@@ -41,8 +41,7 @@ struct CenitApp: App {
         _model = State(wrappedValue: model)
         let healthBridge = HealthKitBridge(
             repo: model.repo,
-            appleDeviceId: model.appleDeviceId,
-            noopDeviceId: model.deviceId
+            appleDeviceId: model.appleDeviceId
         )
         model.healthBridge = healthBridge   // FER-226: AppModel reaches the bridge for the one-time re-bucket
         _health = StateObject(wrappedValue: healthBridge)
