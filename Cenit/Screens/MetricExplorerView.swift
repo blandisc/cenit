@@ -6,7 +6,6 @@ import StrandAnalytics
 import CenitStore
 
 // MARK: - Explore (Metric Explorer + Detail) — en vidrio «Liquid Glass» (FER-104 · TND-31)
-//
 // The catalog-driven "Explore" surface, migrated from the light «Instrumento» paper to the Liquid
 // Glass language, sibling to Compare (TND-30) and the vital detail (TND-19/20). The root is a
 // categorized picker — one section per `MetricCatalog.category`, its rows `LiquidListRow`s on a
@@ -14,7 +13,6 @@ import CenitStore
 // the ~35 catalog metrics: a tinted Liquid hero (`LiquidCampoMetrica`), a raw-line history
 // (`LiquidGraficaNiveles` + `LiquidResumenVentana`), the cross-catalog Pearson «What correlates»
 // as protagonist #2, and a method+provenance foot.
-//
 // A17 (architecture, co-decided): the Explorer migrates its OWN `MetricDetailView` IN PLACE to a
 // generic Liquid detail — it does NOT route to `MetricDetailScreen`. The 7 rich metrics keep
 // opening `MetricDetailScreen` from Hoy/Cuerpo; from the Explorer, ALL 35 open this generic
@@ -176,10 +174,10 @@ struct MetricExplorerView: View {
         let tablero = repo.displayDays
         let importadas = await repo.availableKeySets(sources: MetricCatalog.all.map(\.source))
         var mapa: [String: Bool] = [:]
-        for metric in MetricCatalog.all {
-            let calculada = !(MetricSeriesResolver.dashboardSeries(metric.key, from: tablero) ?? []).isEmpty
-            let importada = importadas[metric.source]?.contains(metric.key) ?? false
-            mapa[metric.id] = !(calculada || importada)
+        for descriptor in MetricCatalog.all {
+            let calculada = !(MetricSeriesResolver.dashboardSeries(descriptor.key, from: tablero) ?? []).isEmpty
+            let importada = importadas[descriptor.source]?.contains(descriptor.key) ?? false
+            mapa[descriptor.id] = !(calculada || importada)
         }
         sinSerie = mapa
     }
@@ -205,11 +203,11 @@ struct MetricDetailView: View {
     private var unitSystem: UnitSystem {
         UnitSystem(rawValue: storedUnitSystem) ?? .metric
     }
-    private var temperatureUnit: TemperatureUnit {
+    private var temperature: TemperatureUnit {
         UnitPrefs.resolveTemperature(system: unitSystem, override: storedTemperature)
     }
     private func fmt(_ valor: Double) -> String {
-        metric.format(valor, system: unitSystem, temperature: temperatureUnit)
+        metric.format(valor, system: unitSystem, temperature: temperature)
     }
 
     /// The displayed number for `v` WITHOUT its unit (TND31-2). The generic detail's `fmt` folds
@@ -225,7 +223,7 @@ struct MetricDetailView: View {
         case "kg":
             return String(format: "%.1f", unitSystem == .imperial ? UnitFormatter.kgToPounds(v) : v)
         case "°C":
-            let t = temperatureUnit == .fahrenheit ? UnitFormatter.celsiusToFahrenheit(v) : v
+            let t = temperature == .fahrenheit ? UnitFormatter.celsiusToFahrenheit(v) : v
             return metric.decimals == 0 ? String(Int(t.rounded())) : String(format: "%.\(metric.decimals)f", t)
         default:
             return metric.decimals == 0 ? String(Int(v.rounded())) : String(format: "%.\(metric.decimals)f", v)
@@ -233,7 +231,7 @@ struct MetricDetailView: View {
     }
 
     /// The active display-unit label ("%", "min", "kg"/"lb", "°C"/"°F", …); "" for a unitless metric.
-    private var displayUnit: String { metric.displayUnit(system: unitSystem, temperature: temperatureUnit) }
+    private var displayUnit: String { metric.displayUnit(system: unitSystem, temperature: temperature) }
 
     /// «68–76 %» — the window range as bare extremes with the unit exactly ONCE (TND31-2), never the
     /// doubled «68 %–76 %». En-dash between the extremes (no spaces), one leading space before the unit,
@@ -288,7 +286,7 @@ struct MetricDetailView: View {
 
     /// Dominio con aire para que la línea no quede pegada al eje: min…max con 12 % de holgura. Es el
     /// dominio de la VENTANA, nunca una banda fija de niveles.
-    private func valueRange(_ windowValues: [Double]) -> ClosedRange<Double> {
+    private func dominioDeVentana(_ windowValues: [Double]) -> ClosedRange<Double> {
         guard let bajo = windowValues.min(), let alto = windowValues.max() else { return 0...1 }
         guard alto > bajo else { return (bajo - 1)...(alto + 1) }
         let aire = (alto - bajo) * 0.12
@@ -302,7 +300,7 @@ struct MetricDetailView: View {
             set: { range = ExploreRange.allCases[$0] })
     }
 
-    // MARK: Body
+    // MARK: Cuerpo
 
     var body: some View {
         // La ventana se resuelve UNA vez por evaluación del body y se le entrega a los bloques.
@@ -460,7 +458,7 @@ struct MetricDetailView: View {
             } else {
                 // One reading or none in the range → the honest empty well (no card, no summary).
                 LiquidGraficaNiveles(
-                    puntos: [], bandas: [], dominio: valueRange(window.values), ticksY: [], tono: hue,
+                    puntos: [], bandas: [], dominio: dominioDeVentana(window.values), ticksY: [], tono: hue,
                     estadoVacio: String(localized: "Not enough days in this range to draw a trend."),
                     a11yLabel: String(localized: "\(metric.canonicalTitle) trend"))
             }
@@ -476,7 +474,7 @@ struct MetricDetailView: View {
         return LiquidGraficaNiveles(
             puntos: puntos,
             bandas: [],
-            dominio: valueRange(window.values),
+            dominio: dominioDeVentana(window.values),
             ticksY: [],
             tono: hue,
             formatoScrub: { v, f in "\(fmt(v)) · \(Self.ejeFmt.string(from: f))" },

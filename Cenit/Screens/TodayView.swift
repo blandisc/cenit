@@ -8,9 +8,7 @@ import Foundation
 
 
 // MARK: - Hoy (FER-709 · FER-1045 · FER-41)
-//
 // The home screen. TWO surfaces, both Liquid Glass over the same ambient background:
-//
 //   · WITH SOURCES → `liquidSurface`, the Liquid Glass composition fed by the pure builder
 //     (`LiquidHoyBuilder`): the Ecosistema hero (the particle orb + its moons + the guardian)
 //     and the board below it.
@@ -21,7 +19,6 @@ import Foundation
 //
 // The header (date · live BPM · the 34pt `DialSeal` that is both the 24h signature and the
 // pull-to-refresh spinner) rides above both.
-//
 // Pull-to-refresh: the seal winds up with the pull and spins while syncing; the tile values settle
 // straight to their numbers (no count-up or reveal sequence on completion).
 
@@ -1958,7 +1955,8 @@ private func hoyCanvas(_ repositorio: Repository) -> some View {
         .environment(AppModel.preview)
         .environmentObject(HealthKitBridge(repo: repositorio, appleDeviceId: "preview-apple"))
         #endif
-        .frame(width: 920, height: 940)
+        .frame(width: 920,
+               height: 940)
 }
 
 #Preview("Control Center") {

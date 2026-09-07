@@ -89,8 +89,7 @@ struct DataSourcesView: View {
         // pantalla, SwiftUI colapsa uno de ellos y deja de abrirse.
         .fileImporter(
             isPresented: $importerOpen,
-            allowedContentTypes: importTarget.allowedContentTypes,
-            allowsMultipleSelection: false,
+            allowedContentTypes: importTarget.allowedContentTypes, allowsMultipleSelection: false,
             onCompletion: { resultado in receiveImportedFile(resultado, for: importTarget) })
         // FER-837 / FER-280·2c: backup/export result → `LiquidAviso` (receta HealthAlert);
         // inset, tap-to-dismiss y auto-descarte de 8 s quedan en el caller.
@@ -224,8 +223,8 @@ struct DataSourcesView: View {
             HStack(spacing: LiquidSpace.s300) {
                 LiquidGlassButton(corriendo ? String(localized: "Working…") : String(localized: "Choose export.zip…"),
                                   variant: .glass) { openImporter(.appleHealth) }
-                    .disabled(model.hasActiveImport)
                     .opacity(model.hasActiveImport ? 0.6 : 1)
+                    .disabled(model.hasActiveImport)
                 if corriendo {
                     ProgressView().controlSize(.small).tint(LiquidColor.tinta500)
                     if let leidos = model.appleHealthImportProgress {
