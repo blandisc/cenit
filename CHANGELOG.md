@@ -78,14 +78,6 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
   without a watch, shows the real dock, and lands you where you chose. No morning reminder and no
   made-up verdict.
 
-### La base de datos, reescrita por dentro sin tocar tus datos (FER-393)
-- La capa que guarda tu historial en el teléfono se reescribió desde cero. Para ti no cambia nada:
-  tu base abre igual, con las mismas filas, y al abrirla no se ejecuta ni una sola instrucción que
-  modifique su forma. Hay una prueba que lo comprueba sobre una base real, no sobre un argumento.
-- De paso desaparecieron tres funciones muertas que quedaron de la época de la banda y que
-  consultaban tablas que ya no existen: fallaban en silencio en cada llamada y nadie leía su
-  resultado.
-
 ### Los consejos de Entrenar ahora salen uno por día (FER-430)
 - Antes podían aparecer varios consejos nuevos en la misma sesión; ahora, como mucho uno al día.
   Por dentro, cada funcionalidad del app queda registrada con un id estable — la base para que
