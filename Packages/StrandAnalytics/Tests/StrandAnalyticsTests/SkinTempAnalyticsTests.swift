@@ -1,8 +1,34 @@
-/// Unit tests for the skin-temperature baseline flow (macOS parity with the Android
-/// SkinTempAnalyticsTest): the seed→deviation flow over `Baselines.foldHistory` /
-/// `Baselines.deviation` with the standard `skin_temp` config — pinning the honest cold-start
-/// gate (<4 nights ⇒ no skinTempDevC) and that a real elevation surfaces as a positive deviation
-/// once seeded. All values APPROXIMATE.
+import XCTest
+@testable import StrandAnalytics
+
+/// Skin temperature through the shared baseline machinery (`Baselines.foldHistory` /
+/// `Baselines.deviation`) with the standard `skin_temp` configuration.
+///
+/// Two properties are pinned here: the honest cold start — too few nights and there is no baseline
+/// to trust, so nothing is claimed — and the invariance that makes the displayed deviation
+/// meaningful at all. All values APPROXIMATE.
+final class SkinTempAnalyticsTests: XCTestCase {
+
+    private var skinCfg: MetricCfg { Baselines.metricCfg["skin_temp"]! }
+
+    /// Ten ordinary nights, in °C.
+    private let nights: [Double?] = [33.8, 34.0, 33.9, 34.1, 33.7,
+                                     34.0, 33.9, 34.2, 33.8, 34.0]
+
+    func testTooFewNightsIsNotYetTrusted() {
+        // Three nights is not a baseline. The state may exist, but nothing may be presented from it.
+        let state = Baselines.foldHistory(Array(nights.prefix(3)), cfg: skinCfg)
+        XCTAssertFalse(state.trusted,
+                       "three nights must not produce a trusted skin-temperature baseline")
+    }
+
+    func testSeededBaselineSurfacesARealElevation() {
+        // Once seeded, a night clearly above the person's own normal reads as a positive deviation.
+        let state = Baselines.foldHistory(nights, cfg: skinCfg)
+        XCTAssertTrue(state.usable, "ten nights must at least seed the baseline")
+        XCTAssertGreaterThan(Baselines.deviation(35.4, state: state).delta, 0,
+                             "a night above the personal normal must read positive")
+    }
 
     func testConstantOffsetCancelsInDeviation() {
         // The UI shows deviation (nightly − baseline). A constant per-band offset added to BOTH the
@@ -20,3 +46,4 @@
         XCTAssertEqual(devNoOffset, devShifted, accuracy: 1e-9,
                        "a constant offset must cancel in the baseline deviation")
     }
+}

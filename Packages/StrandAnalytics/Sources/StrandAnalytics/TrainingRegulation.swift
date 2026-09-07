@@ -33,8 +33,8 @@ public enum TrainingRegulation {
 
     /// Why the suggestion landed where it did (no es-MX copy — the UI localizes from this).
     public enum Reason: String, Equatable, Sendable {
-        case recoveryHigh   // score ≥ greenCut, or z ≥ +zHigh
-        case recoveryLow    // score < redCut, or z ≤ -zLow
+        case recoveryHigh   // z ≥ +zHigh
+        case recoveryLow    // z ≤ -zLow
         case withinNormal   // neither high nor low
     }
 
@@ -49,11 +49,6 @@ public enum TrainingRegulation {
             self.reason = reason
         }
     }
-
-    // Score-band cuts (used when only a 0–100 recovery score is available): reuse the canonical
-    // recovery bands so "green/red" means the same thing everywhere in the app.
-    public static let greenCut = RecoveryScorer.bandYellowMax   // 67.0 — score ≥ this → dial up
-    public static let redCut   = RecoveryScorer.bandRedMax      // 34.0 — score < this → dial back
 
     // Z-band cuts (preferred when the caller has today's z against the personal baseline): ±½σ,
     // the same actionable threshold ReadinessEngine uses (Plews 2013; Buchheit 2014). Calibration
@@ -155,27 +150,17 @@ public enum TrainingRegulation {
     // (`lightAlternative(_ advice:)`) no podía devolverlo nunca, y `testNoAdviceEverSuggestsAnExtraSession`
     // lo blindaba. El enum y sus tres productores se van juntos; nada más los consumía.
 
-    /// Pre-workout suggestion, or `nil` when there is no recovery signal (the UI then hides the band).
-    /// - Parameters:
-    ///   - recovery: today's recovery score 0–100 (from `RecoveryScorer`), or `nil` in cold-start.
-    ///   - recoveryZ: today's z against the personal recovery baseline (from `Baselines.deviation`),
-    ///     optional. When present it WINS over the raw score — autoregulation is relative to the
-    ///     individual, and z is the more faithful "today vs your normal" signal.
-    /// Returns `nil` only when BOTH inputs are `nil`.
+    /// Pre-workout suggestion from today's z against the personal recovery baseline (from
+    /// `Baselines.deviation`), or `nil` when there is no signal (the UI then hides the band).
     ///
-    /// LEGACY (FER-82): the app no longer routes training advice through the 0–100 score — that was
-    /// the second oracle. Kept as the pure, tested score API; removal is tracked in FER-92.
-    public static func suggest(recovery: Double?, recoveryZ: Double? = nil) -> Suggestion? {
-        if let z = recoveryZ {
-            if z >= zHigh { return Suggestion(adjustment: .dialUp, reason: .recoveryHigh) }
-            if z <= -zLow { return Suggestion(adjustment: .dialBack, reason: .recoveryLow) }
-            return Suggestion(adjustment: .hold, reason: .withinNormal)
-        }
-        if let score = recovery {
-            if score >= greenCut { return Suggestion(adjustment: .dialUp, reason: .recoveryHigh) }
-            if score < redCut { return Suggestion(adjustment: .dialBack, reason: .recoveryLow) }
-            return Suggestion(adjustment: .hold, reason: .withinNormal)
-        }
-        return nil
+    /// FER-92: the 0–100-score branch was removed here. Autoregulation is relative to the individual,
+    /// so z is the faithful «today vs your normal» signal; the raw-score path had no production caller
+    /// left — the app routes training advice through `advice(verdict:isPending:)` — and it compared
+    /// against a score that is `nil` on every write path.
+    public static func suggest(recoveryZ: Double?) -> Suggestion? {
+        guard let z = recoveryZ else { return nil }
+        if z >= zHigh { return Suggestion(adjustment: .dialUp, reason: .recoveryHigh) }
+        if z <= -zLow { return Suggestion(adjustment: .dialBack, reason: .recoveryLow) }
+        return Suggestion(adjustment: .hold, reason: .withinNormal)
     }
 }

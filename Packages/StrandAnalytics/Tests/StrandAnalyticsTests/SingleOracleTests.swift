@@ -159,12 +159,13 @@ final class SingleOracleTests: XCTestCase {
         }
     }
 
-    /// The score API is untouched and still tested — it is simply no longer wired to any screen.
-    func testScoreDrivenSuggestStillWorks() {
-        XCTAssertEqual(TrainingRegulation.suggest(recovery: 80)?.adjustment, .dialUp)
-        XCTAssertEqual(TrainingRegulation.suggest(recovery: 50)?.adjustment, .hold)
-        XCTAssertEqual(TrainingRegulation.suggest(recovery: 20)?.adjustment, .dialBack)
-        XCTAssertNil(TrainingRegulation.suggest(recovery: nil))
+    /// The z-driven suggestion API is untouched and still tested — it is simply not wired to any
+    /// screen. (FER-92 removed the parallel 0–100-score branch, which had no caller at all.)
+    func testZDrivenSuggestStillWorks() {
+        XCTAssertEqual(TrainingRegulation.suggest(recoveryZ: 1.0)?.adjustment, .dialUp)
+        XCTAssertEqual(TrainingRegulation.suggest(recoveryZ: 0.0)?.adjustment, .hold)
+        XCTAssertEqual(TrainingRegulation.suggest(recoveryZ: -1.0)?.adjustment, .dialBack)
+        XCTAssertNil(TrainingRegulation.suggest(recoveryZ: nil))
     }
 
     // MARK: - The rule the UI must honour
