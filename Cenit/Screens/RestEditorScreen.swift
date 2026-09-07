@@ -2,7 +2,6 @@ import SwiftUI
 import CenitDesign
 import StrandTraining
 import StrandAnalytics
-import Inject   // recarga en caliente (dev-only, inerte en Release)
 
 // MARK: - Rest editor (1e, FER-716 · FER-293 Liquid Glass · El Eje)
 //

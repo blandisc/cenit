@@ -27,19 +27,10 @@ final class HealthKitBridge: ObservableObject {
         let total: Int
     }
 
-    /// Share (write-back) authorization for one metric we write into Health. HealthKit only exposes
-    /// *write* status reliably — read permission is private — so this tracks the write-back metrics;
-    /// the per-metric *read* result is inferred from `coverage` (whether days actually landed). (FER-70)
-    struct WritePermission: Equatable, Identifiable {
-        var id: String { key }
-        let key: String                   // metric key, matching `coverage.daysByMetric` keys
-        let status: HKAuthorizationStatus
-    }
-
     @Published private(set) var auth: AuthState = .unknown
     @Published private(set) var lastSync: Date?
     @Published private(set) var syncing = false
-    /// The most recent failure surfaced by `sync` / `writeBack`. Cleared on a successful run. UI binds
+    /// The most recent failure surfaced by `sync`. Cleared on a successful run. UI binds
     /// here so an Apple Health auth revoke, quota hit, or invalid sample is visible instead of silent.
     @Published private(set) var lastError: String?
     /// Live stage of the running import (nil when idle), so the card shows real progress instead of a
@@ -49,15 +40,11 @@ final class HealthKitBridge: ObservableObject {
     /// span. Reloaded after every `sync` and on demand via `refreshStatus`. Powers the coverage
     /// summary and the per-metric status list. (FER-70)
     @Published private(set) var coverage: AppleHealthCoverage?
-    /// Per-metric write-back authorization, refreshed alongside `coverage`. (FER-70)
-    @Published private(set) var writePermissions: [WritePermission] = []
 
     private let store = HKHealthStore()
     private let repo: Repository
     /// Source id imported HealthKit data lands under (matches `AppModel.appleDeviceId`).
     private let appleDeviceId: String
-    /// NOOP's own strap-derived source id, read back when writing into Health.
-    private let noopDeviceId: String
 
     /// Persists "the user already connected Apple Health" across launches. HealthKit keeps the grant
     /// itself, but never reveals *read* authorization (it's private), so `authorizationStatus` can't
@@ -98,15 +85,9 @@ final class HealthKitBridge: ObservableObject {
     /// session (the launch full-refresh already surfaced it). Only full foreground syncs read/write it,
     /// so the window is always the same 30 days and the comparison is apples-to-apples.
     private static let lastFullSyncSigKey = "appleHealthLastFullSyncSig"
-    /// FER-970 (R-05): fingerprint of the last successfully mirrored write-back payload — when the
-    /// 14 d of «-noop» rows + sleep sessions are unchanged, the delete+rewrite into HealthKit is
-    /// skipped entirely (every foreground re-sync used to re-save identical samples).
-    private static let lastWriteBackSigKey = "appleHealthLastWriteBackSig"
-
-    init(repo: Repository, appleDeviceId: String, noopDeviceId: String) {
+    init(repo: Repository, appleDeviceId: String) {
         self.repo = repo
         self.appleDeviceId = appleDeviceId
-        self.noopDeviceId = noopDeviceId
         if !HKHealthStore.isHealthDataAvailable() {
             auth = .unavailable
         } else if UserDefaults.standard.bool(forKey: Self.connectedDefaultsKey) {
@@ -135,16 +116,11 @@ final class HealthKitBridge: ObservableObject {
         return s
     }
 
-    private var writeTypes: Set<HKSampleType> {
-        var s = Set<HKSampleType>()
-        for id in HealthKitBridge.quantityWriteIds { if let t = HKObjectType.quantityType(forIdentifier: id) { s.insert(t) } }
-        if let sleep = HKObjectType.categoryType(forIdentifier: .sleepAnalysis) { s.insert(sleep) }
-        return s
-    }
-
-    /// Share types requested ONLY when the user opts into saving strength workouts (FER-390). Kept
-    /// out of `writeTypes` on purpose: connecting Apple Health must never surface a workout-write
-    /// prompt to someone who didn't ask for it (privacy; same discipline as FER-103).
+    /// The ONLY share (write) types Cénit ever asks for, and only when the user opts into saving
+    /// strength workouts (FER-390). Connecting Apple Health asks for READ scopes alone — FER-398:
+    /// the connect prompt used to also request resting HR / HRV / SpO₂ / respiratory rate / sleep
+    /// for a write-back that FER-1003 had already switched off, i.e. permission to write data the
+    /// app never writes. Asking for it is exactly the ask App Review reads as dishonest, and it is.
     private var workoutShareTypes: Set<HKSampleType> {
         var s: Set<HKSampleType> = [HKObjectType.workoutType()]
         if let energy = HKObjectType.quantityType(forIdentifier: .activeEnergyBurned) { s.insert(energy) }
@@ -160,21 +136,19 @@ final class HealthKitBridge: ObservableObject {
         .basalEnergyBurned, .vo2Max,
         .appleSleepingWristTemperature
     ]
-    private static let quantityWriteIds: [HKQuantityTypeIdentifier] = [
-        .restingHeartRate, .heartRateVariabilitySDNN, .oxygenSaturation, .respiratoryRate
-    ]
-
     // MARK: - Authorization
 
-    /// Request read + write permission. HealthKit never reveals whether *read* was granted, so we
-    /// treat a successful request as `.authorized` and let queries return empty if the user declined.
+    /// Request READ permission only (FER-398). HealthKit never reveals whether *read* was granted, so
+    /// we treat a successful request as `.authorized` and let queries return empty if the user declined.
+    /// Nothing is shared here: the one write Cénit does (the strength `HKWorkout`) asks separately, in
+    /// `requestWorkoutShareAuthorization`, the moment the user turns that toggle on.
     func requestAuthorization() async {
         guard HKHealthStore.isHealthDataAvailable() else { auth = .unavailable; return }
         do {
-            try await store.requestAuthorization(toShare: writeTypes, read: readTypes)
+            try await store.requestAuthorization(toShare: [], read: readTypes)
             auth = .authorized
             UserDefaults.standard.set(true, forKey: Self.connectedDefaultsKey)   // persist so the next launch's auto-sync runs (FER-94)
-            await refreshStatus()   // surface granted write scopes + any prior coverage immediately
+            await refreshStatus()   // surface any prior coverage immediately
         } catch {
             auth = .denied
         }
@@ -234,28 +208,12 @@ final class HealthKitBridge: ObservableObject {
         }
     }
 
-    /// Reload what the status panel shows *without* running an import: write permissions (cheap,
-    /// synchronous) and the coverage already stored. Call from the card's `.task` so opening it shows
-    /// "X days imported" and the per-metric list right away. (FER-70)
+    /// Reload what the status panel shows *without* running an import: the coverage already stored.
+    /// Call from the card's `.task` so opening it shows "X days imported" and the per-metric list
+    /// right away. (FER-70)
     func refreshStatus() async {
-        refreshPermissions()
         guard let store = await repo.storeHandle() else { return }
         coverage = try? await store.appleHealthCoverage(deviceId: appleDeviceId)
-    }
-
-    /// Snapshot write-back authorization per metric. HealthKit reports *write* (share) status
-    /// faithfully; read status stays private, so the read side is inferred from `coverage`. (FER-70)
-    private func refreshPermissions() {
-        let types: [(String, HKObjectType?)] = [
-            ("resting_hr", HKObjectType.quantityType(forIdentifier: .restingHeartRate)),
-            ("hrv", HKObjectType.quantityType(forIdentifier: .heartRateVariabilitySDNN)),
-            ("spo2", HKObjectType.quantityType(forIdentifier: .oxygenSaturation)),
-            ("resp_rate", HKObjectType.quantityType(forIdentifier: .respiratoryRate)),
-            ("sleep", HKObjectType.categoryType(forIdentifier: .sleepAnalysis)),
-        ]
-        writePermissions = types.compactMap { key, type in
-            type.map { WritePermission(key: key, status: store.authorizationStatus(for: $0)) }
-        }
     }
 
     // MARK: - Read → store
@@ -504,8 +462,8 @@ final class HealthKitBridge: ObservableObject {
             // B (FER-1003): el write-back a Apple Health de métricas DERIVADAS de la banda (RHR/HRV/SpO2/
             // resp/sueño de la partición -noop) se APAGA. Apple-only, esas filas son viejas y stale, y
             // escribirlas contaminaría Salud (mezcla el RMSSD de banda bajo el SDNN de Apple). El HKWorkout
-            // de fuerza (saveStrengthWorkoutIfEnabled) es independiente y se CONSERVA. La función writeBack
-            // queda muerta aquí; se borra con Cenit/Collect en la ola de código.
+            // de fuerza (saveStrengthWorkoutIfEnabled) es independiente y se CONSERVA. FER-398 borró
+            // la función `writeBack` (muerta desde entonces) y con ella el permiso de escritura que pedía.
             lastSync = Date()
             lastError = nil
             if trigger == .foreground { didFullForegroundSyncThisSession = true }
@@ -539,7 +497,6 @@ final class HealthKitBridge: ObservableObject {
                 await repo.refresh()   // surface the freshly-synced Apple Health days + la tendencia al día
             }
             coverage = try? await store.appleHealthCoverage(deviceId: appleDeviceId)
-            refreshPermissions()   // a denied scope may have changed between runs
             return Set(byDay.keys)   // FER-226: the local days written this run (for the re-bucket prune)
         } catch {
             lastError = "Apple Health sync failed: \(error.localizedDescription)"
@@ -547,18 +504,6 @@ final class HealthKitBridge: ObservableObject {
         }
     }
 
-    // MARK: - Write back (NOOP → Health)
-
-    /// Write NOOP's strap-derived daily metrics (resting HR, HRV, SpO₂, respiratory rate) into Apple
-    /// Health so they appear across the user's Health ecosystem.
-    ///
-    /// Dedup model: each emitted sample carries a deterministic `HKMetadataKeyExternalUUID` derived
-    /// from `noopDeviceId + metric + day`. Before saving, we delete any of *our* prior samples that
-    /// carry the same key (scoped to `HKSource.default()` so we never touch another app's data) and
-    /// then save the fresh batch. HealthKit assigns a new UUID per save, so the previous strategy
-    /// (no metadata, no delete) flooded Health with duplicates on every `sync()`.
-    ///
-    /// Throws on save failure so the caller can decide whether to advance `lastSync`.
     // MARK: - Strength session → Apple Health (FER-390)
 
     /// Write a finished guided strength session into Apple Health as an `HKWorkout`, but only when the
@@ -583,16 +528,20 @@ final class HealthKitBridge: ObservableObject {
         // the estimate — it is NOT written to Apple Health as heart-rate samples.
         let kcal = Calories.estimateStrengthEnergy(hrSamples: hrSamples, durationSeconds: end.timeIntervalSince(start),
                                                    profile: profile, hrMax: hrMax.map(Double.init))
-        let externalUUID = "noop:strength:\(sessionId)"
+        // FER-398: one source of truth for the key, shared with the watch (`WorkoutMirrorKey`), instead
+        // of the literal that used to live here beside it. New writes carry `cenit:strength:<id>`.
+        let externalUUID = WorkoutMirrorKey.externalUUID(for: sessionId)
         let config = HKWorkoutConfiguration()
         config.activityType = .traditionalStrengthTraining
 
         do {
             // Idempotency: delete our own prior workout for this session, then write a fresh one.
-            // Scoped to this app's samples + this session's external UUID (mirrors `writeBack`).
+            // Scoped to this app's samples + this session's external UUID — BOTH spellings of it
+            // (FER-398): a session first saved under `noop:strength:` has to be REPLACED, not
+            // duplicated, the day it is re-saved under the new prefix.
             let bySource = HKQuery.predicateForObjects(from: HKSource.default())
             let byKey = HKQuery.predicateForObjects(withMetadataKey: HKMetadataKeyExternalUUID,
-                                                    allowedValues: [externalUUID])
+                                                    allowedValues: WorkoutMirrorKey.dedupeUUIDs(for: sessionId))
             let pred = NSCompoundPredicate(andPredicateWithSubpredicates: [bySource, byKey])
             _ = try? await store.deleteObjects(of: HKObjectType.workoutType(), predicate: pred)
 
@@ -616,127 +565,6 @@ final class HealthKitBridge: ObservableObject {
         } catch {
             lastError = error.localizedDescription
         }
-    }
-
-    private func writeBack(whoopStore: CenitStore, days: Int = 14) async throws {
-        guard auth == .authorized else { return }
-        let cal = Calendar.current
-        let to = HealthKitBridge.dayString(Date())
-        guard let fromDate = cal.date(byAdding: .day, value: -days, to: Date()) else { return }
-        let from = HealthKitBridge.dayString(fromDate)
-        guard let rows = try? await whoopStore.dailyMetrics(deviceId: noopDeviceId, from: from, to: to) else { return }
-        // FER-970 (R-05): fetch the sleep payload up front too, fingerprint the WHOLE mirror, and
-        // skip the delete+rewrite when it's identical to the last successful write-back (the same
-        // gate idea FER-872/881 applied to the dashboard rebuild). The signature is persisted only
-        // AFTER both writes succeed, so a failed save is retried on the next sync.
-        let sleepFromTs = Int(fromDate.timeIntervalSince1970)
-        let sleepSessions = (try? await whoopStore.sleepSessions(
-            deviceId: noopDeviceId, from: sleepFromTs, to: Int(Date().timeIntervalSince1970),
-            limit: 90)) ?? []
-        // QA D2: the per-type sharing state rides IN the signature — granting sleep sharing later
-        // (with an otherwise unchanged 14-day payload) must reopen the gate, or the sleep mirror
-        // would be skipped forever behind a stale fingerprint.
-        let sleepSharing = HKObjectType.categoryType(forIdentifier: .sleepAnalysis)
-            .map { store.authorizationStatus(for: $0) == .sharingAuthorized } ?? false
-        let signature = Self.stableWriteBackSignature(rows: rows, sessions: sleepSessions)
-            + "|sleepAuth:\(sleepSharing)"
-        if signature == UserDefaults.standard.string(forKey: Self.lastWriteBackSigKey) { return }
-
-        struct Candidate { let type: HKQuantityType; let key: String; let sample: HKQuantitySample }
-        var candidates: [Candidate] = []
-        func add(_ id: HKQuantityTypeIdentifier, _ unit: HKUnit, _ value: Double, _ day: String, _ at: Date) {
-            guard let type = HKQuantityType.quantityType(forIdentifier: id) else { return }
-            let key = "noop:\(noopDeviceId):\(id.rawValue):\(day)"
-            let sample = HKQuantitySample(
-                type: type,
-                quantity: .init(unit: unit, doubleValue: value),
-                start: at, end: at,
-                metadata: [HKMetadataKeyExternalUUID: key]
-            )
-            candidates.append(Candidate(type: type, key: key, sample: sample))
-        }
-
-        for row in rows {
-            guard let date = HealthKitBridge.date(from: row.day) else { continue }
-            let noon = cal.date(bySettingHour: 12, minute: 0, second: 0, of: date) ?? date
-            if let rhr = row.restingHr {
-                add(.restingHeartRate, HKUnit.count().unitDivided(by: .minute()), Double(rhr), row.day, noon)
-            }
-            if let hrv = row.avgHrv {
-                add(.heartRateVariabilitySDNN, .secondUnit(with: .milli), hrv, row.day, noon)
-            }
-            if let spo2 = row.spo2Pct {
-                add(.oxygenSaturation, .percent(), spo2 / 100, row.day, noon)
-            }
-            if let rr = row.respRateBpm {
-                add(.respiratoryRate, HKUnit.count().unitDivided(by: .minute()), rr, row.day, noon)
-            }
-        }
-        // Quantity metrics: delete our prior samples, then write fresh ones.
-        // Delete is non-fatal (nothing to delete on first run); only the save throws.
-        if !candidates.isEmpty {
-            let bySource = HKQuery.predicateForObjects(from: HKSource.default())
-            let grouped = Dictionary(grouping: candidates, by: { $0.type })
-            for (type, items) in grouped {
-                let keys = Array(Set(items.map { $0.key }))
-                let byKey = HKQuery.predicateForObjects(withMetadataKey: HKMetadataKeyExternalUUID,
-                                                        allowedValues: keys)
-                let pred = NSCompoundPredicate(andPredicateWithSubpredicates: [bySource, byKey])
-                _ = try? await self.store.deleteObjects(of: type, predicate: pred)
-            }
-            try await self.store.save(candidates.map { $0.sample })
-        }
-
-        // Sleep stages: one HKCategorySample per WHOOP stage segment plus one .inBed per session.
-        // Uses the same external-UUID dedup strategy as the quantity metrics above.
-        try await writeSleepBack(sessions: sleepSessions)
-        UserDefaults.standard.set(signature, forKey: Self.lastWriteBackSigKey)
-    }
-
-    /// FER-970 (R-05): deterministic fingerprint of everything `writeBack` mirrors — the four
-    /// per-day quantities plus each sleep session's span and staged hypnogram. Same SHA-256
-    /// technique as `stableAppleSignature` (stable across launches).
-    private static func stableWriteBackSignature(rows: [DailyMetric],
-                                                 sessions: [CachedSleepSession]) -> String {
-        func f(_ d: Double?) -> String { d.map { String(format: "%.4f", $0) } ?? "-" }
-        var s = ""
-        for r in rows.sorted(by: { $0.day < $1.day }) {
-            s += "\(r.day):\(r.restingHr.map(String.init) ?? "-"),\(f(r.avgHrv)),\(f(r.spo2Pct)),\(f(r.respRateBpm));"
-        }
-        s += "|S:"
-        for sl in sessions.sorted(by: { ($0.startTs, $0.endTs) < ($1.startTs, $1.endTs) }) {
-            s += "\(sl.startTs)-\(sl.endTs)-\(sl.stagesJSON ?? "-");"
-        }
-        return SHA256.hash(data: Data(s.utf8)).map { String(format: "%02x", $0) }.joined()
-    }
-
-    /// Write WHOOP sleep sessions (staged hypnogram) into Apple Health.
-    ///
-    /// Each stage segment from `stagesJSON` maps to a `HKCategorySample` with the matching
-    /// `HKCategoryValueSleepAnalysis` value. A single `.inBed` sample covers the full session span.
-    /// The dedup key `"noop:<deviceId>:sleep:<sessionStart>:<segStart>"` prevents duplicates on
-    /// repeated calls — we delete our own prior samples before saving the fresh batch.
-    private func writeSleepBack(sessions: [CachedSleepSession]) async throws {
-        guard let sleepType = HKObjectType.categoryType(forIdentifier: .sleepAnalysis),
-              store.authorizationStatus(for: sleepType) == .sharingAuthorized else { return }
-
-        // FER-970 (R-05): the sessions arrive from `writeBack`, which already fetched them for the
-        // write-back fingerprint — one read serves both the gate and the payload.
-        let encoded = SleepHKEncoder.samples(from: sessions, deviceId: noopDeviceId)
-        guard !encoded.isEmpty else { return }
-
-        let hkSamples = encoded.map { enc in
-            HKCategorySample(type: sleepType, value: enc.hkValue,
-                             start: enc.start, end: enc.end,
-                             metadata: [HKMetadataKeyExternalUUID: enc.dedupeKey])
-        }
-        let keys = encoded.map(\.dedupeKey)
-        let bySource = HKQuery.predicateForObjects(from: HKSource.default())
-        let byKey = HKQuery.predicateForObjects(
-            withMetadataKey: HKMetadataKeyExternalUUID, allowedValues: keys)
-        let pred = NSCompoundPredicate(andPredicateWithSubpredicates: [bySource, byKey])
-        _ = try? await self.store.deleteObjects(of: sleepType, predicate: pred)
-        try await self.store.save(hkSamples)
     }
 
     private struct DayAgg {
@@ -783,22 +611,23 @@ final class HealthKitBridge: ObservableObject {
     }
 
     /// FER-1004: the ONLY way this file may build a read predicate. Every HealthKit READ must
-    /// exclude this app's own samples, because Cénit MIRRORS its own derived metrics back INTO
-    /// Apple Health — `writeBack` saves resting HR / HRV / SpO2 / respiratory rate and the staged
-    /// hypnogram (:589-622), and `saveStrengthWorkout` saves an `HKWorkout` per strength session
-    /// (:516-544). Reading with a date-only predicate pulled those straight back in as if Apple
-    /// had measured them: a self-feeding loop that polluted the very Apple baselines
+    /// exclude this app's own samples, because Cénit writes into Apple Health — today
+    /// `saveStrengthWorkoutIfEnabled` saves an `HKWorkout` per strength session, and until FER-398
+    /// the retired `writeBack` also mirrored resting HR / HRV / SpO2 / respiratory rate and the
+    /// staged hypnogram. Reading with a date-only predicate pulled those straight back in as if
+    /// Apple had measured them: a self-feeding loop that polluted the very Apple baselines
     /// `DailyStressModel` z-scores against, and duplicated every
     /// strength session as an "apple-health" workout row (`mapWorkouts` labels unconditionally).
     ///
     /// It is the same contamination class as FER-519/623/629/631/632/633/635/639/640/670/882 —
     /// band numbers reaching an Apple baseline — but through the mirror instead of the merge.
-    /// Worse here, because `writeBack:596` mirrors the band's RMSSD under Apple's *SDNN*
-    /// identifier: the value read back was not just foreign, it was mislabelled.
+    /// Worse there, because the old mirror wrote the band's RMSSD under Apple's *SDNN*
+    /// identifier: the value read back was not just foreign, it was mislabelled. The samples it
+    /// left in a long-time user's Health vault are still there, so the exclusion still earns its keep.
     ///
-    /// The WRITE path already scopes deletes to `HKSource.default()` (:523, :608, :664). Reads
-    /// need the INVERSE of that same predicate. `HealthKitReadPredicateGuardTests` fails the build
-    /// if a raw `predicateForSamples` reappears in this file outside this helper.
+    /// The WRITE path already scopes its deletes to `HKSource.default()`. Reads need the INVERSE of
+    /// that same predicate. `HealthKitReadPredicateGuardTests` fails the build if a raw
+    /// `predicateForSamples` reappears in this file outside this helper.
     nonisolated static func readPredicate(start: Date, end: Date,
                                           options: HKQueryOptions = []) -> NSPredicate {
         let byDate = HKQuery.predicateForSamples(withStart: start, end: end, options: options)

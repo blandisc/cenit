@@ -10,7 +10,7 @@
       "condicion": "Landing de Tendencias con datos (`primed`), selector de rango en M.",
       "fixture": "primed",
       "args": [
-        "-noop.range",
+        "-cenit.range",
         "M"
       ],
       "pasos": [
@@ -29,9 +29,9 @@
       "titulo": "Detalle · Average Heart Rate · M · full",
       "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/avg_hr",
-        "-noop.range",
+        "-cenit.range",
         "M"
       ],
       "pasos": [
@@ -50,9 +50,9 @@
       "titulo": "Detalle · Max Heart Rate · M · full",
       "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/max_hr",
-        "-noop.range",
+        "-cenit.range",
         "M"
       ],
       "pasos": [
@@ -71,9 +71,9 @@
       "titulo": "Detalle · Calories · M · full",
       "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/energy_kcal",
-        "-noop.range",
+        "-cenit.range",
         "M"
       ],
       "pasos": [
@@ -92,9 +92,9 @@
       "titulo": "Detalle · VO₂ Max · M · full",
       "condicion": "metricSpec (ruta directa, MetricDetailScreen) · estado «full» · rango M.",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/vo2max",
-        "-noop.range",
+        "-cenit.range",
         "M"
       ],
       "pasos": [
@@ -113,9 +113,9 @@
       "titulo": "Detalle · Recovery · M · full",
       "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/recovery",
-        "-noop.range",
+        "-cenit.range",
         "M"
       ],
       "pasos": [
@@ -134,9 +134,9 @@
       "titulo": "Detalle · Heart Rate Variability · M · full",
       "condicion": "metricSpec (ruta directa, MetricDetailScreen) · estado «full» · rango M.",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/hrv",
-        "-noop.range",
+        "-cenit.range",
         "M"
       ],
       "pasos": [
@@ -155,9 +155,9 @@
       "titulo": "Detalle · Resting Heart Rate · M · full",
       "condicion": "metricSpec (ruta directa, MetricDetailScreen) · estado «full» · rango M.",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/rhr",
-        "-noop.range",
+        "-cenit.range",
         "M"
       ],
       "pasos": [
@@ -176,9 +176,9 @@
       "titulo": "Detalle · Respiratory Rate · M · full",
       "condicion": "metricSpec (ruta directa, MetricDetailScreen) · estado «full» · rango M.",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/resp_rate",
-        "-noop.range",
+        "-cenit.range",
         "M"
       ],
       "pasos": [
@@ -197,9 +197,9 @@
       "titulo": "Detalle · Blood Oxygen · M · full",
       "condicion": "metricSpec (ruta directa, MetricDetailScreen) · estado «full» · rango M.",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/spo2",
-        "-noop.range",
+        "-cenit.range",
         "M"
       ],
       "pasos": [
@@ -218,9 +218,9 @@
       "titulo": "Detalle · Skin Temperature · M · full",
       "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/skin_temp",
-        "-noop.range",
+        "-cenit.range",
         "M"
       ],
       "pasos": [
@@ -239,9 +239,9 @@
       "titulo": "Detalle · Sleep Performance · M · full",
       "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/sleep_performance",
-        "-noop.range",
+        "-cenit.range",
         "M"
       ],
       "pasos": [
@@ -260,9 +260,9 @@
       "titulo": "Detalle · Time in Bed · M · full",
       "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/in_bed_min",
-        "-noop.range",
+        "-cenit.range",
         "M"
       ],
       "pasos": [
@@ -281,9 +281,9 @@
       "titulo": "Detalle · Asleep Time · M · full",
       "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/sleep_total_min",
-        "-noop.range",
+        "-cenit.range",
         "M"
       ],
       "pasos": [
@@ -302,9 +302,9 @@
       "titulo": "Detalle · Hours vs Needed · M · full",
       "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/hours_vs_needed_pct",
-        "-noop.range",
+        "-cenit.range",
         "M"
       ],
       "pasos": [
@@ -323,9 +323,9 @@
       "titulo": "Detalle · Sleep Consistency · M · full",
       "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/sleep_consistency",
-        "-noop.range",
+        "-cenit.range",
         "M"
       ],
       "pasos": [
@@ -344,9 +344,9 @@
       "titulo": "Detalle · Restorative Sleep · M · full",
       "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/restorative_pct",
-        "-noop.range",
+        "-cenit.range",
         "M"
       ],
       "pasos": [
@@ -365,9 +365,9 @@
       "titulo": "Detalle · Restorative Sleep · M · full",
       "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/restorative_min",
-        "-noop.range",
+        "-cenit.range",
         "M"
       ],
       "pasos": [
@@ -386,9 +386,9 @@
       "titulo": "Detalle · Sleep Efficiency · M · full",
       "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/sleep_efficiency",
-        "-noop.range",
+        "-cenit.range",
         "M"
       ],
       "pasos": [
@@ -407,9 +407,9 @@
       "titulo": "Detalle · Deep (SWS) Sleep · M · full",
       "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/sleep_deep_min",
-        "-noop.range",
+        "-cenit.range",
         "M"
       ],
       "pasos": [
@@ -428,9 +428,9 @@
       "titulo": "Detalle · REM Sleep · M · full",
       "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/sleep_rem_min",
-        "-noop.range",
+        "-cenit.range",
         "M"
       ],
       "pasos": [
@@ -449,9 +449,9 @@
       "titulo": "Detalle · Light Sleep · M · full",
       "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/sleep_light_min",
-        "-noop.range",
+        "-cenit.range",
         "M"
       ],
       "pasos": [
@@ -470,9 +470,9 @@
       "titulo": "Detalle · Sleep Need · M · full",
       "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/sleep_need_min",
-        "-noop.range",
+        "-cenit.range",
         "M"
       ],
       "pasos": [
@@ -491,9 +491,9 @@
       "titulo": "Detalle · Sleep Debt · M · full",
       "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/sleep_debt_min",
-        "-noop.range",
+        "-cenit.range",
         "M"
       ],
       "pasos": [
@@ -512,9 +512,9 @@
       "titulo": "Detalle · Day Strain · M · full",
       "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/strain",
-        "-noop.range",
+        "-cenit.range",
         "M"
       ],
       "pasos": [
@@ -533,9 +533,9 @@
       "titulo": "Detalle · Steps · M · full",
       "condicion": "metricSpec (ruta directa, MetricDetailScreen) · estado «full» · rango M.",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/steps",
-        "-noop.range",
+        "-cenit.range",
         "M"
       ],
       "pasos": [
@@ -554,9 +554,9 @@
       "titulo": "Detalle · HR Zones 1–3 · M · full",
       "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/hr_zones13_min",
-        "-noop.range",
+        "-cenit.range",
         "M"
       ],
       "pasos": [
@@ -575,9 +575,9 @@
       "titulo": "Detalle · HR Zones 4–5 · M · full",
       "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/hr_zones45_min",
-        "-noop.range",
+        "-cenit.range",
         "M"
       ],
       "pasos": [
@@ -596,9 +596,9 @@
       "titulo": "Detalle · HR Zones (All) · M · full",
       "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/hr_zones_all_min",
-        "-noop.range",
+        "-cenit.range",
         "M"
       ],
       "pasos": [
@@ -617,9 +617,9 @@
       "titulo": "Detalle · Strength Activity Time · M · full",
       "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/strength_min",
-        "-noop.range",
+        "-cenit.range",
         "M"
       ],
       "pasos": [
@@ -638,9 +638,9 @@
       "titulo": "Detalle · Active Energy · M · full",
       "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/active_kcal",
-        "-noop.range",
+        "-cenit.range",
         "M"
       ],
       "pasos": [
@@ -659,9 +659,9 @@
       "titulo": "Detalle · Weight · M · full",
       "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/weight",
-        "-noop.range",
+        "-cenit.range",
         "M"
       ],
       "pasos": [
@@ -680,9 +680,9 @@
       "titulo": "Detalle · Body Fat · M · full",
       "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/body_fat",
-        "-noop.range",
+        "-cenit.range",
         "M"
       ],
       "pasos": [
@@ -701,9 +701,9 @@
       "titulo": "Detalle · Lean Body Mass · M · full",
       "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/lean_mass",
-        "-noop.range",
+        "-cenit.range",
         "M"
       ],
       "pasos": [
@@ -722,9 +722,9 @@
       "titulo": "Detalle · BMI · M · full",
       "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/bmi",
-        "-noop.range",
+        "-cenit.range",
         "M"
       ],
       "pasos": [
@@ -743,9 +743,9 @@
       "titulo": "Detalle · Day Stress · M · full",
       "condicion": "Explorar → fila empujada (MetricDetailView genérico) · estado «full» · rango M.",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/stress",
-        "-noop.range",
+        "-cenit.range",
         "M"
       ],
       "pasos": [
@@ -764,9 +764,9 @@
       "titulo": "Detalle · Heart Rate (intradía) · M · full",
       "condicion": "metricSpec (ruta directa, MetricDetailScreen) · estado «full» · rango M.",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/heart_rate",
-        "-noop.range",
+        "-cenit.range",
         "M"
       ],
       "pasos": [
@@ -785,7 +785,7 @@
       "titulo": "Comparar dos métricas superpuestas · full",
       "condicion": "Comparar dos métricas superpuestas, estado con datos.",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/comparar"
       ],
       "pasos": [
@@ -804,7 +804,7 @@
       "titulo": "Comparar dos métricas superpuestas · vacio",
       "condicion": "Comparar dos métricas superpuestas, estado vacío (sin fixture, freshStore).",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/comparar"
       ],
       "pasos": [
@@ -823,7 +823,7 @@
       "titulo": "Explorar · catálogo de métricas (la lista, sin drill-down) · full",
       "condicion": "Explorar · catálogo de métricas (la lista, sin drill-down), estado con datos.",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/explorar"
       ],
       "pasos": [
@@ -842,7 +842,7 @@
       "titulo": "Explorar · catálogo de métricas (la lista, sin drill-down) · vacio",
       "condicion": "Explorar · catálogo de métricas (la lista, sin drill-down), estado vacío (sin fixture, freshStore).",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/explorar"
       ],
       "pasos": [
@@ -861,7 +861,7 @@
       "titulo": "Cómo despiertas después de cada deporte (ActivityRecoverySheet) · full",
       "condicion": "Cómo despiertas después de cada deporte (ActivityRecoverySheet), estado con datos.",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/actividad"
       ],
       "pasos": [
@@ -880,7 +880,7 @@
       "titulo": "Cómo despiertas después de cada deporte (ActivityRecoverySheet) · vacio",
       "condicion": "Cómo despiertas después de cada deporte (ActivityRecoverySheet), estado vacío (sin fixture, freshStore).",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/actividad"
       ],
       "pasos": [
@@ -899,7 +899,7 @@
       "titulo": "Edad física / Fitness Age · full",
       "condicion": "Edad física / Fitness Age, estado con datos.",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/edad-fisica"
       ],
       "pasos": [
@@ -918,7 +918,7 @@
       "titulo": "Edad física / Fitness Age · vacio",
       "condicion": "Edad física / Fitness Age, estado vacío (sin fixture, freshStore).",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/edad-fisica"
       ],
       "pasos": [
@@ -936,7 +936,7 @@
       "titulo": "Edad corporal / Body Age · full",
       "condicion": "Edad corporal / Body Age, estado con datos.",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/edad-corporal"
       ],
       "pasos": [
@@ -955,7 +955,7 @@
       "titulo": "Edad corporal / Body Age · vacio",
       "condicion": "Edad corporal / Body Age, estado vacío (sin fixture, freshStore).",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "tendencias/edad-corporal"
       ],
       "pasos": [

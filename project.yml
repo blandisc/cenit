@@ -59,12 +59,11 @@ packages:
     path: Packages/CenitDesign
   StrandTraining:
     path: Packages/StrandTraining
-  # Inject — recarga en caliente (hot reload) para iterar la UI sin recompilar. Solo actúa en Debug,
-  # con el flag `-interposable` de abajo + InjectionIII.app abierta; en Release es inerte (no-op).
-  # github.com/krzysztofzablocki/Inject
-  Inject:
-    url: https://github.com/krzysztofzablocki/Inject.git
-    from: "1.6.0"
+  # FER-398: el paquete `Inject` (github.com/krzysztofzablocki/Inject) se RETIRÓ. Era inerte en
+  # Release, pero igual viajaba dentro del binario de la tienda — una dependencia de terceros solo
+  # para desarrollo, en el .ipa. Lo que la app usaba de él vive ahora en `Cenit/System/HotReload.swift`,
+  # bajo `#if DEBUG` de verdad. Los flags `-interposable` / EMIT_FRONTEND_COMMAND_LINES de abajo SIGUEN
+  # (los necesita InjectionNext/InjectionIII para recompilar en caliente).
 targets:
   # ---------------------------------------------------------------------------
   # iOS app target (module/product Cenit). Reuses the shared packages and the
@@ -80,7 +79,7 @@ targets:
       - path: CenitApp
         excludes:
           - "Resources/Info.plist"
-          - "Resources/NOOP.entitlements"
+          - "Resources/Cenit.entitlements"
       - path: CenitShared
       # FER-721: the ActivityKit contract + cross-process bridge are shared with the widget extension,
       # so both processes agree on the state shape. Only `Shared/` (not the widget's own views) compiles
@@ -97,6 +96,10 @@ targets:
         CFBundleName: Cénit
         CFBundleDisplayName: Cénit
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        # Tienda: Cénit no usa criptografía propia ni no-exenta (es 100% offline: ni TLS de negocio,
+        # ni cifrado propio de la base). Declararlo aquí evita que cada subida a TestFlight / App
+        # Store pare en el cuestionario de cumplimiento de exportación.
+        ITSAppUsesNonExemptEncryption: false
         # Derive CFBundleVersion from the project setting so App Store / TestFlight uploads track a
         # single source (settings.base.CURRENT_PROJECT_VERSION below) instead of a literal here.
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
@@ -121,17 +124,24 @@ targets:
         # FER-721: required to start any Live Activity (the guided-session rest timer on the lock
         # screen + Dynamic Island). The extension that renders it is the CenitWidgets target below.
         NSSupportsLiveActivities: true
+        # Los avisos de permiso se traducen en `Cenit/Resources/InfoPlist.xcstrings` (FER-398): sin ese
+        # catálogo, un iPhone en español veía las cinco cadenas de abajo en inglés. Aquí vive el DEFAULT
+        # en inglés (la lengua base del proyecto); el catálogo aporta `es`.
         NSHealthShareUsageDescription: "Cénit reads your own Apple Health data on-device: sleep, heart rate, heart-rate variability, workouts, and related samples, to show your days and nightly trends. Cénit never uploads it. No server, no account."
         NSHealthUpdateUsageDescription: "Cénit saves your strength workouts into Apple Health, on-device and only when you allow it."
         NSPhotoLibraryAddUsageDescription: "Cénit saves the workout card you choose to share to your photo library. It only saves the image you explicitly ask it to."
         NSCalendarsFullAccessUsageDescription: "Cénit crosses your calendar events with your day's stress, on your iPhone, to show what your most activated moments coincided with. Cénit never uploads it. No server, no account."
         NSCalendarsUsageDescription: "Cénit crosses your calendar events with your day's stress, on your iPhone, to show what your most activated moments coincided with. Cénit never uploads it. No server, no account."
-        # Debug-only URL scheme for screenshot automation (simulator navigation via xcrun simctl openurl)
+        # FER-398: el esquema propio de Cénit. Lo abre la Live Activity de descanso
+        # (`cenit://session` → pestaña Entrenar + la sesión viva) y, solo en Debug, el navegador de
+        # capturas (`cenit://<pantalla>`, ver CenitApp/App/ScreenshotNav.swift). Era `noopdev`, un
+        # esquema del nombre viejo que además solo tenía sentido para desarrollo.
         CFBundleURLTypes:
-          - CFBundleURLSchemes:
-              - noopdev
+          - CFBundleURLName: com.feriracheta.cenit
+            CFBundleURLSchemes:
+              - cenit
     entitlements:
-      path: CenitApp/Resources/NOOP.entitlements
+      path: CenitApp/Resources/Cenit.entitlements
       properties:
         com.apple.developer.healthkit: true
         # NOTE: com.apple.developer.healthkit.access (Clinical/Verifiable Health
@@ -156,8 +166,9 @@ targets:
         SWIFT_EMIT_LOC_STRINGS: NO
       configs:
         Debug:
-          # Inject/InjectionIII: permite intercambiar el código en caliente (solo Debug). `$(inherited)`
-          # conserva cualquier otro flag. Este bloque NO aplica en Release → el build de tienda queda intacto.
+          # InjectionNext/InjectionIII: permite intercambiar el código en caliente (solo Debug).
+          # `$(inherited)` conserva cualquier otro flag. Este bloque NO aplica en Release → el build de
+          # tienda queda intacto. El puente en Swift vive en `Cenit/System/HotReload.swift` (FER-398).
           OTHER_LDFLAGS: -Xlinker -interposable $(inherited)
           # FER-981: instrumentación de type-check. El compilador avisa de cada función/expresión que
           # tarda más del umbral (ms) en type-checkear, con archivo:línea — la lista MEDIDA (no adivinada)
@@ -176,8 +187,6 @@ targets:
       - package: StrandImport
       - package: CenitDesign
       - package: StrandTraining
-      # Inject: recarga en caliente en Debug (dev-only, inerte en Release).
-      - package: Inject
       # FER-721: embed the Live Activity / widget extension into the app bundle.
       - target: CenitWidgets
       # FER-740: embed the watchOS companion app so it installs with the iPhone app.
@@ -205,6 +214,7 @@ targets:
         CFBundleName: Cénit
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        ITSAppUsesNonExemptEncryption: false   # ver la nota del target Cenit
         # Marks this as a single-target watchOS app and links it to the iPhone app.
         WKApplication: true
         WKCompanionAppBundleIdentifier: com.feriracheta.cenit
@@ -214,8 +224,10 @@ targets:
         # times out to «El reloj no respondió». Matches Apple's multidevice-workout sample.
         WKBackgroundModes:
           - workout-processing
-        NSHealthShareUsageDescription: "Cénit lee tu frecuencia cardiaca en el reloj durante la sesión de fuerza para grabar el entrenamiento. Cénit nunca lo sube. Sin servidor ni cuenta."
-        NSHealthUpdateUsageDescription: "Cénit guarda tu sesión de fuerza como entrenamiento en Apple Salud, en el dispositivo y solo cuando tú lo permites."
+        # Los avisos de permiso se traducen en `CenitWatch/Resources/InfoPlist.xcstrings` (FER-398).
+        # El valor de aquí es el DEFAULT en inglés (la lengua base del proyecto); el catálogo aporta `es`.
+        NSHealthShareUsageDescription: "Cénit reads your heart rate on the watch during a strength session, to record the workout. Cénit never uploads it. No server, no account."
+        NSHealthUpdateUsageDescription: "Cénit saves your strength session into Apple Health as a workout, on-device and only when you allow it."
     entitlements:
       path: CenitWatch/Resources/CenitWatch.entitlements
       properties:
@@ -260,6 +272,7 @@ targets:
         # Match the host app's version — an embedded extension must, or App Store upload rejects it.
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        ITSAppUsesNonExemptEncryption: false   # ver la nota del target Cenit
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     entitlements:
@@ -355,7 +368,7 @@ schemes:
         CenitUnitTests: [testing]
     run:
       config: Debug
-      # Inject/InjectionNext: sin esto, la recarga en caliente SOLO reacciona a un ⌘S hecho dentro del
+      # InjectionNext: sin esto, la recarga en caliente SOLO reacciona a un ⌘S hecho dentro del
       # editor de Xcode (la detecta interceptando los logs de SourceKit). Con este env var el bundle de
       # inyección levanta su propio file-watcher sobre $(SRCROOT), así que también entran en caliente las
       # ediciones hechas desde fuera de Xcode — un agente, vim, lo que sea. Solo afecta al esquema de Run.

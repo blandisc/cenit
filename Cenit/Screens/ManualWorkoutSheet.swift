@@ -1,7 +1,6 @@
 import SwiftUI
 import CenitDesign
 import CenitStore
-import Inject   // recarga en caliente (dev-only, inerte en Release)
 
 // MARK: - Manual workout sheet — Liquid Glass · El Eje (FER-266 · FER-304)
 //

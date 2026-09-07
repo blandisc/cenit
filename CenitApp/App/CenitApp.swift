@@ -23,15 +23,26 @@ struct CenitApp: App {
         // Canary: reports a missing App Group entitlement before any silent no-op (e.g. Shortcuts'
         // PendingIntents) can mask it. Logs a fault on device, asserts in the Simulator.
         AppGroup.warnIfGroupUnprovisioned()
+        // FER-398 · las dos migraciones de identificador, en ESTE orden y ANTES de `AppModel()`:
+        // ① las preferencias (el prefijo heredado → `cenit.*`; ver `PrefKey.legacyKey`), porque `AppModel` y los `@AppStorage` de la
+        //    primera pantalla leen su valor; si corriera después, el usuario vería el onboarding otra
+        //    vez y la app escribiría un default nuevo encima del suyo.
+        // ② el contenedor en disco (`OpenWhoop/whoop.sqlite` → `Cenit/cenit.sqlite`), porque
+        //    `AppModel()` abre el store — mover el archivo bajo una conexión viva es cómo se corrompe.
+        // Las dos son idempotentes: en una instalación ya migrada cuestan unos `fileExists`.
+        PrefMigration.migrateLegacyKeysIfNeeded()
+        if let appSupport = try? StorePaths.appSupport() {
+            StorePaths.migrateLegacyContainerIfNeeded(appSupport: appSupport)
+        }
+        // Recarga en caliente SOLO en Debug (FER-398: el puente vive en `Cenit/System/HotReload.swift`,
+        // ya no en el paquete `Inject`, que viajaba dentro del binario de la tienda). Con
+        // InjectionNext.app abierta (y Xcode lanzado DESDE ella) sobre el Simulador, intercambia el
+        // código de las pantallas al guardar, sin recompilar.
+        #if DEBUG
+        HotReload.loadBundleIfAvailable()
+        #endif
         configureInstrumentoControlAppearance()   // FER-408: warm the native segmented control once at launch
         EntrenarTips.configure()   // ola 1 · E12: TipKit datastore, 100% on-device (sin red)
-        // Inject/InjectionNext: carga el puente de recarga en caliente SOLO en Debug (inerte en Release).
-        // Con InjectionNext.app abierta (y Xcode lanzado DESDE ella) corriendo en el Simulador, intercambia
-        // el código de las pantallas al guardar, sin recompilar. InjectionNext es el sucesor de InjectionIII,
-        // hecho para Xcode 16.3+/26.x (el clásico ya no logra el redibujo en toolchains nuevos).
-        #if DEBUG
-        Bundle(path: "/Applications/InjectionNext.app/Contents/Resources/iOSInjection.bundle")?.load()
-        #endif
         // Warm the bundled Space Grotesk registration OFF the main thread (perf): otherwise the first
         // Grotesk token during TodayView's first render pays the one-time CoreText registration on the
         // launch path. `ensureFontsRegistered()` is idempotent + thread-safe (a `static let`), so this
@@ -41,8 +52,7 @@ struct CenitApp: App {
         _model = State(wrappedValue: model)
         let healthBridge = HealthKitBridge(
             repo: model.repo,
-            appleDeviceId: model.appleDeviceId,
-            noopDeviceId: model.deviceId
+            appleDeviceId: model.appleDeviceId
         )
         model.healthBridge = healthBridge   // FER-226: AppModel reaches the bridge for the one-time re-bucket
         _health = StateObject(wrappedValue: healthBridge)
@@ -114,10 +124,9 @@ struct CenitApp: App {
                 .environmentObject(autoBackup)
                 .environmentObject(tabRouter)
                 .environmentObject(mediaCoordinator)
-                // Reanudar la descarga de media al abrir la app (FER-800): si el toggle opt-in está
-                // ON y quedó a medias (background/kill/red), la retoma sola. Guarda internamente en
-                // `isEnabled` → con el toggle OFF (default) es un no-op sin tocar red ni disco.
-                .task { await mediaCoordinator.bulkDownloadThumbsIfNeeded() }
+                // FER-398: se retiró el `.task` que reanudaba la descarga de media al abrir (FER-800).
+                // Sin tarjeta en Ajustes no hay forma de apagarla, así que el arranque ya no la llama
+                // en absoluto — una barrera más, además de `isEnabled == false`. FER-919 la repone.
                 // FER-95 · E14 — «Empezar» tocado en el widget con la app CERRADA: `.onChange(of:
                 // scenePhase)` abajo no ve una transición de fase en un arranque en frío (llega
                 // directo en `.active`), así que ese drain solo cubre reanudar desde segundo plano.

@@ -1,0 +1,40 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "NSHealthShareUsageDescription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cénit reads your heart rate on the watch during a strength session, to record the workout. Cénit never uploads it. No server, no account."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cénit lee tu frecuencia cardiaca en el reloj durante la sesión de fuerza para grabar el entrenamiento. Cénit nunca la sube. Sin servidor ni cuenta."
+          }
+        }
+      }
+    },
+    "NSHealthUpdateUsageDescription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cénit saves your strength session into Apple Health as a workout, on-device and only when you allow it."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cénit guarda tu sesión de fuerza como entrenamiento en Apple Salud, en el dispositivo y solo cuando tú lo permites."
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

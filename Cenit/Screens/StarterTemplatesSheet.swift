@@ -2,7 +2,6 @@
 import SwiftUI
 import CenitDesign
 import StrandTraining
-import Inject   // recarga en caliente (dev-only, inerte en Release)
 
 // StarterTemplatesSheet.swift — «Start from a template» (FER-386).
 //

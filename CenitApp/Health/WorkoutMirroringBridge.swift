@@ -28,10 +28,10 @@ enum WatchSessionStatus: Equatable { case inactive, waiting, recording, notRespo
 final class WorkoutMirroringBridge: NSObject, ObservableObject {
     /// Read at session start: whether to mirror to the watch at all. Opt-in (default off) — flipped on by
     /// the Settings «Grabar en el Apple Watch» toggle (FER-742); until then the iPhone owns the estimate.
-    static let mirrorToWatchKey = "noop.mirrorStrengthToWatch"
+    static let mirrorToWatchKey = PrefKey.mirrorStrengthToWatch.rawValue
 
     private let healthStore = HKHealthStore()
-    private let log = Logger(subsystem: "com.noopapp.noop", category: "WatchMirror")
+    private let log = Logger(subsystem: "com.feriracheta.cenit", category: "WatchMirror")
 
     /// The mirrored session HealthKit hands us once the watch starts mirroring. Retained so we can push
     /// rest snapshots to the wrist and receive its data.

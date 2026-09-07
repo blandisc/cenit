@@ -13,7 +13,7 @@ que ningún PNG salió en blanco, repetido o faltante (mata el falso verde de la
 
 ```json
 {
-  "familia": "hoy",                     // = nombre del archivo; primer segmento de -noop.route
+  "familia": "hoy",                     // = nombre del archivo; primer segmento de -cenit.route
   "titulo":  "Hoy · TodayView",         // encabezado del board en el lienzo
   "blurb":   "…",                       // descripción del board
   "unidad":  "estados",                 // "estados" | "componentes" (rótulo del contador)
@@ -22,10 +22,10 @@ que ningún PNG salió en blanco, repetido o faltante (mata el falso verde de la
       "id": "apunto",                   // kebab, único por familia
       "titulo": "Veredicto · A punto",
       "condicion": "nivel .primed …",   // subtítulo del nodo
-      "fixture": "primed",              // opcional: -noop.fixture (histórico o de <Familia>Fixtures.swift)
-      "args": ["-noop.hour", "9"],      // opcional: launch-args extra (-noop.range, -noop.route, …)
+      "fixture": "primed",              // opcional: -cenit.fixture (histórico o de <Familia>Fixtures.swift)
+      "args": ["-cenit.hour", "9"],      // opcional: launch-args extra (-cenit.range, -cenit.route, …)
       "pasos": [                         // opcional: navegación tras el arranque (orden literal)
-        { "nav": "today", "settle": 5 },        // atajo Darwin noop.nav.<key>
+        { "nav": "today", "settle": 5 },        // atajo Darwin cenit.nav.<key>
         { "tapText": "Sueño" },                 // toca un botón/texto (falla si no existe — nunca no-op)
         { "tapId": "matriz-renglon-sleep" },    // toca por accessibilityIdentifier
         { "swipeUp": 1 },                        // desplaza
@@ -56,9 +56,9 @@ Iterar un JSON sin recompilar el bundle de pruebas: `NOOP_MAPA_DIR=$PWD/docs/app
 
 ## Palancas DEBUG (solo simulador)
 
-`-noop.freshStore YES` (base hermética) · `-noop.route <familia/clave>` (pantalla sin atajo `nav`) ·
-`-noop.fixture <estado>` · `-noop.component <Pieza>` · y las que cada familia cablea en su ola
-(`-noop.hour`, `-noop.range`, `-noop.readError`, …).
+`-cenit.freshStore YES` (base hermética) · `-cenit.route <familia/clave>` (pantalla sin atajo `nav`) ·
+`-cenit.fixture <estado>` · `-cenit.component <Pieza>` · y las que cada familia cablea en su ola
+(`-cenit.hour`, `-cenit.range`, `-cenit.readError`, …).
 
 ## Regenerar el mapa COMPLETO (todas las familias)
 

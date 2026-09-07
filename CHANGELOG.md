@@ -20,6 +20,27 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
 
 ## Unreleased
 
+### Preparación para la App Store (FER-398)
+- **Acerca de** ahora reconoce el trabajo de otros que Cénit lleva dentro —GRDB.swift, ZIPFoundation,
+  Space Grotesk y free-exercise-db, cada uno con su licencia— y suma los tres enlaces que antes solo
+  existían fuera de la app: política de privacidad, soporte y términos de uso.
+- **Los avisos de permiso se ven en español.** Lo que iOS muestra al pedirte acceso a Salud, al
+  calendario o a tus fotos estaba en inglés aunque tu iPhone estuviera en español; ahora se traduce,
+  en el iPhone y en el reloj.
+- **Cénit ya no pide permiso para escribir datos que no escribe.** Al conectar Apple Salud se pedía
+  permiso de escritura para frecuencia cardiaca en reposo, VFC, SpO₂, respiración y sueño, aunque la
+  app dejó de escribir eso hace tiempo. Ahora solo pide leer. Guardar tus entrenamientos de fuerza en
+  Salud sigue igual: se pide aparte, y solo si tú lo enciendes.
+- **La letra chica de la puerta de términos lleva al texto completo**, en vez de remitir a un archivo
+  que no viaja con la app.
+- **Tocar la Live Activity de descanso te lleva a tu sesión.** Antes solo abría Cénit donde lo
+  hubieras dejado.
+- **Cénit ya no hace ninguna conexión a internet.** Se retiró de Ajustes la descarga de animaciones
+  de ejercicio: apuntaba a un servicio que ya no sirve el catálogo con el que se armó, así que
+  encendía algo que no funcionaba. Era la única función que usaba la red, y queda apagada de raíz
+  —sin control, sin preferencia guardada y sin código que la alcance—, así que ahora la app está
+  offline por completo. Las animaciones que ya hubieras descargado dejan de mostrarse, pero no se
+  borran: siguen en tu iPhone. Vuelve más adelante con arte propio.
 ### El onboarding ya no promete un aviso que no puede sonar (FER-429)
 - Mientras Cénit todavía te está conociendo («Noche N de 4»), la última pantalla del primer
   arranque ya no ofrece el recordatorio de la mañana: no hay palabra que recordar hasta que haya

@@ -3,7 +3,6 @@ import SwiftUI
 import CenitDesign
 import StrandAnalytics
 import CenitStore   // FER-202: `WorkoutRow` — destino de detalle de actividad en el trainStack (fusión de historiales)
-import Inject   // recarga en caliente (dev-only, inerte en Release)
 
 /// iOS navigation shell — the «IA de 3 capas» tab shell (FER-182). Four tabs over the «Barra de
 /// instrumento» (FER-163): **Hoy · Tendencias · Entrenar · Ajustes**. Patrones (Coach) was archived
@@ -18,7 +17,7 @@ struct RootTabView: View {
     // FER-240: `.coach` (Patrones) removed with the screen.
     private enum Tab: Hashable { case today, body, train, settings }
 
-    /// Every screen reachable by pushing onto a hub tab's stack. Raw values match the `noop.nav.<key>`
+    /// Every screen reachable by pushing onto a hub tab's stack. Raw values match the `cenit.nav.<key>`
     /// debug-navigation keys (`ScreenshotNav.swift`) so screenshot automation still reaches each one.
     private enum SecondaryScreen: String, Hashable {
         case library                              // Entrenar hub — exercise library (FER-346)
@@ -312,6 +311,18 @@ struct RootTabView: View {
             isTodayActive = isLightTab(newValue)
         }
         .onAppear { isTodayActive = isLightTab(selection) }
+        // FER-398 — `cenit://session`, el deep link de la Live Activity de descanso (su `widgetURL`).
+        // En AMBOS modos, no solo en Debug: en la app de la tienda ese tap no llevaba a ningún lado
+        // porque el único manejador del esquema vivía bajo `#if DEBUG` (`ScreenshotNav`), que además
+        // ignora `session` a propósito para que los dos no reaccionen a la misma URL.
+        //
+        // Con sesión viva: Entrenar + reabrir la hoja (el mismo camino que toca la píldora flotante).
+        // Sin sesión viva: solo Entrenar — nunca inventa una sesión que no existe.
+        .onOpenURL { url in
+            guard url.scheme == "cenit", url.host == "session" else { return }
+            selection = .train
+            appModel.resumeStrengthSession()   // ya es un no-op sin sesión viva
+        }
         // Cross-tab navigation requests (FER-378). One-shot: apply + clear.
         .onReceive(tabRouter.$requested.compactMap { $0 }) { req in
             switch req {
@@ -343,7 +354,7 @@ struct RootTabView: View {
             tabRouter.openMuscleMapInTrain = false
         }
         #if DEBUG
-        .onReceive(NotificationCenter.default.publisher(for: .noopDebugNav)) { note in
+        .onReceive(NotificationCenter.default.publisher(for: .cenitDebugNav)) { note in
             guard let screen = note.object as? String else { return }
             // Tab-level keys land on a clean hub root. "trends" → Cuerpo, "more"/"ajustes" → Ajustes.
             let tab: Tab? = switch screen {
@@ -372,7 +383,7 @@ struct RootTabView: View {
                 }
             }
         }
-        // FER-381: `-noop.route <familia/clave>` lleva la captura del mapa a una pantalla sin atajo
+        // FER-381: `-cenit.route <familia/clave>` lleva la captura del mapa a una pantalla sin atajo
         // `nav`. La Ola 1 solo selecciona la TAB por la familia; cada pantalla consume su propia clave
         // (`DebugRoute.key(for:)`) y empuja su destino en su ola de captura.
         .onAppear {

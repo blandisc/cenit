@@ -6,7 +6,6 @@ import StrandTraining
 import CenitStore
 import StrandImport   // WorkoutHealthKitDedup.isClosedStrength (FER-362 · C4)
 import Foundation
-import Inject   // recarga en caliente (dev-only, inerte en Release)
 
 // MARK: - WorkoutDetailScreen — detalle de UNA sesión (FER-261 → Liquid Glass · FER-294 B.2)
 //

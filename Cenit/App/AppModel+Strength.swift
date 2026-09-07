@@ -214,7 +214,7 @@ extension AppModel {
         if notifyWatch {
             mirroringBridge?.endMirroredSession(sessionId: session.id, endedAt: Date(), save: true)
         }
-        let built = session.buildForSave(deviceId: deviceId, endTs: endTs)
+        let built = session.buildForSave(deviceId: legacyDeviceId, endTs: endTs)
         let sets = built.1
         var record = built.0
         // FER-399: if the strap streamed HR during the session, derive avgHr + strain (same model as the

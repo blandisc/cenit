@@ -209,17 +209,28 @@ public enum WorkoutMirrorKey {
     /// The deterministic `HKMetadataKeyExternalUUID` for a strength session. Identical on both devices
     /// (same `sessionId`), so whichever device writes, the write is idempotent (delete-by-key + save)
     /// and never produces two workouts. Must match `HealthKitBridge.saveStrengthWorkoutIfEnabled`.
-    public static func externalUUID(for sessionId: String) -> String { "noop:strength:\(sessionId)" }
+    public static func externalUUID(for sessionId: String) -> String { "cenit:strength:\(sessionId)" }
+
+    /// The pre-FER-398 prefix. Never written again, but every workout Cénit already saved into Apple
+    /// Health carries it, and those samples live in the user's vault for good — so anything that
+    /// DEDUPES has to keep recognising it (see `dedupeUUIDs`).
+    public static func legacyExternalUUID(for sessionId: String) -> String { "noop:strength:\(sessionId)" }
+
+    /// Both spellings of a session's key, for the delete-by-key that precedes a save. Re-saving a
+    /// session recorded before FER-398 has to replace the old workout, not add a second one beside it.
+    public static func dedupeUUIDs(for sessionId: String) -> [String] {
+        [externalUUID(for: sessionId), legacyExternalUUID(for: sessionId)]
+    }
 
     /// The single dictionary key the HealthKit mirror payload (`[String: Any]`) carries the encoded
     /// `WorkoutMirrorMessage` under.
-    public static let payloadKey = "noop.mirror"
+    public static let payloadKey = "cenit.mirror"
 
     /// C1 (FER-361): a SECOND key in the same `updateApplicationContext` dict for the standalone SEED
     /// (`.sessionModel(todayPlan)`). The application context is a single-slot last-known-state channel,
     /// so the seed rides alongside the idle-face context under its own key rather than clobbering it —
     /// the watch reads both. Only present when today has a plan.
-    public static let seedKey = "noop.seed"
+    public static let seedKey = "cenit.seed"
 }
 
 public extension WorkoutMirrorMessage {

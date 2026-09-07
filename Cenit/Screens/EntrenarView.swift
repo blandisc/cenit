@@ -3,7 +3,6 @@ import SwiftUI
 import CenitDesign
 import StrandTraining
 import StrandAnalytics
-import Inject   // recarga en caliente (dev-only, inerte en Release)
 
 // MARK: - Entrenar (the Train tab root) — «Pulir · arranque directo» (handoff, sobre «La Semana» FER-530)
 //

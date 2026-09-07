@@ -10,7 +10,7 @@ import os
 public enum AppGroup {
     /// App Group suite the app (and extensions) use. Must match the
     /// `com.apple.security.application-groups` entitlement on every target that shares it
-    /// (`NOOP.entitlements`, `CenitWidgets.entitlements`, and the `project.yml` mirrors of both).
+    /// (`Cenit.entitlements`, `CenitWidgets.entitlements`, and the `project.yml` mirrors of both).
     ///
     /// This is the ONE declaration of the suite — `RestActivityBridge` reads it rather than repeating
     /// the literal. It has already drifted twice from the entitlements (each time a leftover from an
@@ -66,7 +66,7 @@ public enum AppGroup {
     /// This fires in Release too, so a device build still reports the problem in Console.app.
     private static let warnUnsharedGroupOnce: Void = {
         guard !isGroupShared else { return }
-        Logger(subsystem: "com.noopapp.noop", category: "AppGroup").fault(
+        Logger(subsystem: "com.feriracheta.cenit", category: "AppGroup").fault(
             "App Group '\(suiteName, privacy: .public)' unavailable — entitlement missing on this target. Writes stay private to this process.")
     }()
 }

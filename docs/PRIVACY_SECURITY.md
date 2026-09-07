@@ -21,11 +21,10 @@ on-device from HealthKit data plus optional file imports, and stored in a single
 SQLite file. There is no server, no account, no login, no cloud sync, and no telemetry
 anywhere in the app.
 
-There is exactly **one** opt-in network exception, off until you turn it on:
-**exercise media download** (§1.1b). It fetches an instructional image/GIF for an
-exercise from a fixed third-party CDN, only when you enable it and only for exercises
-you view. Nothing else in the app ever touches the network, and your raw biometric
-data never does. (The former BYO-key external AI Coach was removed.)
+As of FER-398 there is **no** network exception at all: the app makes zero network
+connections, with nothing to turn on. The one that used to exist — **exercise media
+download** (§1.1b) — is dormant, and its code cannot fire. Your raw biometric data has
+never touched the network. (The former BYO-key external AI Coach was removed.)
 
 Data enters Cénit two ways:
 
@@ -49,8 +48,9 @@ including the entire biometric pipeline, produces no network traffic of any kind
 The biometric pipeline and the shipping packages
 (`BiometricStreams`, `CenitStore`, `StrandAnalytics`, `StrandTraining`, `StrandImport`,
 `CenitDesign`) contain **no** use of `URLSession`, `URLRequest`, `NWConnection`,
-`dataTask`, or any other networking API. The **only** networking anywhere in the app is
-exercise media download (`Cenit/Media/MediaDownloadCoordinator.swift`, §1.1b). The package
+`dataTask`, or any other networking API. The only networking code left anywhere in the app
+is exercise media download (`Cenit/Media/MediaDownloadCoordinator.swift`, §1.1b), and it is
+dormant — no call site can reach it. The package
 manifests reference dependency *download* URLs that Swift Package Manager resolves at build
 time, never at runtime:
 
@@ -62,30 +62,32 @@ Packages/StrandImport/Package.swift → https://github.com/weichsel/ZIPFoundatio
 GRDB.swift is the SQLite layer; ZIPFoundation is the archive reader used by the
 importers. Neither opens a socket.
 
-### 1.1b Exercise media download (optional, off by default)
+### 1.1b Exercise media download (dormant since FER-398)
 
-The exercise catalog can show an instructional image/GIF per exercise. Fetching it is
-off by default and entirely optional:
+The exercise catalog can show an instructional image/GIF per exercise, downloaded from a
+third-party CDN. **That feature is turned off at the source and there is no way to turn it
+on.** The CDN it pointed at (`static.exercisedb.dev`) stopped serving the catalog the app
+was built against, so shipping a control for it would have advertised a network capability
+the app does not exercise. Three independent barriers, all in this release:
 
-- **Off until you enable it.** The toggle lives in Settings, default `false`. With it off, `MediaDownloadCoordinator`
-  never constructs a request — the zero-request guarantee is structural, not just a
-  convention at the call sites.
-- **What is sent.** Once enabled, viewing (or bulk-downloading) an exercise's media is a
-  plain `GET` of that exercise's fixed image URL on the ExerciseDB CDN
-  (`static.exercisedb.dev`), baked into the local catalog at build time — no runtime
-  search, no API key, no account.
-- **What is NOT sent.** No biometric data, no account or device identifiers, no query —
-  just a request for a specific, pre-known static asset.
-- **Cached locally.** Downloaded media is cached on-device
-  (`Cenit/Media/MediaCache.swift`) so the same exercise is fetched at most once; disabling
-  the toggle stops new downloads but does not delete what's cached (a separate
-  "delete all cached media" action does).
+- **No control.** The Settings card was removed, so there is nothing to enable.
+- **No preference.** `exerciseMediaEnabled` is no longer persisted or migrated — an install
+  that had it ON has the key deleted at launch rather than carried forward, precisely so it
+  cannot leave networking on with no switch to reach.
+- **No code path.** `MediaDownloadCoordinator.isEnabled` returns `false` unconditionally, and
+  both entry points guard on it before touching `URLSession`; the launch-time bulk download
+  was removed outright.
 
-If you never enable exercise media download, Cénit makes zero network connections.
+Media an earlier version cached on-device is no longer displayed (the same `isEnabled` gate feeds the
+exercise-detail hero and the rest card's thumbnail) but it is not deleted either — it stays on disk.
+FER-919 revives the feature with first-party artwork and will restore both the art and the control.
+
+**Cénit makes zero network connections.**
 
 ### 1.2 The iOS app's entitlements
 
-The iOS app ships with a deliberately minimal entitlement set:
+The iOS app ships with a deliberately minimal entitlement set
+(`CenitApp/Resources/Cenit.entitlements`):
 
 ```xml
 <key>com.apple.developer.healthkit</key>                       <true/>
@@ -102,8 +104,8 @@ The iOS app ships with a deliberately minimal entitlement set:
 Notably **absent**: any **networking entitlement or code**. iOS does not gate outbound
 network behind a sandbox entitlement the way the macOS App Sandbox did, so the offline
 guarantee here is **structural in the code, not the OS**: the biometric pipeline and
-shipping packages contain no networking API at all (§1.1), and the only code that can
-ever open a socket is the opt-in exercise media downloader (§1.1b). The app also has no
+shipping packages contain no networking API at all (§1.1), and the only code that could
+ever open a socket — the exercise media downloader — is dormant and unreachable (§1.1b). The app also has no
 broad-filesystem access: it reads only the import files you explicitly pick, plus its own
 container.
 
@@ -116,10 +118,10 @@ because there is no network code to begin with, not merely by convention.
 
 ### 2.1 Where the data lives
 
-All durable data is stored in a single GRDB/SQLite database. The app
-opens it inside `<Application Support>` (`Cenit/Data/StorePaths.swift`); the folder and
-filename still carry the project's original name and a migration to a `Cenit`-named path
-is planned (see `docs/ARCHITECTURE.md` §2), tracked separately and **in progress**.
+All durable data is stored in a single GRDB/SQLite database, at
+`<Application Support>/Cenit/cenit.sqlite` (`Cenit/Data/StorePaths.swift`). An install created
+before FER-398 carries the previous folder and filename; a one-time migration at launch moves it
+onto these names (see `docs/ARCHITECTURE.md` §2).
 
 On iOS every app is sandboxed by the OS, so `<Application Support>` resolves **inside
 the app's private data container** (under the app's home directory), not in any
@@ -281,8 +283,8 @@ The Apple Health importer lives in `Packages/StrandImport/` and assumes the file
 
 | Surface | Risk | Mitigation | Where |
 |---------|------|------------|-------|
-| Process | Data exfiltration / network egress | Only one opt-in feature networks: exercise media download (a GET to a fixed CDN, only when enabled — §1.1b); nothing else makes a network call | `Cenit/Media/MediaDownloadCoordinator.swift` |
-| Filesystem | Broad disk access | iOS app sandbox; imports read only the files you pick via the document picker; data stays in the app's private container | the app's entitlements file, `Cenit/Data/StorePaths.swift` |
+| Process | Data exfiltration / network egress | No feature networks at all: the one that could (exercise media download) is dormant behind a hard-`false` gate, with no control, no persisted preference and no launch call — §1.1b | `Cenit/Media/MediaDownloadCoordinator.swift` |
+| Filesystem | Broad disk access | iOS app sandbox; imports read only the files you pick via the document picker; data stays in the app's private container | `CenitApp/Resources/Cenit.entitlements`, `Cenit/Data/StorePaths.swift` |
 | App state | Implausible-but-valid values | Range gates (e.g. HR 30–220) at HealthKit / import boundaries | `HealthKitBridge`, import glue |
 | Health import | XML bomb / multi-GB DOM blowup | Streaming SAX over `InputStream`; per-element autorelease pool | `StrandImport/AppleHealthImporter.swift` |
 | Health import | Zip bomb | 8 GB decompressed ceiling, chunked to disk, hard abort | `StrandImport/AppleHealthImporter.swift` |

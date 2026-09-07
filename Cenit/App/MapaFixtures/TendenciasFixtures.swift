@@ -9,7 +9,7 @@ import StrandModels
 /// Dos estados, compartidos por las ~36 métricas del catálogo (no uno por métrica): el detalle de
 /// CADA métrica lee el mismo store/dashboard, así que UN fixture de historia larga basta para su
 /// «full», y UN fixture de un solo día para su «calibrando». «Sin lecturas» no necesita fixture —
-/// `-noop.freshStore YES` (que `test_mapa` ya añade a todo nodo) deja el store realmente vacío.
+/// `-cenit.freshStore YES` (que `test_mapa` ya añade a todo nodo) deja el store realmente vacío.
 ///
 /// Tres sustratos, porque el catálogo no lee todos sus datos del mismo sitio (FER-104/TND-29):
 ///   1. `DailyMetric` (`repo.setDashboard`) — las 13 claves «resolubles del dashboard»
@@ -29,12 +29,12 @@ enum TendenciasFixtures {
         "tendencias_calibrando": { model in await seed(model, days: 1) },
     ]
 
-    /// `-noop.range <W|M|3M|6M|1Y|ALL>` (FER-384): la ventana inicial para la captura del mapa 100 %,
+    /// `-cenit.range <W|M|3M|6M|1Y|ALL>` (FER-384): la ventana inicial para la captura del mapa 100 %,
     /// compartida por Cuerpo / `MetricDetailScreen` / `MetricExplorerView` (las tres pantallas de esta
     /// familia con su propio `@State … ExploreRange`) — un solo parseo del arg, no uno por pantalla.
     /// `nil` con el arg ausente o con un valor que no reconoce: cada caller cae a su `.month` de siempre.
     static func debugRange() -> ExploreRange? {
-        switch UserDefaults.standard.string(forKey: "noop.range")?.uppercased() {
+        switch UserDefaults.standard.string(forKey: "cenit.range")?.uppercased() {
         case "W":   return .week
         case "M":   return .month
         case "3M":  return .quarter
@@ -89,7 +89,7 @@ enum TendenciasFixtures {
             }
 
             // 3) `AppleDaily` — solo VO₂max lo necesita aquí (es la única de las 7 rutas ricas de
-            // `-noop.route tendencias/<clave>` que lee esta tabla en vez de `metricSeries`).
+            // `-cenit.route tendencias/<clave>` que lee esta tabla en vez de `metricSeries`).
             let appleRows = days.enumerated().map { i, row in
                 AppleDaily(day: row.day, steps: row.steps, activeKcal: row.activeKcalEst, basalKcal: nil,
                           vo2max: plausibleValue(for: "vo2max") + wobble(i, 1.5), avgHr: nil, maxHr: nil,
@@ -101,7 +101,7 @@ enum TendenciasFixtures {
             // `series`). «calibrando» (1 día) deja un puñado de puntos, no la jornada completa: la
             // curva se ve apenas empezada, no un día lleno con historia de una sola noche (incoherente).
             let hr = syntheticHRSamples(today: today, sparse: nDays == 1)
-            if !hr.isEmpty { _ = try? await store.insert(Streams(hr: hr), deviceId: model.deviceId) }
+            if !hr.isEmpty { _ = try? await store.insert(Streams(hr: hr), deviceId: model.legacyDeviceId) }
         }
 
         model.repo.setDashboard(days: days, appleHealthDays: Set(days.map(\.day)))

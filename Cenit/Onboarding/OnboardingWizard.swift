@@ -42,16 +42,16 @@ struct OnboardingWizard: View {
     init(onFinished: @escaping () -> Void) {
         self.onFinished = onFinished
         #if os(iOS) && DEBUG
-        // FER-391 (mapa 100 %): `-noop.onboardingActo <acto>` MUESTRA el wizard directo en ese
-        // acto — el opuesto de `-noop.onboarded YES`, que lo SALTA entero (`ContentView` agrega
-        // el OR que lo deja entrar). `-noop.onboardingLanding <caso>` fija además el desenlace:
+        // FER-391 (mapa 100 %): `-cenit.onboardingActo <acto>` MUESTRA el wizard directo en ese
+        // acto — el opuesto de `-cenit.onboarded YES`, que lo SALTA entero (`ContentView` agrega
+        // el OR que lo deja entrar). `-cenit.onboardingLanding <caso>` fija además el desenlace:
         // sin él, el acto 4 (dentro de `.encendido`) correría el sync real de HealthKit, que es
         // justo lo que el arnés de captura no puede esperar de forma determinista. Ninguno de los
         // dos escribe en la base — es puro `@State` en memoria del wizard — así que no hace falta
         // el candado a simulador (el README solo lo pide «donde toque datos»).
         let d = UserDefaults.standard
-        let actoForzado = d.string(forKey: "noop.onboardingActo").flatMap(OnbActo.debugFixture)
-        let landingForzado = d.string(forKey: "noop.onboardingLanding").flatMap(OnboardingLanding.debugFixture)
+        let actoForzado = d.string(forKey: "cenit.onboardingActo").flatMap(OnbActo.debugFixture)
+        let landingForzado = d.string(forKey: "cenit.onboardingLanding").flatMap(OnboardingLanding.debugFixture)
         _acto = State(initialValue: actoForzado ?? .promesa)
         _landing = State(initialValue: landingForzado)
         if let landingForzado, (actoForzado ?? .encendido) == .encendido {
@@ -296,7 +296,7 @@ enum OnbActo: Hashable {
 
 #if os(iOS) && DEBUG
 extension OnbActo {
-    /// El acto que pide `-noop.onboardingActo <acto>`, para el mapa 100 % (FER-391). Claves = los
+    /// El acto que pide `-cenit.onboardingActo <acto>`, para el mapa 100 % (FER-391). Claves = los
     /// nombres del enum, tal cual — sin alias ni abreviaturas que memorizar aparte.
     static func debugFixture(_ raw: String) -> OnbActo? {
         switch raw {
@@ -356,8 +356,7 @@ private struct OnboardingPreview: View {
             .environmentObject(model.profile)
             .environmentObject(TabRouter())
             .environmentObject(HealthKitBridge(repo: model.repo,
-                                               appleDeviceId: "preview-apple",
-                                               noopDeviceId: "preview"))
+                                               appleDeviceId: "preview-apple"))
             .frame(width: 390, height: 800)
     }
 }

@@ -110,7 +110,7 @@ struct DataSourcesView: View {
         }
         .animation(LiquidMotion.glassOut(LiquidMotion.quick), value: showBackupAlert)
         #if os(iOS) && DEBUG
-        // FER-389 (mapa 100 %): `-noop.readError <strengthCSV|backupOk|backupError>` fuerza, para la
+        // FER-389 (mapa 100 %): `-cenit.readError <strengthCSV|backupOk|backupError>` fuerza, para la
         // captura, un estado que solo sale de un intento real de exportar/importar — nunca alcanzable
         // así en producción.
         .onAppear { aplicarEstadoDebugSiPide() }
@@ -119,7 +119,7 @@ struct DataSourcesView: View {
 
     #if os(iOS) && DEBUG
     private func aplicarEstadoDebugSiPide() {
-        switch UserDefaults.standard.string(forKey: "noop.readError") {
+        switch UserDefaults.standard.string(forKey: "cenit.readError") {
         case "strengthCSV":
             strengthCSVError = true
         case "backupOk":
@@ -577,17 +577,13 @@ struct DataSourcesView: View {
         "steps", "active_kcal", "vo2max",
     ]
 
-    /// Permissions affordance: a one-line write-back tally (the status HealthKit *does* expose
-    /// reliably) plus a deep link to Settings to grant any missing scope, then Sync again.
+    /// Permissions affordance: a deep link to Settings to grant any missing read scope, then Sync
+    /// again. FER-398 dropped the «write-back: N/M enabled» tally that used to sit above it: the
+    /// write-back it counted has been off since FER-1003, so the line reported permissions for
+    /// something the app no longer writes — and the app no longer even asks for them.
     @ViewBuilder
     private var appleHealthPermissionsFooter: some View {
-        let writes = health.writePermissions
         VStack(alignment: .leading, spacing: LiquidSpace.s200) {
-            if !writes.isEmpty {
-                let granted = writes.filter { $0.status == .sharingAuthorized }.count
-                Text(String(localized: "Write-back to Apple Health: \(granted)/\(writes.count) enabled"))
-                    .font(LiquidType.captionLectura).foregroundStyle(LiquidColor.tinta500)
-            }
             settingsButton
         }
     }

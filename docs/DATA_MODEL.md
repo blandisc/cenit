@@ -19,11 +19,11 @@ every package in the repo, it declares both platforms — `.iOS(.v16)` and `.mac
 (`Packages/CenitStore/Package.swift`) — and is UI-framework agnostic, so the same schema and
 storage code back the `Cenit` app from a single cross-platform core.
 
-The app target opens the database at a fixed, per-user location (`Cenit/Data/StorePaths.swift`),
-inside the app's sandbox `Application Support` directory. That location still carries a legacy
-folder and filename inherited from the project's original name; a one-time startup migration to a
-`Cenit`-named path is planned (see `docs/ARCHITECTURE.md` §2) and tracked separately — **in
-progress**, not yet part of this PR. Tests use an in-memory database via `CenitStore.inMemory()`.
+The app target opens the database at a fixed, per-user location (`Cenit/Data/StorePaths.swift`):
+`Application Support/Cenit/cenit.sqlite`, inside the app's sandbox. An install created before
+FER-398 carries the previous folder and filename instead; a one-time migration at launch moves it
+onto the `Cenit` names (see `docs/ARCHITECTURE.md` §2), so the legacy path is a transitional state,
+never a second supported location. Tests use an in-memory database via `CenitStore.inMemory()`.
 
 ### Connection configuration
 

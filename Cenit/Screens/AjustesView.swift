@@ -82,7 +82,7 @@ private struct AjustesLanding: View {
 
     // Imperial/Metric display preference (D#103). Stored data is always SI; this only changes how
     // distances/weights/heights/temperatures are SHOWN — and lets the profile fields take imperial entry.
-    @AppStorage("noop.apariencia") private var apariencia = "sistema"   // A4/FER-348
+    @AppStorage(PrefKey.apariencia.rawValue) private var apariencia = "sistema"   // A4/FER-348
     @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw = UnitSystem.metric.rawValue
     @AppStorage(UnitPrefs.temperatureKey) private var temperatureRaw = ""
     private var unitSystem: UnitSystem { UnitSystem(rawValue: unitSystemRaw) ?? .metric }
@@ -95,9 +95,6 @@ private struct AjustesLanding: View {
     @State private var showCyclePhase = false
     @AppStorage(CyclePhaseExperiment.enabledKey) private var cyclePhaseOn = false
     @AppStorage(WhitespaceMetricsExperiment.enabledKey) private var whitespaceMetrics = false
-    /// FER-722: opt-in exercise media download (default off — the first/only exception to offline
-    /// for exercise thumbs/loops, gated end-to-end by `MediaDownloadCoordinator`).
-    @AppStorage(MediaDownloadCoordinator.enabledKey) private var exerciseMediaEnabled = false
     /// FER-93: las dos comodidades de la sesión, las dos apagadas por defecto.
     @AppStorage(SessionComfort.keepAwakeKey) private var keepScreenAwake = false
     @AppStorage(SessionComfort.restSoundKey) private var restSound = false
@@ -111,8 +108,6 @@ private struct AjustesLanding: View {
     /// Ronda 2 #1: solo se usa para PINTAR la nota de negado — ya NO gobierna si el switch puede
     /// prenderse (ver `illnessNegado` / `encenderVigilanciaEnfermedad`).
     @State private var illnessPermiso: UNAuthorizationStatus?
-    @EnvironmentObject private var mediaCoordinator: MediaDownloadCoordinator
-    @State private var confirmDeleteMedia = false
     @State private var confirmRecalibrate = false
     @State private var profileWheel: ProfileWheel? = nil
     @State private var presentedSheet: AjustesSheetScreen? = nil
@@ -154,7 +149,7 @@ private struct AjustesLanding: View {
         }
         .sheet(item: $presentedSheet) { screen in sheetContent(screen) }
         #if DEBUG
-        // FER-389 (mapa 100 %): `-noop.route ajustes/<clave>` abre directo la hoja/hija que esta
+        // FER-389 (mapa 100 %): `-cenit.route ajustes/<clave>` abre directo la hoja/hija que esta
         // pantalla no expone por `nav` (unidades, FC máx, ciclo, las 3 ruedas de perfil) — atajo de
         // captura del harness, nunca alcanzable así en producción.
         .onAppear {
@@ -316,11 +311,11 @@ private struct AjustesLanding: View {
                 }
                 .liquidTarjetaSeccion(padding: LiquidSpace.s300)
             }
-            // Ronda 2 #2: la única excepción de red de la app vivía escondida bajo «Experimental»,
-            // junto a métricas opt-in que nada tienen que ver con una descarga — quien se saltaba
-            // esa sección nunca veía el único control de red del app. Su propia sección, fuera de
-            // Experimental.
-            section(String(localized: "Exercise library")) { exerciseLibraryCard }
+            // FER-398: la sección «Biblioteca de ejercicios» (descargar animaciones de ExerciseDB) se
+            // RETIRA de Ajustes. La descarga apunta al CDN de ExerciseDB, que ya no sirve el catálogo
+            // con el que se horneó, así que el control encendía una función que no funciona y anunciaba
+            // en la tienda una excepción de red que la app no ejerce. `MediaDownloadCoordinator` sigue
+            // vivo (y su toggle sigue OFF de fábrica → cero red): FER-919 lo revive con otra fuente.
             // FER-1021: el interruptor de «vigilar enfermedad» vivía en la difunta AutomationsView
             // (retirada con la banda). El motor sigue vivo y ruteado a Apple (temp de muñeca + FC en
             // reposo nocturna, FER-884); esto le repone el acceso para que la feature sea alcanzable.
@@ -468,61 +463,6 @@ private struct AjustesLanding: View {
         .liquidTarjetaSeccion()
     }
 
-    /// The exercise-media download, in its own «Exercise library» card (ronda 2 #2), out from under
-    /// «Experimental»: it's the app's only network exception (ExerciseDB's CDN, opt-in, off by
-    /// default), not an unstable metric — burying it next to opt-in metrics hid the one control that
-    /// actually matters for the offline promise.
-    private var exerciseLibraryCard: some View {
-        VStack(alignment: .leading, spacing: LiquidSpace.s300) {
-            Toggle(isOn: $exerciseMediaEnabled) {
-                Text(String(localized: "Downloaded exercise animations"))
-                    .font(LiquidType.tituloFila).foregroundStyle(LiquidColor.tinta900)
-            }
-            .tint(LiquidColor.verdePrimario)
-            .frame(minHeight: 44)
-            .onChange(of: exerciseMediaEnabled) { _, enabled in
-                if enabled { Task { await mediaCoordinator.bulkDownloadThumbsIfNeeded() } }
-                else { mediaCoordinator.resetDownloadState() }
-            }
-            Text(String(localized: "Downloads each exercise's animation from ExerciseDB's image CDN, an external service. They're saved on your iPhone forever and work offline afterwards. This is the only exception to Cénit's zero-network rule: fetching each image exposes your IP to that service, like loading any image on the internet; no other data of yours (not even the exercise name) ever leaves. Turning this off stops future downloads; it doesn't delete what's already saved."))
-                .font(LiquidType.captionLectura).foregroundStyle(LiquidColor.tinta500)
-                .fixedSize(horizontal: false, vertical: true)
-            mediaDownloadStatus
-            // Ronda 2 #13 (revierte una regresión de ronda 1): visible cuando hay caché EN DISCO,
-            // no cuando `downloadState` de ESTA sesión no es `.idle` — al relanzar la app el estado
-            // vuelve a `.idle` aunque el caché siga lleno, así que el botón se volvía inalcanzable
-            // sin antes encender el toggle (disparando red) solo para poder borrar. El diálogo de
-            // confirmación NO cuelga de este botón: vive en el cuerpo estable del landing, junto al
-            // de Recalibrar, para que borrar (que hace desaparecer este botón) no desmonte al
-            // presentador a media salida.
-            if mediaCoordinator.hasCachedMedia {
-                LiquidCapilar(eje: .horizontal)
-                Button(role: .destructive) { confirmDeleteMedia = true } label: {
-                    Text(String(localized: "Delete downloaded animations"))
-                        .font(LiquidType.tituloFila).foregroundStyle(LiquidColor.negativo)
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        .liquidTarjetaSeccion()
-        // Confirm de borrar-animaciones en la tarjeta ESTABLE de Biblioteca (siempre montada;
-        // solo el botón es condicional), NO en el landing: así NO comparte nodo con el confirm
-        // de Recalibrar (bug FER-174) y borrar no tumba al presentador a media salida.
-        .liquidConfirm(
-            isPresented: $confirmDeleteMedia,
-            title: String(localized: "Delete all downloaded exercise animations?"),
-            context: String(localized: "LIBRARY · ANIMATIONS"),
-            message: String(localized: "Saved animations are deleted from your iPhone. You can re-download them anytime."),
-            actions: [
-                .init(String(localized: "Keep the animations"), role: .primary),
-                .init(String(localized: "Delete the animations"), role: .destructive) {
-                    mediaCoordinator.deleteAllCachedMedia()
-                    mediaCoordinator.resetDownloadState()
-                }
-            ]
-        )
-    }
-
     /// «Recalibrar recuperación» (FER-677): re-anchors every nightly baseline from today. Two states —
     /// idle (tap → confirmation) and recalibrated (shows the date + a quiet «Deshacer»). The action is
     /// reversible, so «Deshacer» skips a dialog; recalibrating is what carries the warning.
@@ -580,27 +520,6 @@ private struct AjustesLanding: View {
     /// Real feedback for the bulk thumb download (FER-778) — replaces the mute toggle-and-hope. Quiet
     /// by design: nothing while idle/off, a live count while running, a one-line result after.
     @ViewBuilder
-    private var mediaDownloadStatus: some View {
-        switch mediaCoordinator.downloadState {
-        case .idle:
-            EmptyView()
-        case .downloading(let completed, let total):
-            HStack(spacing: LiquidSpace.s150) {
-                ProgressView().controlSize(.small)
-                Text(String(localized: "Downloading \(completed)/\(total)…"))
-            }
-            .font(LiquidType.captionLectura).foregroundStyle(LiquidColor.tinta700)
-        case .completed(let matched, let total):
-            Text(total == 0
-                 ? String(localized: "Already fully downloaded.")
-                 : String(localized: "Download complete: \(matched)/\(total) exercises with animation."))
-                .font(LiquidType.captionLectura).foregroundStyle(LiquidColor.tinta700)
-        case .failed:
-            Text(String(localized: "Couldn't download. Check your connection and try again."))
-                .font(LiquidType.captionLectura).foregroundStyle(LiquidColor.negativo)
-        }
-    }
-
     /// Live units summary, e.g. «Metric · °C».
     private var unitsSubtitle: String {
         let sys = unitSystem == .metric ? String(localized: "Metric") : String(localized: "Imperial")

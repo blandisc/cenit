@@ -1,8 +1,8 @@
 #if os(iOS) && DEBUG
 import Foundation
 
-/// `-noop.route <familia/clave>` (FER-381): lleva la captura del mapa a una pantalla que NO tiene
-/// atajo `noop.nav` (marcas, volumen muscular, tickets, detalle de sesión, editor de rutina…), sin
+/// `-cenit.route <familia/clave>` (FER-381): lleva la captura del mapa a una pantalla que NO tiene
+/// atajo `cenit.nav` (marcas, volumen muscular, tickets, detalle de sesión, editor de rutina…), sin
 /// tener que tapear labels localizados.
 ///
 /// La Ola 1 (cimientos) solo resuelve la **tab** por el primer segmento; cada familia consume su
@@ -10,7 +10,7 @@ import Foundation
 enum DebugRoute {
     /// El valor crudo del arg, p. ej. `"entrenar/marcas"`. `nil` en un arranque normal.
     static var requested: String? {
-        guard let r = UserDefaults.standard.string(forKey: "noop.route"), !r.isEmpty else { return nil }
+        guard let r = UserDefaults.standard.string(forKey: "cenit.route"), !r.isEmpty else { return nil }
         return r
     }
 

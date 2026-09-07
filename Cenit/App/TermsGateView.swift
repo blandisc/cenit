@@ -40,8 +40,14 @@ struct TermsGateView: View {
                 }
                 .padding(.top, LiquidSpace.s800)
 
-                OnbCuerpo(Terms.fine, tono: LiquidColor.tinta500)
-                    .padding(.top, LiquidSpace.s550)
+                // FER-398: la letra chica ES el enlace al texto completo. Antes remitía a «TERMS.md,
+                // shipped with Cénit» — cierto para quien clona el repo, falso para quien baja la app:
+                // ese archivo no viaja en el bundle. Un `Link` sobre el mismo `OnbCuerpo` conserva la
+                // tipografía del sistema y le da a VoiceOver el rasgo de enlace.
+                Link(destination: Terms.fullTermsURL) {
+                    OnbCuerpo(Terms.fine, tono: LiquidColor.tinta500)
+                }
+                .padding(.top, LiquidSpace.s550)
             } pie: {
                 HStack(alignment: .top, spacing: LiquidSpace.s300) {
                     Toggle("", isOn: $aceptado)

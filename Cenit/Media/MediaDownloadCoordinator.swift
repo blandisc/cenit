@@ -4,9 +4,14 @@ import StrandTraining
 // MARK: - The single gate for exercise-media downloads (FER-722, FER-786, FER-790)
 //
 // Every network call this feature ever makes flows through `bulkDownloadThumbsIfNeeded()` or
-// `mediaIfNeeded(for:)`, and both guard on `isEnabled` before touching `URLSession` at all. With the
-// toggle off (the default), nothing is ever fetched — this is what makes "toggle off ⇒ zero requests"
-// a structural property, checkable by a unit test, rather than a promise buried in call-site discipline.
+// `mediaIfNeeded(for:)`, and both guard on `isEnabled` before touching `URLSession` at all — which is
+// what makes "off ⇒ zero requests" a structural property, checkable by a unit test, rather than a
+// promise buried in call-site discipline.
+//
+// FER-398: la feature está DORMIDA. Su tarjeta salió de Ajustes (el CDN ya no sirve el catálogo con
+// el que se horneó), así que `isEnabled` está forzado a `false`, su preferencia ya no se persiste ni
+// se migra, y el arranque dejó de llamar al bulk. Con eso la app no tiene NINGUNA ruta a la red.
+// FER-919 la revive con arte propio y devuelve el control.
 //
 // Catalog→media mapping (FER-786): since the catalog IS ExerciseDB (FER-779), each exercise carries its
 // own `gifUrl` baked by id — no runtime name search, no API key. The download is a plain GET of that
@@ -15,10 +20,13 @@ import StrandTraining
 // (FER-790) — one download, one cached file, rendered still in rows and animated in the detail hero.
 @MainActor
 final class MediaDownloadCoordinator: ObservableObject {
-    static let enabledKey = "noop.exerciseMediaEnabled"
+    /// Fuera de `PrefKey` a propósito (FER-398): estas dos claves NO se migran ni se persisten ya —
+    /// ver `isEnabled`. El literal se conserva solo para que `RestThumbnailProvider` siga leyendo la
+    /// misma clave que leía, y para que la limpieza de `PrefMigration` tenga un nombre que borrar.
+    static let enabledKey = "cenit.exerciseMediaEnabled"
     /// Exercise ids with no baked media, so bulk downloads don't retry them every run. Small
     /// (≤ catalog size), non-critical — UserDefaults is fine; re-derivable by re-running the bulk pass.
-    private static let missedIdsKey = "noop.exerciseMediaMissedIds"
+    private static let missedIdsKey = "cenit.exerciseMediaMissedIds"
 
     /// The bulk thumb download's observable progress (FER-778) — Ajustes reads this instead of a
     /// mute button. A miss (no baked `gifUrl` for that exercise) is expected and never retried.
@@ -40,7 +48,11 @@ final class MediaDownloadCoordinator: ObservableObject {
     /// coordinator (the default, at every app launch) never touches disk.
     private lazy var cache: MediaCache? = try? MediaCache()
 
-    var isEnabled: Bool { userDefaults.bool(forKey: Self.enabledKey) }
+    /// Forzado a `false` (FER-398): al retirar la tarjeta de descargas de Ajustes se fue el único
+    /// control de esta feature, así que leer la preferencia dejaría a una instalación que la tenía
+    /// encendida haciendo red sin forma de apagarla. FER-919 la revive con arte propio y devuelve
+    /// aquí la lectura de la preferencia. Con esto la app queda en CERO red por construcción.
+    var isEnabled: Bool { false }
 
     /// Whether the disk cache holds anything right now (ronda 2 #13) — Ajustes reads this, not
     /// `downloadState`, to decide whether «Borrar animaciones» is reachable: this session's progress

@@ -2,7 +2,6 @@
 import SwiftUI
 import CenitDesign
 import StrandTraining
-import Inject   // recarga en caliente (dev-only, inerte en Release)
 
 // SavedTicketsScreen.swift — «Tickets guardados»: grid of thermal mini-receipts for completed
 // strength sessions. Read-only — never edits or deletes. Pushed from WorkoutHistoryScreen via
@@ -190,7 +189,7 @@ struct SavedTicketsScreen: View {
         // FER-386 (mapa 100 %): fuerza el estado «Error de lectura» sin necesitar un fallo real del
         // store — solo simulador, mismo patrón que `ScreenshotFixtures.activeState()`.
         #if os(iOS) && DEBUG
-        if UserDefaults.standard.string(forKey: "noop.readError") == "YES" {
+        if UserDefaults.standard.string(forKey: "cenit.readError") == "YES" {
             readError = true
             loaded = true
             return

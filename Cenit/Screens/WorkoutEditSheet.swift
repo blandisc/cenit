@@ -3,7 +3,6 @@ import SwiftUI
 import CenitDesign
 import StrandTraining
 import CenitStore   // store.routineExercises(routineId:) — clasificación de familia (Alcance punto 5, FER-90)
-import Inject   // recarga en caliente (dev-only, inerte en Release)
 
 // WorkoutEditSheet.swift — edit a SAVED strength session (FER-556 → Liquid Glass · FER-294 B.2).
 // Opened from `WorkoutSessionDetailScreen`'s «Editar». Corrects the user-authored data: each set's

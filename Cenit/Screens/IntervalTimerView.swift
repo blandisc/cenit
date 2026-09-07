@@ -1,7 +1,6 @@
 import SwiftUI
 import Foundation
 import CenitDesign
-import Inject   // recarga en caliente (dev-only, inerte en Release)
 
 /// Silent haptic HIIT interval timer.
 ///

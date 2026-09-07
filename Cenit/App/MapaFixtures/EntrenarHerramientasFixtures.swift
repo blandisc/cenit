@@ -10,7 +10,7 @@ import StrandTraining
 /// `(AppModel) async -> Void`) para que el arranque de la app YA tenga la sesión viva y presentada.
 ///
 /// ⚠️ GAP conocido (repórtese al director, FER-386): HOY este seed es **inalcanzable** vía
-/// `-noop.fixture sesion-en-curso`. `ScreenshotFixtures.activeState()`
+/// `-cenit.fixture sesion-en-curso`. `ScreenshotFixtures.activeState()`
 /// (`Cenit/App/ScreenshotFixtures.swift`) hard-gatea el launch-arg a una whitelist fija
 /// (`primed`/`strained`/`balanced`/`rundown`/`insufficient`/`calibrating`/`downloading`/`train`)
 /// ANTES de consultar `FixtureRegistry` — cualquier clave nueva de una familia cae a `nil` y nunca

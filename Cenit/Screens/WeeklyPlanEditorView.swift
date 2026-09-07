@@ -3,7 +3,6 @@ import SwiftUI
 import CenitDesign
 import StrandTraining
 import TipKit
-import Inject   // recarga en caliente (dev-only, inerte en Release)
 
 // MARK: - «Tu Plan» — the single home for the week + the routines (FER-890, was FER-533 + FER-534)
 //

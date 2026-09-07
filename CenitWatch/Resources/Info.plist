@@ -20,10 +20,12 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>NSHealthShareUsageDescription</key>
-	<string>Cénit lee tu frecuencia cardiaca en el reloj durante la sesión de fuerza para grabar el entrenamiento. Cénit nunca lo sube. Sin servidor ni cuenta.</string>
+	<string>Cénit reads your heart rate on the watch during a strength session, to record the workout. Cénit never uploads it. No server, no account.</string>
 	<key>NSHealthUpdateUsageDescription</key>
-	<string>Cénit guarda tu sesión de fuerza como entrenamiento en Apple Salud, en el dispositivo y solo cuando tú lo permites.</string>
+	<string>Cénit saves your strength session into Apple Health as a workout, on-device and only when you allow it.</string>
 	<key>WKApplication</key>
 	<true/>
 	<key>WKBackgroundModes</key>

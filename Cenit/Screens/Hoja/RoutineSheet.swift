@@ -3,7 +3,6 @@ import SwiftUI
 import CenitDesign
 import StrandTraining
 import StrandAnalytics
-import Inject   // recarga en caliente (dev-only, inerte en Release)
 
 // MARK: - «La Hoja» — F1, la hoja en frío (FER-166)
 //

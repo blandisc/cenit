@@ -16,10 +16,16 @@ struct MediaCache {
     private let mediaDir: URL
 
     init() throws {
-        let base = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask,
-                                                 appropriateFor: nil, create: true)
-            .appendingPathComponent("OpenWhoop/MediaCache", isDirectory: true)
-        mediaDir = base.appendingPathComponent("media", isDirectory: true)
+        try self.init(container: StorePaths.containerDirectory(in: StorePaths.appSupport()))
+    }
+
+    /// FER-398: the cache lives INSIDE the store container (`<container>/MediaCache/media`), so the
+    /// one folder rename that migrates the database carries it along — no second migration. Taking
+    /// the container as a parameter is what makes it testable without touching Application Support.
+    init(container: URL) throws {
+        mediaDir = container
+            .appendingPathComponent("MediaCache", isDirectory: true)
+            .appendingPathComponent("media", isDirectory: true)
         try FileManager.default.createDirectory(at: mediaDir, withIntermediateDirectories: true)
     }
 

@@ -5,7 +5,6 @@ import CenitDesign
 import StrandTraining
 import StrandAnalytics
 import CenitStore
-import Inject   // recarga en caliente (dev-only, inerte en Release)
 
 /// The «Change {exercise}» sheet (FER-894 · «Cómo llego a Cambiar»): a search field over the library plus a
 /// shortlist of alternatives for the SAME primary muscle as the exercise being replaced. Picking «Use» swaps

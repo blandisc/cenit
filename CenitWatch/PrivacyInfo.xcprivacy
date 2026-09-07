@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>NSPrivacyTracking</key>
+    <false/>
+    <!-- The watchOS companion is a separate binary from the iPhone app, so Apple's privacy-manifest
+         scan needs its own (CenitApp/PrivacyInfo.xcprivacy does NOT cover it). It transmits nothing
+         off-device: it runs the workout session on the wrist and mirrors it to the paired iPhone over
+         WatchConnectivity — hence no collected data types, and the single required-reason API below. -->
+    <key>NSPrivacyCollectedDataTypes</key>
+    <array/>
+    <key>NSPrivacyAccessedAPITypes</key>
+    <array>
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array>
+                <!-- CA92.1: read/write UserDefaults within the same app group (CenitShared/AppGroup.swift,
+                     compiled into this target). -->
+                <string>CA92.1</string>
+            </array>
+        </dict>
+    </array>
+</dict>
+</plist>

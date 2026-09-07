@@ -128,10 +128,10 @@
       "titulo": "Plantilla · Sin permiso (T4)",
       "fixture": "insufficient",
       "args": [
-        "-noop.healthDenied",
+        "-cenit.healthDenied",
         "YES"
       ],
-      "condicion": "hasAnySource=true (fixture) + healthConnected=false (`-noop.healthDenied`) + sin veredicto → LiquidHoyBuilder.plantilla()=.t4SinPermiso · héroe «Conectar Salud»",
+      "condicion": "hasAnySource=true (fixture) + healthConnected=false (`-cenit.healthDenied`) + sin veredicto → LiquidHoyBuilder.plantilla()=.t4SinPermiso · héroe «Conectar Salud»",
       "pasos": [
         {
           "nav": "today",
@@ -150,7 +150,7 @@
       "titulo": "T3 · Leyendo tu noche",
       "fixture": "insufficient",
       "args": [
-        "-noop.hour",
+        "-cenit.hour",
         "5"
       ],
       "condicion": "ventana nocturna ABIERTA (hora local < 11, sin sesión que cierre) → causaT3()=.leyendo · franja «Leyendo tu noche…»",
@@ -166,26 +166,26 @@
       "titulo": "T3 · Sync pendiente",
       "fixture": "insufficient",
       "args": [
-        "-noop.hour",
+        "-cenit.hour",
         "14",
-        "-noop.syncStale",
+        "-cenit.syncStale",
         "YES"
       ],
-      "condicion": "ventana CERRADA (hora≥11) + último import viejo (`-noop.syncStale` fuerza lastSync=nil) → causaT3()=.sinSync · franja «Sync pendiente · jala hacia abajo para sincronizar»",
+      "condicion": "ventana CERRADA (hora≥11) + último import viejo (`-cenit.syncStale` fuerza lastSync=nil) → causaT3()=.sinSync · franja «Sync pendiente · jala hacia abajo para sincronizar»",
       "pasos": [
         {
           "nav": "today",
           "settle": 5
         }
       ],
-      "omitido": "capturó igual que t3-leyendo — el arg -noop.syncStale no diferenció el estado (backlog)"
+      "omitido": "capturó igual que t3-leyendo — el arg -cenit.syncStale no diferenció el estado (backlog)"
     },
     {
       "id": "t3-noche-no-registrada",
       "titulo": "T3 · Noche no registrada",
       "fixture": "downloading",
       "args": [
-        "-noop.hour",
+        "-cenit.hour",
         "14"
       ],
       "condicion": "ventana CERRADA (hora≥11) + import fresco (fixture) + sin fila de HOY (el fixture `downloading` solo siembra días −1…−6) → causaT3()=.nocheNoRegistrada · franja «La noche no quedó registrada»",
@@ -200,7 +200,7 @@
       "id": "preparacion-cargando",
       "titulo": "Preparación · Cargando",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "hoy/preparacion-cargando"
       ],
       "condicion": "PreparacionDetalleModelo.Estado.cargando (constante estática, sin datos) — hoja de «tus 30 mañanas»; en producción SOLO se abre desde Cuerpo, aquí forzada vía DebugRoute (no hay disparador en Hoy)",
@@ -219,7 +219,7 @@
       "titulo": "Preparación · Sin permiso",
       "fixture": "insufficient",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "hoy/preparacion-sinpermiso"
       ],
       "condicion": "PreparacionDetalleModelo.build(healthConnected:false) → estado=.sinPermiso",
@@ -237,7 +237,7 @@
       "id": "preparacion-sin-historia",
       "titulo": "Preparación · Sin historia",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "hoy/preparacion-sinhistoria"
       ],
       "condicion": "sin fixture (store fresco, `repo.todayPreparedness`=nil) + healthConnected forzado a true → PreparacionDetalleModelo.build cae en estado=.sinHistoria",
@@ -256,7 +256,7 @@
       "titulo": "Preparación · Con ventana",
       "fixture": "primed",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "hoy/preparacion-conventana"
       ],
       "condicion": "prep con verdictHistory (40 días del fixture `primed`) + healthConnected=true → estado=.conVentana, mosaico de 30 días + «Los votos»",
@@ -335,7 +335,7 @@
       "titulo": "Eje autonómico",
       "fixture": "primed",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "hoy/autonomico"
       ],
       "condicion": "toca el orbe «Autonómico» del héroe → showAutonomicoHoja → LiquidAutonomicoScreen; el orbe vive dentro de CenitDesign/LiquidHoyContent sin accessibilityIdentifier propio, forzado vía DebugRoute",
@@ -354,7 +354,7 @@
       "titulo": "Detalle · Sueño",
       "fixture": "primed",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "hoy/sueno"
       ],
       "condicion": "SleepDetailScreen — la MISMA acción del «Ver más» real de la hoja resumen (seeMoreAction(\"sleep\")), forzada vía DebugRoute",
@@ -373,7 +373,7 @@
       "titulo": "Detalle · Esfuerzo",
       "fixture": "primed",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "hoy/esfuerzo"
       ],
       "condicion": "StrainDetailScreen — MISMA acción del «Ver más» real (seeMoreAction(\"strain\")), forzada vía DebugRoute",
@@ -393,7 +393,7 @@
       "titulo": "Detalle · Estrés",
       "fixture": "primed",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "hoy/estres"
       ],
       "condicion": "StressDetailScreen + StressDayMapView — MISMA acción del «Ver más» real (seeMoreAction(\"stress\")), forzada vía DebugRoute",
@@ -413,7 +413,7 @@
       "titulo": "Detalle · Temperatura de piel",
       "fixture": "primed",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "hoy/temperatura"
       ],
       "condicion": "SkinTempDetailScreen — sin renglón propio en la Matriz (el guardián no desglosa temp/resp como filas tocables); MISMA acción de producción (seeMoreAction(\"skin_temp\")), forzada vía DebugRoute",
@@ -508,7 +508,7 @@
       "titulo": "Métrica · Respiración",
       "fixture": "primed",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "hoy/metrica-resp_rate"
       ],
       "condicion": "LiquidMetricSheetView(info: .respiratory) — sin renglón propio en la Matriz (vive dentro del guardián, sin fila tocable), forzada vía DebugRoute",
@@ -527,7 +527,7 @@
       "titulo": "Métrica · FC (curva 24 h)",
       "fixture": "primed",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "hoy/metrica-heart_rate"
       ],
       "condicion": "LiquidMetricSheetView(info: .heartRate) — vital huérfana: ninguna fila de Hoy despacha este id (`abrirHojaCaras`/`openLiquidMetric` no tienen caso «heart_rate»), forzada vía DebugRoute",
@@ -546,7 +546,7 @@
       "titulo": "Métrica · SpO₂",
       "fixture": "primed",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "hoy/metrica-spo2"
       ],
       "condicion": "LiquidMetricSheetView(info: .spo2) — vital huérfana (sin fila en Hoy), forzada vía DebugRoute",
@@ -565,7 +565,7 @@
       "titulo": "Métrica · VO₂max",
       "fixture": "primed",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "hoy/metrica-vo2max"
       ],
       "condicion": "LiquidMetricSheetView(info: .vo2max) — vital huérfana (sin fila en Hoy), forzada vía DebugRoute",
@@ -584,7 +584,7 @@
       "titulo": "Fuentes de datos (desde Hoy)",
       "fixture": "primed",
       "args": [
-        "-noop.route",
+        "-cenit.route",
         "hoy/fuentes"
       ],
       "condicion": "showDataSources → DataSourcesView; en producción se abre tocando la pastilla «Conectar Salud» del héroe SIN veredicto o el aviso de Salud desconectada — forzada aquí vía DebugRoute para no depender de esos dos estados",

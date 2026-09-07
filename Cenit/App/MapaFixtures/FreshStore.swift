@@ -1,7 +1,7 @@
 #if os(iOS) && DEBUG
 import Foundation
 
-/// `-noop.freshStore YES` (FER-381): borra la base SQLite ANTES de que el store se abra, para que
+/// `-cenit.freshStore YES` (FER-381): borra la base SQLite ANTES de que el store se abra, para que
 /// cada estado de captura sea hermético sin `xcrun simctl erase` entre corridas (los fixtures escriben
 /// rutinas/sesiones en el store real, y sin esto una corrida contamina a la siguiente).
 ///
@@ -11,7 +11,7 @@ import Foundation
 enum FreshStore {
     static func applyIfRequested() {
         #if targetEnvironment(simulator)
-        guard UserDefaults.standard.string(forKey: "noop.freshStore")?.lowercased() == "yes" else { return }
+        guard UserDefaults.standard.string(forKey: "cenit.freshStore")?.lowercased() == "yes" else { return }
         guard let path = try? StorePaths.defaultDatabasePath() else { return }
         let fm = FileManager.default
         for suffix in ["", "-wal", "-shm"] {   // el .sqlite y sus sidecars WAL/SHM

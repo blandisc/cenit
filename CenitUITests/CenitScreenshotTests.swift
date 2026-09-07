@@ -20,7 +20,7 @@ import XCTest
 /// ## Two rules that keep this suite from rotting (learned the hard way)
 ///
 /// 1. **Navigate with `nav(_:)`, not by tapping labels.** Every screen here is reachable through
-///    `ScreenshotNav` (`noop.nav.<key>`, DEBUG-only), which sets the tab + pushes the stack
+///    `ScreenshotNav` (`cenit.nav.<key>`, DEBUG-only), which sets the tab + pushes the stack
 ///    directly. Tapping localized text was how this suite broke: the string catalog's source
 ///    language is English (keys ARE the English literals), so `buttons["Entrenar"]` matched only
 ///    when the host simulator happened to run in Spanish, and renamed copy («Editar semana» →
@@ -52,7 +52,7 @@ final class CenitScreenshotTests: XCTestCase {
             }
         }
         // Fallback: use the tmp directory (always writable in any process)
-        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("noop-fixtures")
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("cenit-fixtures")
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         return dir
     }()
@@ -62,17 +62,17 @@ final class CenitScreenshotTests: XCTestCase {
     private static let baseArgs = [
         "-AppleLanguages",               "(es)",
         "-AppleLocale",                  "es_MX",
-        "-noop.onboarded",               "YES",
+        "-cenit.onboarded",               "YES",
         // Debe igualar `Terms.currentVersion` (Cenit/App/Terms.swift): con "1.0" desde FER-1003 el
         // arnés capturaba la puerta de Términos en vez de la pantalla (FER-118 · F lo cazó).
-        "-noop.acceptedTermsVersion",    "2.0",
-        "-noop.didOfferRestore",         "YES",
+        "-cenit.acceptedTermsVersion",    "2.0",
+        "-cenit.didOfferRestore",         "YES",
     ]
 
     /// A fresh app pinned to `baseArgs`, optionally seeded with a `ScreenshotFixtures` state.
     private func makeApp(fixture: String? = nil) -> XCUIApplication {
         let a = XCUIApplication()
-        a.launchArguments = Self.baseArgs + (fixture.map { ["-noop.fixture", $0] } ?? [])
+        a.launchArguments = Self.baseArgs + (fixture.map { ["-cenit.fixture", $0] } ?? [])
         return a
     }
 
@@ -193,7 +193,7 @@ final class CenitScreenshotTests: XCTestCase {
     /// Sweeps the 5-tab shell (FER-182: Hoy · Tendencias · Patrones · Entrenar · Ajustes) plus every
     /// secondary screen, all via `nav(_:)`.
     ///
-    /// Not swept: `sleep` — Sueño is no longer a standalone screen, its `noop.nav` key is an ALIAS of
+    /// Not swept: `sleep` — Sueño is no longer a standalone screen, its `cenit.nav` key is an ALIAS of
     /// the Cuerpo tab (see `RootTabView`), so capturing it would just duplicate `trends.png`.
     /// `docs/fixtures/sleep.png` is therefore an orphan of the old shell, as are health/insights/
     /// intelligence/live/stress. «En vivo» is likewise no longer a tab (it opens as a cover from
@@ -264,13 +264,13 @@ final class CenitScreenshotTests: XCTestCase {
         "Sparkline",
     ]
 
-    /// Captura un PNG por pieza: cada una se monta a pantalla completa vía `-noop.component <Nombre>`
+    /// Captura un PNG por pieza: cada una se monta a pantalla completa vía `-cenit.component <Nombre>`
     /// (ver `ComponentGalleryHost`). Un solo test, un relanzamiento por pieza — igual disciplina que
     /// los estados de Hoy, para que una permission-alert en una no bloquee a las demás.
     func test_components() throws {
         for name in Self.componentNames {
             let a = XCUIApplication()
-            a.launchArguments = Self.baseArgs + ["-noop.component", name]
+            a.launchArguments = Self.baseArgs + ["-cenit.component", name]
             a.launch()
             XCTAssertTrue(a.wait(for: .runningForeground, timeout: 15), "app never foregrounded for \(name)")
             wait(2)   // sin coreografía de entrada aquí (la galería tapa la raíz), pero deja asentar el layout
@@ -284,7 +284,7 @@ final class CenitScreenshotTests: XCTestCase {
     /// Recorre los manifiestos `docs/appmap/mapa/<familia>.json` (empacados como recursos de este
     /// bundle, o desde `NOOP_MAPA_DIR` si el entorno lo fija) y captura un PNG por nodo × frame. Un
     /// solo test para TODAS las familias — filtra con `NOOP_MAPA_FAMILIA=hoy,entrenar` para una corrida
-    /// por lane. Cada nodo se relanza limpio con `-noop.freshStore` (base hermética) + su `fixture`/`args`,
+    /// por lane. Cada nodo se relanza limpio con `-cenit.freshStore` (base hermética) + su `fixture`/`args`,
     /// ejecuta sus `pasos` de navegación y snapea. Un nodo que falle NO detiene a los demás (se listan
     /// al final); `Tools/check-shots.py` valida después que ningún PNG salió en blanco o repetido.
     // Un método POR FAMILIA (no uno solo): si el app crashea en un nodo, XCUITest aborta ESE método y
@@ -325,8 +325,8 @@ final class CenitScreenshotTests: XCTestCase {
             for (fam, n) in slice {
                 let id = n["id"] as? String ?? "x"
                 let a = XCUIApplication()
-                var args = Self.baseArgs + ["-noop.freshStore", "YES"]
-                if let fx = n["fixture"] as? String, !fx.isEmpty { args += ["-noop.fixture", fx] }
+                var args = Self.baseArgs + ["-cenit.freshStore", "YES"]
+                if let fx = n["fixture"] as? String, !fx.isEmpty { args += ["-cenit.fixture", fx] }
                 if let extra = n["args"] as? [String] { args += extra }
                 a.launchArguments = args
                 a.launch()
@@ -459,7 +459,7 @@ final class CenitScreenshotTests: XCTestCase {
     private func nav(_ screen: String, app a: XCUIApplication? = nil, settle: TimeInterval = 2) {
         CFNotificationCenterPostNotification(
             CFNotificationCenterGetDarwinNotifyCenter(),
-            CFNotificationName("noop.nav.\(screen)" as CFString),
+            CFNotificationName("cenit.nav.\(screen)" as CFString),
             nil, nil, true)
         wait(settle)
         let target = a ?? self.app!

@@ -32,7 +32,7 @@ CATALOG_ROW = re.compile(r'd\("([a-zA-Z0-9_]+)",\s*String\(localized:\s*"([^"]+)
 RICH_KEYS = {"hrv", "rhr", "resp_rate", "spo2", "heart_rate", "steps", "vo2max"}
 HEART_RATE_EXTRA = ("heart_rate", "Heart Rate (intradía)")
 
-# `ExploreRange.label` exacto — el arg `-noop.range` (`TendenciasFixtures.debugRange()`) solo
+# `ExploreRange.label` exacto — el arg `-cenit.range` (`TendenciasFixtures.debugRange()`) solo
 # reconoce estos 6 valores.
 # Rangos a capturar. Por defecto (versión LIGERA, decisión del dueño 2026-09-06) UN solo rango: la
 # misma métrica en semana/mes/3 meses se veía casi igual y no aportaba — no repetimos por rango. Con
@@ -77,7 +77,7 @@ def landing_nodes() -> list[dict]:
             "titulo": f"Cuerpo · landing · rango {r}",
             "condicion": f"Landing de Tendencias con datos (`primed`), selector de rango en {r}.",
             "fixture": "primed",
-            "args": ["-noop.range", r],
+            "args": ["-cenit.range", r],
             "pasos": [{"nav": "body", "settle": 5}],
             "frames": 2,   # scroll: el landing es una sola pantalla larga (héroe → footer)
             "png": f"tendencias-cuerpo-{slug_range(r)}.png",
@@ -99,7 +99,7 @@ def metric_nodes(catalog: list[tuple[str, str]]) -> list[dict]:
                     "id": f"detalle-{slug_key(key)}-{slug_range(r)}-{state}",
                     "titulo": f"Detalle · {title} · {r} · {state}",
                     "condicion": f"{via} · estado «{state}» · rango {r}.",
-                    "args": ["-noop.route", f"tendencias/{key}", "-noop.range", r],
+                    "args": ["-cenit.route", f"tendencias/{key}", "-cenit.range", r],
                     "pasos": [{"wait": 2}],   # margen extra: el fixture siembra el store en un Task detached
                     "frames": 1,
                     "png": f"tendencias-detalle-{slug_key(key)}-{slug_range(r)}-{state}.png",
@@ -109,7 +109,7 @@ def metric_nodes(catalog: list[tuple[str, str]]) -> list[dict]:
                     node["fixture"] = "tendencias_full"
                 elif state == "calibrando":
                     node["fixture"] = "tendencias_calibrando"
-                # "sin-lecturas": SIN fixture — `-noop.freshStore YES` (que test_mapa añade a todo
+                # "sin-lecturas": SIN fixture — `-cenit.freshStore YES` (que test_mapa añade a todo
                 # nodo) ya deja el store vacío; no hace falta sembrar nada.
                 nodes.append(node)
     return nodes
@@ -138,7 +138,7 @@ def aux_nodes() -> list[dict]:
                 "id": f"{id_prefix}-{state}",
                 "titulo": f"{blurb} · {state}",
                 "condicion": f"{blurb}, estado {'con datos' if state == 'full' else 'vacío (sin fixture, freshStore)'}.",
-                "args": ["-noop.route", f"tendencias/{route_key}"],
+                "args": ["-cenit.route", f"tendencias/{route_key}"],
                 "pasos": [{"wait": 2}],
                 "frames": 1,
                 "png": f"tendencias-{id_prefix}-{state}.png",

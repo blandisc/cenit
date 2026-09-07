@@ -1,6 +1,5 @@
 import SwiftUI
 import CenitDesign
-import Inject   // recarga en caliente (dev-only, inerte en Release)
 
 /// Marca de proceso de la entrada (FER-41): la coreografía de arranque corre UNA sola vez por
 /// lanzamiento.
@@ -17,10 +16,10 @@ enum EntradaDeArranque {
 
 /// Root — the sidebar shell, with the first-run onboarding/pairing wizard overlaid until complete.
 struct ContentView: View {
-    @AppStorage("noop.onboarded") private var onboarded = false
-    @AppStorage("noop.acceptedTermsVersion") private var acceptedTerms = ""
+    @AppStorage(PrefKey.onboarded.rawValue) private var onboarded = false
+    @AppStorage(PrefKey.acceptedTermsVersion.rawValue) private var acceptedTerms = ""
     /// A4/FER-348: apariencia elegida por el usuario — "sistema" (default) · "claro" · "oscuro".
-    @AppStorage("noop.apariencia") private var apariencia = "sistema"
+    @AppStorage(PrefKey.apariencia.rawValue) private var apariencia = "sistema"
     /// FER-41: la entrada sigue puesta hasta que su coreografía termina (o el usuario la toca).
     @State private var entradaLista = false
     /// El frame REAL del orbe del héroe en pantalla (para que la entrada aterrice sin costura).
@@ -49,7 +48,7 @@ struct ContentView: View {
     /// FER-116: la conexión con Apple Salud es la señal que decide si la oferta de restaurar tiene
     /// sentido siquiera (ver `maybeOfferRestore`).
     @EnvironmentObject private var health: HealthKitBridge
-    @AppStorage("noop.didOfferRestore") private var didOfferRestore = false
+    @AppStorage(PrefKey.didOfferRestore.rawValue) private var didOfferRestore = false
     @State private var showRestoreOffer = false
     @State private var restoreMessage = ""
     @State private var showRestoreResult = false
@@ -64,25 +63,25 @@ struct ContentView: View {
     // `private(set)` (esta familia no puede tocar `Repository.swift`), y `onboarded` decide un
     // ZStack entero que tampoco es de esta familia.
 
-    /// `-noop.onboardingActo`/`-noop.onboardingLanding` MUESTRAN el wizard aun con
-    /// `-noop.onboarded YES` puesto — el arg que hoy lo SALTA. El mapa necesita las dos cosas en
+    /// `-cenit.onboardingActo`/`-cenit.onboardingLanding` MUESTRAN el wizard aun con
+    /// `-cenit.onboarded YES` puesto — el arg que hoy lo SALTA. El mapa necesita las dos cosas en
     /// el mismo lanzamiento: el arranque base (fija el idioma, salta el onboarding para el resto
     /// de familias) y el wizard forzado a un acto/aterrizaje concreto para ÉSTA.
     private var onboardingWizardForzadoDebug: Bool {
         #if os(iOS) && DEBUG
         let d = UserDefaults.standard
-        return d.string(forKey: "noop.onboardingActo") != nil
-            || d.string(forKey: "noop.onboardingLanding") != nil
+        return d.string(forKey: "cenit.onboardingActo") != nil
+            || d.string(forKey: "cenit.onboardingLanding") != nil
         #else
         return false
         #endif
     }
 
-    /// `-noop.storeFailed YES` SIMULA `repo.storeOpenFailed` sin romper el store de verdad — solo
+    /// `-cenit.storeFailed YES` SIMULA `repo.storeOpenFailed` sin romper el store de verdad — solo
     /// se suma a la condición que decide si `StoreFailureView` se pinta.
     private var storeFailedForzadoDebug: Bool {
         #if os(iOS) && DEBUG
-        return UserDefaults.standard.string(forKey: "noop.storeFailed") == "YES"
+        return UserDefaults.standard.string(forKey: "cenit.storeFailed") == "YES"
         #else
         return false
         #endif
@@ -92,7 +91,7 @@ struct ContentView: View {
         ZStack {
             RootTabView(isTodayActive: $isTodayTab)
             #if os(iOS) && DEBUG
-            // FER-315 · galería de componentes: con el launch-arg `-noop.component <Nombre>` el harness
+            // FER-315 · galería de componentes: con el launch-arg `-cenit.component <Nombre>` el harness
             // monta UNA pieza de CenitDesign a pantalla completa (fondo opaco → tapa todo lo de atrás).
             // `nil` en un arranque normal, así que la puerta no existe fuera de la captura DEBUG.
             if let component = ComponentGalleryLaunch.requestedName {
@@ -180,7 +179,7 @@ struct ContentView: View {
         .task { await maybeOfferRestore() }
         .onChange(of: onboarded) { _, done in if done { Task { await maybeOfferRestore() } } }
         #if DEBUG
-        // FER-391 (mapa 100 %): `-noop.restore offer|result` fuerza el estado SIN correr
+        // FER-391 (mapa 100 %): `-cenit.restore offer|result` fuerza el estado SIN correr
         // `maybeOfferRestore()` (que depende de HealthKit real) ni tocar el store — puro estado
         // local del gate, la misma variable que ya pinta el alert/banner de producción.
         .task { await forzarRestoreDebug() }
@@ -252,12 +251,12 @@ struct ContentView: View {
     /// se lee como poesía sino como que la app se repite. La entrada se GANA: vuelve en el segundo
     /// arranque, cuando ya hay una lectura suya que revelar.
     private var mostrandoEntrada: Bool {
-        // FER-391 (mapa 100 %): `-noop.entrada YES` la deja puesta sin importar el reloj de
+        // FER-391 (mapa 100 %): `-cenit.entrada YES` la deja puesta sin importar el reloj de
         // `LiquidOrbeEntrada` — la coreografía real dura ~2.8 s y el arnés no tiene forma de
         // congelar un frame a mitad de una animación, así que sin esto la captura sería una
         // carrera contra un timer.
         #if os(iOS) && DEBUG
-        if UserDefaults.standard.string(forKey: "noop.entrada") == "YES" { return true }
+        if UserDefaults.standard.string(forKey: "cenit.entrada") == "YES" { return true }
         #endif
         return onboarded && !entradaLista && !EntradaDeArranque.yaCorrio
     }
@@ -317,7 +316,7 @@ struct ContentView: View {
     #if DEBUG
     /// Ver la nota de `.task { forzarRestoreDebug() }` arriba.
     @MainActor private func forzarRestoreDebug() {
-        switch UserDefaults.standard.string(forKey: "noop.restore") {
+        switch UserDefaults.standard.string(forKey: "cenit.restore") {
         case "offer":
             showRestoreOffer = true
         case "result":

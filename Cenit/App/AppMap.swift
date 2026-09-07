@@ -41,8 +41,7 @@ private struct AppMapCell: View {
                 .environment(model)
                 .environmentObject(TabRouter())
                 .environmentObject(HealthKitBridge(repo: model.repo,
-                                                   appleDeviceId: "map-apple",
-                                                   noopDeviceId: "map"))
+                                                   appleDeviceId: "map-apple"))
                 .preferredColorScheme(.light)
                 .frame(width: 393, height: 852)
                 // Marco de iPhone del mapa de pantallas (42; ya en baseline no-radius-literal).
@@ -111,8 +110,7 @@ private struct EntrenarMapCell: View {
             .environment(model)
             .environmentObject(TabRouter())
             .environmentObject(HealthKitBridge(repo: model.repo,
-                                               appleDeviceId: "map-apple",
-                                               noopDeviceId: "map"))
+                                               appleDeviceId: "map-apple"))
             .environment(\.locale, .init(identifier: locale))
             .preferredColorScheme(.light)
             .frame(width: 393, height: 852)
@@ -437,7 +435,7 @@ private struct EntrenarFlowsMapCell: View {
         .environmentObject(media)
         .environmentObject(TabRouter())
         .environmentObject(historyCoordinator)
-        .environmentObject(HealthKitBridge(repo: model.repo, appleDeviceId: "map-apple", noopDeviceId: "map"))
+        .environmentObject(HealthKitBridge(repo: model.repo, appleDeviceId: "map-apple"))
         // FER-132 DEROGADA (FER-167 · F2): el héroe de sesión viva que cubría este estado se retiró
         // — la píldora ahora vive en TODOS los tabs, Entrenar incluido, igual que las otras celdas.
         .overlay(alignment: .bottom) {

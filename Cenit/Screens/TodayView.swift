@@ -4,7 +4,6 @@ import StrandAnalytics
 import StrandTraining
 import CenitStore
 import Foundation
-import Inject   // recarga en caliente (dev-only, inerte en Release)
 
 
 // MARK: - Hoy (FER-709 · FER-1045 · FER-41)
@@ -112,7 +111,7 @@ struct TodayView: View {
         // FER-383 (mapa 100 %): simula HealthKit denegado para capturar t4SinPermiso — gana
         // sobre el "true" de abajo, así un nodo combina un fixture normal (para tener datos y
         // hasAnySource=true) con este arg (para tumbar solo el permiso).
-        if UserDefaults.standard.string(forKey: "noop.healthDenied")?.uppercased() == "YES" { return false }
+        if UserDefaults.standard.string(forKey: "cenit.healthDenied")?.uppercased() == "YES" { return false }
         if ScreenshotFixtures.activeState() != nil { return true }
         #endif
         return health.auth == .authorized
@@ -208,7 +207,7 @@ struct TodayView: View {
     /// HERMANOS de un `ZStack`, así que Hoy se pinta completo debajo de una capa opaca. Se lee aquí
     /// —y no allá— porque el `.environment(\.liquidAmbientPaused)` de esta pantalla sobrescribe
     /// cualquier valor que venga de arriba para todo su subárbol.
-    @AppStorage("noop.onboarded") private var onboarded = false
+    @AppStorage(PrefKey.onboarded.rawValue) private var onboarded = false
 
 
     // Metric-info sheet — tapping any Key Metrics row presents this.
@@ -236,7 +235,7 @@ struct TodayView: View {
     /// La hoja de carga (montada al tocar la franja).
     @State private var trainingLoadItem: TrainingLoadItem? = nil
     /// FER-383 (mapa 100 %): «Preparación» hoy solo se presenta desde Cuerpo (`CuerpoView`); esta
-    /// pieza SOLO existe para que el mapa de Hoy capture sus 4 estados vía `-noop.route
+    /// pieza SOLO existe para que el mapa de Hoy capture sus 4 estados vía `-cenit.route
     /// hoy/preparacion-<estado>` (DEBUG). No hay disparador de producción en Hoy.
     #if os(iOS) && DEBUG
     @State private var preparacionDetail: PreparacionDetalleItem? = nil
@@ -442,7 +441,7 @@ struct TodayView: View {
             .sheet(item: $preparacionDetail) { item in
                 PreparacionDetailScreen(modelo: item.modelo)
             }
-            // FER-383 (mapa 100 %): `-noop.route hoy/<clave>` lleva la captura a una hoja de Hoy
+            // FER-383 (mapa 100 %): `-cenit.route hoy/<clave>` lleva la captura a una hoja de Hoy
             // sin disparador real (Preparación se presenta hoy solo desde Cuerpo; el orbe
             // «Autonómico», el «Ver más» de Sueño/Esfuerzo/Estrés/Temp. de piel y las 4 vitales
             // huérfanas — heart_rate/spo2/vo2max/resp_rate — no tienen fila/botón propio en Hoy
@@ -1183,7 +1182,7 @@ struct TodayView: View {
         // FER-383 (mapa 100 %): fija la HORA del reloj de Hoy para capturar los sub-estados T3
         // (la ventana nocturna abre/cierra según la hora local) sin depender de la hora real
         // de la corrida — `causaT3.leyendo` (ventana abierta) es hora-dependiente por diseño.
-        if let h = UserDefaults.standard.string(forKey: "noop.hour").flatMap(Int.init) {
+        if let h = UserDefaults.standard.string(forKey: "cenit.hour").flatMap(Int.init) {
             now = cal.date(bySettingHour: h, minute: 0, second: 0, of: now) ?? now
         }
         #endif
@@ -1207,7 +1206,7 @@ struct TodayView: View {
         // FER-383 (mapa 100 %): fuerza el último import a "viejo" (nil) para capturar
         // t3SinVeredicto(.sinSync) — gana sobre el "lastSync = now" de abajo, que si no
         // NUNCA deja que un fixture parezca desincronizado.
-        if UserDefaults.standard.string(forKey: "noop.syncStale")?.uppercased() == "YES" {
+        if UserDefaults.standard.string(forKey: "cenit.syncStale")?.uppercased() == "YES" {
             lastSync = nil
         } else if ScreenshotFixtures.activeState() != nil {
             // Con fixture no hay HealthKit que sincronizar: el import es «fresco» por definición
@@ -1471,7 +1470,7 @@ struct TodayView: View {
     /// Decide entre las DOS superficies de Hoy: la Liquid con datos y el orbe dormido sin ellos.
     private var noSources: Bool {
         #if DEBUG
-        // Los fixtures de captura (`-noop.fixture …`) siembran el dashboard pero NO
+        // Los fixtures de captura (`-cenit.fixture …`) siembran el dashboard pero NO
         // `appleHealthDays` ni el permiso de Salud, así que sin conceder HealthKit a mano
         // caían a la superficie CLÁSICA (las agujas «En reposo») en vez de la Liquid que
         // representan. En modo fixture SIEMPRE hay fuentes: el estado sin fuentes se captura
@@ -1882,7 +1881,7 @@ private struct LiquidGuardianHojaHost: View {
         // Apple Health connect nudge); inject both so the iOS canvas renders instead of trapping on a
         // missing environment object.
         .environment(AppModel.preview)
-        .environmentObject(HealthKitBridge(repo: repo, appleDeviceId: "preview-apple", noopDeviceId: "preview"))
+        .environmentObject(HealthKitBridge(repo: repo, appleDeviceId: "preview-apple"))
         #endif
         .frame(width: 920, height: 940)
 }
@@ -1913,7 +1912,7 @@ private struct LiquidGuardianHojaHost: View {
         .environmentObject(TabRouter())
         #if os(iOS)
         .environment(AppModel.preview)
-        .environmentObject(HealthKitBridge(repo: repo, appleDeviceId: "preview-apple", noopDeviceId: "preview"))
+        .environmentObject(HealthKitBridge(repo: repo, appleDeviceId: "preview-apple"))
         #endif
         .frame(width: 920, height: 940)
         .dynamicTypeSize(.accessibility5)

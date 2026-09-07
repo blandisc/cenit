@@ -12,7 +12,7 @@
 import Foundation
 
 enum RestActivityBridge {
-    /// The App Group both targets already share (see NOOP.entitlements / CenitWidgets.entitlements).
+    /// The App Group both targets already share (see Cenit.entitlements / CenitWidgets.entitlements).
     /// Read from `AppGroup` rather than repeated as a literal here — the two used to be independent
     /// declarations and drifted apart, which nothing caught (an unentitled suite fails silently).
     static let appGroup = AppGroup.suiteName

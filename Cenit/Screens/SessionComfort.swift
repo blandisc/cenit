@@ -33,12 +33,12 @@ enum SessionComfort {
     /// `closeStrengthSummary`, no una vista: el modo foco y el recibo se presentan como
     /// `fullScreenCover` DESDE la hoja, y una presentación así desmonta a quien presenta, así que
     /// colgarla del ciclo de vida de la vista la apagaba justo donde más se quiere.
-    static let keepAwakeKey = "noop.session.keepScreenAwake"
+    static let keepAwakeKey = PrefKey.sessionKeepScreenAwake.rawValue
     /// Sonar al terminar el descanso, además de la háptica. Apagado por defecto.
-    static let restSoundKey = "noop.session.restSound"
+    static let restSoundKey = PrefKey.sessionRestSound.rawValue
     /// Avisar por notificación cuando el descanso termina con el teléfono guardado o bloqueado.
     /// Apagado por defecto y con permiso pedido en el momento de encenderlo (FER-93).
-    static let restNotifyKey = "noop.session.restNotify"
+    static let restNotifyKey = PrefKey.sessionRestNotify.rawValue
 
     /// El tono del sistema que suena al terminar el descanso. `1057` es el «Tink» de iOS: corto,
     /// discreto y ya instalado — no se empaqueta un archivo de audio para esto.

@@ -6,8 +6,8 @@ import CenitStore
 
 /// Full-database EXPORT / IMPORT for device migration.
 ///
-/// NOOP keeps everything in one SQLite file (`<AppSupport>/OpenWhoop/whoop.sqlite`, plus the
-/// `-wal`/`-shm` WAL sidecars while the store is open). Moving to another device is therefore just a
+/// Cénit keeps everything in one SQLite file (`<AppSupport>/Cenit/cenit.sqlite`, plus the
+/// `-wal`/`-shm` WAL sidecars while the store is open; see `StorePaths`). Moving to another device is therefore just a
 /// matter of moving that file. Export checkpoints the WAL (so the single file is whole) and copies
 /// it to a user-chosen location; import validates a chosen backup, snapshots the current DB to a
 /// side file, drops the backup in over the live path, and asks the user to relaunch (the store is
@@ -114,7 +114,7 @@ enum DataBackup {
 
         // Snapshot the current DB (+ sidecars) to a timestamped side file so the user can roll back.
         var sidecar = dbURL.deletingLastPathComponent()
-            .appendingPathComponent("whoop-replaced-\(timestamp()).sqlite")
+            .appendingPathComponent("cenit-replaced-\(timestamp()).sqlite")
         if fm.fileExists(atPath: dbURL.path) {
             if fm.fileExists(atPath: sidecar.path) { try fm.removeItem(at: sidecar) }
             try fm.copyItem(at: dbURL, to: sidecar)
@@ -125,7 +125,7 @@ enum DataBackup {
 
         // Stage next to the live DB, then swap; the live file is never absent mid-import.
         let incoming = dbURL.deletingLastPathComponent()
-            .appendingPathComponent("whoop-incoming-\(timestamp()).sqlite")
+            .appendingPathComponent("cenit-incoming-\(timestamp()).sqlite")
         removeIfPresent(incoming)
         try fm.copyItem(at: source, to: incoming)
         if fm.fileExists(atPath: dbURL.path) {
@@ -182,7 +182,7 @@ enum DataBackup {
 /// Near-automatic backup of the single NOOP database to a folder in the user's own iCloud Drive.
 ///
 /// Why this is its own thing (vs the manual `DataBackup` export): the strap's offloaded raw streams
-/// live ONLY in `whoop.sqlite` — the strap trims its copy the moment NOOP acks the offload (see
+/// live ONLY in the app's own SQLite file — the strap trimmed its copy the moment NOOP acked the offload (see
 /// `Backfiller`). Apple Health re-syncs from the system vault and imported CSVs are re-importable, so
 /// the strap history is the one irreplaceable thing. Losing the app's container (a delete, a fresh
 /// install, a lost phone) loses it for good.
@@ -208,16 +208,20 @@ final class AutoBackup: ObservableObject {
     @Published private(set) var busy = false
 
     private let defaults = UserDefaults.standard
-    private let bookmarkKey = "noop.autoBackup.folderBookmark"
-    private let nameKey = "noop.autoBackup.folderName"
-    private let lastKey = "noop.autoBackup.lastDate"
+    private let bookmarkKey = PrefKey.autoBackupFolderBookmark.rawValue
+    private let nameKey = PrefKey.autoBackupFolderName.rawValue
+    private let lastKey = PrefKey.autoBackupLastDate.rawValue
     /// At most one automatic backup per ~day; the manual "Back up now" ignores this.
     private let minInterval: TimeInterval = 23 * 3_600
-    /// Fixed iCloud auto-backup filename. Deliberately keeps the legacy "NOOP-" stem (not a visible
-    /// in-app string): renaming it would orphan the existing backup already in a user's iCloud Drive —
-    /// the one irreplaceable copy of their strap history. Restore is filename-agnostic (validates the
-    /// SQLite header, picked by hand), so legacy and new backups both restore. (FER-158)
-    private let fileName = "NOOP-backup.sqlite"
+    /// Fixed iCloud auto-backup filename (FER-398 renamed it off the NOOP stem). Restore itself is
+    /// filename-agnostic — the user picks the file by hand and `isSQLiteFile` validates it — so both
+    /// names restore. What the rename WOULD have orphaned is the rotation: a folder set up before
+    /// FER-398 already holds `legacyFileName`, and writing beside it would leave that copy frozen
+    /// forever while looking like a second, current backup. So `writeCopy` looks for both and renames
+    /// the legacy file into place on the first run, continuing the same file instead of forking it.
+    private let fileName = "Cenit-backup.sqlite"
+    /// The pre-FER-398 name. Read (and adopted), never written.
+    private let legacyFileName = "NOOP-backup.sqlite"
 
     init() {
         destinationName = defaults.string(forKey: nameKey)
@@ -294,8 +298,13 @@ final class AutoBackup: ObservableObject {
 
         let dest = folder.appendingPathComponent(fileName)
         let prev = folder.appendingPathComponent(fileName + ".prev")
+        let legacy = folder.appendingPathComponent(legacyFileName)
+        let legacyPrev = folder.appendingPathComponent(legacyFileName + ".prev")
         // Offload the blocking file IO so a multi-MB copy doesn't hitch the UI.
-        let error = await Task.detached { AutoBackup.writeCopy(db: dbURL, to: dest, keepingPrev: prev) }.value
+        let error = await Task.detached {
+            AutoBackup.writeCopy(db: dbURL, to: dest, keepingPrev: prev,
+                                 adopting: legacy, adoptingPrev: legacyPrev)
+        }.value
         if let error {
             lastError = String(localized: "Backup couldn't be saved: \(error.localizedDescription)")
             return
@@ -325,13 +334,32 @@ final class AutoBackup: ObservableObject {
 
     /// Coordinated copy of the DB into `dest`, rotating the prior backup to `keepingPrev` first as
     /// cheap insurance against a corrupt write. Runs off the main actor. Returns nil on success.
-    private nonisolated static func writeCopy(db: URL, to dest: URL, keepingPrev prev: URL) -> Error? {
+    ///
+    /// `adopting` is the pre-FER-398 filename: if the folder still holds it and `dest` isn't there
+    /// yet, it is renamed into `dest` first, so this run rotates the SAME lineage instead of leaving
+    /// a stale `NOOP-backup.sqlite` sitting next to a new file (two backups, one of them frozen and
+    /// indistinguishable from the live one when the user picks a file to restore).
+    ///
+    /// `adoptingPrev` is that file's rollback copy, adopted the same way and for the same reason —
+    /// otherwise `NOOP-backup.sqlite.prev` would sit in the folder forever, a third SQLite file the
+    /// user has no way to tell apart from the live one in the restore picker. It is adopted BEFORE
+    /// the rotation, so a fresher rollback copy still wins the slot on this run.
+    /// `internal`, no `private`: `AutoBackupAdoptionTests` ejerce la adopción y la rotación sobre
+    /// archivos de un directorio temporal, sin iCloud ni carpeta elegida por el usuario.
+    nonisolated static func writeCopy(db: URL, to dest: URL, keepingPrev prev: URL,
+                                      adopting legacy: URL, adoptingPrev legacyPrev: URL) -> Error? {
         let coordinator = NSFileCoordinator()
         var coordError: NSError?
         var writeError: Error?
         coordinator.coordinate(writingItemAt: dest, options: .forReplacing, error: &coordError) { target in
             let fm = FileManager.default
             do {
+                if !fm.fileExists(atPath: target.path), fm.fileExists(atPath: legacy.path) {
+                    try? fm.moveItem(at: legacy, to: target)   // best-effort: a failure just skips the rotation
+                }
+                if !fm.fileExists(atPath: prev.path), fm.fileExists(atPath: legacyPrev.path) {
+                    try? fm.moveItem(at: legacyPrev, to: prev)
+                }
                 if fm.fileExists(atPath: target.path) {
                     try? fm.removeItem(at: prev)
                     do { try fm.moveItem(at: target, to: prev) }

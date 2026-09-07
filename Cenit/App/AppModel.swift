@@ -17,8 +17,8 @@ import StrandTraining
     /// Cénit is closed sees nil and asks the user to open it. (#42)
     static weak var shared: AppModel?
 
-    /// Shared device id for imported history / on-device store partition.
-    let deviceId = "strap"
+    /// Partición histórica de filas; se conserva el valor porque está escrito en la DB (FER-398).
+    let legacyDeviceId = "strap"
     /// Source id for imported Apple Health data (stored beside legacy strap rows for per-source pages + consensus).
     let appleDeviceId = "apple-health"
     /// Owns the rest Live Activity (FER-721): started/updated/ended from the guided session's rest state,
@@ -166,9 +166,9 @@ import StrandTraining
 
     init() {
         #if os(iOS) && DEBUG
-        FreshStore.applyIfRequested()   // FER-381: -noop.freshStore borra la base antes de abrir (captura hermética del mapa)
+        FreshStore.applyIfRequested()   // FER-381: -cenit.freshStore borra la base antes de abrir (captura hermética del mapa)
         #endif
-        self.repo = Repository(deviceId: "strap")
+        self.repo = Repository(deviceId: "strap")   // = `legacyDeviceId`; literal porque los stored props aún no existen
         self.repo.dataSourceMode = sources.mode      // FER-484: honor the persisted mode from launch
         self.repo.baselineEpoch = profile.baselineEpochOrNil   // FER-677: honor a persisted recalibration
         // FER-883: same HRmax as the live path. Inlined (not `effectiveHRmax`) — a computed property
@@ -247,7 +247,7 @@ import StrandTraining
         #if DEBUG
         // Screenshot fixtures (UI test): seed a synthetic readiness state and skip the production
         // refresh/analyze loop entirely, so the seeded dashboard isn't immediately overwritten by a
-        // real (empty) store load. Gated on the `-noop.fixture primed|strained` launch argument; an
+        // real (empty) store load. Gated on the `-cenit.fixture primed|strained` launch argument; an
         // absent/`empty` argument falls through to the normal launch path below. `activeState()` is
         // hard-gated to the simulator, so this never seeds a physical device (see ScreenshotFixtures).
         if let fixtureState = ScreenshotFixtures.activeState() {

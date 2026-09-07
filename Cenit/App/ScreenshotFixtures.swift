@@ -7,7 +7,7 @@ import StrandTraining
 
 /// Deterministic synthetic data that forces TodayView into a specific readiness verdict, for the
 /// screenshot UI test (`CenitUITests/CenitScreenshotTests`). DEBUG-only — never compiled into a
-/// Release build, and gated at the call site (`AppModel.init`) on the `-noop.fixture` launch argument.
+/// Release build, and gated at the call site (`AppModel.init`) on the `-cenit.fixture` launch argument.
 ///
 /// The values are calibrated against **`Preparedness`** (the engine the hero actually reads —
 /// verdict = count of axes out: 0 → `.full`, 1 → `.caution`, ≥2 → `.easy`; re-verified against
@@ -21,7 +21,7 @@ import StrandTraining
 /// `respRate`/`skinTemp` wave INSIDE the typical band (guardian sparklines look real, no flag).
 enum ScreenshotFixtures {
 
-    /// The requested fixture state, or nil when not in fixture mode. `-noop.fixture empty` (and an
+    /// The requested fixture state, or nil when not in fixture mode. `-cenit.fixture empty` (and an
     /// absent argument) both return nil so the app takes its normal empty/first-launch path.
     /// FER-711 adds `calibrating` (the `··` numeral — a strap seen, base not yet seeded) so the
     /// «numeral nunca miente» discipline of the states map is deterministically capturable.
@@ -30,13 +30,13 @@ enum ScreenshotFixtures {
         // persistent store (TodayView reads them back via loadAll) and those rows OUTLIVE the flag —
         // on a physical device that permanently pollutes the on-device DB. Screenshot UI tests run on
         // the simulator, so hard-gating here loses no coverage while making it impossible for a stray
-        // `-noop.fixture` launch arg (e.g. left in a personal Xcode scheme) to contaminate a real
+        // `-cenit.fixture` launch arg (e.g. left in a personal Xcode scheme) to contaminate a real
         // iPhone build. Every fixture consumer (init seed, analysis skip, the fake 9:41 clock) routes
         // through this one guard, so they all go inert on device together.
         #if !targetEnvironment(simulator)
         return nil
         #else
-        guard let raw0 = UserDefaults.standard.string(forKey: "noop.fixture")?
+        guard let raw0 = UserDefaults.standard.string(forKey: "cenit.fixture")?
             .trimmingCharacters(in: .whitespaces), !raw0.isEmpty else { return nil }
         let raw = raw0.lowercased()
         // Estados históricos de este archivo (case-insensitive).
@@ -241,9 +241,9 @@ enum ScreenshotFixtures {
         // Workouts + a 24h HR trace need the store (TodayView reads them back via loadAll).
         if let store = await model.repo.storeHandle() {
             _ = try? await store.upsertWorkouts(syntheticWorkouts(today: today, cal: cal, primed: primed),
-                                                deviceId: model.deviceId)
+                                                deviceId: model.legacyDeviceId)
             let hr = syntheticHRSamples(today: today, cal: cal)
-            _ = try? await store.insert(Streams(hr: hr), deviceId: model.deviceId)
+            _ = try? await store.insert(Streams(hr: hr), deviceId: model.legacyDeviceId)
         }
 
         // FER-1030: the Liquid Hoy hero/axes read `repo.todayPreparedness`, not `days` directly — compute
@@ -466,7 +466,7 @@ enum ScreenshotFixtures {
     /// day blocks with set chips + the RÉCORD badge on today (FER-951).
     private static func seedSessions(store: CenitStore, pushId: String, pullId: String, legsId: String) async {
         let cal = Calendar(identifier: .gregorian)
-        /// Matches `AppModel.deviceId`, so `Repository.workoutRows` joins the journal row (zones/max HR).
+        /// Matches `AppModel.legacyDeviceId`, so `Repository.workoutRows` joins the journal row (zones/max HR).
         let journalDeviceId = "strap"
 
         /// One completed session — optionally MULTI-exercise (`extras`), with strain/HR/kcal/notes and,

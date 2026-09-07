@@ -7,7 +7,7 @@ import CenitDesign
 /// el lienzo casi-blanco canónico (`LiquidColor.fondoGradient`), con un uso representativo tomado de su
 /// propio `#Preview` — el código gana, esto solo lo expone.
 ///
-/// Se alcanza por launch-arg `-noop.component <Nombre>` (igual disciplina que los fixtures de pantalla):
+/// Se alcanza por launch-arg `-cenit.component <Nombre>` (igual disciplina que los fixtures de pantalla):
 /// `ContentView` monta `ComponentGalleryHost(name:)` a pantalla completa cuando el arg está presente, y
 /// `CenitScreenshotTests.test_components()` recorre `ComponentGallery.names` para capturar un PNG por
 /// pieza hacia el muro `docs/appmap/` (grupo «Componentes» de `Tools/build-appmap.py`).
@@ -343,7 +343,7 @@ private struct ComponentGalleryTabBarDemo: View {
 }
 
 /// Monta UNA pieza del catálogo a pantalla completa sobre el lienzo Liquid, centrada, con aire.
-/// `ContentView` la usa cuando el launch-arg `-noop.component` está presente.
+/// `ContentView` la usa cuando el launch-arg `-cenit.component` está presente.
 struct ComponentGalleryHost: View {
     let name: String
 
@@ -366,11 +366,11 @@ struct ComponentGalleryHost: View {
     }
 }
 
-/// Lee el launch-arg `-noop.component <Nombre>` (poblado en `UserDefaults` por el harness).
+/// Lee el launch-arg `-cenit.component <Nombre>` (poblado en `UserDefaults` por el harness).
 /// `nil` en un arranque normal → la galería no aparece nunca fuera de la captura DEBUG.
 enum ComponentGalleryLaunch {
     static var requestedName: String? {
-        guard let n = UserDefaults.standard.string(forKey: "noop.component"), !n.isEmpty else { return nil }
+        guard let n = UserDefaults.standard.string(forKey: "cenit.component"), !n.isEmpty else { return nil }
         return n
     }
 }

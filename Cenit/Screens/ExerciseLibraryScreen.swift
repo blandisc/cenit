@@ -2,7 +2,6 @@
 import SwiftUI
 import CenitDesign
 import StrandTraining
-import Inject   // recarga en caliente (dev-only, inerte en Release)
 
 // ExerciseLibraryScreen.swift — browse the on-device exercise catalog (FER-346). Two modes from one
 // view: BROWSE (opened from the Train hub — tap an exercise to open its detail) and ADD (presented by

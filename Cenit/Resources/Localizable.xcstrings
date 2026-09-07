@@ -1,6 +1,74 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Terms of use" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terms of use"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Términos de uso"
+          }
+        }
+      }
+    },
+    "Privacy policy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy policy"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Política de privacidad"
+          }
+        }
+      }
+    },
+    "Links" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Links"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enlaces"
+          }
+        }
+      }
+    },
+    "Credits & licenses" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Credits & licenses"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Créditos y licencias"
+          }
+        }
+      }
+    },
     "Almost ready" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -977,16 +1045,6 @@
         }
       }
     },
-    "Saved animations are deleted from your iPhone. You can re-download them anytime." : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Las animaciones guardadas se borran de tu iPhone. Puedes volver a descargarlas cuando quieras."
-          }
-        }
-      }
-    },
     "Version %@ · what Cénit is" : {
       "localizations" : {
         "es" : {
@@ -1103,56 +1161,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Para años de historial de una vez: app Salud → tu foto → Exportar todos los datos de salud, y luego importa ese .zip en Fuentes de datos."
-          }
-        }
-      }
-    },
-    "Downloaded exercise animations" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Animaciones de ejercicios"
-          }
-        }
-      }
-    },
-    "Delete downloaded animations" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Borrar animaciones descargadas"
-          }
-        }
-      }
-    },
-    "Delete all downloaded exercise animations?" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "¿Borrar todas las animaciones de ejercicios descargadas?"
-          }
-        }
-      }
-    },
-    "Delete the animations" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Borrar las animaciones"
-          }
-        }
-      }
-    },
-    "Keep the animations" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Conservar las animaciones"
           }
         }
       }
@@ -9340,23 +9348,6 @@
         }
       }
     },
-    "Already fully downloaded." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Already fully downloaded."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ya está todo descargado."
-          }
-        }
-      }
-    },
     "Also in your plan" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -14582,23 +14573,6 @@
         }
       }
     },
-    "Couldn't download. Check your connection and try again." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Couldn't download. Check your connection and try again."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No se pudo descargar. Revisa tu conexión e inténtalo de nuevo."
-          }
-        }
-      }
-    },
     "Couldn't export the file. Try again." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -17049,23 +17023,6 @@
         }
       }
     },
-    "Download complete: %lld/%lld exercises with animation." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Download complete: %lld/%lld exercises with animation."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Descarga completa: %lld/%lld ejercicios con animación."
-          }
-        }
-      }
-    },
     "Downloading" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -17099,23 +17056,6 @@
         }
       }
     },
-    "Downloading %lld/%lld…" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Downloading %lld/%lld…"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Descargando %lld/%lld…"
-          }
-        }
-      }
-    },
     "Downloading last night…" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -17129,23 +17069,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Descargando la noche…"
-          }
-        }
-      }
-    },
-    "Downloads each exercise's animation from ExerciseDB's image CDN, an external service. They're saved on your iPhone forever and work offline afterwards. This is the only exception to Cénit's zero-network rule: fetching each image exposes your IP to that service, like loading any image on the internet; no other data of yours (not even the exercise name) ever leaves. Turning this off stops future downloads; it doesn't delete what's already saved." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Downloads each exercise's animation from ExerciseDB's image CDN, an external service. They're saved on your iPhone forever and work offline afterwards. This is the only exception to Cénit's zero-network rule: fetching each image exposes your IP to that service, like loading any image on the internet; no other data of yours (not even the exercise name) ever leaves. Turning this off stops future downloads; it doesn't delete what's already saved."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Descarga la animación de cada ejercicio desde el CDN de imágenes de ExerciseDB, un servicio externo. Se guardan en tu iPhone para siempre y funcionan sin señal después. Esta es la única excepción a la regla de Cénit de cero red: al bajar cada imagen tu IP es visible para ese servicio, como al cargar cualquier imagen en internet; ningún otro dato tuyo (ni el nombre del ejercicio) sale jamás. Apagar esto detiene descargas futuras, no borra lo ya guardado."
           }
         }
       }
@@ -28854,23 +28777,6 @@
         }
       }
     },
-    "No scored nights yet. Wear the strap with Cénit connected overnight and the engine will score your recovery, strain and sleep itself, no server required." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No scored nights yet. Wear the strap with Cénit connected overnight and the engine will score your recovery, strain and sleep itself, no server required."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aún no hay noches calificadas. Duerme con la banda puesta y Cénit conectado, y el motor calculará por sí mismo tu recuperación, esfuerzo y sueño, sin servidor."
-          }
-        }
-      }
-    },
     "No se pudo armar el recibo." : {
       "comment" : "A message displayed when the receipt cannot be generated.",
       "isCommentAutoGenerated" : true
@@ -33390,23 +33296,6 @@
         }
       }
     },
-    "LIBRARY · ANIMATIONS" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "LIBRARY · ANIMATIONS"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "BIBLIOTECA · ANIMACIONES"
-          }
-        }
-      }
-    },
     "RECOVERY · BASELINE" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -37126,23 +37015,6 @@
         }
       }
     },
-    "Scan for strap" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Scan for strap"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Buscar banda"
-          }
-        }
-      }
-    },
     "Scope" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -40615,7 +40487,7 @@
       }
     },
     "Support" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -40626,7 +40498,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Apoyo"
+            "value" : "Soporte"
           }
         }
       }
@@ -41745,16 +41617,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Las cinco marcas de abajo suman tu recuperación de %lld."
-          }
-        }
-      }
-    },
-    "The full terms are in TERMS.md, shipped with Cénit. This is not legal advice." : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Los términos completos están en TERMS.md, incluido con Cénit. Esto no es asesoría legal."
           }
         }
       }
@@ -44319,23 +44181,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Activar experimento"
-          }
-        }
-      }
-    },
-    "Turn on library downloads in Settings to see video" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Turn on library downloads in Settings to see video"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Activa la descarga de biblioteca en Ajustes para ver video"
           }
         }
       }
@@ -47577,41 +47422,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Los sensores ópticos de muñeca son menos precisos que un oxímetro médico, léelo como tendencia, no como una medición clínica. Cénit no es un dispositivo médico."
-          }
-        }
-      }
-    },
-    "Write-back to Apple Health: %@/%@ enabled" : {
-      "comment" : "A line that shows the number of HealthKit write-back permissions",
-      "isCommentAutoGenerated" : true,
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Write-back to Apple Health: %1$@/%2$@ enabled"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Guardar en Salud: %1$@/%2$@ habilitados"
-          }
-        }
-      }
-    },
-    "Write-back to Apple Health: %lld/%lld enabled" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Write-back to Apple Health: %lld/%lld enabled"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Escritura a Apple Salud: %lld/%lld activas"
           }
         }
       }
@@ -60677,13 +60487,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The full terms are in TERMS.md, shipped with Cénit. This is not legal advice."
+            "value" : "The full terms are at blandisc.github.io/cenit/terminos.html — this is not legal advice."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Los términos completos están en TERMS.md, incluido con Cénit. Esto no es asesoría legal."
+            "value" : "Los términos completos están en blandisc.github.io/cenit/terminos.html · esto no es asesoría legal."
           }
         }
       }

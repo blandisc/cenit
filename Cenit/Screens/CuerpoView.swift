@@ -183,7 +183,7 @@ private struct CuerpoLanding: View {
     /// `.screen(.explore)` bridge.
     @State private var showExplore = false
     /// The Explorar sheet's own push path — bound explicitly (not implicit inside its
-    /// `NavigationStack`) so `-noop.route tendencias/<métrica>` (FER-384 · mapa 100%) can
+    /// `NavigationStack`) so `-cenit.route tendencias/<métrica>` (FER-384 · mapa 100%) can
     /// pre-populate it with one of the ~28 catalog metrics that have no rich `metricSpec` route,
     /// landing straight on `MetricDetailView` instead of the list. Cleared when the sheet closes.
     @State private var explorePath = NavigationPath()
@@ -237,7 +237,7 @@ private struct CuerpoLanding: View {
     /// The period the landing's sparklines (hero + every stat) window over. The header selector drives it;
     /// each spark re-slices `repo.displayDays` to this window on change, and the hero's «vs tu media» delta
     /// recomputes against the same window. (FER-566 — supersedes the fixed 14-day hero spark of FER-186.)
-    /// `-noop.range` (FER-384 · mapa 100%) fixes the initial window for the capture; a normal launch
+    /// `-cenit.range` (FER-384 · mapa 100%) fixes the initial window for the capture; a normal launch
     /// falls to `.month` as always (`TendenciasFixtures.debugRange()` is DEBUG-only).
     #if DEBUG
     @State private var selectedPeriod: ExploreRange = TendenciasFixtures.debugRange() ?? .month
@@ -353,7 +353,7 @@ private struct CuerpoLanding: View {
             .environmentObject(health)
         }
         #if os(iOS) && DEBUG
-        // `-noop.route tendencias/<métrica>` (FER-384 · mapa 100%): abre el detalle de una métrica
+        // `-cenit.route tendencias/<métrica>` (FER-384 · mapa 100%): abre el detalle de una métrica
         // sin tocarla — la ruta directa `metricSpec` para las 7 vitales ricas, `Explorar` empujado
         // para las demás del catálogo. También abre las hojas hermanas (Comparar/Explorar solo/
         // ActivityRecovery/Fitness Age/Body Age) por su propia clave. Consume `DebugRoute` — la
@@ -1782,7 +1782,7 @@ private struct LiquidLenteTenidaModifier: ViewModifier {
     // Nota: los otros tres previews que FER-985 listaba como caros (TodayView, OnboardingWizard,
     // IntervalTimerView) ya NO aparecen sobre el umbral de 100 ms; bajaron solos con FER-981/984.
     let appModel = AppModel.preview
-    let health = HealthKitBridge(repo: repo, appleDeviceId: "preview-apple", noopDeviceId: "preview")
+    let health = HealthKitBridge(repo: repo, appleDeviceId: "preview-apple")
     return CuerpoView()
         .environmentObject(repo)
         .environment(appModel)
