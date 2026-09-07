@@ -1,4 +1,5 @@
 import SwiftUI
+import TipKit
 import CenitDesign
 import StrandAnalytics
 import StrandTraining
@@ -138,6 +139,9 @@ struct TodayView: View {
     @State private var showDecideManual = false
     @State private var showContextoManual = false
     @AppStorage("today.ecosistemaSeparaciones") private var ecosistemaSeparaciones = 0
+    /// FER-432 · rótulo local del botón alterno Separar/Unir (el Ecosistema no expone
+    /// binding público de fase sin tocar CenitDesign — el lienzo sigue siendo el camino visual).
+    @State private var señalesSeparadas = false
     /// El fondo de Hoy en atmósfera (FER-118): lo que la pantalla le empuja al polvo de Metal
     /// —el desplazamiento del scroll para el parallax y si la pestaña está a la vista— SIN que
     /// esta vista se recomponga por cada cuadro de scroll: `body` solo pasa el objeto; quien lee
@@ -894,6 +898,7 @@ struct TodayView: View {
         // sync» promete: un sync MANUAL real del bridge (trae noches nuevas de HealthKit, misma
         // ruta que «Sync now» de Data Sources; idempotente, y termina refrescando el dashboard).
         // Sin permiso, `sync` sale temprano → cae al recálculo local, que sigue siendo honesto.
+        HoySincronizarTip().invalidate(reason: .actionPerformed)
         if health.auth == .authorized {
             await health.sync()
         } else {
@@ -1132,7 +1137,12 @@ struct TodayView: View {
                 },
                 onSeparacion: {
                     ecosistemaSeparaciones = min(Self.maxSeparacionHints, ecosistemaSeparaciones + 1)
+                    señalesSeparadas = true
+                    HoyEcosistemaTip.separado.sendDonation()
+                    HoyEcosistemaTip().invalidate(reason: .actionPerformed)
                 })
+            // FER-432 · tip 3 + botón alterno DEBAJO del héroe (nunca sobre el orbe).
+            hoyEcosistemaTipYBoton
             // FER-51 · La Matriz (estados T1–T5 + instrumento). Debajo del héroe.
             // El modo Cosmos se apagó (decisión del dueño 2026-08-06).
             HoyMatrizHost(
@@ -1144,11 +1154,58 @@ struct TodayView: View {
                 onTapSeccion: { abrirHojaCaras($0) },
                 // C6: el aviso de desconexión abre Data Sources — la misma ruta que la puerta
                 // «Connect Health» del héroe (una causa, una acción).
-                onTapAvisoSalud: { showDataSources = true })
+                onTapAvisoSalud: { showDataSources = true },
+                onTapSincronizar: { triggerPullSync() })
             // /inject: la leyenda de origen se retiró de la superficie Liquid a pedido del
             // dueño (los puntos de origen por tile se quedan).
         }
+        .onAppear { alimentarHoyTips(output: output) }
+        .onChange(of: repo.refreshSeq) { _, _ in alimentarHoyTips(output: liquidOutput) }
         .accessibilityAction(named: Text("Sync")) { triggerPullSync() }
+    }
+
+    /// Tip del ecosistema + control «Separar»/«Unir» (quiet), visibles con hint activo o tip elegible.
+    @ViewBuilder
+    private var hoyEcosistemaTipYBoton: some View {
+        let hintActivo = ecosistemaSeparaciones < Self.maxSeparacionHints
+        let tipElegible = HoyEcosistemaTip().shouldDisplay
+        VStack(alignment: .leading, spacing: LiquidSpace.s150) {
+            TipView(HoyEcosistemaTip(), arrowEdge: .top)
+            if hintActivo || tipElegible {
+                LiquidGlassButton(
+                    señalesSeparadas
+                        ? String(localized: "tip.hoy.ecosistema.boton.unir", defaultValue: "Reunite")
+                        : String(localized: "tip.hoy.ecosistema.boton", defaultValue: "Separate"),
+                    variant: .quiet
+                ) {
+                    // Camino tocable del gesto (FER-432): dona + invalida el tip. GAP: sin API
+                    // pública de fase en CenitDesign el lienzo no anima desde aquí — el tap del
+                    // fondo del orbe sigue siendo el camino visual de separar/unir.
+                    señalesSeparadas.toggle()
+                    if señalesSeparadas {
+                        ecosistemaSeparaciones = min(Self.maxSeparacionHints, ecosistemaSeparaciones + 1)
+                        HoyEcosistemaTip.separado.sendDonation()
+                        HoyEcosistemaTip().invalidate(reason: .actionPerformed)
+                    }
+                }
+                .accessibilityLabel(Text(señalesSeparadas
+                    ? String(localized: "Reunite the signals")
+                    : String(localized: "Separate the signals")))
+            }
+        }
+        .padding(.horizontal, LiquidSpace.s600)
+    }
+
+    private func alimentarHoyTips(output: LiquidHoyBuilder.Output) {
+        let hayVeredicto: Bool = {
+            guard let prep = repo.todayPreparedness else { return false }
+            return prep.verdict != .lowSignal && prep.isNightAnchored
+        }()
+        HoyEcosistemaTip.hayVeredicto = hayVeredicto
+        HoyTips.donarMananaConVeredictoSiAplica(
+            hayVeredicto: hayVeredicto,
+            dayKey: Repository.localDayKey(Date()))
+        _ = output
     }
 
     /// Inputs de Matriz/Cosmos: mismos orígenes que `liquidInputs()` (displayDays, prep, carga…).
@@ -1278,9 +1335,11 @@ struct TodayView: View {
         case "manual.deciden":
             // FER-54: el manual del modelo — el rótulo «Decide your day» tocado.
             showDecideManual = true
+            HoyManualesTip().invalidate(reason: .actionPerformed)
         case "manual.contexto":
             // FER-61: el manual «Tu contexto» — el rótulo «Context» tocado.
             showContextoManual = true
+            HoyManualesTip().invalidate(reason: .actionPerformed)
         case "autonomico":
             openLiquidSenal("autonomico")
         default:
@@ -1366,6 +1425,7 @@ struct TodayView: View {
 
     /// Tap de un tile Liquid → la MISMA hoja de métrica de siempre, por id estable.
     private func openLiquidMetric(_ id: String) {
+        HoyHojaMetricaTip().invalidate(reason: .actionPerformed)
         switch id {
         case "sleep":
             metricDetail = .sleep(resolveMeasured(todayOnly: true) { $0.totalSleepMin }
