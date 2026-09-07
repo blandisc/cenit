@@ -1,6 +1,6 @@
 import Foundation
 
-// MARK: - noop.diet.v1 — prescribed-diet interchange format (FER-370)
+// MARK: - cenit.diet.v1 — prescribed-diet interchange format (FER-370)
 //
 // A nutritionist's plan, captured once and tracked for adherence (NOT a calorie
 // counter). Three producers fill the SAME format and converge on one importer: an
@@ -69,9 +69,9 @@ public struct DietMeal: Codable, Sendable, Equatable {
     }
 }
 
-/// A prescribed diet plan in the `noop.diet.v1` format.
+/// A prescribed diet plan in the `cenit.diet.v1` format.
 public struct DietPlan: Codable, Sendable, Equatable {
-    /// The schema identifier. Always `noop.diet.v1` for a validated plan.
+    /// The schema identifier. Always `cenit.diet.v1` for a validated plan.
     public let schema: String
     public let language: DietPlanLanguage     // wire: "idioma"
     public let name: String                   // wire: "nombre"
@@ -93,8 +93,16 @@ public struct DietPlan: Codable, Sendable, Equatable {
         self.meals = meals; self.dailyTargets = dailyTargets; self.rules = rules
     }
 
-    /// The only schema this importer accepts.
-    public static let currentSchema = "noop.diet.v1"
+    /// The schema a plan is written with today. Emitted on every encode.
+    public static let currentSchema = "cenit.diet.v1"
+
+    /// The tag the format carried before the app was renamed. Still accepted on the way in:
+    /// plans the user already has (and templates they saved) spell it this way, and the
+    /// payloads already stored carry it inside their opaque JSON. Never emitted.
+    public static let legacySchema = "noop.diet.v1"
+
+    /// Every schema tag a payload may declare.
+    public static let acceptedSchemas: Set<String> = [currentSchema, legacySchema]
 
     enum CodingKeys: String, CodingKey {
         case schema
@@ -135,7 +143,7 @@ public extension DietPlan {
 
 // MARK: - Errors
 
-/// Why a candidate `noop.diet.v1` payload was rejected. Dedicated (not `ImportError`, which is
+/// Why a candidate `cenit.diet.v1` payload was rejected. Dedicated (not `ImportError`, which is
 /// about files / zips): every case is an actionable schema-validation reason the capture screen
 /// (FER-371) can surface. `description` is a diagnostic string; the UI localizes per case.
 public enum DietPlanParseError: Error, Equatable, Sendable, CustomStringConvertible {
@@ -168,7 +176,7 @@ public enum DietPlanParseError: Error, Equatable, Sendable, CustomStringConverti
 
 // MARK: - Importer
 
-/// Parses and validates a `noop.diet.v1` payload (from any producer) into a `DietPlan`.
+/// Parses and validates a `cenit.diet.v1` payload (from any producer) into a `DietPlan`.
 /// Parse-only — it does not touch the database (mirrors `AppleHealthImporter`). Persistence
 /// is wired separately (see `makeDietPlanRow` + CenitStore).
 public struct DietPlanImporter {
@@ -182,11 +190,13 @@ public struct DietPlanImporter {
         catch { throw DietPlanParseError.notJSON }
         guard let root = any as? [String: Any] else { throw DietPlanParseError.notJSON }
 
-        // schema — must match exactly.
-        let schema = root["schema"] as? String ?? ""
-        guard schema == DietPlan.currentSchema else {
-            throw DietPlanParseError.unsupportedSchema(found: schema)
+        // schema — one of the accepted tags, normalized to the current one so what gets
+        // persisted and re-encoded always carries today's name.
+        let declaredSchema = root["schema"] as? String ?? ""
+        guard DietPlan.acceptedSchemas.contains(declaredSchema) else {
+            throw DietPlanParseError.unsupportedSchema(found: declaredSchema)
         }
+        let schema = DietPlan.currentSchema
 
         // idioma — required, es | en.
         let idiomaRaw = root["idioma"] as? String ?? ""

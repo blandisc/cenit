@@ -265,3 +265,43 @@ adversarial (`docs/specs/ola1-entrenar/`):
 - **Halo/glow es pieza (`LiquidGlow`).** Blur + fill a mano en pantallas queda prohibido por criterio; la pieza entra al catálogo.
 - **Texto de lectura con `@ScaledMetric` + `.system(size:)` NO es hallazgo** (Ronda 2 D2, hub Entrenar y RestEditor): escala con Dynamic Type por diseño; la auditoría lo excluye.
 
+
+## 2026-09-06 · Demolición R1 · decisiones del dueño (3 issues)
+
+- **Progresión ENCENDIDA por defecto en los 4 motores (FER-414, A).** Reafirma Ola 1 #11: «el lineal de novato sube cada sesión». El builder `Program.withProgression` configuraba el ritmo pero dejaba `progressionEnabled` en off, así que ningún motor subía ni descargaba. Ahora nace vivo; el motor sigue decidiendo QUÉ slot sube y cuándo (solo weightReps; barra ≤8 reps cada sesión, el resto cada dos). No cambia rutinas hechas a mano fuera de un programa.
+- **«Necesidad» de sueño = meta fija con respaldo, no la media propia (FER-409, A).** La media propia + clamp generaba deuda por construcción (las noches largas no pagaban las cortas). Se sustituye por una meta poblacional citada. Detalle en el PR de FER-409.
+- **Copy honesto ya sobre datos Apple (FER-407, A).** Corregir el subset factual del copy que dice «mientras duermes / RMSSD / RSA» sobre datos Apple despiertos/de todo el día. El resto (exponer el constructo real y variar el copy) queda como trabajo mayor en el mismo issue.
+
+## 2026-09-06 · Cénit rumbo a la App Store (decisiones del dueño, épico FER-380)
+
+- **2026-09-06 · Gratis hoy, cobrar después.** Cénit se publica en la App Store sin costo. Cualquier
+  función de pago futura se anuncia en la app y en la ficha antes de entrar en vigor. Los términos
+  (v3.0) y la política de privacidad ya no prometen «gratis para siempre» ni «no comercial».
+- **2026-09-06 · Código 100 % propio (sala limpia).** Todo remanente de los autores del proyecto
+  anterior se reescribe con protocolo de sala limpia: quien lee lo heredado solo escribe una
+  especificación funcional (firmas públicas + QUÉ, nunca CÓMO); un revisor busca fugas; quien
+  implementa borra lo heredado antes de empezar y trabaja solo desde la especificación; el oráculo
+  son pares entrada→salida, nunca código de prueba. Cierre: `git blame -w -M -C -C -C` sin líneas de
+  los autores anteriores. Nota legal: la reescritura reduce pero no elimina el riesgo de obra
+  derivada; queda pendiente validarlo con un abogado y, en paralelo, pedir al autor original una
+  licencia comercial. El historial de git se conserva; `NOTICE` lleva una nota histórica obligatoria
+  por la licencia del código que existió antes.
+- **2026-09-06 · Copyright y repositorio.** `LICENSE` pasa a PolyForm Noncommercial 1.0.0 con
+  «Copyright 2026 Fernando Iracheta» como licenciante (el dueño puede comercializar; terceros no).
+  El repositorio de GitHub se renombra a `blandisc/cenit`; los remotes del fork se eliminan. La
+  carpeta local sigue siendo `~/code/noop` (renombrarla rompería memoria, worktrees y scripts).
+- **2026-09-06 · Cero rastro del proyecto anterior, de WHOOP y de la banda.** Cénit es 100 % Apple
+  Watch / Apple Health. Ninguna mención en código, textos, docs ni identificadores (salvo la nota
+  histórica de `NOTICE` y «banda» en sentido estadístico). Gate: `Tools/check-band-copy.py`.
+- **2026-09-06 · Identificadores «congelados» descongelados (FER-398).** La base de datos vive en
+  `<AppSupport>/Cenit/cenit.sqlite` y las preferencias bajo `cenit.*`, con una migración única al
+  arrancar (mover carpeta completa, sidecars primero; copiar-y-borrar claves). Los tags de esquema
+  persistidos `noop.workout.v1`/`noop.diet.v1` se aceptan al leer y se emiten como `cenit.*`.
+- **2026-09-06 · Excepción única al append-only de migraciones (FER-393).** Las 43 migraciones
+  heredadas de `CenitStore` se sustituyen por UNA migración fresca con identificador `v43` creada a
+  partir del volcado factual del esquema: la base del dueño (ledger v1…v43) no ejecuta ninguna
+  sentencia; una instalación nueva crea el esquema completo de golpe; la siguiente migración es
+  `v44`. Nunca reusar `v1`…`v42`. En adelante, append-only otra vez.
+- **2026-09-06 · El aviso temprano de enfermedad se reencuadra.** «Señales de carga inusual» en vez
+  de «posible enfermedad» (título, descripción, notificación y catálogo de métricas), con el hedge
+  «no es un diagnóstico» intacto (riesgo de revisión 1.4.1).

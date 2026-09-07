@@ -187,6 +187,15 @@ struct SavedTicketsScreen: View {
     }
 
     private func load() async {
+        // FER-386 (mapa 100 %): fuerza el estado «Error de lectura» sin necesitar un fallo real del
+        // store — solo simulador, mismo patrón que `ScreenshotFixtures.activeState()`.
+        #if os(iOS) && DEBUG
+        if UserDefaults.standard.string(forKey: "noop.readError") == "YES" {
+            readError = true
+            loaded = true
+            return
+        }
+        #endif
         // Estados → «Error de lectura»: igual que `WorkoutHistoryScreen.load()`, adelantada al frente.
         guard await repo.storeHandle() != nil else {
             readError = true

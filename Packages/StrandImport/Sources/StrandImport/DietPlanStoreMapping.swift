@@ -5,7 +5,7 @@ import CenitStore
 //
 // CenitStore persists a plan as an OPAQUE JSON payload — it never decodes the nested
 // structure. This bridge (StrandImport depends on CenitStore, not the reverse) re-encodes a
-// validated `DietPlan` into the canonical `noop.diet.v1` JSON and packs it, with the
+// validated `DietPlan` into the canonical `cenit.diet.v1` JSON and packs it, with the
 // denormalized listing columns, into a `DietPlanRow`. Canonical = sorted keys, so the stored
 // payload is stable and a round-trip (`parse(makeDietPlanRow(plan).payloadJSON) == plan`) holds.
 
@@ -23,7 +23,7 @@ public extension DietPlanImporter {
             createdAt: createdAt)
     }
 
-    /// Canonical `noop.diet.v1` JSON for a validated plan: deterministic key order so the stored
+    /// Canonical `cenit.diet.v1` JSON for a validated plan: deterministic key order so the stored
     /// payload is stable across encodes.
     static func canonicalJSON(_ plan: DietPlan) throws -> String {
         let encoder = JSONEncoder()

@@ -20,6 +20,18 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
 
 ## Unreleased
 
+### Los planes y programas que importas ahora se llaman `cenit.*` (FER-382)
+- El archivo que armas con tu LLM (rutina o plan de comida) pasa a identificarse como
+  `cenit.workout.v1` / `cenit.diet.v1`. **Los archivos que ya tienes siguen funcionando**: Cénit
+  acepta también el nombre anterior al leer, y solo escribe el nuevo. No hay nada que rehacer.
+
+### Importar tu export de Apple Health, por dentro (FER-382)
+- La lectura del `export.zip` se reescribió de cero. Para ti no cambia nada de lo que ves: los
+  mismos días, las mismas cifras y el mismo botón de cancelar a media importación. Por dentro
+  quedó anclada con pruebas nuevas para que un export de años —con su archivo con nombre en
+  español, sus bytes dañados y sus millones de lecturas— siga entrando completo y sin agotar la
+  memoria del teléfono.
+
 ### Primer uso de Entrenar más claro (FER-373, FER-376)
 - Los chips de plantilla ya no repiten cuántas rutinas trae cada uno (eso se ve dentro de la hoja) —
   traducen el split en lenguaje llano. El trío destacado se recura para quien empieza: «Full body»
@@ -41,6 +53,15 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
 - En el primer uso, si todavía no conectas Apple Salud, el cuerpo abre directo con «Arma tu semana»:
   se retiró el aviso «Conecta Apple Salud» que aparecía encima y sugería —en falso— que necesitas
   Salud para entrenar. Con Salud conectada, tu veredicto del día sigue igual.
+
+### «Usar este plan» arma tu semana completa, no un solo día (FER-377)
+- Al aplicar una plantilla de arranque, Entrenar ya no la deja en un solo día: la agenda a la cadencia
+  con la que ese plan está pensado para entrenarse, repartida en la semana. «Full body» cae en tres
+  días separados (no uno); «Upper/Lower» pone cada mitad dos veces; «Push Pull Legs» ocupa sus seis
+  días. Nunca pisa un día que ya tengas asignado, y si tu semana ya estaba ocupada, acomoda lo que
+  quepa — tus rutinas se guardan igual.
+- El aviso al aplicar es honesto: «semana armada» cuando todo cupió, o «rutinas guardadas» cuando tu
+  semana ya tenía días ocupados y no cupo la frecuencia completa.
 
 ### Registrar una sesión de fuerza desde el reloj sin el iPhone (FER-361, ola 2 · C1)
 - Si el iPhone no está a la mano al empezar tu rutina, el reloj arranca la sesión por su cuenta

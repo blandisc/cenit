@@ -1,0 +1,295 @@
+{
+  "familia": "componentes",
+  "titulo": "Componentes · CenitDesign",
+  "unidad": "componentes",
+  "blurb": "Piezas del sistema Liquid Glass · El Eje, renderizadas reales sobre el lienzo. Busca por nombre.",
+  "nodos": [
+    {
+      "id": "LiquidGlassButton",
+      "titulo": "LiquidGlassButton",
+      "grupo": "Botones",
+      "png": "componente-LiquidGlassButton.png",
+      "condicion": "",
+      "args": [
+        "-noop.component",
+        "LiquidGlassButton"
+      ]
+    },
+    {
+      "id": "LiquidMetricTile",
+      "titulo": "LiquidMetricTile",
+      "grupo": "Tiles",
+      "png": "componente-LiquidMetricTile.png",
+      "condicion": "",
+      "args": [
+        "-noop.component",
+        "LiquidMetricTile"
+      ]
+    },
+    {
+      "id": "LiquidCajita",
+      "titulo": "LiquidCajita",
+      "grupo": "Tiles",
+      "png": "componente-LiquidCajita.png",
+      "condicion": "",
+      "args": [
+        "-noop.component",
+        "LiquidCajita"
+      ]
+    },
+    {
+      "id": "EntrenarTile",
+      "titulo": "EntrenarTile",
+      "grupo": "Tiles",
+      "png": "componente-EntrenarTile.png",
+      "condicion": "",
+      "args": [
+        "-noop.component",
+        "EntrenarTile"
+      ]
+    },
+    {
+      "id": "EntrenarModulo",
+      "titulo": "EntrenarModulo",
+      "grupo": "Tiles",
+      "png": "componente-EntrenarModulo.png",
+      "condicion": "",
+      "args": [
+        "-noop.component",
+        "EntrenarModulo"
+      ]
+    },
+    {
+      "id": "LiquidChipSeleccion",
+      "titulo": "LiquidChipSeleccion",
+      "grupo": "Chips",
+      "png": "componente-LiquidChipSeleccion.png",
+      "condicion": "",
+      "args": [
+        "-noop.component",
+        "LiquidChipSeleccion"
+      ]
+    },
+    {
+      "id": "LiquidOrigenChip",
+      "titulo": "LiquidOrigenChip",
+      "grupo": "Chips",
+      "png": "componente-LiquidOrigenChip.png",
+      "condicion": "",
+      "args": [
+        "-noop.component",
+        "LiquidOrigenChip"
+      ]
+    },
+    {
+      "id": "LiquidOrigenBadge",
+      "titulo": "LiquidOrigenBadge",
+      "grupo": "Chips",
+      "png": "componente-LiquidOrigenBadge.png",
+      "condicion": "",
+      "args": [
+        "-noop.component",
+        "LiquidOrigenBadge"
+      ]
+    },
+    {
+      "id": "EntrenarChipHerramienta",
+      "titulo": "EntrenarChipHerramienta",
+      "grupo": "Chips",
+      "png": "componente-EntrenarChipHerramienta.png",
+      "condicion": "",
+      "args": [
+        "-noop.component",
+        "EntrenarChipHerramienta"
+      ]
+    },
+    {
+      "id": "LiquidStatePill",
+      "titulo": "LiquidStatePill",
+      "grupo": "Chips",
+      "png": "componente-LiquidStatePill.png",
+      "condicion": "",
+      "args": [
+        "-noop.component",
+        "LiquidStatePill"
+      ]
+    },
+    {
+      "id": "LiquidListRow",
+      "titulo": "LiquidListRow",
+      "grupo": "Filas",
+      "png": "componente-LiquidListRow.png",
+      "condicion": "",
+      "args": [
+        "-noop.component",
+        "LiquidListRow"
+      ]
+    },
+    {
+      "id": "LiquidChecklistRow",
+      "titulo": "LiquidChecklistRow",
+      "grupo": "Filas",
+      "png": "componente-LiquidChecklistRow.png",
+      "condicion": "",
+      "args": [
+        "-noop.component",
+        "LiquidChecklistRow"
+      ]
+    },
+    {
+      "id": "EntrenarFilaEjercicio",
+      "titulo": "EntrenarFilaEjercicio",
+      "grupo": "Filas",
+      "png": "componente-EntrenarFilaEjercicio.png",
+      "condicion": "",
+      "args": [
+        "-noop.component",
+        "EntrenarFilaEjercicio"
+      ]
+    },
+    {
+      "id": "LiquidRangeSelector",
+      "titulo": "LiquidRangeSelector",
+      "grupo": "Controles",
+      "png": "componente-LiquidRangeSelector.png",
+      "condicion": "",
+      "args": [
+        "-noop.component",
+        "LiquidRangeSelector"
+      ]
+    },
+    {
+      "id": "EntrenarStepper",
+      "titulo": "EntrenarStepper",
+      "grupo": "Controles",
+      "png": "componente-EntrenarStepper.png",
+      "condicion": "",
+      "args": [
+        "-noop.component",
+        "EntrenarStepper"
+      ]
+    },
+    {
+      "id": "LiquidCampoBusqueda",
+      "titulo": "LiquidCampoBusqueda",
+      "grupo": "Controles",
+      "png": "componente-LiquidCampoBusqueda.png",
+      "condicion": "",
+      "args": [
+        "-noop.component",
+        "LiquidCampoBusqueda"
+      ]
+    },
+    {
+      "id": "LiquidTabBar",
+      "titulo": "LiquidTabBar",
+      "grupo": "Estructura",
+      "png": "componente-LiquidTabBar.png",
+      "condicion": "",
+      "args": [
+        "-noop.component",
+        "LiquidTabBar"
+      ]
+    },
+    {
+      "id": "LiquidMenu",
+      "titulo": "LiquidMenu",
+      "grupo": "Estructura",
+      "png": "componente-LiquidMenu.png",
+      "condicion": "",
+      "args": [
+        "-noop.component",
+        "LiquidMenu"
+      ]
+    },
+    {
+      "id": "LiquidSheetHeader",
+      "titulo": "LiquidSheetHeader",
+      "grupo": "Estructura",
+      "png": "componente-LiquidSheetHeader.png",
+      "condicion": "",
+      "args": [
+        "-noop.component",
+        "LiquidSheetHeader"
+      ]
+    },
+    {
+      "id": "LiquidSectionHeader",
+      "titulo": "LiquidSectionHeader",
+      "grupo": "Estructura",
+      "png": "componente-LiquidSectionHeader.png",
+      "condicion": "",
+      "args": [
+        "-noop.component",
+        "LiquidSectionHeader"
+      ]
+    },
+    {
+      "id": "LiquidAviso",
+      "titulo": "LiquidAviso",
+      "grupo": "Avisos",
+      "png": "componente-LiquidAviso.png",
+      "condicion": "",
+      "args": [
+        "-noop.component",
+        "LiquidAviso"
+      ]
+    },
+    {
+      "id": "ConfirmCard",
+      "titulo": "ConfirmCard",
+      "grupo": "Avisos",
+      "png": "componente-ConfirmCard.png",
+      "condicion": "",
+      "args": [
+        "-noop.component",
+        "ConfirmCard"
+      ]
+    },
+    {
+      "id": "LiquidInputCard",
+      "titulo": "LiquidInputCard",
+      "grupo": "Avisos",
+      "png": "componente-LiquidInputCard.png",
+      "condicion": "",
+      "args": [
+        "-noop.component",
+        "LiquidInputCard"
+      ]
+    },
+    {
+      "id": "LiquidPatternBlock",
+      "titulo": "LiquidPatternBlock",
+      "grupo": "Avisos",
+      "png": "componente-LiquidPatternBlock.png",
+      "condicion": "",
+      "args": [
+        "-noop.component",
+        "LiquidPatternBlock"
+      ]
+    },
+    {
+      "id": "LiquidTrendChart",
+      "titulo": "LiquidTrendChart",
+      "grupo": "Graficas",
+      "png": "componente-LiquidTrendChart.png",
+      "condicion": "",
+      "args": [
+        "-noop.component",
+        "LiquidTrendChart"
+      ]
+    },
+    {
+      "id": "Sparkline",
+      "titulo": "Sparkline",
+      "grupo": "Graficas",
+      "png": "componente-Sparkline.png",
+      "condicion": "",
+      "args": [
+        "-noop.component",
+        "Sparkline"
+      ]
+    }
+  ],
+  "aristas": []
+}

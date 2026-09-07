@@ -1,107 +1,73 @@
-# Cénit — Terms of Use & Acknowledgment
+# Cénit — Terms of Use
 
-**Version 2.0**
+**Version 3.0 — September 6, 2026**
 
-> **This is not legal advice.** This document was drafted with the help of an AI tool, not a lawyer.
-> It is offered honestly and in good faith, but the Cénit maintainers are not lawyers and nothing here
-> is a legal opinion. Before relying on these terms as *binding*, have them reviewed by a qualified
-> lawyer in your own jurisdiction. Some of what follows may not be enforceable, and the law in many
-> places limits what *anyone* is allowed to disclaim (see §6).
+This is not legal advice; have a lawyer review before relying on these terms as binding.
 
-By installing or using Cénit — and by ticking the box on first launch — **you confirm that you have
-read, understood, and accept the points below.** If you do not accept them, do not use Cénit, and
-remove it.
+By installing or using Cénit, you accept the terms below. If you do not accept them, remove the
+app from your device.
 
----
+## 1. What Cénit is, and who provides it
 
-## 1. What Cénit is — and who provides it
+Cénit is an iOS app that reads your own data from Apple Health, computes recovery, strain, HRV,
+and sleep metrics on your iPhone, and stores the results only on that iPhone. These terms are
+provided by the developer of Cénit, referred to here as **"the developer."** "You" means the
+person installing and using Cénit.
 
-Cénit is a free, independent, **non-commercial** application for iOS that reads your health and
-fitness data from **Apple Health**, on your own device, and stores everything **only on your own
-device**. There is no Cénit server, no Cénit account, and no telemetry — the maintainers cannot see
-your data and never receive it.
+Cénit is free to use today. If a paid feature is introduced later, it will be announced inside
+the app and on its App Store listing before it takes effect, and these terms will be updated to
+match.
 
-Cénit is published anonymously by an unpaid hobbyist maintainer and contributors, referred to
-throughout as **"the maintainers."** No personal identity is asserted or implied. "You" means the
-individual or entity using Cénit.
+To reach the developer, open an issue at **https://github.com/blandisc/cenit/issues**. That is
+the only support channel — the developer does not publish a support email address or a personal
+name.
 
-## 2. Independent — not affiliated with Apple
+## 2. Independent project, not affiliated with Apple
 
-Cénit is an **independent, unofficial project. It is not affiliated with, endorsed by, sponsored by,
-or connected to Apple Inc. in any way.** "Apple Health" and "HealthKit" are trademarks of Apple Inc.,
-used here only **descriptively (nominative fair use)** to identify the on-device framework Cénit reads
-data from — never to suggest origin, sponsorship, or endorsement, and never as Cénit's own brand. All
-other trademarks belong to their respective owners.
+Cénit is an independent project. It is **not affiliated with, endorsed by, sponsored by, or
+connected to Apple Inc.** in any way. "Apple Health" and "HealthKit" are trademarks of Apple Inc.,
+named here only to describe the on-device framework Cénit reads from — **nominative fair use** —
+never to suggest that Apple built, reviewed, or backs Cénit. All other trademarks belong to their
+respective owners.
 
-## 3. Use at your own risk
+## 3. Use Cénit at your own risk
 
-You may use Cénit to read **your own data** — the health samples your devices already store in Apple
-Health on **your own iPhone**. Cénit reads them locally, with your explicit HealthKit permission,
-which you can revoke at any time in the Health app.
+Cénit is **experimental software.** Its recovery, strain, HRV, and sleep numbers are computed
+on-device from published, approximate methods; they can be wrong, incomplete, or change between
+versions as those methods are refined. You use these numbers, and the app, at your own risk, and
+you are responsible for your own compliance with any laws or agreements that apply to you.
 
-You accept that Cénit is **experimental software.** Its numbers are derived on-device from published,
-approximate methods; they can be wrong, incomplete, or change between versions. **You assume that
-risk**, and you are responsible for reviewing the agreements and laws that apply to you and for your
-own compliance with them.
+## 4. Reads Apple's public HealthKit API only — no third-party material
 
-## 4. No proprietary material
+Cénit reads your health data exclusively through **Apple's public, documented HealthKit API**,
+under the read and write permissions you grant and can revoke at any time in the Health app.
+Cénit contains only its developer's own original work: no third-party proprietary code, no
+reverse-engineered or decompiled material, and no circumvention of any access control, login, or
+paywall.
 
-Cénit contains **only original work.** It does **not** contain, bundle, mirror, link to, or
-redistribute any third-party application, firmware, decompiled or disassembled code, source, logos,
-artwork, credentials, or server endpoints, and does **not** circumvent any access control, DRM,
-paywall, or login. It reads health data exclusively through Apple's public HealthKit APIs.
+## 5. Cénit does not practice medicine
 
-## 5. Not a medical device
+Cénit is **not a medical device** and provides **no medical advice.** Every metric it shows —
+recovery, strain, HRV, sleep stages, and the rest — is an **approximation** computed from
+published formulas, not a clinical measurement. **Do not use Cénit to diagnose, monitor, or make
+a decision about a health condition.** For any medical concern, consult a qualified healthcare
+professional or seek emergency care instead of relying on Cénit.
 
-Cénit is **not a medical device** and provides **no medical advice.** Heart rate, HRV, recovery,
-strain, sleep stages, SpO₂, respiratory rate, skin temperature, and every other derived metric are
-**approximations** computed from published methods. They are **not clinically validated.**
+## 6. No warranty, limited liability
 
-**Do not use Cénit to diagnose, treat, monitor, or make any decision about a health condition.** Cénit
-is for general wellness, personal interest, and educational use only. It is not intended to diagnose,
-treat, cure, or prevent any disease or condition. **Always consult a qualified healthcare
-professional**, and seek emergency care for any medical concern — do not rely on Cénit.
+Cénit is provided **"as is,"** with no warranty of any kind, express or implied, to the extent the
+law allows. The developer is not liable for any loss arising from your use of Cénit, including
+lost or inaccurate data — **except where the law that applies to you grants rights or protections
+that cannot be waived by these terms.** In that case, this section applies only as far as that law
+permits, and the rest of these terms stay in effect.
 
-## 6. Warranty and liability — honestly stated
+## 7. Privacy
 
-Cénit is provided **"as is" and "as available", with no warranty or condition of any kind**, express or
-implied (including, as far as the law allows, any implied warranties of satisfactory quality, fitness
-for a particular purpose, accuracy, or non-infringement).
+What Cénit reads, stores, and shares — and what it never sends anywhere — is described in full in
+the Privacy Policy: **https://blandisc.github.io/cenit/privacidad.html**.
 
-**To the maximum extent permitted by applicable law**, the maintainers will not be liable to you for
-any loss or damage arising out of these terms, or out of the use, misuse, or nature of Cénit —
-including loss of or inaccurate data, device problems, loss of warranty or service, or any indirect
-or consequential loss — under any kind of legal claim, even if advised of the possibility.
+## 8. Changes and version
 
-**Nothing in these terms excludes or limits any liability that cannot be excluded or limited under the
-law that applies to you** — for example, liability for death or personal injury caused by negligence,
-or for fraud. Where a limitation above is not permitted by your local law, it applies only to the
-fullest extent that law allows, and the rest of these terms remain in effect.
-
-Because Cénit is provided free of charge, on a non-commercial basis, and clearly labelled as
-experimental, you accept that this allocation of risk is reasonable.
-
-## 7. Your acknowledgment
-
-By ticking the acknowledgment box on first launch, **you confirm that you have read and accept §1–§6,
-that you are using Cénit with your own device and your own data, at your own risk, and that you will
-not hold the maintainers responsible** to any greater extent than §6 allows. If these terms change
-in a way that materially affects your rights, Cénit will ask you to acknowledge the new version.
-
-## 8. Changes, governing law, and severance
-
-The maintainers may update these terms; the current version ships with the app and is shown on first
-launch (and again if it materially changes). Continuing to use Cénit after a change means you accept
-the updated terms.
-
-**These terms are governed by the laws of the country in which you reside,** and any dispute is
-subject to the courts of that country. This preserves your local consumer protections and names no
-other jurisdiction.
-
-If any part of these terms is found unenforceable, that part is severed and the rest continues to
-apply. A failure to enforce any part is not a waiver of it.
-
----
-
-*Cénit is free, on-device, and independent. Thank you for using it responsibly. See also `LICENSE`
-(PolyForm Noncommercial) and `DISCLAIMER.md`.*
+The developer may update these terms. The current version is always published at this same file's
+URL in the app's repository, dated at the top. Continuing to use Cénit after a change means you
+accept the updated version.

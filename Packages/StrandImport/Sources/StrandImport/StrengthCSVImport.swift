@@ -761,7 +761,11 @@ private struct ColumnIndex {
     func double(_ name: String, in row: [String]) -> Double? {
         guard let s = string(name, in: row)?.trimmingCharacters(in: .whitespacesAndNewlines),
               !s.isEmpty else { return nil }
-        return Double(s.replacingOccurrences(of: ",", with: "."))
+        // Guarda de finitud: una celda "nan"/"inf"/"1e999" de un CSV de terceros parsea a un Double
+        // no finito que más adelante llega a `Int(x.rounded())` (StrengthDisplay) como trap fatal.
+        // Paridad con `int()` de abajo: celda no finita → nil (se ignora), no un valor envenenado.
+        guard let d = Double(s.replacingOccurrences(of: ",", with: ".")), d.isFinite else { return nil }
+        return d
     }
     func int(_ name: String, in row: [String]) -> Int? {
         // Guarda de finitud y rango: una celda "nan"/"inf"/"1e999"/gigante en un CSV de terceros

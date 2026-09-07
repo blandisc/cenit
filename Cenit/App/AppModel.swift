@@ -165,6 +165,9 @@ import StrandTraining
     private var hrCancellables = Set<AnyCancellable>()
 
     init() {
+        #if os(iOS) && DEBUG
+        FreshStore.applyIfRequested()   // FER-381: -noop.freshStore borra la base antes de abrir (captura hermética del mapa)
+        #endif
         self.repo = Repository(deviceId: "strap")
         self.repo.dataSourceMode = sources.mode      // FER-484: honor the persisted mode from launch
         self.repo.baselineEpoch = profile.baselineEpochOrNil   // FER-677: honor a persisted recalibration

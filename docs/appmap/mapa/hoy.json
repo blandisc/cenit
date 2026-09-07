@@ -1,0 +1,644 @@
+{
+  "familia": "hoy",
+  "titulo": "Hoy · TodayView",
+  "unidad": "estados",
+  "blurb": "El hub principal. El héroe nunca miente: numeral a color con veredicto, «··» calibrando, barra gris sin lectura, tinta cuando hay número sin contexto.",
+  "nodos": [
+    {
+      "id": "vacio",
+      "titulo": "Vacío · primer arranque",
+      "png": "hoy-vacio.png",
+      "x": 0,
+      "y": 520,
+      "condicion": "sin strap visto y sin base → HeroState .waiting · tarjetas Conectar Apple Salud / Emparejar banda",
+      "pasos": [
+        {
+          "nav": "today",
+          "settle": 5
+        }
+      ]
+    },
+    {
+      "id": "calibrando",
+      "titulo": "Calibrando",
+      "fixture": "calibrating",
+      "png": "hoy-calibrando.png",
+      "x": 460,
+      "y": 520,
+      "condicion": "strap visto, ownNights < 4 · overline «TU BASE SE AFINA» · numeral «··» · tiles vacíos",
+      "pasos": [
+        {
+          "nav": "today",
+          "settle": 5
+        }
+      ]
+    },
+    {
+      "id": "descargando",
+      "titulo": "Descargando la noche",
+      "fixture": "downloading",
+      "png": "hoy-descargando.png",
+      "x": 920,
+      "y": 520,
+      "condicion": "offload en curso (live.backfilling), sin recovery de hoy · «Sincronizando con tu banda…»",
+      "pasos": [
+        {
+          "nav": "today",
+          "settle": 5
+        }
+      ]
+    },
+    {
+      "id": "apunto",
+      "titulo": "Veredicto · A punto",
+      "fixture": "primed",
+      "png": "hoy-apunto.png",
+      "x": 1420,
+      "y": 80,
+      "condicion": "nivel .primed (good ≥ 2) · numeral en verde de banda",
+      "pasos": [
+        {
+          "nav": "today",
+          "settle": 5
+        }
+      ]
+    },
+    {
+      "id": "exigido",
+      "titulo": "Veredicto · Exigido",
+      "fixture": "strained",
+      "png": "hoy-exigido.png",
+      "x": 1420,
+      "y": 960,
+      "condicion": "nivel .strained (una señal de recuperación abajo) · numeral ámbar",
+      "pasos": [
+        {
+          "nav": "today",
+          "settle": 5
+        }
+      ]
+    },
+    {
+      "id": "equilibrado",
+      "titulo": "Veredicto · Equilibrado",
+      "fixture": "balanced",
+      "png": "hoy-equilibrado.png",
+      "x": 1860,
+      "y": 80,
+      "condicion": "nivel .balanced (nada notable flagea) · numeral en color de banda",
+      "pasos": [
+        {
+          "nav": "today",
+          "settle": 5
+        }
+      ]
+    },
+    {
+      "id": "desgastado",
+      "titulo": "Veredicto · Desgastado",
+      "fixture": "rundown",
+      "png": "hoy-desgastado.png",
+      "x": 1860,
+      "y": 960,
+      "condicion": "nivel .rundown (≥2 señales abajo a la vez) · numeral rojo",
+      "pasos": [
+        {
+          "nav": "today",
+          "settle": 5
+        }
+      ]
+    },
+    {
+      "id": "insufficient",
+      "titulo": "Veredicto · Insufficient",
+      "fixture": "insufficient",
+      "png": "hoy-insufficient.png",
+      "x": 2320,
+      "y": 520,
+      "condicion": "hay número de hoy pero sin historia previa → nivel .insufficient · numeral en tinta, sin veredicto",
+      "pasos": [
+        {
+          "nav": "today",
+          "settle": 5
+        }
+      ]
+    },
+    {
+      "id": "t4-sin-permiso",
+      "titulo": "Plantilla · Sin permiso (T4)",
+      "fixture": "insufficient",
+      "args": ["-noop.healthDenied", "YES"],
+      "condicion": "hasAnySource=true (fixture) + healthConnected=false (`-noop.healthDenied`) + sin veredicto → LiquidHoyBuilder.plantilla()=.t4SinPermiso · héroe «Conectar Salud»",
+      "pasos": [
+        {
+          "nav": "today",
+          "settle": 5
+        }
+      ]
+    },
+    {
+      "id": "t5-dormido",
+      "titulo": "Plantilla · Dormido (T5)",
+      "condicion": "!hasAnySource → LiquidHoyBuilder.plantilla()=.t5Dormido, pero TodayView SOLO evalúa esa rama dentro de `liquidSurface`/HoyMatrizHost, que nunca se monta cuando `noSources==true` (ese caso renderiza la rama «orbe dormido» por separado, sin pasar por la Matriz)",
+      "omitido": "código muerto en la UI actual: t5Dormido nunca se pinta — noSources==true (la MISMA condición) toma la rama «orbe dormido» (LiquidOrbeDormidoEstado) en vez de montar HoyMatrizHost, así que la plantilla jamás llega a dibujarse. Visualmente es EL MISMO estado que el nodo «vacio» ya capturado; un nodo aparte duplicaría el PNG sin mostrar nada nuevo."
+    },
+    {
+      "id": "t3-leyendo",
+      "titulo": "T3 · Leyendo tu noche",
+      "fixture": "insufficient",
+      "args": ["-noop.hour", "5"],
+      "condicion": "ventana nocturna ABIERTA (hora local < 11, sin sesión que cierre) → causaT3()=.leyendo · franja «Leyendo tu noche…»",
+      "pasos": [
+        {
+          "nav": "today",
+          "settle": 5
+        }
+      ]
+    },
+    {
+      "id": "t3-sin-sync",
+      "titulo": "T3 · Sync pendiente",
+      "fixture": "insufficient",
+      "args": ["-noop.hour", "14", "-noop.syncStale", "YES"],
+      "condicion": "ventana CERRADA (hora≥11) + último import viejo (`-noop.syncStale` fuerza lastSync=nil) → causaT3()=.sinSync · franja «Sync pendiente · jala hacia abajo para sincronizar»",
+      "pasos": [
+        {
+          "nav": "today",
+          "settle": 5
+        }
+      ]
+    },
+    {
+      "id": "t3-noche-no-registrada",
+      "titulo": "T3 · Noche no registrada",
+      "fixture": "downloading",
+      "args": ["-noop.hour", "14"],
+      "condicion": "ventana CERRADA (hora≥11) + import fresco (fixture) + sin fila de HOY (el fixture `downloading` solo siembra días −1…−6) → causaT3()=.nocheNoRegistrada · franja «La noche no quedó registrada»",
+      "pasos": [
+        {
+          "nav": "today",
+          "settle": 5
+        }
+      ]
+    },
+    {
+      "id": "preparacion-cargando",
+      "titulo": "Preparación · Cargando",
+      "args": ["-noop.route", "hoy/preparacion-cargando"],
+      "condicion": "PreparacionDetalleModelo.Estado.cargando (constante estática, sin datos) — hoja de «tus 30 mañanas»; en producción SOLO se abre desde Cuerpo, aquí forzada vía DebugRoute (no hay disparador en Hoy)",
+      "pasos": [
+        {
+          "nav": "today",
+          "settle": 5
+        },
+        {
+          "wait": 2
+        }
+      ]
+    },
+    {
+      "id": "preparacion-sin-permiso",
+      "titulo": "Preparación · Sin permiso",
+      "fixture": "insufficient",
+      "args": ["-noop.route", "hoy/preparacion-sinpermiso"],
+      "condicion": "PreparacionDetalleModelo.build(healthConnected:false) → estado=.sinPermiso",
+      "pasos": [
+        {
+          "nav": "today",
+          "settle": 5
+        },
+        {
+          "wait": 2
+        }
+      ]
+    },
+    {
+      "id": "preparacion-sin-historia",
+      "titulo": "Preparación · Sin historia",
+      "args": ["-noop.route", "hoy/preparacion-sinhistoria"],
+      "condicion": "sin fixture (store fresco, `repo.todayPreparedness`=nil) + healthConnected forzado a true → PreparacionDetalleModelo.build cae en estado=.sinHistoria",
+      "pasos": [
+        {
+          "nav": "today",
+          "settle": 5
+        },
+        {
+          "wait": 2
+        }
+      ]
+    },
+    {
+      "id": "preparacion-con-ventana",
+      "titulo": "Preparación · Con ventana",
+      "fixture": "primed",
+      "args": ["-noop.route", "hoy/preparacion-conventana"],
+      "condicion": "prep con verdictHistory (40 días del fixture `primed`) + healthConnected=true → estado=.conVentana, mosaico de 30 días + «Los votos»",
+      "pasos": [
+        {
+          "nav": "today",
+          "settle": 5
+        },
+        {
+          "wait": 2
+        }
+      ]
+    },
+    {
+      "id": "veredicto-acta",
+      "titulo": "Acta del veredicto",
+      "fixture": "primed",
+      "condicion": "toca la pastilla «Cómo llegué a esto» del héroe → showVeredictoActa → LiquidActaVeredicto",
+      "pasos": [
+        {
+          "nav": "today",
+          "settle": 5
+        },
+        {
+          "tapText": "Cómo llegué a esto"
+        }
+      ]
+    },
+    {
+      "id": "guardian",
+      "titulo": "El guardián",
+      "fixture": "primed",
+      "condicion": "toca el módulo «Te vigila» de la Matriz (matriz-seccion-guardian) → showGuardianHoja → LiquidGuardianHojaHost",
+      "pasos": [
+        {
+          "nav": "today",
+          "settle": 5
+        },
+        {
+          "tapId": "matriz-seccion-guardian"
+        }
+      ]
+    },
+    {
+      "id": "decide-manual",
+      "titulo": "Manual · Deciden tu día",
+      "fixture": "primed",
+      "condicion": "toca el rótulo de nivel «Deciden tu día» → showDecideManual → HojaDecideTuDia (FER-54)",
+      "pasos": [
+        {
+          "nav": "today",
+          "settle": 5
+        },
+        {
+          "tapText": "Deciden tu día"
+        }
+      ]
+    },
+    {
+      "id": "contexto-manual",
+      "titulo": "Manual · Contexto",
+      "fixture": "primed",
+      "condicion": "toca el rótulo de nivel «Contexto» → showContextoManual → HojaContexto (FER-61)",
+      "pasos": [
+        {
+          "nav": "today",
+          "settle": 5
+        },
+        {
+          "tapText": "Contexto"
+        }
+      ]
+    },
+    {
+      "id": "autonomico",
+      "titulo": "Eje autonómico",
+      "fixture": "primed",
+      "args": ["-noop.route", "hoy/autonomico"],
+      "condicion": "toca el orbe «Autonómico» del héroe → showAutonomicoHoja → LiquidAutonomicoScreen; el orbe vive dentro de CenitDesign/LiquidHoyContent sin accessibilityIdentifier propio, forzado vía DebugRoute",
+      "pasos": [
+        {
+          "nav": "today",
+          "settle": 5
+        },
+        {
+          "wait": 2
+        }
+      ]
+    },
+    {
+      "id": "sueno",
+      "titulo": "Detalle · Sueño",
+      "fixture": "primed",
+      "args": ["-noop.route", "hoy/sueno"],
+      "condicion": "SleepDetailScreen — la MISMA acción del «Ver más» real de la hoja resumen (seeMoreAction(\"sleep\")), forzada vía DebugRoute",
+      "pasos": [
+        {
+          "nav": "today",
+          "settle": 5
+        },
+        {
+          "wait": 2
+        }
+      ]
+    },
+    {
+      "id": "esfuerzo",
+      "titulo": "Detalle · Esfuerzo",
+      "fixture": "primed",
+      "args": ["-noop.route", "hoy/esfuerzo"],
+      "condicion": "StrainDetailScreen — MISMA acción del «Ver más» real (seeMoreAction(\"strain\")), forzada vía DebugRoute",
+      "pasos": [
+        {
+          "nav": "today",
+          "settle": 5
+        },
+        {
+          "wait": 2
+        }
+      ]
+    },
+    {
+      "id": "estres",
+      "titulo": "Detalle · Estrés",
+      "fixture": "primed",
+      "args": ["-noop.route", "hoy/estres"],
+      "condicion": "StressDetailScreen + StressDayMapView — MISMA acción del «Ver más» real (seeMoreAction(\"stress\")), forzada vía DebugRoute",
+      "pasos": [
+        {
+          "nav": "today",
+          "settle": 5
+        },
+        {
+          "wait": 2
+        }
+      ]
+    },
+    {
+      "id": "temperatura",
+      "titulo": "Detalle · Temperatura de piel",
+      "fixture": "primed",
+      "args": ["-noop.route", "hoy/temperatura"],
+      "condicion": "SkinTempDetailScreen — sin renglón propio en la Matriz (el guardián no desglosa temp/resp como filas tocables); MISMA acción de producción (seeMoreAction(\"skin_temp\")), forzada vía DebugRoute",
+      "pasos": [
+        {
+          "nav": "today",
+          "settle": 5
+        },
+        {
+          "wait": 2
+        }
+      ]
+    },
+    {
+      "id": "carga",
+      "titulo": "Carga de entrenamiento",
+      "fixture": "primed",
+      "condicion": "toca el módulo «Carga» de la Matriz (matriz-seccion-carga) → TrainingLoadSheet",
+      "pasos": [
+        {
+          "nav": "today",
+          "settle": 5
+        },
+        {
+          "tapId": "matriz-seccion-carga"
+        }
+      ]
+    },
+    {
+      "id": "metrica-hrv",
+      "titulo": "Métrica · VFC",
+      "fixture": "primed",
+      "condicion": "toca el módulo VFC de la Matriz (matriz-seccion-hrv) → LiquidMetricSheetView(info: .hrv)",
+      "pasos": [
+        {
+          "nav": "today",
+          "settle": 5
+        },
+        {
+          "tapId": "matriz-seccion-hrv"
+        }
+      ]
+    },
+    {
+      "id": "metrica-rhr",
+      "titulo": "Métrica · FC en reposo",
+      "fixture": "primed",
+      "condicion": "toca el módulo FC reposo de la Matriz (matriz-seccion-rhr) → LiquidMetricSheetView(info: .restingHR)",
+      "pasos": [
+        {
+          "nav": "today",
+          "settle": 5
+        },
+        {
+          "tapId": "matriz-seccion-rhr"
+        }
+      ]
+    },
+    {
+      "id": "metrica-steps",
+      "titulo": "Métrica · Pasos",
+      "fixture": "primed",
+      "condicion": "toca el módulo Pasos de la Matriz (matriz-seccion-steps) → LiquidMetricSheetView(info: .steps)",
+      "pasos": [
+        {
+          "nav": "today",
+          "settle": 5
+        },
+        {
+          "tapId": "matriz-seccion-steps"
+        }
+      ]
+    },
+    {
+      "id": "metrica-sleep",
+      "titulo": "Métrica · Sueño (resumen)",
+      "fixture": "primed",
+      "condicion": "toca el módulo Sueño de la Matriz (matriz-seccion-sleep) → LiquidMetricSheetView(info: .sleep) — la hoja RESUMEN, distinta del detalle rico «sueno»",
+      "pasos": [
+        {
+          "nav": "today",
+          "settle": 5
+        },
+        {
+          "tapId": "matriz-seccion-sleep"
+        }
+      ]
+    },
+    {
+      "id": "metrica-resp-rate",
+      "titulo": "Métrica · Respiración",
+      "fixture": "primed",
+      "args": ["-noop.route", "hoy/metrica-resp_rate"],
+      "condicion": "LiquidMetricSheetView(info: .respiratory) — sin renglón propio en la Matriz (vive dentro del guardián, sin fila tocable), forzada vía DebugRoute",
+      "pasos": [
+        {
+          "nav": "today",
+          "settle": 5
+        },
+        {
+          "wait": 2
+        }
+      ]
+    },
+    {
+      "id": "metrica-heart-rate",
+      "titulo": "Métrica · FC (curva 24 h)",
+      "fixture": "primed",
+      "args": ["-noop.route", "hoy/metrica-heart_rate"],
+      "condicion": "LiquidMetricSheetView(info: .heartRate) — vital huérfana: ninguna fila de Hoy despacha este id (`abrirHojaCaras`/`openLiquidMetric` no tienen caso «heart_rate»), forzada vía DebugRoute",
+      "pasos": [
+        {
+          "nav": "today",
+          "settle": 5
+        },
+        {
+          "wait": 2
+        }
+      ]
+    },
+    {
+      "id": "metrica-spo2",
+      "titulo": "Métrica · SpO₂",
+      "fixture": "primed",
+      "args": ["-noop.route", "hoy/metrica-spo2"],
+      "condicion": "LiquidMetricSheetView(info: .spo2) — vital huérfana (sin fila en Hoy), forzada vía DebugRoute",
+      "pasos": [
+        {
+          "nav": "today",
+          "settle": 5
+        },
+        {
+          "wait": 2
+        }
+      ]
+    },
+    {
+      "id": "metrica-vo2max",
+      "titulo": "Métrica · VO₂max",
+      "fixture": "primed",
+      "args": ["-noop.route", "hoy/metrica-vo2max"],
+      "condicion": "LiquidMetricSheetView(info: .vo2max) — vital huérfana (sin fila en Hoy), forzada vía DebugRoute",
+      "pasos": [
+        {
+          "nav": "today",
+          "settle": 5
+        },
+        {
+          "wait": 2
+        }
+      ]
+    },
+    {
+      "id": "fuentes",
+      "titulo": "Fuentes de datos (desde Hoy)",
+      "fixture": "primed",
+      "args": ["-noop.route", "hoy/fuentes"],
+      "condicion": "showDataSources → DataSourcesView; en producción se abre tocando la pastilla «Conectar Salud» del héroe SIN veredicto o el aviso de Salud desconectada — forzada aquí vía DebugRoute para no depender de esos dos estados",
+      "pasos": [
+        {
+          "nav": "today",
+          "settle": 5
+        },
+        {
+          "wait": 2
+        }
+      ]
+    }
+  ],
+  "aristas": [
+    {
+      "de": "vacio",
+      "a": "calibrando",
+      "etiqueta": "empareja banda"
+    },
+    {
+      "de": "calibrando",
+      "a": "descargando",
+      "etiqueta": "1ª sincronización"
+    },
+    {
+      "de": "descargando",
+      "a": "apunto",
+      "etiqueta": "recovery listo"
+    },
+    {
+      "de": "descargando",
+      "a": "equilibrado",
+      "etiqueta": ""
+    },
+    {
+      "de": "descargando",
+      "a": "exigido",
+      "etiqueta": ""
+    },
+    {
+      "de": "descargando",
+      "a": "desgastado",
+      "etiqueta": ""
+    },
+    {
+      "de": "descargando",
+      "a": "insufficient",
+      "etiqueta": "sin historia previa"
+    },
+    {
+      "de": "insufficient",
+      "a": "t3-leyendo",
+      "etiqueta": "hora local < 11"
+    },
+    {
+      "de": "insufficient",
+      "a": "t3-sin-sync",
+      "etiqueta": "hora≥11 · import viejo"
+    },
+    {
+      "de": "insufficient",
+      "a": "t4-sin-permiso",
+      "etiqueta": "Salud desconectada"
+    },
+    {
+      "de": "descargando",
+      "a": "t3-noche-no-registrada",
+      "etiqueta": "hora≥11 · sin fila de hoy"
+    },
+    {
+      "de": "apunto",
+      "a": "veredicto-acta",
+      "etiqueta": "toca «Cómo llegué a esto»"
+    },
+    {
+      "de": "apunto",
+      "a": "guardian",
+      "etiqueta": "toca «Te vigila»"
+    },
+    {
+      "de": "apunto",
+      "a": "decide-manual",
+      "etiqueta": "toca «Deciden tu día»"
+    },
+    {
+      "de": "apunto",
+      "a": "contexto-manual",
+      "etiqueta": "toca «Contexto»"
+    },
+    {
+      "de": "apunto",
+      "a": "carga",
+      "etiqueta": "toca Carga"
+    },
+    {
+      "de": "apunto",
+      "a": "metrica-hrv",
+      "etiqueta": "toca VFC"
+    },
+    {
+      "de": "apunto",
+      "a": "metrica-rhr",
+      "etiqueta": "toca FC reposo"
+    },
+    {
+      "de": "apunto",
+      "a": "metrica-steps",
+      "etiqueta": "toca Pasos"
+    },
+    {
+      "de": "apunto",
+      "a": "metrica-sleep",
+      "etiqueta": "toca Sueño"
+    }
+  ]
+}

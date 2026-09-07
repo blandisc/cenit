@@ -182,6 +182,11 @@ private struct CuerpoLanding: View {
     /// with its OWN NavigationStack (so a metric row pushes its detail). Replaces the old dark
     /// `.screen(.explore)` bridge.
     @State private var showExplore = false
+    /// The Explorar sheet's own push path — bound explicitly (not implicit inside its
+    /// `NavigationStack`) so `-noop.route tendencias/<métrica>` (FER-384 · mapa 100%) can
+    /// pre-populate it with one of the ~28 catalog metrics that have no rich `metricSpec` route,
+    /// landing straight on `MetricDetailView` instead of the list. Cleared when the sheet closes.
+    @State private var explorePath = NavigationPath()
     /// Entrenamientos Liquid (FER-260): the «Workouts» row opens the list as a detail LAYER,
     /// like every other Tendencias detail (it used to be the odd one out, a card sliding up
     /// from the bottom). It keeps its own NavigationStack so a session row still pushes the detail.
@@ -232,7 +237,13 @@ private struct CuerpoLanding: View {
     /// The period the landing's sparklines (hero + every stat) window over. The header selector drives it;
     /// each spark re-slices `repo.displayDays` to this window on change, and the hero's «vs tu media» delta
     /// recomputes against the same window. (FER-566 — supersedes the fixed 14-day hero spark of FER-186.)
+    /// `-noop.range` (FER-384 · mapa 100%) fixes the initial window for the capture; a normal launch
+    /// falls to `.month` as always (`TendenciasFixtures.debugRange()` is DEBUG-only).
+    #if DEBUG
+    @State private var selectedPeriod: ExploreRange = TendenciasFixtures.debugRange() ?? .month
+    #else
     @State private var selectedPeriod: ExploreRange = .month
+    #endif
 
     // Loaded once per refresh (memoized in `loadAll`) so the body never re-scans history per render.
     /// The stored daily stress series (0–3), kept so the «Stress» stat can draw a sparkline — stress isn't a
@@ -322,12 +333,14 @@ private struct CuerpoLanding: View {
                 .environment(model)
                 .environmentObject(health)
         }
-        .sheet(isPresented: $showExplore) {
+        .sheet(isPresented: $showExplore, onDismiss: { explorePath = NavigationPath() }) {
             // Explore Liquid (FER-272): its OWN NavigationStack lives inside the sheet so a
             // metric row pushes its detail (NOT a stack nested across the tab path, FER-171).
             // Env objects are re-supplied (a sheet starts a fresh environment).
             // A light sheet from a light tab keeps the status bar honest (no dark pin needed).
-            NavigationStack {
+            // `path` is bound explicitly (FER-384 · mapa 100%) so a debug route can pre-push a
+            // metric; a normal tap still just appends via the metric row's own `NavigationLink`.
+            NavigationStack(path: $explorePath) {
                 MetricExplorerView()
                     .toolbar {
                         ToolbarItem(placement: .confirmationAction) {
@@ -339,7 +352,47 @@ private struct CuerpoLanding: View {
             .environment(model)
             .environmentObject(health)
         }
+        #if os(iOS) && DEBUG
+        // `-noop.route tendencias/<métrica>` (FER-384 · mapa 100%): abre el detalle de una métrica
+        // sin tocarla — la ruta directa `metricSpec` para las 7 vitales ricas, `Explorar` empujado
+        // para las demás del catálogo. También abre las hojas hermanas (Comparar/Explorar solo/
+        // ActivityRecovery/Fitness Age/Body Age) por su propia clave. Consume `DebugRoute` — la
+        // Ola 1 ya seleccionó la tab `.body` en `RootTabView.onAppear`.
+        .onAppear { openDebugRoute() }
+        #endif
     }
+
+    #if os(iOS) && DEBUG
+    /// Ver el comentario del `.onAppear` de arriba. Semilla el spec/showX con lo que YA está en
+    /// memoria (puede ser `nil` si el fixture del nodo aún no terminó de sembrar — el propio
+    /// `.task` de `MetricDetailScreen`/`MetricExplorerView` reintenta con datos frescos, igual que
+    /// un tap real: VIT-03).
+    private func openDebugRoute() {
+        guard let key = DebugRoute.key(for: "tendencias") else { return }
+        switch key {
+        case "hrv":          metricSpec = .hrv(resolveMeasured { $0.avgHrv }?.value)
+        case "rhr":          metricSpec = .restingHR(resolveMeasured { $0.restingHr.map(Double.init) }.map { Int($0.value.rounded()) })
+        case "spo2":         metricSpec = .spo2(resolveMeasured { $0.spo2Pct }?.value)
+        case "heart_rate":   metricSpec = .heartRate(hrTodayAvg)
+        case "resp_rate":    metricSpec = .respiratory(resolveMeasured { $0.respRateBpm }?.value)
+        case "steps":        metricSpec = .steps(freshSteps)
+        case "vo2max":       metricSpec = .vo2max(value: latestAppleVO2max, age: model.profile.age, sex: model.profile.sex)
+        case "comparar":     showCompare = true
+        case "explorar":     showExplore = true
+        case "actividad":    showActivityCost = true
+        case "edad-fisica":  showFitnessAge = true
+        case "edad-corporal": showBodyAge = true
+        default:
+            // El resto del catálogo (~28 métricas) no tiene ruta rica propia — se empuja dentro
+            // de Explorar (FER-384, el mismo `MetricDetailView` genérico que un tap real abriría).
+            if let d = MetricCatalog.all.first(where: { $0.key == key }) {
+                explorePath = NavigationPath()
+                explorePath.append(d)
+                showExplore = true
+            }
+        }
+    }
+    #endif
 
     // MARK: - Detail layer (FER-837 follow-up)
 

@@ -9,65 +9,78 @@ en un lienzo navegable, la etiqueta y traza las transiciones entre estados.
 Regenerar tras capturar estados nuevos:  python3 Tools/build-appmap.py
 El mismo manifiesto alimenta la galería viva autocontenida (Tools/build-galeria-artifact.py).
 """
-import os, html, base64
+import os, html, base64, json, glob
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 APPMAP = os.path.join(ROOT, "docs", "appmap")
+MAPA_DIR = os.path.join(APPMAP, "mapa")   # los manifiestos JSON, una fuente de verdad (FER-381)
 
 NODE_W = 300                       # ancho de imagen mostrada
 IMG_H  = round(NODE_W * 2622/1206) # alto proporcional a la captura (~652)
 
-# --- Manifiesto: grupos (pantallas), cada uno con nodos posicionados y aristas de flujo ---
-# node: id -> (png, título, condición, x, y)
-# edge: (id_origen, id_destino, etiqueta)
-MAP = [
- {
-  "name": "Hoy · TodayView",
-  "blurb": "El hub principal. El héroe nunca miente: numeral a color con veredicto, «··» calibrando, "
-           "barra gris sin lectura, tinta cuando hay número sin contexto.",
-  "nodes": {
-    "vacio":       ("hoy-vacio.png",       "Vacío · primer arranque",
-                    "sin banda vista y sin base → HeroState .waiting · tarjetas Conectar Apple Salud / Emparejar banda", 0, 520),
-    "calibrando":  ("hoy-calibrando.png",  "Calibrando",
-                    "banda vista, ownNights < 4 · overline «TU BASE SE AFINA» · numeral «··» · tiles vacíos", 460, 520),
-    "descargando": ("hoy-descargando.png", "Descargando la noche",
-                    "offload en curso (live.backfilling), sin recovery de hoy · «Sincronizando con tu banda…»", 920, 520),
-    "apunto":      ("hoy-apunto.png",      "Veredicto · A punto",
-                    "nivel .primed (good ≥ 2) · numeral en verde de banda", 1420, 80),
-    "exigido":     ("hoy-exigido.png",     "Veredicto · Exigido",
-                    "nivel .strained (una señal de recuperación abajo) · numeral ámbar", 1420, 960),
-    "equilibrado": ("hoy-equilibrado.png", "Veredicto · Equilibrado",
-                    "nivel .balanced (nada notable flagea) · numeral en color de banda", 1860, 80),
-    "desgastado":  ("hoy-desgastado.png",  "Veredicto · Desgastado",
-                    "nivel .rundown (≥2 señales abajo a la vez) · numeral rojo", 1860, 960),
-    "insufficient":("hoy-insufficient.png","Veredicto · Insufficient",
-                    "hay número de hoy pero sin historia previa → nivel .insufficient · numeral en tinta, sin veredicto", 2320, 520),
-  },
-  "edges": [
-    ("vacio", "calibrando", "empareja banda"),
-    ("calibrando", "descargando", "1ª sincronización"),
-    ("descargando", "apunto", "recovery listo"),
-    ("descargando", "equilibrado", ""),
-    ("descargando", "exigido", ""),
-    ("descargando", "desgastado", ""),
-    ("descargando", "insufficient", "sin historia previa"),
-  ],
- },
- {
-  "name": "Entrenar · flujo de fuerza",
-  "blurb": "El hub del tracker (plan sembrado: split Empuje/Jalón/Pierna, Empuje = hoy) → la sesión "
-           "guiada serie por serie. El corazón del tracker de fuerza.",
-  "nodes": {
-    "hub":    ("entrenar-hub.png", "Entrenar · hub",
-               "rutina de hoy («Empuje») + recuperación + «La sesión de hoy» + Tu Plan semanal + herramientas", 0, 0),
-    "sesion": ("entrenar-sesion.png", "Sesión guiada de fuerza",
-               "«En curso» · foco serie×serie: tabla editable (kg/reps/RPE) + descanso por FC + siguientes ejercicios", 520, 0),
-  },
-  "edges": [
-    ("hub", "sesion", "Empezar"),
-  ],
- },
-]
+# --- Manifiesto guiado por JSON (FER-381) ----------------------------------------------------
+# Cada familia declara sus nodos (estado capturable) y aristas (flujo) en `docs/appmap/mapa/<f>.json`.
+# El MISMO JSON lo lee el harness (`CenitScreenshotTests.test_mapa`) para capturar y este script
+# para dibujar — así una pieza/estado nuevo entra con un renglón, sin tocar código.
+#
+# Formas que el resto del módulo (y `build-galeria-artifact.py`, que importa MAP/COMPONENTS) espera:
+#   MAP        = [ {name, blurb, nodes:{id:(png,title,cond,x,y)}, edges:[(a,b,label)], unit} , … ]
+#   COMPONENTS = [ (nombre, familia_de_pieza), … ]   (mismo contrato que antes)
+# Orden de familias en el lienzo: hoy → entrenar → resto (alfabético) → componentes al final.
+_FAM_ORDER = {"hoy": 0, "entrenar": 1, "componentes": 99}
+
+def _manifest_paths():
+    return sorted(glob.glob(os.path.join(MAPA_DIR, "*.json")),
+                  key=lambda p: (_FAM_ORDER.get(os.path.splitext(os.path.basename(p))[0], 50),
+                                 os.path.basename(p)))
+
+def _autolayout(nodos, cols=4):
+    """Rellena x/y para los nodos que no los traen (cuadrícula por familia — mismas celdas que
+    el grupo de componentes)."""
+    cellW, cellH = NODE_W + 130, IMG_H + 150
+    i = 0
+    for n in nodos:
+        if n.get("x") is None or n.get("y") is None:
+            n["x"], n["y"] = (i % cols) * cellW, (i // cols) * cellH
+        i += 1
+
+def _frame_png(node, frame):
+    """Nombre del PNG de un frame. Frame 0 = el nombre de muro (`png`, ej. hoy-apunto.png), para no
+    romper el muro ni la galería; frames de scroll = `<base>-f<n>.png`."""
+    base = node.get("png") or f"{node['_familia']}-{node['id']}.png"
+    if frame == 0:
+        return base
+    stem, ext = os.path.splitext(base)
+    return f"{stem}-f{frame}{ext or '.png'}"
+
+def load_manifests():
+    """Devuelve (MAP, COMPONENTS, NODES) leídos de los JSON. NODES es la lista plana de nodos con
+    su familia y su lista de frames — la usan el harness (indirecto) y `check-shots.py`/`sync_shots`."""
+    groups, components, flat = [], [], []
+    for path in _manifest_paths():
+        m = json.load(open(path, encoding="utf-8"))
+        fam = m["familia"]
+        nodos = m.get("nodos", [])
+        for n in nodos:
+            n["_familia"] = fam
+        _autolayout(nodos)
+        nodes = {}
+        for n in nodos:
+            png0 = _frame_png(n, 0)
+            # En componentes el subtítulo del nodo es su familia de pieza (como el muro FER-315).
+            cond = n.get("condicion") or (n.get("grupo", "") if fam == "componentes" else "")
+            nodes[n["id"]] = (png0, n.get("titulo", n["id"]), cond, n["x"], n["y"])
+            frames = int(n.get("frames", 1) or 1)
+            flat.append({"familia": fam, "id": n["id"],
+                         "pngs": [_frame_png(n, f) for f in range(frames)]})
+            if fam == "componentes":
+                components.append((n["id"], n.get("grupo", "")))
+        edges = [(a["de"], a["a"], a.get("etiqueta", "")) for a in m.get("aristas", [])]
+        groups.append({"name": m.get("titulo", fam), "blurb": m.get("blurb", ""),
+                       "nodes": nodes, "edges": edges, "unit": m.get("unidad", "estados")})
+    return groups, components, flat
+
+MAP, COMPONENTS, NODES = load_manifests()
 
 def esc(s): return html.escape(s, quote=True)
 
@@ -86,6 +99,11 @@ def edges_svg(nodes, edges):
     maxy = max(y+IMG_H+120 for (_,_,_,x,y) in nodes.values()) + 200
     paths = []
     for a, b, label in edges:
+        # Aristas cross-familia (`familia/id`) o a un nodo que no existe: se omiten aquí (cada grupo
+        # es su propio board, no hay lienzo global) con un aviso — no rompen el dibujo (FER-381 · D5).
+        if a not in nodes or b not in nodes:
+            print(f"  (arista omitida: {a} → {b} — endpoint fuera de este board)")
+            continue
         (_,_,_,ax,ay) = nodes[a]; (_,_,_,bx,by) = nodes[b]
         s = _anchors(ax,ay)["r"]; t = _anchors(bx,by)["l"]
         dx = max(80, (t[0]-s[0])*0.45)
@@ -360,90 +378,28 @@ def render(src_of, font_css="", total_note=""):
 <script>{PANZOOM_JS}</script>
 <script>{ANNOT_JS}</script></body></html>"""
 
-# --- Puente captura→shots: nombre del PNG en shots/ -> nombre crudo que escribe el harness ---
-# (el harness usa today_<estado>.png; el muro usa hoy-<estado>.png). Extender por pantalla.
-SHOT_SRC = {
-    "hoy-vacio.png":        "today.png",
-    "hoy-calibrando.png":   "today_calibrating.png",
-    "hoy-descargando.png":  "today_downloading.png",
-    "hoy-insufficient.png": "today_insufficient.png",
-    "hoy-apunto.png":       "today_primed.png",
-    "hoy-equilibrado.png":  "today_balanced.png",
-    "hoy-exigido.png":      "today_strained.png",
-    "hoy-desgastado.png":   "today_rundown.png",
-    "entrenar-hub.png":     "train-hub.png",
-    "entrenar-sesion.png":  "train-sesion.png",
-}
 SHOT_W = 800   # ancho al que se reescalan las capturas para el repo/muro (nítido, ligero)
 
-# --- FER-315 · grupo «Componentes» (catálogo del sistema de diseño) ---
-# (name, family). DEBE seguir a `ComponentGallery.entries` (Cenit/App/ComponentGallery.swift, la
-# fuente que renderiza) y a `componentNames` en `CenitScreenshotTests`. Extender aquí al crecer el
-# núcleo: un renglón por pieza y el resto se acomoda solo (grid por familia + puente de captura).
-COMPONENTS = [
-    ("LiquidGlassButton",       "Botones"),
-    ("LiquidMetricTile",        "Tiles"),
-    ("LiquidCajita",            "Tiles"),
-    ("EntrenarTile",            "Tiles"),
-    ("EntrenarModulo",          "Tiles"),
-    ("LiquidChipSeleccion",     "Chips"),
-    ("LiquidOrigenChip",        "Chips"),
-    ("LiquidOrigenBadge",       "Chips"),
-    ("EntrenarChipHerramienta", "Chips"),
-    ("LiquidStatePill",         "Chips"),
-    ("LiquidListRow",           "Filas"),
-    ("LiquidChecklistRow",      "Filas"),
-    ("EntrenarFilaEjercicio",   "Filas"),
-    ("LiquidRangeSelector",     "Controles"),
-    ("EntrenarStepper",         "Controles"),
-    ("LiquidCampoBusqueda",     "Controles"),
-    ("LiquidTabBar",            "Estructura"),
-    ("LiquidMenu",              "Estructura"),
-    ("LiquidSheetHeader",       "Estructura"),
-    ("LiquidSectionHeader",     "Estructura"),
-    ("LiquidAviso",             "Avisos"),
-    ("ConfirmCard",             "Avisos"),
-    ("LiquidInputCard",         "Avisos"),
-    ("LiquidPatternBlock",      "Avisos"),
-    ("LiquidTrendChart",        "Graficas"),
-    ("Sparkline",               "Graficas"),
-]
-
-def _component_group():
-    """Un board tipo cuadrícula: cada pieza es un nodo (PNG real), agrupadas por familia."""
-    from itertools import groupby
-    COLS, cellW, cellH = 4, NODE_W + 130, IMG_H + 150
-    nodes, row = {}, 0
-    for fam, grp in groupby(sorted(COMPONENTS, key=lambda c: (c[1], c[0])), key=lambda c: c[1]):
-        col = 0
-        for name, _ in grp:
-            nodes[name] = (f"componente-{name}.png", name, fam, col*cellW, row*cellH)
-            col += 1
-            if col >= COLS: col, row = 0, row + 1
-        if col != 0: row += 1
-    return {"name": "Componentes · CenitDesign",
-            "blurb": "Piezas del sistema Liquid Glass · El Eje, renderizadas reales sobre el lienzo. "
-                     "Busca por nombre.",
-            "nodes": nodes, "edges": [], "unit": "componentes"}
-
-MAP.append(_component_group())
-for _name, _fam in COMPONENTS:
-    SHOT_SRC[f"componente-{_name}.png"] = f"component_{_name}.png"
+# COMPONENTS y el grupo «Componentes» ya salen de load_manifests() (componentes.json) al importar el
+# módulo — mismo contrato `[(nombre, familia_de_pieza), …]` que consume build-galeria-artifact.py.
 
 def sync_shots(staging_dir):
-    """Copia+reescala los PNG crudos del harness (staging_dir) a docs/appmap/shots/ con el
-    nombre del muro y a SHOT_W de ancho. Devuelve (copiados, faltantes)."""
+    """Copia+reescala los PNG que el harness dejó en staging_dir a docs/appmap/shots/ a SHOT_W de
+    ancho. El harness ya escribe el nombre de muro de cada frame (ver `_frame_png`), así que aquí no
+    hay remapeo: recorre los nodos del manifiesto (NODES) y copia cada frame. Devuelve (copiados, faltantes)."""
     import shutil, subprocess
     dst = os.path.join(APPMAP, "shots"); os.makedirs(dst, exist_ok=True)
     copied, missing = [], []
-    for shot, raw in SHOT_SRC.items():
-        src = os.path.join(staging_dir, raw)
-        if not os.path.exists(src): missing.append(raw); continue
-        out = os.path.join(dst, shot)
-        shutil.copyfile(src, out)
-        subprocess.run(["sips", "--resampleWidth", str(SHOT_W), out],
-                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        copied.append(shot)
+    for node in NODES:
+        for png in node["pngs"]:
+            src = os.path.join(staging_dir, png)
+            if not os.path.exists(src):
+                missing.append(png); continue
+            out = os.path.join(dst, png)
+            shutil.copyfile(src, out)
+            subprocess.run(["sips", "--resampleWidth", str(SHOT_W), out],
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            copied.append(png)
     print(f"sync_shots: {len(copied)} copiados a {SHOT_W}px" + (f" · faltan {missing}" if missing else ""))
     return copied, missing
 

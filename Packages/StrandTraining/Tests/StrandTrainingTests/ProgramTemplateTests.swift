@@ -58,6 +58,9 @@ final class ProgramTemplateTests: XCTestCase {
         var sawBarbell = false
         var sawOther = false
         for re in m.exercises {
+            // FER-414: los 4 motores nacen con la progresión ENCENDIDA (antes el builder configuraba el
+            // ritmo pero dejaba el interruptor en off, así que «Lineal para empezar» nunca subía).
+            XCTAssertTrue(re.progressionEnabled, "\(re.exerciseId): un motor debe instalar la progresión viva")
             XCTAssertFalse(re.progressionUseRPE)
             let reps = re.targetReps ?? re.sets.first(where: { $0.kind == .work })?.reps ?? Int.max
             if ProgramTemplate.usesBarbell(exerciseId: re.exerciseId), reps <= ProgramTemplate.everySessionMaxReps {
@@ -81,6 +84,8 @@ final class ProgramTemplateTests: XCTestCase {
             XCTAssertEqual(engine.otherProgressionSessions, 2)
             let m = engine.materialize(now: 1_000, names: [:], programName: id)
             XCTAssertTrue(m.exercises.allSatisfy { $0.progressionSessions == 2 })
+            // FER-414: los cuatro motores nacen con la progresión encendida, no solo el lineal.
+            XCTAssertTrue(m.exercises.allSatisfy { $0.progressionEnabled }, "\(id): la progresión debe nacer viva")
         }
     }
 

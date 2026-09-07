@@ -109,6 +109,10 @@ struct TodayView: View {
     /// conectado: se trata como tal para que cada estado pinte SU héroe real.
     private var saludConectada: Bool {
         #if DEBUG
+        // FER-383 (mapa 100 %): simula HealthKit denegado para capturar t4SinPermiso — gana
+        // sobre el "true" de abajo, así un nodo combina un fixture normal (para tener datos y
+        // hasAnySource=true) con este arg (para tumbar solo el permiso).
+        if UserDefaults.standard.string(forKey: "noop.healthDenied")?.uppercased() == "YES" { return false }
         if ScreenshotFixtures.activeState() != nil { return true }
         #endif
         return health.auth == .authorized
@@ -231,6 +235,12 @@ struct TodayView: View {
     @State private var trainingLoad: TrainingLoadModel? = nil
     /// La hoja de carga (montada al tocar la franja).
     @State private var trainingLoadItem: TrainingLoadItem? = nil
+    /// FER-383 (mapa 100 %): «Preparación» hoy solo se presenta desde Cuerpo (`CuerpoView`); esta
+    /// pieza SOLO existe para que el mapa de Hoy capture sus 4 estados vía `-noop.route
+    /// hoy/preparacion-<estado>` (DEBUG). No hay disparador de producción en Hoy.
+    #if os(iOS) && DEBUG
+    @State private var preparacionDetail: PreparacionDetalleItem? = nil
+    #endif
 
 
 
@@ -428,6 +438,60 @@ struct TodayView: View {
                                   onSeeTrends: item.onSeeTrends)
                     .recEntranceGate()
             }
+            #if os(iOS) && DEBUG
+            .sheet(item: $preparacionDetail) { item in
+                PreparacionDetailScreen(modelo: item.modelo)
+            }
+            // FER-383 (mapa 100 %): `-noop.route hoy/<clave>` lleva la captura a una hoja de Hoy
+            // sin disparador real (Preparación se presenta hoy solo desde Cuerpo; el orbe
+            // «Autonómico», el «Ver más» de Sueño/Esfuerzo/Estrés/Temp. de piel y las 4 vitales
+            // huérfanas — heart_rate/spo2/vo2max/resp_rate — no tienen fila/botón propio en Hoy
+            // (la Matriz no trae renglones para Guardián). Reusa las
+            // MISMAS closures/factories de producción (`seeMoreAction`, `buildDetached`) — nunca
+            // datos inventados aquí, solo el disparo. Simulador-only vía `DebugRoute`.
+            .task {
+                guard let clave = DebugRoute.key(for: "hoy") else { return }
+                // Un fixture activo siembra el dashboard en un `Task` propio de `AppModel.init`
+                // (async, en paralelo a esta vista montándose) — un margen corto asegura que
+                // `repo.todayPreparedness` ya aterrizó antes de leerlo (p. ej. «conventana»).
+                try? await Task.sleep(nanoseconds: 1_500_000_000)
+                switch clave {
+                case "preparacion-cargando":
+                    preparacionDetail = PreparacionDetalleItem(modelo: .cargando)
+                case "preparacion-sinpermiso":
+                    let m = await PreparacionDetalleModelo.buildDetached(repo: repo, healthConnected: false)
+                    preparacionDetail = PreparacionDetalleItem(modelo: m)
+                case "preparacion-sinhistoria":
+                    // Sin fixture (arranque real, store fresco): `repo.todayPreparedness` se
+                    // queda nil, así `build` cae en `.sinHistoria` con permiso concedido.
+                    let m = await PreparacionDetalleModelo.buildDetached(repo: repo, healthConnected: true)
+                    preparacionDetail = PreparacionDetalleItem(modelo: m)
+                case "preparacion-conventana":
+                    let m = await PreparacionDetalleModelo.buildDetached(repo: repo, healthConnected: true)
+                    preparacionDetail = PreparacionDetalleItem(modelo: m)
+                case "autonomico":
+                    showAutonomicoHoja = true
+                case "fuentes":
+                    showDataSources = true
+                case "metrica-heart_rate":
+                    metricDetail = .heartRate(avgBpm: hrTodayAvg)
+                case "metrica-spo2":
+                    metricDetail = .spo2(resolveMeasured(todayOnly: true) { $0.spo2Pct }?.value)
+                case "metrica-vo2max":
+                    metricDetail = .vo2max(latestAppleVO2max)
+                case "metrica-resp_rate":
+                    metricDetail = .respiratory(resolveMeasured(todayOnly: true) { $0.respRateBpm }?.value)
+                case "sueno", "esfuerzo", "estres", "temperatura":
+                    // Los MISMOS ids que usa `seeMoreAction` internamente (sleep/strain/stress/
+                    // skin_temp) — la MISMA closure que dispara el botón «Ver más» real.
+                    let id = ["sueno": "sleep", "esfuerzo": "strain",
+                              "estres": "stress", "temperatura": "skin_temp"][clave] ?? clave
+                    seeMoreAction(for: id)?()
+                default:
+                    break
+                }
+            }
+            #endif
             .enableInjection()   // Inject: ver la nota en `inject` arriba (no-op en Release)
     }
 
@@ -1114,7 +1178,15 @@ struct TodayView: View {
     /// Plantilla T1–T5 actual (máquina pura + orígenes de Hoy).
     private var plantillaActual: LiquidHoyBuilder.Plantilla {
         let cal = Calendar.current
-        let now = Date()
+        var now = Date()
+        #if DEBUG
+        // FER-383 (mapa 100 %): fija la HORA del reloj de Hoy para capturar los sub-estados T3
+        // (la ventana nocturna abre/cierra según la hora local) sin depender de la hora real
+        // de la corrida — `causaT3.leyendo` (ventana abierta) es hora-dependiente por diseño.
+        if let h = UserDefaults.standard.string(forKey: "noop.hour").flatMap(Int.init) {
+            now = cal.date(bySettingHour: h, minute: 0, second: 0, of: now) ?? now
+        }
+        #endif
         // Sesión de sueño (≥ 3 h) que TERMINÓ hoy: cierra la ventana (FER-73 · H13: ya no
         // cuenta cualquier sesión desde ayer al mediodía — una siesta no es la noche).
         let sesionFinHoy: Date? = nocheTerminaHoy ? now : nil
@@ -1132,9 +1204,16 @@ struct TodayView: View {
         }()
         var lastSync = health.lastSync
         #if DEBUG
-        // Con fixture no hay HealthKit que sincronizar: el import es «fresco» por definición
-        // (igual que `saludConectada`), si no la franja diría «Pending sync» sobre datos sembrados.
-        if ScreenshotFixtures.activeState() != nil { lastSync = now }
+        // FER-383 (mapa 100 %): fuerza el último import a "viejo" (nil) para capturar
+        // t3SinVeredicto(.sinSync) — gana sobre el "lastSync = now" de abajo, que si no
+        // NUNCA deja que un fixture parezca desincronizado.
+        if UserDefaults.standard.string(forKey: "noop.syncStale")?.uppercased() == "YES" {
+            lastSync = nil
+        } else if ScreenshotFixtures.activeState() != nil {
+            // Con fixture no hay HealthKit que sincronizar: el import es «fresco» por definición
+            // (igual que `saludConectada`), si no la franja diría «Pending sync» sobre datos sembrados.
+            lastSync = now
+        }
         #endif
         let causa = LiquidHoyBuilder.causaT3(
             ventana: ventana, lastSync: lastSync, hayNocheRegistrada: hayNoche,
