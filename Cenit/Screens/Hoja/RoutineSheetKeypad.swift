@@ -74,7 +74,9 @@ extension RoutineSheet {
         switch p.field {
         case .weight:
             let norm = p.value.replacingOccurrences(of: ",", with: ".")
-            if let v = Double(norm), v > 0 {
+            // FER-428: `Double(norm)` desborda a `.infinity` (no nil) con muchos dígitos; `v.isFinite`
+            // impide escribir un peso no finito que trueca después en discos / % de volumen.
+            if let v = Double(norm), v.isFinite, v > 0 {
                 items[p.idx].re.sets[p.si].weightKg = system == .imperial ? UnitFormatter.poundsToKg(v) : v
             } else {
                 items[p.idx].re.sets[p.si].weightKg = nil
@@ -149,7 +151,8 @@ extension RoutineSheet {
                 guard !holdForMirrorConfirm(idx: idx, si: si, field: .weight, raw: raw) else { return }
                 let norm = raw.replacingOccurrences(of: ",", with: ".")
                 dirty = true
-                if let v = Double(norm), v > 0 {
+                // FER-428: filtra a finito — `Double(norm)` desborda a `.infinity`, no a nil.
+                if let v = Double(norm), v.isFinite, v > 0 {
                     items[idx].re.sets[si].weightKg = system == .imperial ? UnitFormatter.poundsToKg(v) : v
                 } else {
                     items[idx].re.sets[si].weightKg = nil

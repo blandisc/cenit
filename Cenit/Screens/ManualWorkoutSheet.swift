@@ -215,7 +215,9 @@ struct ManualWorkoutSheet: View {
 
     /// Parsed avg-HR — nil for blank, an out-of-band sentinel handled by buildManualRow otherwise.
     private var avgHr: Int? { Int(avgHrText.trimmingCharacters(in: .whitespaces)) }
-    private var kcal: Double? { Double(kcalText.trimmingCharacters(in: .whitespaces)) }
+    // FER-428: `Double("nan"/"1e999")` da NaN/±∞, y toda comparación con NaN es false, así que «nan»
+    // se colaba por la validación 0–20,000. Filtra a finito: un valor no finito cuenta como inválido.
+    private var kcal: Double? { Double(kcalText.trimmingCharacters(in: .whitespaces)).flatMap { $0.isFinite ? $0 : nil } }
 
     /// The validated row, or nil when the inputs can't make an honest one (drives the disabled Save +
     /// the inline note). Built through the same WorkoutSource.buildManualRow the engine trusts.

@@ -167,7 +167,9 @@ extension HojaSesionViva {
         let norm = buffer.replacingOccurrences(of: ",", with: ".")
         switch cell {
         case .weight:
-            let v = Double(norm) ?? 0
+            // FER-428: `Double(norm)` desborda a `.infinity` con muchos dígitos, no a nil, así que `?? 0`
+            // no la caza; filtra a finito antes de convertir. (setWeight además lo blinda en el modelo.)
+            let v = Double(norm).flatMap { $0.isFinite ? $0 : nil } ?? 0
             session.setWeight(exercise: ei, set: si, kg: imperial ? UnitFormatter.poundsToKg(v) : v)
         case .reps:
             session.setReps(exercise: ei, set: si, reps: Int(norm) ?? 0)
