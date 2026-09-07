@@ -83,9 +83,9 @@ extension CenitStore {
         guard let partition = try partitionId(deviceId, creating: false) else { return [] }
         return try syncRead { db in
             try Row.fetchAll(db, sql: """
-                SELECT ts, bpm FROM hrSample
-                WHERE deviceId = ? AND ts >= ? AND ts <= ?
-                ORDER BY ts ASC LIMIT ?
+                SELECT ts, bpm FROM hrSample WHERE deviceId = ? AND ts BETWEEN ? AND ?
+                ORDER BY ts ASC
+                LIMIT ?
                 """, arguments: [partition, from, to, limit])
                 .map { HRSample(ts: $0["ts"], bpm: $0["bpm"]) }
         }
@@ -100,12 +100,12 @@ extension CenitStore {
         let width = max(1, bucketSeconds)
         return try syncRead { db in
             try Row.fetchAll(db, sql: """
-                SELECT (ts / ?) * ? AS bucket, AVG(bpm) AS avgBpm FROM hrSample
-                WHERE deviceId = ? AND ts >= ? AND ts <= ?
+                SELECT (ts / ?) * ? AS bucket, AVG(bpm) AS mean
+                FROM hrSample WHERE deviceId = ? AND ts BETWEEN ? AND ?
                 GROUP BY ts / ?
-                ORDER BY bucket ASC
+                ORDER BY bucket
                 """, arguments: [width, width, partition, from, to, width])
-                .map { HRBucket(ts: $0["bucket"], bpm: $0["avgBpm"]) }
+                .map { HRBucket(ts: $0["bucket"], bpm: $0["mean"]) }
         }
     }
 
@@ -115,9 +115,9 @@ extension CenitStore {
         guard let partition = try partitionId(deviceId, creating: false) else { return [] }
         return try syncRead { db in
             try Row.fetchAll(db, sql: """
-                SELECT ts, rrMs FROM rrInterval
-                WHERE deviceId = ? AND ts >= ? AND ts <= ?
-                ORDER BY ts ASC, rrMs ASC LIMIT ?
+                SELECT ts, rrMs FROM rrInterval WHERE deviceId = ? AND ts BETWEEN ? AND ?
+                ORDER BY ts ASC, rrMs ASC
+                LIMIT ?
                 """, arguments: [partition, from, to, limit])
                 .map { RRInterval(ts: $0["ts"], rrMs: $0["rrMs"]) }
         }
