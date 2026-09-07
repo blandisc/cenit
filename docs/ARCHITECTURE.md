@@ -1005,6 +1005,13 @@ paquete leen `CHANGELOG.md` y `Localizable.xcstrings` vía `#filePath` (misma t�
 `CatalogEntryArchivoExisteTests`): ids únicos, ≥1 pieza, `.novedad` con encabezado `## v`, claves
 bajo `es`. Límite: el gate ve archivos, no sub-vistas dentro de uno existente.
 
+**Docs derivadas (L9b/FER-439).** El registro alimenta dos docs para que no se pudran a mano:
+`Tools/build-features.py` regenera las secciones de producto de `docs/FEATURES.md` desde la semilla
+(`Tools/ensenanza-semilla.json`) + el catálogo (marcadores `GENERATED:ensenanza:*`; CI corre
+`--check`), y `Tools/check-ensenanza-mapa.py` cruza el campo `mapa` de cada `Funcionalidad` (nodos
+`<familia>/<nodo>` de `docs/appmap/mapa/*.json`) en ambos sentidos, con un baseline inverso que
+solo baja; `test_semillaCoincideConRegistro` mantiene la semilla igual al registro Swift.
+
 ---
 
 ## 11. The invariants, in one place

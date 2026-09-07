@@ -201,7 +201,7 @@ instead of blinding the check.
 3. **Build it from tokens and components.** A screen file that declares its own colors or spacing will
    fail the linter.
 4. **Register what it teaches.** Screens carry a marker naming the features they surface, checked
-   against the teaching registry in `CenitEnsenanza`. A new screen file without one fails a gate.
+   against the teaching registry in `CenitEnsenanza`. A new screen file without one fails a gate. **Adding a feature = registering it** (FER-439): the same entry goes into `Tools/ensenanza-semilla.json` (a package test keeps seed and registry equal), its `mapa:` names the Mapa 100 % nodes (`docs/appmap/mapa/<familia>.json`; `Tools/check-ensenanza-mapa.py` cross-checks both ways), and `docs/FEATURES.md` is regenerated from the registry with `python3 Tools/build-features.py` (never edited by hand between its `GENERATED:ensenanza:*` markers; CI runs `--check`).
 5. **Cover Dynamic Type and VoiceOver.** The design system has contrast and accessibility tests; a new
    component is expected to pass them.
 
