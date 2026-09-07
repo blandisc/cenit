@@ -69,8 +69,7 @@ public enum StrandFont { // fichas de tipo: nadie escribe `.font(.system(size:))
 // entera para que ninguna pantalla la arme a medias (sin tracking, o con otra tinta).
 private struct VozDeSobrelinea: ViewModifier {
     func body(content: Content) -> some View {
-        content
-            .textCase(.uppercase)
+        content.textCase(.uppercase)
             .font(StrandFont.overline).tracking(StrandFont.overlineTracking)
             .foregroundStyle(InstrumentoTheme.base.inkSecondary)
     }

@@ -103,8 +103,8 @@ private struct TarjetaDeLectura: ViewModifier {
             .background(canto.fill(LiquidColor.papelTarjeta))
             .overlay(canto.stroke(LiquidColor.tinta10, lineWidth: MedidasDeLupa.filete))
             .shadow(color: Color.black.opacity(flat ? 0.14 : 0.45), radius: flat ? 4 : 10, x: 0, y: flat ? 2 : 6)
-            .fixedSize()
-            .accessibilityElement(children: .ignore).accessibilityLabel(vozDeVoiceOver)
+            .fixedSize().accessibilityElement(children: .ignore)
+            .accessibilityLabel(vozDeVoiceOver)
     }
 }
 

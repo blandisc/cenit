@@ -238,34 +238,32 @@ public struct TrendChart: View {
     public let accessibilityLabel: LocalizedStringKey?
     public let accessibilityValueText: String?
 
-    public init(
-        points puntos: [TrendPoint],
-        gradient rampa: Gradient = StrandPalette.recoveryGradient,
-        valueRange rango: ClosedRange<Double> = 0...100,
-        showsArea conLavado: Bool = true,
-        height alto: CGFloat = 220,
-        showsScrub conRaspado: Bool = true,
-        valueFormat formatoDeValor: @escaping (Double) -> String = { String(Int($0.rounded())) },
-        dateFormat formatoDeFecha: @escaping (Date) -> String = { TrendChart.defaultDateString($0) },
-        axisLabelColor tintaDeEje: Color = InstrumentoTheme.base.inkTertiary,
-        gridLineColor tintaDeReticula: Color = InstrumentoTheme.base.hairline,
-        bands bandas: [TrendBand] = [],
-        bandColor tintaDeBanda: Color = .clear,
-        yAxisValues cortesEnY: [Double]? = nil,
-        alertThreshold umbralDeAlerta: Double? = nil,
-        alertColor tintaDeAlerta: Color = .clear,
-        referenceLine reglaDeReferencia: Double? = nil,
-        referenceLineColor tintaDeLaRegla: Color = .clear,
-        markedPoint puntoMarcado: TrendPoint? = nil,
-        markedPointHollow marcadoHueco: Bool = false,
-        markedPointRingFill rellenoDelAro: Color = .clear,
-        bandLabelsHidden sinRotulosDeBanda: Bool = false,
-        tightTrailing filoApretado: Bool = false,
-        yTickCount cortesDeseadosEnY: Int = 4,
-        valueSuffix sufijoDeValor: String? = nil,
-        accessibilityLabel rotuloAccesible: LocalizedStringKey? = nil,
-        accessibilityValueText valorAccesible: String? = nil
-    ) {
+    public init(points puntos: [TrendPoint],
+                gradient rampa: Gradient = StrandPalette.recoveryGradient,
+                valueRange rango: ClosedRange<Double> = 0...100,
+                showsArea conLavado: Bool = true,
+                height alto: CGFloat = 220,
+                showsScrub conRaspado: Bool = true,
+                valueFormat formatoDeValor: @escaping (Double) -> String = { String(Int($0.rounded())) },
+                dateFormat formatoDeFecha: @escaping (Date) -> String = { TrendChart.defaultDateString($0) },
+                axisLabelColor tintaDeEje: Color = InstrumentoTheme.base.inkTertiary,
+                gridLineColor tintaDeReticula: Color = InstrumentoTheme.base.hairline,
+                bands bandas: [TrendBand] = [],
+                bandColor tintaDeBanda: Color = .clear,
+                yAxisValues cortesEnY: [Double]? = nil,
+                alertThreshold umbralDeAlerta: Double? = nil,
+                alertColor tintaDeAlerta: Color = .clear,
+                referenceLine reglaDeReferencia: Double? = nil,
+                referenceLineColor tintaDeLaRegla: Color = .clear,
+                markedPoint puntoMarcado: TrendPoint? = nil,
+                markedPointHollow marcadoHueco: Bool = false,
+                markedPointRingFill rellenoDelAro: Color = .clear,
+                bandLabelsHidden sinRotulosDeBanda: Bool = false,
+                tightTrailing filoApretado: Bool = false,
+                yTickCount cortesDeseadosEnY: Int = 4,
+                valueSuffix sufijoDeValor: String? = nil,
+                accessibilityLabel rotuloAccesible: LocalizedStringKey? = nil,
+                accessibilityValueText valorAccesible: String? = nil) {
         // La serie llega en cualquier orden y la gráfica la asume cronológica: se ordena una vez, aquí.
         self.points = puntos.sorted(by: Self.enOrdenCronologico)
         (self.gradient, self.valueRange) = (rampa, rango)
@@ -343,15 +341,13 @@ public struct TrendChart: View {
     }
 
     /// La rampa montada sobre el eje vertical: el trazo cambia de color según a qué altura va.
-    private var rampaVertical: LinearGradient {
-        LinearGradient(gradient: gradient, startPoint: .bottom, endPoint: .top)
-    }
+    private var rampaVertical: LinearGradient { .init(gradient: gradient, startPoint: .bottom, endPoint: .top) }
 
     /// El promedio de la serie, que decide con qué tinta se lava el área.
     private var promedioDeLaSerie: Double {
-        guard !points.isEmpty else { return valueRange.lowerBound }
-        let suma = points.reduce(into: 0.0) { total, punto in total += punto.value }
-        return suma / Double(points.count)
+        let lecturas = points.map(\.value)
+        guard !lecturas.isEmpty else { return valueRange.lowerBound }
+        return lecturas.reduce(0, +) / Double(lecturas.count)
     }
 
     /// La muestra más cercana a una X del lienzo: se devuelve la X al eje del tiempo y se busca la
@@ -389,14 +385,12 @@ public struct TrendChart: View {
     /// filo inferior del lienzo, justo detrás de las etiquetas del eje.
     @ChartContentBuilder
     private var capaDeLavado: some ChartContent {
-        if showsArea {
-            ForEach(points) { punto in
-                AreaMark(x: .value("Date", punto.date),
-                         yStart: .value("Floor", valueRange.lowerBound),
-                         yEnd: .value("Value", punto.value))
-                    .interpolationMethod(.monotone)
-                    .foregroundStyle(velo)
-            }
+        ForEach(showsArea ? points : []) { punto in
+            AreaMark(x: .value("Date", punto.date),
+                     yStart: .value("Floor", valueRange.lowerBound),
+                     yEnd: .value("Value", punto.value))
+                .interpolationMethod(.monotone)
+                .foregroundStyle(velo)
         }
     }
 
@@ -459,9 +453,7 @@ public struct TrendChart: View {
 
     // MARK: El cuerpo
 
-    public var body: some View {
-        lienzo(alto: height)
-    }
+    public var body: some View { lienzo(alto: height) }
 
     private func lienzo(alto: CGFloat) -> some View {
         Chart { capas }

@@ -152,12 +152,11 @@ private struct RitmoDemostrado: View {
     let disparo: Bool
     @State private var respirando = false
 
-    var body: some View {
-        HStack(spacing: 18) {
-            Text(rotulo).font(StrandFont.caption).foregroundStyle(InstrumentoTheme.base.inkSecondary)
-                .frame(width: 132, alignment: .leading)
-            disco
-        }
+    var body: some View { HStack(spacing: 18) { nombre; disco } }
+
+    private var nombre: some View {
+        Text(rotulo).font(StrandFont.caption).foregroundStyle(InstrumentoTheme.base.inkSecondary)
+            .frame(width: 132, alignment: .leading)
     }
 
     private var disco: some View {
