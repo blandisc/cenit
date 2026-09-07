@@ -399,8 +399,7 @@ public extension Text {
                 .font(LiquidType.cuerpo).lineSpacing(LiquidType.cuerpoLineSpacing)
                 .foregroundStyle(LiquidColor.tinta700)
         }
-        .padding(24)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(24).frame(maxWidth: .infinity, alignment: .leading)
     }
     .background(LiquidColor.papelGradient)
 }

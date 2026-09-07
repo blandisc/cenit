@@ -185,7 +185,7 @@ public struct EntrenarPressStyle: ButtonStyle {
         configuration.label
             .scaleEffect(!reduceMotion && configuration.isPressed ? 0.97 : 1)
             .opacity(reduceMotion && configuration.isPressed ? 0.7 : 1)
-            .animation(StrandMotion.interactive, value: configuration.isPressed)
+            .animation(LiquidMotion.toque, value: configuration.isPressed)
     }
 }
 

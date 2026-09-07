@@ -56,12 +56,12 @@ public enum SessionClock {
 
 /// The floating «a session is running» pill (FER-716): it hovers over the dock in all five tabs and
 /// re-opens the live session on tap, replacing the old «Resume» row. Format «Pierna · 24:10 · ♥ 118»
-/// (the ♥ segment is dropped when there's no strap HR — no dashes). One of the two elevated pieces;
-/// its dot is STATIC — the only always-on pulse in the app is the session header's BPM dot.
+/// (the ♥ segment is dropped when there is no live heart rate — no dashes). One of the two elevated
+/// pieces; its dot is STATIC — the only always-on pulse in the app is the session header's BPM dot.
 public struct SessionPill: View {
     let routineName: String
     let elapsed: String        // preformatted "24:10"
-    let bpm: Int?              // nil = no strap → the ♥ segment is hidden
+    let bpm: Int?              // nil = no live heart rate → the ♥ segment is hidden
     /// Extra quiet segment, e.g. «serie 4/10» (FER-952). nil hides it.
     let detail: String?
     /// Paused state (FER-952): dims the clock and flips the trailing button to ▶.
