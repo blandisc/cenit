@@ -666,7 +666,7 @@ extension CenitStore {
     /// Unlike `saveSession` (whose `updatePersonalRecords` only *upgrades* a record), editing can LOWER a
     /// value (a corrected weight) or REASSIGN an exercise, so the affected PRs must be recomputed from
     /// scratch over what remains — exactly like the delete path — or they'd keep a record the edit erased.
-    /// The session's `strain`/`avgHr`/`deviceId` (the strap's captured truth) ride through unchanged: the
+    /// The session's `strain`/`avgHr`/`deviceId` (what it captured at the time) ride through unchanged: the
     /// edit UI never sends different values, and the upsert writes whatever the passed `session` carries.
     public func updateSession(_ session: StrengthSession, sets: [SetEntry]) async throws {
         try syncWrite { db in

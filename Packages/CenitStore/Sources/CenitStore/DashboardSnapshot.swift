@@ -46,7 +46,7 @@ public struct DashboardReadRequest: Sendable {
 ///
 /// ⚠️ `appleDays` is NEVER gated on `includeApple`: it feeds the stored-coverage diagnostic
 /// (FER-485, «nothing is deleted») and `DataSourcePolicy` — the mode gating for the dashboard
-/// itself happens in memory, in Repository. Same for the two raw strap sleep arrays.
+/// itself happens in memory, in Repository. Same for the two raw imported-source sleep arrays.
 public struct DashboardSnapshot: Sendable {
     public var importedDays: [DailyMetric] = []
     public var computedDays: [DailyMetric] = []
