@@ -1,48 +1,81 @@
 import SwiftUI
-
-// MARK: - Year Heat Strip (§9.4 Trends)
+// MARK: - La franja de calor de un año
 //
-// A GitHub-style calendar: columns are weeks, rows are weekdays (Monday-first). Each in-range day is
-// tinted by its score via a caller-supplied gradient sampler; an in-range day with no reading draws a
-// faint inset square instead. Hover (iOS) reveals a ring + tooltip; an optional tap handler adds touch
-// selection since `onContinuousHover` never fires on a touch device.
+// Un calendario al estilo GitHub: cada columna es una semana, cada fila un día de la semana
+// (empezando en lunes). Un día con lectura se tiñe con la rampa que le pase quien la usa; un día
+// dentro del rango pero sin lectura dibuja un cuadro hueco. Pasar el dedo/puntero saca un aro y una
+// tarjeta de lectura; y como `onContinuousHover` nunca dispara en pantalla táctil, un manejador de
+// toque opcional agrega la selección por dedo.
 
-/// One day's score for the heat strip. `score == nil` means no data for that day.
-public struct RecoveryDay: Identifiable, Sendable {
-    public var date: Date, score: Double?
+/// El puntaje de un día. `score == nil` significa que ese día no tiene lectura.
+public struct RecoveryDay: Sendable, Identifiable {
     public let id = UUID()
+    public var date: Date
+    public var score: Double?
 
-    public init(date: Date, score: Double?) {
-        (self.date, self.score) = (date, score)
-    }
+    public init(date: Date, score: Double?) { (self.date, self.score) = (date, score) }
+}
+
+/// Las medidas de la franja, con nombre. Geometría de dato: solo esta pieza las usa.
+private enum MedidasFranja {
+    /// Canal izquierdo donde van los rótulos de día de la semana.
+    static let canal: CGFloat = 24
+    /// Alto de la tira de rótulos de mes, arriba de la rejilla.
+    static let rotuloDeMes: CGFloat = 10
+    /// Filas de la rejilla: los siete días de la semana.
+    static let filas = 7
+    /// Radio y grosor del aro que marca la celda bajo el dedo, y cuánto crece sobre la celda.
+    static let aroRadio: CGFloat = 3
+    static let aroGrosor: CGFloat = 1.5
+    static let aroCrecimiento: CGFloat = 3
+    /// Lo mismo para el aro de selección por toque, un punto más grueso y más grande.
+    static let seleccionGrosor: CGFloat = 2
+    static let seleccionCrecimiento: CGFloat = 4
+    /// Filete del cuadro hueco de un día sin lectura.
+    static let hueco: CGFloat = 0.5
+    /// Cuánto se atenúan las demás celdas mientras una está bajo el dedo.
+    static let atenuadas = 0.78
+    /// Piso, techo y refugio del tamaño de celda de la ventana móvil.
+    static let celdaMinima: CGFloat = 8
+    static let celdaMaxima: CGFloat = 22
+    static let celdaSinAncho: CGFloat = 14
 }
 
 struct YearHeatStrip: View {
 
+    // MARK: El dato
+
     var days: [RecoveryDay]
+
+    // MARK: Geometría de la rejilla
+
     var cellSize: CGFloat
     var spacing: CGFloat
+    var cellCornerRadius: CGFloat
     var showsMonthLabels: Bool
     var showsScrub: Bool
-    /// Tints a day's cell from its score. Defaults to the recovery gradient.
+
+    // MARK: Cómo se pinta
+
+    /// Tiñe la celda de un día a partir de su puntaje. Por omisión, la rampa de recuperación.
     var tint: (Double) -> Color
     var emptyFill: Color
     var emptyStroke: Color
     var labelColor: Color
-    /// When set, tapping a day calls this — the touch-friendly counterpart to hover.
-    var onSelect: ((RecoveryDay) -> Void)?
     var selectionColor: Color
-    var cellCornerRadius: CGFloat
+
+    // MARK: Cómo se lee
+
     var valueFormat: (Double) -> String
-    /// The metric word read out in the `.help`/VoiceOver label ("<date> · <word> 67").
+    /// La palabra de la métrica que se lee en el `.help`/VoiceOver («<fecha> · <palabra> 67»).
     var valueWord: String
+    /// Si está puesto, tocar un día lo llama — la contraparte táctil del puntero.
+    var onSelect: ((RecoveryDay) -> Void)?
 
     init(
         days: [RecoveryDay],
-        cellSize: CGFloat = 12,
-        spacing: CGFloat = 3,
-        showsMonthLabels: Bool = true,
-        showsScrub: Bool = true,
+        cellSize: CGFloat = 12, spacing: CGFloat = 3,
+        showsMonthLabels: Bool = true, showsScrub: Bool = true,
         tint: @escaping (Double) -> Color = { StrandPalette.recoveryColor($0) },
         emptyFill: Color = InstrumentoTheme.base.hairline,
         emptyStroke: Color = InstrumentoTheme.base.hairline.opacity(0.6),
@@ -53,249 +86,291 @@ struct YearHeatStrip: View {
         valueFormat: @escaping (Double) -> String = { "Recovery \(Int($0.rounded()))" },
         valueWord: String = "recovery"
     ) {
+        // Ordenados por fecha desde la entrada: toda la construcción de semanas de abajo asume que
+        // los días llegan en orden, y arreglarlo aquí es una sola vez en vez de una por pasada.
         self.days = days.sorted { $0.date < $1.date }
-        self.cellSize = cellSize
-        self.spacing = spacing
-        self.showsMonthLabels = showsMonthLabels
-        self.showsScrub = showsScrub
-        self.tint = tint
-        self.emptyFill = emptyFill
-        self.emptyStroke = emptyStroke
-        self.labelColor = labelColor
-        self.onSelect = onSelect
-        self.selectionColor = selectionColor
-        self.cellCornerRadius = cellCornerRadius
-        self.valueFormat = valueFormat
-        self.valueWord = valueWord
+        (self.cellSize, self.spacing, self.cellCornerRadius) = (cellSize, spacing, cellCornerRadius)
+        (self.showsMonthLabels, self.showsScrub) = (showsMonthLabels, showsScrub)
+        (self.tint, self.emptyFill, self.emptyStroke) = (tint, emptyFill, emptyStroke)
+        (self.labelColor, self.selectionColor) = (labelColor, selectionColor)
+        (self.valueFormat, self.valueWord, self.onSelect) = (valueFormat, valueWord, onSelect)
     }
 
-    /// How many week-columns a rolling 90-day window can ever span (12.86 weeks → 13 or 14 depending on
-    /// the start weekday). Fixed at the upper bound so every 90-day calendar renders at the SAME cell
-    /// size regardless of which weekday the window happens to start on.
+    // MARK: - La ventana móvil de 90 días
+
+    /// Cuántas columnas puede llegar a ocupar una ventana móvil de 90 días (12.86 semanas → 13 o 14
+    /// según el día en que arranque). Se fija en el tope para que TODO calendario de 90 días se
+    /// dibuje con la MISMA celda, sin importar en qué día de la semana empiece su ventana.
     static let rollingWindowColumns = 14
 
-    /// The cell size that fills `width` with a fixed 14-column grid — a pure function of width alone,
-    /// so every 90-day calendar on screen matches, day to day. Falls back to 14pt at width 0.
+    /// El tamaño de celda que llena `width` con una rejilla fija de 14 columnas. Es función del
+    /// ancho y de nada más, así que dos calendarios de 90 días en pantalla siempre coinciden, un día
+    /// y el siguiente. Con ancho 0 cae en 14 pt.
     static func rollingCellSize(width: CGFloat, spacing: CGFloat = 4, gutter: CGFloat = 24) -> CGFloat {
-        guard width > 0 else { return 14 }
-        let columns = CGFloat(rollingWindowColumns)
-        let raw = (width - gutter - spacing - (columns - 1) * spacing) / columns
-        return max(8, min(22, raw))
+        guard width > 0 else { return MedidasFranja.celdaSinAncho }
+        let columnas = CGFloat(rollingWindowColumns)
+        let crudo = (width - gutter - spacing - (columnas - 1) * spacing) / columnas
+        return max(MedidasFranja.celdaMinima, min(MedidasFranja.celdaMaxima, crudo))
     }
 
-    private let gutterWidth: CGFloat = 24
-    private let monthLabelHeight: CGFloat = 10
+    // MARK: - Estado vivo
 
-    @State private var hoverCell: (week: Int, row: Int)? = nil
-    @State private var selectedID: UUID? = nil
+    @State private var celdaBajoElDedo: Rejilla.Coordenada? = nil
+    @State private var seleccionada: UUID? = nil
 
-    private var calendar: Calendar {
-        var cal = Calendar(identifier: .gregorian)
-        cal.firstWeekday = 2 // Monday-first columns
-        return cal
-    }
-
-    private struct WeekColumn: Identifiable {
-        let id = UUID()
-        var cells: [RecoveryDay?] // 7 entries, indexed by Monday-first weekday row
-        var monthLabel: String?
-    }
-
-    private static func emptyColumn() -> WeekColumn { WeekColumn(cells: Array(repeating: nil, count: 7), monthLabel: nil) }
-
-    private func buildWeeks() -> [WeekColumn] {
-        guard let leadDate = days.first?.date else { return [] }
-        var columns: [WeekColumn] = []
-        var building = Self.emptyColumn()
-        var monthSeen = -1
-        var slotsFilled = weekdayRow(leadDate)
-
-        for day in days {
-            let slot = weekdayRow(day.date)
-            if slot == 0 && slotsFilled > 0 {
-                columns.append(building)
-                building = Self.emptyColumn()
-                slotsFilled = 0
-            }
-            building.cells[slot] = day
-            let dayMonth = calendar.component(.month, from: day.date)
-            if dayMonth != monthSeen {
-                building.monthLabel = monthAbbreviation(day.date)
-                monthSeen = dayMonth
-            }
-            slotsFilled += 1
-        }
-        if slotsFilled > 0 { columns.append(building) }
-        return columns
-    }
-
-    private func weekdayRow(_ date: Date) -> Int {
-        let weekday = calendar.component(.weekday, from: date) // 1=Sun...7=Sat
-        return (weekday + 5) % 7 // Monday-first 0...6
-    }
-
-    private func monthAbbreviation(_ date: Date) -> String {
-        CalendarFormatters.month.string(from: date)
-    }
-
-    /// Weekday gutter labels: Mon/Wed/Fri/Sun only, blank on the rest. `shortWeekdaySymbols` is always
-    /// Sunday-indexed regardless of locale, so pick indices [1,3,5,0] for the Monday-first rows.
-    private var rowLabels: [String] {
-        let symbols = Calendar.current.shortWeekdaySymbols
-        return [symbols[1], "", symbols[3], "", symbols[5], "", symbols[0]]
-    }
+    // MARK: - El dibujo
 
     var body: some View {
-        let columns = buildWeeks()
-        let gridWidth = gridOriginX + CGFloat(columns.count) * (cellSize + spacing) - spacing
-        let gridHeight = gridOriginY + 7 * (cellSize + spacing) - spacing
-
-        return VStack(alignment: .leading, spacing: spacing) {
-            if showsMonthLabels {
-                HStack(spacing: spacing) {
-                    Color.clear.frame(width: gridOriginX - spacing, height: monthLabelHeight)
-                    ForEach(columns) { column in
-                        Text(column.monthLabel ?? "")
-                            .font(StrandFont.footnote)
-                            .foregroundStyle(labelColor)
-                            .frame(width: cellSize, alignment: .leading)
-                    }
+        let semanas = Rejilla.semanas(de: days)
+        let cuadricula = Cuadricula(celda: cellSize, aire: spacing,
+                                    conRotulosDeMes: showsMonthLabels, columnas: semanas.count)
+        return contenido(semanas, cuadricula)
+            .frame(width: cuadricula.ancho, height: cuadricula.alto, alignment: .topLeading)
+            .overlay(aroYTarjeta(semanas, cuadricula))
+            .contentShape(Rectangle())
+            #if os(iOS)
+            .onContinuousHover(coordinateSpace: .local) { fase in
+                guard showsScrub else { return }
+                switch fase {
+                case .active(let punto): celdaBajoElDedo = cuadricula.coordenada(en: punto)
+                case .ended: celdaBajoElDedo = nil
                 }
             }
+            #endif
+    }
+
+    /// La tira de meses arriba, el canal de días de la semana a la izquierda, y las columnas.
+    private func contenido(_ semanas: [Rejilla.Semana], _ cuadricula: Cuadricula) -> some View {
+        VStack(alignment: .leading, spacing: spacing) {
+            if showsMonthLabels { tiraDeMeses(semanas, cuadricula) }
             HStack(alignment: .top, spacing: spacing) {
-                VStack(alignment: .trailing, spacing: spacing) {
-                    ForEach(0..<7, id: \.self) { row in
-                        Text(rowLabels[row])
-                            .font(StrandFont.footnote)
-                            .foregroundStyle(labelColor)
-                            .frame(width: gutterWidth, height: cellSize, alignment: .trailing)
-                    }
-                }
-                ForEach(Array(columns.enumerated()), id: \.element.id) { columnIndex, column in
+                canalDeDias
+                ForEach(Array(semanas.enumerated()), id: \.element.id) { columna, semana in
                     VStack(spacing: spacing) {
-                        ForEach(0..<7, id: \.self) { row in
-                            cell(column.cells[row], isHovered: isHovered(columnIndex, row))
+                        ForEach(0..<MedidasFranja.filas, id: \.self) { fila in
+                            celda(semana.dias[fila],
+                                  resaltada: celdaBajoElDedo == Rejilla.Coordenada(columna: columna, fila: fila))
                         }
                     }
                 }
             }
         }
-        .frame(width: gridWidth, height: gridHeight, alignment: .topLeading)
-        .overlay(hoverOverlay(columns: columns, gridSize: CGSize(width: gridWidth, height: gridHeight)))
-        .contentShape(Rectangle())
-        #if os(iOS)
-        .onContinuousHover(coordinateSpace: .local) { phase in
-            guard showsScrub else { return }
-            switch phase {
-            case .active(let location): hoverCell = cellIndex(at: location, columnCount: columns.count)
-            case .ended: hoverCell = nil
+    }
+
+    /// Un rótulo de mes sobre la primera semana de cada mes; el resto va en blanco.
+    private func tiraDeMeses(_ semanas: [Rejilla.Semana], _ cuadricula: Cuadricula) -> some View {
+        HStack(spacing: spacing) {
+            Color.clear.frame(width: cuadricula.origenX - spacing, height: MedidasFranja.rotuloDeMes)
+            ForEach(semanas) { semana in
+                Text(semana.rotuloDeMes ?? "")
+                    .font(StrandFont.footnote).foregroundStyle(labelColor)
+                    .frame(width: cellSize, alignment: .leading)
             }
         }
-        #endif
     }
 
-    private var gridOriginX: CGFloat { gutterWidth + spacing }
-    private var gridOriginY: CGFloat { showsMonthLabels ? monthLabelHeight + spacing : 0 }
-
-    private func isHovered(_ column: Int, _ row: Int) -> Bool {
-        hoverCell?.week == column && hoverCell?.row == row
+    /// El canal izquierdo: solo lun/mié/vie/dom llevan rótulo, para que no se apelmace.
+    private var canalDeDias: some View {
+        VStack(alignment: .trailing, spacing: spacing) {
+            ForEach(Array(Rejilla.rotulosDeFila.enumerated()), id: \.offset) { _, rotulo in
+                Text(rotulo)
+                    .font(StrandFont.footnote).foregroundStyle(labelColor)
+                    .frame(width: MedidasFranja.canal, height: cellSize, alignment: .trailing)
+            }
+        }
     }
 
-    private func cellIndex(at point: CGPoint, columnCount: Int) -> (week: Int, row: Int)? {
-        let pitch = cellSize + spacing
-        let localX = point.x - gridOriginX
-        let localY = point.y - gridOriginY
-        guard localX >= 0, localY >= 0 else { return nil }
-        let column = Int(localX / pitch)
-        let row = Int(localY / pitch)
-        guard column >= 0, column < columnCount, row >= 0, row < 7 else { return nil }
-        // Reject a hit in the spacing gap between cells.
-        guard localX - CGFloat(column) * pitch <= cellSize,
-              localY - CGFloat(row) * pitch <= cellSize else { return nil }
-        return (column, row)
-    }
-
-    private func cellCenter(week column: Int, row: Int) -> CGPoint {
-        let pitch = cellSize + spacing
-        return CGPoint(x: gridOriginX + CGFloat(column) * pitch + cellSize / 2,
-                        y: gridOriginY + CGFloat(row) * pitch + cellSize / 2)
+    /// Una celda: teñida si hay lectura, hueca si el día está en rango pero sin dato, transparente
+    /// si la columna todavía no llega a ese día.
+    @ViewBuilder
+    private func celda(_ dia: RecoveryDay?, resaltada: Bool) -> some View {
+        let canto = RoundedRectangle(cornerRadius: cellCornerRadius)
+        cuerpoDeCelda(dia, canto: canto, resaltada: resaltada)
+            .overlay { if dia.map({ $0.id == seleccionada }) ?? false { aroDeSeleccion } }
+            .modifier(TappableCell(
+                enabled: onSelect != nil && dia != nil,
+                label: dia.map(vozDeVoiceOver) ?? Text(""),
+                action: { if let dia { seleccionada = dia.id; onSelect?(dia) } }
+            ))
     }
 
     @ViewBuilder
-    private func hoverOverlay(columns: [WeekColumn], gridSize: CGSize) -> some View {
-        if showsScrub, let hovered = hoverCell, hovered.week < columns.count,
-           let day = columns[hovered.week].cells[hovered.row], let score = day.score {
-            let center = cellCenter(week: hovered.week, row: hovered.row)
+    private func cuerpoDeCelda(_ dia: RecoveryDay?, canto: RoundedRectangle, resaltada: Bool) -> some View {
+        if let dia, let puntaje = dia.score {
+            canto.fill(tint(puntaje))
+                .frame(width: cellSize, height: cellSize)
+                .opacity(resaltada || celdaBajoElDedo == nil ? 1.0 : MedidasFranja.atenuadas)
+                .help("\(CalendarFormatters.day.string(from: dia.date)) · \(valueWord) \(Int(puntaje.rounded()))")
+        } else if dia != nil {
+            canto.fill(emptyFill)
+                .overlay(canto.stroke(emptyStroke, lineWidth: MedidasFranja.hueco))
+                .frame(width: cellSize, height: cellSize)
+        } else {
+            canto.fill(Color.clear).frame(width: cellSize, height: cellSize)
+        }
+    }
+
+    private var aroDeSeleccion: some View {
+        RoundedRectangle(cornerRadius: MedidasFranja.aroRadio, style: .continuous)
+            .stroke(selectionColor, lineWidth: MedidasFranja.seleccionGrosor)
+            .frame(width: cellSize + MedidasFranja.seleccionCrecimiento,
+                   height: cellSize + MedidasFranja.seleccionCrecimiento)
+    }
+
+    /// El aro y la tarjeta de lectura de la celda bajo el dedo, en una capa encima de la rejilla.
+    @ViewBuilder
+    private func aroYTarjeta(_ semanas: [Rejilla.Semana], _ cuadricula: Cuadricula) -> some View {
+        if showsScrub, let donde = celdaBajoElDedo, donde.columna < semanas.count,
+           let dia = semanas[donde.columna].dias[donde.fila], let puntaje = dia.score {
+            let centro = cuadricula.centro(de: donde)
             ZStack(alignment: .topLeading) {
-                RoundedRectangle(cornerRadius: 3, style: .continuous)
-                    .stroke(InstrumentoTheme.base.hairlineStrong, lineWidth: 1.5)
-                    .frame(width: cellSize + 3, height: cellSize + 3)
-                    .position(center)
+                RoundedRectangle(cornerRadius: MedidasFranja.aroRadio, style: .continuous)
+                    .stroke(InstrumentoTheme.base.hairlineStrong, lineWidth: MedidasFranja.aroGrosor)
+                    .frame(width: cellSize + MedidasFranja.aroCrecimiento,
+                           height: cellSize + MedidasFranja.aroCrecimiento)
+                    .position(centro)
                 PositionedTooltip(
-                    anchor: center,
-                    container: gridSize,
+                    anchor: centro, container: CGSize(width: cuadricula.ancho, height: cuadricula.alto),
                     tooltip: ChartTooltip(
-                        value: valueFormat(score),
-                        label: "\(CalendarFormatters.day.string(from: day.date)) · \(StrandPalette.recoveryState(score))",
-                        accent: tint(score)
+                        value: valueFormat(puntaje),
+                        label: "\(CalendarFormatters.day.string(from: dia.date)) · \(StrandPalette.recoveryState(puntaje))",
+                        accent: tint(puntaje)
                     )
                 )
             }
-            .animation(StrandMotion.fade, value: hovered.week)
-            .animation(StrandMotion.fade, value: hovered.row)
+            .animation(StrandMotion.fade, value: donde.columna)
+            .animation(StrandMotion.fade, value: donde.fila)
             .allowsHitTesting(false)
         }
     }
 
-    @ViewBuilder
-    private func cell(_ day: RecoveryDay?, isHovered: Bool) -> some View {
-        let shape = RoundedRectangle(cornerRadius: cellCornerRadius)
-        let isSelected = day.map { $0.id == selectedID } ?? false
-        Group {
-            if let day, let score = day.score {
-                shape
-                    .fill(tint(score))
-                    .frame(width: cellSize, height: cellSize)
-                    .opacity(isHovered ? 1.0 : (hoverCell == nil ? 1.0 : 0.78))
-                    .help("\(CalendarFormatters.day.string(from: day.date)) · \(valueWord) \(Int(score.rounded()))")
-            } else if day != nil {
-                shape
-                    .fill(emptyFill)
-                    .overlay(shape.stroke(emptyStroke, lineWidth: 0.5))
-                    .frame(width: cellSize, height: cellSize)
-            } else {
-                shape.fill(Color.clear).frame(width: cellSize, height: cellSize)
-            }
-        }
-        .overlay {
-            if isSelected {
-                RoundedRectangle(cornerRadius: 3, style: .continuous)
-                    .stroke(selectionColor, lineWidth: 2)
-                    .frame(width: cellSize + 4, height: cellSize + 4)
-            }
-        }
-        .modifier(TappableCell(
-            enabled: onSelect != nil && day != nil,
-            label: day.map(accessibilityLabel) ?? Text(""),
-            action: { if let day { selectedID = day.id; onSelect?(day) } }
-        ))
-    }
-
-    /// VoiceOver label for a selectable cell.
-    private func accessibilityLabel(_ day: RecoveryDay) -> Text {
-        let date = CalendarFormatters.day.string(from: day.date)
-        guard let score = day.score else { return Text("\(date) · no reading") }
-        return Text("\(date) · \(valueWord) \(Int(score.rounded()))")
+    /// Lo que VoiceOver lee de una celda seleccionable.
+    private func vozDeVoiceOver(_ dia: RecoveryDay) -> Text {
+        let fecha = CalendarFormatters.day.string(from: dia.date)
+        guard let puntaje = dia.score else { return Text("\(fecha) · no reading") }
+        return Text("\(fecha) · \(valueWord) \(Int(puntaje.rounded()))")
     }
 }
 
-/// Adds tap selection + a VoiceOver button only when `enabled` — the hover-only caller's cells stay
-/// exactly as before, with no extra tap target or accessibility element.
+// MARK: - Calendario: de una lista de días a columnas de semana
+//
+// Aparte de la vista a propósito: repartir días en semanas que empiezan en lunes es aritmética de
+// calendario, no dibujo, y así se lee (y se corrige) sin abrir el `body`.
+private enum Rejilla {
+
+    /// Dónde está una celda dentro de la rejilla.
+    struct Coordenada: Equatable {
+        let columna, fila: Int
+    }
+
+    /// Una columna: siete huecos indexados por fila lunes-primero, y el rótulo de mes si esa semana
+    /// estrena mes.
+    struct Semana: Identifiable {
+        let id = UUID()
+        var dias: [RecoveryDay?]
+        var rotuloDeMes: String?
+    }
+
+    /// Lunes primero, siempre — el calendario del sistema podría empezar en domingo.
+    static var calendario: Calendar {
+        var cal = Calendar(identifier: .gregorian)
+        cal.firstWeekday = 2
+        return cal
+    }
+
+    /// Los rótulos del canal: solo lun/mié/vie/dom. `shortWeekdaySymbols` viene siempre indexado
+    /// desde el domingo sin importar el idioma, así que se toman los índices [1,3,5,0] para las
+    /// filas lunes-primero.
+    static var rotulosDeFila: [String] {
+        let simbolos = Calendar.current.shortWeekdaySymbols
+        return [simbolos[1], "", simbolos[3], "", simbolos[5], "", simbolos[0]]
+    }
+
+    /// La fila (0 = lunes … 6 = domingo) que le toca a una fecha.
+    static func fila(de fecha: Date) -> Int {
+        let diaDeLaSemana = calendario.component(.weekday, from: fecha) // 1=dom … 7=sáb
+        return (diaDeLaSemana + 5) % 7
+    }
+
+    /// Reparte los días —ya ordenados— en columnas de semana. Cada lunes abre columna nueva; la
+    /// primera puede empezar a media semana, con los huecos previos vacíos.
+    static func semanas(de dias: [RecoveryDay]) -> [Semana] {
+        guard let primera = dias.first?.date else { return [] }
+        var columnas: [Semana] = []
+        var enCurso = vacia()
+        var mesVisto = -1
+        var llenos = fila(de: primera)
+
+        for dia in dias {
+            let hueco = fila(de: dia.date)
+            if hueco == 0 && llenos > 0 {
+                columnas.append(enCurso)
+                enCurso = vacia()
+                llenos = 0
+            }
+            enCurso.dias[hueco] = dia
+            let mes = calendario.component(.month, from: dia.date)
+            if mes != mesVisto {
+                enCurso.rotuloDeMes = CalendarFormatters.month.string(from: dia.date)
+                mesVisto = mes
+            }
+            llenos += 1
+        }
+        if llenos > 0 { columnas.append(enCurso) }
+        return columnas
+    }
+
+    private static func vacia() -> Semana {
+        Semana(dias: Array(repeating: nil, count: MedidasFranja.filas), rotuloDeMes: nil)
+    }
+}
+
+// MARK: - Geometría de la rejilla
+//
+// El paso entre celdas, el origen del área dibujada, y las dos traducciones que la vista necesita:
+// de un punto a una coordenada (para el puntero) y de una coordenada a un centro (para el aro).
+private struct Cuadricula {
+    let celda, aire: CGFloat
+    let origenX, origenY: CGFloat
+    let ancho, alto: CGFloat
+    private let columnas: Int
+
+    init(celda: CGFloat, aire: CGFloat, conRotulosDeMes: Bool, columnas: Int) {
+        (self.celda, self.aire, self.columnas) = (celda, aire, columnas)
+        origenX = MedidasFranja.canal + aire
+        origenY = conRotulosDeMes ? MedidasFranja.rotuloDeMes + aire : 0
+        ancho = origenX + CGFloat(columnas) * (celda + aire) - aire
+        alto = origenY + CGFloat(MedidasFranja.filas) * (celda + aire) - aire
+    }
+
+    private var paso: CGFloat { celda + aire }
+
+    /// La coordenada bajo un punto, o `nil` si el punto cayó fuera de la rejilla o en el aire entre
+    /// celdas — un acierto en la ranura no cuenta como acierto en la celda.
+    func coordenada(en punto: CGPoint) -> Rejilla.Coordenada? {
+        let x = punto.x - origenX, y = punto.y - origenY
+        guard x >= 0, y >= 0 else { return nil }
+        let columna = Int(x / paso), fila = Int(y / paso)
+        guard columna >= 0, columna < columnas, fila >= 0, fila < MedidasFranja.filas else { return nil }
+        guard x - CGFloat(columna) * paso <= celda, y - CGFloat(fila) * paso <= celda else { return nil }
+        return Rejilla.Coordenada(columna: columna, fila: fila)
+    }
+
+    /// El centro de una celda, en el mismo espacio en que se dibuja la rejilla.
+    func centro(de donde: Rejilla.Coordenada) -> CGPoint {
+        CGPoint(x: origenX + CGFloat(donde.columna) * paso + celda / 2,
+                y: origenY + CGFloat(donde.fila) * paso + celda / 2)
+    }
+}
+
+/// Agrega selección por toque y un botón de VoiceOver SOLO cuando `enabled` — las celdas de quien
+/// únicamente usa el puntero quedan exactamente igual, sin blanco de toque ni elemento extra.
 private struct TappableCell: ViewModifier {
     let enabled: Bool
     let label: Text
     let action: () -> Void
 
+    @ViewBuilder
     func body(content: Content) -> some View {
         if enabled {
             content
@@ -316,23 +391,15 @@ private enum CalendarFormatters {
 }
 
 #if DEBUG
-private enum DemoYear {
-    static func days(count: Int = 365) -> [RecoveryDay] {
-        let anchor = Date()
-        return (0..<count).map { offset in
-            let backDate = Calendar.current.date(byAdding: .day, value: -(count - 1 - offset), to: anchor) ?? anchor
-            let isGap = offset.isMultiple(of: 23)
-            let curve = 28.0 * sin(Double(offset) / 11.0)
-            let jitter = Double((offset * 31) % 17) - 8.0
-            let reading = (55.0 + curve + jitter).clamped(to: 2.0...99.0)
-            return RecoveryDay(date: backDate, score: isGap ? nil : reading)
-        }
-    }
-}
-
-private extension Double {
-    func clamped(to range: ClosedRange<Double>) -> Double {
-        Swift.min(Swift.max(self, range.lowerBound), range.upperBound)
+/// Un año sintético con huecos cada 23 días, para que se vea tanto el día teñido como el hueco.
+private func anoDeMuestra(_ total: Int = 365) -> [RecoveryDay] {
+    let hoy = Date()
+    return (0..<total).map { orden -> RecoveryDay in
+        let fecha = Calendar.current.date(byAdding: .day, value: -(total - 1 - orden), to: hoy) ?? hoy
+        let curva: Double = 28.0 * sin(Double(orden) / 11.0)
+        let temblor = Double((orden * 31) % 17) - 8.0
+        let lectura = Swift.min(Swift.max(55.0 + curva + temblor, 2.0), 99.0)
+        return RecoveryDay(date: fecha, score: orden.isMultiple(of: 23) ? nil : lectura)
     }
 }
 
@@ -341,11 +408,10 @@ private extension Double {
         Text("Recovery — past year").strandOverline()
         Text("Hover a cell: ring + date, score and recovery-state tooltip.")
             .font(StrandFont.footnote).foregroundStyle(InstrumentoTheme.base.inkTertiary)
-        YearHeatStrip(days: DemoYear.days())
+        YearHeatStrip(days: anoDeMuestra())
     }
     .padding(28)
     .frame(width: 900, height: 240)
-    .background(InstrumentoTheme.base.paper)
-    .preferredColorScheme(.light)
+    .background(InstrumentoTheme.base.paper).preferredColorScheme(.light)
 }
 #endif

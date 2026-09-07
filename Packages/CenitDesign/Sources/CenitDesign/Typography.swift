@@ -1,17 +1,16 @@
 import SwiftUI
-
-// MARK: - Strand Typography (§9.2)
+// MARK: - La voz tipográfica
 //
-// SF Pro (Display ≥20pt, Text <20pt), tabular/monospaced digits for every live value. Reading-text
-// tokens are anchored to native text styles (`Font.system(.textStyle)`) so they scale with the user's
-// Dynamic Type setting; the geometry-driven numeral tokens (`number`, `mono`, glyph sizes) stay FIXED
-// on purpose — they size numerals embedded in a drawing (rings, dials, chart marks), which must not
-// reflow with text size.
-
-public enum StrandFont {
-
-    // MARK: Reading scale (Dynamic Type)
-
+// SF Pro. Conviven aquí dos familias de fichas, y la diferencia entre ellas es deliberada:
+//
+//   · Las de LECTURA se anclan a un estilo nativo (`Font.system(.subheadline)`), así que crecen y
+//     encogen con el tamaño de texto que la persona eligió en iOS.
+//   · Las NUMÉRICAS y las de glifo se declaran en puntos FIJOS. Viven dentro de un dibujo —anillos,
+//     diales, marcas de una gráfica— donde reflowear con Dynamic Type rompería la geometría.
+//
+// Todo valor vivo se pinta con dígitos monoespaciados, para que el número no baile al cambiar.
+public enum StrandFont { // fichas de tipo: nadie escribe `.font(.system(size:))` a mano
+    // MARK: Escala de lectura — crece con Dynamic Type
     /// Relative to `.title`, 28pt bold at the default size.
     public static let title1 = Font.system(.title, weight: .bold)
     /// Relative to `.headline`, 17pt semibold at the default size.
@@ -24,119 +23,114 @@ public enum StrandFont {
     public static let caption = Font.system(.caption)
     /// Relative to `.caption2`, 11pt at the default size.
     public static let footnote = Font.system(.caption2)
-    /// The small trailing unit next to a metric value (ms / bpm / %) — a step above `footnote` so it
-    /// reads as part of the datum, not chrome. Relative to `.footnote`.
+    /// La unidad chica que sigue a un valor (ms / bpm / %). Un escalón por encima de `footnote` para
+    /// que se lea como parte del dato y no como decorado.
     public static let unit = Font.system(.footnote)
-    /// Sparing ALL-CAPS label voice. Pair with `.tracking(overlineTracking)`, or just call
-    /// `strandOverline()` which bakes both in.
+    /// Voz de VERSALITAS, de uso escaso. Acompáñala con `.tracking(overlineTracking)` — o llama a
+    /// `strandOverline()`, que ya trae las dos cosas.
     public static let overline = Font.system(.caption2, weight: .semibold)
-    /// SF Mono — raw/log views, tabular by nature. Relative to `.footnote`.
+    /// SF Mono — vistas crudas/de bitácora, tabulares por naturaleza.
     public static let mono = Font.system(.footnote, design: .monospaced)
-
-    // MARK: Numeric variants (tabular digits, fixed size)
-
-    /// A monospaced-digit numeral at an arbitrary size, for live values.
-    public static func number(
-        _ size: CGFloat, weight: Font.Weight = .semibold
-    ) -> Font {
-        Font.system(size: size, weight: weight, design: .default).monospacedDigit()
-    }
-
-    /// Monospaced-digit caption — small live values (sparklines, chips). Scales with Dynamic Type.
+    /// Leyenda con dígitos monoespaciados: valores vivos chicos (chips, sparklines).
     public static let captionNumber = Font.system(.caption, weight: .medium).monospacedDigit()
+    /// Espaciado de letra que `strandOverline()` aplica sobre `overline`.
+    public static let overlineTracking: CGFloat = 0.8
 
-    /// SF Mono at an arbitrary size.
-    public static func mono(
-        _ size: CGFloat, weight: Font.Weight = .regular
-    ) -> Font {
-        Font.system(size: size, weight: weight, design: .monospaced)
-    }
+    // MARK: Numerales de tamaño fijo — dígitos tabulares
+    /// Un numeral de dígitos monoespaciados a un tamaño arbitrario, para valores vivos.
+    public static func number(_ size: CGFloat, weight: Font.Weight = .semibold) -> Font { .system(size: size, weight: weight, design: .default).monospacedDigit() }
+    /// SF Mono a un tamaño arbitrario.
+    public static func mono(_ size: CGFloat, weight: Font.Weight = .regular) -> Font { .system(size: size, weight: weight, design: .monospaced) }
 
-    public static let overlineTracking: CGFloat = 0.8 // applied by strandOverline()
-
-    // MARK: SF Symbol glyph sizes (auditoría jul-2026, H1)
+    // MARK: Tamaños de glifo SF Symbol
     //
-    // Fixed steps absorbing the ad-hoc `.font(.system(size:))` glyph sizes screens used to invent —
-    // chrome paired with non-scaling text, or geometry, so these never move with Dynamic Type.
+    // Escalones fijos que absorbieron los `.font(.system(size:))` que las pantallas inventaban para
+    // sus íconos. Son cromo pegado a texto que no escala, o geometría: no se mueven con Dynamic Type.
 
-    /// Semantic size for an SF Symbol glyph. Never pass a raw `CGFloat` at a call site.
+    /// Tamaño semántico de un glifo. En un call site nunca va un `CGFloat` crudo.
     public enum GlyphSize: CGFloat {
-        /// Navigation chevrons, disclosure marks (absorbs 10–14).
+        /// Chevrones de navegación, marcas de despliegue (absorbe 10–14).
         case chevron = 12
-        /// Icon beside body text (absorbs 14–17).
+        /// Ícono junto a texto de lectura (absorbe 14–17).
         case inline = 15
-        /// A row/header's lead icon (absorbs 17–22).
+        /// Ícono guía de una fila o un encabezado (absorbe 17–22).
         case lead = 18
-        /// Empty-state glyph (absorbs 28–40).
+        /// Glifo de estado vacío (absorbe 28–40).
         case empty = 34
     }
 
-    /// An SF Symbol at a semantic size. FIXED — does not scale with Dynamic Type. `.regular` matches
-    /// the native default of `.font(.system(size:))`, so migrating a bare-sized icon (the common case)
-    /// doesn't change its weight unless the call site says otherwise.
-    public static func glyph(_ size: GlyphSize, weight: Font.Weight = .regular) -> Font {
-        .system(size: size.rawValue, weight: weight)
-    }
+    /// Un SF Symbol a un tamaño semántico. FIJO: no escala con Dynamic Type. `.regular` iguala el
+    /// default nativo de `.font(.system(size:))`, así que migrar un ícono con tamaño suelto —el caso
+    /// común— no le cambia el peso salvo que el call site lo pida.
+    public static func glyph(_ size: GlyphSize, weight: Font.Weight = .regular) -> Font { .system(size: size.rawValue, weight: weight) }
 }
 
-// MARK: - Text helpers
-
-public extension Text {
-    /// Styles as an overline label: ALL-CAPS, semibold, tracked, tertiary ink.
-    func strandOverline() -> some View {
-        self
-            .font(StrandFont.overline)
+// MARK: - Sobrelínea
+//
+// La sobrelínea es una receta, no una suma de modificadores sueltos: un `ViewModifier` la guarda
+// entera para que ninguna pantalla la arme a medias (sin tracking, o con otra tinta).
+private struct VozDeSobrelinea: ViewModifier {
+    func body(content: Content) -> some View {
+        content.font(StrandFont.overline)
             .tracking(StrandFont.overlineTracking)
             .textCase(.uppercase)
             .foregroundStyle(InstrumentoTheme.base.inkSecondary)
     }
 }
 
+public extension Text {
+    /// La viste de sobrelínea: VERSALITAS, semibold, con tracking, en tinta secundaria.
+    func strandOverline() -> some View { modifier(VozDeSobrelinea()) }
+}
+
 public extension View {
-    /// Convenience: builds an overline-styled label straight from a plain string.
-    static func strandOverline(_ text: String) -> some View {
-        Text(text).strandOverline()
-    }
+    /// Atajo: arma la etiqueta de sobrelínea directo desde una cadena.
+    static func strandOverline(_ string: String) -> some View { Text(string).strandOverline() }
 }
 
 #if DEBUG
-private struct TypeSample: Identifiable {
+/// Una fila de la muestra: cómo se llama la ficha y con qué fuente se pinta.
+private struct MuestraDeVoz: Identifiable {
     let id = UUID()
-    let caption: String
-    let font: Font
-    let dim: Bool
+    let rotulo: String
+    let voz: Font
+    let atenuada: Bool
+}
+
+private let muestrario: [MuestraDeVoz] = [
+    .init(rotulo: "Title1", voz: StrandFont.title1, atenuada: false),
+    .init(rotulo: "Headline", voz: StrandFont.headline, atenuada: false),
+    .init(rotulo: "Body", voz: StrandFont.body, atenuada: false),
+    .init(rotulo: "Subhead", voz: StrandFont.subhead, atenuada: true),
+    .init(rotulo: "Caption", voz: StrandFont.caption, atenuada: true),
+    .init(rotulo: "Footnote", voz: StrandFont.footnote, atenuada: true),
+    .init(rotulo: "Mono 0x1F 0x0A crc=91b2", voz: StrandFont.mono, atenuada: true),
+]
+
+/// Un dato con su unidad, para ver `captionNumber` y `unit` uno junto al otro.
+private struct MuestraDeDato: View {
+    var body: some View {
+        HStack(spacing: 4) {
+            Text("HRV").font(StrandFont.caption).foregroundStyle(InstrumentoTheme.base.inkSecondary)
+            Text("62").font(StrandFont.captionNumber).foregroundStyle(InstrumentoTheme.base.ink)
+            Text("ms").font(StrandFont.unit).foregroundStyle(InstrumentoTheme.base.inkTertiary)
+        }
+    }
 }
 
 #Preview("Typography") {
-    let ink = InstrumentoTheme.base.ink
-    let samples: [TypeSample] = [
-        .init(caption: "Title1", font: StrandFont.title1, dim: false),
-        .init(caption: "Headline", font: StrandFont.headline, dim: false),
-        .init(caption: "Body", font: StrandFont.body, dim: false),
-        .init(caption: "Subhead", font: StrandFont.subhead, dim: true),
-        .init(caption: "Caption", font: StrandFont.caption, dim: true),
-        .init(caption: "Footnote", font: StrandFont.footnote, dim: true),
-        .init(caption: "Mono 0x1F 0x0A crc=91b2", font: StrandFont.mono, dim: true),
-    ]
-    return ScrollView {
+    ScrollView {
         VStack(alignment: .leading, spacing: 16) {
-            ForEach(samples) { sample in
-                Text(sample.caption)
-                    .font(sample.font)
-                    .foregroundStyle(sample.dim ? InstrumentoTheme.base.inkSecondary : ink)
+            ForEach(muestrario) { fila in
+                Text(fila.rotulo).font(fila.voz)
+                    .foregroundStyle(fila.atenuada ? InstrumentoTheme.base.inkSecondary : InstrumentoTheme.base.ink)
             }
             Text("Overline").strandOverline()
-            HStack(spacing: 4) {
-                Text("HRV").font(StrandFont.caption).foregroundStyle(InstrumentoTheme.base.inkSecondary)
-                Text("62").font(StrandFont.captionNumber).foregroundStyle(ink)
-                Text("ms").font(StrandFont.unit).foregroundStyle(InstrumentoTheme.base.inkTertiary)
-            }
+            MuestraDeDato()
         }
-        .padding(28)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(28).frame(maxWidth: .infinity, alignment: .leading)
     }
     .frame(width: 480, height: 520)
-    .background(InstrumentoTheme.base.paper)
-    .preferredColorScheme(.light)
+    .background(InstrumentoTheme.base.paper).preferredColorScheme(.light)
 }
 #endif

@@ -2,25 +2,48 @@ import SwiftUI
 #if canImport(UIKit)
 import UIKit
 #endif
-
-// MARK: - Chart scrub toolkit (shared across every chart in the package)
+// MARK: - La lupa de una gráfica
 //
-// On iOS there's no pointer hover, so a chart's "explore the data" affordance is a finger-drag that
-// snaps to the nearest datum. This file is the one place that snapping math, the tooltip card, its
-// placement, the crosshair rule and the highlighted dot live, so every chart (TrendChart, Sparkline,
-// YearHeatStrip, and the LiquidGlass chart family) reads identically instead of reinventing its own.
-// On macOS the same crosshair/tooltip is driven by pointer hover instead of drag.
+// En iOS no hay puntero que pase por encima, así que «explorar el dato» es arrastrar el dedo y que
+// la lectura se pegue al dato más cercano. Este archivo es el ÚNICO lugar donde viven esa
+// matemática de pegado, la tarjeta de lectura, dónde se coloca, la raya vertical y el punto
+// resaltado — para que TrendChart, Sparkline, YearHeatStrip y la familia LiquidGlass se lean igual
+// en vez de reinventarse cada una la suya. En macOS lo mismo lo maneja el puntero, no el arrastre.
 
-// MARK: - Selection haptic
+/// Las medidas de la lupa, con nombre. Un literal suelto repetido en tres vistas es exactamente lo
+/// que este enum evita.
+private enum MedidasDeLupa {
+    static let acentoDiametro: CGFloat = 7
+    static let acentoSeparacion: CGFloat = 8
+    static let textoSeparacion: CGFloat = 1
+    static let tarjetaRadio: CGFloat = 8
+    static let tarjetaRelleno = EdgeInsets(top: 6, leading: 9, bottom: 6, trailing: 9)
+    static let filete: CGFloat = 1
+    static let rayaCorta: [CGFloat] = [3, 3]
+    /// Aire entre el dato y la tarjeta que lo nombra.
+    static let holguraPorOmision: CGFloat = 12
+    /// Tamaño supuesto de la tarjeta antes de que el primer layout la mida de verdad.
+    static let tarjetaSinMedir = CGSize(width: 90, height: 40)
+    static let puntoDiametro: CGFloat = 9
+    /// Piso del diámetro de la manija plana, para que siga siendo tocable en papel cálido.
+    static let manijaMinima: CGFloat = 13
+}
 
-/// A light selection tick fired when the scrubbed finger snaps onto a NEW datum (iOS only — a no-op on
-/// macOS/watchOS). One generator is prepared once and reused, per Apple's HIG guidance.
+private extension View {
+    /// Cromo de lupa: se ve, no se toca. El gesto de arrastre pertenece a la gráfica de abajo.
+    func inerte() -> some View { allowsHitTesting(false) }
+}
+
+// MARK: - Toque de selección
+
+/// Un tic ligero de selección cuando el dedo se pega a un dato NUEVO (solo iOS; en macOS/watchOS no
+/// hace nada). El generador se prepara una vez y se reutiliza, como pide la guía de Apple.
 public enum ChartHaptics {
     #if canImport(UIKit) && os(iOS)
     @MainActor private static let generator = UISelectionFeedbackGenerator()
     #endif
 
-    /// Call for a move onto a new (non-nil) datum — never for the finger lifting.
+    /// Llámalo al moverse a un dato nuevo (no nulo) — nunca al levantar el dedo.
     @MainActor public static func datumChanged() {
         #if canImport(UIKit) && os(iOS)
         generator.selectionChanged()
@@ -29,286 +52,243 @@ public enum ChartHaptics {
     }
 }
 
-// MARK: - Tooltip card
+// MARK: - La tarjeta de lectura
 
-/// A compact dark read-out shown near the scrubbed datum: a bold value line plus an optional secondary
-/// label, and an optional leading accent dot naming the color the tooltip is explaining.
+/// La lectura compacta que aparece junto al dato raspado: una línea de valor en negrita, una
+/// etiqueta secundaria opcional, y un punto de acento que nombra el color que se está explicando.
 struct ChartTooltip: View {
     var value: String
     var label: String?
     var accent: Color?
 
-    init(
-        value: String,
-        label: String? = nil,
-        accent: Color? = nil
-    ) {
-        self.value = value
-        self.label = label
-        self.accent = accent
-    }
-
     @Environment(\.instrumentoFlat) private var flat
 
-    private var voiceOverText: String {
-        guard let label else { return value }
-        return "\(value), \(label)"
+    init(value: String, label: String? = nil, accent: Color? = nil) {
+        (self.value, self.label, self.accent) = (value, label, accent)
     }
 
-    var body: some View {
-        let card = HStack(alignment: .center, spacing: 8) {
-            if let accent {
-                Circle()
-                    .fill(accent)
-                    .frame(width: 7, height: 7)
-                    .shadow(color: flat ? .clear : accent.opacity(0.8), radius: flat ? 0 : 3)
+    var body: some View { contenido.modifier(TarjetaDeLectura(flat: flat, vozDeVoiceOver: vozDeVoiceOver)) }
+
+    /// Lo que VoiceOver lee: la tarjeta entera es UN elemento, no tres textos sueltos.
+    private var vozDeVoiceOver: String { label.map { "\(value), \($0)" } ?? value }
+
+    /// Punto de acento (si lo hay) + las dos líneas de texto.
+    private var contenido: some View {
+        HStack(alignment: .center, spacing: MedidasDeLupa.acentoSeparacion) {
+            accent.map { tinta in
+                Circle().fill(tinta)
+                    .frame(width: MedidasDeLupa.acentoDiametro, height: MedidasDeLupa.acentoDiametro)
+                    .shadow(color: flat ? .clear : tinta.opacity(0.8), radius: flat ? 0 : 3)
             }
-            VStack(alignment: .leading, spacing: 1) {
-                Text(value)
-                    .font(StrandFont.captionNumber)
-                    .fontWeight(.semibold)
+            VStack(alignment: .leading, spacing: MedidasDeLupa.textoSeparacion) {
+                Text(value).font(StrandFont.captionNumber).fontWeight(.semibold)
                     .foregroundStyle(LiquidColor.tinta900)
-                if let label {
-                    Text(label)
-                        .font(StrandFont.footnote)
-                        .foregroundStyle(LiquidColor.tinta700)
+                label.map { texto in
+                    Text(texto).font(StrandFont.footnote).foregroundStyle(LiquidColor.tinta700)
                 }
             }
         }
-        return card
-            .padding(.horizontal, 9)
-            .padding(.vertical, 6)
-            .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(LiquidColor.papelTarjeta))
-            .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).stroke(LiquidColor.tinta10, lineWidth: 1))
+    }
+}
+
+/// El envoltorio de la tarjeta: papel, canto, sombra y la etiqueta de accesibilidad. Va aparte del
+/// contenido para que la receta de superficie no se mezcle con lo que se lee.
+private struct TarjetaDeLectura: ViewModifier {
+    let flat: Bool
+    let vozDeVoiceOver: String
+
+    private var canto: RoundedRectangle { RoundedRectangle(cornerRadius: MedidasDeLupa.tarjetaRadio, style: .continuous) }
+
+    func body(content: Content) -> some View {
+        content.padding(MedidasDeLupa.tarjetaRelleno)
+            .background(canto.fill(LiquidColor.papelTarjeta))
+            .overlay(canto.stroke(LiquidColor.tinta10, lineWidth: MedidasDeLupa.filete))
             .shadow(color: Color.black.opacity(flat ? 0.14 : 0.45), radius: flat ? 4 : 10, x: 0, y: flat ? 2 : 6)
             .fixedSize()
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel(voiceOverText)
+            .accessibilityLabel(vozDeVoiceOver)
     }
 }
 
-// MARK: - Tooltip placement
+// MARK: - Dónde cae la tarjeta
 
-/// Positions a tooltip near an anchor point while keeping it fully inside a container.
+/// Coloca la tarjeta cerca de un ancla sin dejar que se salga del contenedor.
 enum ChartTooltipPlacement {
 
-    /// Prefers sitting above-and-centred on the anchor, flipping below when the top edge would clip;
-    /// always clamped fully inside `container`.
-    static func position(
-        anchor: CGPoint, tooltipSize size: CGSize, in container: CGSize, gap: CGFloat = 12
-    ) -> CGPoint {
-        let halfWidth = size.width / 2, halfHeight = size.height / 2
-
-        var top = anchor.y - gap - halfHeight
-        if top - halfHeight < 0 { top = anchor.y + gap + halfHeight }
-        let clampedY = top.pinned(between: halfHeight, and: max(halfHeight, container.height - halfHeight))
-        let clampedX = anchor.x.pinned(between: halfWidth, and: max(halfWidth, container.width - halfWidth))
-        return CGPoint(x: clampedX, y: clampedY)
+    /// Prefiere quedar ARRIBA y centrada sobre el ancla; se voltea abajo si el borde superior la
+    /// cortaría, y siempre termina recortada dentro de `container`.
+    static func position(anchor: CGPoint, tooltipSize size: CGSize, in container: CGSize,
+                         gap: CGFloat = MedidasDeLupa.holguraPorOmision) -> CGPoint {
+        let mitad = Mitades(size)
+        return CGPoint(x: mitad.xDentro(anchor.x, de: container),
+                       y: mitad.yArribaOAbajo(de: anchor, holgura: gap, en: container))
     }
 
-    /// Same contract as `position`, but pushed to ONE SIDE of the anchor so it never sits on top of the
-    /// datum it names — centring on the anchor can otherwise cover the very point being explained.
-    /// Prefers whichever side has more room, flips when that side doesn't fit, and falls back to
-    /// `position` only when NEITHER side fits (a plot narrower than the tooltip itself).
-    static func positionBeside(
-        anchor: CGPoint, tooltipSize size: CGSize, in container: CGSize, gap: CGFloat = 12
-    ) -> CGPoint {
-        let halfWidth = size.width / 2, halfHeight = size.height / 2
-
-        let candidateRight = anchor.x + gap + halfWidth
-        let candidateLeft = anchor.x - gap - halfWidth
-        let rightFits = candidateRight + halfWidth <= container.width
-        let leftFits = candidateLeft - halfWidth >= 0
-        guard rightFits || leftFits else {
+    /// El mismo contrato, pero empujada a UN COSTADO del ancla para no taparle el dato que nombra:
+    /// centrarla puede cubrir justo el punto que se está explicando. Elige el lado con más aire, se
+    /// voltea si ese lado no cabe, y solo cuando NINGUNO cabe (un plot más angosto que la tarjeta)
+    /// cae de vuelta en `position`.
+    static func positionBeside(anchor: CGPoint, tooltipSize size: CGSize, in container: CGSize,
+                               gap: CGFloat = MedidasDeLupa.holguraPorOmision) -> CGPoint {
+        let mitad = Mitades(size)
+        let aLaDerecha = anchor.x + gap + mitad.ancho
+        let aLaIzquierda = anchor.x - gap - mitad.ancho
+        let cabeDerecha = aLaDerecha + mitad.ancho <= container.width
+        let cabeIzquierda = aLaIzquierda - mitad.ancho >= 0
+        guard cabeDerecha || cabeIzquierda else {
             return position(anchor: anchor, tooltipSize: size, in: container, gap: gap)
         }
+        let sobraAireADerecha = (container.width - anchor.x) >= anchor.x
+        let x = (sobraAireADerecha && cabeDerecha) || !cabeIzquierda ? aLaDerecha : aLaIzquierda
+        return CGPoint(x: x, y: mitad.yArribaOAbajo(de: anchor, holgura: gap, en: container))
+    }
 
-        let rightHasMoreAir = (container.width - anchor.x) >= anchor.x
-        let resolvedX: CGFloat = (rightHasMoreAir && rightFits) || !leftFits ? candidateRight : candidateLeft
+    /// Las medias medidas de la tarjeta, con las dos reglas de encaje que ambas colocaciones
+    /// comparten — antes estaban copiadas en las dos.
+    private struct Mitades {
+        let ancho, alto: CGFloat
 
-        var top = anchor.y - gap - halfHeight
-        if top - halfHeight < 0 { top = anchor.y + gap + halfHeight }
-        let resolvedY = top.pinned(between: halfHeight, and: max(halfHeight, container.height - halfHeight))
+        init(_ size: CGSize) { (ancho, alto) = (size.width / 2, size.height / 2) }
 
-        return CGPoint(x: resolvedX, y: resolvedY)
+        /// X recortada para que la tarjeta quede entera dentro del contenedor.
+        func xDentro(_ x: CGFloat, de container: CGSize) -> CGFloat {
+            Self.recortar(x, entre: ancho, y: max(ancho, container.width - ancho))
+        }
+
+        /// Y arriba del ancla; abajo si arriba se cortaría. Siempre dentro del contenedor.
+        func yArribaOAbajo(de anchor: CGPoint, holgura: CGFloat, en container: CGSize) -> CGFloat {
+            var y = anchor.y - holgura - alto
+            if y - alto < 0 { y = anchor.y + holgura + alto }
+            return Self.recortar(y, entre: alto, y: max(alto, container.height - alto))
+        }
+
+        static func recortar(_ valor: CGFloat, entre piso: CGFloat, y techo: CGFloat) -> CGFloat {
+            Swift.min(Swift.max(valor, piso), techo)
+        }
     }
 }
 
-private extension CGFloat {
-    func pinned(between lowerBound: CGFloat, and upperBound: CGFloat) -> CGFloat {
-        Swift.min(Swift.max(self, lowerBound), upperBound)
-    }
-}
+// MARK: - A qué dato se pega el dedo
 
-// MARK: - Nearest-datum lookup
-
-/// Geometry helpers mapping a scrub location to the nearest datum index.
+/// La geometría que traduce dónde está el dedo al índice del dato más cercano.
 enum ChartScrubMath {
 
-    /// Nearest index among `count` samples evenly spaced across `width`. Clamps out-of-range x to the
-    /// end samples; a single sample always resolves to 0.
+    /// El índice más cercano entre `count` muestras repartidas parejo a lo ancho de `width`. Una x
+    /// fuera de rango se pega a la muestra del extremo; con una sola muestra siempre da 0.
     static func nearestIndex(toX x: CGFloat, count: Int, width: CGFloat) -> Int? {
-        guard count > 0 else { return nil }
-        guard count > 1, width > 0 else { return 0 }
-        let samplePitch = width / CGFloat(count - 1)
-        let estimatedIndex = Int((x / samplePitch).rounded())
-        return Swift.min(Swift.max(estimatedIndex, 0), count - 1)
+        guard count > 1, width > 0 else { return count > 0 ? 0 : nil }
+        let paso = width / CGFloat(count - 1)
+        return Swift.min(Swift.max(Int((x / paso).rounded()), 0), count - 1)
     }
 
-    /// Nearest index among arbitrary x-positions.
+    /// El índice más cercano entre posiciones x arbitrarias (no repartidas parejo).
     static func nearestIndex(toX x: CGFloat, xs positions: [CGFloat]) -> Int? {
-        guard !positions.isEmpty else { return nil }
-        return positions.indices.min { lhs, rhs in
-            abs(positions[lhs] - x) < abs(positions[rhs] - x)
-        }
+        positions.indices.min { abs(positions[$0] - x) < abs(positions[$1] - x) }
     }
 }
 
-// MARK: - Crosshair
+// MARK: - La raya vertical
 
-/// A dashed vertical rule marking the scrubbed x — shared by every chart so the affordance reads
-/// identically everywhere.
+/// La raya discontinua que marca la x raspada. La comparten todas las gráficas para que el gesto se
+/// lea idéntico en cualquier pantalla.
 struct CrosshairRule: View {
-    var x: CGFloat
-    var height: CGFloat
+    var x, height: CGFloat
     var color: Color = LiquidColor.tinta10
 
-    init(
-        x: CGFloat, height: CGFloat,
-        color: Color = LiquidColor.tinta10
-    ) {
-        self.x = x
-        self.height = height
-        self.color = color
-    }
-
     var body: some View {
-        let verticalLine = Path { path in
-            path.move(to: CGPoint(x: x, y: 0))
-            path.addLine(to: CGPoint(x: x, y: height))
+        Path { trazo in
+            trazo.move(to: CGPoint(x: x, y: 0))
+            trazo.addLine(to: CGPoint(x: x, y: height))
         }
-        return verticalLine
-            .stroke(color, style: StrokeStyle(lineWidth: 1, dash: [3, 3]))
-            .allowsHitTesting(false)
+        .stroke(color, style: StrokeStyle(lineWidth: MedidasDeLupa.filete, dash: MedidasDeLupa.rayaCorta))
+        .inerte()
     }
 }
 
-// MARK: - Highlighted datum
+// MARK: - El dato resaltado
 
-/// The dot marking the scrubbed sample on a line. Blooms in the dark system; on warm paper
-/// (`\.instrumentoFlat`) it reads as an enlarged flat handle instead (no glow).
+/// El punto que marca la muestra raspada sobre una línea. En el sistema oscuro florece; sobre papel
+/// cálido (`\.instrumentoFlat`) se lee como una manija plana más grande, sin halo.
 struct HighlightDot: View {
     var color: Color
-    var diameter: CGFloat = 9
+    var diameter: CGFloat = MedidasDeLupa.puntoDiametro
 
     @Environment(\.instrumentoFlat) private var flat
 
-    init(
-        color: Color,
-        diameter: CGFloat = 9
-    ) {
-        self.color = color
-        self.diameter = diameter
+    init(color: Color, diameter: CGFloat = MedidasDeLupa.puntoDiametro) {
+        (self.color, self.diameter) = (color, diameter)
     }
 
-    @ViewBuilder private var flatHandle: some View {
-        let handleSize = Swift.max(diameter + 4, 13)
-        ZStack {
-            Circle().fill(LiquidColor.fondoAlto).frame(width: handleSize, height: handleSize)
-            Circle().strokeBorder(color, lineWidth: 2.5).frame(width: handleSize, height: handleSize)
-        }
+    var body: some View { cuerpo.inerte() }
+
+    @ViewBuilder private var cuerpo: some View {
+        if flat { manijaPlana } else { puntoQueFlorece }
     }
 
-    @ViewBuilder private var bloomingDot: some View {
+    /// Papel cálido: un aro grueso sobre fondo, sin halo — el brillo se ve sucio sobre papel.
+    private var manijaPlana: some View {
+        let lado = Swift.max(diameter + 4, MedidasDeLupa.manijaMinima)
+        return Circle().fill(LiquidColor.fondoAlto).frame(width: lado, height: lado)
+            .overlay(Circle().strokeBorder(color, lineWidth: 2.5).frame(width: lado, height: lado))
+    }
+
+    /// Sistema oscuro: halo difuminado + núcleo, para que el punto se despegue de la curva.
+    private var puntoQueFlorece: some View {
         ZStack {
-            Circle()
-                .fill(color)
+            Circle().fill(color)
                 .frame(width: diameter * 1.8, height: diameter * 1.8)
-                .blur(radius: diameter * 0.6)
-                .opacity(0.7)
-                .blendMode(.plusLighter)
+                .blur(radius: diameter * 0.6).opacity(0.7).blendMode(.plusLighter)
             Circle().fill(LiquidColor.fondoAlto).frame(width: diameter, height: diameter)
             Circle().fill(color).frame(width: diameter - 3, height: diameter - 3)
         }
     }
-
-    var body: some View {
-        Group {
-            if flat { flatHandle } else { bloomingDot }
-        }
-        .allowsHitTesting(false)
-    }
 }
 
-// MARK: - Tooltip overlay
+// MARK: - La tarjeta, ya colocada
 
-/// Wraps a `ChartTooltip`, measures its own size, and positions itself near an anchor within a
-/// container — so `ChartTooltipPlacement` always works off the tooltip's REAL size, not a guess.
+/// Envuelve una `ChartTooltip`, se mide a sí misma y se coloca cerca del ancla dentro del
+/// contenedor — así `ChartTooltipPlacement` siempre trabaja con el tamaño REAL, no con una
+/// suposición.
 struct PositionedTooltip: View {
     var anchor: CGPoint
     var container: CGSize
     var tooltip: ChartTooltip
 
-    @State private var measuredSize: CGSize = .zero
+    @State private var medida: CGSize = .zero
 
-    /// Placeholder size assumed before the first layout pass measures the real one.
-    private static let unmeasuredGuess = CGSize(width: 90, height: 40)
-
-    init(
-        anchor: CGPoint,
-        container: CGSize,
-        tooltip: ChartTooltip
-    ) {
-        self.anchor = anchor
-        self.container = container
-        self.tooltip = tooltip
-    }
-
-    private var resolvedPosition: CGPoint {
-        ChartTooltipPlacement.position(
-            anchor: anchor,
-            tooltipSize: measuredSize == .zero ? Self.unmeasuredGuess : measuredSize,
-            in: container
-        )
+    init(anchor: CGPoint, container: CGSize, tooltip: ChartTooltip) {
+        (self.anchor, self.container, self.tooltip) = (anchor, container, tooltip)
     }
 
     var body: some View {
         tooltip
-            .background {
-                GeometryReader { proxy in
-                    Color.clear
-                        .onAppear { measuredSize = proxy.size }
-                        .onChange(of: proxy.size) { _, newSize in measuredSize = newSize }
-                }
-            }
-            .position(resolvedPosition)
-            .transition(.opacity)
-            .allowsHitTesting(false)
+            .background { cinta }
+            .position(ChartTooltipPlacement.position(anchor: anchor,
+                                                     tooltipSize: medida == .zero ? MedidasDeLupa.tarjetaSinMedir : medida,
+                                                     in: container))
+            .transition(.opacity).inerte()
+    }
+
+    /// Cinta métrica invisible: reporta el tamaño real de la tarjeta al primer layout y a cada
+    /// cambio posterior.
+    private var cinta: some View {
+        GeometryReader { proxy in
+            Color.clear
+                .onAppear { medida = proxy.size }
+                .onChange(of: proxy.size) { _, nuevo in medida = nuevo }
+        }
     }
 }
 
 #if DEBUG
-private struct ChartTooltipSample: Identifiable {
-    let id = UUID()
-    let value: String
-    let label: String
-    let accent: Color?
-}
-
 #Preview("ChartTooltip") {
-    let rows: [ChartTooltipSample] = [
-        .init(value: "Recovery 88", label: "Tue 3 Jun", accent: StrandPalette.recoveryColor(88)),
-        .init(value: "62 ms", label: "HRV · sample 14", accent: nil),
-        .init(value: "18.7", label: "STRAIN · all-out", accent: StrandPalette.strainColor(18.7)),
-    ]
-    return VStack(spacing: 24) {
-        ForEach(rows) { row in
-            ChartTooltip(value: row.value, label: row.label, accent: row.accent)
-        }
+    VStack(spacing: 24) {
+        ChartTooltip(value: "Recovery 88", label: "Tue 3 Jun", accent: StrandPalette.recoveryColor(88))
+        ChartTooltip(value: "62 ms", label: "HRV · sample 14")
+        ChartTooltip(value: "18.7", label: "STRAIN · all-out", accent: StrandPalette.strainColor(18.7))
     }
     .padding(40)
     .frame(width: 320, height: 240)
-    .background(LiquidColor.fondoAlto)
-    .preferredColorScheme(.light)
+    .background(LiquidColor.fondoAlto).preferredColorScheme(.light)
 }
 #endif

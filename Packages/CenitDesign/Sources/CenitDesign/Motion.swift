@@ -1,53 +1,44 @@
 import SwiftUI
-
-// MARK: - Strand Motion (§9.6)
+// MARK: - El ritmo del sistema
 //
-// Physiological motion — breathe / pulse / flow, never a cartoon bounce. `LiquidMotion` is the live
-// motion language; the three spring presets here are deprecated aliases of its equivalents (same
-// values), kept only so existing call sites keep compiling while they migrate. `breathe` has no Liquid
-// twin yet and stays live for loading/listening states.
-
+// El movimiento de Cénit es fisiológico —respirar, latir, fluir— y nunca un rebote de caricatura.
+// `LiquidMotion` es el lenguaje vivo; lo que queda aquí es de dos clases:
+//
+//   · ALIAS DEPRECADOS de piezas de LiquidMotion, con el MISMO valor, para que los call sites que
+//     todavía no migran sigan compilando (con su aviso).
+//   · Las duraciones y curvas que aún no tienen gemelo en Liquid, `drawIn` y `breathe`, que siguen
+//     vivas para los estados de carga y de escucha.
 public enum StrandMotion {
-
-    // MARK: Spring presets
-
-    /// Snappy, for direct manipulation (hover, press, sidebar slide).
-    @available(*, deprecated, message: "use LiquidMotion.toque (same value)")
-    public static let interactive = Animation.interactiveSpring(response: 0.28, dampingFraction: 0.82, blendDuration: 0.1)
-
-    /// The house spring for value changes (ring draw-in, gauges).
-    @available(*, deprecated, message: "use LiquidMotion.suave (same value)")
-    public static let gentle = Animation.spring(response: 0.5, dampingFraction: 0.8)
-
-    /// Slower, more deliberate — hero transitions (first ring materialize).
-    @available(*, deprecated, message: "use LiquidMotion.heroe (same value)")
-    public static let hero = Animation.spring(response: 0.85, dampingFraction: 0.85)
-
-    // MARK: Durations
-
-    /// Standard transition (card appear, fades).
+    // MARK: Duraciones — la fuente de los números, citada por las curvas de abajo
+    /// Transición estándar: aparecer una tarjeta, un fundido.
     public static let durationStandard: Double = 0.30
-    /// Slow / draw-in (ring arc, waveform ignite).
+    /// Lenta, de trazado: el arco de un anillo, encender una onda.
     public static let durationSlow: Double = 0.9
-    /// One breath cycle for ambient pulsing.
+    /// Un ciclo completo de respiración, para el pulso ambiental.
     public static let breathPeriod: Double = 3.2
 
-    // MARK: Curves
-
-    /// Ease for a ring/gauge draw-in when its value changes.
+    // MARK: Curvas vivas
+    /// Trazado de un anillo o un medidor cuando su valor cambia.
     public static let drawIn = Animation.easeOut(duration: durationSlow)
+    /// Respiración en bucle, para halos y estados de escucha. Es `var` y no `let` a propósito:
+    /// `repeatForever` construye una animación nueva cada vez que se pide.
+    public static var breathe: Animation { .easeInOut(duration: breathPeriod).repeatForever(autoreverses: true) }
 
-    /// Looping breathe animation for ambient glow/pulse states.
-    public static var breathe: Animation {
-        .easeInOut(duration: breathPeriod).repeatForever(autoreverses: true)
-    }
-
-    /// Standard fade.
-    @available(*, deprecated, message: "use LiquidMotion.fundido (same value)")
+    // MARK: Alias deprecados — mismo valor que su gemelo de Liquid
+    /// Manipulación directa: presionar, arrastrar, deslizar un panel.
+    @available(*, deprecated, message: "usa LiquidMotion.toque (mismo valor)")
+    public static let interactive = Animation.interactiveSpring(response: 0.28, dampingFraction: 0.82, blendDuration: 0.1)
+    /// El resorte de la casa para un cambio de valor: anillos, medidores.
+    @available(*, deprecated, message: "usa LiquidMotion.suave (mismo valor)")
+    public static let gentle = Animation.spring(response: 0.5, dampingFraction: 0.8)
+    /// Más lento y deliberado: la entrada de un héroe, el primer anillo que se materializa.
+    @available(*, deprecated, message: "usa LiquidMotion.heroe (mismo valor)")
+    public static let hero = Animation.spring(response: 0.85, dampingFraction: 0.85)
+    /// Fundido estándar.
+    @available(*, deprecated, message: "usa LiquidMotion.fundido (mismo valor)")
     public static let fade = Animation.easeInOut(duration: durationStandard)
-
-    /// A receipt's numerals counting up once, on save.
-    @available(*, deprecated, message: "use LiquidMotion.conteo (same value)")
+    /// Los numerales de un recibo contando una sola vez, al guardar.
+    @available(*, deprecated, message: "usa LiquidMotion.conteo (mismo valor)")
     public static let countUp = Animation.easeOut(duration: 0.75)
 }
 
@@ -144,31 +135,51 @@ public extension View {
 }
 
 #if DEBUG
-private struct MotionPreview: View {
-    @State private var on = false
-    @State private var breathing = false
+/// Una fila del muestrario: el nombre del ritmo y un disco que lo obedece.
+private struct RitmoDemostrado: View {
+    let rotulo: String
+    let tinta: Color
+    let ritmo: Animation
+    /// `true` = el disco respira solo; `false` = se mueve cuando `disparo` cambia.
+    let enBucle: Bool
+    let disparo: Bool
+    @State private var respirando = false
+
     var body: some View {
-        VStack(spacing: 32) {
-            Circle()
-                .fill(StrandPalette.accent)
-                .frame(width: 60, height: 60)
-                .offset(y: on ? -24 : 24)
-                .animation(StrandMotion.gentle, value: on)
-            Circle()
-                .fill(StrandPalette.recovery100)
-                .frame(width: 60, height: 60)
-                .scaleEffect(breathing ? 1.12 : 0.9)
-                .opacity(breathing ? 0.9 : 0.5)
-                .onAppear { breathing = true }
-                .animation(StrandMotion.breathe, value: breathing)
-            Button("Toggle gentle spring") { on.toggle() }
-                .foregroundStyle(InstrumentoTheme.base.ink)
+        HStack(spacing: 18) {
+            Text(rotulo).font(StrandFont.caption).foregroundStyle(InstrumentoTheme.base.inkSecondary)
+                .frame(width: 132, alignment: .leading)
+            disco
         }
-        .frame(width: 360, height: 320)
-        .background(InstrumentoTheme.base.paper)
-        .preferredColorScheme(.light)
+    }
+
+    private var disco: some View {
+        Circle().fill(tinta).frame(width: 44, height: 44)
+            .scaleEffect(enBucle && respirando ? 1.12 : 0.9)
+            .offset(x: enBucle ? 0 : (disparo ? 90 : 0))
+            .onAppear { respirando = enBucle }
+            .animation(ritmo, value: enBucle ? respirando : disparo)
+            .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
-#Preview("Motion") { MotionPreview() }
+private struct MuestrarioDeRitmo: View {
+    @State private var disparo = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 22) {
+            RitmoDemostrado(rotulo: "drawIn · \(StrandMotion.durationSlow)s", tinta: StrandPalette.accent,
+                            ritmo: StrandMotion.drawIn, enBucle: false, disparo: disparo)
+            RitmoDemostrado(rotulo: "breathe · \(StrandMotion.breathPeriod)s", tinta: StrandPalette.recovery100,
+                            ritmo: StrandMotion.breathe, enBucle: true, disparo: disparo)
+            Button("Disparar el trazado") { disparo.toggle() }
+                .foregroundStyle(InstrumentoTheme.base.ink)
+        }
+        .padding(28)
+        .frame(width: 420, height: 260, alignment: .leading)
+        .background(InstrumentoTheme.base.paper).preferredColorScheme(.light)
+    }
+}
+
+#Preview("Motion") { MuestrarioDeRitmo() }
 #endif

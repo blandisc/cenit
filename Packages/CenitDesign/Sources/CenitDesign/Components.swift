@@ -1,17 +1,19 @@
 import SwiftUI
-
-// MARK: - Shared spacing / measure tokens
-
-public enum CenitMetrics {
-    public static let cardRadius: CGFloat = 16 // ChartWell / Instrumento well
-    /// Radius of the ink CTA bar (`CenitCTAButton`).
+// MARK: - Medidas compartidas
+//
+// Las cuatro medidas que más de una pieza necesita citar por nombre. Todo lo que solo usa un
+// archivo se queda en ese archivo; esto es el mostrador común, no un cajón de sastre.
+public enum CenitMetrics { // radios y respiraciones que cruzan archivos
+    /// Radio de una tarjeta/pozo (`ChartWell`, el pozo de Instrumento).
+    public static let cardRadius: CGFloat = 16
+    /// Radio de la barra de acción en tinta (`CenitCTAButton`).
     public static let ctaRadius: CGFloat = 14
-    /// Clean band reserved below a chart's area fill (Y-scale bottom padding) so X-axis labels never
-    /// sit behind the fill and get tinted by it.
+    /// Franja limpia que la escala Y reserva bajo el relleno de una gráfica, para que las etiquetas
+    /// del eje X no queden detrás del relleno y se tiñan con él.
     public static let chartXLabelBand: CGFloat = 24
-    /// Trailing inset on a chart's X-scale so the last date label renders in full instead of clipping.
+    /// Respiro al final de la escala X para que la última fecha se dibuje entera en vez de cortarse.
     public static let chartXTrailingInset: CGFloat = 38
-}
+} // fin de las medidas compartidas
 
 // MARK: - Live Activity metrics ("Descanso" / rest-timer session)
 //
@@ -114,11 +116,13 @@ public enum WatchMetrics {
     public static let heroSummaryDuration: CGFloat = 40
 }
 
-// MARK: - The one segmented pill control
-
-public struct SegmentedPillControl<T: Hashable>: View {
+// MARK: - El único control segmentado
+//
+// Una ranura de vidrio con un botón por opción y un pulgar que viaja a la seleccionada. Es la única
+// pieza del sistema para «elige uno de estos pocos»; nadie dibuja su propio segmentado a mano.
+public struct SegmentedPillControl<T: Hashable>: View { // ranura + pulgar; una sola opción activa
     let items: [T], label: (T) -> String
-    @Binding var selection: T
+    @Binding private var selection: T
     var inkThumb = false
     var tall: Bool = false
     var squared: Bool = false
@@ -140,25 +144,29 @@ public struct SegmentedPillControl<T: Hashable>: View {
         self.thumbTint = thumbTint
         self.icon = icon
         self.label = label
-    }
+    } // fin del init de compatibilidad
 
-    public var body: some View {
+    public var body: some View { ranura }
+
+    /// La ranura completa: un botón por opción, sobre el vidrio de pastilla sólida.
+    private var ranura: some View {
         HStack(spacing: squared ? 3 : 4) {
-            ForEach(
-                Array(items.enumerated()), id: \.offset
-            ) { _, item in
-                let isSelected = item == selection
-                Button {
-                    withAnimation(StrandMotion.interactive) { selection = item }
-                } label: {
-                    segment(item, isSelected)
-                }
-                .buttonStyle(InstrumentoPressStyle())
-                .accessibilityAddTraits(isSelected ? [.isSelected] : [])
+            ForEach(Array(items.enumerated()), id: \.offset) { _, item in
+                boton(para: item)
             }
         }
         .padding(3)
         .liquidGlass(.pastillaSolida)
+    }
+
+    /// Un botón de la ranura. La selección viaja con el resorte de manipulación directa, y VoiceOver
+    /// escucha el rasgo `.isSelected` solo en el activo.
+    private func boton(para item: T) -> some View {
+        let activo = item == selection
+        return Button(action: { withAnimation(StrandMotion.interactive) { selection = item } },
+                      label: { segment(item, activo) })
+            .buttonStyle(InstrumentoPressStyle())
+            .accessibilityAddTraits(activo ? [.isSelected] : [])
     }
 
     /// One segment: the active thumb hugs the label width but fills the track height, so it never
