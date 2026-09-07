@@ -56,7 +56,8 @@ final class MigrationTests: XCTestCase {
         let store = try await CenitStore(path: path)
         try await store.setCursor("anything", 1)
         try await store.vacuum()
-        XCTAssertGreaterThan(try await store.pageCountForTest(), 0)
+        let pages = try await store.pageCountForTest()
+        XCTAssertGreaterThan(pages, 0)
     }
 
     // MARK: - Round-trips through the public API

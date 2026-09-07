@@ -30,6 +30,12 @@ let package = Package(
         .testTarget(
             name: "CenitStoreTests",
             dependencies: ["CenitStore"],
+            resources: [
+                // FER-393: una base real migrada por el código anterior, con su ledger de 43
+                // identificadores, y el volcado de su esquema. Son la red de la migración única.
+                .copy("Resources/legacy-fixture.sqlite"),
+                .copy("Resources/legacy-schema.sql"),
+            ],
             swiftSettings: [.enableExperimentalFeature("StrictConcurrency")]
         ),
     ]
