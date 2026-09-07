@@ -92,9 +92,8 @@ enum PrefMigration {
         // Retiradas del enum (FER-398): la descarga de animaciones ya no tiene control en Ajustes, así
         // que su preferencia no se migra — se BORRA. Copiarla dejaría un `true` heredado encendiendo
         // red que el usuario no podría apagar; borrarla deja la app en cero red por construcción.
-        // (Sin `cenit.*` equivalente: no hay a dónde copiarlo.)
-        // Se borran los DOS nombres: el heredado y el `cenit.*` que una compilación intermedia de
-        // FER-398 alcanzó a escribir. Así «migrado» significa, para esta feature, «no queda rastro».
+        // Se borran los DOS nombres —el heredado y el `cenit.*` que una compilación intermedia de
+        // FER-398 alcanzó a escribir—, así que para esta feature «migrado» significa «no queda rastro».
         for retired in ["exerciseMediaEnabled", "exerciseMediaMissedIds"] {
             standard.removeObject(forKey: "noop." + retired)
             standard.removeObject(forKey: "cenit." + retired)
