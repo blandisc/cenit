@@ -67,7 +67,7 @@ extension Registro {
         Funcionalidad(
             id: .hoyManuales,
             pestana: .hoy,
-            requiere: [.watch],
+            requiere: [],
             piezas: [.ayuda(seccion: .hoy), .tip(id: "hoy.manuales")],
             desde: "1.85"
         ),

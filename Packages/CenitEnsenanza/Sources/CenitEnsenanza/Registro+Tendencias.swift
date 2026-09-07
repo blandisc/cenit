@@ -35,7 +35,7 @@ extension Registro {
         Funcionalidad(
             id: .tendenciasMapaDelDia,
             pestana: .tendencias,
-            requiere: [.watch],
+            requiere: [.watch, .permiso(.calendario)],
             piezas: [.ayuda(seccion: .tendencias), .tip(id: "tendencias.mapa-del-dia")],
             desde: "1.85"
         ),
