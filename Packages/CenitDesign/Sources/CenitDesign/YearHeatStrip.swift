@@ -2,21 +2,18 @@ import SwiftUI
 
 // MARK: - Year Heat Strip (§9.4 Trends)
 //
-// A GitHub-style year grid: columns = weeks, rows = weekdays. Each cell is tinted
-// by that day's recovery score via the signature recovery gradient. Empty days
-// (no data) render as a faint inset square. Hover shows a tooltip via SwiftUI's
-// built-in help.
+// A GitHub-style calendar: columns are weeks, rows are weekdays (Monday-first). Each in-range day is
+// tinted by its score via a caller-supplied gradient sampler; an in-range day with no reading draws a
+// faint inset square instead. Hover (iOS) reveals a ring + tooltip; an optional tap handler adds touch
+// selection since `onContinuousHover` never fires on a touch device.
 
-/// A day's recovery datum for the heat strip.
+/// One day's score for the heat strip. `score == nil` means no data for that day.
 public struct RecoveryDay: Identifiable, Sendable {
+    public var date: Date, score: Double?
     public let id = UUID()
-    public var date: Date
-    /// Recovery 0...100, or nil if no data for that day.
-    public var score: Double?
 
     public init(date: Date, score: Double?) {
-        self.date = date
-        self.score = score
+        (self.date, self.score) = (date, score)
     }
 }
 
@@ -26,36 +23,18 @@ struct YearHeatStrip: View {
     var cellSize: CGFloat
     var spacing: CGFloat
     var showsMonthLabels: Bool
-    /// Whether hovering a cell highlights it with a ring and shows a tooltip
-    /// (date + score + recovery state word). Defaults on.
-    public var showsScrub: Bool
-    /// Tints a day's cell from its recovery score. Defaults to the dark-system recovery gradient so
-    /// the shipped (dark) Trends caller is unchanged; the light «Instrumento» detail passes a warm
-    /// band-color closure instead, so the calendar reads on warm paper. (FER-225)
+    var showsScrub: Bool
+    /// Tints a day's cell from its score. Defaults to the recovery gradient.
     var tint: (Double) -> Color
-    /// Fill for an in-range day that has no data. Defaults to the dark `surfaceInset`; the light
-    /// detail passes a warm hairline so empty days don't render as near-black squares on paper. (FER-225)
     var emptyFill: Color
-    /// Hairline stroke around an empty-but-in-range day. (FER-225)
     var emptyStroke: Color
-    /// Color of the month + weekday gutter labels. Defaults to the dark `textTertiary`; the light
-    /// detail passes warm `inkTertiary`. (FER-225)
-    public var labelColor: Color
-    /// When set, tapping a day calls this with the tapped `RecoveryDay` — touch-friendly selection, since
-    /// `onContinuousHover` never fires on touch (iPhone). The tapped cell gets a selection ring, and the
-    /// caller shows the day's read-out. Default `nil` keeps the shipped (dark, hover-only) behavior, so
-    /// the Trends caller is unchanged. (FER-235)
-    public var onSelect: ((RecoveryDay) -> Void)?
-    /// Color of the tap-selection ring. Defaults to the dark `hairlineStrong`; the light detail passes
-    /// warm ink. (FER-235)
+    var labelColor: Color
+    /// When set, tapping a day calls this — the touch-friendly counterpart to hover.
+    var onSelect: ((RecoveryDay) -> Void)?
     var selectionColor: Color
-    /// Corner radius of each day cell. Defaults to 2.5 so the dark Trends caller is unchanged;
-    /// `Calendario90` (Instrumento detail screens) passes 5 for a rounder cell.
     var cellCornerRadius: CGFloat
-    /// Formats a day's score for the tooltip's bold line.
-    public var valueFormat: (Double) -> String
-    /// The metric word in the `.help` / VoiceOver label («date · <word> 67»). Defaults to "recovery"; a
-    /// non-recovery caller (e.g. diet adherence) passes its own so the cell doesn't read "recovery". (FER-410)
+    var valueFormat: (Double) -> String
+    /// The metric word read out in the `.help`/VoiceOver label ("<date> · <word> 67").
     var valueWord: String
 
     init(
@@ -90,199 +69,164 @@ struct YearHeatStrip: View {
         self.valueWord = valueWord
     }
 
-    /// Number of week-columns a rolling 90-day window can ever span. A 90-day window is 12.86 weeks, so it
-    /// needs 13 columns when it starts on a Mon/Tue and 14 otherwise — the exact weekday depends on today.
+    /// How many week-columns a rolling 90-day window can ever span (12.86 weeks → 13 or 14 depending on
+    /// the start weekday). Fixed at the upper bound so every 90-day calendar renders at the SAME cell
+    /// size regardless of which weekday the window happens to start on.
     static let rollingWindowColumns = 14
 
-    /// The cell size that makes a rolling-90-day heat strip fill `width`, sized to a FIXED column count so
-    /// every 90-day calendar renders at the SAME cell size — on every screen and every day. Sizing to the
-    /// live `weekColumns` instead lets the cell swing 13↔14 columns (≈19.3↔21.1pt) as the window's start
-    /// weekday drifts day to day, which reads as "the calendars are different sizes". Fixing the divisor
-    /// removes that: on a 13-column day the grid simply leaves one column of trailing space, identically on
-    /// all four calendars (Recuperación / Sueño / Esfuerzo / Estrés). Returns the 14pt fallback for width 0.
-    /// (FER · calendarios mismo tamaño, estable)
+    /// The cell size that fills `width` with a fixed 14-column grid — a pure function of width alone,
+    /// so every 90-day calendar on screen matches, day to day. Falls back to 14pt at width 0.
     static func rollingCellSize(width: CGFloat, spacing: CGFloat = 4, gutter: CGFloat = 24) -> CGFloat {
         guard width > 0 else { return 14 }
-        let cols = CGFloat(rollingWindowColumns)
-        return max(8, min(22, (width - gutter - spacing - (cols - 1) * spacing) / cols))
+        let columns = CGFloat(rollingWindowColumns)
+        let raw = (width - gutter - spacing - (columns - 1) * spacing) / columns
+        return max(8, min(22, raw))
     }
 
-    // The grid layout constants used both for drawing and hover hit-testing.
     private let gutterWidth: CGFloat = 24
     private let monthLabelHeight: CGFloat = 10
 
-    /// Hovered cell as (weekIndex, row), or nil.
     @State private var hoverCell: (week: Int, row: Int)? = nil
-    /// Tapped day's id, for the touch-selection ring. (FER-235)
     @State private var selectedID: UUID? = nil
 
     private var calendar: Calendar {
-        var c = Calendar(identifier: .gregorian)
-        c.firstWeekday = 2 // Monday-first columns read nicely
-        return c
+        var cal = Calendar(identifier: .gregorian)
+        cal.firstWeekday = 2 // Monday-first columns
+        return cal
     }
 
-    // Group days into week columns. weekday 0 = Monday ... 6 = Sunday.
-    private struct Week: Identifiable {
+    private struct WeekColumn: Identifiable {
         let id = UUID()
-        var cells: [RecoveryDay?] // length 7, indexed by weekday row
+        var cells: [RecoveryDay?] // 7 entries, indexed by Monday-first weekday row
         var monthLabel: String?
     }
 
-    private func buildWeeks() -> [Week] {
-        guard let first = days.first?.date else { return [] }
-        var weeks: [Week] = []
-        var current = Week(cells: Array(repeating: nil, count: 7), monthLabel: nil)
-        var lastMonth = -1
-        // Pad the first week so the first day lands on its weekday row.
-        let firstRow = weekdayRow(first)
-        var filledThisWeek = 0
-        for _ in 0..<firstRow { filledThisWeek += 1 }
+    private static func emptyColumn() -> WeekColumn { WeekColumn(cells: Array(repeating: nil, count: 7), monthLabel: nil) }
+
+    private func buildWeeks() -> [WeekColumn] {
+        guard let leadDate = days.first?.date else { return [] }
+        var columns: [WeekColumn] = []
+        var building = Self.emptyColumn()
+        var monthSeen = -1
+        var slotsFilled = weekdayRow(leadDate)
 
         for day in days {
-            let row = weekdayRow(day.date)
-            if row == 0 && filledThisWeek > 0 {
-                weeks.append(current)
-                current = Week(cells: Array(repeating: nil, count: 7), monthLabel: nil)
-                filledThisWeek = 0
+            let slot = weekdayRow(day.date)
+            if slot == 0 && slotsFilled > 0 {
+                columns.append(building)
+                building = Self.emptyColumn()
+                slotsFilled = 0
             }
-            current.cells[row] = day
-            // tag month label at the first cell of a new month
-            let month = calendar.component(.month, from: day.date)
-            if month != lastMonth {
-                current.monthLabel = monthShort(day.date)
-                lastMonth = month
+            building.cells[slot] = day
+            let dayMonth = calendar.component(.month, from: day.date)
+            if dayMonth != monthSeen {
+                building.monthLabel = monthAbbreviation(day.date)
+                monthSeen = dayMonth
             }
-            filledThisWeek += 1
+            slotsFilled += 1
         }
-        if filledThisWeek > 0 { weeks.append(current) }
-        return weeks
+        if slotsFilled > 0 { columns.append(building) }
+        return columns
     }
 
     private func weekdayRow(_ date: Date) -> Int {
-        // Map Calendar weekday (1=Sun...7=Sat) to Monday-first 0...6.
-        let wd = calendar.component(.weekday, from: date)
-        return (wd + 5) % 7
+        let weekday = calendar.component(.weekday, from: date) // 1=Sun...7=Sat
+        return (weekday + 5) % 7 // Monday-first 0...6
     }
 
-    private func monthShort(_ date: Date) -> String {
-        let f = DateFormatterCache.month
-        return f.string(from: date)
+    private func monthAbbreviation(_ date: Date) -> String {
+        CalendarFormatters.month.string(from: date)
     }
 
-    // Localized weekday gutter. `shortWeekdaySymbols` is always Sunday-indexed
-    // regardless of locale, so pick Mon(1)/Wed(3)/Fri(5)/Sun(0); the grid rows are
-    // Monday-first (see rowIndex), independent of the locale's firstWeekday.
+    /// Weekday gutter labels: Mon/Wed/Fri/Sun only, blank on the rest. `shortWeekdaySymbols` is always
+    /// Sunday-indexed regardless of locale, so pick indices [1,3,5,0] for the Monday-first rows.
     private var rowLabels: [String] {
-        let s = Calendar.current.shortWeekdaySymbols
-        return [s[1], "", s[3], "", s[5], "", s[0]]
+        let symbols = Calendar.current.shortWeekdaySymbols
+        return [symbols[1], "", symbols[3], "", symbols[5], "", symbols[0]]
     }
 
     var body: some View {
-        let weeks = buildWeeks()
-        // Total drawn size, so the hover overlay can be laid over the grid and
-        // a tooltip can be clamped within bounds.
-        let gridWidth = gridOriginX + CGFloat(weeks.count) * (cellSize + spacing) - spacing
+        let columns = buildWeeks()
+        let gridWidth = gridOriginX + CGFloat(columns.count) * (cellSize + spacing) - spacing
         let gridHeight = gridOriginY + 7 * (cellSize + spacing) - spacing
 
-        VStack(alignment: .leading, spacing: spacing) {
+        return VStack(alignment: .leading, spacing: spacing) {
             if showsMonthLabels {
                 HStack(spacing: spacing) {
-                    // align with the weekday-label gutter
                     Color.clear.frame(width: gridOriginX - spacing, height: monthLabelHeight)
-                    ForEach(weeks) { week in
-                        Text(week.monthLabel ?? "")
-                            .font(StrandFont.scaled(11))
+                    ForEach(columns) { column in
+                        Text(column.monthLabel ?? "")
+                            .font(StrandFont.footnote)
                             .foregroundStyle(labelColor)
                             .frame(width: cellSize, alignment: .leading)
                     }
                 }
             }
             HStack(alignment: .top, spacing: spacing) {
-                // weekday gutter
                 VStack(alignment: .trailing, spacing: spacing) {
-                    ForEach(0..<7, id: \.self) { r in
-                        Text(rowLabels[r])
-                            .font(StrandFont.scaled(11))
+                    ForEach(0..<7, id: \.self) { row in
+                        Text(rowLabels[row])
+                            .font(StrandFont.footnote)
                             .foregroundStyle(labelColor)
                             .frame(width: gutterWidth, height: cellSize, alignment: .trailing)
                     }
                 }
-                // week columns
-                ForEach(Array(weeks.enumerated()), id: \.element.id) { weekIndex, week in
+                ForEach(Array(columns.enumerated()), id: \.element.id) { columnIndex, column in
                     VStack(spacing: spacing) {
                         ForEach(0..<7, id: \.self) { row in
-                            cell(week.cells[row], isHovered: isHovered(weekIndex, row))
+                            cell(column.cells[row], isHovered: isHovered(columnIndex, row))
                         }
                     }
                 }
             }
         }
         .frame(width: gridWidth, height: gridHeight, alignment: .topLeading)
-        .overlay(hoverOverlay(weeks: weeks, gridSize: CGSize(width: gridWidth, height: gridHeight)))
+        .overlay(hoverOverlay(columns: columns, gridSize: CGSize(width: gridWidth, height: gridHeight)))
         .contentShape(Rectangle())
-        // FER-740: pointer hover-scrub is iOS-only (`onContinuousHover` is unavailable in watchOS,
-        // where the package now also builds). watchOS never renders this chart — gate, don't drop.
         #if os(iOS)
         .onContinuousHover(coordinateSpace: .local) { phase in
             guard showsScrub else { return }
             switch phase {
-            case .active(let location):
-                hoverCell = cellIndex(at: location, weekCount: weeks.count)
-            case .ended:
-                hoverCell = nil
+            case .active(let location): hoverCell = cellIndex(at: location, columnCount: columns.count)
+            case .ended: hoverCell = nil
             }
         }
         #endif
     }
 
-    // MARK: Grid geometry
-
-    /// x of the first week column (after the weekday gutter + HStack spacing).
     private var gridOriginX: CGFloat { gutterWidth + spacing }
-    /// y of the first cell row (below the optional month-label row).
     private var gridOriginY: CGFloat { showsMonthLabels ? monthLabelHeight + spacing : 0 }
 
-    private func isHovered(_ week: Int, _ row: Int) -> Bool {
-        guard let h = hoverCell else { return false }
-        return h.week == week && h.row == row
+    private func isHovered(_ column: Int, _ row: Int) -> Bool {
+        hoverCell?.week == column && hoverCell?.row == row
     }
 
-    /// Map a local cursor location to a (week, row) cell, or nil if outside the
-    /// grid or in the inter-cell gaps.
-    private func cellIndex(at point: CGPoint, weekCount: Int) -> (week: Int, row: Int)? {
-        let stride = cellSize + spacing
-        let lx = point.x - gridOriginX
-        let ly = point.y - gridOriginY
-        guard lx >= 0, ly >= 0 else { return nil }
-        let week = Int(lx / stride)
-        let row = Int(ly / stride)
-        guard week >= 0, week < weekCount, row >= 0, row < 7 else { return nil }
-        // Reject hits in the spacing gutter between cells.
-        let withinX = lx - CGFloat(week) * stride
-        let withinY = ly - CGFloat(row) * stride
-        guard withinX <= cellSize, withinY <= cellSize else { return nil }
-        return (week, row)
+    private func cellIndex(at point: CGPoint, columnCount: Int) -> (week: Int, row: Int)? {
+        let pitch = cellSize + spacing
+        let localX = point.x - gridOriginX
+        let localY = point.y - gridOriginY
+        guard localX >= 0, localY >= 0 else { return nil }
+        let column = Int(localX / pitch)
+        let row = Int(localY / pitch)
+        guard column >= 0, column < columnCount, row >= 0, row < 7 else { return nil }
+        // Reject a hit in the spacing gap between cells.
+        guard localX - CGFloat(column) * pitch <= cellSize,
+              localY - CGFloat(row) * pitch <= cellSize else { return nil }
+        return (column, row)
     }
 
-    /// Centre of a cell in local coordinates.
-    private func cellCenter(week: Int, row: Int) -> CGPoint {
-        let stride = cellSize + spacing
-        return CGPoint(
-            x: gridOriginX + CGFloat(week) * stride + cellSize / 2,
-            y: gridOriginY + CGFloat(row) * stride + cellSize / 2
-        )
+    private func cellCenter(week column: Int, row: Int) -> CGPoint {
+        let pitch = cellSize + spacing
+        return CGPoint(x: gridOriginX + CGFloat(column) * pitch + cellSize / 2,
+                        y: gridOriginY + CGFloat(row) * pitch + cellSize / 2)
     }
-
-    // MARK: Hover overlay (ring + tooltip)
 
     @ViewBuilder
-    private func hoverOverlay(weeks: [Week], gridSize: CGSize) -> some View {
-        if showsScrub, let h = hoverCell, h.week < weeks.count,
-           let day = weeks[h.week].cells[h.row], let score = day.score {
-            let center = cellCenter(week: h.week, row: h.row)
+    private func hoverOverlay(columns: [WeekColumn], gridSize: CGSize) -> some View {
+        if showsScrub, let hovered = hoverCell, hovered.week < columns.count,
+           let day = columns[hovered.week].cells[hovered.row], let score = day.score {
+            let center = cellCenter(week: hovered.week, row: hovered.row)
             ZStack(alignment: .topLeading) {
-                // subtle highlight ring on the hovered cell
                 RoundedRectangle(cornerRadius: 3, style: .continuous)
                     .stroke(InstrumentoTheme.base.hairlineStrong, lineWidth: 1.5)
                     .frame(width: cellSize + 3, height: cellSize + 3)
@@ -292,13 +236,13 @@ struct YearHeatStrip: View {
                     container: gridSize,
                     tooltip: ChartTooltip(
                         value: valueFormat(score),
-                        label: "\(DateFormatterCache.day.string(from: day.date)) · \(StrandPalette.recoveryState(score))",
+                        label: "\(CalendarFormatters.day.string(from: day.date)) · \(StrandPalette.recoveryState(score))",
                         accent: tint(score)
                     )
                 )
             }
-            .animation(StrandMotion.fade, value: h.week)
-            .animation(StrandMotion.fade, value: h.row)
+            .animation(StrandMotion.fade, value: hovered.week)
+            .animation(StrandMotion.fade, value: hovered.row)
             .allowsHitTesting(false)
         }
     }
@@ -313,49 +257,45 @@ struct YearHeatStrip: View {
                     .fill(tint(score))
                     .frame(width: cellSize, height: cellSize)
                     .opacity(isHovered ? 1.0 : (hoverCell == nil ? 1.0 : 0.78))
-                    .help("\(DateFormatterCache.day.string(from: day.date)) · \(valueWord) \(Int(score.rounded()))")
+                    .help("\(CalendarFormatters.day.string(from: day.date)) · \(valueWord) \(Int(score.rounded()))")
             } else if day != nil {
                 shape
                     .fill(emptyFill)
                     .overlay(shape.stroke(emptyStroke, lineWidth: 0.5))
                     .frame(width: cellSize, height: cellSize)
             } else {
-                shape
-                    .fill(Color.clear)
-                    .frame(width: cellSize, height: cellSize)
+                shape.fill(Color.clear).frame(width: cellSize, height: cellSize)
             }
         }
         .overlay {
-            // Selection ring for touch (FER-235). Only ever shows after a tap, which only the selectable
-            // path enables — so it's inert for the hover-only Trends caller.
             if isSelected {
                 RoundedRectangle(cornerRadius: 3, style: .continuous)
                     .stroke(selectionColor, lineWidth: 2)
                     .frame(width: cellSize + 4, height: cellSize + 4)
             }
         }
-        .modifier(SelectableCell(
+        .modifier(TappableCell(
             enabled: onSelect != nil && day != nil,
-            label: day.map(cellAccessibilityLabel) ?? Text(""),
-            action: { if let day { selectedID = day.id; onSelect?(day) } }))
+            label: day.map(accessibilityLabel) ?? Text(""),
+            action: { if let day { selectedID = day.id; onSelect?(day) } }
+        ))
     }
 
-    /// VoiceOver label for a selectable cell: its date + score, or "no reading" for an in-range gap. (FER-235)
-    private func cellAccessibilityLabel(_ day: RecoveryDay) -> Text {
-        let date = DateFormatterCache.day.string(from: day.date)
-        if let score = day.score {
-            return Text("\(date) · \(valueWord) \(Int(score.rounded()))")
-        }
-        return Text("\(date) · no reading")
+    /// VoiceOver label for a selectable cell.
+    private func accessibilityLabel(_ day: RecoveryDay) -> Text {
+        let date = CalendarFormatters.day.string(from: day.date)
+        guard let score = day.score else { return Text("\(date) · no reading") }
+        return Text("\(date) · \(valueWord) \(Int(score.rounded()))")
     }
 }
 
-/// Adds tap selection + a VoiceOver button only when `enabled` (a calendar day with `onSelect` set), so
-/// the hover-only Trends caller's cells stay exactly as before — no tap target, no extra a11y element. (FER-235)
-private struct SelectableCell: ViewModifier {
+/// Adds tap selection + a VoiceOver button only when `enabled` — the hover-only caller's cells stay
+/// exactly as before, with no extra tap target or accessibility element.
+private struct TappableCell: ViewModifier {
     let enabled: Bool
     let label: Text
     let action: () -> Void
+
     func body(content: Content) -> some View {
         if enabled {
             content
@@ -370,29 +310,29 @@ private struct SelectableCell: ViewModifier {
     }
 }
 
-// Small cached formatters (creating DateFormatter is expensive).
-private enum DateFormatterCache {
-    static let month: DateFormatter = {
-        let f = DateFormatter(); f.dateFormat = "MMM"; return f
-    }()
-    static let day: DateFormatter = {
-        let f = DateFormatter(); f.dateFormat = "EEE d MMM"; return f
-    }()
+private enum CalendarFormatters {
+    static let month: DateFormatter = { let f = DateFormatter(); f.dateFormat = "MMM"; return f }()
+    static let day: DateFormatter = { let f = DateFormatter(); f.dateFormat = "EEE d MMM"; return f }()
 }
 
 #if DEBUG
-private func sampleYear() -> [RecoveryDay] {
-    let cal: Calendar = Calendar.current
-    let today: Date = Date()
-    return (0..<365).map { (i: Int) -> RecoveryDay in
-        let date: Date = cal.date(byAdding: .day, value: -(364 - i), to: today)!
-        // Some gaps + a wavy recovery profile.
-        let gap: Bool = (i % 23 == 0)
-        let wave: Double = 28.0 * sin(Double(i) / 11.0)
-        let jitter: Double = Double((i * 31) % 17) - 8.0
-        let v: Double = 55.0 + wave + jitter
-        let score: Double? = gap ? nil : max(2.0, min(99.0, v))
-        return RecoveryDay(date: date, score: score)
+private enum DemoYear {
+    static func days(count: Int = 365) -> [RecoveryDay] {
+        let anchor = Date()
+        return (0..<count).map { offset in
+            let backDate = Calendar.current.date(byAdding: .day, value: -(count - 1 - offset), to: anchor) ?? anchor
+            let isGap = offset.isMultiple(of: 23)
+            let curve = 28.0 * sin(Double(offset) / 11.0)
+            let jitter = Double((offset * 31) % 17) - 8.0
+            let reading = (55.0 + curve + jitter).clamped(to: 2.0...99.0)
+            return RecoveryDay(date: backDate, score: isGap ? nil : reading)
+        }
+    }
+}
+
+private extension Double {
+    func clamped(to range: ClosedRange<Double>) -> Double {
+        Swift.min(Swift.max(self, range.lowerBound), range.upperBound)
     }
 }
 
@@ -401,7 +341,7 @@ private func sampleYear() -> [RecoveryDay] {
         Text("Recovery — past year").strandOverline()
         Text("Hover a cell: ring + date, score and recovery-state tooltip.")
             .font(StrandFont.footnote).foregroundStyle(InstrumentoTheme.base.inkTertiary)
-        YearHeatStrip(days: sampleYear())
+        YearHeatStrip(days: DemoYear.days())
     }
     .padding(28)
     .frame(width: 900, height: 240)

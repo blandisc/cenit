@@ -1,21 +1,17 @@
 import SwiftUI
 
-// MARK: - StrandTone (status color mapping)
-
+/// Maps a semantic status to the color token that paints it. Shared by any pill/badge that needs to
+/// speak "this is fine / this is a warning / this is critical" without inventing its own color.
 public enum StrandTone: Sendable {
-    case neutral
-    case accent
-    case positive
-    case warning
-    case critical
+    case neutral, accent, positive, warning, critical
 
     public var color: Color {
         switch self {
-        case .neutral:  return InstrumentoTheme.base.inkSecondary
-        case .accent:   return StrandPalette.accent
-        case .positive: return StrandPalette.statusPositive
-        case .warning:  return StrandPalette.statusWarning
-        case .critical: return StrandPalette.statusCritical
+        case .neutral:  InstrumentoTheme.base.inkSecondary
+        case .accent:   StrandPalette.accent
+        case .positive: StrandPalette.statusPositive
+        case .warning:  StrandPalette.statusWarning
+        case .critical: StrandPalette.statusCritical
         }
     }
 }

@@ -1,23 +1,16 @@
 import SwiftUI
 
-// MARK: - SleepInterval (§9.4 Sleep)
-//
-// FER-280·3c: el hypnograma de papel (`Hypnogram`, la vista) se podó — 0 usos reales, lo reemplazó
-// `LiquidHipnograma` (LiquidGlass/LiquidHipnograma.swift). `SleepInterval` sigue viva: la usan
-// `Cenit/Screens/SleepDetailScreen.swift` y `StrandAnalytics/NightThirds.swift`.
-
-/// A single stage interval. `start`/`end` are seconds from the start of the night.
+/// One stage interval of a night's sleep. `start`/`end` are elapsed seconds since the start of the
+/// night (not absolute dates), so several intervals can share one 0...total axis without conversion.
 public struct SleepInterval: Identifiable, Sendable {
-    public let id = UUID()
     public var stage: SleepStage
-    public var start: TimeInterval
-    public var end: TimeInterval
+    public var start, end: TimeInterval
+    public let id = UUID()
 
     public init(stage: SleepStage, start: TimeInterval, end: TimeInterval) {
-        self.stage = stage
-        self.start = start
-        self.end = end
+        (self.stage, self.start, self.end) = (stage, start, end)
     }
 
-    public var duration: TimeInterval { max(0, end - start) }
+    /// Elapsed seconds the stage lasted — never negative, even given a reversed start/end pair.
+    public var duration: TimeInterval { Swift.max(0, end - start) }
 }

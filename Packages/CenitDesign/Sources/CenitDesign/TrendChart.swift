@@ -3,29 +3,25 @@ import Charts
 
 // MARK: - Trend Chart (§9.4 Trends)
 //
-// A line/area chart whose line is gradient-stroked by value — reusable for
-// recovery / HRV / RHR / strain trends. The gradient defaults to the recovery
-// scale (so a recovery-over-time line travels indigo → mint by daily score), but
-// any gradient + value-range can be supplied for HRV/RHR/etc.
+// A line/area chart whose stroke is gradient-colored by value — reusable for recovery / HRV / RHR /
+// strain trends. Defaults to the recovery scale, but any gradient + value range works.
 
 /// One point on a trend line.
 public struct TrendPoint: Identifiable, Sendable, Equatable {
+    public var date: Date, value: Double
     public let id = UUID()
-    public var date: Date
-    public var value: Double
 
     public init(date: Date, value: Double) {
-        self.date = date
-        self.value = value
+        (self.date, self.value) = (date, value)
     }
 }
 
-// MARK: - Classification bands (FER-244)
+// MARK: - Classification bands
 
-/// One classification band drawn behind a trend line — e.g. sleep "Optimal 7–9 h" or stress "Medium".
-/// Bounds are a half-open interval `[lower, upper)`; `nil` = open on that side, and BOTH `nil` = no
-/// interval at all, so the band classifies nothing. Only the band the latest value falls into is shaded
-/// (the "active" bracket); the rest are hinted by the axis grid lines.
+/// One classification band drawn behind a trend line (e.g. sleep "Optimal 7–9h"). Bounds form a
+/// half-open interval `[lower, upper)`; `nil` on a side means open on that side, and BOTH `nil` means no
+/// interval at all — such a band classifies NOTHING (an unbounded band must never silently swallow
+/// every value a caller forgot to bound).
 public struct TrendBand: Identifiable, Equatable {
     public let id = UUID()
     public var label: LocalizedStringKey
@@ -40,190 +36,143 @@ public struct TrendBand: Identifiable, Equatable {
         self.isActive = isActive
     }
 
-    /// True when `value` falls in this band's half-open interval `[lower, upper)`.
-    ///
-    /// A band with NO bounds contains NOTHING. Without the guard the two open sides cancelled out and an
-    /// unbounded band swallowed every value, so a caller that forgot its cutoffs silently got a band that
-    /// was always active and always complete — «14 of the last 14 nights in this range», whatever the
-    /// series (the sleep sub-metrics did exactly that until FER-1045). Saying "no interval" is honest;
-    /// saying "everything" is a lie the screen can't tell from a real count.
+    /// Whether `value` falls in this band's half-open interval.
     public func contains(_ value: Double) -> Bool {
         guard lower != nil || upper != nil else { return false }
         return (lower == nil || value >= lower!) && (upper == nil || value < upper!)
     }
 }
 
-/// Pure band math, kept free of SwiftUI so it can be unit-tested (FER-244).
+/// Pure band math (no SwiftUI), so it's unit-testable on its own.
 public enum TrendBands {
     /// Index of the band containing `value`, or `nil` if none does.
     public static func index(containing value: Double, in bands: [TrendBand]) -> Int? {
         bands.firstIndex { $0.contains(value) }
     }
 
-    /// The band the **last** value falls into, plus how many of `values` land in that same band.
-    /// `nil` when there are no values or the last value matches no band.
+    /// The band the LAST value falls into, plus how many of `values` share that band.
     public static func activeBand(values: [Double], bands: [TrendBand]) -> (index: Int, count: Int)? {
         guard let last = values.last, let idx = index(containing: last, in: bands) else { return nil }
-        let band = bands[idx]
-        let count = values.reduce(0) { $0 + (band.contains($1) ? 1 : 0) }
+        let count = values.reduce(0) { $0 + (bands[idx].contains($1) ? 1 : 0) }
         return (idx, count)
     }
 
-    /// Summarise how `values` distribute across `bands`, and where "today" sits relative to the band you
-    /// were in most. The plain-language reading behind the per-band day counts + the one-line summary
-    /// sentence ("Has estado sobre todo en Normal; hoy bajaste a Excelente"). `todayIndex` is the band of
-    /// today's reading, supplied by the caller so the summary and detail screens agree; pass `nil` when
-    /// there's no usable today (e.g. a partial step day). Pure, so the copy is identical wherever it's
-    /// shown and can be unit-tested. Returns `nil` if no value lands in any band. (FER-459)
+    /// Summarizes how `values` distribute across `bands`, and where `todayIndex` sits relative to the
+    /// dominant one. Returns `nil` when there are no bands or no value lands in any of them.
     public static func summarize(values: [Double], bands: [TrendBand], todayIndex: Int?) -> BandTrendSummary? {
         guard !bands.isEmpty else { return nil }
         var counts = Array(repeating: 0, count: bands.count)
         var n = 0
-        for v in values {
-            if let i = index(containing: v, in: bands) { counts[i] += 1; n += 1 }
+        for value in values {
+            if let i = index(containing: value, in: bands) { counts[i] += 1; n += 1 }
         }
         guard n > 0 else { return nil }
 
-        // Rank bands by count (desc), ties broken by the lower band index so the result is deterministic.
+        // Ties break toward the LOWER band index, for a deterministic result.
         let ranked = counts.indices.sorted { counts[$0] != counts[$1] ? counts[$0] > counts[$1] : $0 < $1 }
         let dominant = ranked[0]
         let second: Int? = (ranked.count > 1 && counts[ranked[1]] > 0) ? ranked[1] : nil
-        let domCount = counts[dominant]
-        let share = Double(domCount) / Double(n)
+        let dominantCount = counts[dominant]
+        let share = Double(dominantCount) / Double(n)
 
         let tier: BandTrendSummary.Tier
-        if domCount == n {
+        if dominantCount == n {
             tier = .always
         } else if share >= 0.8 {
             tier = .almostAlways
-        } else if share >= 0.5, second == nil || domCount > counts[second!] {
+        } else if share >= 0.5, second == nil || dominantCount > counts[second!] {
             tier = .mostly
-        } else if let s = second, abs(dominant - s) == 1,
-                  Double(domCount + counts[s]) / Double(n) >= 0.7 {
+        } else if let second, abs(dominant - second) == 1,
+                  Double(dominantCount + counts[second]) / Double(n) >= 0.7 {
             tier = .alternating
         } else {
             tier = .scattered
         }
 
-        let rel: BandTrendSummary.Relation?
-        if let ti = todayIndex {
-            rel = ti == dominant ? .same : (ti < dominant ? .lower : .higher)
+        let relation: BandTrendSummary.Relation?
+        if let todayIndex {
+            relation = todayIndex == dominant ? .same : (todayIndex < dominant ? .lower : .higher)
         } else {
-            rel = nil
+            relation = nil
         }
         return BandTrendSummary(counts: counts, n: n, dominant: dominant, second: second,
-                                tier: tier, todayIndex: todayIndex, todayVsDominant: rel)
+                                 tier: tier, todayIndex: todayIndex, todayVsDominant: relation)
     }
 }
 
-/// A plain-language reading of how a windowed series sits across its bands. Built by `TrendBands.summarize`
-/// and turned into copy by the screens. (FER-459)
+/// A plain-language reading of how a windowed series sits across its bands, built by
+/// `TrendBands.summarize`.
 public struct BandTrendSummary: Equatable {
-    /// Per-band day/night counts, parallel to the `bands` passed in.
     public let counts: [Int]
-    /// How many values landed in some band (the window size with data).
     public let n: Int
-    /// Band index you were in most (ties broken toward the lower band index).
     public let dominant: Int
-    /// Runner-up band index, or `nil` when only one band saw any value.
     public let second: Int?
     public let tier: Tier
-    /// Band of today's reading, or `nil` when there's no usable today.
     public let todayIndex: Int?
-    /// Where today sits relative to the dominant band (by band order), or `nil` when `todayIndex` is `nil`.
     public let todayVsDominant: Relation?
 
     public init(counts: [Int], n: Int, dominant: Int, second: Int?, tier: Tier,
                 todayIndex: Int?, todayVsDominant: Relation?) {
-        self.counts = counts; self.n = n; self.dominant = dominant; self.second = second
-        self.tier = tier; self.todayIndex = todayIndex; self.todayVsDominant = todayVsDominant
+        self.counts = counts
+        self.n = n
+        self.dominant = dominant
+        self.second = second
+        self.tier = tier
+        self.todayIndex = todayIndex
+        self.todayVsDominant = todayVsDominant
     }
 
     /// How concentrated the window is in its dominant band.
     public enum Tier: Equatable {
-        case always           // every reading in the dominant band
-        case almostAlways     // dominant share ≥ 0.8
-        case mostly           // dominant is a clear, unique majority (≥ 0.5)
-        case alternating      // the top two bands are adjacent and together cover most of the window
-        case scattered        // spread out, no clear shape
+        case always
+        case almostAlways
+        case mostly
+        case alternating
+        case scattered
     }
 
-    /// Today's band vs the dominant band, by band order (lower index = lower numeric value).
+    /// Where today's reading sits relative to the dominant band, by band order.
     public enum Relation: Equatable { case same, lower, higher }
 }
+
+// MARK: - The chart
 
 public struct TrendChart: View {
 
     public var points: [TrendPoint]
-    /// The gradient the line/area is stroked with (defaults to the recovery scale).
     public var gradient: Gradient
-    /// The value range mapped onto the gradient (0 → bottom color, max → top color).
     public var valueRange: ClosedRange<Double>
-    /// Whether to draw the soft area fill below the line.
     public var showsArea: Bool
     public var height: CGFloat
-    /// Whether hovering reveals a crosshair + tooltip for the nearest point.
     public var showsScrub: Bool
-    /// Formats a point's value for the tooltip's bold line (default: rounded int).
     public var valueFormat: (Double) -> String
-    /// Formats a point's date for the tooltip's secondary line.
     public var dateFormat: (Date) -> String
-    /// Axis tick-label color. Defaults to the dark palette's tertiary text; light-theme callers
-    /// (the «Instrumento» metric sheet) pass a paper-legible ink so the labels clear contrast on
-    /// warm paper. (FER-162)
     public var axisLabelColor: Color
-    /// Axis grid-line color (drawn at 0.4 opacity). Defaults to the dark hairline. (FER-162)
     public var gridLineColor: Color
-    /// Classification bands to draw behind the line; the active one is shaded. Empty = no bands (the
-    /// chart behaves exactly as before). (FER-244)
     public var bands: [TrendBand]
-    /// The hue of the active band's shading, label and edge lines. (FER-244)
     public var bandColor: Color
-    /// Explicit Y-axis tick values (e.g. the band thresholds). `nil` = automatic ticks. (FER-244)
     public var yAxisValues: [Double]?
-    /// When set, point marks whose value is BELOW this threshold are drawn in `alertColor` instead of
-    /// the gradient — to flag clinically-low readings (e.g. SpO₂ nights under 95%). `nil` = off, every
-    /// point keeps its gradient colour. (FER-252)
+    /// Points below this value are drawn in `alertColor` instead of the gradient (e.g. a low SpO₂ night).
     public var alertThreshold: Double?
-    /// The hue for sub-`alertThreshold` point marks. (FER-252)
     public var alertColor: Color
-    /// A dashed horizontal reference line at this value (e.g. the night's resting HR under the day's
-    /// HR curve). `nil` = no line. (FER-253)
+    /// A dashed horizontal reference line (e.g. the night's resting HR under an HR curve).
     public var referenceLine: Double?
-    /// The hue for the dashed reference line. (FER-253)
     public var referenceLineColor: Color
-    /// A single point to emphasise with a larger filled dot (e.g. the day's peak HR). `nil` = none. (FER-253)
+    /// A single point emphasised with a larger dot (e.g. the day's peak).
     public var markedPoint: TrendPoint?
-    /// When true, `markedPoint` is drawn as a HOLLOW ring (a `markedPointRingFill`-filled centre punched
-    /// out of the hue) instead of a solid dot — so it still reads as "this is today" even when the band it
-    /// sits in is NOT the highlighted one. The redesigned metric detail (F6b) sets this while you explore a
-    /// level other than today's, keeping your real reading marked. (FER-571)
+    /// Draws `markedPoint` as a hollow ring (a `markedPointRingFill`-filled centre) instead of solid, so
+    /// it still reads as "today" even while a DIFFERENT band is highlighted.
     public var markedPointHollow: Bool
-    /// The fill of a hollow marked point's centre — pass the chart's own background (the sheet's paper) so
-    /// the ring reads cleanly over the line. Ignored unless `markedPointHollow` is true. (FER-571)
     public var markedPointRingFill: Color
-    /// When true, bands are drawn (shaded fill + edge lines) WITHOUT their right-aligned text label, and
-    /// the wide right gutter that label needs is dropped. For the redesigned vital detail, where the band
-    /// is a quiet «your normal range» context behind the line and is named in the caption / inline bar, not
-    /// on the plot. (Detalle de Vital · narrativa)
+    /// Draws bands (fill + edge lines) WITHOUT their right-aligned label, dropping the gutter it needs.
     public var bandLabelsHidden: Bool
-    /// When true AND the chart carries no right-side band labels, the trailing inset collapses to a thin
-    /// breath (just enough that the last point doesn't clip) instead of the default gutter — so the curve
-    /// fills to the right edge. The HRV «Últimos 14 días» card opts in; other band-less charts keep the
-    /// default inset. (FER-460)
+    /// When true and there are no right-side band labels, the trailing inset shrinks to a thin breath so
+    /// the curve reaches the edge.
     public var tightTrailing: Bool
-    /// Target number of automatic Y-axis ticks (a hint Charts rounds to "nice" values). Only applies when
-    /// `yAxisValues` is nil (band charts pass explicit ticks). Default 4 keeps the compact summary/strain
-    /// cards quiet; the taller detail «Media móvil» charts pass a higher count so a wide range (e.g. steps
-    /// 0–15k) reads at finer increments instead of just 5k/10k/15k.
     public var yTickCount: Int
-    /// An optional short suffix appended to the scrub tooltip's value line (e.g. «prom. 7 d»), so a
-    /// smoothed line can say its point is a moving average — NOT that day's raw reading. `nil` = the
-    /// tooltip shows only the value. Affects the tooltip only; the Y-axis labels keep `valueFormat`. (FER-696)
+    /// Appended to the scrub tooltip's value line (e.g. "avg 7d") — never shown on the Y-axis labels.
     public var valueSuffix: String?
-    /// VoiceOver label describing what the chart is (e.g. "14-day trend"). `nil` → generic "Trend chart". (FER-977)
     public var accessibilityLabel: LocalizedStringKey?
-    /// Optional VoiceOver value override. When `nil`, derived from the scrubbed point or the last point. (FER-977)
     public var accessibilityValueText: String?
 
     public init(
@@ -282,182 +231,137 @@ public struct TrendChart: View {
         self.accessibilityValueText = accessibilityValueText
     }
 
-    /// Right inset on the X-scale. Labelled bands need a wide gutter so the band text clears the line;
-    /// otherwise the curve gets a thin breath when `tightTrailing` lets it reach the edge (HRV), or the
-    /// default inset that leaves room for the last X-axis label. (FER-244 · FER-460)
+    /// Right inset on the X-scale: a wide gutter for a labelled band, else the default inset — or a thin
+    /// breath when `tightTrailing` opts the curve into reaching the edge.
     private var trailingInset: CGFloat {
         if !(bands.isEmpty || bandLabelsHidden) { return 64 }
         return tightTrailing ? 8 : CenitMetrics.chartXTrailingInset
     }
 
-    /// The x-position the cursor is hovering, in chart-local coordinates.
     @State private var hoverX: CGFloat? = nil
-    /// Point under the finger while scrubbing (nil when not scrubbing) — drives VoiceOver value. (FER-977)
+    /// The point under the finger while scrubbing — drives the VoiceOver value.
     @State private var scrubbedPoint: TrendPoint? = nil
 
     private static let sharedDateFormatter: DateFormatter = {
-        let f = DateFormatter(); f.dateFormat = "EEE d MMM"; return f
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEE d MMM"
+        return formatter
     }()
 
-    /// VoiceOver value: caller override, scrubbed point, or last point. (FER-977)
     private var resolvedAccessibilityValue: String {
         if let custom = accessibilityValueText { return custom }
-        guard let p = scrubbedPoint ?? points.last else { return "No data" }
-        let value = valueSuffix.map { "\(valueFormat(p.value)) · \($0)" } ?? valueFormat(p.value)
-        return "\(value), \(dateFormat(p.date))"
+        guard let reading = scrubbedPoint ?? points.last else { return "No data" }
+        let valueText = valueSuffix.map { "\(valueFormat(reading.value)) · \($0)" } ?? valueFormat(reading.value)
+        return "\(valueText), \(dateFormat(reading.date))"
     }
 
-    /// Default tooltip date format ("EEE d MMM"), exposed so it can seed the
-    /// `dateFormat` default argument.
+    /// Default tooltip/axis date format ("EEE d MMM").
     public static func defaultDateString(_ date: Date) -> String {
         sharedDateFormatter.string(from: date)
     }
 
-    /// The point nearest a given chart-local x, using the proxy to map back.
     private func nearestPoint(toX x: CGFloat, proxy: ChartProxy, plot: CGRect) -> TrendPoint? {
         guard !points.isEmpty else { return nil }
-        // Map the cursor x (relative to the plot area) back to a Date.
-        let relX = x - plot.minX
-        guard let date: Date = proxy.value(atX: relX) else { return nil }
-        // Find the TrendPoint whose date is closest.
-        return points.min(by: {
-            abs($0.date.timeIntervalSince(date)) < abs($1.date.timeIntervalSince(date))
-        })
+        guard let hoveredDate: Date = proxy.value(atX: x - plot.minX) else { return nil }
+        return points.min { lhs, rhs in
+            abs(lhs.date.timeIntervalSince(hoveredDate)) < abs(rhs.date.timeIntervalSince(hoveredDate))
+        }
     }
 
-    // Map data values onto the unit interval for gradient stops.
+    /// Maps a raw value onto 0...1 within `valueRange`, clamped.
     private func unit(_ value: Double) -> Double {
-        let lo = valueRange.lowerBound, hi = valueRange.upperBound
-        guard hi > lo else { return 0 }
-        return min(max((value - lo) / (hi - lo), 0), 1)
+        let domainFloor = valueRange.lowerBound, domainCeiling = valueRange.upperBound
+        guard domainCeiling > domainFloor else { return 0 }
+        let fraction = (value - domainFloor) / (domainCeiling - domainFloor)
+        return Swift.min(Swift.max(fraction, 0), 1)
     }
 
-    // A vertical gradient keyed to the value axis so the stroke color tracks value.
     private var valueGradient: LinearGradient {
         LinearGradient(gradient: gradient, startPoint: .bottom, endPoint: .top)
     }
 
     public var body: some View {
         Chart {
-            // A quiet dashed rule under the curve (e.g. the night's resting HR). Drawn first so the
-            // line/area sit on top of it. (FER-253)
-            if let ref = referenceLine {
-                RuleMark(y: .value("Reference", ref))
+            if let referenceLine {
+                RuleMark(y: .value("Reference", referenceLine))
                     .lineStyle(StrokeStyle(lineWidth: 1, dash: [3, 3]))
                     .foregroundStyle(referenceLineColor)
             }
             if showsArea {
-                ForEach(points) { p in
-                    AreaMark(
-                        x: .value("Date", p.date),
-                        // Anchor the fill's floor to the value domain's lower bound, NOT the implicit
-                        // zero baseline. With a tight domain (e.g. HR 64…145) zero sits below the
-                        // domain, so a plain `y:` AreaMark fills clear to the plot's bottom edge —
-                        // straight behind the X-axis hour labels, tinting them. Pinning yStart to the
-                        // floor stops the fill at the data region; the Y-scale's startPadding then
-                        // leaves a clean band below it for the labels. (FER-82)
-                        yStart: .value("Floor", valueRange.lowerBound),
-                        yEnd: .value("Value", p.value)
-                    )
-                    // monotone, NOT catmullRom: Catmull-Rom overshoots past the data on
-                    // tightly-oscillating daily signals (resting HR 50↔55, strain), dipping the
-                    // curve below the value domain so the area/line bled out the bottom of the
-                    // plot and dripped over the footer (#trends-bleed). Monotone cubic stays
-                    // within each segment's endpoints — same smooth look, no overshoot.
-                    .interpolationMethod(.monotone)
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [
-                                StrandPalette.sample(stops: gradient.toStops(), at: unit(averageValue)).opacity(0.28),
-                                Color.clear
-                            ],
-                            startPoint: .top, endPoint: .bottom
+                ForEach(points) { point in
+                    // yStart pins to the domain floor, NOT an implicit zero baseline: with a tight
+                    // domain (e.g. HR 64...145) zero sits below it, so a plain fill would bleed clear to
+                    // the plot's bottom edge, straight behind the X-axis labels.
+                    AreaMark(x: .value("Date", point.date),
+                             yStart: .value("Floor", valueRange.lowerBound),
+                             yEnd: .value("Value", point.value))
+                        // monotone, not catmullRom — Catmull-Rom can overshoot past the data on a
+                        // tightly-oscillating series, dipping the curve below the domain.
+                        .interpolationMethod(.monotone)
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [
+                                    StrandPalette.sample(stops: gradient.toStops(), at: unit(averageValue)).opacity(0.28),
+                                    Color.clear,
+                                ],
+                                startPoint: .top, endPoint: .bottom
+                            )
                         )
-                    )
                 }
             }
-            ForEach(points) { p in
-                LineMark(
-                    x: .value("Date", p.date),
-                    y: .value("Value", p.value)
-                )
-                .interpolationMethod(.monotone)
-                .lineStyle(StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
-                .foregroundStyle(valueGradient)
+            ForEach(points) { point in
+                LineMark(x: .value("Date", point.date), y: .value("Value", point.value))
+                    .interpolationMethod(.monotone)
+                    .lineStyle(StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
+                    .foregroundStyle(valueGradient)
             }
-            // Per-point dots only on short series. On a dense line (a long range — months/year, up to
-            // ~365 days) a mark per point both clutters the line and costs Charts a draw per sample, so
-            // long ranges show line + area only. Short ranges (week/month) keep the dots unchanged. (FER-219)
+            // Per-point dots only on short series — a dense multi-month line skips them (clutter + cost).
             if points.count <= 60 {
-                ForEach(points) { p in
-                    PointMark(
-                        x: .value("Date", p.date),
-                        y: .value("Value", p.value)
-                    )
-                    .symbolSize(18)
-                    // Flag clinically-low points (e.g. SpO₂ < 95%) in the alert hue; everything at or
-                    // above the threshold keeps its gradient colour. (FER-252)
-                    .foregroundStyle(
-                        (alertThreshold.map { p.value < $0 } ?? false)
-                            ? alertColor
-                            : StrandPalette.sample(stops: gradient.toStops(), at: unit(p.value))
-                    )
+                ForEach(points) { point in
+                    PointMark(x: .value("Date", point.date), y: .value("Value", point.value))
+                        .symbolSize(18)
+                        .foregroundStyle(
+                            (alertThreshold.map { point.value < $0 } ?? false)
+                                ? alertColor
+                                : StrandPalette.sample(stops: gradient.toStops(), at: unit(point.value))
+                        )
                 }
             }
-            // A single emphasised dot at a caller-chosen point (e.g. the day's peak). Larger than the
-            // per-point dots, in the line's hue, so it reads as "this is the moment". (FER-253) When
-            // `markedPointHollow`, it's a ring instead — a paper-filled centre punched out of the hue —
-            // so today stays marked while you explore a level other than its own. (FER-571)
-            if let peak = markedPoint {
-                let hue = StrandPalette.sample(stops: gradient.toStops(), at: unit(peak.value))
+            if let marked = markedPoint {
+                let hue = StrandPalette.sample(stops: gradient.toStops(), at: unit(marked.value))
                 if markedPointHollow {
-                    PointMark(x: .value("Date", peak.date), y: .value("Value", peak.value))
-                        .symbolSize(92)
-                        .foregroundStyle(hue)
-                    PointMark(x: .value("Date", peak.date), y: .value("Value", peak.value))
-                        .symbolSize(34)
-                        .foregroundStyle(markedPointRingFill)
+                    PointMark(x: .value("Date", marked.date), y: .value("Value", marked.value))
+                        .symbolSize(92).foregroundStyle(hue)
+                    PointMark(x: .value("Date", marked.date), y: .value("Value", marked.value))
+                        .symbolSize(34).foregroundStyle(markedPointRingFill)
                 } else {
-                    PointMark(x: .value("Date", peak.date), y: .value("Value", peak.value))
-                        .symbolSize(70)
-                        .foregroundStyle(hue)
+                    PointMark(x: .value("Date", marked.date), y: .value("Value", marked.value))
+                        .symbolSize(70).foregroundStyle(hue)
                 }
             }
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(accessibilityLabel ?? "Trend chart"))
         .accessibilityValue(Text(resolvedAccessibilityValue))
-        // No draw-on / interpolation animation when the data changes (switching period rebuilds the
-        // whole series): the new range should snap in, not morph point-by-point — that interpolation is
-        // what made the chart "stick" while it rebuilt long ranges. (FER-219)
+        // Switching the whole series (e.g. a period toggle) snaps in — no point-by-point draw-on morph.
         .animation(.none, value: points)
-        // Reserve a clean band below the fill for the X-axis labels (startPadding on the Y-scale's
-        // bottom), and inset the X-scale's trailing edge so the last label isn't clipped. (FER-82)
         .chartYScale(domain: valueRange, range: .plotDimension(startPadding: CenitMetrics.chartXLabelBand, endPadding: 0))
-        // Trailing inset: a wide gutter for labelled bands, the default inset for band-less charts, or a
-        // thin breath when the caller opts into `tightTrailing` so the curve reaches the edge. (FER-244 · FER-460)
         .chartXScale(range: .plotDimension(startPadding: 0, endPadding: trailingInset))
         .chartXAxis {
-            // Explicit ticks evenly spread across the ACTUAL data span — not Charts' `.automatic`, which
-            // snaps dates to calendar boundaries (e.g. weekly Sundays) and so bunched the only two ticks
-            // that fell inside a 14-day window into the right half, leaving the left blank. Five ticks
-            // at 0 / 25 / 50 / 75 / 100 % of the span always span the full width and read evenly. (FER-458)
+            // Five ticks spread across the ACTUAL data span — `.automatic` snaps to calendar boundaries
+            // and can bunch every tick into one side of a short window.
             AxisMarks(values: xAxisTicks) { value in
                 AxisGridLine().foregroundStyle(gridLineColor.opacity(0.4))
                 AxisValueLabel(anchor: xLabelAnchor(value.index, count: value.count)) {
-                    if let d = value.as(Date.self) {
-                        Text(xAxisLabel(d))
-                    }
+                    if let date = value.as(Date.self) { Text(xAxisLabel(date)) }
                 }
                 .foregroundStyle(axisLabelColor)
                 .font(StrandFont.footnote)
             }
         }
         .chartYAxis {
-            // Explicit ticks at the band thresholds when bands are present (the grid lines double as the
-            // soft "neighbour" hints); automatic ticks otherwise. (FER-244)
-            if let yv = yAxisValues {
-                AxisMarks(position: .leading, values: yv) { value in
+            if let yAxisValues {
+                AxisMarks(position: .leading, values: yAxisValues) { value in
                     AxisGridLine().foregroundStyle(gridLineColor.opacity(0.4))
                     AxisValueLabel {
                         if let v = value.as(Double.self) { Text(valueFormat(v)) }
@@ -468,8 +372,7 @@ public struct TrendChart: View {
             } else {
                 AxisMarks(position: .leading, values: .automatic(desiredCount: yTickCount)) { _ in
                     AxisGridLine().foregroundStyle(gridLineColor.opacity(0.4))
-                    AxisValueLabel().foregroundStyle(axisLabelColor)
-                        .font(StrandFont.footnote)
+                    AxisValueLabel().foregroundStyle(axisLabelColor).font(StrandFont.footnote)
                 }
             }
         }
@@ -477,27 +380,19 @@ public struct TrendChart: View {
             GeometryReader { geo in
                 let plot = proxy.plotFrame.map { geo[$0] } ?? .zero
                 ZStack(alignment: .topLeading) {
-                    ForEach(bands) { band in
-                        bandLayer(band, proxy: proxy, plot: plot)
-                    }
+                    ForEach(bands) { band in bandLayer(band, proxy: proxy, plot: plot) }
                 }
             }
         }
         .chartOverlay { proxy in
             GeometryReader { geo in
                 let plot = proxy.plotFrame.map { geo[$0] } ?? .zero
-                // The datum currently under the finger (nil when not scrubbing). Drives the selection
-                // haptic: `.onChange` fires once per snap onto a new point (FER-131 handoff · 10).
-                let snappedIndex: Int? = (showsScrub ? hoverX : nil).flatMap { hx in
-                    nearestPoint(toX: hx, proxy: proxy, plot: plot).flatMap { points.firstIndex(of: $0) }
+                let snappedIndex: Int? = (showsScrub ? hoverX : nil).flatMap { x in
+                    nearestPoint(toX: x, proxy: proxy, plot: plot).flatMap { points.firstIndex(of: $0) }
                 }
                 ZStack(alignment: .topLeading) {
-                    // A full-bleed transparent layer so the overlay (and its scrub gesture) covers the
-                    // WHOLE plot from the first touch. Without it the ZStack only has the
-                    // crosshair+tooltip as children — which exist solely WHILE scrubbing — so before
-                    // the first touch the ZStack is 0×0 and `.contentShape` had no hittable area, so
-                    // the drag never started (the "scrub does nothing on iOS" bug). Color.clear is
-                    // greedy and fills the GeometryReader, giving the gesture a full-size target. (#118)
+                    // A full-bleed transparent layer gives the scrub gesture a hittable area from the
+                    // very first touch — without it this ZStack is 0×0 until a point is already scrubbed.
                     Color.clear
                         .onChange(of: snappedIndex) { _, idx in
                             if let idx {
@@ -507,30 +402,20 @@ public struct TrendChart: View {
                                 scrubbedPoint = nil
                             }
                         }
-
-                    if showsScrub,
-                       let hx = hoverX,
-                       let p = nearestPoint(toX: hx, proxy: proxy, plot: plot),
-                       let px = proxy.position(forX: p.date),
-                       let py = proxy.position(forY: p.value) {
-                        let cx = px + plot.minX
-                        let cy = py + plot.minY
-                        let color = StrandPalette.sample(stops: gradient.toStops(), at: unit(p.value))
-
-                        // Vertical crosshair at the nearest x.
-                        CrosshairRule(x: cx, height: geo.size.height)
-
-                        // Highlighted dot on the line.
-                        HighlightDot(color: color)
-                            .position(x: cx, y: cy)
-
-                        // Tooltip near the point, kept in bounds.
+                    if showsScrub, let x = hoverX,
+                       let point = nearestPoint(toX: x, proxy: proxy, plot: plot),
+                       let plotX = proxy.position(forX: point.date),
+                       let plotY = proxy.position(forY: point.value) {
+                        let anchorPoint = CGPoint(x: plotX + plot.minX, y: plotY + plot.minY)
+                        let color = StrandPalette.sample(stops: gradient.toStops(), at: unit(point.value))
+                        CrosshairRule(x: anchorPoint.x, height: geo.size.height)
+                        HighlightDot(color: color).position(anchorPoint)
                         PositionedTooltip(
-                            anchor: CGPoint(x: cx, y: cy),
+                            anchor: anchorPoint,
                             container: geo.size,
                             tooltip: ChartTooltip(
-                                value: valueSuffix.map { "\(valueFormat(p.value)) · \($0)" } ?? valueFormat(p.value),
-                                label: dateFormat(p.date),
+                                value: valueSuffix.map { "\(valueFormat(point.value)) · \($0)" } ?? valueFormat(point.value),
+                                label: dateFormat(point.date),
                                 accent: color
                             )
                         )
@@ -549,11 +434,8 @@ public struct TrendChart: View {
         return points.map(\.value).reduce(0, +) / Double(points.count)
     }
 
-    // MARK: - X-axis ticks (FER-457 fix)
-
-    /// Five tick dates at 0 / 25 / 50 / 75 / 100 % of the data's actual time span. Anchored to the data —
-    /// not the calendar — so the labels always span the chart's full width and read evenly, whatever the
-    /// range. (FER-458: 3 ticks left a 14-day window looking bare; 5 give a denser, still-tidy axis.)
+    /// Five tick dates at 0/25/50/75/100% of the data's ACTUAL time span — anchored to the data, not the
+    /// calendar, so the labels always span the chart's full width.
     private var xAxisTicks: [Date] {
         guard let first = points.first?.date, let last = points.last?.date else { return [] }
         let span = last.timeIntervalSince(first)
@@ -561,124 +443,102 @@ public struct TrendChart: View {
         return [0.0, 0.25, 0.5, 0.75, 1.0].map { first.addingTimeInterval(span * $0) }
     }
 
-    /// Keep the first label leading-aligned and the last trailing-aligned so neither clips at the plot
-    /// edge (the centre one stays centred); the gridline still sits exactly on the tick.
+    /// Keeps the first label leading-aligned and the last trailing-aligned so neither clips at the plot
+    /// edge; the gridline still sits exactly on the tick.
     private func xLabelAnchor(_ index: Int, count: Int) -> UnitPoint {
         if index == 0 { return .topLeading }
         if index == count - 1 { return .topTrailing }
         return .top
     }
 
-    /// Label text for an x tick, formatted by how wide the window is: intraday → hour, up to a few months
-    /// → day + month, longer → month + year. (`Date.FormatStyle` would localise ordering, but a cached
-    /// formatter keeps it cheap across the three ticks.)
+    /// Picks a label template by how wide the window is: intraday → hour, up to ~10 months → day+month,
+    /// longer → month+year.
     private func xAxisLabel(_ date: Date) -> String {
         let span = (points.last?.date.timeIntervalSince(points.first?.date ?? date)) ?? 0
-        let f = TrendChart.axisFormatter
+        let formatter = TrendChart.axisFormatter
         if span <= 36 * 3600 {
-            f.setLocalizedDateFormatFromTemplate("ha")
+            formatter.setLocalizedDateFormatFromTemplate("ha")
         } else if span <= 300 * 86_400 {
-            f.setLocalizedDateFormatFromTemplate("dMMM")
+            formatter.setLocalizedDateFormatFromTemplate("dMMM")
         } else {
-            f.setLocalizedDateFormatFromTemplate("MMMyy")
+            formatter.setLocalizedDateFormatFromTemplate("MMMyy")
         }
-        return f.string(from: date)
+        return formatter.string(from: date)
     }
 
     private static let axisFormatter = DateFormatter()
 
-    /// Draws one classification band behind the line: the active band gets a soft fill + coloured edge
-    /// lines (the "bracket"); every band wide enough gets a right-aligned label (active in the band hue,
-    /// the rest in quiet ink). Open bounds clamp to the value domain. (FER-244)
+    /// Draws one classification band: the active band gets a soft fill + edge lines; any band tall
+    /// enough gets a right-aligned label (the active one always does, even when geometrically thin — the
+    /// one band you most need named shouldn't be the one that goes unlabelled).
     @ViewBuilder
     private func bandLayer(_ band: TrendBand, proxy: ChartProxy, plot: CGRect) -> some View {
-        let topV = min(band.upper ?? valueRange.upperBound, valueRange.upperBound)
-        let botV = max(band.lower ?? valueRange.lowerBound, valueRange.lowerBound)
-        if let pTop = proxy.position(forY: topV), let pBot = proxy.position(forY: botV) {
-            let yTop = plot.minY + min(pTop, pBot)
-            let h = abs(pBot - pTop)
+        let top = min(band.upper ?? valueRange.upperBound, valueRange.upperBound)
+        let bottom = max(band.lower ?? valueRange.lowerBound, valueRange.lowerBound)
+        if let pTop = proxy.position(forY: top), let pBottom = proxy.position(forY: bottom) {
+            let yTop = plot.minY + min(pTop, pBottom)
+            let bandHeight = abs(pBottom - pTop)
             if band.isActive {
-                Rectangle()
-                    .fill(bandColor.opacity(0.16))
-                    .frame(width: plot.width, height: h)
-                    .offset(x: plot.minX, y: yTop)
-                Rectangle()
-                    .fill(bandColor.opacity(0.5))
-                    .frame(width: plot.width, height: 1)
-                    .offset(x: plot.minX, y: yTop)
-                Rectangle()
-                    .fill(bandColor.opacity(0.5))
-                    .frame(width: plot.width, height: 1)
-                    .offset(x: plot.minX, y: yTop + h - 1)
+                Rectangle().fill(bandColor.opacity(0.16))
+                    .frame(width: plot.width, height: bandHeight).offset(x: plot.minX, y: yTop)
+                Rectangle().fill(bandColor.opacity(0.5))
+                    .frame(width: plot.width, height: 1).offset(x: plot.minX, y: yTop)
+                Rectangle().fill(bandColor.opacity(0.5))
+                    .frame(width: plot.width, height: 1).offset(x: plot.minX, y: yTop + bandHeight - 1)
             }
-            // Every band tall enough gets a label; the ACTIVE band always gets one even when it's too
-            // thin to clear the height test (e.g. sleep's 1-hour "Adequate" 6–7 h band) — otherwise the
-            // one band you most need named is the one that goes unlabelled. The active label is also
-            // weightier so "which band am I in" reads at a glance. (FER-249)
-            if !bandLabelsHidden, h >= 16 || band.isActive {
+            if !bandLabelsHidden, bandHeight >= 16 || band.isActive {
                 Text(band.label)
                     .font(StrandFont.footnote)
                     .fontWeight(band.isActive ? .semibold : .regular)
                     .lineLimit(1)
                     .foregroundStyle(band.isActive ? bandColor : axisLabelColor.opacity(0.8))
                     .frame(width: plot.width - 6, alignment: .trailing)
-                    .offset(x: plot.minX, y: yTop + h / 2 - 8)
+                    .offset(x: plot.minX, y: yTop + bandHeight / 2 - 8)
             }
         }
     }
 }
 
 // MARK: - Platform scrub gesture
-
-// Internal (not file-private) so sibling charts in the package — e.g. `DebtBars` — share the exact
-// same finger-drag / hover affordance instead of re-implementing it. (FER-249)
+//
+// Shared (module-internal, not file-private) so sibling charts in the package inherit the exact same
+// finger-drag/hover affordance instead of re-implementing it.
 extension View {
-    /// Attaches the chart-scrub affordance: `DragGesture` on iOS (finger drag, no minimum
-    /// distance so the crosshair appears on first touch), `onContinuousHover` on macOS
-    /// (pointer hover). Both update the `hoverX` binding so the same crosshair + tooltip
-    /// overlay renders on both platforms without duplication.
+    /// Attaches the chart-scrub affordance: a `DragGesture` on iOS (no minimum distance, so the
+    /// crosshair appears on first touch), pointer hover on macOS, a no-op on watchOS (which never
+    /// renders a scrubbable chart from this package but must still build). Both platforms drive the same
+    /// `hoverX` binding a caller's overlay reads to draw its crosshair + tooltip.
     ///
-    /// On iOS, `.highPriorityGesture()` is intentional: these charts live inside the sheet's
-    /// ScrollView, and a plain `.gesture()` loses the touch to the ScrollView's vertical pan, so
-    /// the scrub never started. `.highPriorityGesture` makes the scrub win the touch over the
-    /// parent scroll while the finger is on the chart (the user can still scroll from anywhere
-    /// else in the sheet). With `minimumDistance: 0` the crosshair appears on first contact. (#118)
-    ///
-    /// Position updates use a non-animating Transaction to prevent SwiftUI Charts from
-    /// re-running its draw-on animation when `hoverX` changes mid-gesture (#104).
+    /// `.highPriorityGesture` on iOS is deliberate: these charts live inside a ScrollView, and a plain
+    /// `.gesture()` loses the touch to the parent's vertical pan.
     @ViewBuilder
     public func scrubGesture(enabled: Bool, hoverX: Binding<CGFloat?>) -> some View {
         #if os(iOS)
         self.highPriorityGesture(
             DragGesture(minimumDistance: 0)
-                .onChanged { v in
+                .onChanged { drag in
                     guard enabled else { return }
-                    var tx = Transaction()
-                    tx.disablesAnimations = true
-                    withTransaction(tx) { hoverX.wrappedValue = v.location.x }
+                    var tx = Transaction(); tx.disablesAnimations = true
+                    withTransaction(tx) { hoverX.wrappedValue = drag.location.x }
                 }
                 .onEnded { _ in
                     guard enabled else { return }
-                    var tx = Transaction()
-                    tx.disablesAnimations = true
+                    var tx = Transaction(); tx.disablesAnimations = true
                     withTransaction(tx) { hoverX.wrappedValue = nil }
                 }
         )
         #elseif os(macOS)
         self.onContinuousHover(coordinateSpace: .local) { phase in
             guard enabled else { return }
-            var tx = Transaction()
-            tx.disablesAnimations = true
+            var tx = Transaction(); tx.disablesAnimations = true
             withTransaction(tx) {
                 switch phase {
                 case .active(let location): hoverX.wrappedValue = location.x
-                case .ended:               hoverX.wrappedValue = nil
+                case .ended: hoverX.wrappedValue = nil
                 }
             }
         }
         #else
-        // FER-740: watchOS builds the package but never renders scrubbable charts — no hover/drag
-        // affordance there (`onContinuousHover` is iOS/macOS-only).
         self
         #endif
     }
@@ -687,84 +547,60 @@ extension View {
 // MARK: - Gradient → stops bridge
 
 extension Gradient {
-    /// Reconstruct ordered stops from a Gradient. SwiftUI does not expose `.stops`
-    /// directly on all paths, so we use the public `stops` mirror when present.
-    func toStops() -> [Gradient.Stop] {
-        // `Gradient.stops` is public on macOS 13+; expose for our sampler.
-        self.stops
-    }
+    /// Reconstructs ordered stops from a `Gradient` for the sampler above.
+    func toStops() -> [Gradient.Stop] { self.stops }
 }
 
 #if DEBUG
-private func sampleTrend(days: Int, base: Double, swing: Double) -> [TrendPoint] {
-    let cal: Calendar = Calendar.current
-    let today: Date = Date()
-    return (0..<days).map { (i: Int) -> TrendPoint in
-        let date: Date = cal.date(byAdding: .day, value: -(days - 1 - i), to: today)!
-        let wave: Double = swing * sin(Double(i) / 3.0)
-        let jitter: Double = Double((i * 17) % 9) - 4.0
-        let v: Double = base + wave + jitter
-        return TrendPoint(date: date, value: max(0.0, v))
+private struct SyntheticSeries {
+    let base: Double, amplitude: Double
+    func points(days: Int) -> [TrendPoint] {
+        let today = Date()
+        return stride(from: 0, to: days, by: 1).map { offset in
+            let daysAgo = days - 1 - offset
+            let date = Calendar.current.date(byAdding: .day, value: -daysAgo, to: today) ?? today
+            let wobble = amplitude * sin(Double(offset) / 3.0)
+            let noise = Double((offset * 17) % 9) - 4.0
+            return TrendPoint(date: date, value: Swift.max(0.0, base + wobble + noise))
+        }
+    }
+}
+
+private struct TrendChartPreviewCard<Extra: View>: View {
+    let caption: String
+    let series: [TrendPoint]
+    @ViewBuilder var extra: () -> Extra
+    @ViewBuilder var chart: () -> TrendChart
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(caption).strandOverline()
+            extra()
+            chart()
+        }
+        .padding(28)
+        .frame(width: 720, height: 340)
+        .background(InstrumentoTheme.base.paper)
+        .preferredColorScheme(.light)
     }
 }
 
 #Preview("TrendChart — recovery") {
-    VStack(alignment: .leading, spacing: 12) {
-        Text("Recovery — 30 days").strandOverline()
+    let series = SyntheticSeries(base: 62, amplitude: 22).points(days: 30)
+    return TrendChartPreviewCard(caption: "Recovery — 30 days", series: series) {
         Text("Hover the line: crosshair + dot + date/value tooltip.")
             .font(StrandFont.footnote).foregroundStyle(InstrumentoTheme.base.inkTertiary)
-        TrendChart(points: sampleTrend(days: 30, base: 62, swing: 22))
+    } chart: {
+        TrendChart(points: series)
     }
-    .padding(28)
-    .frame(width: 720, height: 340)
-    .background(InstrumentoTheme.base.paper)
-    .preferredColorScheme(.light)
 }
 
 #Preview("TrendChart — HRV") {
-    VStack(alignment: .leading, spacing: 12) {
-        Text("HRV (ms) — 30 days").strandOverline()
-        Text("Hover to read each day's HRV in ms.")
-            .font(StrandFont.footnote).foregroundStyle(InstrumentoTheme.base.inkTertiary)
-        TrendChart(
-            points: sampleTrend(days: 30, base: 58, swing: 14),
-            gradient: StrandPalette.recoveryGradient,
-            valueRange: 20...100,
-            showsArea: true,
-            valueFormat: { "\(Int($0.rounded())) ms" }
-        )
+    let series = SyntheticSeries(base: 58, amplitude: 14).points(days: 30)
+    return TrendChartPreviewCard(caption: "HRV (ms) — 30 days", series: series) {
+        EmptyView()
+    } chart: {
+        TrendChart(points: series, valueRange: 20...100, valueFormat: { "\(Int($0.rounded())) ms" })
     }
-    .padding(28)
-    .frame(width: 720, height: 340)
-    .background(InstrumentoTheme.base.paper)
-    .preferredColorScheme(.light)
-}
-
-#Preview("TrendChart — level band + hollow today (F6b)") {
-    let pts = sampleTrend(days: 14, base: 64, swing: 8)
-    let theme = InstrumentoTheme.base
-    return VStack(alignment: .leading, spacing: 16) {
-        Text("Today's band highlighted (filled head)").strandOverline()
-        TrendChart(
-            points: pts, gradient: Gradient(colors: [theme.dataHeart.opacity(0.5), theme.dataHeart]),
-            valueRange: 48...88, showsArea: false, height: 150,
-            axisLabelColor: theme.inkTertiary, gridLineColor: theme.hairline,
-            bands: [TrendBand(label: "", lower: 60, upper: 80, isActive: true)],
-            bandColor: theme.dataHeart, yAxisValues: [50, 60, 80],
-            markedPoint: pts.last, bandLabelsHidden: true)
-        Text("Another level selected (hollow head keeps today)").strandOverline()
-        TrendChart(
-            points: pts, gradient: Gradient(colors: [theme.dataHeart.opacity(0.5), theme.dataHeart]),
-            valueRange: 48...88, showsArea: false, height: 150,
-            axisLabelColor: theme.inkTertiary, gridLineColor: theme.hairline,
-            bands: [TrendBand(label: "", lower: nil, upper: 50, isActive: true)],
-            bandColor: theme.dataHeart, yAxisValues: [50, 60, 80],
-            markedPoint: pts.last, markedPointHollow: true, markedPointRingFill: theme.paper,
-            bandLabelsHidden: true)
-    }
-    .padding(28)
-    .frame(width: 720, height: 420)
-    .background(theme.paper)
-    .preferredColorScheme(.light)
 }
 #endif

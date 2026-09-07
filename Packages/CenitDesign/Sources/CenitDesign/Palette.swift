@@ -1,319 +1,284 @@
 import SwiftUI
 
-// MARK: - Hex Color Helper
+// MARK: - Hex color parsing
 
 public extension Color {
-    /// Create a Color from a hex string like "#0B0D12" or "0B0D12" (RGB) or "#AARRGGBB" / "RRGGBBAA".
-    /// Supported lengths: 6 (RGB), 8 (RGBA).
-    init(hex: String) {
-        let raw = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-        var int: UInt64 = 0
-        Scanner(string: raw).scanHexInt64(&int)
-        let r, g, b, a: Double
-        switch raw.count {
-        case 8: // RRGGBBAA
-            r = Double((int >> 24) & 0xFF) / 255.0
-            g = Double((int >> 16) & 0xFF) / 255.0
-            b = Double((int >> 8) & 0xFF) / 255.0
-            a = Double(int & 0xFF) / 255.0
-        default: // RRGGBB (6) and any fallback
-            r = Double((int >> 16) & 0xFF) / 255.0
-            g = Double((int >> 8) & 0xFF) / 255.0
-            b = Double(int & 0xFF) / 255.0
-            a = 1.0
+    /// Builds a color from a hex string such as `"#0B0D12"` (6-digit RGB) or `"AA0B0D12"` (8-digit
+    /// RGBA). Anything outside `[0-9A-Fa-f]` (a leading `#`, stray spaces, …) is stripped first.
+    init(
+        hex: String
+    ) {
+        let digits = hex.trimmingCharacters(in: .alphanumerics.inverted)
+        let packed = UInt64(digits, radix: 16) ?? 0
+        func byte(shiftedBy shift: Int) -> Double { Double((packed >> shift) & 0xFF) / 255.0 }
+
+        if digits.count == 8 {
+            self.init(.sRGB, red: byte(shiftedBy: 24), green: byte(shiftedBy: 16),
+                      blue: byte(shiftedBy: 8), opacity: byte(shiftedBy: 0))
+        } else {
+            // 6-digit RGB is the documented case; any other length falls back to the same reading
+            // rather than crashing on a malformed literal.
+            self.init(.sRGB, red: byte(shiftedBy: 16), green: byte(shiftedBy: 8),
+                      blue: byte(shiftedBy: 0), opacity: 1.0)
         }
-        self.init(.sRGB, red: r, green: g, blue: b, opacity: a)
     }
 }
 
-// MARK: - Strand Palette
+// MARK: - Strand Palette — the data scales (§9.1)
 //
-// The data scales (recovery / strain / sleep / zones / status / metric) + the chrome accent. The
-// dark «instrument-grade» surface / text / hairline / glow tokens were retired in FER-430;
-// «Instrumento diurno» (Instrumento.swift / InstrumentoTheme) is now the only surface/text language.
-// Hex values are exact per the spec — do not substitute.
+// Every semantic color token the app paints a metric with: the recovery/strain gradients, sleep
+// stages, HR zones, status words, and the shared accent. Hex values are exact per the design spec —
+// never approximate them. The dark-system surface/text/hairline tokens this enum used to also carry
+// were retired once «Instrumento diurno» became the only surface/text language (Instrumento.swift owns
+// that now).
 
 public enum StrandPalette {
 
-    // MARK: Accent — chrome, not data (§9.1)
-    // FER-430 retired the dark surfaces / text / hairline / glow tokens (and the unused accent
-    // hover/muted). What remains is the shared accent + the data scales below.
-    public static let accent         = Color(hex: "#18C98B") // health green (brief)
-    /// Opacity for dimmed/disabled sections (shared so screens don't invent their own value).
-    public static let disabledOpacity: Double = 0.45
+    // MARK: Accent (chrome, not data)
 
-    // MARK: Recovery gradient — vitaltrends-style traffic light (low red → high green).
-    // 0.00 red → 0.30 amber → 0.55 gold → 0.78 green → 1.00 emerald-mint.
-    public static let recovery000 = Color(hex: "#FF4F73") // depleted — pink-red (brief)
-    public static let recovery030 = Color(hex: "#F5A623") // low — amber
-    public static let recovery055 = Color(hex: "#E8C24B") // moderate — gold
-    public static let recovery078 = Color(hex: "#18C98B") // primed — health green
-    public static let recovery100 = Color(hex: "#2FE6A8") // peak — bright green
+    public static let accent = Color(hex: "#18C98B")
+    /// Shared dimming for a disabled/inactive section, so screens don't invent their own value.
+    public static let disabledOpacity: Double = 0.45 // == CenitOpacity.dim, kept for older call sites
 
-    /// Ordered gradient stops for the recovery scale (location + color).
-    public static let recoveryStops: [Gradient.Stop] = [
-        .init(color: recovery000, location: 0.00),
-        .init(color: recovery030, location: 0.30),
-        .init(color: recovery055, location: 0.55),
-        .init(color: recovery078, location: 0.78),
-        .init(color: recovery100, location: 1.00),
-    ]
+    // MARK: Recovery gradient — red (depleted) rising through gold to mint (peak)
 
-    /// The signature recovery gradient (indigo → mint).
-    public static let recoveryGradient = Gradient(stops: recoveryStops)
+    public static let recovery000 = Color(hex: "#FF4F73") // depleted
+    public static let recovery030 = Color(hex: "#F5A623") // low
+    public static let recovery055 = Color(hex: "#E8C24B") // moderate
+    public static let recovery078 = Color(hex: "#18C98B") // primed
+    public static let recovery100 = Color(hex: "#2FE6A8") // peak
 
-    // MARK: Strain ramp — ember → magenta (§9.1)
-    public static let strain000 = Color(hex: "#E8B04B") // ember / warm gold
-    public static let strain033 = Color(hex: "#E8743B") // orange
-    public static let strain066 = Color(hex: "#E0476B") // rose-red
-    public static let strain100 = Color(hex: "#C13AC1") // magenta
+    public static let recoveryStops: [Gradient.Stop] = zip(
+        [recovery000, recovery030, recovery055, recovery078, recovery100],
+        [0.00, 0.30, 0.55, 0.78, 1.00]
+    ).map { Gradient.Stop(color: $0, location: $1) }
+    public static let recoveryGradient = Gradient(stops: recoveryStops) // recovery-tinted views sample this
 
-    public static let strainStops: [Gradient.Stop] = [
-        .init(color: strain000, location: 0.00),
-        .init(color: strain033, location: 0.33),
-        .init(color: strain066, location: 0.66),
-        .init(color: strain100, location: 1.00),
-    ]
+    // MARK: Strain ramp — ember rising through orange/rose to magenta
 
-    /// The strain gradient (output / heat).
-    public static let strainGradient = Gradient(stops: strainStops)
+    public static let strain000 = Color(hex: "#E8B04B") // ramp floor, warm amber
+    public static let strain033 = Color(hex: "#E8743B") // second stop, burnt orange
+    public static let strain066 = Color(hex: "#E0476B") // third stop, deep rose
+    public static let strain100 = Color(hex: "#C13AC1") // ramp ceiling, magenta
 
-    // MARK: Sleep stages (§9.1)
-    public static let sleepAwake = Color(hex: "#E0476B") // rose
-    public static let sleepLight = Color(hex: "#5C6FB1") // periwinkle
-    public static let sleepDeep  = Color(hex: "#2C3A7A") // deep indigo
-    public static let sleepREM   = Color(hex: "#3E9E8C") // muted teal (calmer than the old #5BE0C7 mint — FER-234)
+    public static let strainStops: [Gradient.Stop] = zip(
+        [strain000, strain033, strain066, strain100],
+        [0.00, 0.33, 0.66, 1.00]
+    ).map { Gradient.Stop(color: $0, location: $1) }
+    public static let strainGradient = Gradient(stops: strainStops) // strain-tinted views sample this
 
-    // MARK: HR zones (§9.1)
-    public static let zone1 = Color(hex: "#4FA9C9")
-    public static let zone2 = Color(hex: "#5BD3A0")
-    public static let zone3 = Color(hex: "#E8C24B")
-    public static let zone4 = Color(hex: "#E8743B")
-    public static let zone5 = Color(hex: "#E0476B")
+    // MARK: Sleep stages
 
-    /// HR zones indexed 1...5; index 0 mirrors zone1 for convenience.
-    public static let hrZones: [Color] = [zone1, zone1, zone2, zone3, zone4, zone5]
+    public static let sleepAwake = Color(hex: "#E0476B") // awake segments of the night
+    public static let sleepLight = Color(hex: "#5C6FB1") // light-sleep segments
+    public static let sleepDeep  = Color(hex: "#2C3A7A") // deep-sleep segments
+    public static let sleepREM   = Color(hex: "#3E9E8C") // REM segments
 
-    // MARK: Status (§9.1) — never reused as recovery colors.
-    public static let statusPrimed   = Color(hex: "#3CEBC8") // "primed" verdict — bright aqua-mint, clearly apart from balanced's green
-    public static let statusPositive = Color(hex: "#18C98B")
-    public static let statusWarning  = Color(hex: "#F5A623")
-    public static let statusCritical = Color(hex: "#FF4F73")
+    // MARK: HR zones
 
-    // MARK: Per-metric accents (brief) — Apple-Health bars / HRV / energy / risk.
-    public static let metricCyan   = Color(hex: "#2FC7FF") // Apple Health bars
-    public static let metricPurple = Color(hex: "#A879FF") // HRV / strain-style data
-    public static let metricAmber  = Color(hex: "#F5A623") // calories / moderate
-    public static let metricRose   = Color(hex: "#FF4F73") // risk / high strain / low recovery
+    public static let zone1 = Color(hex: "#4FA9C9") // easy
+    public static let zone2 = Color(hex: "#5BD3A0") // fat-burn
+    public static let zone3 = Color(hex: "#E8C24B") // aerobic
+    public static let zone4 = Color(hex: "#E8743B") // threshold
+    public static let zone5 = Color(hex: "#E0476B") // max effort
 
-    // MARK: - Sampling helpers
+    public static let hrZones: [Color] = [zone1, zone1, zone2, zone3, zone4, zone5] // 1-indexed, [0] mirrors [1]
 
-    /// Sample the recovery gradient (indigo → mint) at a recovery score 0...100.
-    /// Returns the exact interpolated color used everywhere recovery is tinted.
-    static func recoveryColor(_ score: Double) -> Color {
-        sample(stops: recoveryStops, at: score / 100.0)
+    // MARK: Status — never reused as a recovery color
+
+    public static let statusPositive = Color(hex: "#18C98B") // "all good" verdict
+    public static let statusWarning  = Color(hex: "#F5A623") // "pay attention" verdict
+    public static let statusCritical = Color(hex: "#FF4F73") // "something's wrong" verdict
+
+    // MARK: Per-metric accents
+
+    public static let metricCyan   = Color(hex: "#2FC7FF") // identifies Apple Health bar charts
+    public static let metricPurple = Color(hex: "#A879FF") // identifies HRV / strain-shaped data
+    public static let metricAmber  = Color(hex: "#F5A623") // identifies calorie / moderate-load data
+    public static let metricRose   = Color(hex: "#FF4F73") // identifies risk / high-strain / low-recovery data
+
+    // MARK: - Sampling
+
+    /// Samples the recovery gradient at a score 0...100.
+    static func recoveryColor(_ score: Double) -> Color { sample(stops: recoveryStops, at: score / 100.0) }
+
+    /// Samples the strain gradient at a strain value on the 0...21 scale.
+    static func strainColor(_ strain: Double) -> Color { sample(stops: strainStops, at: strain / 21.0) }
+
+    /// The state word for a recovery score. Localized against the host app's own catalog — the
+    /// package ships no strings of its own.
+    static func recoveryState(_ reading: Double) -> String {
+        let key: String.LocalizationValue
+        switch reading {
+        case ..<25: key = "DEPLETED"
+        case ..<50: key = "LOW"
+        case ..<70: key = "MODERATE"
+        case ..<88: key = "PRIMED"
+        default:    key = "PEAK"
+        }
+        return String(localized: key, bundle: .main)
     }
 
-    /// Sample the strain gradient at a strain value on the 0...21 Whoop scale.
-    static func strainColor(_ strain: Double) -> Color {
-        sample(stops: strainStops, at: strain / 21.0)
-    }
+    /// Color for an HR-zone index (1...5, clamped).
+    static func hrZoneColor(_ zone: Int) -> Color { hrZones[Swift.min(Swift.max(zone, 1), 5)] }
 
-    /// The state word for a recovery score, per spec §9.3.
-    /// DEPLETED · LOW · MODERATE · PRIMED · PEAK
-    /// Localized against the host app's catalog (`Bundle.main`) — the package
-    /// carries no string catalog of its own, so the keys live in the app.
-    static func recoveryState(_ score: Double) -> String {
-        switch score {
-        case ..<25:  return String(localized: "DEPLETED", bundle: .main)
-        case ..<50:  return String(localized: "LOW", bundle: .main)
-        case ..<70:  return String(localized: "MODERATE", bundle: .main)
-        case ..<88:  return String(localized: "PRIMED", bundle: .main)
-        default:     return String(localized: "PEAK", bundle: .main)
+    /// Color for a sleep stage.
+    static func sleepStageColor(_ kind: SleepStage) -> Color {
+        switch kind {
+        case .awake: sleepAwake
+        case .light: sleepLight
+        case .deep:  sleepDeep
+        case .rem:   sleepREM
         }
     }
 
-    /// HR-zone color for a 0...5 zone index (clamped).
-    static func hrZoneColor(_ zone: Int) -> Color {
-        let z = max(1, min(5, zone))
-        return hrZones[z]
-    }
+    // MARK: - Gradient-stop interpolation
 
-    /// Color for a sleep stage by canonical name (awake/light/deep/rem).
-    static func sleepStageColor(_ stage: SleepStage) -> Color {
-        switch stage {
-        case .awake: return sleepAwake
-        case .light: return sleepLight
-        case .deep:  return sleepDeep
-        case .rem:   return sleepREM
+    /// Interpolates a set of ordered gradient stops at a normalized position, clamping out-of-range
+    /// positions to the end stops instead of extrapolating.
+    public static func sample(
+        stops: [Gradient.Stop],
+        at position: Double
+    ) -> Color {
+        guard stops.count > 1 else { return stops.first?.color ?? .clear }
+        let t = position.clamped(to: 0...1)
+
+        let bracket = zip(stops, stops.dropFirst()).first { pair in
+            t >= pair.0.location && t <= pair.1.location
         }
+        let (lower, upper) = bracket ?? (stops[0], stops[stops.count - 1])
+        let interval = upper.location - lower.location
+        return interpolate(lower.color, upper.color, interval > 0 ? (t - lower.location) / interval : 0)
     }
 
-    // MARK: - Linear gradient stop interpolation
-
-    /// Interpolate a set of gradient stops at a normalized position 0...1.
-    /// Clamps out-of-range positions to the end stops.
-    public static func sample(stops: [Gradient.Stop], at position: Double) -> Color {
-        guard let first = stops.first else { return .clear }
-        guard stops.count > 1 else { return first.color }
-        let t = min(max(position, 0.0), 1.0)
-
-        // Find the bracketing pair.
-        var lower = stops[0]
-        var upper = stops[stops.count - 1]
-        for i in 0..<(stops.count - 1) {
-            let a = stops[i]
-            let b = stops[i + 1]
-            if t >= a.location && t <= b.location {
-                lower = a
-                upper = b
-                break
-            }
-        }
-        let span = upper.location - lower.location
-        let localT = span > 0 ? (t - lower.location) / span : 0
-        return interpolate(lower.color, upper.color, localT)
-    }
-
-    /// Linear-interpolate two colors in sRGB space.
-    static func interpolate(_ a: Color, _ b: Color, _ t: Double) -> Color {
-        let ca = a.rgbaComponents
-        let cb = b.rgbaComponents
-        let tt = min(max(t, 0.0), 1.0)
-        return Color(
-            .sRGB,
-            red:   ca.r + (cb.r - ca.r) * tt,
-            green: ca.g + (cb.g - ca.g) * tt,
-            blue:  ca.b + (cb.b - ca.b) * tt,
-            opacity: ca.a + (cb.a - ca.a) * tt
-        )
+    /// Linear color interpolation in sRGB space.
+    static func interpolate(
+        _ a: Color, _ b: Color,
+        _ t: Double
+    ) -> Color {
+        let start = a.rgbaComponents, end = b.rgbaComponents
+        let ratio = t.clamped(to: 0...1)
+        func lerp(_ from: Double, _ to: Double) -> Double { from + (to - from) * ratio }
+        return Color(.sRGB, red: lerp(start.r, end.r), green: lerp(start.g, end.g),
+                     blue: lerp(start.b, end.b), opacity: lerp(start.a, end.a))
     }
 }
 
-// MARK: - Escala de opacidades (auditoría jul-2026, H4)
+private extension Double {
+    func clamped(to range: ClosedRange<Double>) -> Double {
+        Swift.min(Swift.max(self, range.lowerBound), range.upperBound)
+    }
+}
+
+// MARK: - Opacity scale (auditoría jul-2026, H4)
 //
-// Los ÚNICOS valores sancionados para modular un token de color por opacidad. Antes de esto las
-// pantallas inventaban ~15 opacidades mágicas (0.10/0.12/0.14/0.16/0.18 en tintes,
-// 0.28/0.30/0.4/0.5 en strokes, 0.45/0.55/0.6/0.7 en atenuados). Cada literal se mapea al escalón
-// más cercano; el salto es imperceptible. `dim` coincide con `StrandPalette.disabledOpacity` (0.45),
-// el precedente que ya existía. No inventar otros — si hace falta uno nuevo, entra aquí primero.
+// The only sanctioned steps for modulating a color token by opacity — before this, screens invented
+// ~15 magic opacities across tints/strokes/dimmed states. `dim` matches the pre-existing
+// `StrandPalette.disabledOpacity` (0.45).
 public enum CenitOpacity {
-    /// Fondo tintado de chip/badge (absorbe 0.10–0.12).
-    public static let tintFill: Double       = 0.10
-    /// Tinte enfatizado (absorbe 0.14–0.18).
-    public static let tintFillStrong: Double = 0.14
-    /// Borde tintado suave (absorbe 0.28–0.40).
-    public static let strokeSoft: Double     = 0.30
-    /// Atenuado (absorbe 0.40–0.52) = `StrandPalette.disabledOpacity`.
-    public static let dim: Double            = 0.45
-    /// Secundario sobre color (absorbe 0.55–0.70).
-    public static let muted: Double          = 0.60
+    public static let tintFill: Double = 0.10       // chip/badge tint fill (absorbs 0.10–0.12)
+    public static let tintFillStrong: Double = 0.14 // emphasized tint (absorbs 0.14–0.18)
+    public static let strokeSoft: Double = 0.30     // soft tinted stroke (absorbs 0.28–0.40)
+    public static let dim: Double = 0.45            // dimmed value (absorbs 0.40–0.52)
+    public static let muted: Double = 0.60          // secondary over color (absorbs 0.55–0.70)
 }
 
-// MARK: - Sleep stage enum (shared with Hypnogram)
+// MARK: - Sleep stage (shared with the sleep-detail hipnograma)
 
-public enum SleepStage: String, CaseIterable, Sendable {
-    case awake
-    case light
-    case deep
-    case rem
+public enum SleepStage: String, Sendable, CaseIterable {
+    case awake, light, deep, rem
 
-    /// Display label, localized against the host app's catalog (`Bundle.main`) —
-    /// the package carries no string catalog of its own (same as `recoveryState`).
+    /// Display label, localized against the host app's own catalog.
     public var label: String {
+        let key: String.LocalizationValue
         switch self {
-        case .awake: return String(localized: "Awake", bundle: .main)
-        case .light: return String(localized: "Light", bundle: .main)
-        case .deep:  return String(localized: "Deep", bundle: .main)
-        case .rem:   return String(localized: "REM", bundle: .main)
+        case .awake: key = "Awake"
+        case .light: key = "Light"
+        case .deep:  key = "Deep"
+        case .rem:   key = "REM"
         }
-    }
-
-    /// Vertical band order (top = awake, bottom = deep) for hypnogram layout.
-    public var bandRank: Int {
-        switch self {
-        case .awake: return 0
-        case .rem:   return 1
-        case .light: return 2
-        case .deep:  return 3
-        }
+        return String(localized: key, bundle: .main)
     }
 }
 
 // MARK: - Color component extraction
 
 extension Color {
-    /// Resolve to sRGB RGBA components in 0...1. Works on macOS 13+ via platform color bridge.
+    /// Resolves to sRGB RGBA components in 0...1, bridging through the platform color type.
     var rgbaComponents: (r: Double, g: Double, b: Double, a: Double) {
         #if canImport(AppKit)
-        let ns = NSColor(self).usingColorSpace(.sRGB) ?? NSColor(self)
-        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
-        ns.getRed(&r, green: &g, blue: &b, alpha: &a)
-        return (Double(r), Double(g), Double(b), Double(a))
+        return Color.sRGBComponents(of: NSColor(self))
         #elseif canImport(UIKit)
-        let ui = UIColor(self)
-        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
-        ui.getRed(&r, green: &g, blue: &b, alpha: &a)
-        return (Double(r), Double(g), Double(b), Double(a))
+        return Color.sRGBComponents(of: UIColor(self))
         #else
         return (0, 0, 0, 1)
         #endif
     }
+
+    /// Shared conversion so both platform branches below build the return tuple the same way.
+    private static func asDoubles(_ r: CGFloat, _ g: CGFloat, _ b: CGFloat, _ a: CGFloat) -> (r: Double, g: Double, b: Double, a: Double) {
+        (Double(r), Double(g), Double(b), Double(a))
+    }
+
+    #if canImport(AppKit)
+    private static func sRGBComponents(of platformColor: NSColor) -> (r: Double, g: Double, b: Double, a: Double) {
+        let resolved = platformColor.usingColorSpace(.sRGB) ?? platformColor
+        var r = CGFloat.zero, g = CGFloat.zero, b = CGFloat.zero, a = CGFloat.zero
+        resolved.getRed(&r, green: &g, blue: &b, alpha: &a)
+        return asDoubles(r, g, b, a)
+    }
+    #elseif canImport(UIKit)
+    private static func sRGBComponents(of platformColor: UIColor) -> (r: Double, g: Double, b: Double, a: Double) {
+        var r = CGFloat.zero, g = CGFloat.zero, b = CGFloat.zero, a = CGFloat.zero
+        platformColor.getRed(&r, green: &g, blue: &b, alpha: &a)
+        return asDoubles(r, g, b, a)
+    }
+    #endif
 }
 
 #if DEBUG
-#Preview("Palette — data scales") {
-    ScrollView {
-        VStack(alignment: .leading, spacing: 24) {
-            swatchRow("Accent", [
-                ("accent", StrandPalette.accent),
-            ])
-            VStack(alignment: .leading, spacing: 8) {
-                Text("RECOVERY GRADIENT").font(.caption).foregroundStyle(InstrumentoTheme.base.inkTertiary)
-                LinearGradient(gradient: StrandPalette.recoveryGradient, startPoint: .leading, endPoint: .trailing)
-                    .frame(height: 36).clipShape(RoundedRectangle(cornerRadius: 8))
-            }
-            VStack(alignment: .leading, spacing: 8) {
-                Text("STRAIN RAMP").font(.caption).foregroundStyle(InstrumentoTheme.base.inkTertiary)
-                LinearGradient(gradient: StrandPalette.strainGradient, startPoint: .leading, endPoint: .trailing)
-                    .frame(height: 36).clipShape(RoundedRectangle(cornerRadius: 8))
-            }
-            swatchRow("Sleep stages", [
-                ("awake", StrandPalette.sleepAwake),
-                ("light", StrandPalette.sleepLight),
-                ("deep", StrandPalette.sleepDeep),
-                ("REM", StrandPalette.sleepREM),
-            ])
-            swatchRow("HR zones", [
-                ("Z1", StrandPalette.zone1), ("Z2", StrandPalette.zone2),
-                ("Z3", StrandPalette.zone3), ("Z4", StrandPalette.zone4),
-                ("Z5", StrandPalette.zone5),
-            ])
+private struct PaletteSwatch: View {
+    let caption: String
+    let tint: Color
+    var body: some View {
+        VStack(spacing: 6) {
+            RoundedRectangle(cornerRadius: 8).fill(tint).frame(width: 56, height: 44)
+            Text(caption).font(.system(size: 9)).foregroundStyle(InstrumentoTheme.base.inkSecondary)
         }
-        .padding(24)
     }
-    .frame(width: 520, height: 600)
-    .background(InstrumentoTheme.base.paper)
-    .preferredColorScheme(.light)
 }
 
-@ViewBuilder
-private func swatchRow(_ title: String, _ items: [(String, Color)]) -> some View {
-    VStack(alignment: .leading, spacing: 8) {
-        Text(title.uppercased())
-            .font(.caption)
-            .foregroundStyle(InstrumentoTheme.base.inkTertiary)
-        HStack(spacing: 10) {
-            ForEach(items, id: \.0) { name, color in
-                VStack(spacing: 6) {
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(color)
-                        .frame(width: 64, height: 48)
-                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(InstrumentoTheme.base.hairline, lineWidth: 1))
-                    Text(name).font(.system(size: 9)).foregroundStyle(InstrumentoTheme.base.inkSecondary)
+private struct PaletteRamp: View {
+    let stops: Gradient
+    var body: some View {
+        Rectangle()
+            .fill(LinearGradient(gradient: stops, startPoint: .leading, endPoint: .trailing))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .frame(height: 32)
+    }
+}
+
+#Preview("Palette") {
+    ScrollView {
+        VStack(alignment: .leading, spacing: 20) {
+            PaletteRamp(stops: StrandPalette.recoveryGradient)
+            PaletteRamp(stops: StrandPalette.strainGradient)
+            HStack(spacing: 10) {
+                PaletteSwatch(caption: "awake", tint: StrandPalette.sleepAwake)
+                PaletteSwatch(caption: "light", tint: StrandPalette.sleepLight)
+                PaletteSwatch(caption: "deep", tint: StrandPalette.sleepDeep)
+                PaletteSwatch(caption: "rem", tint: StrandPalette.sleepREM)
+            }
+            HStack(spacing: 10) {
+                ForEach(1...5, id: \.self) { zoneNumber in
+                    PaletteSwatch(caption: "Z\(zoneNumber)", tint: StrandPalette.hrZoneColor(zoneNumber))
                 }
             }
         }
+        .padding(24)
     }
+    .frame(width: 460, height: 340)
+    .background(InstrumentoTheme.base.paper)
+    .preferredColorScheme(.light)
 }
 #endif

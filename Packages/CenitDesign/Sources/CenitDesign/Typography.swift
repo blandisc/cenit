@@ -2,146 +2,90 @@ import SwiftUI
 
 // MARK: - Strand Typography (§9.2)
 //
-// SF Pro (Display ≥20pt, Text <20pt); tabular/monospaced digits everywhere for
-// live values. SF Mono for raw/log views. Overline = sparing ALL-CAPS w/ tracking.
-//
-// All numeric styles use `.monospacedDigit()` so live values don't reflow.
-//
-// Dynamic Type (FER-394): the reading-text tokens are anchored to native text styles
-// (`Font.system(.textStyle)`) so they scale with the user's text-size setting. The DS
-// point sizes already sit on Apple's scale (28=.title, 22=.title2, 17=.headline,
-// 15=.subheadline, 13=.footnote, 12=.caption, 11=.caption2) → at the default size (L)
-// the rendered size is IDENTICAL to the old fixed sizes, with zero call-site changes.
-// `display(_:)` / `number(_:)` / `mono(_:)` stay FIXED on purpose: they size numerals
-// embedded in geometry (the recovery ring, the dial, chart-driven values), which must
-// not move with Dynamic Type. The app caps the upper range at xxxLarge at the root.
+// SF Pro (Display ≥20pt, Text <20pt), tabular/monospaced digits for every live value. Reading-text
+// tokens are anchored to native text styles (`Font.system(.textStyle)`) so they scale with the user's
+// Dynamic Type setting; the geometry-driven numeral tokens (`number`, `mono`, glyph sizes) stay FIXED
+// on purpose — they size numerals embedded in a drawing (rings, dials, chart marks), which must not
+// reflow with text size.
 
 public enum StrandFont {
 
-    // MARK: Scale (§9.2)
+    // MARK: Reading scale (Dynamic Type)
 
-    /// Display 64–80 / Semibold — the recovery ring number. FIXED size (geometry-driven:
-    /// scales with the ring/dial diameter, NOT Dynamic Type). Tabular digits.
-    public static func display(_ size: CGFloat = 72) -> Font {
-        .system(size: size, weight: .semibold, design: .default).monospacedDigit()
-    }
-
-    /// Title1 28 / Bold — scales with Dynamic Type (relative to `.title`, 28pt at default).
+    /// Relative to `.title`, 28pt bold at the default size.
     public static let title1 = Font.system(.title, weight: .bold)
-
-    /// Title2 22 / Semibold (relative to `.title2`, 22pt at default).
-    public static let title2 = Font.system(.title2, weight: .semibold)
-
-    /// Title3 20 / Semibold (relative to `.title3`, 20pt at default) — a quieter title for
-    /// card headings that carry long strings (e.g. «Día A — Empuje y cuádriceps») and need to
-    /// sit calmly on two lines rather than shout at `title2`.
-    public static let title3 = Font.system(.title3, weight: .semibold)
-
-    /// Tab/landing wordmark title 21 / Semibold — «Patrones», «Tendencias», «Train». FIXED (not
-    /// Dynamic Type): it's chrome paired with a 22×22 glyph, so the three tab headers must stay the
-    /// same size to align as you swipe between tabs. Pair with `.tracking(-0.3)` (or use
-    /// `InstrumentoTabHeader`, which bakes both in).
-    public static let tabTitle = Font.system(size: 21, weight: .semibold)
-
-    /// Headline 17 / Semibold (relative to `.headline`, 17pt semibold at default).
+    /// Relative to `.headline`, 17pt semibold at the default size.
     public static let headline = Font.system(.headline)
-
-    /// Body 15 / Regular (relative to `.subheadline`, 15pt at default).
+    /// Relative to `.subheadline`, 15pt at the default size.
     public static let body = Font.system(.subheadline)
-
-    /// Subhead 13 (relative to `.footnote`, 13pt at default).
+    /// Relative to `.footnote`, 13pt at the default size.
     public static let subhead = Font.system(.footnote)
-
-    /// Caption 12 (relative to `.caption`, 12pt at default).
+    /// Relative to `.caption`, 12pt at the default size.
     public static let caption = Font.system(.caption)
-
-    /// Footnote 11 (relative to `.caption2`, 11pt at default).
+    /// Relative to `.caption2`, 11pt at the default size.
     public static let footnote = Font.system(.caption2)
-
-    /// Unit 13 — the small trailing unit next to a metric value (ms / bpm / %). Subordinate to the
-    /// value but a step above footnote so it reads as part of the datum, not chrome.
-    /// (relative to `.footnote`, 13pt at default).
+    /// The small trailing unit next to a metric value (ms / bpm / %) — a step above `footnote` so it
+    /// reads as part of the datum, not chrome. Relative to `.footnote`.
     public static let unit = Font.system(.footnote)
-
-    /// Overline 11 / Semibold, +0.8 tracking (apply `.tracking(0.8)` at use site;
-    /// `overlineText(_:)` does it for you). Sparing ALL-CAPS labels.
-    /// (relative to `.caption2`, 11pt at default).
+    /// Sparing ALL-CAPS label voice. Pair with `.tracking(overlineTracking)`, or just call
+    /// `strandOverline()` which bakes both in.
     public static let overline = Font.system(.caption2, weight: .semibold)
-
-    /// Mono 13 (SF Mono) — raw / log views. Tabular by nature.
-    /// (relative to `.footnote`, 13pt at default).
+    /// SF Mono — raw/log views, tabular by nature. Relative to `.footnote`.
     public static let mono = Font.system(.footnote, design: .monospaced)
 
-    // MARK: Serif — RETIRED (FER-901)
-    //
-    // The `Instrument Serif` title/verdict voice was retired: in-screen headlines now speak in
-    // `InstrumentoType.groteskHeadline(_:)` (Medium) and verdict phrases in `InstrumentoType.groteskVerdict`
-    // (Bold). The face is out of the bundle and the font registration. (owner decision 2026-07-05, FER-707/901)
+    // MARK: Numeric variants (tabular digits, fixed size)
 
-    // MARK: Numeric variants (tabular digits)
-
-    /// A monospaced-digit numeric style at an arbitrary size/weight, for live values.
-    public static func number(_ size: CGFloat, weight: Font.Weight = .semibold) -> Font {
-        .system(size: size, weight: weight, design: .default).monospacedDigit()
+    /// A monospaced-digit numeral at an arbitrary size, for live values.
+    public static func number(
+        _ size: CGFloat, weight: Font.Weight = .semibold
+    ) -> Font {
+        Font.system(size: size, weight: weight, design: .default).monospacedDigit()
     }
 
-    /// Monospaced-digit body — for inline live values that should align
-    /// (relative to `.subheadline`, 15pt at default; scales with Dynamic Type).
-    public static let bodyNumber = Font.system(.subheadline).monospacedDigit()
-
-    /// Monospaced-digit caption — for small live values (sparklines, chips)
-    /// (relative to `.caption`, 12pt medium at default; scales with Dynamic Type).
+    /// Monospaced-digit caption — small live values (sparklines, chips). Scales with Dynamic Type.
     public static let captionNumber = Font.system(.caption, weight: .medium).monospacedDigit()
 
-    /// Mono at an arbitrary size.
-    public static func mono(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
-        .system(size: size, weight: weight, design: .monospaced)
+    /// SF Mono at an arbitrary size.
+    public static func mono(
+        _ size: CGFloat, weight: Font.Weight = .regular
+    ) -> Font {
+        Font.system(size: size, weight: weight, design: .monospaced)
     }
 
-    /// The recommended tracking for overline text.
-    public static let overlineTracking: CGFloat = 0.8
+    public static let overlineTracking: CGFloat = 0.8 // applied by strandOverline()
 
-    // MARK: Glifos SF Symbol (auditoría jul-2026, H1)
+    // MARK: SF Symbol glyph sizes (auditoría jul-2026, H1)
     //
-    // Antes de esto las pantallas dimensionaban cada glifo con `.font(.system(size:))` ad-hoc
-    // (~200 sitios): el mismo chevron a 10/11/12/13/14pt según el archivo. Estos cuatro escalones
-    // absorben >90% de los usos. Son tamaños FIJOS a propósito: un glifo es chrome pareado a texto
-    // que no escala, o geometría — NO escala con Dynamic Type (mismo criterio que `tabTitle`).
+    // Fixed steps absorbing the ad-hoc `.font(.system(size:))` glyph sizes screens used to invent —
+    // chrome paired with non-scaling text, or geometry, so these never move with Dynamic Type.
 
-    /// Tamaño de un glifo SF Symbol por rol. Nunca un `CGFloat` literal.
+    /// Semantic size for an SF Symbol glyph. Never pass a raw `CGFloat` at a call site.
     public enum GlyphSize: CGFloat {
-        /// Chevrons de navegación, disclosure marks (absorbe 10–14).
+        /// Navigation chevrons, disclosure marks (absorbs 10–14).
         case chevron = 12
-        /// Icono junto a texto body (absorbe 14–17).
-        case inline  = 15
-        /// Icono protagonista de fila / cabecera (absorbe 17–22).
-        case lead    = 18
-        /// Glifo de estado vacío (absorbe 28–40).
-        case empty   = 34
+        /// Icon beside body text (absorbs 14–17).
+        case inline = 15
+        /// A row/header's lead icon (absorbs 17–22).
+        case lead = 18
+        /// Empty-state glyph (absorbs 28–40).
+        case empty = 34
     }
 
-    /// Un glifo SF Symbol a un tamaño semántico. FIJO — no escala con Dynamic Type.
-    /// El default es `.regular` a propósito: iguala el default nativo de `.font(.system(size:))`, así que
-    /// migrar un icono de tamaño-desnudo (el caso común) NO cambia su peso. Pasa `weight: .semibold`
-    /// (u otro) solo donde el sitio original lo declaraba.
+    /// An SF Symbol at a semantic size. FIXED — does not scale with Dynamic Type. `.regular` matches
+    /// the native default of `.font(.system(size:))`, so migrating a bare-sized icon (the common case)
+    /// doesn't change its weight unless the call site says otherwise.
     public static func glyph(_ size: GlyphSize, weight: Font.Weight = .regular) -> Font {
         .system(size: size.rawValue, weight: weight)
     }
-
-    /// Microtexto 11 / Medium — etiquetas de instrumento pegadas a geometría (ejes de gráfico,
-    /// unidades junto a un numeral, keypad, sellos dentro de dibujos). FIJO a propósito: NO escala
-    /// con Dynamic Type (mismo razonamiento que `display`/`number`/`tabTitle`; ver 05-accesibilidad).
-    /// Para microtexto de LECTURA (etiquetas, hints, subtítulos) usar `footnote`/`caption`/`subhead`,
-    /// que sí escalan.
-    public static let micro = Font.system(size: 11, weight: .medium)
 }
 
 // MARK: - Text helpers
 
 public extension Text {
-    /// Style as an overline label: ALL-CAPS, semibold, +0.8 tracking, tertiary text.
+    /// Styles as an overline label: ALL-CAPS, semibold, tracked, tertiary ink.
     func strandOverline() -> some View {
-        self.font(StrandFont.overline)
+        self
+            .font(StrandFont.overline)
             .tracking(StrandFont.overlineTracking)
             .textCase(.uppercase)
             .foregroundStyle(InstrumentoTheme.base.inkSecondary)
@@ -149,38 +93,49 @@ public extension Text {
 }
 
 public extension View {
-    /// Convenience: an overline-styled label string.
-    static func strandOverline(_ string: String) -> some View {
-        Text(string).strandOverline()
+    /// Convenience: builds an overline-styled label straight from a plain string.
+    static func strandOverline(_ text: String) -> some View {
+        Text(text).strandOverline()
     }
 }
 
 #if DEBUG
+private struct TypeSample: Identifiable {
+    let id = UUID()
+    let caption: String
+    let font: Font
+    let dim: Bool
+}
+
 #Preview("Typography") {
-    ScrollView {
-        VStack(alignment: .leading, spacing: 18) {
-            Text("88").font(StrandFont.display(72)).foregroundStyle(InstrumentoTheme.base.ink)
-            Text("Title 1 / Bold 28").font(StrandFont.title1).foregroundStyle(InstrumentoTheme.base.ink)
-            Text("Title 2 / Semibold 22").font(StrandFont.title2).foregroundStyle(InstrumentoTheme.base.ink)
-            Text("Title 3 / Semibold 20").font(StrandFont.title3).foregroundStyle(InstrumentoTheme.base.ink)
-            Text("Headline / Semibold 17").font(StrandFont.headline).foregroundStyle(InstrumentoTheme.base.ink)
-            Text("Body / Regular 15 — the thread of you, read in full.")
-                .font(StrandFont.body).foregroundStyle(InstrumentoTheme.base.ink)
-            Text("Subhead 13").font(StrandFont.subhead).foregroundStyle(InstrumentoTheme.base.inkSecondary)
-            Text("Caption 12").font(StrandFont.caption).foregroundStyle(InstrumentoTheme.base.inkSecondary)
-            Text("Footnote 11").font(StrandFont.footnote).foregroundStyle(InstrumentoTheme.base.inkTertiary)
+    let ink = InstrumentoTheme.base.ink
+    let samples: [TypeSample] = [
+        .init(caption: "Title1", font: StrandFont.title1, dim: false),
+        .init(caption: "Headline", font: StrandFont.headline, dim: false),
+        .init(caption: "Body", font: StrandFont.body, dim: false),
+        .init(caption: "Subhead", font: StrandFont.subhead, dim: true),
+        .init(caption: "Caption", font: StrandFont.caption, dim: true),
+        .init(caption: "Footnote", font: StrandFont.footnote, dim: true),
+        .init(caption: "Mono 0x1F 0x0A crc=91b2", font: StrandFont.mono, dim: true),
+    ]
+    return ScrollView {
+        VStack(alignment: .leading, spacing: 16) {
+            ForEach(samples) { sample in
+                Text(sample.caption)
+                    .font(sample.font)
+                    .foregroundStyle(sample.dim ? InstrumentoTheme.base.inkSecondary : ink)
+            }
             Text("Overline").strandOverline()
-            Text("0xAA 41 00 1c crc32=f3a1  mono 13").font(StrandFont.mono).foregroundStyle(InstrumentoTheme.base.inkSecondary)
             HStack(spacing: 4) {
                 Text("HRV").font(StrandFont.caption).foregroundStyle(InstrumentoTheme.base.inkSecondary)
-                Text("62").font(StrandFont.bodyNumber).foregroundStyle(InstrumentoTheme.base.ink)
-                Text("ms").font(StrandFont.caption).foregroundStyle(InstrumentoTheme.base.inkTertiary)
+                Text("62").font(StrandFont.captionNumber).foregroundStyle(ink)
+                Text("ms").font(StrandFont.unit).foregroundStyle(InstrumentoTheme.base.inkTertiary)
             }
         }
         .padding(28)
         .frame(maxWidth: .infinity, alignment: .leading)
     }
-    .frame(width: 520, height: 620)
+    .frame(width: 480, height: 520)
     .background(InstrumentoTheme.base.paper)
     .preferredColorScheme(.light)
 }
