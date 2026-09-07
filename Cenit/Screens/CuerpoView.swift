@@ -816,7 +816,7 @@ private struct CuerpoLanding: View {
 
     /// El héroe del aterrizaje. **Ya no lee `recovery`**, que es `nil` en producción desde que
     /// la app dejó de tener banda (`AppleHealthImport.swift:70` y `HealthKitBridge.swift:452` lo
-    /// escriben nil, y `RecoveryScorer.recovery(...)` no tiene un solo consumidor). El número
+    /// escriben nil, y el compuesto 0–100 que lo producía se retiró por no tener consumidor). El número
     /// nunca llegaba: la pantalla llevaba meses mostrando un guion o una calibración eterna.
     ///
     /// Ahora muestra lo que la app SÍ calcula: el veredicto de Preparación de hoy. Es
@@ -1393,7 +1393,7 @@ private struct CuerpoLanding: View {
         // executor moves. Assignments return to main below, gated by `seq`.
         let engines: CuerpoLandingEngines = await Task.detached(priority: .userInitiated) { () -> CuerpoLandingEngines in
             // FER-119: el contador cuenta AHORA lo mismo que madura el veredicto. Antes salía
-            // de `RecoveryScorer.calibrationNights(nightlyHrv:)`, que cuenta noches con VFC
+            // del conteo de calibración del compuesto 0–100 (ya retirado), que cuenta noches con VFC
             // (SDNN) — pero la madurez del veredicto sale de la base de FC EN REPOSO
             // (`Preparedness.autonomicNights`, y `wHRV = 0`: la VFC de Apple ni siquiera vota).
             // Son dos constructos distintos que divergen: quien acumule noches de VFC más

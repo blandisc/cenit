@@ -42,7 +42,7 @@ final class SleepRegularityTests: XCTestCase {
         XCTAssertEqual(SleepRegularity.effectiveNightCount([]), 0)
     }
 
-    /// Apple-derived nights (real onset/wake) feed compute() exactly like strap nights — the source is
+    /// Apple-derived nights (real onset/wake) feed compute() exactly like on-device nights — the source is
     /// irrelevant to the pure engine. This is the point of FER-1026: the app now passes `appleSleeps`.
     func testComputeWorksOnAppleDerivedNights() {
         let nights = (0..<7).map { i in night(String(format: "2026-05-%02d", i + 1), onsetHour: 23, hours: 8) }

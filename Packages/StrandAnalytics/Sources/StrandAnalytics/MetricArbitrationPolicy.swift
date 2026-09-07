@@ -13,14 +13,14 @@ import Foundation
 // `kind(forKey:)` returns nil for them, so the resolver refuses to arbitrate them at all.
 //
 // What remains is the single-construct set — every source measures the SAME thing:
-//   • steps           — a daily step count (phone pedometer vs strap motion count/estimate)
+//   • steps           — a daily step count (phone pedometer vs a motion count/estimate)
 //   • sleep total     — minutes asleep for the night (comparable across sources; the stages are NOT —
 //                       same split `SourceLens.crossSourceMasked` draws, where duration survives)
 //   • active calories — a daily active-energy estimate (estimates everywhere, same construct)
 //
 // Trust tiers (lower = more trusted), grounded in what a device MEASURES vs ESTIMATES:
 //   0 — direct dedicated count/measurement for this metric
-//   1 — derived on-device from raw strap streams by NOOP
+//   1 — derived on-device from the raw streams
 //   2 — phone aggregate (Apple Health)
 //   3 — estimate / proxy
 //
@@ -67,21 +67,21 @@ public enum MetricArbitrationPolicy {
 
     /// Trust tier for a `(metric, source)` pair — lower is more trusted. Encodes the
     /// measure-vs-estimate intuition as data, consistent with the display precedence the app already
-    /// ships: Apple's pedometer count beats the strap's motion figure for steps (FER-663), the band's
+    /// ships: Apple's pedometer count beats a motion-derived figure for steps (FER-663), the wearable's
     /// sleep timeline beats phone sleep buckets (`Repository.mergeDaily`, imported > computed > Apple),
-    /// and active energy is an estimate everywhere (phone aggregate slightly over a strap HR-estimate).
+    /// and active energy is an estimate everywhere (phone aggregate slightly over an HR-based estimate).
     public static func tier(metric: MetricKind, source: FusionSource) -> Int {
         switch metric {
         case .steps:
-            // The device that ACTUALLY COUNTS steps wins; the strap figure is motion-derived.
+            // The device that ACTUALLY COUNTS steps wins; the other figure is motion-derived.
             switch source {
             case .appleHealth:  return 0   // phone pedometer — counts directly
-            case .whoopImport:  return 3   // strap step figure — motion-derived
-            case .noopComputed: return 3   // on-device strap count/estimate (steps_est on a 4.0)
+            case .whoopImport:  return 3   // an imported step figure — motion-derived
+            case .noopComputed: return 3   // an on-device count or estimate
             }
 
         case .sleep:
-            // The best sleep TIMELINE wins: imported WHOOP > NOOP-computed stager > phone buckets.
+            // The best sleep TIMELINE wins: an imported timeline > one computed on device > phone buckets.
             switch source {
             case .whoopImport:  return 0
             case .noopComputed: return 1
@@ -99,7 +99,7 @@ public enum MetricArbitrationPolicy {
     }
 
     /// Stable tiebreak WITHIN a tier (lower wins). Mirrors the merge precedence baked into
-    /// `Repository.mergeDaily`: imported WHOOP first, then NOOP-computed, then Apple Health. Used only
+    /// `Repository.mergeDaily`: imported first, then computed on device, then Apple Health. Used only
     /// when two sources land on the SAME tier, so the resolver stays deterministic.
     public static func sourcePriority(_ source: FusionSource) -> Int {
         switch source {

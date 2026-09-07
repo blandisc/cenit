@@ -2,7 +2,7 @@ import XCTest
 import StrandModels
 @testable import StrandAnalytics
 
-/// F6 («la banda nunca existió») — contrato del limpiado incondicional `clearBandColumns`/`clearBandHrv`.
+/// F6 (FER-1003, «el dispositivo nunca existió») — contrato del limpiado incondicional.
 ///
 /// F6 reemplazó la maquinaria multi-fuente de `SourceLens` (`maskForBaseline`/`maskHrv`/`keep:`) por dos
 /// helpers INCONDICIONALES — greenfield Apple-only, cada fila es Apple. El gate de ciencia (CSO + CDO)

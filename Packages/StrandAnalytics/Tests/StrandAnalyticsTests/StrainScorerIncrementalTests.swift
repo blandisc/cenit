@@ -56,7 +56,7 @@ final class StrainScorerIncrementalTests: XCTestCase {
     }
 
     func testEdwardsSparseStreamEqualsBatch() {
-        // 40 samples at 30 s cadence (WHOOP 5/MG live cadence): sparse-but-sustained (> minSpanSeconds).
+        // 40 samples at 30 s cadence (a low-cadence live source): sparse-but-sustained (> minSpanSeconds).
         let samples = series(n: 40, stepSec: 30, seed: 7)
         let batch = StrainScorer.cumulativeStrain(samples, maxHR: 188, restingHR: 55)
         XCTAssertFalse(batch.isEmpty)

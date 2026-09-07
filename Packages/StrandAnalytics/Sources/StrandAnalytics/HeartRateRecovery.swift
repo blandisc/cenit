@@ -2,7 +2,7 @@ import Foundation
 import BiometricStreams
 
 // HeartRateRecovery.swift — post-session 60-second heart-rate recovery (HRR-60s). Pure, deterministic,
-// DB-free. The safer half of FER-683's athlete pair (the strap is still and PPG is clean once the
+// DB-free. The safer half of FER-683's athlete pair (the wrist is still and PPG is clean once the
 // effort stops, unlike the in-motion window DFA-α1 needs).
 //
 // WHAT IT IS. HRR-60s is how many bpm the heart rate falls in the first minute after a hard effort
@@ -12,7 +12,7 @@ import BiometricStreams
 // HONESTY: INTRA-USER TREND, NOT COLE'S CUTOFF. The clinical literature (Cole et al., NEJM 1999;
 // abnormal ≤ 12 bpm at 1 min as a mortality predictor; Qiu et al., JAHA 2017, meta-analysis HR ~1.68)
 // derives POPULATION cut-offs from graded treadmill tests with a fixed recovery protocol. A wrist
-// strap after an arbitrary workout is NOT that protocol, so this engine NEVER applies the 12-bpm cut-off
+// wrist reading after an arbitrary workout is NOT that protocol, so this engine NEVER applies the 12-bpm cut-off
 // or any mortality framing. It reports the bpm drop and compares it ONLY to the user's OWN prior
 // sessions (a personal trend). WELLNESS / TRAINING awareness — APPROXIMATE, not a diagnosis.
 public enum HeartRateRecovery {
@@ -51,8 +51,8 @@ public enum HeartRateRecovery {
         }
     }
 
-    /// HRR-60s for a session that ended at `sessionEnd` (unix seconds — e.g. `ExerciseSession.end` from
-    /// `WorkoutDetector`), from the surrounding HR stream. The end HR is the median over
+    /// HRR-60s for a session that ended at `sessionEnd` (unix seconds — e.g. `ExerciseSession.end`),
+    /// from the surrounding HR stream. The end HR is the median over
     /// [end − 2·halfWidth, end] (looking back into the effort); the recovery HR is the median over
     /// [end + 60 − halfWidth, end + 60 + halfWidth]. Returns an uncovered result when either window is
     /// empty (a gap in the HR stream), so a missing tail never fabricates a drop.

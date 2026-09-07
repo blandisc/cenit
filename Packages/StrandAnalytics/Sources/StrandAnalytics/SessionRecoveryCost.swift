@@ -3,7 +3,7 @@ import Foundation
 // SessionRecoveryCost.swift — qualitative "recovery cost" of one strength session (FER-349).
 //
 // A TRANSPARENT, qualitative read of how much one session COST you cardiovascularly — Ligero /
-// Moderado / Alto — not a number to chase. It reads a signal the strap ALREADY produces for the
+// Moderado / Alto — not a number to chase. It reads a signal the app ALREADY produces for the
 // session (its strain, or mean %HRR as a fallback) and buckets it; it does NOT compute any new
 // physiology, and it does NOT use mechanical load (weight × reps) — that is the 1RM's job
 // (`OneRepMax`), and lifting heavy with little cardiac cost should read as light here.
@@ -21,7 +21,7 @@ import Foundation
 // A full-day strain tops out at 21 (a sustained top-zone 24 h, see StrainScorer); a single lift
 // session sits well below, so the cuts separate "low cardiac cost" from "a session that cost you".
 //
-// Honest degradation: no cardiac signal (no strap) → `nil`, and the UI does not invent a cost.
+// Honest degradation: no cardiac signal → `nil`, and the UI does not invent a cost.
 //
 // NOT a clinical claim. Pure & database-free.
 
@@ -56,7 +56,7 @@ public enum SessionRecoveryCost {
     public static let hrrLightMax    = 50.0  // %HRR < 50 → light
     public static let hrrModerateMax = 70.0  // 50 ≤ %HRR < 70 → moderate ; ≥ 70 → high
 
-    /// Qualitative cost of one session, or `nil` when there is no cardiac signal (no strap → the UI
+    /// Qualitative cost of one session, or `nil` when there is no cardiac signal (the UI
     /// does not invent a cost).
     /// - Parameters:
     ///   - sessionStrain: the session's 0–21 strain (`StrainScorer.strain` over the session window,

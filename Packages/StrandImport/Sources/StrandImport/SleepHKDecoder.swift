@@ -107,11 +107,11 @@ public enum SleepHKDecoder {
 
     /// Sleep efficiency as a **0…1 fraction** — asleep time over the session window. (FER-1006)
     ///
-    /// **The denominator is the session span, deliberately — it is the SAME construct the band
-    /// already ships.** `SleepStager.efficiency` computes `asleep / (end − start)` because a strap
-    /// has no `inBed` sample at all. Defining Apple's efficiency any other way would put two
-    /// different constructs in one column, which is the exact failure `SourceLens` exists to
-    /// prevent (FER-623/629/882).
+    /// **The denominator is the session span, deliberately.** Every other efficiency the app has
+    /// ever stored divides asleep time by `end − start`, because a wrist-only night carries no
+    /// `inBed` sample at all. Defining Apple's efficiency any other way would put two different
+    /// constructs in one column, which is the exact failure `SourceLens` exists to prevent
+    /// (FER-623/629/882).
     ///
     /// An earlier revision required a real `inBed` envelope and returned `nil` without one. That was
     /// wrong twice over: it held Apple to a purity the band does not practise, and it would have

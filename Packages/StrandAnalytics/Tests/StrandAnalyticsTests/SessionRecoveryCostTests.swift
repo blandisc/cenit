@@ -4,7 +4,7 @@ import Foundation
 
 final class SessionRecoveryCostTests: XCTestCase {
 
-    // MARK: - Honest gate (no strap → nil, UI does not invent a cost)
+    // MARK: - Honest gate (no cardiac signal → nil, the UI does not invent a cost)
 
     func testNilWhenNoSignal() {
         XCTAssertNil(SessionRecoveryCost.cost(sessionStrain: nil, meanHRRPct: nil))
@@ -75,7 +75,7 @@ final class SessionRecoveryCostTests: XCTestCase {
         XCTAssertEqual(r?.basis, .sessionStrain)
     }
 
-    func testCostForSessionWithoutStrapIsNil() {
+    func testCostForSessionWithoutCardiacSignalIsNil() {
         let session = ExerciseSession(
             start: 0, end: 1800, avgHR: 0, peakHR: 0, strain: nil,
             durationS: 1800, zoneTimePct: [:], avgHRRPct: nil,

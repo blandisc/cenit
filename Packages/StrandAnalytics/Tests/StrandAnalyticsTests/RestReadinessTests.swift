@@ -67,7 +67,7 @@ final class RestReadinessTests: XCTestCase {
     }
 
     func testNotWornForcesNoSignal() {
-        // A stale HR while the strap is off the wrist must not drive readiness.
+        // A stale HR while the device is off the wrist must not drive readiness.
         let r = RestReadinessRule.evaluate(currentHR: 70, worn: false, restingHR: resting, elapsedS: 60)
         XCTAssertNil(r.bpmToReady)
         XCTAssertEqual(r.state, .noSignal)

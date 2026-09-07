@@ -4,7 +4,7 @@ import StrandModels
 
 // Synthetic validation suite for the InsightEngine (FER-290).
 //
-// No real WHOOP data exists yet, so every dataset here is generated with a known
+// No real recorded data exists yet, so every dataset here is generated with a known
 // ground truth and a deterministic seeded RNG: a planted effect MUST be recovered,
 // pure noise MUST NOT be reported as significant (with the family-wise false-positive
 // rate held near α after FDR), and a known trend MUST forecast the right direction.

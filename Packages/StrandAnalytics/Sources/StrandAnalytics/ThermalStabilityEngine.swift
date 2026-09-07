@@ -5,7 +5,7 @@ import BiometricStreams
 // stability. Pure, deterministic, DB-free. The NIGHT-TIME arm of the circadian thermal oscillation —
 // the only arm an at-sleep wrist sensor can honestly see (FER-681).
 //
-// SENSOR HONESTY (the load-bearing constraint). NOOP has skin temperature only WHILE ASLEEP (the band
+// SENSOR HONESTY (the load-bearing constraint). Cénit has skin temperature only WHILE ASLEEP (the sensor
 // is worn to bed), so it CANNOT fit a 24 h cosinor and MUST NOT claim a "24 h circadian amplitude".
 // What it can measure is the distal WARMING that accompanies sleep onset — wrist skin temperature
 // rises as core temperature falls and distal vasodilation dumps heat (Kräuchi et al., "Warm feet
@@ -66,8 +66,8 @@ public enum ThermalStabilityEngine {
     /// consistency descriptor of the user's own nightly warming. CV = σ / typical. PRODUCT-CALIBRATION,
     /// NOT VALIDATED: these cutoffs (and `warmingCfg.floorSpread` below, which claims to resolve
     /// ~0.1 °C of night-to-night dispersion) are chosen for a sensible descriptor, not validated against
-    /// the WHOOP skin-temp sensor's real noise floor. Before this band is ever SHOWN, the floor and
-    /// cutoffs must be checked against the strap's actual skin-temp resolution (see FER-681 follow-up).
+    /// the sensor's real noise floor. Before this band is ever SHOWN, the floor and
+    /// cutoffs must be checked against the sensor's actual skin-temp resolution (see FER-681 follow-up).
     public static let consistentMaxCV: Double = 0.20
     public static let variableMinCV: Double = 0.40
 

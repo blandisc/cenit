@@ -4,7 +4,7 @@ import XCTest
 /// ActivityCostEngine — "what each activity is associated with for your recovery".
 ///
 /// These fixtures exercise the ADJUSTED method (FER-123), which deliberately departs from
-/// the upstream NoopApp/noop engine after an expert review of the statistics:
+/// the upstream engine after an expert review of the statistics:
 ///   • robust MEDIAN center (not the arithmetic mean),
 ///   • minSessions = 6 (was 4),
 ///   • barelyMovesPoints = 3.0 (was 1.0),

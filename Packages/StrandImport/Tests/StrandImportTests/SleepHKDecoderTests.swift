@@ -179,8 +179,8 @@ final class SleepHKDecoderTests: XCTestCase {
         XCTAssertEqual(eff, 0.875, accuracy: 0.001)
     }
 
-    /// Without `inBed` the denominator falls back to the session span — which is EXACTLY what the
-    /// band does (`SleepStager.efficiency` divides by `end − start`; a strap has no `inBed` sample).
+    /// Without `inBed` the denominator falls back to the session span — EXACTLY what every other
+    /// stored efficiency does: asleep over `end − start`, since a wrist-only night has no `inBed`.
     /// This is the coverage case that matters: `inBed` is not written by Apple Watch sleep tracking,
     /// it comes from the iPhone's Sleep Schedule or third-party apps, so an Apple-Watch-only user can
     /// have none. Requiring it would leave exactly those users capped at 2 of 3 recovery drivers.

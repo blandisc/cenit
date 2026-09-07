@@ -11,7 +11,7 @@ import Foundation
 //     coefficients (FER-657). (The BMI-variant coefficients that circulate from a 2019 secondary source
 //     were NOT reliably confirmable against the original and are deliberately NOT used here.)
 //   • Physical-activity index: HUNT1 PA-Q (Kurtze 2008), frequency×intensity×duration ∈ [0, 15];
-//     NOOP has no questionnaire, so it RECONSTRUCTS each factor from measured weekly signals.
+//     Cénit has no questionnaire, so it RECONSTRUCTS each factor from measured weekly signals.
 //   • Fitness Age: invert the SAME Nes equation self-consistently — the normative curve is the Nes
 //     model at population-reference resting HR and PA-index. The body term (waist) appears in both the
 //     user's estimate and the normative curve, so it CANCELS: Fitness Age depends only on how the
@@ -20,14 +20,14 @@ import Foundation
 //     own chronological age by construction. (We do NOT mix in a different population's reference
 //     curve — e.g. the US FRIEND equation — because the scale offset would bias everyone by ~15 yr.)
 //
-// ── NOOP domain-transfer corrections (FER-122) ──────────────────────────────────────────────────
-// The Nes model was calibrated on HUNT questionnaire inputs (SEATED resting HR, a PA-Q score). NOOP
+// ── Domain-transfer corrections (FER-122) ───────────────────────────────────────────────────────
+// The Nes model was calibrated on HUNT questionnaire inputs (SEATED resting HR, a PA-Q score). Cénit
 // feeds it on-device wearable signals from a different domain, so three corrections keep it honest;
 // each is documented at its call site and verified by a test:
 //
 //   1. RESTING-HR DOMAIN. Nes/CERG use SEATED resting HR ("sit quietly 10 min, then count your pulse").
-//      WHOOP reports NOCTURNAL resting HR, which runs ~10–15% (≈7 bpm) below seated resting (nocturnal
-//      dip; Sleep Foundation; Dial et al. 2025 confirms WHOOP tracks nocturnal RHR accurately vs ECG —
+//      The stored resting HR is NOCTURNAL, and nocturnal runs ~10–15% (≈7 bpm) below seated resting
+//      (nocturnal dip; Sleep Foundation; Dial et al. 2025 validates wrist nocturnal RHR against ECG —
 //      the gap is the DOMAIN, not the device). Feeding nocturnal RHR against a SEATED reference (the
 //      original 65) would read every user ~0.52 yr/bpm × 7 ≈ 3.7 yr too YOUNG. Fix: the engine's RHR
 //      contract is NOCTURNAL throughout, `restingHRReference` is re-anchored to the nocturnal domain
@@ -36,7 +36,7 @@ import Foundation
 //      BOTH terms nocturnal, the additive dip cancels and the delta is unbiased.
 //
 //   2. ACTIVITY SCALE. The upstream engine assumed a 0–100 strain scale; THIS repo's StrainScorer is
-//      0–21 (WHOOP's Strain axis). `physicalActivityIndexFromStrain` is recalibrated to 0–21 so a real
+//      0–21 (the load axis this app publishes). `physicalActivityIndexFromStrain` is recalibrated to 0–21 so a real
 //      workout no longer reads as sedentary (see that function). The scale itself is scientifically
 //      neutral; the strain→PA-index bridge is an UNVALIDATED heuristic in any scale, so activity is a
 //      SOFT input — resting HR (a direct, validated Nes predictor) drives the headline, and sparse
@@ -68,7 +68,7 @@ public enum FitnessAgeEngine {
 
     // MARK: - Normative reference point (the "average peer" the Fitness Age compares against)
     /// Population-reference NOCTURNAL resting HR (bpm) — an average healthy adult, in the same domain
-    /// WHOOP measures. Equals the Nes/CERG seated anchor (65) minus the 7-bpm nocturnal dip. At this RHR
+    /// this app measures. Equals the Nes/CERG seated anchor (65) minus the 7-bpm nocturnal dip. At this RHR
     /// + paiReference a person's Fitness Age equals their chronological age by construction.
     public static let restingHRReference = 58.0
     /// Population-reference PA-index (0–15): ≈ "moderately active, a few sessions a week".
@@ -99,7 +99,7 @@ public enum FitnessAgeEngine {
     }
 
     /// Nes 2011 waist-variant VO₂max (ml/kg/min). Optional display metric — needs a waist measurement.
-    /// `restingHR` is the NOCTURNAL RHR (WHOOP domain); it is converted to the seated-equivalent the Nes
+    /// `restingHR` is the NOCTURNAL RHR (a different domain); it is converted to the seated-equivalent the Nes
     /// equation expects (correction #1), so the reference peer (nocturnal 58) reproduces the classic
     /// seated-65 value. This absolute estimate is coarse (SEE ≈5–6 ml/kg/min) — present it without the
     /// ±5 age band (correction #3).
@@ -153,7 +153,7 @@ public enum FitnessAgeEngine {
         return frequency * intensity * duration
     }
 
-    /// PA-index (0–15) from NOOP's measured weekly load — the UNIVERSAL path the orchestrator uses
+    /// PA-index (0–15) from the measured weekly load — the UNIVERSAL path the orchestrator uses
     /// (works on any device, since `strain` is computed from HR alone; HR-zone minutes only exist for
     /// CSV-importers). `strain` (0–21 logarithmic, this repo's StrainScorer) already integrates intensity
     /// × duration, so we map the mean active-day strain straight to the HUNT intensity×duration PRODUCT
@@ -180,7 +180,7 @@ public enum FitnessAgeEngine {
         return frequency * intensityDuration
     }
 
-    /// Full Fitness Age from already-aggregated weekly inputs. `restingHR` is NOCTURNAL (WHOOP domain).
+    /// Full Fitness Age from already-aggregated weekly inputs. `restingHR` is NOCTURNAL, not seated.
     /// Returns nil only if RHR or age is missing (the headline number needs nothing else). `vo2max` is
     /// filled only when a waist measurement is supplied; callers gate data-coverage (≥4 of 7 days)
     /// separately.

@@ -13,7 +13,7 @@ import XCTest
 // `swift test` loop with no simulator/app build needed.
 //
 // FER-184 also rewrote every "band" mention in the sheet to "Apple Watch" (Cénit never shipped a
-// strap; the copy used to imply one) and added the real Apple Watch coverage limits (Series 8+/Ultra,
+// device; the copy used to imply one) and added the real Apple Watch coverage limits (Series 8+/Ultra,
 // worn to bed, ~5 nights to start) to the learning/no-signal states. Both are guarded here too.
 final class CyclePhaseCopyGuardTests: XCTestCase {
 
@@ -75,7 +75,7 @@ final class CyclePhaseCopyGuardTests: XCTestCase {
 
     // MARK: - FER-184: no band left in the copy
 
-    /// FER-184 moved the input from a discontinued strap to the Apple Watch's own wrist temperature.
+    /// FER-184 moved the input from a discontinued device to the Apple Watch's own wrist temperature.
     /// Every "band" mention — copy AND comments — must be gone: this is the honesty bug the issue
     /// exists to fix (naming hardware no Cénit user was ever sold).
     func testNoBandMentionsRemain() throws {

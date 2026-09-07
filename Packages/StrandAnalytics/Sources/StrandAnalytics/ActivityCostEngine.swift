@@ -60,7 +60,7 @@ import Foundation
 /// Charge tends to sit after a session of this sport, and how long it tends to take to
 /// climb back. Descriptive association over your own history — not a causal cost.
 public struct ActivityCost: Equatable, Sendable {
-    /// The sport key (raw WHOOP sport / activity name, as tagged on the day).
+    /// The sport key (the raw sport / activity name, as tagged on the day).
     public let sport: String
     /// Signed gap in Charge points: baselineCenter − nextMorningCenter. Positive = the
     /// morning after tends to sit BELOW your rest baseline. Association, not a causal cost.

@@ -11,7 +11,7 @@ import StrandModels
 // predicts all-cause mortality ABOVE sleep duration — which is why `VitalityEngine`'s regularity
 // hazard wants a real SRI, not the duration proxy it ships with.
 //
-// Pure, database-free. NOOP only records during sleep sessions (the strap is a night wearable, not
+// Pure, database-free. Cénit only records during sleep sessions (the source is a night wearable, not
 // 24/7 actigraphy), so this compares CONSECUTIVE nights over a ±12 h window around each night's
 // onset — where coverage exists on both days — instead of a continuous round-the-clock timeline.
 // Daytime (awake on both days → a match) and missing nights (the 24 h pairing is skipped) are

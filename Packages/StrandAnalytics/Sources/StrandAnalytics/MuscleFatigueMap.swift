@@ -1,9 +1,9 @@
 import Foundation
 
-// MuscleFatigueMap.swift — per-muscle training load / freshness, crossed with the strap's
+// MuscleFatigueMap.swift — per-muscle training load / freshness, crossed with the
 // systemic recovery (FER-350). The jewel of the loop: which muscles are loaded vs fresh, and
-// what's safe to train today — something a tracker without a strap (Fitbod) and a strap without
-// set logging (WHOOP) each can't do alone.
+// what's safe to train today — something a set logger with no cardiac signal, and a cardiac wearable with no
+// set logging, each can't do alone.
 //
 // TRANSPARENT & cited, no black box:
 //
@@ -47,7 +47,7 @@ import Foundation
 //        training volume and increases in muscle mass: a systematic review and meta-analysis."
 //        J Sports Sci 35(11):1073–82, 2017.
 //
-//   • The recommendation crosses local freshness with the strap's systemic recovery (0–100,
+//   • The recommendation crosses local freshness with a systemic recovery score (0–100,
 //     same red/yellow/green bands as `RecoveryScorer`): a low recovery day gates everything to
 //     rest regardless of how fresh a muscle is.
 //
@@ -234,7 +234,7 @@ public enum MuscleFatigueMap {
 
     // MARK: - Cross with systemic recovery
 
-    /// Per-muscle readiness, crossing local freshness with the strap's systemic recovery (0–100,
+    /// Per-muscle readiness, crossing local freshness with a systemic recovery score (0–100,
     /// nil when there's no recovery score yet). Red-band recovery gates everything to `rest`.
     public static func readiness(state: LoadState, recovery: Double?) -> Readiness {
         if let r = recovery, r < recoveryRedMax { return .rest }

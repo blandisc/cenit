@@ -6,7 +6,7 @@ import BiometricStreams
 ///
 /// Method: median HR at cessation minus median HR at +60 s (windowed to denoise), then an INTRA-USER
 /// trend vs the person's own prior sessions (robust σ, shared with IllnessWatch). Never Cole's
-/// population 12-bpm cut-off (NEJM 1999) — a wrist strap after an arbitrary workout isn't that protocol.
+/// population 12-bpm cut-off (NEJM 1999) — a wrist reading after an arbitrary workout isn't that protocol.
 final class HeartRateRecoveryTests: XCTestCase {
 
     /// Constant HR before `end`, decaying after, so the drop is exact and known.

@@ -15,7 +15,7 @@ import Foundation
 // of one proven lever, already oriented toward "better" (positive for higher-is-better metrics like
 // recovery/HRV, negative for lower-is-better metrics like resting HR). So a single projector serves
 // every focus, and the lever path is just the baseline shifted by that delta. The same value types
-// (`DailyMetric` fields) feed it whether the source is the strap, backfill, or an import.
+// (`DailyMetric` fields) feed it whether the source is live capture, backfill, or an import.
 //
 // The model (simple on purpose, honest by the band)
 // -------------------------------------------------

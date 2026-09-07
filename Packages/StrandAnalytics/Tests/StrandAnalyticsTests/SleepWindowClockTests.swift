@@ -5,7 +5,7 @@ import StrandModels
 /// FER-154 — `SleepWindowClock.recent` turns the most recent sleep session into local
 /// clock hours for the DiurnalDial's sleep band. Pure (clock injected), so every claim
 /// — correct hours, honest midnight crossing, time-zone dependence, freshness gate,
-/// most-recent selection, empty → nil — is asserted without an app or a strap.
+/// most-recent selection, empty → nil — is asserted without an app or any hardware.
 final class SleepWindowClockTests: XCTestCase {
 
     private func utc() -> Calendar {

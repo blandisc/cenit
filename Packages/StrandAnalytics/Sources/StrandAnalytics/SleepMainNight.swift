@@ -5,7 +5,7 @@ import Foundation
 // Both schedule-regularity engines — `SleepRegularity` (SD of the mid-sleep point) and
 // `SleepRegularityIndex` (SRI, asleep/awake concordance 24 h apart) — measure how CONSISTENT the
 // timing of the *main* sleep period is, night to night. A nap is a short daytime sleep that
-// `SleepStager.detectSleep` keeps on purpose (#90); its mid-point sits ~11 h from the nocturnal
+// sleep detection keeps on purpose (FER-90); its mid-point sits ~11 h from the nocturnal
 // mid-sleep, which is near anti-phase on the 24 h circle and would blow up the SD / tank the SRI
 // (13 perfectly steady nights + one 2 h nap → SD 126.9 min, score 0). So a nap must NOT count as a
 // "night" when scoring schedule regularity.

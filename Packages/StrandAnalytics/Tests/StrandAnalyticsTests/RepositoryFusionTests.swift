@@ -42,7 +42,7 @@ final class RepositoryFusionTests: XCTestCase {
     }
 
     func testStepsEstFillsWhenNoRealCounter() {
-        // WHOOP 4.0: no strap counter — the on-device estimate is the strap-side input.
+        // The older device had no step counter — the on-device estimate is that source's input.
         let f = SourceFusion.fusionByDay(imported: [], computed: [dm("2026-07-04")],
                                        apple: [],
                                        appleAgg: [agg("2026-07-04", steps: 8000)],

@@ -129,9 +129,9 @@ public enum FusionResolver {
 /// Where a fused number came from — the three sources this app actually writes. A future extra
 /// source (another band, another importer) is a new case + policy table entries, not a redesign.
 public enum FusionSource: String, Equatable, Sendable, CaseIterable, Codable {
-    /// Imported WHOOP record (CSV/zip export under the strap's raw deviceId).
+    /// A record imported from a third-party export, under that source's own raw deviceId.
     case whoopImport
-    /// On-device computed row derived from the raw strap streams (the "-noop" sibling deviceId).
+    /// A row computed on the device from the raw streams (the sibling deviceId the store derives).
     case noopComputed
     /// Apple Health aggregate ("apple-health").
     case appleHealth
