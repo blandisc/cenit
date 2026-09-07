@@ -15,8 +15,10 @@ import Foundation
 /// Everything the Fitness Age UI needs in one coherent snapshot: the computed result (when we have
 /// enough), the readiness checklist + confidence, and the aggregates the detail screen displays.
 public struct FitnessAgeSnapshot: Equatable, Sendable {
-    /// The computed Fitness Age — nil exactly when `readiness.confidence == .notReady` (a required
-    /// input is missing), so the UI shows the empty/checklist state instead of a made-up number.
+    /// The computed Fitness Age — nil when `readiness.confidence == .notReady` (a required input is
+    /// missing) OR when the profile age falls outside the engine's validated domain [minAge, maxAge]
+    /// (FER-469: `compute` returns nil there), so the UI shows the empty/checklist state instead of a
+    /// made-up number.
     public let result: FitnessAgeResult?
     /// The transparency checklist + overall confidence (`ready` / `estimate` / `notReady`).
     public let readiness: FitnessAgeReadiness

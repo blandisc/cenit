@@ -186,7 +186,10 @@ public enum FitnessAgeEngine {
     /// separately.
     public static func compute(age: Double, sex: String, restingHR: Double, paIndex: Double,
                                waistCm: Double? = nil, lowerConfidence: Bool = false) -> FitnessAgeResult? {
-        guard age > 0, restingHR > 0 else { return nil }
+        // FER-469: el modelo (Nes 2011 / HUNT) está ajustado para adultos [minAge, maxAge]. Fuera de
+        // ese rango extrapola y, con el clamp de salida, produciría un veredicto FALSO («7 años mayor
+        // que tu edad de 13»). No devolver un número inválido: la UI muestra su estado sin-dato.
+        guard age >= minAge, age <= maxAge, restingHR > 0 else { return nil }
         let fa = fitnessAge(age: age, sex: sex, restingHR: restingHR, paIndex: paIndex)
         let vo2: Double?
         if let w = waistCm, w > 0 {

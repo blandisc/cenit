@@ -273,4 +273,17 @@ final class VitalityEngineTests: XCTestCase {
                                           rmssd: 30, rmssdNorm: 33, steps: 6000)
         XCTAssertTrue(VitalityEngine.compute(noRHR)!.isPartialEstimate)
     }
+
+    // FER-469: fuera del dominio validado (UK Biobank), `compute` devuelve nil aunque sobren factores —
+    // no una «edad corporal» extrapolada y afirmada como válida.
+    func testComputeRejectsAgeOutsideValidatedDomain() {
+        func inputs(_ age: Double) -> VitalityEngine.Inputs {
+            VitalityEngine.Inputs(chronoAge: age, restingHR: 58, vo2max: 40, expectedVO2max: 40,
+                                  sleepHours: 7.0, sleepConsistency: 0.60, rmssd: 33, rmssdNorm: 33, steps: 8500)
+        }
+        XCTAssertNil(VitalityEngine.compute(inputs(13)), "chronoAge < minBodyAge (20) → sin edad corporal")
+        XCTAssertNil(VitalityEngine.compute(inputs(95)), "chronoAge > maxBodyAge (90) → sin edad corporal")
+        XCTAssertNotNil(VitalityEngine.compute(inputs(VitalityEngine.minBodyAge)), "borde inferior sí calcula")
+        XCTAssertNotNil(VitalityEngine.compute(inputs(VitalityEngine.maxBodyAge)), "borde superior sí calcula")
+    }
 }
