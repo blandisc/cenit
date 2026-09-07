@@ -34,16 +34,17 @@ HEART_RATE_EXTRA = ("heart_rate", "Heart Rate (intradía)")
 
 # `ExploreRange.label` exacto — el arg `-noop.range` (`TendenciasFixtures.debugRange()`) solo
 # reconoce estos 6 valores.
-RANGES = ["W", "M", "3M", "6M", "1Y", "ALL"]
+# Rangos a capturar. Por defecto (versión LIGERA, decisión del dueño 2026-09-06) UN solo rango: la
+# misma métrica en semana/mes/3 meses se veía casi igual y no aportaba — no repetimos por rango. Con
+# `--full` vuelve la matriz de los 6 rangos de `ExploreRange` (regenerar es trivial).
+FULL_RANGES = ["W", "M", "3M", "6M", "1Y", "ALL"]
+DEFAULT_RANGE = "M"          # el rango por defecto del app (mes)
+RANGES = [DEFAULT_RANGE]     # se sobreescribe a FULL_RANGES con --full en main()
 
-# Los 4 estados del detalle de métrica (decisión del dueño). `focus` es la profundidad de Hoy
-# (TodayView) — Cuerpo abre `MetricDetailScreen` siempre en `.full`, y el `MetricDetailView` genérico
-# del Explorador no tiene noción de profundidad — así que TODO nodo `focus` queda `omitido` (sin
-# palanca en esta familia, no es un hueco: es una imposibilidad estructural documentada).
-STATES = ["full", "focus", "sin-lecturas", "calibrando"]
-FOCUS_OMITIDO = ("Cuerpo abre MetricDetailScreen siempre en depth:.full (detailOverlayContent) — "
-                  "y el MetricDetailView genérico del Explorador no tiene noción de profundidad. "
-                  "«focus» es exclusivo de TodayView/Hoy (otra familia); sin palanca aquí.")
+# Estados del detalle de métrica que SÍ tienen palanca en esta familia: con datos, vacío, calibrando.
+# `focus` (la profundidad de Hoy/TodayView) NO existe en Cuerpo — `MetricDetailScreen` abre siempre en
+# `.full` — así que ya no se emite (antes era un nodo `omitido` por métrica, puro relleno gris).
+STATES = ["full", "sin-lecturas", "calibrando"]
 
 
 def slug_range(r: str) -> str:
@@ -104,9 +105,7 @@ def metric_nodes(catalog: list[tuple[str, str]]) -> list[dict]:
                     "png": f"tendencias-detalle-{slug_key(key)}-{slug_range(r)}-{state}.png",
                     "x": col_i * 380, "y": 200 + row_i * 260 + (0 if state == "full" else 60),
                 }
-                if state == "focus":
-                    node["omitido"] = FOCUS_OMITIDO
-                elif state == "full":
+                if state == "full":
                     node["fixture"] = "tendencias_full"
                 elif state == "calibrando":
                     node["fixture"] = "tendencias_calibrando"
@@ -159,38 +158,37 @@ def aux_nodes() -> list[dict]:
 def edges(catalog: list[tuple[str, str]]) -> list[dict]:
     """Aristas ilustrativas del flujo (landing → detalle → comparar/explorar) — no exhaustivas: la
     matriz tiene ~870 nodos, enumerar cada transición sería ruido, no señal."""
+    d = slug_range(DEFAULT_RANGE)
     out = [
-        {"de": "cuerpo-m", "a": "detalle-hrv-m-full", "etiqueta": "toca HRV"},
-        {"de": "cuerpo-m", "a": "detalle-vo2max-m-full", "etiqueta": "toca VO₂max"},
-        {"de": "cuerpo-m", "a": "comparar-full", "etiqueta": "Comparar"},
-        {"de": "cuerpo-m", "a": "explorar-full", "etiqueta": "Ver todas las métricas"},
-        {"de": "cuerpo-m", "a": "actividad-full", "etiqueta": "Cómo despiertas por deporte"},
-        {"de": "cuerpo-m", "a": "edad-fisica-full", "etiqueta": "Edad física"},
-        {"de": "cuerpo-m", "a": "edad-corporal-full", "etiqueta": "Edad corporal"},
-        {"de": "explorar-full", "a": "detalle-weight-m-full", "etiqueta": "fila → detalle genérico"},
-        {"de": "cuerpo-w", "a": "cuerpo-m", "etiqueta": "cambia rango"},
-        {"de": "cuerpo-m", "a": "cuerpo-3m", "etiqueta": "cambia rango"},
+        {"de": f"cuerpo-{d}", "a": f"detalle-hrv-{d}-full", "etiqueta": "toca HRV"},
+        {"de": f"cuerpo-{d}", "a": f"detalle-vo2max-{d}-full", "etiqueta": "toca VO₂max"},
+        {"de": f"cuerpo-{d}", "a": "comparar-full", "etiqueta": "Comparar"},
+        {"de": f"cuerpo-{d}", "a": "explorar-full", "etiqueta": "Ver todas las métricas"},
+        {"de": f"cuerpo-{d}", "a": "actividad-full", "etiqueta": "Cómo despiertas por deporte"},
+        {"de": f"cuerpo-{d}", "a": "edad-fisica-full", "etiqueta": "Edad física"},
+        {"de": f"cuerpo-{d}", "a": "edad-corporal-full", "etiqueta": "Edad corporal"},
+        {"de": "explorar-full", "a": f"detalle-weight-{d}-full", "etiqueta": "fila → detalle genérico"},
     ]
-    # Cada rango del landing enlaza a su propio detalle de HRV en el mismo rango — muestra que el
-    # selector de rango del landing y el del detalle son independientes pero comparables.
-    for r in RANGES:
-        out.append({"de": f"cuerpo-{slug_range(r)}", "a": f"detalle-hrv-{slug_range(r)}-full",
-                    "etiqueta": f"HRV en {r}"})
+    # Aristas de «cambia rango» entre landings consecutivos — solo tienen sentido con --full (varios
+    # rangos); con un solo rango no hay transición que mostrar.
+    for a, b in zip(RANGES, RANGES[1:]):
+        out.append({"de": f"cuerpo-{slug_range(a)}", "a": f"cuerpo-{slug_range(b)}", "etiqueta": "cambia rango"})
     return out
 
 
 def main() -> None:
     catalog = read_catalog()
     nodos = landing_nodes() + metric_nodes(catalog) + aux_nodes()
+    rangos_txt = "×".join(RANGES) if len(RANGES) > 1 else RANGES[0]
     manifest = {
         "familia": "tendencias",
         "titulo": "Tendencias · Cuerpo",
         "unidad": "estados",
-        "blurb": ("Landing de Cuerpo × 6 rangos + detalle de métrica MATRIZ COMPLETA: las "
-                  f"{len(catalog)} métricas de MetricCatalog × 6 rangos (W/M/3M/6M/1Y/ALL) × 4 "
-                  "estados (full/focus/sin-lecturas/calibrando) — decisión del dueño, sin muestreo. "
-                  "Más Comparar/Explorar/ActivityRecovery/Fitness Age/Body Age. Ciclo omitido (vive "
-                  "en la familia Ajustes)."),
+        "blurb": (f"Landing de Cuerpo + detalle de cada una de las {len(catalog)} métricas de "
+                  f"MetricCatalog en su rango por defecto ({rangos_txt}) × {len(STATES)} estados "
+                  "(con datos / sin lecturas / calibrando). Versión ligera: sin repetir por rango "
+                  "(regenerar con --full para los 6 rangos). Más Comparar/Explorar/ActivityRecovery/"
+                  "Fitness Age/Body Age. Ciclo omitido (vive en la familia Ajustes)."),
         "nodos": nodos,
         "aristas": edges(catalog),
     }
@@ -199,11 +197,18 @@ def main() -> None:
 
     omitidos = [n for n in nodos if "omitido" in n]
     print(f"gen-mapa-tendencias: {len(catalog)} métricas ({len(RICH_KEYS)} rutas ricas, "
-          f"{len(catalog) - len(RICH_KEYS)} vía Explorar) × {len(RANGES)} rangos × {len(STATES)} estados")
+          f"{len(catalog) - len(RICH_KEYS)} vía Explorar) × {len(RANGES)} rango(s) × {len(STATES)} estados")
     print(f"  {len(nodos)} nodos totales → {OUT_PATH.relative_to(REPO_ROOT)}")
-    print(f"  {len(omitidos)} omitidos ({len(omitidos) - 1} por «focus», 1 Ciclo)")
+    print(f"  {len(omitidos)} omitidos (Ciclo)")
     print(f"  {len(nodos) - len(omitidos)} capturables")
 
 
 if __name__ == "__main__":
+    import argparse
+    ap = argparse.ArgumentParser(description="Genera docs/appmap/mapa/tendencias.json")
+    ap.add_argument("--full", action="store_true",
+                    help="matriz completa: los 6 rangos de ExploreRange (default: solo el rango por defecto)")
+    a = ap.parse_args()
+    if a.full:
+        RANGES = FULL_RANGES
     main()

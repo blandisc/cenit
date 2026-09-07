@@ -10,7 +10,10 @@ import Foundation
 /// compartido `ScreenshotFixtures.swift` (evita que seis lanes colisionen en un hot file).
 enum FixtureRegistry {
     /// Siembra un estado sobre el `AppModel` (mismo contrato que `ScreenshotFixtures.seed`).
-    typealias Seed = (AppModel) async -> Void
+    /// **`@MainActor`**: sembrar toca estado aislado al main actor de `AppModel` (p. ej.
+    /// `strengthSession`, `runs`), así que el cierre corre en el main actor — como `ScreenshotFixtures.seed`,
+    /// que ya es `@MainActor`. Sin esto, un fixture que muta esas propiedades no compila (FER-381).
+    typealias Seed = @MainActor (AppModel) async -> Void
 
     /// Todos los estados registrados, unidos de cada familia. Una colisión de nombre entre familias es
     /// un bug de autoría (dos familias reclaman el mismo estado) — se marca fuerte en DEBUG.
@@ -33,6 +36,7 @@ enum FixtureRegistry {
 
     /// Siembra el estado si alguna familia lo registró. `true` = lo tomó (el caller no sigue con su
     /// propio switch); `false` = nombre desconocido (es un estado histórico de `ScreenshotFixtures`).
+    @MainActor
     static func seed(named state: String, _ model: AppModel) async -> Bool {
         guard let seed = all[state] else { return false }
         await seed(model)
