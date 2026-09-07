@@ -23,9 +23,15 @@ import AppKit
 
 // MARK: sRGB hex + WCAG contrast (self-contained; no internal CenitDesign API)
 
+// FER-451: los tokens `LiquidTheme.dynamic` se resuelven con la apariencia del HOST vía `NSColor(_:)`.
+// En un Mac en modo oscuro el generador escupía los hex OSCUROS (tinta900 → #ECE9E0) y el diff de
+// CATALOGO.md / design-tokens.json era ruido. Los docs describen el modo claro (el lienzo canónico
+// es blanco): se resuelve explícito en `.light`, como los tests del paquete (FER-448).
+func claro(_ c: Color) -> Color { c.resolved(at: .light) }
+
 func srgb(_ c: Color) -> (r: Double, g: Double, b: Double) {
     #if canImport(AppKit)
-    let ns = NSColor(c).usingColorSpace(.sRGB) ?? NSColor(c)
+    let ns = NSColor(claro(c)).usingColorSpace(.sRGB) ?? NSColor(claro(c))
     return (Double(ns.redComponent), Double(ns.greenComponent), Double(ns.blueComponent))
     #else
     return (0, 0, 0)
@@ -39,7 +45,7 @@ func hex(_ c: Color) -> String {
 /// sRGB alpha component (0…1). NSColor keeps it even after `.usingColorSpace(.sRGB)`.
 func alpha(_ c: Color) -> Double {
     #if canImport(AppKit)
-    let ns = NSColor(c).usingColorSpace(.sRGB) ?? NSColor(c)
+    let ns = NSColor(claro(c)).usingColorSpace(.sRGB) ?? NSColor(claro(c))
     return Double(ns.alphaComponent)
     #else
     return 1
@@ -102,7 +108,7 @@ let roles: [Role] = [
     Role(key: "moderate",         color: t.moderate,         isSurface: true,  desc: "«moderado» lane fill (FER-708)"),
     Role(key: "dataSleepDeep",    color: t.dataSleepDeep,    isSurface: true,  desc: "deep-sleep stage fill (FER-708)"),
     Role(key: "dataSleepLight",   color: t.dataSleepLight,   isSurface: true,  desc: "light-sleep stage fill (FER-708)"),
-    Role(key: "originBand",       color: t.originBand,       isSurface: true,  desc: "data-origin dot — strap/band (= dataRecovery) (FER-708)"),
+    Role(key: "originBand",       color: t.originBand,       isSurface: true,  desc: "data-origin dot — band (= dataRecovery) (FER-708)"),
     Role(key: "originApple",      color: t.originApple,      isSurface: true,  desc: "data-origin dot — Apple Salud (= dataSpO2) (FER-708)"),
     Role(key: "originComputed",   color: t.originComputed,   isSurface: true,  desc: "data-origin dot — computed on-device (= inkMuted) (FER-708)"),
 ]
