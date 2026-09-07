@@ -33,8 +33,10 @@ struct SavedTicketsRoute: Hashable {}
     /// A just-deleted session + its sets, kept so «Undo» can restore it intact (reused from FER-527).
     struct DeletedSession: Identifiable, Equatable {
         let id = UUID()
-        let session: StrengthSession
-        let sets: [SetEntry]
+        // FER-406: guarda el SNAPSHOT completo (sesión, series, opt-outs, notas y pulso crudo) para que
+        // «Deshacer» restaure todo, no solo la sesión y sus series. Equatable por id (el snapshot no lo es).
+        let snapshot: CenitStore.DeletedStrengthSession
+        static func == (a: DeletedSession, b: DeletedSession) -> Bool { a.id == b.id }
     }
     @Published var pendingUndo: DeletedSession?
     /// Bumped after an edit/delete deeper in the stack so the list refreshes when shown again.
@@ -1286,7 +1288,7 @@ struct WorkoutHistoryScreen: View {
     private func undoDelete(_ d: WorkoutHistoryCoordinator.DeletedSession) {
         Task {
             do {
-                try await repo.saveSession(d.session, sets: d.sets)   // re-saving re-derives its PRs
+                try await repo.restoreDeletedSession(d.snapshot)   // FER-406: restaura TODO (notas/opt-outs/HR), no solo sesión+series
                 await load()
                 withAnimation { coordinator.pendingUndo = nil }
             } catch {
@@ -1798,12 +1800,13 @@ struct WorkoutSessionDetailScreen: View {
     /// FER-969: on failure stay on the detail — no optimistic pop, no pendingUndo.
     private func performDelete() {
         Task {
-            let sets = allSets.isEmpty ? await repo.sessionSets(sessionId: route.id) : allSets
             do {
-                try await repo.deleteSession(id: route.id)
-                let session = fullSession ?? StrengthSession(id: route.id, startTs: route.startTs,
-                                                             endTs: route.endTs, strain: route.strain, avgHr: route.avgHr)
-                coordinator.pendingUndo = .init(session: session, sets: sets)
+                // FER-406: `deleteSession` devuelve el snapshot COMPLETO de lo que borró (sesión, series,
+                // opt-outs, notas, pulso crudo). «Deshacer» lo restaura verbatim; antes solo re-guardaba
+                // sesión+series y perdía en silencio notas, opt-outs y HR.
+                if let snapshot = try await repo.deleteSession(id: route.id) {
+                    coordinator.pendingUndo = .init(snapshot: snapshot)
+                }
                 coordinator.bumpReload()
                 dismiss()
             } catch {

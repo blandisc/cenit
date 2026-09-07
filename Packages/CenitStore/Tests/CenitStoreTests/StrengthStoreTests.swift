@@ -1539,4 +1539,54 @@ final class StrengthStoreTests: XCTestCase {
         XCTAssertEqual(stats.total, 1, "the exercise still has a PR ever")
         XCTAssertEqual(stats.thisMonth, 0, "but its newest PR is last month, not this one")
     }
+
+    /// FER-406: `deleteSession` returns the full snapshot and `restoreDeletedSession` puts back ALL of
+    /// it — not just session+sets. Before, «Deshacer» silently lost notes, progression opt-outs and the
+    /// raw HR trace.
+    func testDeleteReturnsSnapshotAndRestoreBringsBackEverything() async throws {
+        let store = try await CenitStore.inMemory()
+        let session = StrengthSession(id: "s1", routineId: "r1", startTs: 1000)
+        let sets = [
+            SetEntry(id: "a", sessionId: "s1", exerciseId: "bench", position: 0, kind: .work,
+                     weightKg: 60, reps: 8, done: true, ts: 1001)
+        ]
+        let notes = [ExerciseNote(id: "n1", sessionId: "s1", exerciseId: "bench", setPosition: 0,
+                                  text: "top set felt heavy", ts: 1002)]
+        try await store.saveSession(session, sets: sets, progressionOptOuts: ["bench"], notes: notes)
+        try await store.appendStrengthHR(sessionId: "s1", samples: [HRSample(ts: 1001, bpm: 128),
+                                                                    HRSample(ts: 1003, bpm: 131)])
+
+        // Delete returns everything it removed.
+        let snap = try await store.deleteSession(id: "s1")
+        XCTAssertNotNil(snap)
+        XCTAssertEqual(snap?.sets.count, 1)
+        XCTAssertEqual(snap?.optOuts, ["bench"])
+        XCTAssertEqual(snap?.notes.count, 1)
+        XCTAssertEqual(snap?.hr.count, 2)
+        // Everything is really gone.
+        let goneSession = try await store.session(id: "s1")
+        let goneNotes = try await store.sessionNotes(sessionId: "s1")
+        let goneHR = try await store.strengthHRSamples(sessionId: "s1")
+        XCTAssertNil(goneSession)
+        XCTAssertTrue(goneNotes.isEmpty)
+        XCTAssertTrue(goneHR.isEmpty)
+
+        // Restore brings ALL of it back.
+        try await store.restoreDeletedSession(snap!)
+        let backSession = try await store.session(id: "s1")
+        let backSets = try await store.setEntries(sessionId: "s1")
+        let backNotes = try await store.sessionNotes(sessionId: "s1")
+        let backHR = try await store.strengthHRSamples(sessionId: "s1")
+        XCTAssertNotNil(backSession)
+        XCTAssertEqual(backSets.count, 1)
+        XCTAssertEqual(backNotes.count, 1, "the note came back")
+        XCTAssertEqual(backHR.count, 2, "the raw HR came back")
+    }
+
+    /// Deleting an id that doesn't exist returns nil, not a crash.
+    func testDeleteMissingSessionReturnsNil() async throws {
+        let store = try await CenitStore.inMemory()
+        let snap = try await store.deleteSession(id: "ghost")
+        XCTAssertNil(snap)
+    }
 }

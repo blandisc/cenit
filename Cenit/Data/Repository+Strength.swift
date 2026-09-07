@@ -340,10 +340,19 @@ extension Repository {
         return (try? await store.sessionVolumes()) ?? [:]
     }
 
-    /// Delete a completed session (+ its sets) and recompute the affected PRs (FER-527).
-    func deleteSession(id: String) async throws {
+    /// Delete a completed session (+ its sets) and recompute the affected PRs (FER-527). Returns the
+    /// full snapshot of what was removed (FER-406) so «Deshacer» restaura TODO —notas, opt-outs y el
+    /// pulso crudo—, no solo la sesión y sus series.
+    @discardableResult
+    func deleteSession(id: String) async throws -> CenitStore.DeletedStrengthSession? {
+        guard let store = await storeHandle() else { return nil }
+        return try await store.deleteSession(id: id)
+    }
+
+    /// Restore a session removed by «Deshacer», con todo lo que borró (FER-406).
+    func restoreDeletedSession(_ snapshot: CenitStore.DeletedStrengthSession) async throws {
         guard let store = await storeHandle() else { return }
-        try await store.deleteSession(id: id)
+        try await store.restoreDeletedSession(snapshot)
     }
 
     /// Restore a session deleted by «Undo» — re-saving re-derives its PRs (FER-527).
