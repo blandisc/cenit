@@ -1,10 +1,10 @@
 import Foundation
 import StrandTraining
 
-// MARK: - noop.workout.v1 — LLM-generated workout-program interchange format (FER-496)
+// MARK: - cenit.workout.v1 — LLM-generated workout-program interchange format (FER-496)
 //
 // A strength program a user builds by asking their own LLM (the "bring-your-own-LLM" path, mirroring
-// noop.diet.v1 / FER-370): NOOP hands out a prompt, the user runs it in their AI with their plan
+// cenit.diet.v1 / FER-370): Cénit hands out a prompt, the user runs it in their AI with their plan
 // (text / photo / PDF), and brings back this file. NOOP never calls the network — the user runs the
 // LLM step (same as importing a CSV). This is import-only: the file is produced outside NOOP.
 //
@@ -97,7 +97,7 @@ public enum WorkoutProgramWarning: String, Codable, Sendable, Equatable, CaseIte
     case weeksDiffer
 }
 
-/// A workout program in the `noop.workout.v1` format: one or more routines (a multi-day split).
+/// A workout program in the `cenit.workout.v1` format: one or more routines (a multi-day split).
 ///
 /// Ola 1 · E10 adds the PROGRAM fields — how many weeks the block runs, what its light week does, and
 /// what happens when it ends. All optional and defaulted, so a v1 file written before they existed
@@ -130,8 +130,16 @@ public struct WorkoutProgram: Codable, Sendable, Equatable {
         self.warnings = warnings
     }
 
-    /// The only schema this importer accepts.
-    public static let currentSchema = "noop.workout.v1"
+    /// The schema a program is written with today. Emitted on every encode.
+    public static let currentSchema = "cenit.workout.v1"
+
+    /// The tag the format carried before the app was renamed. Still accepted on the way in:
+    /// files the user already has on their phone (and templates they saved) spell it this
+    /// way, and rejecting them would be a visible regression. Never emitted.
+    public static let legacySchema = "noop.workout.v1"
+
+    /// Every schema tag a payload may declare.
+    public static let acceptedSchemas: Set<String> = [currentSchema, legacySchema]
 
     /// The `Calendar` weekday (1 = Sunday … 7 = Saturday — `RoutineSchedule`'s convention) each routine
     /// lands on, index-aligned with `routines`. `nil` for a routine that couldn't be placed (more
@@ -160,7 +168,7 @@ public struct WorkoutProgram: Codable, Sendable, Equatable {
 
 // MARK: - Errors
 
-/// Why a candidate `noop.workout.v1` payload was rejected. Dedicated (like `DietPlanParseError`): every
+/// Why a candidate `cenit.workout.v1` payload was rejected. Dedicated (like `DietPlanParseError`): every
 /// case is an actionable schema-validation reason the import screen can surface. `description` is a
 /// diagnostic string; the UI localizes per case.
 public enum WorkoutProgramParseError: Error, Equatable, Sendable, CustomStringConvertible {
@@ -202,7 +210,7 @@ public enum WorkoutProgramParseError: Error, Equatable, Sendable, CustomStringCo
 
 // MARK: - Importer
 
-/// Parses and validates a `noop.workout.v1` payload into a `WorkoutProgram`. Parse-only — it does not
+/// Parses and validates a `cenit.workout.v1` payload into a `WorkoutProgram`. Parse-only — it does not
 /// touch the database or the exercise catalog (matching is a separate step, `WorkoutExerciseReconciler`).
 /// Mirrors `DietPlanImporter`.
 public struct WorkoutProgramImporter {
@@ -216,11 +224,13 @@ public struct WorkoutProgramImporter {
         catch { throw WorkoutProgramParseError.notJSON }
         guard let root = any as? [String: Any] else { throw WorkoutProgramParseError.notJSON }
 
-        // schema — must match exactly.
-        let schema = root["schema"] as? String ?? ""
-        guard schema == WorkoutProgram.currentSchema else {
-            throw WorkoutProgramParseError.unsupportedSchema(found: schema)
+        // schema — one of the accepted tags, normalized to the current one so what gets
+        // persisted and re-encoded always carries today's name.
+        let declaredSchema = root["schema"] as? String ?? ""
+        guard WorkoutProgram.acceptedSchemas.contains(declaredSchema) else {
+            throw WorkoutProgramParseError.unsupportedSchema(found: declaredSchema)
         }
+        let schema = WorkoutProgram.currentSchema
 
         // idioma — required, es | en.
         let idiomaRaw = root["idioma"] as? String ?? ""

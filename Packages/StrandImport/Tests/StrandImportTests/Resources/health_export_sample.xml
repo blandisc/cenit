@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- FER-382 — a miniature Apple Health export written by hand for the tests.
+     Every element carries the +0100 offset so the whole file collapses onto one civil
+     day (2024-01-02): the night ends that morning, the readings happen during it, and the
+     run happens that afternoon. It also carries the two traps the importer has to survive:
+     a type nobody imports (DietaryWater) and a <Correlation> whose child Record repeats a
+     top-level one. -->
+<HealthData locale="es_MX">
+  <ExportDate value="2024-01-03 09:12:00 +0100"/>
+  <Me HKCharacteristicTypeIdentifierBiologicalSex="HKBiologicalSexNotSet"/>
+
+  <Record type="HKQuantityTypeIdentifierBodyMass" sourceName="Bascula de casa" unit="kg"
+          startDate="2024-01-02 06:30:00 +0100" endDate="2024-01-02 06:30:00 +0100" value="72.5"/>
+
+  <Record type="HKQuantityTypeIdentifierRestingHeartRate" sourceName="Reloj" unit="count/min"
+          startDate="2024-01-02 06:00:00 +0100" endDate="2024-01-02 06:00:00 +0100" value="58"/>
+
+  <Record type="HKQuantityTypeIdentifierOxygenSaturation" sourceName="Reloj" unit="%"
+          startDate="2024-01-02 06:05:00 +0100" endDate="2024-01-02 06:05:00 +0100" value="0.97"/>
+
+  <Record type="HKQuantityTypeIdentifierRespiratoryRate" sourceName="Reloj" unit="count/min"
+          startDate="2024-01-02 06:10:00 +0100" endDate="2024-01-02 06:10:00 +0100" value="15.8"/>
+
+  <Record type="HKQuantityTypeIdentifierHeartRate" sourceName="Reloj" unit="count/min"
+          startDate="2024-01-02 08:00:00 +0100" endDate="2024-01-02 08:00:00 +0100" value="61">
+    <MetadataEntry key="HKMetadataKeyHeartRateMotionContext" value="1"/>
+  </Record>
+
+  <Record type="HKQuantityTypeIdentifierStepCount" sourceName="Telefono" unit="count"
+          startDate="2024-01-02 09:00:00 +0100" endDate="2024-01-02 10:00:00 +0100" value="1200"/>
+
+  <!-- Not in relevantTypes: never counted, never turned into a metric point. -->
+  <Record type="HKQuantityTypeIdentifierDietaryWater" sourceName="Telefono" unit="mL"
+          startDate="2024-01-02 09:00:00 +0100" endDate="2024-01-02 09:00:00 +0100" value="250"/>
+
+  <Record type="HKCategoryTypeIdentifierSleepAnalysis" sourceName="Reloj"
+          startDate="2024-01-01 23:15:00 +0100" endDate="2024-01-02 00:15:00 +0100"
+          value="HKCategoryValueSleepAnalysisAsleepCore"/>
+  <Record type="HKCategoryTypeIdentifierSleepAnalysis" sourceName="Reloj"
+          startDate="2024-01-02 00:15:00 +0100" endDate="2024-01-02 01:15:00 +0100"
+          value="HKCategoryValueSleepAnalysisAsleepDeep"/>
+  <Record type="HKCategoryTypeIdentifierSleepAnalysis" sourceName="Reloj"
+          startDate="2024-01-02 01:15:00 +0100" endDate="2024-01-02 01:30:00 +0100"
+          value="HKCategoryValueSleepAnalysisAwake"/>
+
+  <!-- Apple repeats a correlation's children at the top level. This one echoes the heart
+       rate above; counting it too would double the day. -->
+  <Correlation type="HKCorrelationTypeIdentifierVitalSigns" sourceName="Reloj"
+               startDate="2024-01-02 08:00:00 +0100" endDate="2024-01-02 08:00:00 +0100">
+    <Record type="HKQuantityTypeIdentifierHeartRate" sourceName="Reloj" unit="count/min"
+            startDate="2024-01-02 08:00:00 +0100" endDate="2024-01-02 08:00:00 +0100" value="61"/>
+  </Correlation>
+
+  <Workout workoutActivityType="HKWorkoutActivityTypeRunning" sourceName="Reloj"
+           duration="45" durationUnit="min"
+           totalDistance="8.05" totalDistanceUnit="km"
+           totalEnergyBurned="540" totalEnergyBurnedUnit="kcal"
+           startDate="2024-01-02 17:00:00 +0100" endDate="2024-01-02 17:45:00 +0100">
+    <WorkoutEvent type="HKWorkoutEventTypePause" date="2024-01-02 17:20:00 +0100"/>
+  </Workout>
+
+  <ActivitySummary dateComponents="2024-01-02" activeEnergyBurned="540"
+                   activeEnergyBurnedGoal="600" activeEnergyBurnedUnit="kcal"/>
+</HealthData>
