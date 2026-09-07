@@ -346,11 +346,16 @@ struct NoteSheet: View {
     }
 
     /// «Hace N días» relative-day label for a note's `ts` (epoch seconds).
-    private static func relativeDays(_ ts: Int) -> String {
-        let days = max(0, Int((Date().timeIntervalSince1970 - Double(ts)) / 86400))
+    /// FER-454: cuenta por DÍA de calendario (`dateComponents([.day])`), no por (ahora−ts)/86400 — el
+    /// cociente de segundos cruza mal la medianoche y el cambio de horario (mismo patrón que
+    /// `StrengthDisplay.recordDate`). Plural por interpolación, no `String(format:)`.
+    private static func relativeDays(_ ts: Int, now: Date = Date(), calendar: Calendar = .current) -> String {
+        let day = calendar.startOfDay(for: Date(timeIntervalSince1970: TimeInterval(ts)))
+        let today = calendar.startOfDay(for: now)
+        let days = max(0, calendar.dateComponents([.day], from: day, to: today).day ?? 0)
         if days == 0 { return String(localized: "Today") }
         if days == 1 { return String(localized: "Yesterday") }
-        return String(format: String(localized: "%d days ago"), days)
+        return String(localized: "\(days) days ago")
     }
 }
 
