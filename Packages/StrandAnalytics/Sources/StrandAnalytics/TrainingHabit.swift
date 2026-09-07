@@ -46,10 +46,12 @@ public enum TrainingHabit {
         return n % 2 == 1 ? s[n / 2] : (s[n / 2 - 1] + s[n / 2]) / 2
     }
 
+    /// Desviación estándar MUESTRAL (n−1): describe la muestra que hay, no una población.
+    /// `nil` con menos de dos valores — con uno solo no hay dispersión que medir.
     static func sampleSD(_ xs: [Double]) -> Double? {
         guard xs.count >= 2 else { return nil }
-        let m = xs.reduce(0, +) / Double(xs.count)
-        let ss = xs.reduce(0) { $0 + ($1 - m) * ($1 - m) }
-        return (ss / Double(xs.count - 1)).squareRoot()
+        let centro = xs.reduce(0, +) / Double(xs.count)
+        let cuadrados = xs.reduce(0) { $0 + ($1 - centro) * ($1 - centro) }
+        return (cuadrados / Double(xs.count - 1)).squareRoot()
     }
 }

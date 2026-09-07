@@ -37,10 +37,9 @@ public enum SessionRecoveryCost {
         case sessionStrain  // used the session's 0–21 strain
         case meanHRR        // fallback: used mean %HRR
     }
-
-    public struct Result: Equatable, Sendable {
-        public let band: Band
-        public let basis: Basis
+    /// El veredicto: la banda y, para poder rastrearla, de qué señal salió.
+    public struct Result: Sendable, Equatable {
+        public let band: Band, basis: Basis
         public init(band: Band, basis: Basis) {
             self.band = band
             self.basis = basis

@@ -38,11 +38,14 @@ public enum SourceFusion {
         for d in computed { rowByDay[d.day] = d; appleDays.remove(d.day) }   // the on-device row overwrites Apple
         for d in imported { rowByDay[d.day] = d; appleDays.remove(d.day) }   // an imported row wins over all
         let days = rowByDay.values.sorted { $0.day < $1.day }
+        // La capa de display no cambia quién ganó la fila: sólo rellena sus huecos con lo que Apple
+        // sí traía ese día.
         let displayDays = days.map { row in
             appleByDay[row.day].map { row.fillingNils(from: $0) } ?? row
         }
-        return (days, appleDays, displayDays)
+        return (days: days, appleDays: appleDays, displayDays: displayDays)
     }
+    // MARK: - Esfuerzo estimado desde Apple
 
     /// FER-883: per-day cardiovascular-load estimate from Apple workout HR, for days whose MEASURED
     /// strain is nil (band-less day in Apple/Combined mode). Pure + static (RepositoryMergeTests pins it),

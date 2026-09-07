@@ -51,8 +51,7 @@ public enum AppleLoadEstimator {
     /// What the shell (HealthKitBridge sync / AppleHealthImport) already has per day, to classify it.
     public struct DayActivity: Sendable, Equatable {
         public let workoutHR: [HRSample]   // HR samples from HKWorkouts that day (may be empty)
-        public let steps: Int?
-        public let activeKcal: Double?
+        public let steps: Int?, activeKcal: Double?   // el resto del día, cuando no hubo pulso
         public let hasWorkout: Bool        // an HKWorkout existed that day, HR or not
         public init(workoutHR: [HRSample], steps: Int?, activeKcal: Double?, hasWorkout: Bool) {
             self.workoutHR = workoutHR; self.steps = steps; self.activeKcal = activeKcal

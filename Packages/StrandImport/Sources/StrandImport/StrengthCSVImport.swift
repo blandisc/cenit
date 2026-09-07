@@ -574,13 +574,15 @@ private extension StrengthCSVImporter {
     static func parseStrongDate(_ raw: String) -> Date? {
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }
-        let f = DateFormatter()
-        f.locale = Locale(identifier: "en_US_POSIX")
-        f.timeZone = .current
-        f.dateFormat = "yyyy-MM-dd HH:mm:ss"
-        if let d = f.date(from: trimmed) { return d }
-        f.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
-        return f.date(from: trimmed)
+        // Locale fijo: el archivo no habla el idioma del teléfono. La hora sí es la del teléfono,
+        // porque Strong escribe la local de la cuenta sin decir el huso.
+        let formato = DateFormatter()
+        formato.locale = Locale(identifier: "en_US_POSIX")
+        formato.timeZone = .current
+        formato.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        if let conEspacio = formato.date(from: trimmed) { return conEspacio }
+        formato.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+        return formato.date(from: trimmed)
     }
 
     /// Hevy: `d MMM yyyy, HH:mm` with month in the account language. Table covers en/es/pt/fr/de.
@@ -637,11 +639,13 @@ private extension StrengthCSVImporter {
 
     static func parseCenitDate(_ raw: String) -> Date? {
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-        let iso = ISO8601DateFormatter()
-        iso.formatOptions = [.withInternetDateTime]
-        if let d = iso.date(from: trimmed) { return d }
-        iso.formatOptions = [.withFullDate, .withTime, .withDashSeparatorInDate, .withColonSeparatorInTime]
-        if let d = iso.date(from: trimmed) { return d }
+        // Primero la ISO completa con huso; si no, la misma fecha sin huso; y como último recurso,
+        // el formato de Strong (un export nuestro reimportado puede venir de cualquiera de los tres).
+        let norma = ISO8601DateFormatter()
+        norma.formatOptions = [.withInternetDateTime]
+        if let conHuso = norma.date(from: trimmed) { return conHuso }
+        norma.formatOptions = [.withFullDate, .withTime, .withDashSeparatorInDate, .withColonSeparatorInTime]
+        if let sinHuso = norma.date(from: trimmed) { return sinHuso }
         return parseStrongDate(trimmed)
     }
 

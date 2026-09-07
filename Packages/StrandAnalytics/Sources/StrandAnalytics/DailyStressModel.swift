@@ -1,254 +1,267 @@
 import Foundation
 import StrandModels
 
-// MARK: - Daily stress model (transparent autonomic-load proxy)
+// MARK: - El proxy diario de carga autonómica (0–3)
 //
-// The 0–3 daily stress proxy and its band — the pure math extracted from the app layer's
-// `StressModel` (FER-756). This is the DAILY counterpart to `StressEngine` (intraday);
-// presentation (band copy/colors, explanation copy, calm-time strings) stays in the app.
+// La contraparte DIARIA de `StressEngine` (que mira el día por dentro). Aquí sólo vive la
+// aritmética; el copy de cada banda, sus colores y los textos de «tiempo en calma» se quedan en la
+// capa app (`Cenit/Screens/StressModel.swift`).
 //
-// Source of the daily 0–3 value, in priority order:
-//   1. The persisted `stress` metric series — if a day has a stored value we trust it.
-//   2. Otherwise DERIVE it from how today's resting HR / HRV sit against a personal 30-day baseline:
-//        zRHR = (todayRHR − meanRHR) / sdRHR        // positive when RHR is UP
-//        zHRV = (meanHRV − todayHRV) / sdHRV        // positive when HRV is DOWN
-//        raw  = zRHR + zHRV                          // combined autonomic load
-//        stress = 3 / (1 + e^(−raw))                // 0 calm · 1.5 baseline · 3 high
-//   Bands:  0–1 LOW · 1–2 MEDIUM · 2–3 HIGH.
+// De dónde sale el 0–3 de un día, en ese orden:
+//   1. De la serie `stress` ya guardada, si ese día tiene un valor: se respeta tal cual.
+//   2. Si no, se DEDUCE de cuánto se apartan hoy la FC en reposo y la HRV de la línea base
+//      personal de los 30 días previos:
+//
+//        z de pulso   = (pulso de hoy − media)  / desviación     ← sube cuando el pulso SUBE
+//        z de HRV     = (media − HRV de hoy)    / desviación     ← sube cuando la HRV BAJA
+//        crudo        = z de pulso + z de HRV                    ← carga autonómica combinada
+//        proxy        = 3 / (1 + e^(−crudo))                     ← 0 calma · 1.5 base · 3 alto
+//
+//   Bandas: 0–1 baja · 1–2 media · 2–3 alta.
+//
+// El proxy nunca cruza fuentes: una lectura sólo se compara contra la línea base de SU PROPIA
+// fuente (ver el comentario del inicializador).
 
-// MARK: - Stress band
-
-public enum StressBand: Sendable {
-    case low, medium, high
-
-    public init(score: Double) {
-        switch score {
-        case ..<1.0: self = .low
-        case ..<2.0: self = .medium
-        default:     self = .high
-        }
-    }
-}
-
-// MARK: - Daily stress model (transparent: stored value OR z-score derivation)
-
-public struct DailyStressModel {
-    /// One charted day of the 0–3 proxy. `date` is the day key parsed in UTC (DST-stable),
-    /// matching the app's day-key contract (FER-325).
-    public struct Point: Sendable, Equatable {
-        public let date: Date
-        public let value: Double
-    }
-
-    public let score: Double            // 0–3 (today)
-    public let band: StressBand
-    public let rhrToday: Int?
-    public let hrvToday: Double?
-    public let rhrDelta: Double?        // today − baseline mean (bpm)
-    public let hrvDelta: Double?        // today − baseline mean (ms)
-    public let fullTrend: [Point]       // entire daily proxy history, oldest→newest
-    public let usingStored: Bool        // true when today's value came from the stored series
-
-    // "Calm time": of the last up-to-30 charted days, how many sat in the LOW band.
-    public let calmDays: Int            // days with value < 1.0 in the window
-    public let calmWindow: Int          // window size (0 → needs history)
-
-    // FER-397 — the hero is anchored to the most recent day that actually carries a reading, so a still-
-    // empty "today" row at the midnight boundary doesn't blank the screen. These describe that anchor.
-    public let anchorDayKey: String     // the day the hero score is from
-    public let anchorIsToday: Bool      // false → the view MUST date the hero (it's yesterday's, never "today's")
-    public let heroIsFresh: Bool        // anchor ∈ {today, yesterday}: show the hero. Older → hide it, but the
-                                        // trend/patterns below still render from `fullTrend`.
-
-    /// Parse a stored `yyyy-MM-dd` day key back to a Date in UTC (en_US_POSIX) — same contract as the
-    /// app's `Repository.parseDayKey` (charts parse keys in UTC for DST-stable positions, FER-325).
-    private static let dayKeyParser: DateFormatter = {
-        let f = DateFormatter()
-        f.locale = Locale(identifier: "en_US_POSIX")
-        f.timeZone = TimeZone(identifier: "UTC")
-        f.dateFormat = "yyyy-MM-dd"
-        return f
-    }()
-
-    /// The `yyyy-MM-dd` key for the day BEFORE `s`, computed in UTC (one fixed 24 h step — UTC has no
-    /// DST). Used to cap the "fall back to the most recent reading" at yesterday (FER-397).
-    private static func previousDayKey(_ s: String) -> String? {
-        guard let d = dayKeyParser.date(from: s) else { return nil }
-        return dayKeyParser.string(from: d.addingTimeInterval(-86_400))
-    }
-
-    /// Build from oldest→newest daily metrics plus any stored "stress" series.
-    /// Returns nil only when there is no usable signal at all.
-    ///
-    /// `appleDays` are the day-keys surfaced from Apple Health (`repo.appleHealthDays`). BOTH baselines are
-    /// split by source so each reading is z-scored against the baseline of ITS OWN source. HRV: band nights
-    /// are RMSSD, Apple nights are SDNN — two constructs with no published conversion (Task Force 1996;
-    /// Shaffer & Ginsberg 2017, Front Public Health 5:258). RHR: the band reads it from the sleep nadir
-    /// (deep-sleep-weighted night average), Apple from awake sedentary samples that EXCLUDE sleep, so Apple
-    /// RHR runs systematically ~10–13 bpm higher (Fenland Study, Gonzales et al. 2023, PLoS One 18(5):
-    /// e0285272: sleep 56.9 vs seated 67.6 bpm) — not the same number, no fixed offset (it varies per
-    /// person). The z-score is the common currency; raw bpm/ms are never compared across sources (FER-633,
-    /// supersedes the old merged-RHR FER-519 policy). `appleDays == []` is the identity — an on-device-only history is unchanged.
-    public init?(days: [DailyMetric], stored: [(day: String, value: Double)], todayKey: String,
-                 appleDays: Set<String> = []) {
-        // Anchor the hero to the most recent LOCAL day (≤ today) that actually carries a reading — a
-        // stored value or some RHR/HRV — so a still-empty "today" row at the midnight boundary doesn't
-        // blank the screen (FER-397). The DISPLAY then caps freshness at yesterday (`heroIsFresh`); an
-        // older anchor still feeds the trend, but the view shows the empty hero. Future-dated UTC ghost
-        // rows (FER-226) are dropped by the `<= todayKey` filter.
-        let usable = days.filter { $0.day <= todayKey }
-        guard !usable.isEmpty else { return nil }
-
-        // Stored values keyed by day, clamped to 0–3.
-        let storedByDay: [String: Double] = Dictionary(
-            stored.map { ($0.day, min(max($0.value, 0), 3)) },
-            uniquingKeysWith: { _, b in b }
-        )
-
-        // The anchor = the newest usable day with a raw signal (stored value or any RHR/HRV).
-        func hasRawSignal(_ d: DailyMetric) -> Bool {
-            storedByDay[d.day] != nil || d.restingHr != nil || d.avgHrv != nil
-        }
-        guard let anchorIdx = usable.lastIndex(where: hasRawSignal) else { return nil }
-        let anchor = usable[anchorIdx]
-
-        // Baseline window: up to 30 usable days strictly BEFORE the anchor, so it's measured against its
-        // own recent past rather than itself.
-        let baseline = Array(usable[..<anchorIdx].suffix(30))
-
-        // RHR baseline split by source (FER-633): band nights → sleep-nadir RHR, Apple nights → awake
-        // sedentary RHR. Each reading is z-scored against the baseline of its own source; the two are never
-        // mixed (systematic ~10–13 bpm gap, no fixed offset — see the init doc). `appleDays == []` →
-        // rhrAppleBase empty and every day routes to rhrBandBase == the old single base, so an on-device-only
-        // user's scores are bit-for-bit identical.
-        let rhrBandBase  = baseline.filter { !appleDays.contains($0.day) }.compactMap { $0.restingHr }.map(Double.init)
-        let rhrAppleBase = baseline.filter {  appleDays.contains($0.day) }.compactMap { $0.restingHr }.map(Double.init)
-        // HRV baseline split by source (FER-623): band nights → RMSSD, Apple nights → SDNN. Each reading is
-        // z-scored against the baseline of its own source; the two are never mixed (no published conversion).
-        // `appleDays == []` → sdnnBase empty and every day routes to rmssdBase == the old single base, so a
-        // history yields bit-for-bit identical scores.
-        let rmssdBase = baseline.filter { !appleDays.contains($0.day) }.compactMap { $0.avgHrv }
-        let sdnnBase  = baseline.filter {  appleDays.contains($0.day) }.compactMap { $0.avgHrv }
-
-        let meanBandRHR  = StressMath.mean(rhrBandBase)
-        let sdBandRHR    = StressMath.std(rhrBandBase, mean: meanBandRHR)
-        let meanAppleRHR = StressMath.mean(rhrAppleBase)
-        let sdAppleRHR   = StressMath.std(rhrAppleBase, mean: meanAppleRHR)
-        let meanRMSSD = StressMath.mean(rmssdBase)
-        let sdRMSSD   = StressMath.std(rmssdBase, mean: meanRMSSD)
-        let meanSDNN  = StressMath.mean(sdnnBase)
-        let sdSDNN    = StressMath.std(sdnnBase, mean: meanSDNN)
-
-        // Pick the RHR baseline for a day by its source. An Apple-only day with no Apple-RHR base yet →
-        // (nil, 0): the RHR term drops in `rawScore` and stress derives from HRV alone (honest cold-start).
-        func rhrBaseFor(_ day: String) -> (mean: Double?, sd: Double) {
-            appleDays.contains(day) ? (meanAppleRHR, sdAppleRHR) : (meanBandRHR, sdBandRHR)
-        }
-        // Pick the HRV baseline for a day by its source. An Apple-only day with no SDNN base yet → (nil, 0):
-        // the HRV term drops in `rawScore` and stress derives from RHR alone (honest cold-start).
-        func hrvBaseFor(_ day: String) -> (mean: Double?, sd: Double) {
-            appleDays.contains(day) ? (meanSDNN, sdSDNN) : (meanRMSSD, sdRMSSD)
-        }
-
-        let rhrT = anchor.restingHr.map(Double.init)
-        let hrvT = anchor.avgHrv
-        let (meanRHRa, sdRHRa) = rhrBaseFor(anchor.day)
-        let (meanHRVa, sdHRVa) = hrvBaseFor(anchor.day)
-
-        // Resolve the anchor's score: prefer a stored value, else derive. A raw-signal day with no stored
-        // value AND no baseline before it to derive against (e.g. the very first day) is not usable.
-        let derivedAvailable = (rhrT != nil && meanRHRa != nil) || (hrvT != nil && meanHRVa != nil)
-        let storedAnchor = storedByDay[anchor.day]
-        guard storedAnchor != nil || derivedAvailable else { return nil }
-
-        let derivedScore: Double? = derivedAvailable
-            ? StressMath.squash(StressMath.rawScore(
-                rhrToday: rhrT, meanRHR: meanRHRa, sdRHR: sdRHRa,
-                hrvToday: hrvT, meanHRV: meanHRVa, sdHRV: sdHRVa))
-            : nil
-
-        let s = storedAnchor ?? derivedScore ?? 1.5
-        self.usingStored = storedAnchor != nil
-        self.score = s
-        self.band = StressBand(score: s)
-        self.rhrToday = anchor.restingHr
-        self.hrvToday = hrvT
-        self.rhrDelta = (rhrT != nil && meanRHRa != nil) ? (rhrT! - meanRHRa!) : nil
-        self.hrvDelta = (hrvT != nil && meanHRVa != nil) ? (hrvT! - meanHRVa!) : nil
-
-        // The anchor's date + whether it's fresh enough to surface as the hero (today or, at most,
-        // yesterday). An older anchor → `heroIsFresh == false`: the view hides the hero but still draws
-        // the trend/patterns below.
-        self.anchorDayKey = anchor.day
-        self.anchorIsToday = anchor.day == todayKey
-        let yesterdayKey = Self.previousDayKey(todayKey)
-        self.heroIsFresh = anchor.day == todayKey || anchor.day == yesterdayKey
-
-        // Full daily proxy history: stored value if present for the day, else the
-        // z-score derivation against the SAME baseline so the line is comparable.
-        var pts: [Point] = []
-        for d in usable {
-            // Pure civil→epoch arithmetic (same as ComparisonEngine.epochDay / Repository.parseDayKey);
-            // avoids DateFormatter once per row on series up to ~4k days (FER-972 · M-04).
-            guard let epoch = ComparisonEngine.epochDay(of: d.day) else { continue }
-            let date = Date(timeIntervalSince1970: Double(epoch) * 86_400)
-            if let v = storedByDay[d.day] {
-                pts.append(Point(date: date, value: v))
-                continue
-            }
-            let dRHR = d.restingHr.map(Double.init)
-            let dHRV = d.avgHrv
-            let (mRHR, sdR) = rhrBaseFor(d.day)
-            let (mHRV, sdH) = hrvBaseFor(d.day)
-            guard (dRHR != nil && mRHR != nil) || (dHRV != nil && mHRV != nil) else { continue }
-            let r = StressMath.rawScore(
-                rhrToday: dRHR, meanRHR: mRHR, sdRHR: sdR,
-                hrvToday: dHRV, meanHRV: mHRV, sdHRV: sdH
-            )
-            pts.append(Point(date: date, value: StressMath.squash(r)))
-        }
-        self.fullTrend = pts
-
-        // "Calm time": share of the last 30 charted days that sat in the LOW band.
-        let recent = Array(pts.suffix(30))
-        self.calmWindow = recent.count
-        self.calmDays = recent.filter { $0.value < 1.0 }.count
-    }
-}
-
-// MARK: - Stress math (pure, testable helpers)
+// MARK: - La aritmética, suelta y probable por separado
 
 public enum StressMath {
+
+    /// Promedio simple. `nil` cuando no hay ni una muestra: no se inventa un centro.
     public static func mean(_ xs: [Double]) -> Double? {
         guard !xs.isEmpty else { return nil }
         return xs.reduce(0, +) / Double(xs.count)
     }
 
-    /// Population standard deviation; 0 when there's no spread.
+    /// Desviación estándar POBLACIONAL (divide entre n). Cero cuando no hay centro o hay una sola
+    /// muestra: una serie sin dispersión no tiene de dónde sacar un z-score.
     public static func std(_ xs: [Double], mean m: Double?) -> Double {
         guard let m, xs.count > 1 else { return 0 }
-        let v = xs.map { ($0 - m) * ($0 - m) }.reduce(0, +) / Double(xs.count)
-        return v.squareRoot()
+        let varianza = xs.map { ($0 - m) * ($0 - m) }.reduce(0, +) / Double(xs.count)
+        return varianza.squareRoot()
     }
 
-    /// Combined autonomic z-score. RHR-up and HRV-down both push it positive.
+    /// Piso de dispersión. Por debajo de esto la línea base es plana y su término no entra:
+    /// dividir entre ~0 convertiría el ruido del sensor en una alarma.
+    private static let dispersionMinima = 0.0001
+
+    /// Suma de los z-scores autonómicos. Ambos empujan hacia arriba: el pulso al subir, la HRV al
+    /// bajar. Un término sin dato, sin centro o con la base plana simplemente no suma — el
+    /// resultado se apoya en el que sí llegó, y con ninguno vale 0 (la base misma).
     public static func rawScore(
         rhrToday: Double?, meanRHR: Double?, sdRHR: Double,
         hrvToday: Double?, meanHRV: Double?, sdHRV: Double
     ) -> Double {
-        var sum = 0.0
-        if let r = rhrToday, let m = meanRHR, sdRHR > 0.0001 {
-            sum += (r - m) / sdRHR            // up = stress
+        var acumulado = 0.0
+        if let pulso = rhrToday, let centro = meanRHR, sdRHR > dispersionMinima {
+            acumulado += (pulso - centro) / sdRHR            // arriba = más carga
         }
-        if let h = hrvToday, let m = meanHRV, sdHRV > 0.0001 {
-            sum += (m - h) / sdHRV            // down = stress
+        if let hrv = hrvToday, let centro = meanHRV, sdHRV > dispersionMinima {
+            acumulado += (centro - hrv) / sdHRV              // abajo = más carga
         }
-        return sum
+        return acumulado
     }
 
-    /// Logistic squash of the raw z-sum onto 0–3 (baseline 0 → 1.5).
+    /// Aplasta la suma de z contra el rango 0–3 con una logística. El crudo 0 —estar exactamente
+    /// en la línea base— cae en 1.5, el centro del rango.
     public static func squash(_ raw: Double) -> Double {
-        let s = 3.0 / (1.0 + exp(-raw))
-        return min(max(s, 0), 3)
+        let proxy = 3.0 / (1.0 + exp(-raw))
+        return min(max(proxy, 0), 3)
+    }
+}
+
+// MARK: - Los tres tercios del rango
+
+public enum StressBand: Sendable {
+    case low, medium, high
+
+    /// Techo de la banda baja y piso de la alta. El rango 0–3 se parte en tercios enteros.
+    private static let techoBaja = 1.0
+    private static let pisoAlta = 2.0
+
+    public init(score: Double) {
+        if score < Self.techoBaja {
+            self = .low
+        } else if score < Self.pisoAlta {
+            self = .medium
+        } else {
+            self = .high
+        }
+    }
+}
+
+// MARK: - El modelo del día
+
+public struct DailyStressModel {
+
+    /// Un día del proxy, ya listo para graficar. `date` es la clave del día llevada a epoch en UTC
+    /// (estable frente al horario de verano), como manda el contrato de claves del repo (FER-325).
+    public struct Point: Sendable, Equatable {
+        public let date: Date
+        public let value: Double
+    }
+
+    public let score: Double            // 0–3 del día ancla
+    public let band: StressBand
+    public let rhrToday: Int?
+    public let hrvToday: Double?
+    public let rhrDelta: Double?        // ancla − media de su línea base (lpm)
+    public let hrvDelta: Double?        // ancla − media de su línea base (ms)
+    public let fullTrend: [Point]       // toda la historia del proxy, vieja→nueva
+    public let usingStored: Bool        // el valor del ancla venía guardado, no deducido
+
+    // «Tiempo en calma»: de los últimos ≤30 días graficados, cuántos cayeron en la banda baja.
+    public let calmDays: Int
+    public let calmWindow: Int          // tamaño real de esa ventana (0 → falta historia)
+
+    // FER-397 — el héroe se ancla al día más reciente que de verdad trae lectura, para que una fila
+    // de «hoy» todavía vacía en el cambio de medianoche no deje la pantalla en blanco.
+    public let anchorDayKey: String     // de qué día es el número grande
+    public let anchorIsToday: Bool      // falso → la vista DEBE fecharlo (es de ayer, no de «hoy»)
+    public let heroIsFresh: Bool        // ancla ∈ {hoy, ayer}: se muestra el héroe. Más viejo → se
+                                        // esconde, pero la tendencia de abajo sigue dibujándose.
+
+    /// Cuántos días previos entran en la línea base, y cuántos días mira el «tiempo en calma».
+    private static let ventana = 30
+
+    /// Valor de respaldo: el centro exacto de la logística (crudo 0).
+    private static let proxyEnLaBase = 1.5
+
+    /// Media y dispersión de una fuente. Se calculan juntas porque nunca se usan por separado.
+    private struct Baseline {
+        let mean: Double?
+        let sd: Double
+
+        init(_ xs: [Double]) {
+            let centro = StressMath.mean(xs)
+            self.mean = centro
+            self.sd = StressMath.std(xs, mean: centro)
+        }
+
+        /// Hay contra qué comparar esta lectura.
+        func canScore(_ reading: Double?) -> Bool { reading != nil && mean != nil }
+    }
+
+    /// La misma señal, con una línea base por fuente. Nunca se mezclan.
+    private struct SplitBaseline {
+        let onDevice: Baseline          // noches de la app en el propio dispositivo
+        let appleHealth: Baseline       // noches que llegaron desde Apple Health
+
+        init(_ window: [DailyMetric], appleDays: Set<String>, reading: (DailyMetric) -> Double?) {
+            self.onDevice = Baseline(window.filter { !appleDays.contains($0.day) }.compactMap(reading))
+            self.appleHealth = Baseline(window.filter { appleDays.contains($0.day) }.compactMap(reading))
+        }
+
+        func forDay(_ day: String, appleDays: Set<String>) -> Baseline {
+            appleDays.contains(day) ? appleHealth : onDevice
+        }
+    }
+
+    /// Deduce el proxy de un día contra las líneas base que le tocan. `nil` cuando ninguna de las
+    /// dos señales tiene a la vez lectura y centro — arranque en frío honesto, no un 1.5 inventado.
+    private static func derive(_ day: DailyMetric, rhr: Baseline, hrv: Baseline) -> Double? {
+        let pulso = day.restingHr.map(Double.init)
+        let variabilidad = day.avgHrv
+        guard rhr.canScore(pulso) || hrv.canScore(variabilidad) else { return nil }
+        return StressMath.squash(StressMath.rawScore(
+            rhrToday: pulso, meanRHR: rhr.mean, sdRHR: rhr.sd,
+            hrvToday: variabilidad, meanHRV: hrv.mean, sdHRV: hrv.sd
+        ))
+    }
+
+    /// Arma el modelo con los días vieja→nueva más lo que ya estuviera guardado en la serie
+    /// `stress`. Devuelve `nil` sólo cuando no hay ninguna señal aprovechable.
+    ///
+    /// `appleDays` son las claves de día que salieron de Apple Health (`repo.appleHealthDays`).
+    /// LAS DOS líneas base se parten por fuente, para que cada lectura se mida contra la base de la
+    /// SUYA. En HRV, las noches de la app son RMSSD y las de Apple son SDNN: dos construcciones sin
+    /// conversión publicada (Task Force 1996; Shaffer y Ginsberg 2017, *Front Public Health* 5:258).
+    /// En FC de reposo, la app la toma del nadir del sueño y Apple de muestras sedentarias
+    /// DESPIERTAS, así que la de Apple corre sistemáticamente ~10–13 lpm más alta (Fenland Study,
+    /// Gonzales et al. 2023, *PLoS One* 18(5):e0285272: 56.9 dormido contra 67.6 sentado) — no es el
+    /// mismo número y el desfase no es fijo, cambia con la persona. El z-score es la moneda común;
+    /// los lpm y los ms crudos jamás se comparan entre fuentes (FER-633, que reemplaza la vieja
+    /// política de FC fusionada de FER-519). Un `appleDays` vacío es la identidad: una historia
+    /// hecha sólo en el dispositivo sale idéntica.
+    public init?(days: [DailyMetric], stored: [(day: String, value: Double)], todayKey: String,
+                 appleDays: Set<String> = []) {
+
+        // Sólo días de hoy hacia atrás. El filtro tira de paso las filas fantasma con fecha futura
+        // que deja el bucketing en UTC (FER-226).
+        let usable = days.filter { $0.day <= todayKey }
+        guard !usable.isEmpty else { return nil }
+
+        // Lo ya guardado, por día y recortado al rango legal. Ante una clave repetida gana la última.
+        let storedByDay = Dictionary(
+            stored.map { ($0.day, min(max($0.value, 0), 3)) },
+            uniquingKeysWith: { _, ultima in ultima }
+        )
+
+        // El ancla es el día más nuevo que trae algo: un valor guardado, o pulso, o HRV.
+        let anchorIdx = usable.lastIndex { storedByDay[$0.day] != nil || $0.restingHr != nil || $0.avgHrv != nil }
+        guard let anchorIdx else { return nil }
+        let anchor = usable[anchorIdx]
+
+        // Línea base: hasta 30 días ESTRICTAMENTE anteriores al ancla, para medirlo contra su propio
+        // pasado reciente y no contra sí mismo.
+        let window = Array(usable[..<anchorIdx].suffix(Self.ventana))
+        let rhrBase = SplitBaseline(window, appleDays: appleDays) { $0.restingHr.map(Double.init) }
+        let hrvBase = SplitBaseline(window, appleDays: appleDays) { $0.avgHrv }
+
+        let anchorRHR = rhrBase.forDay(anchor.day, appleDays: appleDays)
+        let anchorHRV = hrvBase.forDay(anchor.day, appleDays: appleDays)
+
+        // Guardado si lo hay; si no, deducido. Sin ninguno de los dos el día no sirve de ancla
+        // (el primer día de la historia, por ejemplo: no hay pasado contra el cual medirlo).
+        let guardado = storedByDay[anchor.day]
+        let deducido = Self.derive(anchor, rhr: anchorRHR, hrv: anchorHRV)
+        guard guardado != nil || deducido != nil else { return nil }
+
+        let resuelto = guardado ?? deducido ?? Self.proxyEnLaBase
+        self.usingStored = guardado != nil
+        self.score = resuelto
+        self.band = StressBand(score: resuelto)
+
+        // Cuánto se aparta el ancla del centro de SU línea base. `nil` en cuanto falte cualquiera
+        // de los dos: sin centro no hay distancia que reportar.
+        self.rhrToday = anchor.restingHr
+        self.hrvToday = anchor.avgHrv
+        self.rhrDelta = anchor.restingHr.flatMap { lectura in
+            anchorRHR.mean.map { Double(lectura) - $0 }
+        }
+        self.hrvDelta = anchor.avgHrv.flatMap { lectura in
+            anchorHRV.mean.map { lectura - $0 }
+        }
+
+        // De qué día es el héroe y si está lo bastante fresco para enseñarse (hoy o, como mucho,
+        // ayer). Ayer se calcula con la aritmética de días del propio paquete, en UTC —
+        // `CorrelationEngine.shiftDay` es el único sumador de días con clave que existe aquí.
+        self.anchorDayKey = anchor.day
+        self.anchorIsToday = anchor.day == todayKey
+        self.heroIsFresh = anchor.day == todayKey || anchor.day == CorrelationEngine.shiftDay(todayKey, by: -1)
+
+        // La historia completa: el valor guardado del día si lo hay, y si no la deducción contra
+        // LAS MISMAS líneas base, para que la curva sea comparable de punta a punta. Un día sin
+        // nada de nada simplemente no aparece.
+        var curva: [Point] = []
+        for day in usable {
+            // Aritmética civil pura de la clave a epoch (la misma de `ComparisonEngine.epochDay`),
+            // para no armar un `DateFormatter` por fila en series de hasta ~4 mil días
+            // (FER-972 · M-04).
+            guard let epoch = ComparisonEngine.epochDay(of: day.day) else { continue }
+            let fecha = Date(timeIntervalSince1970: Double(epoch) * 86_400)
+            if let ya = storedByDay[day.day] {
+                curva.append(Point(date: fecha, value: ya))
+            } else if let deducido = Self.derive(day,
+                                                 rhr: rhrBase.forDay(day.day, appleDays: appleDays),
+                                                 hrv: hrvBase.forDay(day.day, appleDays: appleDays)) {
+                curva.append(Point(date: fecha, value: deducido))
+            }
+        }
+        self.fullTrend = curva
+
+        // «Tiempo en calma»: de los últimos 30 días graficados, cuántos se quedaron en la banda baja.
+        let recientes = curva.suffix(Self.ventana)
+        self.calmWindow = recientes.count
+        self.calmDays = recientes.filter { StressBand(score: $0.value) == .low }.count
     }
 }
