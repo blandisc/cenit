@@ -640,6 +640,10 @@ public let catalogEntries: [CatalogEntry] = [
                  archivo: "LiquidGlass/LiquidAviso.swift",
                  cuandoUsarlo: "Heads-up / desconexión / nudge / aviso con pie de acciones en pantalla Liquid — `LiquidPatternBlock` + `liquidTarjetaSeccion` (receta HealthAlertBanner); icono/CTA/pie opcionales.",
                  cuandoNo: "No snack de deshacer (`UndoToast`); no error de escritura (`.saveErrorToast`)."),
+    CatalogEntry(rol: "Tarjeta de una vez", simbolo: "LiquidUnaVezTipStyle",
+                 archivo: "LiquidGlass/LiquidUnaVez.swift",
+                 cuandoUsarlo: "Hito del motor o novedad mayor de una versión (FER-428 · D4/D2): `TipView` de TipKit vestido como un módulo más de la columna — `liquidGlass(tono:regimen:)` del huésped (sobrio en Hoy/Tendencias, mosaico en Entrenar), kicker `regla` en `tono.rotulo`, cuerpo, puerta de texto en `verdeProfundo` (la primera `Tips.Action`) y «Entendido» gris a la derecha. Se aplica en cada sitio de anclaje con `.tipViewStyle(...)`.",
+                 cuandoNo: "No para consejos anclados a un control (`LiquidConsejoTipStyle`, el estilo de raíz); no aviso/alerta (`LiquidAviso`); nunca modal ni encima del héroe/la palabra; sin ícono, ilustración ni confeti."),
     // —— Rampas de dato (FER-317 / catálogo FER-319) ——
     CatalogEntry(rol: "Rampas de dato Liquid", simbolo: "LiquidRampas",
                  archivo: "LiquidGlass/LiquidRampas.swift",
