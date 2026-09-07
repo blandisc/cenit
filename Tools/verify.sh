@@ -111,6 +111,18 @@ run_lint() {
     python3 Tools/check-xcstrings-es.py --self-test || fail "el extractor de claves i18n se rompió (--self-test)."
     python3 Tools/check-xcstrings-es.py || fail "i18n: falta una clave en el catálogo, o su traducción es."
   fi
+  # D6 (épico FER-428): toda pantalla nueva bajo Cenit/Screens/** lleva « // ensenanza: <id> ».
+  # Corre SIEMPRE (barre el árbol entero, no el diff) y, cuando origin/iOS ya tiene el baseline, en
+  # la MISMA pasada vigila que solo baje (espejo del job `baseline-monotony`). Sin guard de
+  # existencia del script a propósito: si desaparece, esto FALLA en vez de callar.
+  ens_base=""
+  if git rev-parse --verify -q origin/iOS >/dev/null; then
+    ens_base=$(mktemp)
+    git show origin/iOS:Tools/ensenanza-baseline.txt > "$ens_base" 2>/dev/null || { rm -f "$ens_base"; ens_base=""; }
+  fi
+  python3 Tools/check-ensenanza.py ${ens_base:+--base "$ens_base"} \
+    || fail "enseñanza: pantalla nueva sin « // ensenanza: <id> », o el baseline SUBIÓ respecto a origin/iOS (Tools/check-ensenanza.py)."
+  if [ -n "$ens_base" ]; then rm -f "$ens_base"; fi
   echo "verify: linters OK"
 }
 

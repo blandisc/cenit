@@ -24,7 +24,7 @@ public struct LiquidGlassButton: View {
         case solida
     }
 
-    private let label: String
+    private let label: Text
     private let variant: Variant
     private let expands: Bool
     private let minWidth: CGFloat?
@@ -37,6 +37,15 @@ public struct LiquidGlassButton: View {
     /// - Parameter systemImage: SF Symbol opcional antes del label (`LiquidType.iconSF(15)`,
     ///   gap `s150`) — p. ej. «Imprimir recibo» con `"printer"`.
     public init(_ label: String, variant: Variant = .primary, expands: Bool = false,
+                minWidth: CGFloat? = nil, systemImage: String? = nil,
+                action: @escaping () -> Void) {
+        self.init(Text(label), variant: variant, expands: expands,
+                  minWidth: minWidth, systemImage: systemImage, action: action)
+    }
+
+    /// Igual, con el rótulo como `Text` ya resuelto — para piezas que reciben `Text` en vez de
+    /// `String` (`LiquidVacio`, FER-430) y no pueden volver a la cadena. Misma receta.
+    public init(_ label: Text, variant: Variant = .primary, expands: Bool = false,
                 minWidth: CGFloat? = nil, systemImage: String? = nil,
                 action: @escaping () -> Void) {
         self.label = label
@@ -61,7 +70,7 @@ public struct LiquidGlassButton: View {
                 Image(systemName: systemImage)
                     .font(LiquidType.iconSF(size: 15))
             }
-            Text(label)
+            label
                 .font(LiquidType.boton).tracking(LiquidType.botonTracking)
                 .lineLimit(1)
         }

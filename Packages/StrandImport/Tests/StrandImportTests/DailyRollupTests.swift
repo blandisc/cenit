@@ -243,4 +243,42 @@ final class DailyRollupTests: XCTestCase {
         XCTAssertEqual(rows.map(\.day), ["2024-03-01", "2024-03-02", "2024-03-03"])
         XCTAssertEqual(rows.map(\.steps), [100, 200, 300])
     }
+
+    // MARK: - Cross-source dedup (FER-411)
+
+    /// The same day recorded by iPhone AND Apple Watch must not double-count cumulative types.
+    /// We keep the largest single-source total (mirrors the live `HKStatisticsCollectionQuery`), never
+    /// the sum across sources.
+    func testCumulativeMetricsDoNotDoubleCountAcrossSources() throws {
+        let day = try onlyRow(AppleHealthAggregator.daily(samples: [
+            quantityReading("StepCount", 3000, at: noon, sourceName: "iPhone"),
+            quantityReading("StepCount", 3200, at: noon, sourceName: "Apple Watch"),
+            quantityReading("ActiveEnergyBurned", 400, at: noon, sourceName: "iPhone"),
+            quantityReading("ActiveEnergyBurned", 520, at: noon, sourceName: "Apple Watch"),
+            quantityReading("BasalEnergyBurned", 1400, at: noon, sourceName: "iPhone"),
+            quantityReading("BasalEnergyBurned", 1450, at: noon, sourceName: "Apple Watch"),
+        ]))
+        XCTAssertEqual(try XCTUnwrap(day.steps), 3200, accuracy: tolerance, "max source, not 6200")
+        XCTAssertEqual(try XCTUnwrap(day.activeKcal), 520, accuracy: tolerance, "max source, not 920")
+        XCTAssertEqual(try XCTUnwrap(day.basalKcal), 1450, accuracy: tolerance, "max source, not 2850")
+    }
+
+    /// Within ONE source, samples still add up (the dedup is across sources, not within one).
+    func testSingleSourceDayStillSums() throws {
+        let day = try onlyRow(AppleHealthAggregator.daily(samples: [
+            quantityReading("StepCount", 1000, at: noon, sourceName: "Apple Watch"),
+            quantityReading("StepCount", 2500, at: noon, sourceName: "Apple Watch"),
+        ]))
+        XCTAssertEqual(try XCTUnwrap(day.steps), 3500, accuracy: tolerance)
+    }
+
+    /// Discrete metrics (heart rate) are NOT source-selected: they average across sources, exactly like
+    /// the live path. Only cumulative sums were double-counting.
+    func testDiscreteMetricsStillAverageAcrossSources() throws {
+        let day = try onlyRow(AppleHealthAggregator.daily(samples: [
+            quantityReading("HeartRate", 60, at: noon, sourceName: "iPhone"),
+            quantityReading("HeartRate", 80, at: noon, sourceName: "Apple Watch"),
+        ]))
+        XCTAssertEqual(try XCTUnwrap(day.avgHr), 70, accuracy: tolerance)
+    }
 }

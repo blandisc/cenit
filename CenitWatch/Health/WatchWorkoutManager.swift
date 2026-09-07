@@ -406,7 +406,10 @@ final class WatchWorkoutManager: NSObject, ObservableObject {
         let hr = builder.statistics(for: HKQuantityType(.heartRate))?.averageQuantity()?.doubleValue(for: bpmUnit)
         let kcal = builder.statistics(for: HKQuantityType(.activeEnergyBurned))?.sumQuantity()?.doubleValue(for: .kilocalorie())
         let duration = startDate.map { endedAt.timeIntervalSince($0) } ?? 0
-        return (duration, hr.map { Int($0.rounded()) }, kcal.map { Int($0.rounded()) })
+        // FER-454: HealthKit doubles can be non-finite; `Int(NaN/∞)` traps. Drop to nil instead (clase FER-450).
+        return (duration,
+                hr.flatMap { $0.isFinite ? Int($0.rounded()) : nil },
+                kcal.flatMap { $0.isFinite ? Int($0.rounded()) : nil })
     }
 
     private func presentSummary(_ stats: (duration: TimeInterval, hr: Int?, kcal: Int?),
@@ -638,8 +641,16 @@ final class WatchWorkoutManager: NSObject, ObservableObject {
     private func handle(_ message: WorkoutMirrorMessage) {
         switch message {
         case let .start(sid, routine, _):
-            sessionId = sid
-            externalUUID = WorkoutMirrorKey.externalUUID(for: sid)
+            // FER-452 (revisado por FER-464): NO secuestrar la identidad de una sesión ACTIVA con un
+            // `.start` re-entregado tarde por el canal durable. Pero `sessionId` persiste después de que
+            // una sesión termina (`cleanup` no lo resetea, a propósito, para `openReceiptFromWrist`), así
+            // que la guarda debe mirar `sessionActive`, no `sessionId == nil`: con ese `adoptIdentity`
+            // (solo-si-nil) toda sesión POSTERIOR a la primera quedaba ignorada. Regla correcta: adopta
+            // salvo que YA haya una sesión viva con OTRO id (ese es el único caso de secuestro real).
+            if !(sessionActive && sessionId != nil && sessionId != sid) {
+                sessionId = sid
+                externalUUID = WorkoutMirrorKey.externalUUID(for: sid)
+            }
             if !routine.isEmpty { routineName = routine }
         case let .rest(snapshot):
             adoptIdentity(snapshot.sessionId)
@@ -676,6 +687,10 @@ final class WatchWorkoutManager: NSObject, ObservableObject {
             restEndTask?.cancel()
             if recovered { Task { await fireRestEnded() } } else { rest = nil }
         case let .end(sid, endedAt, save, ext):
+            // FER-452: only end the session we're actually running. A stale `.end` re-delivered for a
+            // DIFFERENT session id must not tear down (and mis-save) the live one. A fresh (nil) id
+            // adopts the message's, as before.
+            guard sessionId == nil || sessionId == sid else { break }
             sessionId = sid
             externalUUID = ext
             Task { await endSession(endedAt: endedAt, save: save) }
@@ -770,7 +785,7 @@ extension WatchWorkoutManager: HKLiveWorkoutBuilderDelegate {
         let unit = HKUnit.count().unitDivided(by: .minute())
         let bpm = statistics?.mostRecentQuantity()?.doubleValue(for: unit) ?? 0
         Task { @MainActor in
-            guard bpm > 0 else { return }
+            guard bpm > 0, bpm.isFinite else { return }   // FER-454: `Int(∞)` traps; `> 0` no excluye inf
             let value = Int(bpm.rounded())
             self.heartRate = value
             // FER-1003: mirror live HR to the iPhone — strength sheet's only live-HR source without a band.

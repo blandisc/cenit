@@ -55,7 +55,7 @@ struct HojaContexto: View {
 
             seccion(String(localized: "manual.contexto.sec.porque", defaultValue: "Why they don't vote"))
             Text(String(localized: "manual.contexto.porque",
-                        defaultValue: "On a wrist watch, HRV and stress aren't stable enough to decide with. Your watch's daytime HRV drifts about 29% from a chest-strap reference, so we show it as a quiet line where you usually sit, never as a range you crossed. Your resting heart rate and sleep carry the verdict; these ride along as context."))
+                        defaultValue: "On a wrist watch, HRV and stress aren't stable enough to decide with. Your watch's daytime HRV drifts about 29% from a chest-worn reference monitor, so we show it as a quiet line where you usually sit, never as a range you crossed. Your resting heart rate and sleep carry the verdict; these ride along as context."))
                 .font(LiquidType.cuerpo)
                 .lineSpacing(LiquidType.cuerpoLineSpacing)
                 .foregroundStyle(LiquidColor.tinta700)

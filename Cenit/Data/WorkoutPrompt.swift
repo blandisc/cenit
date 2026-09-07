@@ -3,7 +3,7 @@ import Foundation
 /// The copy-paste prompt the workout-import screen puts on the clipboard (FER-496).
 ///
 /// The user pastes it into their own LLM (ChatGPT/Claude) together with their training plan (text /
-/// photo / PDF); the LLM returns a `noop.workout.v1` file the user then imports. Bundled here as the
+/// photo / PDF); the LLM returns a `cenit.workout.v1` file the user then imports. Bundled here as the
 /// single source — not scattered string literals. Two languages: the device language picks one, but
 /// **each prompt accepts a plan written in Spanish OR English** (the model detects it and keeps the
 /// exercise names as written). NOOP itself never makes a network call — the user runs the LLM step.
@@ -30,7 +30,7 @@ enum WorkoutPrompt {
     formato. Para que la app lo acepte, necesito que tu respuesta sea solo el JSON, sin texto antes
     ni después:
 
-    { "schema":"noop.workout.v1", "idioma":"", "unidad":"kg", "programa":"",
+    { "schema":"cenit.workout.v1", "idioma":"", "unidad":"kg", "programa":"",
       "semanas":0, "semana_ligera":"", "al_terminar":"",
       "rutinas":[ { "nombre":"", "etiqueta":"", "dia":0,
         "ejercicios":[ {"id":"", "nombre":"", "tipo":"weightReps", "series":0, "reps":0,
@@ -67,7 +67,7 @@ enum WorkoutPrompt {
     (I'll give it to you below, in Spanish or English, as text or a photo) into this format. For the
     app to accept it, I need your reply to be just the JSON, no text before or after:
 
-    { "schema":"noop.workout.v1", "idioma":"", "unidad":"kg", "programa":"",
+    { "schema":"cenit.workout.v1", "idioma":"", "unidad":"kg", "programa":"",
       "semanas":0, "semana_ligera":"", "al_terminar":"",
       "rutinas":[ { "nombre":"", "etiqueta":"", "dia":0,
         "ejercicios":[ {"id":"", "nombre":"", "tipo":"weightReps", "series":0, "reps":0,

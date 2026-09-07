@@ -640,6 +640,10 @@ public let catalogEntries: [CatalogEntry] = [
                  archivo: "LiquidGlass/LiquidAviso.swift",
                  cuandoUsarlo: "Heads-up / desconexión / nudge / aviso con pie de acciones en pantalla Liquid — `LiquidPatternBlock` + `liquidTarjetaSeccion` (receta HealthAlertBanner); icono/CTA/pie opcionales.",
                  cuandoNo: "No snack de deshacer (`UndoToast`); no error de escritura (`.saveErrorToast`)."),
+    CatalogEntry(rol: "Tarjeta de una vez", simbolo: "LiquidUnaVezTipStyle",
+                 archivo: "LiquidGlass/LiquidUnaVez.swift",
+                 cuandoUsarlo: "Hito del motor o novedad mayor de una versión (FER-428 · D4/D2): `TipView` de TipKit vestido como un módulo más de la columna — `liquidGlass(tono:regimen:)` del huésped (sobrio en Hoy/Tendencias, mosaico en Entrenar), kicker `regla` en `tono.rotulo`, cuerpo, puerta de texto en `verdeProfundo` (la primera `Tips.Action`) y «Entendido» gris a la derecha. Se aplica en cada sitio de anclaje con `.tipViewStyle(...)`.",
+                 cuandoNo: "No para consejos anclados a un control (`LiquidConsejoTipStyle`, el estilo de raíz); no aviso/alerta (`LiquidAviso`); nunca modal ni encima del héroe/la palabra; sin ícono, ilustración ni confeti."),
     // —— Rampas de dato (FER-317 / catálogo FER-319) ——
     CatalogEntry(rol: "Rampas de dato Liquid", simbolo: "LiquidRampas",
                  archivo: "LiquidGlass/LiquidRampas.swift",
@@ -655,6 +659,11 @@ public let catalogEntries: [CatalogEntry] = [
                  archivo: "LiquidGlass/LiquidGlow.swift",
                  cuandoUsarlo: "Contorno que late (aviso, filo con aura) o disco radial desenfocado (orbe de respiración): la pantalla pasa color/fase y el blur vive en la pieza.",
                  cuandoNo: "No para sombra de elevación (`liquidShadow`); no vidrio (`liquidGlass(_:)`); no `.blur` + fill a mano en pantallas."),
+    // —— FER-430 · el estado vacío que enseña (épico FER-428 «Sistema de aprendizaje») ——
+    CatalogEntry(rol: "Estado vacío que enseña", simbolo: "LiquidVacio",
+                 archivo: "LiquidGlass/LiquidVacio.swift",
+                 cuandoUsarlo: "Cualquier lista/sección/pantalla que todavía no tiene datos: qué va aquí · cómo se llena (con `cuenta` «faltan 3 noches» si aplica) · dónde vive o UNA acción (`Salida`). Recibe `Text` ya resuelto por la app desde el registro de enseñanza; plano sobre el lienzo, alineado a la izquierda, donde irán los datos.",
+                 cuandoNo: "No para error de lectura ni aviso (`LiquidAviso`); no para «calibrando» con barra (`LiquidCalibracionCard`); no una hoja de onboarding; no reinventar icono+título+cuerpo a mano en la pantalla."),
 ]
 
 func catalogoTable() -> String {

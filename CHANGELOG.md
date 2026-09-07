@@ -41,6 +41,21 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
   —sin control, sin preferencia guardada y sin código que la alcance—, así que ahora la app está
   offline por completo. Las animaciones que ya hubieras descargado dejan de mostrarse, pero no se
   borran: siguen en tu iPhone. Vuelve más adelante con arte propio.
+
+### Señales de carga inusual, sin nombres de otras marcas (FER-400)
+- **«Vigilar señales de enfermedad» ahora se llama «vigilar señales de carga inusual».** El aviso y
+  su notificación ya no dicen «enfermedad»: hablan de noches en las que tu cuerpo carga más de lo
+  normal (una mala noche, un día pesado o algo que podrías estar incubando), y siguen sin ser un
+  diagnóstico.
+- Las fichas de respiración, oxígeno en sangre y temperatura de piel bajan el tono: ya no sugieren
+  «apnea del sueño» ni «enfermedad» como causa; hablan de esfuerzo, carga inusual o algo que
+  podrías estar incubando, siempre como una posibilidad entre varias, nunca como conclusión.
+- **Cero mención a la banda de terceros en los textos.** Las plantillas que Cénit te da para pegar
+  en tu LLM y la etiqueta del importador ya dicen `cenit.workout.v1` / `cenit.diet.v1` en vez del
+  identificador heredado; los archivos viejos se siguen leyendo igual.
+- Catálogo de textos completo en español: se tradujeron las claves que faltaban en el catálogo de
+  la app y de los widgets, y se podaron las que ya nadie usaba.
+
 ### El onboarding ya no promete un aviso que no puede sonar (FER-429)
 - Mientras Cénit todavía te está conociendo («Noche N de 4»), la última pantalla del primer
   arranque ya no ofrece el recordatorio de la mañana: no hay palabra que recordar hasta que haya
@@ -70,6 +85,13 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
 - De paso desaparecieron tres funciones muertas que quedaron de la época de la banda y que
   consultaban tablas que ya no existen: fallaban en silencio en cada llamada y nadie leía su
   resultado.
+
+### Los consejos de Entrenar ahora salen uno por día (FER-430)
+- Antes podían aparecer varios consejos nuevos en la misma sesión; ahora, como mucho uno al día.
+  Por dentro, cada funcionalidad del app queda registrada con un id estable — la base para que
+  Ayuda, Novedades y los hitos se mantengan al día solos.
+- Al actualizar, cada consejo de Entrenar que ya habías cerrado puede aparecer una vez más (su
+  llave interna cambió al id del registro). Se cierra igual, con «Entendido».
 
 ### Los planes y programas que importas ahora se llaman `cenit.*` (FER-382)
 - El archivo que armas con tu LLM (rutina o plan de comida) pasa a identificarse como

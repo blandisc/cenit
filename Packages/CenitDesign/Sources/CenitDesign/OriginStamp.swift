@@ -10,7 +10,7 @@ import SwiftUI
 
 /// Where a displayed reading came from. Drives both the dot color and the es-MX source label.
 public enum DataOrigin: Sendable, Hashable {
-    /// An external band worn on the wrist.
+    /// A retired third-party wearable (historical data only; Cénit is 100% Apple Watch).
     case band
     /// Apple Salud (HealthKit).
     case apple
@@ -32,11 +32,11 @@ public extension DataOrigin {
 
     /// Source label shown before the "· {cuándo}". English keys resolve against the app bundle. All three
     /// share the same «Medido por … / Calculado en …» verb frame so the foot of every detail reads the
-    /// same way (es «Medido por tu banda» / «Medido por Apple Salud» / «Calculado en tu teléfono»); the
-    /// «Apple Health» brand name stays intact inside the phrase.
+    /// same way (es «Medido por tu dispositivo anterior» / «Medido por Apple Salud» / «Calculado en tu
+    /// teléfono»); the «Apple Health» brand name stays intact inside the phrase.
     var label: String {
         switch self {
-        case .band:     return String(localized: "Measured by your band", bundle: .main)
+        case .band:     return String(localized: "Measured by your earlier device", bundle: .main)
         case .apple:    return String(localized: "Measured by Apple Health", bundle: .main)
         case .computed: return String(localized: "Computed on your phone", bundle: .main)
         }

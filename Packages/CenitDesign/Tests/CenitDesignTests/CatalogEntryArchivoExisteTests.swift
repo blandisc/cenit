@@ -12,41 +12,12 @@ import XCTest
 // `rol`/`cuándo usarlo`/`cuándo no` la cuida el review humano; esto solo cierra el hueco barato.
 
 final class CatalogEntryArchivoExisteTests: XCTestCase {
-    /// `Tests/CenitDesignTests/<esteArchivo>.swift` → sube a la raíz del repo.
-    private var repoRoot: URL {
-        URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent() // .../Tests/CenitDesignTests
-            .deletingLastPathComponent() // .../Tests
-            .deletingLastPathComponent() // .../CenitDesign (raíz del paquete)
-            .deletingLastPathComponent() // .../Packages
-            .deletingLastPathComponent() // raíz del repo
-    }
-
-    /// Extrae la columna `archivo` de cada fila del índice de componentes: filas de la forma
-    /// `| Rol | \`símbolo\` | \`archivo\` | cuándo usarlo | cuándo no |`.
-    private func archivosDelIndice(_ catalogo: String) -> [String] {
-        var archivos: [String] = []
-        for line in catalogo.split(separator: "\n") {
-            let cols = line.split(separator: "|", omittingEmptySubsequences: false).map {
-                $0.trimmingCharacters(in: .whitespaces)
-            }
-            // Fila de datos del índice: 7 columnas ("" | Rol | símbolo | archivo | usarlo | no | "")
-            // y la 3ª (símbolo) y 4ª (archivo) van entre backticks — el separador visual
-            // "|---|---|" no las trae, así que no cuela como falso positivo.
-            guard cols.count == 7, cols[2].hasPrefix("`"), cols[3].hasPrefix("`") else { continue }
-            let archivo = cols[3].trimmingCharacters(in: CharacterSet(charactersIn: "`"))
-            archivos.append(archivo)
-        }
-        return archivos
-    }
-
     func test_cadaArchivoDelIndiceExiste() throws {
-        let catalogoURL = repoRoot.appendingPathComponent("docs/design-system/CATALOGO.md")
-        let catalogo = try String(contentsOf: catalogoURL, encoding: .utf8)
+        let repoRoot = CatalogoIndice.repoRoot
         let sourcesRoot = repoRoot.appendingPathComponent("Packages/CenitDesign/Sources/CenitDesign")
 
-        let archivos = archivosDelIndice(catalogo)
-        XCTAssertFalse(archivos.isEmpty, "no se encontraron filas de índice en \(catalogoURL.path) — ¿cambió el formato de la tabla?")
+        let archivos = CatalogoIndice.filas(try CatalogoIndice.texto()).map { CatalogoIndice.sinBackticks($0[3]) }
+        XCTAssertFalse(archivos.isEmpty, "no se encontraron filas de índice en \(CatalogoIndice.url.path) — ¿cambió el formato de la tabla?")
 
         let fm = FileManager.default
         for archivo in archivos {

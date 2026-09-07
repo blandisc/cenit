@@ -719,11 +719,39 @@ extension CenitStore {
         }
     }
 
+    /// Everything `deleteSession` removes, so «Deshacer» can restore ALL of it — not just the session
+    /// and its sets. FER-406: the old undo re-saved session+sets only, silently losing the user's notes,
+    /// per-exercise progression opt-outs, and the raw HR trace. Capturing the full snapshot in the same
+    /// place that deletes keeps the two symmetric: add a table to `deleteSession` and it rides here too.
+    public struct DeletedStrengthSession: Sendable {
+        public let session: StrengthSession
+        public let sets: [SetEntry]
+        public let optOuts: Set<String>
+        public let notes: [ExerciseNote]
+        public let hr: [HRSample]
+    }
+
     /// Delete a session and its sets, then recompute the affected exercises' PRs from what remains
     /// (FER-527). All in one transaction. A record can DROP to the second-best (or be removed if it was
     /// the only session for that exercise) — the PR stays honest. Touches no routine/routineExercise.
-    public func deleteSession(id: String) async throws {
+    /// Returns the full snapshot of what was removed (FER-406) so «Deshacer» can restore it verbatim;
+    /// `nil` when the id didn't exist. `@discardableResult` — callers that don't offer undo ignore it.
+    @discardableResult
+    public func deleteSession(id: String) async throws -> DeletedStrengthSession? {
         try syncWrite { db in
+            // Snapshot BEFORE deleting, inside the same transaction, so undo restores exactly what left.
+            guard let sessionRow = try Row.fetchOne(db, sql: "SELECT * FROM strengthSession WHERE id = ?",
+                                                    arguments: [id]) else { return nil }
+            let snapshot = DeletedStrengthSession(
+                session: Self.session(sessionRow),
+                sets: try Row.fetchAll(db, sql: "SELECT * FROM setEntry WHERE sessionId = ? ORDER BY position ASC",
+                                       arguments: [id]).map(Self.setEntry),
+                optOuts: Set(try String.fetchAll(db, sql: "SELECT exerciseId FROM progressionOptOut WHERE sessionId = ?",
+                                                 arguments: [id])),
+                notes: try Row.fetchAll(db, sql: "SELECT * FROM strengthExerciseNote WHERE sessionId = ?",
+                                        arguments: [id]).map(Self.exerciseNote),
+                hr: try Row.fetchAll(db, sql: "SELECT ts, bpm FROM strengthHrSample WHERE sessionId = ? ORDER BY ts ASC",
+                                     arguments: [id]).map { HRSample(ts: $0["ts"], bpm: $0["bpm"]) })
             let affected = try String.fetchAll(db, sql:
                 "SELECT DISTINCT exerciseId FROM setEntry WHERE sessionId = ?", arguments: [id])
             try db.execute(sql: "DELETE FROM setEntry WHERE sessionId = ?", arguments: [id])
@@ -732,6 +760,20 @@ extension CenitStore {
             try db.execute(sql: "DELETE FROM strengthHrSample WHERE sessionId = ?", arguments: [id])
             try db.execute(sql: "DELETE FROM strengthSession WHERE id = ?", arguments: [id])
             for exerciseId in affected { try Self.recomputePR(db, exerciseId: exerciseId) }
+            return snapshot
+        }
+    }
+
+    /// Restore a session removed by `deleteSession`, with ALL of it (FER-406): session, sets, opt-outs,
+    /// notes and the raw HR trace, in one transaction. `persistSession` re-derives the PRs.
+    public func restoreDeletedSession(_ d: DeletedStrengthSession) async throws {
+        try syncWrite { db in
+            try Self.persistSession(db, session: d.session, sets: d.sets,
+                                    progressionOptOuts: d.optOuts, notes: d.notes)
+            for s in d.hr {
+                try db.execute(sql: "INSERT INTO strengthHrSample (sessionId, ts, bpm) VALUES (?, ?, ?) ON CONFLICT(sessionId, ts) DO NOTHING",
+                               arguments: [d.session.id, s.ts, s.bpm])
+            }
         }
     }
 

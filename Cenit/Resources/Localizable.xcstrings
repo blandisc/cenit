@@ -354,7 +354,6 @@
         }
       }
     },
-
     "Bar %@ kg" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1035,16 +1034,6 @@
         }
       }
     },
-    "I cross your wrist temperature with your resting nighttime pulse to warn you early of a possible illness. It's approximate, not a diagnosis, and I need about two weeks of data. If it fires, you'll see it in %@ and, if you've allowed notifications, in a notification." : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cruzo tu temperatura de muñeca con tu pulso en reposo nocturno para avisarte temprano de una posible enfermedad. Es aproximado, no es un diagnóstico, y necesito unas dos semanas de datos. Si se dispara, lo verás en %@ y, si permitiste notificaciones, en un aviso."
-          }
-        }
-      }
-    },
     "Version %@ · what Cénit is" : {
       "localizations" : {
         "es" : {
@@ -1071,26 +1060,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Vigilancia"
-          }
-        }
-      }
-    },
-    "Watch for illness signs" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vigilar señales de enfermedad"
-          }
-        }
-      }
-    },
-    "Crosses your wrist temperature and nighttime resting heart rate to warn you early of possible illness. Approximate, not a diagnosis; needs about two weeks of data. If it fires, you'll see it in %@ and, if you've allowed notifications, in a notification." : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cruza tu temperatura de muñeca y tu pulso en reposo nocturno para avisarte temprano de una posible enfermedad. Aproximado, no es un diagnóstico; necesita unas dos semanas de datos. Si se dispara, lo verás en %@ y, si permitiste notificaciones, en un aviso."
           }
         }
       }
@@ -1772,6 +1741,12 @@
             "state" : "new",
             "value" : "%1$@ / %2$@ nights"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ / %2$@ noches"
+          }
         }
       }
     },
@@ -1871,7 +1846,20 @@
       }
     },
     "%@ bpm to ready" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%@ bpm to ready"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ bpm para estar listo"
+          }
+        }
+      }
     },
     "%@ bpm · %@" : {
       "extractionState" : "stale",
@@ -1891,10 +1879,36 @@
       }
     },
     "%@ breaths" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%@ breaths"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ respiraciones"
+          }
+        }
+      }
     },
     "%@ cm" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%@ cm"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ cm"
+          }
+        }
+      }
     },
     "%@ costs you Recovery" : {
       "extractionState" : "stale",
@@ -1980,6 +1994,12 @@
             "state" : "new",
             "value" : "%1$@ exercises · %2$@ sets · %3$@ done"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ ejercicios · %2$@ series · %3$@ hechas"
+          }
         }
       }
     },
@@ -2022,7 +2042,20 @@
       }
     },
     "%@ kg" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%@ kg"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ kg"
+          }
+        }
+      }
     },
     "%@ kg, %@ pairs" : {
       "localizations" : {
@@ -2041,7 +2074,20 @@
       }
     },
     "%@ lb" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%@ lb"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ lb"
+          }
+        }
+      }
     },
     "%@ lowers your %@." : {
       "extractionState" : "manual",
@@ -2088,7 +2134,20 @@
       }
     },
     "%@ min" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%@ min"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ min"
+          }
+        }
+      }
     },
     "%@ night" : {
       "extractionState" : "stale",
@@ -2141,6 +2200,12 @@
             "state" : "new",
             "value" : "%1$@ of %2$@ days"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ de %2$@ días"
+          }
         }
       }
     },
@@ -2150,6 +2215,12 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "%1$@ of %2$@ sets"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ de %2$@ series"
           }
         }
       }
@@ -2298,9 +2369,6 @@
         }
       }
     },
-    "%@ raising" : {
-
-    },
     "%@ ran off your usual" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2348,9 +2416,6 @@
         }
       }
     },
-    "%@ registros" : {
-
-    },
     "%@ rhythm" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2364,19 +2429,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "ritmo %@"
-          }
-        }
-      }
-    },
-    "%@ sessions this month" : {
-
-    },
-    "%@ sessions this month · %@ load raises" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@ sessions this month · %2$@ load raises"
           }
         }
       }
@@ -2691,6 +2743,12 @@
             "state" : "new",
             "value" : "%1$@ · %2$@h"
           }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$@h"
+          }
         }
       }
     },
@@ -2813,7 +2871,20 @@
       }
     },
     "%@ ›" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%@ ›"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ ›"
+          }
+        }
+      }
     },
     "%@ ↔ %@" : {
       "localizations" : {
@@ -2849,7 +2920,20 @@
       }
     },
     "%@%%" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%@%%"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@%%"
+          }
+        }
+      }
     },
     "%@%@" : {
       "localizations" : {
@@ -2873,6 +2957,12 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "%1$@, %2$@%% last night"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@, %2$@%% anoche"
           }
         }
       }
@@ -3282,6 +3372,12 @@
         "en" : {
           "stringUnit" : {
             "state" : "new",
+            "value" : "%1$@′ %2$@″"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
             "value" : "%1$@′ %2$@″"
           }
         }
@@ -6055,7 +6151,20 @@
       }
     },
     "/ %@" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "/ %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "/ %@"
+          }
+        }
+      }
     },
     "/ %lld" : {
       "extractionState" : "stale",
@@ -6109,13 +6218,36 @@
       }
     },
     "/%@" : {
-
-    },
-    "/100" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "/%@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "/%@"
+          }
+        }
+      }
     },
     "0" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "0"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "0"
+          }
+        }
+      }
     },
     "1 day" : {
       "extractionState" : "stale",
@@ -7169,7 +7301,20 @@
       }
     },
     "=" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "="
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "="
+          }
+        }
+      }
     },
     "A bit short" : {
       "extractionState" : "manual",
@@ -10785,23 +10930,6 @@
         }
       }
     },
-    "Band" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Band"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Banda"
-          }
-        }
-      }
-    },
     "Band at %lld%%" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10974,19 +11102,12 @@
         }
       }
     },
-    "Baseline-relative skin temperature as an early illness signal (cf. Oura ~+0.5 °C). A wrist trend, not a clinical thermometer. Cénit is not a medical device." : {
-      "extractionState" : "manual",
+    "Baseline-relative skin temperature as a signal of unusual load (cf. Oura ~+0.5 °C). A wrist trend, not a clinical thermometer. Cénit is not a medical device." : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Baseline-relative skin temperature as an early illness signal (cf. Oura ~+0.5 °C). A wrist trend, not a clinical thermometer. Cénit is not a medical device."
-          }
-        },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Temperatura de piel relativa a tu base como señal temprana de enfermedad (cf. Oura ~+0.5 °C). Una tendencia de muñeca, no un termómetro clínico. Cénit no es un dispositivo médico."
+            "value" : "Temperatura de piel relativa a tu base como señal de carga inusual (cf. Oura ~+0.5 °C). Una tendencia de muñeca, no un termómetro clínico. Cénit no es un dispositivo médico."
           }
         }
       }
@@ -11377,7 +11498,20 @@
       }
     },
     "Best: %@" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Best: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mejor: %@"
+          }
+        }
+      }
     },
     "Best: %lld" : {
       "extractionState" : "manual",
@@ -11725,9 +11859,6 @@
           }
         }
       }
-    },
-    "Borrar media descargada" : {
-
     },
     "Both markers near your base today." : {
       "extractionState" : "stale",
@@ -14982,9 +15113,6 @@
         }
       }
     },
-    "Cruza tu temperatura de muñeca y tu pulso en reposo nocturno para avisarte temprano de una posible enfermedad. Aproximado, no es un diagnóstico; necesita unas dos semanas de datos." : {
-
-    },
     "Current cycle" : {
       "localizations" : {
         "en" : {
@@ -15346,10 +15474,6 @@
         }
       }
     },
-    "Cómo estimo tu tendencia" : {
-      "comment" : "A title for the \"How I estimate your trend\" section of the",
-      "isCommentAutoGenerated" : true
-    },
     "DAY BY DAY" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -15623,7 +15747,20 @@
       }
     },
     "Day %@" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Day %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Día %@"
+          }
+        }
+      }
     },
     "Day %lld" : {
       "extractionState" : "manual",
@@ -16189,9 +16326,6 @@
           }
         }
       }
-    },
-    "Descargar biblioteca de ejercicios" : {
-
     },
     "Deselect" : {
       "localizations" : {
@@ -18158,10 +18292,6 @@
         }
       }
     },
-    "Es una guía de dirección, no una medición médica ni una puntuación exacta." : {
-      "comment" : "A description of how the autonomic trend is calculated.",
-      "isCommentAutoGenerated" : true
-    },
     "Est. 1RM" : {
       "localizations" : {
         "en" : {
@@ -18306,9 +18436,6 @@
           }
         }
       }
-    },
-    "Estimated max heart rate · %@ bpm" : {
-
     },
     "Estimated max heart rate · %lld bpm" : {
       "extractionState" : "stale",
@@ -19438,7 +19565,20 @@
       }
     },
     "For %@ days" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "For %@ days"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Por %@ días"
+          }
+        }
+      }
     },
     "For %lld days" : {
       "extractionState" : "manual",
@@ -19933,16 +20073,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Objetivo %@"
-          }
-        }
-      }
-    },
-    "Goal today: %@×%@ with the new weight. Losing a rep or two on a raise is normal; you win them back in 1 or 2 sessions." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Goal today: %1$@×%2$@ with the new weight. Losing a rep or two on a raise is normal; you win them back in 1 or 2 sessions."
           }
         }
       }
@@ -20773,14 +20903,17 @@
       }
     },
     "Heart rate %@" : {
-
-    },
-    "Heart rate %@, zone %@, %@ percent of your maximum" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Heart rate %1$@, zone %2$@, %3$@ percent of your maximum"
+            "value" : "Heart rate %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frecuencia cardiaca %@"
           }
         }
       }
@@ -21557,19 +21690,12 @@
         }
       }
     },
-    "How many breaths you take per minute while you sleep. It's one of the steadiest signals your body has, so even a small rise from your own normal can be an early sign of strain, illness, or a late, heavy meal." : {
-      "extractionState" : "manual",
+    "How many breaths you take per minute while you sleep. It's one of the steadiest signals your body has, so even a small rise from your own normal can point to strain, an unusually demanding day, or a late, heavy meal." : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "How many breaths you take per minute while you sleep. It's one of the steadiest signals your body has, so even a small rise from your own normal can be an early sign of strain, illness, or a late, heavy meal."
-          }
-        },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cuántas respiraciones tomas por minuto mientras duermes. Es una de las señales más estables de tu cuerpo, así que incluso una subida pequeña respecto a tu normal puede ser un aviso temprano de carga, de que algo viene, o de una cena pesada y tardía."
+            "value" : "Cuántas respiraciones das por minuto mientras duermes. Es una de las señales más estables de tu cuerpo, así que hasta un pequeño aumento sobre tu normal puede apuntar a esfuerzo, un día especialmente demandante o una comida tardía y pesada."
           }
         }
       }
@@ -21807,6 +21933,16 @@
         }
       }
     },
+    "I cross your wrist temperature with your resting nighttime pulse to spot nights when your body is under more load than usual: a rough night, a hard day, or something you may be coming down with. It's approximate, not a diagnosis, and I need about two weeks of data. If it fires, you'll see it in %@ and, if you allow notifications, as a notification." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cruzo tu temperatura de muñeca con tu pulso en reposo nocturno para detectar noches en las que tu cuerpo carga más de lo normal: una mala noche, un día pesado o algo que podrías estar incubando. Es aproximado, no es un diagnóstico, y necesito unas dos semanas de datos. Si se activa, lo verás en %@ y, si permites notificaciones, como notificación."
+          }
+        }
+      }
+    },
     "I don't have one" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -21967,10 +22103,6 @@
           }
         }
       }
-    },
-    "I need at least 3 signals to work this out without guessing. You have %@." : {
-      "comment" : "A message in the hero when the Body Age reading is not yet available.",
-      "isCommentAutoGenerated" : true
     },
     "I need several weeks of nights with your Apple Watch worn to bed to read the rhythm of your temperature. Still watching." : {
       "localizations" : {
@@ -22219,23 +22351,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ignorar"
-          }
-        }
-      }
-    },
-    "Illness early-warning" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Illness early-warning"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aviso temprano de enfermedad"
           }
         }
       }
@@ -23846,16 +23961,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cumplido"
-          }
-        }
-      }
-    },
-    "Kept **%@ of %@** days." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Kept **%1$@ of %2$@** days."
           }
         }
       }
@@ -25848,9 +25953,6 @@
         }
       }
     },
-    "Mark your meals · 0 of %@" : {
-
-    },
     "Mark your meals · 0 of %lld" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -26615,10 +26717,6 @@
           }
         }
       }
-    },
-    "Miro la variabilidad de los latidos que tu reloj registra mientras duermes y la comparo con tu propio promedio, no con el de otra persona ni con un número fijo de población." : {
-      "comment" : "A description of how the autonomic trend is calculated.",
-      "isCommentAutoGenerated" : true
     },
     "Missed today · logged" : {
       "extractionState" : "stale",
@@ -28777,10 +28875,6 @@
         }
       }
     },
-    "No se pudo armar el recibo." : {
-      "comment" : "A message displayed when the receipt cannot be generated.",
-      "isCommentAutoGenerated" : true
-    },
     "No sets in this range" : {
       "localizations" : {
         "en" : {
@@ -30197,6 +30291,16 @@
         }
       }
     },
+    "On-device estimate (approximate): not a diagnosis." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estimado en tu dispositivo (aproximado): no es un diagnóstico."
+          }
+        }
+      }
+    },
     "Once you log a strength set (weight or reps), your best mark shows up here." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -31361,19 +31465,12 @@
         }
       }
     },
-    "Other signals from your body while you sleep. When they all rise together, something is taxing you (illness, alcohol, hard effort)." : {
-      "extractionState" : "manual",
+    "Other signals from your body while you sleep. When they all rise together, something is taxing you: alcohol, a hard effort, or maybe something you're coming down with." : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Other signals from your body while you sleep. When they all rise together, something is taxing you (illness, alcohol, hard effort)."
-          }
-        },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Otras señales de tu cuerpo mientras duermes. Si suben todas juntas, algo te está exigiendo (enfermedad, alcohol, mucho esfuerzo)."
+            "value" : "Otras señales de tu cuerpo mientras duermes. Cuando todas suben juntas, algo está exigiendo a tu cuerpo: alcohol, un esfuerzo fuerte o tal vez algo que podrías estar incubando."
           }
         }
       }
@@ -31945,23 +32042,6 @@
         }
       }
     },
-    "Paste the plan you built with your LLM · noop.workout.v1" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paste the plan you built with your LLM · noop.workout.v1"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "pega el plan que armaste con tu LLM · noop.workout.v1"
-          }
-        }
-      }
-    },
     "Paste the result here…" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -32251,19 +32331,12 @@
         }
       }
     },
-    "Percentage of haemoglobin carrying oxygen in your blood. Healthy adults typically stay above 95%. A drop can indicate altitude effects, sleep apnea, or respiratory illness." : {
-      "extractionState" : "manual",
+    "Percentage of haemoglobin carrying oxygen in your blood. Healthy adults typically stay above 95%. A drop can reflect altitude effects or how the sensor sat; a sustained one is worth mentioning to a doctor." : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Percentage of haemoglobin carrying oxygen in your blood. Healthy adults typically stay above 95%. A drop can indicate altitude effects, sleep apnea, or respiratory illness."
-          }
-        },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "El porcentaje de tu hemoglobina que lleva oxígeno. En adultos sanos suele mantenerse por encima del 95%. Una baja puede reflejar el efecto de la altitud, apnea del sueño o una afección respiratoria."
+            "value" : "Porcentaje de hemoglobina que transporta oxígeno en tu sangre. Los adultos sanos suelen mantenerse arriba de 95%. Una caída puede reflejar efectos de altitud o cómo quedó el sensor; una caída sostenida vale la pena mencionarla con un médico."
           }
         }
       }
@@ -34001,9 +34074,6 @@
           }
         }
       }
-    },
-    "Recalibrada el %@" : {
-
     },
     "Recalibrar desde hoy" : {
       "extractionState" : "manual",
@@ -41004,10 +41074,6 @@
         }
       }
     },
-    "Task Force 1996; Plews 2013" : {
-      "comment" : "A footnote with the authors of the original research.",
-      "isCommentAutoGenerated" : true
-    },
     "Temperature" : {
       "localizations" : {
         "es" : {
@@ -42266,19 +42332,12 @@
         }
       }
     },
-    "The temperature of your skin, read at your wrist while you sleep. It shifts with your circadian rhythm. What matters isn't the number itself, but how far it sits from your own baseline. A sustained rise can be an early sign of inflammation or a coming illness; that's why it's one of the signals behind your daily verdict." : {
-      "extractionState" : "manual",
+    "The temperature of your skin, read at your wrist while you sleep. It shifts with your circadian rhythm. What matters isn't the number itself, but how far it sits from your own baseline. A sustained rise can point to extra load on your body: training, poor sleep, or something you might be coming down with. That's why it's one of the signals behind your daily verdict." : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The temperature of your skin, read at your wrist while you sleep. It shifts with your circadian rhythm. What matters isn't the number itself, but how far it sits from your own baseline. A sustained rise can be an early sign of inflammation or a coming illness; that's why it's one of the signals behind your daily verdict."
-          }
-        },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La temperatura de tu piel, medida en la muñeca mientras duermes. Cambia con tu ritmo circadiano. Lo que importa no es el número en sí, sino qué tan lejos queda de tu propia base. Una subida sostenida puede ser una señal temprana de inflamación o de que te estás enfermando; por eso es una de las señales detrás de tu veredicto del día."
+            "value" : "La temperatura de tu piel, medida en tu muñeca mientras duermes. Cambia con tu ritmo circadiano. Lo que importa no es el número en sí, sino qué tan lejos está de tu propia base. Un aumento sostenido puede apuntar a carga extra en tu cuerpo: entrenamiento, mal sueño o algo que podrías estar incubando. Por eso es una de las señales detrás de tu veredicto diario."
           }
         }
       }
@@ -42388,9 +42447,6 @@
           }
         }
       }
-    },
-    "The «vs your base» bars show each signal's deviation in σ (above your base = right). HRV, resting heart rate and respiration are z-scored that way; sleep and skin temperature carry no σ, so they show their state, not a position. Your base and normal range are your recent average ± one σ. Steadiness is the coefficient of variation (CV). Training load is the acute:chronic workload ratio (ACWR): context for recovery, never an injury claim." : {
-
     },
     "Then re-nudge every" : {
       "extractionState" : "stale",
@@ -44319,6 +44375,16 @@
         }
       }
     },
+    "Unusual signals last night · take it easy" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Señales inusuales anoche · tómalo con calma"
+          }
+        }
+      }
+    },
     "Up vs last time" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -45003,9 +45069,6 @@
         }
       }
     },
-    "Vigilar señales de enfermedad" : {
-
-    },
     "Vista clásica" : {
       "localizations" : {
         "en" : {
@@ -45473,7 +45536,7 @@
     },
     "Watch + calculated" : {
       "extractionState" : "manual",
-      "comment" : "FER-226: revives the strength-session HR capturer — same energySource, new copy (no strap any more, F7).",
+      "comment" : "FER-226: revives the strength-session HR capturer — same energySource, new copy (no band any more, F7).",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -45489,19 +45552,12 @@
         }
       }
     },
-    "Watch for early-illness signs" : {
-      "extractionState" : "manual",
+    "Watch for unusual-load signals" : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Watch for early-illness signs"
-          }
-        },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vigilar señales tempranas de enfermedad"
+            "value" : "Vigilar señales de carga inusual"
           }
         }
       }
@@ -48116,19 +48172,12 @@
         }
       }
     },
-    "Your Apple Watch reads your skin temperature through the night; Cénit averages the worn, asleep portion and compares it with your own recent baseline, so what you see is the deviation in °C, not a raw temperature. Around your base is normal; a sustained rise of roughly +0.4 °C or more is a classic early illness marker, so Cénit flags it as running warm (~+0.4 °C) or well above (~+0.8 °C)." : {
-      "extractionState" : "manual",
+    "Your Apple Watch reads your skin temperature through the night; Cénit averages the worn, asleep portion and compares it with your own recent baseline, so what you see is the deviation in °C, not a raw temperature. Around your base is normal; a sustained rise of roughly +0.4 °C or more can point to extra load on your body: training, poor sleep, or something you might be coming down with. So Cénit flags it as running warm (~+0.4 °C) or well above (~+0.8 °C)." : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your Apple Watch reads your skin temperature through the night; Cénit averages the worn, asleep portion and compares it with your own recent baseline, so what you see is the deviation in °C, not a raw temperature. Around your base is normal; a sustained rise of roughly +0.4 °C or more is a classic early illness marker, so Cénit flags it as running warm (~+0.4 °C) or well above (~+0.8 °C)."
-          }
-        },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tu Apple Watch lee la temperatura de tu piel durante la noche; Cénit promedia la parte con el reloj puesto y dormido, y la compara con tu propia base reciente, así que lo que ves es la desviación en °C, no una temperatura cruda. Cerca de tu base es normal; una subida sostenida de alrededor de +0.4 °C o más es un marcador clásico de enfermedad temprana, así que Cénit la marca como corriendo caliente (~+0.4 °C) o muy por encima (~+0.8 °C)."
+            "value" : "Tu Apple Watch lee tu temperatura de piel durante la noche; Cénit promedia la parte puesta y dormida y la compara con tu propia base reciente, así que lo que ves es la desviación en °C, no una temperatura cruda. Cerca de tu base es normal; un aumento sostenido de más o menos +0.4 °C o más puede apuntar a carga extra en tu cuerpo (entrenamiento, mal sueño o algo que podrías estar incubando), así que Cénit lo marca como tibio (~+0.4 °C) o bien arriba (~+0.8 °C)."
           }
         }
       }
@@ -50421,7 +50470,20 @@
       }
     },
     "Z%@" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Z%@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Z%@"
+          }
+        }
+      }
     },
     "Z%lld" : {
       "extractionState" : "manual",
@@ -51379,16 +51441,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "activa"
-          }
-        }
-      }
-    },
-    "adherence · %@ of %@ meals" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "adherence · %1$@ of %2$@ meals"
           }
         }
       }
@@ -55364,13 +55416,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "On a wrist watch, HRV and stress aren't stable enough to decide with. Your watch's daytime HRV drifts about 29% from a chest-strap reference, so we show it as a quiet line where you usually sit, never as a range you crossed. Your resting heart rate and sleep carry the verdict; these ride along as context."
+            "value" : "On a wrist watch, HRV and stress aren't stable enough to decide with. Your watch's daytime HRV drifts about 29% from a chest-worn reference monitor, so we show it as a quiet line where you usually sit, never as a range you crossed. Your resting heart rate and sleep carry the verdict; these ride along as context."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "En un reloj de muñeca, la VFC y el estrés no son lo bastante estables para decidir con ellos. La VFC de día de tu reloj se aleja alrededor de 29% de una referencia de banda de pecho, así que la mostramos como una línea quieta donde sueles estar, nunca como un rango que cruzaste. Tu FC en reposo y tu sueño llevan el veredicto; estas van de acompañantes."
+            "value" : "En un reloj de muñeca, la VFC y el estrés no son lo bastante estables para decidir con ellos. La VFC de día de tu reloj se aleja alrededor de 29% de un monitor de referencia de pecho, así que la mostramos como una línea quieta donde sueles estar, nunca como un rango que cruzaste. Tu FC en reposo y tu sueño llevan el veredicto; estas van de acompañantes."
           }
         }
       }
@@ -56443,9 +56495,6 @@
         }
       }
     },
-    "max weight · %@ wk" : {
-
-    },
     "max weight · %lld wk" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -56771,9 +56820,6 @@
         }
       }
     },
-    "ms²" : {
-
-    },
     "muscleGroup.core" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -56985,16 +57031,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "noches seguidas"
-          }
-        }
-      }
-    },
-    "nights in a row · kept %@ of %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "nights in a row · kept %1$@ of %2$@"
           }
         }
       }
@@ -65837,7 +65873,20 @@
       }
     },
     "~%@%%" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "~%@%%"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "~%@%%"
+          }
+        }
+      }
     },
     "~%lld min" : {
       "extractionState" : "stale",
@@ -66010,7 +66059,20 @@
       }
     },
     "±%@" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "±%@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "±%@"
+          }
+        }
+      }
     },
     "±%lld% week to week · %@" : {
       "extractionState" : "manual",
@@ -66246,7 +66308,20 @@
       }
     },
     "×" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "×"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "×"
+          }
+        }
+      }
     },
     "σ" : {
       "extractionState" : "manual",
@@ -66365,10 +66440,36 @@
       }
     },
     "…" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "…"
+          }
+        }
+      }
     },
     "‹ %@" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "‹ %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "‹ %@"
+          }
+        }
+      }
     },
     "← rejuvenates you" : {
       "extractionState" : "manual",
@@ -66383,16 +66484,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "← te rejuvenece"
-          }
-        }
-      }
-    },
-    "↗ +%@ / %@ wk" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "↗ +%1$@ / %2$@ wk"
           }
         }
       }
@@ -66413,9 +66504,6 @@
           }
         }
       }
-    },
-    "↗ +%@%% vs. last month" : {
-
     },
     "↗ +%lld% vs. last month" : {
       "extractionState" : "stale",
@@ -66439,9 +66527,6 @@
         }
       }
     },
-    "↗ up %@ wk" : {
-
-    },
     "↗ up %lld wk" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -66458,9 +66543,6 @@
           }
         }
       }
-    },
-    "↘ −%@%% vs. last month" : {
-
     },
     "↘ −%lld% vs. last month" : {
       "extractionState" : "stale",
@@ -66642,6 +66724,12 @@
         "en" : {
           "stringUnit" : {
             "state" : "new",
+            "value" : "★ %1$@: %2$@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
             "value" : "★ %1$@: %2$@"
           }
         }
@@ -68394,8 +68482,7 @@
           }
         }
       }
-    }
-,
+    },
     "Your history, from Strong or Hevy" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -69534,8 +69621,7 @@
           }
         }
       }
-    }
-,
+    },
     "max" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -69705,8 +69791,7 @@
           }
         }
       }
-    }
-,
+    },
     "Drop set" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -69723,8 +69808,7 @@
           }
         }
       }
-    }
-,
+    },
     "Remove set" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -69860,8 +69944,7 @@
           }
         }
       }
-    }
-,
+    },
     "Maximum reps" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -69895,8 +69978,7 @@
           }
         }
       }
-    }
-,
+    },
     "No room to drop further" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -71406,6 +71488,3474 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Origen: %@, vía Apple Salud"
+          }
+        }
+      }
+    },
+    "ensenanza.ajustes.animaciones.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings → Exercise library."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajustes → Biblioteca de ejercicios."
+          }
+        }
+      }
+    },
+    "ensenanza.ajustes.animaciones.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exercise animations"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Animaciones de ejercicio"
+          }
+        }
+      }
+    },
+    "ensenanza.ajustes.animaciones.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cénit's only network exit, off by default: it downloads animations from an external service."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La única salida a la red de Cénit, apagada por defecto: baja animaciones de un servicio externo."
+          }
+        }
+      }
+    },
+    "ensenanza.ajustes.apariencia.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings → App."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajustes → App."
+          }
+        }
+      }
+    },
+    "ensenanza.ajustes.apariencia.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appearance and units"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apariencia y unidades"
+          }
+        }
+      }
+    },
+    "ensenanza.ajustes.apariencia.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "System, light or dark; metric or imperial; °C or °F."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sistema, claro u oscuro; métrico o imperial; °C o °F."
+          }
+        }
+      }
+    },
+    "ensenanza.ajustes.avisos.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings → Monitoring."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajustes → Monitoreo."
+          }
+        }
+      }
+    },
+    "ensenanza.ajustes.avisos.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Morning notice and workout reminder"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aviso matutino y recordatorio de entreno"
+          }
+        }
+      }
+    },
+    "ensenanza.ajustes.avisos.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "One reminder a day to read yourself, and one on routine days; they never carry your word."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un recordatorio al día para leerte, y uno los días con rutina; nunca llevan tu palabra."
+          }
+        }
+      }
+    },
+    "ensenanza.ajustes.ayuda.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings → More, and the «?» on each tab."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajustes → Más, y el «?» de cada pestaña."
+          }
+        }
+      }
+    },
+    "ensenanza.ajustes.ayuda.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How Cénit works"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cómo funciona Cénit"
+          }
+        }
+      }
+    },
+    "ensenanza.ajustes.ayuda.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Everything the app teaches, by tab, to come back to whenever you want; and see the tips again."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todo lo que enseña la app, por pestaña, para volver cuando quieras; y volver a ver los consejos."
+          }
+        }
+      }
+    },
+    "ensenanza.ajustes.experimental.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings → Experimental."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajustes → Experimental."
+          }
+        }
+      }
+    },
+    "ensenanza.ajustes.experimental.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Experimental metrics, cycle phase and recalibrate"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Métricas experimentales, fase del ciclo y recalibrar"
+          }
+        }
+      }
+    },
+    "ensenanza.ajustes.experimental.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New approximate readings, an optional experiment, and re-anchoring your baseline from today."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lecturas nuevas y aproximadas, un experimento opcional, y volver a anclar tu base desde hoy."
+          }
+        }
+      }
+    },
+    "ensenanza.ajustes.fuentes.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings → Data sources."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajustes → Fuentes de datos."
+          }
+        }
+      }
+    },
+    "ensenanza.ajustes.fuentes.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Data sources"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fuentes de datos"
+          }
+        }
+      }
+    },
+    "ensenanza.ajustes.fuentes.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import your Apple Health export, sync, write sessions to Health, record on the watch, and see your coverage."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importa tu export de Apple Salud, sincroniza, escribe tus sesiones a Salud, graba en el reloj y mira tu cobertura."
+          }
+        }
+      }
+    },
+    "ensenanza.ajustes.historial-fa.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings → Heart rhythm (only when it applies)."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajustes → Ritmo cardiaco (solo cuando aplica)."
+          }
+        }
+      }
+    },
+    "ensenanza.ajustes.historial-fa.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AFib History, in the Health app"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El Historial de FA, en la app Salud"
+          }
+        }
+      }
+    },
+    "ensenanza.ajustes.historial-fa.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What it sharpens (nocturnal HRV) and what it costs. Neither recommended nor discouraged."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qué afina (la variabilidad nocturna) y qué cuesta. Ni se recomienda ni se desaconseja."
+          }
+        }
+      }
+    },
+    "ensenanza.ajustes.novedades.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings → What's new."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajustes → Novedades."
+          }
+        }
+      }
+    },
+    "ensenanza.ajustes.novedades.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What's new"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Novedades"
+          }
+        }
+      }
+    },
+    "ensenanza.ajustes.novedades.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What changed in each version, and where to find it."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qué cambió en cada versión, y dónde encontrarlo."
+          }
+        }
+      }
+    },
+    "ensenanza.ajustes.perfil.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings → Profile."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajustes → Perfil."
+          }
+        }
+      }
+    },
+    "ensenanza.ajustes.perfil.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Profile and max HR"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Perfil y FC máxima"
+          }
+        }
+      }
+    },
+    "ensenanza.ajustes.perfil.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Age, sex, weight and height give your zones and expenditure; max HR is estimated (Tanaka) or set by you."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edad, sexo, peso y estatura dan tus zonas y tu gasto; la FC máxima se estima (Tanaka) o la pones tú."
+          }
+        }
+      }
+    },
+    "ensenanza.ajustes.respaldo.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings → Data sources → Backup."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajustes → Fuentes de datos → Respaldo."
+          }
+        }
+      }
+    },
+    "ensenanza.ajustes.respaldo.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backup and restore"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Respaldo y restauración"
+          }
+        }
+      }
+    },
+    "ensenanza.ajustes.respaldo.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Everything to a file, or to an iCloud Drive folder automatically; restoring replaces what's on the device."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todo a un archivo, o a una carpeta de iCloud Drive automáticamente; restaurar reemplaza lo del dispositivo."
+          }
+        }
+      }
+    },
+    "ensenanza.ajustes.sesion.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings → During a session."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajustes → Durante una sesión."
+          }
+        }
+      }
+    },
+    "ensenanza.ajustes.sesion.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "During a session"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Durante una sesión"
+          }
+        }
+      }
+    },
+    "ensenanza.ajustes.sesion.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep the screen on, a tone when rest ends, and a notice even if you lock the phone."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantener la pantalla encendida, un tono al terminar el descanso y un aviso aunque bloquees el teléfono."
+          }
+        }
+      }
+    },
+    "ensenanza.ajustes.vigilancia.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings → Monitoring."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajustes → Monitoreo."
+          }
+        }
+      }
+    },
+    "ensenanza.ajustes.vigilancia.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Watch for illness signals"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vigilar señales de enfermedad"
+          }
+        }
+      }
+    },
+    "ensenanza.ajustes.vigilancia.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Crosses your wrist temperature with your night pulse to warn you early. Approximate, not a diagnosis."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cruza tu temperatura de muñeca con tu pulso de la noche para avisarte temprano. Aproximado, no diagnóstico."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.amrap-drop.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Session: long-press a set or tap its chip."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sesión: mantén una serie o toca su chip."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.amrap-drop.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As many as you can, and drop and continue"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las que puedas, y bajar y seguir"
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.amrap-drop.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Two set modes: AMRAP counts toward raises and records; drop adds volume."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dos modos de serie: AMRAP cuenta para subir y para récords; drop suma volumen."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.biblioteca.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Train → Your Plan → Library."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entrenar → Tu Plan → Biblioteca."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.biblioteca.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exercise library and detail"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Biblioteca y detalle de ejercicio"
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.biblioteca.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search, filter by muscle or equipment, and for each exercise: guide, progress and your history."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Busca, filtra por músculo o equipo, y en cada ejercicio: guía, progreso y tu historial."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.descanso.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Routine editor: tap a set's rest."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Editor de rutina: toca el descanso de una serie."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.descanso.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rest in five forms"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El descanso en cinco formas"
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.descanso.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fixed, rest margin, peak drop, fixed BPM or HR reference; the pulse ones need a watch."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fijo, margen de reposo, caída de pico, BPM fijo o referencia de FC; las de pulso piden reloj."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.esfuerzo-estimado.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When you finish a session."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Al terminar una sesión."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.esfuerzo-estimado.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How hard was it?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Qué tan duro estuvo?"
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.esfuerzo-estimado.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "One tap when you close, and your session enters your load even without a watch."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un toque al cerrar, y tu sesión entra a tu carga aunque no traigas reloj."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.hero.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Train, at the top."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entrenar, arriba."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.hero.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today's routine and Start"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu rutina de hoy y Empezar"
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.hero.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Name, muscles, duration, what goes up today, and the button that starts the session."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nombre, músculos, duración, qué sube hoy, y el botón que arranca la sesión."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.historial.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Train → History and progress."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entrenar → Historial y progreso."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.historial.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "History and raise cycles"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Historial y ciclos de subida"
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.historial.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your sessions, your month, volume per muscle, and what went up, what's waiting and what stalled."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tus sesiones, tu mes, el volumen por músculo, y qué subió, qué espera y qué se estancó."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.importar-csv.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Empty history, or Settings → Data sources."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Historial vacío, o Ajustes → Fuentes de datos."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.importar-csv.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import your Strong or Hevy history"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importar tu historial de Strong o Hevy"
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.importar-csv.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "One CSV and your past sessions come in, with exercises mapped to the catalog."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un CSV y tus sesiones pasadas entran, con sus ejercicios mapeados al catálogo."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.importar-plan.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Train, first use and Your Plan."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entrenar, primer uso y Tu Plan."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.importar-plan.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import your AI's plan, and the templates"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importar el plan de tu IA, y las plantillas"
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.importar-plan.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cénit gives you a prompt, you run it in your AI and bring the file; or start from a template, even with no equipment."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cénit te da un prompt, tú lo corres en tu IA y traes el archivo; o parte de una plantilla, incluso sin equipo."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.mapa-muscular.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Train → Body tile."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entrenar → tesela Cuerpo."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.mapa-muscular.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your body: the muscle map"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu cuerpo: el mapa muscular"
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.mapa-muscular.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Which muscles you loaded and which are fresh, crossed with your recovery."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qué músculos cargaste y cuáles están frescos, cruzado con tu recuperación."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.marcas.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Train → Marks tile."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entrenar → tesela Marcas."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.marcas.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your marks"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tus marcas"
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.marcas.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every record, most recent first; a row opens its exercise."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cada récord, el más reciente primero; una fila abre su ejercicio."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.mosaico.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Train, below the hero."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entrenar, bajo el héroe."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.mosaico.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The mosaic: week, dose, raises, body, marks, consistency, history"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El mosaico: semana, dosis, subidas, cuerpo, marcas, constancia, historial"
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.mosaico.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seven tiles that fill with your sessions; the ones that can't speak yet stay quiet and say why."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Siete teselas que se llenan con tus sesiones; las que aún no pueden hablar callan y dicen por qué."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.otra-forma.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Train: the «Otra forma» fold under the button."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entrenar: el pliegue «Otra forma» bajo el botón."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.otra-forma.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Another way: quick, intervals, mobility, breathe"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otra forma: rápido, intervalos, movilidad, respira"
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.otra-forma.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Four doors besides your routine, no guilt."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cuatro puertas aparte de tu rutina, sin culpa."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.pestana.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The third tab."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La tercera pestaña."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.pestana.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Train: the plan that acts"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entrenar: el plan que hace"
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.pestana.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today's routine, your week, the live session and the progression that goes up on its own."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu rutina del día, tu semana, la sesión en vivo y la progresión que sube sola."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.plan.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Train → Week → Edit."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entrenar → Semana → Editar."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.plan.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your Plan and the multi-week program"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu Plan y el programa de semanas"
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.plan.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Assign routines per day, see volume per muscle, and turn your week into a program with a deload week."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Asigna rutinas por día, mira el volumen por músculo y convierte tu semana en un programa con semana ligera."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.primer-uso.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Train, when there's no plan yet."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entrenar, cuando aún no hay plan."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.primer-uso.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Build your week"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arma tu semana"
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.primer-uso.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pick a split, build your routine or import a plan; then Train serves it every day."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elige un split, crea tu rutina o importa un plan; después Entrenar te la sirve cada día."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.progresion.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Routine editor → exercise card."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Editor de rutina → tarjeta del ejercicio."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.progresion.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Per-exercise progression"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La progresión por ejercicio"
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.progresion.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hit your reps and the routine adds weight; you enable it on each exercise's card."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cumple tus reps y la rutina sube el peso; se activa en la tarjeta de cada ejercicio."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.recibo.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When you finish, and in History → My tickets."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Al terminar, y en Historial → Mis tickets."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.recibo.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The receipt and your tickets"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El recibo y tus tickets"
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.recibo.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every session prints its receipt; the saved ones live in History."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cada sesión imprime su recibo; los guardados viven en Historial."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.respira-intervalos.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Train → Another way."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entrenar → Otra forma."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.respira-intervalos.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Breathe and Intervals"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Respira e Intervalos"
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.respira-intervalos.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A breathing pacer with haptic pulses, and an interval timer that alerts without looking."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un marcapasos de respiración con pulsos hápticos, y un temporizador de intervalos que avisa sin mirar."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.rir.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Live session, on each set's keypad."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sesión en vivo, en el teclado de cada serie."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.rir.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reps in reserve"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reps en reserva"
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.rir.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How many more reps you could have done; 0 is failure. With this the app decides whether you go up."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cuántas reps más podías hacer; 0 es al fallo. Con esto la app decide si subes."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.sesion-viva.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "During a session."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Durante una sesión."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.sesion-viva.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The live session: Focus, plates and swapping exercises"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La sesión en vivo: Foco, discos y cambiar ejercicio"
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.sesion-viva.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap the card to enter Focus, tap the weight to see which plates to load, and the menu to swap or add an exercise."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toca la tarjeta para entrar a Foco, toca el peso para ver qué discos poner, y el menú para cambiar o agregar ejercicio."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.taller.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Train: the «?» in the header."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entrenar: el «?» de la cabecera."
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.taller.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What Cénit can do"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lo que Cénit sabe hacer"
+          }
+        }
+      }
+    },
+    "ensenanza.entrenar.taller.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Six hidden tricks and the gym words: AMRAP, drop, RIR, deload week, rests, 1RM."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seis trucos escondidos y las palabras del gym: AMRAP, drop, RIR, semana ligera, descansos, 1RM."
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.acta.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today: tap the ⓘ next to the word."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoy: toca la ⓘ junto a la palabra."
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.acta.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The acta: what your word is made of"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El acta: de qué está hecha tu palabra"
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.acta.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Who votes, how much each vote weighs, and what doesn't count."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quién vota, cuánto pesa cada voto y qué no pesa."
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.aviso-malestar.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today, at the very top; enabled in Settings → Watch for illness signals."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoy, arriba de todo; se activa en Ajustes → Vigilar señales de enfermedad."
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.aviso-malestar.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The illness notice"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El aviso de malestar"
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.aviso-malestar.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When your body looks strained, a banner names the signals. Optional."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cuando tu cuerpo se ve exigido, un banner nombra las señales. Opcional."
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.base-firme.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today, a one-time card under the hero."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoy, una tarjeta de una vez bajo el héroe."
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.base-firme.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your baseline is firm (night 14)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu base quedó firme (noche 14)"
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.base-firme.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "From then on you're compared against 14 of your own nights, and the confidence line retires."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desde ahí te comparo contra 14 noches tuyas y la línea de confianza se retira."
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.calibracion.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today, under the word, while it calibrates."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoy, bajo la palabra, mientras calibra."
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.calibracion.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Night N of 4 and Confidence N of 14"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noche N de 4 y Confianza N de 14"
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.calibracion.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How many nights until your first word, and until your baseline is firm."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cuántas noches faltan para tu primera palabra y para que tu base quede firme."
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.detalle-rico.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Signal sheet → «See more»."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoja de la señal → «Ver más»."
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.detalle-rico.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A signal's full detail"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El detalle completo de una señal"
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.detalle-rico.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hypnogram, zones, the 90-day calendar and the method."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hipnograma, zonas, el calendario de 90 días y el método."
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.ecosistema.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today, the hero."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoy, el héroe."
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.ecosistema.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Ecosystem: the orb and its signals"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El Ecosistema: el orbe y sus señales"
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.ecosistema.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The orb takes the day's color; tap the background to split your signals and see them one by one."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El orbe toma el color del día; toca el fondo para separar tus señales y verlas una por una."
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.eje-autonomico.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today: tap the small resting orb."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoy: toca el orbe pequeño del reposo."
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.eje-autonomico.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The autonomic axis sheet"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La hoja del eje autonómico"
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.eje-autonomico.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your resting heart rate against your own baseline; HRV is shown but doesn't vote."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu corazón en reposo contra tu propia base; la variabilidad se muestra pero no vota."
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.franjas.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today, under the date."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoy, bajo la fecha."
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.franjas.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The status strips"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las franjas de estado"
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.franjas.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading your night, sync pending, night not recorded: they always say what's going on."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Leyendo tu noche, sincronización pendiente, noche no registrada: siempre dicen qué pasa."
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.guardian.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today, the «Te vigila» shelf and its orb."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoy, el estante «Te vigila» y su orbe."
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.guardian.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The guardian: it watches over you"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El guardián: te vigila"
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.guardian.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skin temperature and respiration against your own pattern. They only count when both drift together."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Temperatura de piel y respiración, contra tu patrón. Solo cuentan cuando las dos se salen juntas."
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.hoja-metrica.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today: tap a cell of the Matrix."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoy: toca una celda de la Matriz."
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.hoja-metrica.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Each signal's sheet"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La hoja de cada señal"
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.hoja-metrica.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What it is, how it's computed (with its citation), and where the data comes from."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qué es, cómo se calcula (con su cita) y de dónde viene el dato."
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.manuales.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today: the «?» on each shelf of the Matrix."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoy: el «?» de cada estante de la Matriz."
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.manuales.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The manuals: What decides your day? and Your context"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los manuales: ¿Qué decide tu día? y Tu contexto"
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.manuales.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The full model: who votes, the four words, and why context doesn't vote."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El modelo completo: quién vota, las cuatro palabras y por qué el contexto no vota."
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.matriz.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today, below the hero."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoy, debajo del héroe."
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.matriz.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Matrix: your signals in cells"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La Matriz: tus señales en celdas"
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.matriz.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sleep, resting HR, guardian, load, strain, HRV, stress and steps, each with its chart."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sueño, FC en reposo, guardián, carga, esfuerzo, VFC, estrés y pasos, cada una con su gráfica."
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.palabra.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today, at the top, over the orb."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoy, arriba, sobre el orbe."
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.palabra.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The word of the day"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La palabra del día"
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.palabra.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A reading of how you woke up: in range, go light today, or recover."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Una lectura de cómo amaneciste: en rango, hoy ve leve o recupera."
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.primer-veredicto.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today, a one-time card under the hero."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoy, una tarjeta de una vez bajo el héroe."
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.primer-veredicto.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your first reading (night 4)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu primera lectura (noche 4)"
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.primer-veredicto.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The morning your first word appears, and where it came from."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La mañana en que aparece tu primera palabra, y de qué salió."
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.scrub.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today, on any chart of the Matrix."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoy, sobre cualquier gráfica de la Matriz."
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.scrub.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading night by night"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hojear noche por noche"
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.scrub.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drag across a chart to read each night; the value jumps up to the numeral."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrastra sobre una gráfica y lee cada noche; el valor sube al numeral."
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.sin-datos.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today, the hero, when there is no reading."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoy, el héroe, cuando no hay lectura."
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.sin-datos.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today without permission or without a watch"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoy sin permiso o sin reloj"
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.sin-datos.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It says what's missing and how to get it, never a made-up number."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dice qué le falta y cómo conseguirlo, nunca un número falso."
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.sincronizar.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today: pull down from the top."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoy: jala hacia abajo desde arriba."
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.sincronizar.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pull to sync"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jalar para sincronizar"
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.sincronizar.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A pull from the top fetches what's new from Apple Health right away."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un arrastre desde arriba trae lo nuevo de Apple Salud ahora mismo."
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.tu-patron.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inside the HRV or resting HR sheet."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dentro de la hoja de VFC o de FC en reposo."
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.tu-patron.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your pattern: what moves a signal"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu patrón: qué mueve una señal"
+          }
+        }
+      }
+    },
+    "ensenanza.hoy.tu-patron.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A documented tendency, no cause and no coefficient, for HRV and resting HR."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Una tendencia documentada, sin causa ni coeficiente, para VFC y FC en reposo."
+          }
+        }
+      }
+    },
+    "ensenanza.tendencias.carga.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trends, second module; the whole card is tappable."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tendencias, segundo módulo; toda la tarjeta se toca."
+          }
+        }
+      }
+    },
+    "ensenanza.tendencias.carga.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your training load"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu carga de entrenamiento"
+          }
+        }
+      }
+    },
+    "ensenanza.tendencias.carga.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recent versus usual, in a word and a hill; it needs about two weeks of recorded strain."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lo reciente contra lo habitual, en una palabra y una colina; necesita unas dos semanas de esfuerzo."
+          }
+        }
+      }
+    },
+    "ensenanza.tendencias.comparar.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trends, at the bottom."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tendencias, al pie."
+          }
+        }
+      }
+    },
+    "ensenanza.tendencias.comparar.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compare signals"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comparar señales"
+          }
+        }
+      }
+    },
+    "ensenanza.tendencias.comparar.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Overlay two to four signals and see whether they move together. Association, not cause."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Superpón de dos a cuatro señales y mira si se mueven juntas. Asociación, no causa."
+          }
+        }
+      }
+    },
+    "ensenanza.tendencias.deporte.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trends → Activity, under the hairline."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tendencias → Actividad, bajo el capilar."
+          }
+        }
+      }
+    },
+    "ensenanza.tendencias.deporte.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How you wake up after each sport"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cómo amaneces tras cada deporte"
+          }
+        }
+      }
+    },
+    "ensenanza.tendencias.deporte.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How much each type of workout costs you to recover from."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qué tanto te cuesta recuperarte de cada tipo de entreno."
+          }
+        }
+      }
+    },
+    "ensenanza.tendencias.descanso-carga.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trends, first module; tap a column."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tendencias, primer módulo; toca una columna."
+          }
+        }
+      }
+    },
+    "ensenanza.tendencias.descanso-carga.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rest and load"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Descanso y carga"
+          }
+        }
+      }
+    },
+    "ensenanza.tendencias.descanso-carga.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sleep, day strain and stress, each with its own detail."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sueño, esfuerzo del día y estrés, cada uno con su detalle."
+          }
+        }
+      }
+    },
+    "ensenanza.tendencias.explorar.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trends, at the bottom."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tendencias, al pie."
+          }
+        }
+      }
+    },
+    "ensenanza.tendencias.explorar.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Explore every signal"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Explorar todas las señales"
+          }
+        }
+      }
+    },
+    "ensenanza.tendencias.explorar.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The full catalog, and what correlates with each one."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El catálogo completo, y qué correlaciona con cada una."
+          }
+        }
+      }
+    },
+    "ensenanza.tendencias.fuentes.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Under the metric, one line."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bajo la métrica, una línea."
+          }
+        }
+      }
+    },
+    "ensenanza.tendencias.fuentes.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agreement between sources"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acuerdo entre fuentes"
+          }
+        }
+      }
+    },
+    "ensenanza.tendencias.fuentes.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When two sources report the same day you see both values; they're never averaged."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cuando dos fuentes reportan el mismo día ves los dos valores; nunca se promedian."
+          }
+        }
+      }
+    },
+    "ensenanza.tendencias.longevidad.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trends, the longevity module."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tendencias, el módulo de longevidad."
+          }
+        }
+      }
+    },
+    "ensenanza.tendencias.longevidad.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Longevity: fitness age, body age and VO₂ max"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Longevidad: edad física, edad corporal y VO₂ máx"
+          }
+        }
+      }
+    },
+    "ensenanza.tendencias.longevidad.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estimates, not diagnoses, with what moves them and when there are no signals yet."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estimaciones, no diagnósticos, con lo que las mueve y cuándo aún no hay señales."
+          }
+        }
+      }
+    },
+    "ensenanza.tendencias.mapa-del-dia.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stress detail, further down; it asks for calendar permission there."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detalle de estrés, más abajo; ahí pide permiso al calendario."
+          }
+        }
+      }
+    },
+    "ensenanza.tendencias.mapa-del-dia.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The day map"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El mapa del día"
+          }
+        }
+      }
+    },
+    "ensenanza.tendencias.mapa-del-dia.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your day's stress crossed with your calendar: which peak matches which event."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu estrés del día cruzado con tu calendario: qué pico coincide con qué evento."
+          }
+        }
+      }
+    },
+    "ensenanza.tendencias.periodo.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trends, under the title."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tendencias, bajo el título."
+          }
+        }
+      }
+    },
+    "ensenanza.tendencias.periodo.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The period selector"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El selector de periodo"
+          }
+        }
+      }
+    },
+    "ensenanza.tendencias.periodo.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Week, month, three, six, a year or all: every chart re-windows."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Semana, mes, tres, seis, un año o todo: todas las gráficas se vuelven a ventanear."
+          }
+        }
+      }
+    },
+    "ensenanza.tendencias.pestana.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The second tab."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La segunda pestaña."
+          }
+        }
+      }
+    },
+    "ensenanza.tendencias.pestana.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trends: your body over time"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tendencias: tu cuerpo en el tiempo"
+          }
+        }
+      }
+    },
+    "ensenanza.tendencias.pestana.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every signal across weeks and months, with sleep, stress, vitals and longevity."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cada señal a lo largo de semanas y meses, con sueño, estrés, vitales y longevidad."
+          }
+        }
+      }
+    },
+    "ensenanza.tendencias.preparacion.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trends: tap the hero's word."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tendencias: toca la palabra del héroe."
+          }
+        }
+      }
+    },
+    "ensenanza.tendencias.preparacion.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your 30 mornings"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tus 30 mañanas"
+          }
+        }
+      }
+    },
+    "ensenanza.tendencias.preparacion.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How you woke up each day of the last month, and how often each signal drifted."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cómo amaneciste cada día del último mes y cuántas veces derivó cada señal."
+          }
+        }
+      }
+    },
+    "ensenanza.tendencias.vitales.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trends, the six-tile module."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tendencias, el módulo de seis."
+          }
+        }
+      }
+    },
+    "ensenanza.tendencias.vitales.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your vitals"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tus vitales"
+          }
+        }
+      }
+    },
+    "ensenanza.tendencias.vitales.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HRV, resting HR, oxygen, heart rate, respiration and skin temperature, each with its detail."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "VFC, FC en reposo, oxígeno, frecuencia cardiaca, respiración y temperatura de piel, cada uno con su detalle."
+          }
+        }
+      }
+    },
+    "ensenanza.transversal.avisos.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings → Monitoring and During a session."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajustes → Monitoreo y Durante una sesión."
+          }
+        }
+      }
+    },
+    "ensenanza.transversal.avisos.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Local notices"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los avisos locales"
+          }
+        }
+      }
+    },
+    "ensenanza.transversal.avisos.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Morning, workout, rest-end and illness: all optional, all on your iPhone."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Matutino, de entreno, fin de descanso y malestar: todos opcionales, todos en tu iPhone."
+          }
+        }
+      }
+    },
+    "ensenanza.transversal.gestos.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Routine editor and Your Plan."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Editor de rutina y Tu Plan."
+          }
+        }
+      }
+    },
+    "ensenanza.transversal.gestos.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gestures with their button"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gestos con su botón"
+          }
+        }
+      }
+    },
+    "ensenanza.transversal.gestos.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reorder sets, remove a round, delete a routine: every gesture has a tappable path."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reordenar series, quitar una ronda, borrar una rutina: cada gesto tiene un camino tocable."
+          }
+        }
+      }
+    },
+    "ensenanza.transversal.live-activity.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lock Screen and Dynamic Island during a session."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pantalla de bloqueo y Dynamic Island durante una sesión."
+          }
+        }
+      }
+    },
+    "ensenanza.transversal.live-activity.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The session on the Lock Screen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La sesión en la pantalla de bloqueo"
+          }
+        }
+      }
+    },
+    "ensenanza.transversal.live-activity.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set, rest and pulse without unlocking; with a watch, rest can end when your pulse drops."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serie, descanso y pulso sin desbloquear; con reloj, el descanso puede terminar cuando baja tu pulso."
+          }
+        }
+      }
+    },
+    "ensenanza.transversal.watch.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The watch app; enabled in Settings → Data sources → Record on Apple Watch."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La app en el reloj; se activa en Ajustes → Fuentes de datos → Grabar en Apple Watch."
+          }
+        }
+      }
+    },
+    "ensenanza.transversal.watch.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cénit on Apple Watch"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cénit en el Apple Watch"
+          }
+        }
+      }
+    },
+    "ensenanza.transversal.watch.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your word and your routine on the wrist; log sets with the crown, even without the iPhone."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu palabra y tu rutina en la muñeca; registra series con la corona, incluso sin el iPhone."
+          }
+        }
+      }
+    },
+    "ensenanza.transversal.widgets.dondeVive" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The iPhone widget gallery."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La galería de widgets del iPhone."
+          }
+        }
+      }
+    },
+    "ensenanza.transversal.widgets.nombre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Widgets: today's routine and your week"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Widgets: la rutina de hoy y tu semana"
+          }
+        }
+      }
+    },
+    "ensenanza.transversal.widgets.paraQue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your routine and your word on the Home Screen; the button starts the routine."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu rutina y tu palabra en la pantalla de inicio; el botón arranca la rutina."
           }
         }
       }
