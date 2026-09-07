@@ -164,8 +164,8 @@ final class SleepHKDecoderTests: XCTestCase {
         XCTAssertEqual(try XCTUnwrap(out[0].efficiency), 0.75, accuracy: 0.001)
     }
 
-    /// THE scale test. The scorer centres on `RecoveryScorer.sleepPerfCenter == 0.85` and
-    /// `Baselines.metricCfg["efficiency"]` runs `0.2…1.0`. Emitting whole percent would be 100× off
+    /// THE scale test. `Baselines.metricCfg["efficiency"]` runs `0.2…1.0`, so efficiency travels as
+    /// a fraction of the session span. Emitting whole percent would be 100× off
     /// and would saturate the sleep term without ever looking wrong on screen — the detail view
     /// normalises defensively (`stored <= 1.0 ? stored * 100 : stored`), so the UI would hide it.
     func testEfficiencyIsAFractionNotWholePercent() throws {

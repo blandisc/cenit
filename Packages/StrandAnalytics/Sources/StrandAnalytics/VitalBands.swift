@@ -166,10 +166,10 @@ public enum VitalBands {
     /// Fixed POSIX/UTC parser for day keys, so the expansion never depends on the device's locale or
     /// timezone. Built once; constructing a formatter per row is expensive.
     private static let dayParser: DateFormatter = {
-        let f = DateFormatter()
-        f.locale = Locale(identifier: "en_US_POSIX")
-        f.timeZone = TimeZone(secondsFromGMT: 0)
-        f.dateFormat = "yyyy-MM-dd"
-        return f
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
     }()
 }

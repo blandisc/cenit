@@ -330,30 +330,15 @@ public enum ReadinessEngine {
             acwr = ratio
             signals.append(acwrSignal(ratio: ratio))
 
-            // Foster monotony (1998) over the TRAILING `acuteWindow` (7) CALENDAR days ending today,
-            // rest(0) folded in (it's part of the week), missing days skipped (can't estimate an unknown).
-            // The window is a TRUE trailing calendar week, so it can hold fewer than 7 values when days
-            // are missing — and it must never reach further back to make up the count, which would
-            // compare this week against whatever came before it.
-            if let latestIdx = DayKey.parseUTC(latest.day) {
-                var weekLoads: [Double] = []
-                var d = latestIdx
-                for _ in 0..<acuteWindow {
-                    let key = DayKey.utc(d)
-                    if let s = replay.rowByDay[key]?.strain { weekLoads.append(strainToLoad(s)) }
-                    guard let prev = DayKey.utcCalendar.date(byAdding: .day, value: -1, to: d) else { break }
-                    d = prev
-                }
-                if weekLoads.count >= monotonyMinDays, let sd = sampleSD(weekLoads), sd > 0,
-                   let m = mean(weekLoads) {
-                    let mono = m / sd
-                    monotony = mono
-                    if mono >= monotonyWatchAt {
-                        signals.append(Signal(key: "monotony", label: appLocalized("Training variety"),
-                            detail: appLocalized("low — similar strain every day raises strain/illness risk"),
-                            flag: .watch, value: String(format: "%.1f", mono)))
-                    }
-                }
+            // Foster (1998) monotony over the calendar week that ends today. A rest day counts as a
+            // zero — a week of unrelenting work is precisely what the ratio exists to expose — while a
+            // day with no reading at all is skipped rather than imputed. The window is a literal
+            // calendar week: when days are missing it simply carries fewer values, and it never
+            // reaches further back to top the count up, which would quietly measure this week
+            // against an older one.
+            if let weekly = weeklyMonotony(endingOn: latest.day, replay: replay) {
+                monotony = weekly.value
+                if let signal = weekly.signal { signals.append(signal) }
             }
         }
 
@@ -666,10 +651,9 @@ public enum ReadinessEngine {
 
     // MARK: - Small statistics
 
-    /// Arithmetic mean; `nil` for an empty set.
+    /// Arithmetic mean; `nil` for an empty set, which has no mean to report.
     static func mean(_ xs: [Double]) -> Double? {
-        guard !xs.isEmpty else { return nil }
-        return xs.reduce(0, +) / Double(xs.count)
+        xs.isEmpty ? nil : xs.reduce(0, +) / Double(xs.count)
     }
 
     /// Sample standard deviation (`n − 1`); `nil` with fewer than two values, which is when the
@@ -682,6 +666,37 @@ public enum ReadinessEngine {
             ss += d * d
         }
         return (ss / Double(xs.count - 1)).squareRoot()
+    }
+
+    /// Foster (1998) monotony for the calendar week ending on `day`: the mean daily dose divided by
+    /// its sample spread, both taken over the linearized load so a spike reads as a spike. Answers
+    /// `nil` when the week carries too few readings for a sample spread to mean anything, or when
+    /// the dose never varies at all and the ratio has no denominator. The value is reported on its
+    /// own; the signal rides along only once the ratio reaches the watch threshold.
+    private static func weeklyMonotony(endingOn day: String,
+                                       replay: EwmaReplay) -> (value: Double, signal: Signal?)? {
+        guard let lastDay = DayKey.parseUTC(day) else { return nil }
+        var loads: [Double] = []
+        var cursor = lastDay
+        for _ in 0..<acuteWindow {
+            if let strain = replay.rowByDay[DayKey.utc(cursor)]?.strain {
+                loads.append(strainToLoad(strain))
+            }
+            guard let previousDay = DayKey.utcCalendar.date(byAdding: .day, value: -1, to: cursor)
+            else { break }
+            cursor = previousDay
+        }
+        guard loads.count >= monotonyMinDays,
+              let spread = sampleSD(loads), spread > 0,
+              let average = mean(loads)
+        else { return nil }
+        let ratio = average / spread
+        guard ratio >= monotonyWatchAt else { return (ratio, nil) }
+        return (ratio, Signal(key: "monotony",
+                              label: appLocalized("Training variety"),
+                              detail: appLocalized("low — similar strain every day raises strain/illness risk"),
+                              flag: .watch,
+                              value: String(format: "%.1f", ratio)))
     }
 
     /// Linearize a 0–21 logarithmic strain back to a TRIMP-like load (the inverse

@@ -125,10 +125,10 @@ public enum SleepHKDecoder {
     /// cover time in bed on its own. One definition, and the envelope is absorbed rather than
     /// special-cased.
     ///
-    /// Scale is load-bearing: `Baselines.metricCfg["efficiency"]` runs `0.2…1.0` and
-    /// `RecoveryScorer.sleepPerfCenter` is `0.85`, not `85`. Consumers read it RAW —
-    /// `Repository` and recovery scorers pass it straight through without
-    /// normalising — so whole percent would land 100× off and saturate the sleep term.
+    /// Scale is load-bearing: `Baselines.metricCfg["efficiency"]` runs `0.2…1.0`, so this is a
+    /// FRACTION and never whole percent. Consumers read it RAW — `Repository` and the baseline
+    /// fold pass it straight through without normalising — so writing `85` where `0.85` belongs
+    /// would land 100× off and saturate every term that leans on it.
     static func efficiency(of segs: [(Int, Int, String)],
                            sessionStart: Int, sessionEnd: Int) -> Double? {
         guard sessionEnd > sessionStart else { return nil }

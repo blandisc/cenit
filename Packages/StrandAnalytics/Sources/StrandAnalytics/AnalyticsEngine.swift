@@ -29,11 +29,11 @@ public enum AnalyticsEngine {
     /// Built once and shared: constructing a `DateFormatter` per call is expensive enough to show up
     /// when keying a few thousand rows.
     private static let isoDay: DateFormatter = {
-        let f = DateFormatter()
-        f.locale = Locale(identifier: "en_US_POSIX")
-        f.timeZone = TimeZone(secondsFromGMT: 0)
-        f.dateFormat = "yyyy-MM-dd"
-        return f
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
     }()
 
     /// Format a unix-seconds timestamp as a `YYYY-MM-DD` day string in a wall-clock zone

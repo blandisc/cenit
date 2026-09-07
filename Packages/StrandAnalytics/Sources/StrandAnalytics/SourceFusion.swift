@@ -31,13 +31,13 @@ public enum SourceFusion {
     public static func mergeDaily(imported: [DailyMetric], computed: [DailyMetric],
                                   apple: [DailyMetric]) -> (days: [DailyMetric], appleDays: Set<String>,
                                                             displayDays: [DailyMetric]) {
-        var byDay: [String: DailyMetric] = [:]
+        var rowByDay: [String: DailyMetric] = [:]
         var appleByDay: [String: DailyMetric] = [:]
         var appleDays = Set<String>()
-        for d in apple    { byDay[d.day] = d; appleByDay[d.day] = d; appleDays.insert(d.day) }  // base layer (lowest precedence)
-        for d in computed { byDay[d.day] = d; appleDays.remove(d.day) }   // the on-device row overwrites Apple
-        for d in imported { byDay[d.day] = d; appleDays.remove(d.day) }   // an imported row wins over all
-        let days = byDay.values.sorted { $0.day < $1.day }
+        for d in apple    { rowByDay[d.day] = d; appleByDay[d.day] = d; appleDays.insert(d.day) }  // base layer (lowest precedence)
+        for d in computed { rowByDay[d.day] = d; appleDays.remove(d.day) }   // the on-device row overwrites Apple
+        for d in imported { rowByDay[d.day] = d; appleDays.remove(d.day) }   // an imported row wins over all
+        let days = rowByDay.values.sorted { $0.day < $1.day }
         let displayDays = days.map { row in
             appleByDay[row.day].map { row.fillingNils(from: $0) } ?? row
         }
@@ -249,22 +249,25 @@ public enum SourceFusion {
         return out
     }
 
-    /// Same precedence for sleep sessions, keyed by the day the night ends on.
-    public static func mergeSleep(imported: [CachedSleepSession], computed: [CachedSleepSession]) -> [CachedSleepSession] {
-        func endDay(_ s: CachedSleepSession) -> String {
-            DayKey.local(Date(timeIntervalSince1970: TimeInterval(s.endTs)))
+    /// The same precedence, applied to whole nights. A night is filed under the civil day it ENDS
+    /// on, so sleep that begins before midnight is credited to the morning it belongs to. Walking
+    /// `computed` before `imported` is what makes a real export outrank the on-device row for the
+    /// same morning: the later write is the one that survives.
+    public static func mergeSleep(imported: [CachedSleepSession],
+                                  computed: [CachedSleepSession]) -> [CachedSleepSession] {
+        var nightByWakeDay: [String: CachedSleepSession] = [:]
+        for night in computed + imported {
+            let wakeDay = DayKey.local(Date(timeIntervalSince1970: TimeInterval(night.endTs)))
+            nightByWakeDay[wakeDay] = night
         }
-        var byDay: [String: CachedSleepSession] = [:]
-        for s in computed { byDay[endDay(s)] = s }
-        for s in imported { byDay[endDay(s)] = s }
-        return byDay.values.sorted { $0.startTs < $1.startTs }
+        return nightByWakeDay.values.sorted { $0.startTs < $1.startTs }
     }
 
     /// Merge sleep sessions across sources. The on-device night is the base — imported (a real export) wins over the
     /// computed row on the same `startTs`. An Apple Health session is added ONLY if no on-device
-    /// session overlaps its `[startTs, endTs]` span: the on-device night wins PER NIGHT (FER-486), because it
-    /// night and Apple's session for the same sleep have different `startTs` (so a startTs dedup can't
-    /// catch them). Pure + static so `SleepSessionMergeTests` can pin it; with `apple == []` it is the
+    /// session overlaps its `[startTs, endTs]` span: the on-device night wins PER NIGHT (FER-486).
+    /// The overlap test is what does the work — the on-device night and Apple's session for the same
+    /// sleep carry different `startTs`, so a dedup keyed on the start would never catch them. Pure + static so `SleepSessionMergeTests` can pin it; with `apple == []` it is the
     /// prior on-device-only merge byte-for-byte (regression zero).
     public static func mergeSleepSessions(imported: [CachedSleepSession], computed: [CachedSleepSession],
                                           apple: [CachedSleepSession]) -> [CachedSleepSession] {
@@ -279,8 +282,9 @@ public enum SourceFusion {
         return merged.sorted { $0.startTs < $1.startTs }
     }
 
-    /// Apple Health sleep sessions to surface in the Detalle when nothing on-device covered that night —
-    /// The on-device night wins, so an Apple session overlapping ANY on-device span is dropped (FER-486).
+    /// Apple Health sleep sessions to surface in the Detalle when nothing on-device covered that
+    /// night. The on-device night wins, so an Apple session overlapping ANY on-device span is
+    /// dropped (FER-486).
     /// (The two sources give different startTs for the same sleep, so this is interval-overlap, not startTs.)
     public static func appleSleepsNotCoveredOnDevice(apple: [CachedSleepSession],
                                                      onDevice: [CachedSleepSession]) -> [CachedSleepSession] {
