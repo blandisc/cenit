@@ -111,7 +111,9 @@ enum StrengthDisplay {
         // Un valor no finito (NaN/Inf, p. ej. de un CSV de terceros con celda "nan"/"1e999") convierte
         // `Int(value.rounded())` en un trap fatal. La guarda de origen vive en StrengthCSVImport.double(),
         // pero este es el sink común de toda la app, así que blinda aquí también: dato malo → "—", no crash.
-        guard value.isFinite else { return "—" }
+        // FER-468: `Int(value.rounded())` también trapea con un FINITO enorme (> Int.max), no solo
+        // con no-finito — un peso pegado (19+ dígitos) que se coló como Double válido. Acota la magnitud.
+        guard value.isFinite, abs(value) < 1e15 else { return "—" }
         switch system {
         case .imperial: return "\(Int(value.rounded()))"
         case .metric:   return isWhole(value) ? "\(Int(value.rounded()))" : String(format: "%.1f", value)
@@ -145,7 +147,7 @@ enum StrengthDisplay {
     /// incremento conserva su decimal en las dos unidades.
     static func incrementNumber(_ kg: Double, system: UnitSystem) -> String {
         let v = system == .imperial ? UnitFormatter.kgToPounds(kg) : kg
-        guard v.isFinite else { return "—" }
+        guard v.isFinite, abs(v) < 1e15 else { return "—" }   // FER-468: idem, magnitud además de finitud
         return isWhole(v) ? "\(Int(v.rounded()))" : String(format: "%.1f", v)
     }
 
