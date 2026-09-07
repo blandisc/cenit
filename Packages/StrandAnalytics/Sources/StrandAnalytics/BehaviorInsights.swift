@@ -46,16 +46,11 @@ public struct BehaviorEffect: Equatable, Sendable {
     public init(behavior: String, outcome: String, meanWith: Double, meanWithout: Double,
                 delta: Double, pctChange: Double?, nWith: Int, nWithout: Int,
                 cohensD: Double, pApprox: Double, significant: Bool) {
-        self.behavior = behavior
-        self.outcome = outcome
-        self.meanWith = meanWith
-        self.meanWithout = meanWithout
-        self.delta = delta
-        self.pctChange = pctChange
-        self.nWith = nWith
-        self.nWithout = nWithout
-        self.cohensD = cohensD
-        self.pApprox = pApprox
+        self.behavior = behavior; self.outcome = outcome
+        self.meanWith = meanWith; self.meanWithout = meanWithout
+        self.delta = delta; self.pctChange = pctChange
+        self.nWith = nWith; self.nWithout = nWithout
+        self.cohensD = cohensD; self.pApprox = pApprox
         self.significant = significant
     }
 }
