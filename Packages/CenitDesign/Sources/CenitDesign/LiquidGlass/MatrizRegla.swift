@@ -323,10 +323,10 @@ extension MatrizRegla {
 
     /// Catmull-Rom → Bézier (la MISMA receta de MatrizChartDraw.curva).
     static func catmull(_ pts: [CGPoint]) -> Path {
-        var path = Path()
-        guard let first = pts.first else { return path }
-        path.move(to: first)
-        guard pts.count > 1 else { return path }
+        var camino = Path()
+        guard let arranque = pts.first else { return camino }
+        camino.move(to: arranque)
+        guard pts.count > 1 else { return camino }
         for i in 0..<(pts.count - 1) {
             let p0 = i > 0 ? pts[i - 1] : pts[i]
             let p1 = pts[i]
@@ -334,9 +334,9 @@ extension MatrizRegla {
             let p3 = i + 2 < pts.count ? pts[i + 2] : p2
             let c1 = CGPoint(x: p1.x + (p2.x - p0.x) / 6, y: p1.y + (p2.y - p0.y) / 6)
             let c2 = CGPoint(x: p2.x - (p3.x - p1.x) / 6, y: p2.y - (p3.y - p1.y) / 6)
-            path.addCurve(to: p2, control1: c1, control2: c2)
+            camino.addCurve(to: p2, control1: c1, control2: c2)
         }
-        return path
+        return camino
     }
 }
 

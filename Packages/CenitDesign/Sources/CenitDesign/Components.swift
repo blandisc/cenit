@@ -13,7 +13,7 @@ public enum CenitMetrics { // radios y respiraciones que cruzan archivos
     public static let chartXLabelBand: CGFloat = 24
     /// Respiro al final de la escala X para que la última fecha se dibuje entera en vez de cortarse.
     public static let chartXTrailingInset: CGFloat = 38
-} // fin de las medidas compartidas
+}
 
 // MARK: - Live Activity metrics ("Descanso" / rest-timer session)
 //
@@ -144,7 +144,7 @@ public struct SegmentedPillControl<T: Hashable>: View { // ranura + pulgar; una 
         self.thumbTint = thumbTint
         self.icon = icon
         self.label = label
-    } // fin del init de compatibilidad
+    }
 
     public var body: some View { ranura }
 

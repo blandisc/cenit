@@ -246,8 +246,7 @@ public extension Text {
             }
             Text("Equilibrado · Hoy").font(InstrumentoType.groteskLane).tracking(InstrumentoType.groteskLaneTracking).textCase(.uppercase).foregroundStyle(t.dataRecovery)
         }
-        .padding(28)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(28).frame(maxWidth: .infinity, alignment: .leading)
     }
     .background(t.paper)
     .preferredColorScheme(.light)

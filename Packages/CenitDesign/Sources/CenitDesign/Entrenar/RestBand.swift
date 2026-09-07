@@ -53,19 +53,19 @@ struct RestPulseRail: View {
     }
 
     var body: some View {
-        GeometryReader { geo in
-            let w = geo.size.width
+        GeometryReader { lienzo in
+            let ancho = lienzo.size.width
             ZStack(alignment: .leading) {
                 Capsule().fill(LiquidColor.tinta10)
                 Capsule()
                     .fill(LinearGradient(colors: [LiquidColor.rosa, LiquidColor.verdePrimario],
                                          startPoint: .leading, endPoint: .trailing))
-                    .frame(width: w * Self.fraccion(bpm: bpm, target: target))
+                    .frame(width: ancho * Self.fraccion(bpm: bpm, target: target))
                 // La marca del umbral: tinta, no hue — es geometría, no dato (§ADN: el marcador
                 // de referencia nunca compite con la señal).
                 Rectangle().fill(LiquidColor.tinta900)
                     .frame(width: 2, height: EntrenarMetrics.loadRail + 8)
-                    .offset(x: w - 1)
+                    .offset(x: ancho - 1)
             }
         }
         .frame(height: EntrenarMetrics.loadRail)
@@ -279,15 +279,15 @@ public struct RestBand<Next: View>: View {
     /// que el caller pasa como `startBpm`) hasta el objetivo. Sin ese dato, el riel no dibuja punto:
     /// prefiere no decir nada a colocarlo en un lugar que no significa nada.
     @ViewBuilder private var rail: some View {
-        GeometryReader { geo in
-            let w = geo.size.width
+        GeometryReader { lienzo in
+            let ancho = lienzo.size.width
             ZStack(alignment: .leading) {
                 Capsule().fill(LiquidColor.tinta10)
-                if let p = railProgress {
+                if let avance = railProgress {
                     Circle()
                         .fill(isReady ? LiquidColor.positivo : LiquidColor.rosa)
                         .frame(width: 10, height: 10)
-                        .offset(x: max(0, w * p - 5))
+                        .offset(x: max(0, ancho * avance - 5))
                 }
             }
             .overlay(alignment: .trailing) {

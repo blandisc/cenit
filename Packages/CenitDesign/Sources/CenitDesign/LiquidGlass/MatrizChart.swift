@@ -104,10 +104,10 @@ enum MatrizChartDraw {
     /// `.interpolationMethod(.monotone)` (ver su comentario #trends-bleed). Asume `x` ascendente (serie
     /// temporal); un tramo con `dx ≤ 0` cae a pendiente 0 en vez de dividir entre cero.
     static func curva(_ pts: [CGPoint]) -> Path {
-        var path = Path()
-        guard let first = pts.first else { return path }
-        path.move(to: first)
-        guard pts.count > 1 else { return path }
+        var camino = Path()
+        guard let arranque = pts.first else { return camino }
+        camino.move(to: arranque)
+        guard pts.count > 1 else { return camino }
         let n = pts.count
         // Secantes de cada tramo.
         var delta = [CGFloat](repeating: 0, count: n - 1)
@@ -146,9 +146,9 @@ enum MatrizChartDraw {
             let dx = p2.x - p1.x
             let c1 = CGPoint(x: p1.x + dx / 3, y: p1.y + m[i] * dx / 3)
             let c2 = CGPoint(x: p2.x - dx / 3, y: p2.y - m[i + 1] * dx / 3)
-            path.addCurve(to: p2, control1: c1, control2: c2)
+            camino.addCurve(to: p2, control1: c1, control2: c2)
         }
-        return path
+        return camino
     }
 
     /// Curva + su relleno de gradiente (hue tenue → casi nada) hasta el piso del lienzo.
