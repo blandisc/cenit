@@ -22,6 +22,9 @@ import Foundation
 // NO CALLER TODAY for the band decision itself: `sigmaK` is what the rest of the package cites. The
 // engine stays because this is where the rule is WRITTEN DOWN and tested; reducing it to a loose
 // constant would leave the criterion with no home.
+//
+// PRODUCT THRESHOLDS, NOT A PUBLISHED METHOD. `sigmaK = 2.0` over a person's own dispersion is a
+// calibration this app chose, not a cutoff any study fixed. See ANALYTICS.md.
 
 public enum VitalBands {
 
@@ -43,10 +46,19 @@ public enum VitalBands {
     }
 
     /// The decision, plus how much of the person's own history stood behind it.
+    ///
+    /// All three fields travel together on purpose: an «out of range» read against a population table
+    /// after four nights and the same word against a year of the person's own nights are not the same
+    /// claim, and a caller that cannot tell them apart will present them as if they were.
     public struct Result: Equatable, Sendable {
+
+        /// Which side of the band the value landed on — or that there was nothing to judge.
         public let band: Band
+
+        /// What it was judged against: this person's own baseline, or a population reference range.
         public let basis: Basis
-        /// Valid nights in the history that was folded.
+
+        /// Valid nights in the history that was folded — the weight behind `basis`.
         public let nights: Int
 
         public init(band: Band, basis: Basis, nights: Int) {

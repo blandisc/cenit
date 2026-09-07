@@ -244,6 +244,28 @@ feeds the personal baselines downstream, where an impossible number does lasting
 
 ---
 
+## `VitalBands` — is tonight «in range» **for this person**
+
+Source: `VitalBands.swift`. A population reference range answers *is this value normal for humans*, which
+is the wrong question for a passive nightly readout: someone whose own HRV has sat at 35 ms every night
+for a year would be told every morning that they are out of range, because a textbook band starts at 40.
+So when there is enough of the person's own history, the value is compared against **their** baseline,
+and the answer carries which of the two comparisons it used (`Result.basis`) and how many valid nights
+stood behind it (`Result.nights`).
+
+**These are product thresholds, not a published method.** In range means the robust deviation from the
+personal baseline is within `sigmaK = 2.0` — roughly 95 % of a person's own nights read as ordinary,
+which is the sensitivity a passive morning readout needs. `k = 1` is refused repository-wide: about a
+third of perfectly normal nights would come back flagged, which is noise presented as signal. The
+baseline itself belongs to `Baselines`; this file only fixes what to compare against and how wide the
+band is. No study fixed `2.0` — it is calibration, and it is recalibratable.
+
+The plausibility bounds carried by a metric's baseline configuration are deliberately **not** used as the
+band. They exist to reject impossible readings before a baseline absorbs them; using them as the band is
+exactly how the false positive above comes back.
+
+---
+
 ## `StrainScorer` — 0–21 logarithmic cardiovascular load
 
 Source: `StrainScorer.swift`. An **independent** implementation of published exercise-physiology methods (similar in spirit to commercial wearable strain scores, not a reproduction).
