@@ -124,6 +124,10 @@ public struct LiquidEcosistema: View {
     private let onTapGuardian: (() -> Void)?
     private let onFusionArrancada: (() -> Void)?
     private let onSeparacion: (() -> Void)?
+    /// FER-432 («cada gesto tiene un botón»): un contador que el host incrementa para pedir el
+    /// mismo separar/unir que el tap del lienzo; `onFase` le devuelve si quedó separado.
+    private let alternarPedido: Int
+    private let onFase: ((Bool) -> Void)?
 
     @State private var fase: Sim.Fase?
     /// Ancla de la GRADUACIÓN en vivo (FER-20): la base se completó con la pantalla
@@ -154,7 +158,8 @@ public struct LiquidEcosistema: View {
                 compacto: Bool = false,
                 onTapVeredicto: (() -> Void)? = nil, onTapSenal: ((String) -> Void)? = nil,
                 onTapGuardian: (() -> Void)? = nil,
-                onFusionArrancada: (() -> Void)? = nil, onSeparacion: (() -> Void)? = nil) {
+                onFusionArrancada: (() -> Void)? = nil, onSeparacion: (() -> Void)? = nil,
+                alternarPedido: Int = 0, onFase: ((Bool) -> Void)? = nil) {
         self.init(senales: senales, hero: hero, guardian: guardian, ambiente: ambiente,
                   calibracion: calibracion, rotulos: rotulos, heroPuerta: heroPuerta,
                   heroInfo: heroInfo,
@@ -162,7 +167,8 @@ public struct LiquidEcosistema: View {
                   fusionInicial: fusionInicial, faseForzada: nil, compacto: compacto,
                   onTapVeredicto: onTapVeredicto, onTapSenal: onTapSenal,
                   onTapGuardian: onTapGuardian,
-                  onFusionArrancada: onFusionArrancada, onSeparacion: onSeparacion)
+                  onFusionArrancada: onFusionArrancada, onSeparacion: onSeparacion,
+                  alternarPedido: alternarPedido, onFase: onFase)
     }
 
     /// `faseForzada` — SOLO tests/renders (p. ej. `.separada` para `estado_separado.png`).
@@ -174,7 +180,8 @@ public struct LiquidEcosistema: View {
          faseForzada: Sim.Fase?, compacto: Bool = false,
          onTapVeredicto: (() -> Void)? = nil, onTapSenal: ((String) -> Void)? = nil,
          onTapGuardian: (() -> Void)? = nil,
-         onFusionArrancada: (() -> Void)? = nil, onSeparacion: (() -> Void)? = nil) {
+         onFusionArrancada: (() -> Void)? = nil, onSeparacion: (() -> Void)? = nil,
+         alternarPedido: Int = 0, onFase: ((Bool) -> Void)? = nil) {
         self.compacto = compacto
         self.senales = senales
         self.hero = hero
@@ -193,6 +200,8 @@ public struct LiquidEcosistema: View {
         self.onTapGuardian = onTapGuardian
         self.onFusionArrancada = onFusionArrancada
         self.onSeparacion = onSeparacion
+        self.alternarPedido = alternarPedido
+        self.onFase = onFase
         if let faseForzada {
             _fase = State(initialValue: faseForzada)
         }
@@ -476,6 +485,7 @@ public struct LiquidEcosistema: View {
                                 paused: still || ambientPaused || !visible)
                 .contentShape(Rectangle())
                 .onTapGesture { alternar() }
+                .onChange(of: alternarPedido) { _, _ in alternar() }
             overlays
         }
     }
@@ -506,6 +516,7 @@ public struct LiquidEcosistema: View {
         case .uniendo:
             fase = .viva(desde: ahora)          // completar la transición al instante
         }
+        onFase?(esSeparadaEstable)
     }
 
     /// El reposo del héroe es el veredicto: cualquier separación viva vuelve a fundido.
@@ -513,6 +524,7 @@ public struct LiquidEcosistema: View {
         switch fase {
         case .separada, .separando:
             fase = .viva(desde: Date().timeIntervalSinceReferenceDate)
+            onFase?(false)
         default:
             break
         }

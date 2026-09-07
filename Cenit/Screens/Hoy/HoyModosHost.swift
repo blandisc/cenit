@@ -1,5 +1,6 @@
 import SwiftUI
 import Foundation
+import TipKit
 import CenitDesign
 
 // MARK: - FER-51 · Host de la Matriz
@@ -7,6 +8,8 @@ import CenitDesign
 // Decisión del dueño (2026-08-06, revisión en vivo): el modo Cosmos se APAGÓ — era mucha
 // complejidad; la Matriz es la apuesta y se pule a fondo. (El código muerto de Cosmos se
 // podó después, FER-audit.) Este host monta la franja de estado T1–T5 + la cara Matriz.
+// FER-432: tips inline del estante «Deciden tu día», scrub y sincronizar; franja «sin sync»
+// visiblemente tocable (chevron + verbo) sin cambiar la acción (pull/sync).
 
 struct HoyMatrizHost: View {
     @ObserveInjection private var inject
@@ -20,6 +23,8 @@ struct HoyMatrizHost: View {
     /// Tap del aviso de desconexión → el MISMO flujo de conexión que la puerta «Connect
     /// Health» (C6 de la revisión conceptual: una sola causa, una sola ruta).
     var onTapAvisoSalud: () -> Void = {}
+    /// FER-432 · Franja «sin sync» tocable → misma acción que el pull-to-refresh / VoiceOver Sync.
+    var onTapSincronizar: () -> Void = {}
     /// FER-118 · El hint de barrido del guardián: se muestra hasta 3 veces o hasta el primer
     /// scrub (espejo de `maxSeparacionHints`); el contador vive aquí (la cara es del DS y no lee
     /// `AppStorage`).
@@ -39,6 +44,8 @@ struct HoyMatrizHost: View {
                         .accessibilityHint(Text(String(localized: "hoy.desconectado.hint",
                                                        defaultValue: "Opens Data Sources to reconnect")))
                         .accessibilityIdentifier("hoy-estado-copy")
+                    } else if esFranjaSinSync {
+                        franjaSinSyncTocable(copy)
                     } else {
                         estadoGrupo(copy)
                     }
@@ -48,14 +55,108 @@ struct HoyMatrizHost: View {
                 // propósito (FER-118) y NUNCA se suman. Desde FER-159 ambos valen 24 (el dueño los
                 // alineó con el héroe; antes los módulos iban a 16 = dock).
                 .padding(.horizontal, MatrizTokens.margenH)
+                if esFranjaSinSync {
+                    TipView(HoySincronizarTip(), arrowEdge: .top)
+                        .padding(.horizontal, MatrizTokens.margenH)
+                }
             }
+            // Tips del estante «Deciden tu día» (1, 2, 4): encima de la cara — no se puede
+            // anclar dentro de MatrizHoyFace sin tocar CenitDesign (prohibido en L5).
+            hoyEstanteTips
             MatrizHoyFace(model: matriz, onTapSeccion: onTapSeccion,
                           mostrarHintScrub: scrubHints < Self.maxScrubHints,
                           onHintMostrado: { scrubHints = min(Self.maxScrubHints, scrubHints + 1) },
-                          onScrubCompletado: { scrubHints = Self.maxScrubHints })
+                          onScrubCompletado: {
+                              scrubHints = Self.maxScrubHints
+                              HoyScrubTip.scrubUsado.sendDonation()
+                              HoyScrubTip().invalidate(reason: .actionPerformed)
+                          })
                 .frame(maxWidth: .infinity)
         }
+        .onAppear { alimentarTipsMatriz() }
+        .onChange(of: matriz) { _, _ in alimentarTipsMatriz() }
+        .onChange(of: plantilla) { _, _ in
+            if esFranjaSinSync {
+                HoySincronizarTip.franjaSinSync.sendDonation()
+            }
+        }
+        .onAppear {
+            if esFranjaSinSync {
+                HoySincronizarTip.franjaSinSync.sendDonation()
+            }
+        }
         .enableInjection()   // Inject: recarga en caliente (no-op en Release)
+    }
+
+    /// Tips 1 / 2 / 4 bajo el rótulo del estante (app-layer; la cara del DS no acepta slots).
+    @ViewBuilder
+    private var hoyEstanteTips: some View {
+        VStack(alignment: .leading, spacing: LiquidSpace.s100) {
+            TipView(HoyHojaMetricaTip(), arrowEdge: .bottom)
+            TipView(HoyScrubTip(), arrowEdge: .bottom)
+            TipView(HoyManualesTip(), arrowEdge: .bottom)
+        }
+        .padding(.horizontal, MatrizTokens.margenH)
+    }
+
+    private func alimentarTipsMatriz() {
+        let (conDato, conDosNoches) = Self.celdaFlags(matriz)
+        HoyHojaMetricaTip.hayCeldaConDato = conDato
+        HoyScrubTip.hayCeldaConDosNoches = conDosNoches
+    }
+
+    /// ≥1 celda con valor distinto de «—»; ≥1 celda con ≥2 noches con lectura en scrub.
+    private static func celdaFlags(_ modelo: MatrizHoyModel) -> (Bool, Bool) {
+        var conDato = false
+        var conDos = false
+        for banda in modelo.bandas {
+            let secciones: [MatrizSeccion]
+            switch banda {
+            case .full(let s): secciones = [s]
+            case .split(let izq, let der): secciones = [izq, der]
+            case .nivel: secciones = []
+            }
+            for s in secciones {
+                if s.valor != "—" { conDato = true }
+                if let noches = s.scrubNoches {
+                    let lecturas = noches.filter { $0.valor != "—" }.count
+                    if lecturas >= 2 { conDos = true }
+                }
+            }
+        }
+        return (conDato, conDos)
+    }
+
+    private var esFranjaSinSync: Bool {
+        if case .t3SinVeredicto(.sinSync) = plantilla { return true }
+        return false
+    }
+
+    /// Franja «Pending sync» con verbo + chevron: misma acción que el jalón (FER-432 tip 5).
+    private func franjaSinSyncTocable(_ texto: String) -> some View {
+        Button(action: onTapSincronizar) {
+            HStack(alignment: .firstTextBaseline, spacing: LiquidSpace.s150) {
+                Text(texto)
+                    .font(LiquidType.cuerpoBanner)
+                    .foregroundStyle(LiquidColor.tinta500)
+                    .multilineTextAlignment(.leading)
+                Spacer(minLength: LiquidSpace.s100)
+                Text(String(localized: "tip.hoy.sincronizar.boton",
+                             defaultValue: "Sync"))
+                    .font(LiquidType.boton)
+                    .foregroundStyle(LiquidColor.tinta700)
+                Image(systemName: "chevron.down")
+                    .font(LiquidType.iconSF(size: 12).weight(.semibold))
+                    .foregroundStyle(LiquidColor.tinta500)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text(verbatim: texto))
+        .accessibilityHint(Text(String(localized: "tip.hoy.sincronizar.gesto",
+                                       defaultValue: "Pull down from the top to sync with Apple Health")))
+        .accessibilityIdentifier("hoy-estado-copy")
     }
 
     /// El aviso de Salud desconectada (con veredicto en caché) es el ÚNICO estado que resalta:
