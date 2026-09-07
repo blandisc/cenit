@@ -234,7 +234,7 @@ struct TodayView: View {
     @State private var metricSpec: MetricDetailSpec? = nil
     /// Carga de entrenamiento (FER-705 · handoff «Carga»): el ACWR + la serie band-masked que alimenta la
     /// franja fija bajo las pestañas y su hoja. Se siembra en `recomputeDerived` (misma fuente que la
-    /// tarjeta de Tendencias, `CuerpoView.leerElDia`, para que nunca discrepen de la banda).
+    /// tarjeta de Tendencias, `CuerpoView.loadAll`, para que nunca discrepen de la franja).
     @State private var trainingLoad: TrainingLoadModel? = nil
     /// La hoja de carga (montada al tocar la franja).
     @State private var trainingLoadItem: TrainingLoadItem? = nil
