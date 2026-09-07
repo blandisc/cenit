@@ -1,851 +1,673 @@
-# Cénit Analytics
+# The analytics layer
 
-On-device analytics for **Cénit** — a standalone, fully offline health app on **Apple Health**. Cénit stores samples locally in SQLite and computes recovery, strain, HRV, and sleep on-device. There is no cloud and no account involved in any of the math described here. Analyzers accept the stream shapes produced by HealthKit sync and optional file import.
+Every number Cénit shows about a body is computed on the device by a pure function in
+`Packages/StrandAnalytics`. That package depends on `BiometricStreams` and `StrandModels` and nothing
+else — no database, no file access, no clock, no network. Hand an engine values, get values back.
 
-> Cénit works with data you already own. The metrics below are **approximations** of common exercise-physiology and HRV methods, derived from published literature — they are **not** reproductions of any proprietary scoring model, and they are **not a medical device**. Nothing here is medical advice.
-
-All analytics live in the cross-platform `StrandAnalytics` Swift package. Every entry point is a **pure, deterministic, DB-free** function over its inputs — no I/O, no global state, no network. Persistence is wired in elsewhere (`CenitStore`, the app target). This makes the whole package straightforward to unit-test against fixed vectors.
-
-- Package: `Packages/StrandAnalytics/Sources/StrandAnalytics/`
-- Top-level index: `StrandAnalytics.swift` (`StrandAnalytics.version == "0.1.0"`)
-- App layer: `Cenit/` (the shared SwiftUI app layer that builds the `Cenit` app target)
+This document is the reference for those engines: what each one computes, the actual formula with its
+constants, the published method it implements, and where it is honest about its own limits.
 
 ---
 
-## What is actually wired into the app
+## The discipline
 
-The package contains more analytics than the app currently calls. This section is the honest map of **library-only** vs **live**, verified against the app sources.
+Four things are required of anything in this layer, and they are the reason the document exists.
 
-> **The retired-wearable recompute pipeline is dormant (FER-1003).** The on-device *recompute* path in the table below — `AnalyticsEngine.analyzeDay` / `IntelligenceEngine.analyzeRecent`, the computed source suffix, and anything described as running "while connected" or "for nights the device offloaded" — was the retired wearable's offload loop. Under the pinned **Apple-Health-only** mode it guards on a source-mode check and returns early (see `docs/ARCHITECTURE.md` → "Dormant / retired surfaces"), so the ~15-minute offloaded-night scoring loop does **not** run today. These engines still exist and are exercised over imported/historical legacy data; today's live readiness comes from `Preparedness` over Apple Health (below), and the only live heart rate is inside a guided strength session, mirrored from the **Apple Watch**.
+**A published method.** No engine invents physiology. Each implements a method that someone published
+and that a reader can go check.
 
-| Engine | File | Status in the app |
-|---|---|---|
-| `HRVAnalyzer` | `HRVAnalyzer.swift` | **Library-only** as a type. The app computes RMSSD inline via `AppModel.rmssd(_:)` (same Task-Force formula) for the live stress nudge. |
-| `RecoveryScorer` | `RecoveryScorer.swift` | **Live.** Runs inside `AnalyticsEngine.analyzeDay` via `Cenit/Data/IntelligenceEngine.swift`; computed recoveries are persisted under a computed-source suffix and merged **under** any imported `recovery_score_pct` (imports always win). APPROXIMATE. |
-| `StrainScorer` | `StrainScorer.swift` | **Live.** Day strain is computed on-device for nights the legacy wearable offloaded; the imported `day_strain` column still wins for imported days. APPROXIMATE. |
-| `SleepStager` | `SleepStager.swift` | **Live.** Stages each offloaded night inside `analyzeDay`; computed sessions are persisted under a computed-source suffix, with imported sleeps taking precedence. APPROXIMATE. |
-| `Baselines` | `Baselines.swift` | **Live.** Seeds the recovery baseline in `IntelligenceEngine.analyzeRecent` (two-pass cold-start). The fold is **legacy-wearable-only**: Apple-only nights are excluded (a legacy-history filter, FER-519) because their HRV is **SDNN**, not the legacy wearable's **RMSSD** — different constructs with no published conversion (Shaffer & Ginsberg 2017). The only Apple→baseline bridge is the capped FER-60 prior, and (FER-634) only for **respiration** — breaths/min measured during sleep, the same metric across sources. Resting-HR is **not** seeded from Apple: the legacy wearable reads it from the sleep nadir while Apple estimates it from awake sedentary samples (~10–13 bpm higher; Fenland Study, Gonzales et al. 2023), so it takes the same honest cold-start as HRV. The illness early-warning in `AppModel` still uses its own trailing-window baseline math inline (see below). |
-| `WorkoutDetector` / `Calories` | `WorkoutDetector.swift` | **Live.** Runs inside `AnalyticsEngine.analyzeDay`; detected bouts are persisted as `workout` rows under a computed-source suffix (sport `"detected"`), de-duplicated against imported legacy-wearable workouts. All intensity/calorie fields are APPROXIMATE. Not yet surfaced in the Workouts screen. |
-| `AnalyticsEngine` | `AnalyticsEngine.swift` | **Live orchestrator.** `analyzeDay(...)` is called by `Cenit/Data/IntelligenceEngine.swift` — every 15 minutes while connected, and from the Intelligence screen — and its `DailyMetric`, sleep sessions and detected workouts are persisted under a computed-source suffix. |
-| `HRZones` | `HRZones.swift` | **Library-only** (display zone model). The app's live zone coaching computes `%HRmax` inline in `AppModel.coachZone(_:)`. |
-| `CorrelationEngine` | `CorrelationEngine.swift` | **Live.** Used by `InsightsView`, `CompareView`, `MetricExplorerView`. |
-| `BehaviorInsights` | `BehaviorInsights.swift` | **Live.** Used by `InsightsView` (`rank` + `sentence`). |
-| `ComparisonEngine` | `ComparisonEngine.swift` | **Live.** Used by `MetricExplorerView`. |
-| `VO2maxTrend` | `VO2maxTrend.swift` | **Live.** Surfaced in `FitnessAgeDetailView` (the VO₂max trajectory / direction). APPROXIMATE. |
-| `NocturnalDC` | `NocturnalDC.swift` | **Library-only** (FER-680). Not yet surfaced in a screen. APPROXIMATE. |
-| `ThermalStabilityEngine` | `ThermalStabilityEngine.swift` | **Library-only** (FER-681). Not yet surfaced; the descriptive bands must be checked against the legacy wearable's real skin-temp resolution before it is shown. APPROXIMATE. |
-| `HeartRateRecovery` | `HeartRateRecovery.swift` | **Library-only / experimental** (FER-683). Behind the experimental-metrics flag; UI in progress (FER-852). APPROXIMATE. |
-| `DFAAlpha1` | `DFAAlpha1.swift` | **Library-only / experimental** (FER-683). Inert unless `experimentalEnabled`; refuses to output on a noisy signal. Not surfaced. APPROXIMATE. |
+**A verifiable citation.** The method's source is named in the engine's own file header, with enough
+detail to find it. Where the implementation deviates from the source, the deviation is stated.
 
-**In short:** the *interactive data-interrogation* engines (correlation, behavior effects, period comparison) are wired into screens, and the *recompute-from-raw-streams* engines (recovery, strain, sleep staging, workout detection) run live too: `IntelligenceEngine` calls `analyzeDay` for every night the legacy wearable offloaded and persists the APPROXIMATE results under a computed-source suffix, merged under any imported rows — a legacy import still wins wherever it covers a day. The app additionally runs four small inline analytics in `AppModel`: HR smoothing, RMSSD, HR-zone coaching, an illness/strain early-warning, and a resting-stress nudge.
+**A test.** Most engines carry an *oracle* test: a hand-computed reference value the code must
+reproduce. Others carry boundary tests that pin behavior exactly at a threshold.
 
----
+**Honest hedging.** Where a number is an approximation, a product calibration, or a presentation
+device rather than a measurement, the code says so and the copy that shows it must say so too.
 
-## Live analytics in `AppModel`
+That last rule has teeth. Several engines carry a **claims allow-list**: the exact set of sentences
+the interface is permitted to say about that engine's output. Adding a fifth sentence to a four-item
+allow-list is a change to the science, not to the copy, and it is reviewed as one.
 
-Source: `Cenit/App/AppModel.swift`. These run against the ingested Apple Health history and the daily history, on the main actor.
+### Three vocabularies that recur
 
-### 1. Heart-rate smoothing (`ingestHR`)
+**Product calibration versus published quantity.** Many engines mix both. A threshold taken from a
+paper is one thing; a knob chosen because it made a screen read well is another. The code labels
+which is which, and this document preserves that labeling. When you see a bounded 0-to-100 score next
+to a raw quantity, the raw quantity is usually the load-bearing figure and the score is presentation.
 
-Every screen shows a **smoothed** bpm (`AppModel.bpm`), never the raw per-beat value (which swings with HRV). The smoother:
+**Skip-and-hold.** When a night has no usable value, engines *hold* the previous state and advance a
+staleness counter rather than folding a zero. A missing night must never read as a bad night.
 
-1. Prefers the source's reported HR (the Apple Watch mirror during a guided session); falls back to `60000 / RR` (last R-R interval) if needed.
-2. Clamps to a plausible `30…220` bpm range — rejects `0` and garbage spikes.
-3. Keeps a ~10-second sliding window (max 40 samples) and **publishes the window median**.
-
-```swift
-hrWindow.append((now, inst))
-hrWindow.removeAll { now.timeIntervalSince($0.t) > 10 }   // ~10 s window
-if hrWindow.count > 40 { hrWindow.removeFirst(hrWindow.count - 40) }
-let vals = hrWindow.map(\.v).sorted()
-bpm = vals.isEmpty ? nil : Int(vals[vals.count / 2].rounded())
-```
-
-Median (not mean) is deliberate: it rejects single-beat outliers without lagging the signal.
-
-### 2. RMSSD for the stress nudge (`rmssd` + `evaluateStress`)
-
-The live RMSSD uses the classic Task-Force successive-difference formula over a rolling R-R buffer:
-
-```swift
-static func rmssd(_ rr: [Int]) -> Double {
-    guard rr.count >= 2 else { return 0 }
-    var sum = 0.0, n = 0
-    for i in 1..<rr.count { let d = Double(rr[i] - rr[i - 1]); sum += d * d; n += 1 }
-    return n > 0 ? (sum / Double(n)).squareRoot() : 0
-}
-```
-
-`evaluateStress()` was an **experimental, off-by-default** resting-stress nudge, **retired with the band (FER-1003)**: it gated on a **bonded, worn wearable** and buzzed the wearable's motor on fire, neither of which exists now, so it no longer runs. Kept here for the method:
-
-- Only ran when `behavior.stressNudge` is on **and** the wearable is bonded **and** worn.
-- Filters R-R to plausible beats (`300 < rr < 2000` ms, i.e. 30–200 bpm), keeps the last 60, needs ≥ 20.
-- Tracks a **slow HRV baseline** as an EWMA: `hrvBaseline = hrvBaseline * 0.98 + rmssd * 0.02`.
-- Only fires when HR is in a **resting band** (`55…100` bpm — not a workout) and current RMSSD has dropped **below 60% of baseline**.
-- Rate-limited to **once per 15 minutes** (`> 900` s). On fire it buzzed the wearable once and logged "take a paced breath."
-
-It is intentionally conservative so it rarely false-fires.
-
-### 3. HR-zone haptic coaching (`coachZone`)
-
-Watches the smoothed `bpm`, computes `%HRmax` from `profile.hrMax`, and buckets into 5 zones at `0.6 / 0.7 / 0.8 / 0.9` of max:
-
-```swift
-let pct = Double(hr) / maxHR
-let zone = pct >= 0.9 ? 5 : pct >= 0.8 ? 4 : pct >= 0.7 ? 3 : pct >= 0.6 ? 2 : 1
-```
-
-On crossing **into zone 5** it buzzed three times ("ease off"); on dropping back **to zone ≤ 1** it buzzed once ("recovered"). Gated on `behavior.zoneCoaching`, a **bonded, worn wearable**, and a valid `hrMax` — **retired with the band (FER-1003)**: with no bonded wearable and no continuous live HR outside a guided session, it no longer runs.
-
-### 4. Illness / strain early-warning (`evaluateIllness`)
-
-This is the live, app-side version of the baseline-comparison idea. It recomputes whenever the daily history changes (`repo.$days`). It compares the **last ~2 days** against a **~28-day baseline ending 3 days ago** (so the recent window doesn't contaminate its own baseline):
-
-```swift
-let recent = Array(days.suffix(2))
-let base   = Array(days.suffix(31).dropLast(3))   // ~28 days ending 3 days ago
-```
-
-Each signal is first z-scored by the pure **`IllnessWatch`** type in `StrandAnalytics`: it fires when its recent mean sits **≥ 2σ** from the baseline mean *in the concerning direction*, where σ is the baseline's own robust dispersion (mean-absolute-deviation × 1.253, the same `E[|X−μ|] = σ·√(2/π) ≈ σ/1.253` convention as `RecoveryScorer`/`Baselines`). Anchoring to each user's own σ — instead of a fixed offset — makes the trigger comparable across people: a +5 bpm jump is several σ for a very stable user (a real signal) but sub-σ noise for a volatile one.
-
-| Signal | Field(s) | Anomaly condition | Direction |
-|---|---|---|---|
-| Resting HR ↑ | `restingHr` | recent mean **≥ baseline + 2σ** | higher is worse |
-| HRV ↓ | `avgHrv` | recent mean **≤ baseline − 2σ** | lower is worse |
-| Skin temp ↑ | `skinTempDevC` | recent mean **≥ baseline + 2σ** | higher is worse |
-| Respiration ↑ | `respRateBpm` | recent mean **≥ baseline + 2σ** | higher is worse |
-
-σ is "not estimable" (no anomaly) for a flat or too-small baseline. Note the recent window is a **small sample** — 2 nights by design, but a single night if one is missing.
-
-**The four per-signal z-scores feed `IllnessSignalEngine.evaluate`** (`StrandAnalytics`), which replaced the older blunt "2-of-4, z≥2σ" banner rule with a calibrated 0–100 composite. Each firing signal (`|z| ≥ signalZThreshold = 2.0`, oriented so a positive z is always illness-ward — a negated z for HRV, since a *drop* is illness-ward) contributes `min(perSignalCap = 40, kZToScore = 22 · (z − 2.0))` to the composite, summed and clamped to 100, so no single signal can saturate the score. A **minimum-corroboration gate** still applies (`minCorroboratingSignals = 2`): fewer than two firing signals, or a composite below `mildThreshold = 25`, reads `.quiet`. **Explicit confounder suppression** is the differentiating step: a same-day journal tag for alcohol, stress, sauna, a hard-or-late workout, or a travel phase-jump multiplies the composite by `confounderDampen = 0.45` and downgrades the level to `.suppressed` — the signals are real, but a plainer explanation exists, so the copy names it ("likely that, not illness") instead of crying wolf. With no confounder, the level is `.mild` (surfaced only in a detail view, no notification) below `raiseThreshold = 50`, or `.raised` (surfaces the banner + notification) at/above it. A user who already logged feeling unwell gets `.alreadyUnwell` — a "rest up" framing, never a scare, regardless of score. An untrusted baseline (or fewer than the required nights) stays `.quiet`. Requires `behavior.illnessWatch` on and at least 14 days of history. On-device only; a `.raised` message reads like *"Heads-up - your body looks strained. RHR +6, HRV −22%. With no alcohol or travel logged, consider taking it easy. On-device estimate - not a diagnosis."*
-
-**Per-source routing (FER-882 / FER-884).** Each signal scores against a **single-source** history chosen by the data-source mode, so a band-Δ night never folds with an Apple-Δ night (each instrument has its own baseline). In **Combined / legacy-wearable-only** the RHR/HRV/skin-temp terms use the legacy-only history exactly as before (`SourceLens.maskForBaseline(keep: .band)` — byte-identical, regression zero). In **Apple-only** mode the legacy history is empty, so those terms would collapse below the ≥2-signal gate and never fire; instead they score Apple's own resting-HR / SDNN / wrist-temp-Δ against an **Apple-isolated** baseline (`SourceLens.maskForBaseline(keep: .apple)`). A within-source z-score is valid regardless of Apple's absolute RHR offset (awake sedentary, ~10.7 bpm above the legacy wearable's sleep nadir; Fenland, Gonzales et al. 2023) or SDNN≠RMSSD — it measures deviation from the user's *own* Apple norm, the same frame the illness literature validates (Snyder et al. 2020 detect infection by RHR elevation *relative to the individual baseline*; TemPredict AUC 0.77 on RHR/HRV/resp alone, 0.82 with temperature). **Honest limit:** Apple's markers are **awake** (sedentary RHR, all-day SDNN), not the sleep-windowed signals the literature validated, so the Apple-only warning has a lower signal-to-noise ratio than the legacy wearable's and **fails toward under-warning** — the conservative ≥2-signal, z≥2, `.raised`-only gate keeps it quiet rather than crying wolf. Respiration is the same physical metric across sources (breaths/min during sleep) and keeps the full merged history.
+**Own baseline per construct.** Two measurements of nominally the same thing, taken by different
+instruments, never share a baseline. This is enforced structurally and is the subject of its own
+section below.
 
 ---
 
-## `HRVAnalyzer` — RMSSD / SDNN with cleaning
+## What is actually running
 
-Source: `HRVAnalyzer.swift`. Reproduces the **Task Force (1996)** definitions over R-R / NN intervals (ms), with a deterministic cleaning pipeline.
+Not everything here has a caller. The package is deliberately larger than the app, because engines are
+built and proven before the surface that will use them exists. Three tiers:
 
-### Formulas
+- **Live.** Called from the app on every refresh: the baselines, the morning verdict, load,
+  sleep, zones, the source-fusion layer.
+- **Wired but inert.** Complete, tested, and reachable, but the input that would activate them has no
+  producer today.
+- **Library-only.** Complete and tested, with no caller at all. `StrainCeiling` is one such: it
+  computes a load ceiling nothing currently asks for.
 
-```
-RMSSD = sqrt( (1/(N-1)) · Σ (NN[i+1] − NN[i])² )    (Task Force 1996)
-SDNN  = sample standard deviation of NN, ddof = 1     (Task Force 1996)
-pNN50 = 100 · (count of |ΔNN| > 50 ms) / (N − 1)
-```
-
-`rmssdRaw(_:)` and `sdnnRaw(_:)` are the raw primitives (no filtering, return `nil` for fewer than 2 values).
-
-### Cleaning pipeline (`cleanRR`)
-
-1. **Range filter** — drop intervals outside `[rrMinMs, rrMaxMs] = [300, 2000]` ms (≈ 200 bpm to 30 bpm).
-2. **Ectopic rejection (Malik-style)** — drop any beat deviating more than `ectopicThreshold = 0.20` (20%) from a **local median** over a centered window of `2·ectopicWindowRadius + 1 = 5` beats. Beats with too small a neighbourhood are kept.
-3. **Sufficiency gate** — require at least `minBeats = 20` clean intervals before returning a trustworthy result; otherwise `HRVResult.empty(...)`.
-
-> **Honest substitution.** The reference Python pipeline ran neurokit2's Kubios / Lipponen–Tarvainen (2019) artifact classifier, which isn't available on-device. Cénit substitutes the classical **Malik et al. (1989)** 20%-local-median rule — a simpler, fully deterministic approximation of the same intent (remove physiologically impossible beat-to-beat jumps before computing HRV). It does not model the missed/extra-beat insertion that Kubios does.
-
-### API
-
-```swift
-HRVAnalyzer.analyze(_ rr: [RRInterval], windowStart: Int?, windowEnd: Int?) -> HRVResult
-HRVAnalyzer.analyze(rawRR: [Double]) -> HRVResult
-```
-
-`HRVResult` carries `rmssd`, `sdnn`, `meanNN`, `pnn50`, plus `nInput` and `nClean` (counts before/after cleaning) for transparency.
+An engine having no caller is not dead code by default — several are staged ahead of a surface. But
+it does mean its output has never been seen by a user, which is worth knowing before trusting it.
 
 ---
 
-## `NocturnalHRV` + `AutonomicTrend` — nocturnal autonomic trend (Apple-only)
+## Baselines: the thing everything is measured against
 
-Source: `NocturnalHRV.swift`, `AutonomicTrend.swift` (both `StrandAnalytics`, pure). The Apple-only recovery redesign (FER-1008): instead of a 0–100 recovery score, Cénit reads the **direction** of the user's recent nocturnal HRV against **their own settled baseline** — never a number, never a clinical claim.
-
-### Source and its honesty caveats
-
-The input is Apple Watch **opportunistic wrist PPG** (`HKHeartbeatSeriesSample`), not ECG. Three caveats are load-bearing (and encoded in the claims allow-list below):
-
-- **Wrist PPG RMSSD is the worst case — and its bias is state-dependent.** Pulse-rate variability from PPG diverges from ECG HRV, and RMSSD (the shortest-term index) is the most affected — Schäfer & Vagedes (2013), *Int J Cardiol* 166(1):15–29. Short-term variability is *overestimated*, and agreement *degrades with movement and stress*. Because that degradation is **state-dependent**, it does not fully cancel in the within-subject comparison — but it fails **safe**: the extra noise widens the baseline spread and trips the density gates, so the engine **abstains more**, it does not cry wolf.
-- **Opportunistic, non-contiguous, and un-timed within the night.** Apple samples in short bursts, not one contiguous supine recording, and *when* in the night it samples is uncontrolled (Altini's standing critique of automatic wrist HRV). Munoz et al. (2015), *PLoS One* 10(9):e0138921, validated ultra-short RMSSD only for **supine, contiguous** windows — explicitly *not* this regime. Cénit's real mitigation of the timing problem: it clips to the night's **asleep** segments and never averages all-day HRV (the exact thing Altini faults). Even so, the value is a within-subject **trend signal**, never an absolute measurement.
-- **Artifacts are edited before RMSSD, not after.** RMSSD is L2-sensitive: one missed/extra beat can dominate a whole night. The segmented path rejects any successive pair whose beat-to-beat change exceeds **20 % of the shorter interval** (`maxSuccessiveDeltaFraction`) — a relative successive-difference rule (Task Force 1996 requires editing artifacts *before* RMSSD; Karlsson 2012, Lipponen–Tarvainen 2019), chosen **relative** (not an absolute ms cap) so genuine high-RSA bradycardic sleep survives. A night whose RMSSD still lands outside the baseline's `[5, 250]` ms plausibility range is dropped whole. Validated on 46 real nights: idle on clean nights, corrects the artifact-flipped directions (FER-1003 science gate).
-
-### `NocturnalHRV.night` — one honest RMSSD per night, or nothing
-
-`HRVAnalyzer.rmssdSegmented` adapts the **Task Force (1996)** RMSSD definition, **segmented by time**: a successive pair `(i−1 → i)` counts only if both NN ∈ `[300, 2000]` ms, they are temporally adjacent (`0 < Δt < 3 s`, `ts` in fractional epoch seconds), **and** the beat-to-beat change is ≤ 20 % of the shorter interval (the artifact filter above). A pair that straddles a recording gap, touches an out-of-range beat, or is an artifact jump is excluded — **never bridged across** (bridging would inflate the pair count on the dirtiest nights and corrupt the density gate below). The divisor is the number of **valid pairs**, not `N−1`. This time-segmentation + successive-difference editing is **Cénit's own adaptation** of the Task Force RMSSD (which is stated over a contiguous NN series with divisor `N−1`), not a published method; the classic 5-beat Malik local median is skipped because it is unreliable on sparse, non-contiguous wrist beats, so the pairwise 20 % rule is its artifact defense instead.
-
-`night(...)` clips the intervals to the **union of the night's asleep segments**, then emits an RMSSD only when the night is dense on both counts **and physiologically plausible** — `nClean ≥ 60` in-range intervals **and** `nPairs ≥ 30` successive pairs **and** `rmssd > 0` **and** `rmssd ∈ [5, 250]` ms (the same bound the baseline itself skip-holds, from one source of truth). Otherwise it emits nothing (the night is dropped, not faked). These counts are **product-calibration gates, not clinical thresholds**.
-
-### `AutonomicTrend.evaluate` — direction vs. the user's own baseline
-
-Over the dense `apple_rmssd_night` values (oldest→newest), it computes the **geometric mean** of the recent 7-day window (nightly RMSSD is ~log-normal — Plews et al. 2013, *Sports Med* 43(9):773–781, who monitor **lnRMSSD** as the day-to-day metric) and z-scores it against the user's **past-only** personal baseline (`Baselines.foldHistory`, log domain), so a night's baseline never includes that night. The **same `[5, 250]` plausibility gate is applied to the recent window and the sparkline, not just the baseline** — so a single in-DB artifact night (e.g. one persisted before the night-level gate existed) cannot flip the shown direction while the baseline correctly ignores it. The output is a 3-way `Direction` — `below` / `inBase` / `above` — with a **dead-zone of ±0.5σ** (`|z| < 0.5 ⇒ inBase`). That dead-zone is a **product knob**, *not* a Plews-derived smallest-worthwhile-change; and the `z` uses the **night-to-night σ** (the Plews moving-average-vs-±0.5·SD convention), so it is a categorical band, **not** an inferential test statistic. Confidence is gated by dense-night count: `calibrating < 14`, `building < 21`, `solid ≥ 21` (the 21-night `solid` gate is consistent with Plews/Buchheit multi-week monitoring guidance — weekly lnRMSSD averaging — and is a conservative product knob, not a precise settling time; the 14 mirrors `Baselines.minNightsTrust`). "Above" is stated **neutrally** — a high sleeping HRV can equally signal fatigue, so the screen never colors it as good.
-
-### Claims allow-list (PR-blocking)
-
-This surface is deliberately constrained. **Forbidden** in copy / metrics / artifacts: any "61%" / "% of variance", CCC, "equivalent to a specific competitor wearable", any 0–100 recovery number, a precise daily figure, "deep sleep / vagal tone" attributions the beats don't support. **Allowed**: "your sleeping HRV vs. your 7-day average", the categorical direction, "estimated / trend", and confidence expressed as a number of nights. No clinical claims.
-
----
-
-## `Preparedness` + `SleepBands` — the morning «Preparación» verdict (Apple-only, FER-1030)
-
-Source: `Preparedness.swift`, `SleepBands.swift` (both `StrandAnalytics`, pure). Live in `TodayView` (the hero). Replaces the retired 0–100 recovery number with a **categorical verdict** — *«En rango / Hoy ve leve / Recupera / Conociéndote»* (FER-10; the retired coach-voice words were «Dale con todo / Bien, con un detalle / Ándate leve») — by **consensus across independent axes**, not raw signals. Composed over the user's OWN Apple baselines via `Baselines.foldHistory`/`deviation`; it does **not** reuse `ReadinessEngine` (whose ACWR/monotony load machinery is band-era, out of scope for a passive Apple morning read).
-
-**Axes → one vote each (v3 re-gate, 2026-07-24).** The **autonomic** axis stands on **resting HR vs the user's own baseline** (`wRHR = 1.0`); Apple's all-day **SDNN** (`avgHrv`) is **out of the vote** (`wHRV = 0`): O'Grady et al. 2024 clocked MAPE 28.88 % (bias −8.31 ms) against a chest-worn reference even on a *short ~5-min morning supine reading* — Apple's `avgHrv` is a different, worse construct (all-day `discreteAverage`, not that reading), so it sits out with more reason still — and survives only as a `SignalRead` read-out. **Respiration also leaves the autonomic vote** (`wResp = 0`) and moves to the **illness sentinel**, where skin-temp and respiration must **both** be elevated to vote (corroboration kills lone warm-room / talking false positives — Mishra et al. 2020; Apple Vitals «2+ out»). An optional **dense nocturnal RMSSD** term (`wNocturnalRMSSD = 0.5`) can co-sign the asOf-day composite **only when the night is dense and resting-HR is present — never alone** (Repository wiring deferred). **Sleep** is graded vs need + efficiency (`sleepNeedFloorMin 420`, `sleepSlackMin 45`, `sleepEffFloor` — Van Dongen 2003 dose–response, **not** the binary 360-min cliff) and **thermal**/respiration ride the sentinel; **load** is optional (only with a real Apple workout, from `strainEstimates`). **Consensus is by AXIS, not by signal** (autonomic · sleep · sentinel): a single bad night that moves several signals at once is still ONE vote, never triple-counted (FER-1010). 0 out → full · 1 → caution · ≥ 2 or a falling RMSSD trend → easy · autonomic-axis unusable → «baja señal» (falls to measured sleep). Oriented OUT cut −1.0 (matches `ReadinessEngine.Flag.bad`; **not** `|z| ≤ 1`, rejected as noisy in `VitalBands`). Hysteresis of 2 consecutive days stops flip-flop.
-
-**HRV construct (three-baseline invariant, FER-629):** the autonomic **read-out** z-scores Apple's **SDNN** (`avgHrv`) against the user's OWN Apple-SDNN norm via `metricCfg["sdnn"]` — its own key, machinery identical to the RMSSD config (SDNN is right-skewed / log-normal too, Task Force 1996), kept separate so a future RMSSD retune can never silently move it. This is **within-source SDNN-vs-SDNN**, *not* a cross-construct RMSSD conversion (the trap that killed the v1 design). In v3 this SDNN read-out **does not vote** (`wHRV = 0`) — it is surfaced in the autonomic detail sheet as a reference row, never as a driver. The RMSSD trend (`AutonomicTrend`) is a **separate surface** — the sparkline and a "falling" nudge — never a verdict vote.
-
-**Honest limit (`/cso`):** `avgHrv` (all-day SDNN, `discreteAverage`) and `restingHr` (awake-sedentary) are **not** sleep-windowed, so the read is "your resting signals vs your own norm", not a nocturnal measurement — UI copy must never claim overnight precision. Signed by `/cso` (weights, cuts, hysteresis, SDNN-within-source). APPROXIMATE, no clinical claim. References: **O'Grady et al. 2024** (*Sensors* 24(19):6220 — a ~5-min morning supine reading, Apple Watch S9/Ultra 2 vs Polar H10/Kubios: RHR MAE 3.73 bpm vs that reading's SDNN MAPE 28.88 % / bias −8.31 ms; the evidence RHR carries the axis and Apple's *all-day* SDNN, a worse construct, sits out a fortiori); **Plews et al. 2013** (*Sports Med* 43(9):773); **Task Force 1996** (*Circulation* 93(5):1043); **Van Dongen et al. 2003** (*Sleep* 26(2):117 — sleep debt is a continuous gradient, not a 6 h cliff); **Mishra et al. 2020** (*Nat Biomed Eng* 4:1208 — multi-signal illness pattern behind the sentinel); **Buchheit 2014** (*Front Physiol* 5:73).
-
-**Daytime demotion (FER-1033):** `Read.isNightAnchored` is `false` when NO sleep session was recorded for the as-of day (the user likely did not sleep with the watch — and a night the watch missed demotes too, since without a session night anchoring cannot be claimed). The verdict still computes (the signals are day-aggregates anyway, see the honest limit above), but the UI **must demote the surface to the explicit «Lectura de día»**: no verdict word, no verdict color, an explicit "less precise" hedge. A watchless day is never presented as the full night-anchored read.
-
-### Claims allow-list — «Preparación» (PR-blocking)
-
-**Allowed** verdict copy (es-MX; FER-10 replaced the coach-voice words — these are **training suggestions derived from your own signals**, never medical instructions nor diagnoses, even when grammatically imperative): *«En rango» / «Hoy ve leve» / «Recupera» / «Conociéndote»* (calibration), plus a per-axis "why" that names the out axis ("tu pulso viene alto", "dormiste corto") and the calibration progress *«Noche N de M · tu rango se está formando»* (M = `Baselines.minNightsSeed`, never a UI-invented number). **Forbidden**: any number as verdict, "como [a specific competitor wearable]", "estás enfermo / sobreentrenado", any clinical or overnight-precision claim. «Recupera» reads as a suggestion from *your own* signals, never a medical instruction nor a diagnosis. Retired words (do not resurface): «Dale con todo» / «Bien, con un detalle» / «Ándate leve».
-
-**Allowed** «Lectura de día» copy (FER-1033, the demoted watchless-night surface): *«LECTURA DE DÍA»* (overline) · *«Tus señales de día vienen en tu rango.»* · *«Tus señales de día vienen abajo de tu rango.»* · the mandatory hedge *«Anoche no hubo lectura de sueño; esto es menos preciso.»* **Forbidden** on this surface: the four verdict words, verdict color, any implication of a night reading.
-
-**Allowed** «Franja del guardián» copy (FER-1047, the always-visible sentinel strip of skin-temp + respiration that *watches but doesn't vote*): the label *«VIGILANDO»* (calm / one signal out) → *«JUNTAS»* (both out); the two raw data (*«+0.1°»* · *«14 rpm»*); and the corroborated VoiceOver line *«Tu temperatura y tu respiración se salieron juntas de tu patrón.»* The strip is number-only when calm (color only in the datum); a single elevated signal tints only that datum and **never changes the verdict** (the engine requires both to corroborate — Mishra 2020 / Apple Vitals «2+ out»). **Forbidden**: the word «enfermedad», any diagnosis or clinical claim, and letting one signal read as if it decided the day. The honest fallback framing is *«algo se salió de tu patrón, hoy ve leve»*, never a named illness.
-
-**Allowed** «Preparación · detalle» copy (FER-119, the 30-morning mosaic that replaced the dead 0–100 recovery screen): the **neutral, third-person rung labels** of the mosaic — *«Todo en rango» / «Una señal fuera» / «Dos o más fuera» / «Sin lectura»* — which are a DELIBERATE second vocabulary, distinct from the hero's four words: «Hoy ve leve» contains the word «hoy» and «Recupera» is an imperative, so as the label of a day three weeks old they contradict themselves. The rungs restate the engine's own rule (how many of the axes came in out), nothing more. Also allowed (FER-129, the sheet re-armed after three adversarial rounds): the section titled **«Los votos»** in two tiers with their own subtitles — **«Hoy»**, which is the *same* boleta Hoy prints (built by `LiquidHoyBuilder.acta`, so it inherits every allowed word above: the two voters with their rail and word, and temperature + breathing as **«Vigilan sin votar»** chips, never as sibling rows); and **«Las noches fuera, en 30 días»**, the per-signal count over the window **said in days, never as a percentage** (identity colours only: rosa resting HR · índigo sleep · `doradoTemp` for the pair — *never* the amber of judgement, which shares its hex with the temperature identity), with the mandatory note that those counts **will not add up to the mosaic** (the verdict is post-hysteresis, the axes are that night's raw, *«De N mañanas con lectura. Una noche fuera no mueve tu veredicto por sí sola»*); the method's statement that sleep votes out *«si vino corto o entrecortado»* (`shortVsNeed || poorEfficiency`); the rung legend always visible under the method (the same `LiquidLeyendaNiveles` as the 90-day calendar, four rungs including «Sin lectura»); *«Dos días seguidos mueven el veredicto»*; and the method's own stated limit: each square is judged with the base up to that day (a forward fold, so it does **not** repaint later) but **cannot carry the trend nudge** that only applies to the morning being lived, which is why an older square can differ from what Hoy said out loud that day.
-
-**Forbidden** on this surface: the «3 signals / tus 3 señales» framing (same ban as the autonomic sheet); saying or implying that **Apple's HRV votes** (`wHRV = 0`; the dense nocturnal RMSSD rides along only when present, **never alone and never historically**, so over a 30-day window this axis is resting HR *only*); saying the **sleep axis is judged against the user's own base** (it is a fixed population floor, `sleepNeedFloorMin` 420 − 45 min slack plus an 80 % efficiency minimum — Hirshkowitz 2015 / Ohayon 2017); attributing a sleep vote to duration alone (the axis votes on `shortVsNeed || poorEfficiency`); any **mean, median, min/max, σ or coefficient of variation over the verdict** (a 4-state ordinal has no interval distance — the frequency breakdown is the only defensible summary); any **count headline, streak or derived percentage**; and giving one rung — «Todo en rango» above all — privileged color, size or position, which smuggles in the very psychology the count ban exists to prevent.
-
-**Allowed** «Detalle del eje autonómico» copy (FER-5, the axis detail sheet — v3 re-gate): that the axis is read **from resting HR vs your own base** (*«Tu pulso en reposo amaneció en tu rango»* / *«…por arriba de tu base»*); that **HRV and breathing are shown as reference and do not vote** (the `referencia` tag, no amber wash on a non-voting row — color only in the deciding datum); the day-window hedge for Apple's HRV (*«promedio de día, no una lectura de la ventana de sueño»*); that **the axis counts as a single vote** (anti-triple-count is by *axis*, not by signal); and the citations O'Grady 2024 · Task Force 1996 · Plews 2013. **Forbidden**: any per-signal numeric weight (e.g. «40 % · 35 % · 25 %»), the «3 signals / tus 3 señales» framing, «breathing flagged the axis on its own» (a dead branch in v3, `wResp = 0`), any precision number, «como [a specific competitor wearable]», and every clinical / overnight-precision claim. The per-signal vote percentage appears **only** when `share > 0`; a `share == 0` signal is never tinted as «fuera» and never rendered without the `referencia` tag.
-
----
-
-## `RecoveryScorer` — transparent 0–100 recovery composite
-
-Source: `RecoveryScorer.swift`. A **z-score + logistic** composite. It is explicitly **approximate** — HRV-dominant and baseline-normalized — and makes no claim to reproduce any proprietary recovery model.
-
-### Weighting
-
-| Driver | Direction | Weight |
-|---|---|---|
-| HRV vs baseline | higher → better recovery | `wHRV = 0.60` (dominant) |
-| Resting HR vs baseline | lower → better | `wRHR = 0.20` |
-| Respiration vs baseline | lower → better | `wResp = 0.05` |
-| Sleep performance | higher → better | `wSleep = 0.15` |
-| Skin temperature vs baseline | lower → better | `wTemp = 0.10` (optional) |
-
-Each metric is standardized to a **robust z-score** against the personal baseline (EWMA spread):
-
-```
-z = (value − mean) / (1.253 · spread)
-```
-
-The `1.253` converts an EWMA mean-absolute-deviation into an approximate Gaussian σ (`E[|X−μ|] = σ·√(2/π) ≈ σ/1.253`). For "lower is better" drivers (RHR, resp, skin temp) the z is inverted by swapping value and mean. The **skin-temperature term is optional** — it joins once its personal baseline is usable, and an elevated nightly temp (illness / overreaching) lowers recovery. The **sleep term is personalized** against the user's own efficiency baseline when available; until then it falls back to the fixed population center `(sleepPerf − 0.85) / 0.12`.
-
-Missing terms are dropped and weights renormalized. The weighted-mean z is then **pulled toward neutral in proportion to the driver weight actually present** (missing-driver shrinkage, FER-698), so a single strong driver can't saturate the score as if the whole picture agreed:
-
-```
-z = weightedMeanZ · min(1, presentWeight / referenceCoverageWeight)
-    referenceCoverageWeight = wHRV + wRHR + wSleep = 0.95   (the three primary drivers)
-```
-
-A read backed by the three primary drivers (HRV + RHR + sleep = `0.95`) counts as full coverage — the factor caps at `1.0`, so band scores are unchanged. `resp`/`skin-temp` are optional refinements, excluded from the reference so their absence never shrinks a band read. Below `0.95` (e.g. an Apple-Health estimate carrying HRV alone) the composite is shrunk toward `Z = 0` — the same James–Stein / empirical-Bayes spirit (Efron & Morris 1977) already applied per term via `Baselines.confidence(nValid)` for thin baselines, now applied along the coverage axis too. The shrunken z is squashed:
-
-```
-score = 100 / (1 + exp(−logisticK · (z − logisticZ0)))
-        logisticK  = 1.6     (±2 z ≈ the full red–green band)
-        logisticZ0 = −0.20   (anchors z = 0 → ~58 %)
-```
-
-The `58%` anchor matches a competitor wearable's self-reported member-average recovery (`populationMean = 58.0`) — a calibration anchor taken from that product's own (self-selected) user base, not a peer-reviewed population norm.
-
-### Cold-start
-
-HRV is the dominant driver. If its baseline isn't usable yet (`BaselineState.usable == false`, i.e. fewer than `minNightsSeed` valid nights), `recovery(...)` returns `nil` — more honest than fabricating a number. Callers may fall back to `populationMean` but should flag it.
-
-### Bands (`band(_:)`)
-
-| Band | Range |
-|---|---|
-| red | `< 34` |
-| yellow | `34 … 67` |
-| green | `≥ 67` |
-
-### Resting HR (`restingHR`)
-
-"Lowest sustained HR" during the in-bed window = the **minimum of 5-minute non-overlapping bin means** of HR samples in `[start, end]`. This rejects single-beat dips while capturing the night's true floor.
-
-### Estimated recovery from Apple Health — **retired**
-
-`AppleRecoveryEstimator` (FER-153) was removed. Band-less Apple nights no longer surface a 0–100 estimated recovery; history stays band-measured only.
-
----
-
-## `StrainScorer` — 0–21 logarithmic cardiovascular load
-
-Source: `StrainScorer.swift`. An **independent** implementation of published exercise-physiology methods (similar in spirit to commercial wearable strain scores, not a reproduction).
-
-### Pipeline
-
-1. **Heart-Rate Reserve (Karvonen 1957):** `HRR = HRmax − RHR`.
-2. **Per-sample intensity** as `%HRR = (HR − RHR) / HRR × 100`, clamped `[0, 100]`.
-3. **TRIMP accumulation** over the window, by one of two methods:
-   - **Edwards (1993) 5-zone summation (default):** each sample contributes its zone weight (`1…5` at the `50 / 60 / 70 / 80 / 90 %HRR` cut-offs) × duration.
-   - **Banister (1991) exponential:** each sample contributes `duration × x × 0.64 × e^(b·x)`, where `x = %HRR/100` and `b = 1.92` (men) / `1.67` (women).
-4. **Logarithmic compression** onto `[0, 21]`:
-
-```
-strain = 21 · ln(TRIMP + 1) / ln(D),    D = strainDenominator = 7201
-```
-
-`D = 7201` is calibrated so the Edwards daily ceiling — top zone weight 5 sustained for 24 h = `5 × 1440 = 7200` — maps to exactly `21.0` (`ln(7201)/ln(7201) = 1`).
-
-### HRmax estimation (`estimateHRmax`)
-
-- With ≥ `hrmaxMinSamples = 600` HR samples, use the observed `99.5th` percentile (`"observed"`), unless a Tanaka estimate is higher.
-- **Tanaka (2001):** `HRmax = 208 − 0.7 × age` (gender-independent), used as the floor / fallback (`"tanaka"`).
-- No data and no age → `(0, "unknown")`.
-
-### Guards & gates
-
-- Returns `nil` with fewer than `minReadings = 600` samples (≈ 10 min at 1 Hz) or when `HRmax ≤ RHR` (invalid HRR).
-- Per-sample duration is inferred from the **median plausible spacing** between consecutive timestamps (gaps in `(0, 300) s`; shared with `HRZones.medianInterval`), falling back to `1 s`. Using the median rather than the first timestamp pair keeps an isolated early gap (a device reconnect at ~1 Hz) from inflating the duration applied to the whole day.
-
-### Denominator calibration (`fitStrainDenominator`)
-
-Given `(TRIMP, reference_strain)` pairs, fits `D` via a through-origin least-squares line in log-space: `ln(D) = 21 · Σx² / Σ(x·strain)`, `x = ln(TRIMP+1)`. Throws on fewer than 2 usable pairs.
-
-### Inverse (`strainToTrimp`)
-
-`strainToTrimp` is the exact inverse of step 4 — the TRIMP-like load a `0–21` strain stands for. `ReadinessEngine.strainToLoad` forwards to it, so ACWR / monotony and the strength overlay linearize load through ONE copy of the map. `trimpToStrain` rounds to 2 dp, so the round trip is exact only to ≈ **0.21 %** relative (`0.005 · lnD / 21`) — compare with a relative tolerance, never `±1e-6`.
-
----
-
-## `SessionRPELoad` — load from minutes × effort (strength, ola 1)
-
-Source: `SessionRPELoad.swift` (+ `HRCoverage.swift`, `SourceFusion.overlayStrengthLoad`, `StrandTraining/SessionRPE.swift`). **APPROXIMATE**, not a clinical claim.
-
-**Why.** Heart rate does not discriminate intensity in resistance-type work (Falk Neto et al. 2020, *Front Physiol* 11:919 — functional-fitness sessions, n = 8; the authors extend the mechanism to traditional resistance training, and Day 2004 / Sweet 2004 corroborate it for lifting on the RPE side), and a Cénit session logged without a watch produced no load at all: `AppleLoadEstimator.classify` read the day as `.rest` — a **zero** on a day the user trained, which pulled the acute EWMA leg down. Perceived effort does discriminate it (Day et al. 2004, *JSCR* 18(2):353-358; Sweet et al. 2004, *JSCR* 18(4):796-802; Haddad et al. 2017, *Front Neurosci* 11:612).
-
-**Method — «carga por esfuerzo: minutos × RPE de sesión (escala RIR mapeada a CR-10), calibrada contra el TRIMP de FC»; inspired by session-RPE (Foster et al. 2001, *JSCR* 15(1):109-115), not literal.** Three departures from Foster, each deliberate:
-
-1. Foster captures the rating ~30 min AFTER the session on a 0–10 CR-10 scale; Cénit asks in the receipt, on its 6–10 RIR-anchored row (Zourdos et al. 2016, *JSCR* 30(1):267-275 — 10 = 0 reps in reserve).
-2. That row is **not** CR-10: its dynamic range is `10/6 = 1.67×` against Foster's `≥ 2.5×`, and a multiplicative constant cannot absorb an **additive** scale offset. So the map is explicit and affine: `cr10 = 1.5·rpe − 5` (6→4, 8→7, 10→10). The anchors are Foster's and Zourdos's; the affine cross-walk between the two scales is a **product mapping** — no published RIR→CR-10 cross-walk exists — and its slope/intercept are unvalidated.
-3. Foster's AU are not TRIMP. `trimpPerAU` bridges onto the Edwards axis the 0–21 scale is built on, so an estimated session and a measured one land on one ruler.
-
-```
-cr10  = 1.5 · rpe − 5                      (rpe ∈ [6, 10], else nil)
-au    = min(durationS, maxDurationS)/60 · cr10
-strain = trimpToStrain(trimpPerAU · au)
-```
-
-**Knobs — calibration defaults, `/estadistico` owns them:** `defaultTrimpPerAU = 0.29` (anchor: 50 min at RPE 8 → 350 AU → 101.5 TRIMP → strain ≈ 10.95, band 10–12), `minDurationS = 300`, `maxDurationS = 3 h` (a session left open is capped, not billed linearly), `minCalibrationPairs = 5`, clamp `[0.05, 1.0]`, `refitMinRelativeChange = 0.15`, `HRCoverage.minCoverage = 0.8`, `HRCoverage.maxPlausibleGapS = 300`.
-
-**Personal calibration.** Pairs come from sessions carrying BOTH a rating and a pulse that covered them; the estimator is the **median of ratios** `trimp/au` (Theil–Sen through the origin), not least squares — OLS weights each pair by `au²`, so one 3-hour session at RPE 10 dragged `k` from 0.258 to 0.111 while the median held. A refit is only accepted when the pair count has **doubled** (5 → 10 → 20 → 40, then the scale stays: the read is capped at 40 pairs, so k matures there) *and* the scale moves by more than 15 %: `strainToLoad` is linear, so a jump in `k` rescales the whole ACWR (0.25 → 0.5 turned a stable 0.75 into 0.92, «Ramping fast», with an unchanged routine). On acceptance every estimated session is rewritten onto the new scale in one write, so the receipt, the history and Tendencias never disagree about the same session.
-
-**Coverage (`HRCoverage`).** «Measured» means `StrainScorer.hasEnoughData` **and** covered time ≥ 0.8 of the session. Coverage is the sum of the intervals between consecutive samples shorter than 300 s over `elapsedSeconds` — time WITH pulse, not the fraction of holes. Before this gate, 12 minutes of watch over a 50-minute session cleared the absolute floor and was stored as measured at ≈ ¼ of its TRIMP (strain 7.5 vs 10.9).
-
-**One source per session, never a sum:** a rating (the one the user answers in the receipt — FER-330 ships the question; until then no session carries a rating and the calibration ladder below has no pairs to climb — the per-set suggestion is never written as an answer) → `.rpe`; else a covered pulse → `.hr` (the number this path always stored); else `nil`. The pulse keeps feeding `avgHr` and the cardiovascular recovery cost in every case.
-
-**Per-day overlay (`SourceFusion.overlayStrengthLoad`) — in READING, never persisted to `dailyMetric`.** Closed days only (`day < today`). Loads are added in TRIMP space and mapped back once; a session whose span **overlaps** an Apple workout takes the **max** with the day's Apple load (the Watch probably recorded the same training), one that overlaps nothing **adds** (`max` alone made a run plus a lifting session read as just the run). A day with a session but no usable load (`nil`, or a measured `0` from a pulse that never cleared the first Edwards zone) turns a base `0` into `nil` — a hold, never a rest. Synthetic rows are created only from the first day that already has a base strain (or, with no base at all, inside the trailing 56 days): in an imported era there are no rest zeros, so every gap would hold and the chronic leg would be seeded with per-session load instead of a daily dose — a false «Easing off» for about four weeks after an import. A session crossing midnight keys to the day it started.
-
-**The load does not vote (D-Q12).** Today's session only marks the `Preparedness` `load` axis as PRESENT — the same thing an Apple workout does. No new voter; the verdict does not change because of a session.
-
----
-
-## `RestReadiness` — between-sets rest by heart-rate recovery (HRR)
-
-Source: `RestReadiness.swift`. Pure between-sets rule: "ready" = HR has returned to `restingHR + margin` (default 20 bpm over the user's personal resting HR). The dominant number is `bpmToReady = max(0, HR − target)` (variant C2: counts down to 0 → «Ready»). A floor (`minRestS`, default 20 s) blocks a premature «ready»; a ceiling (`maxRestS`, default 180 s) releases with no infinite wait; an honesty band (`bandBPM`, default 5) reports `almostReady` instead of faking beat-level precision. With no live HR (not worn / nil / no baseline) it falls back to a fixed timer — no invented HR or color, but the clock still releases at the ceiling.
-
-Stateless: the caller (the guided session, FER-347, in `Cenit/`) owns the timer and passes plain values — live HR, wrist-wear, resting-HR baseline, seconds elapsed — so the package never imports CoreBluetooth/UIKit and never sees `LiveState`.
-
-**Method:** heart-rate recovery — the bpm the HR falls after effort reflects parasympathetic reactivation (Cole 1999, NEJM 341:1351; Daanen 2012, IJSPP 7:251, HRR for monitoring training status). Cénit uses no absolute clinical thresholds: the target is the user's own resting HR. **APPROXIMATE** — a rest cue, not a medical verdict. (Distinct from the Heart-Rate *Reserve* the StrainScorer calls "HRR".)
-
----
-
-## `SleepStager` — sleep/wake detection + approximate 4-class staging
-
-Source: `SleepStager.swift`. Detects in-bed sessions from gravity/HR/RR/respiration and produces a 30-second hypnogram of `{wake, light, deep, rem}`.
-
-> **Honest hedging.** These stages are **approximations**, not PSG-validated, not medical advice. The EEG-free 4-class ceiling is ~65–73% epoch agreement (Walch 2019). **Light/deep separation is the weakest link — deep-minute estimates are the least reliable output.**
-
-### Stage 0 — gravity-stillness sleep/wake spine (`detectSleep`)
-
-- Per-record movement proxy = L2 magnitude of the gravity-vector change vs the previous record (`gravityDeltas`).
-- A sample is "still" if its delta < `gravityStillThresholdG = 0.01 g`. A rolling window (`stillWindowMin = 15` min) calls its center "sleep" when ≥ `stillFraction = 0.70` of samples are still.
-- Contiguous runs are built, breaking on a class change or a data gap > `maxGapMin = 20` min; runs shorter than `mergeMin = 15` min are absorbed into neighbours.
-- A run must exceed `minSleepMin = 60` min to count, and is **HR-confirmed**: mean HR over the run must be ≤ `hrSleepBaselineMult = 1.05 ×` the day's median HR (skipped when fewer than 30 HR samples — gravity is trusted alone).
-- A citable **te Lindert 30 s Cole–Kripke** index (`SI = 0.001 · Σ wᵢ·Aᵢ`, sleep iff `SI < 1`, weights `[106, 54, 58, 76, 230, 74, 67]`) is computed per epoch as a cross-check and to find onset / final-wake.
-
-### Stage 1 — per-epoch cardiorespiratory features
-
-Over a rolling 5-minute window per 30 s epoch:
-
-- mean HR;
-- **Walch difference-of-Gaussians HR variability** (`σ1 = 120 s` minus `σ2 = 600 s`, reflect-padded convolution; NaNs linearly interpolated);
-- **RMSSD / SDNN** from range-filtered R-R (`HRVAnalyzer.rmssdRaw` / `sdnnRaw`);
-- **respiration rate + RRV** from the raw 1 Hz resp channel via a simple peak detector (detrend → local-maxima peaks ≥ 2 s apart → breath intervals 1.5–12 s → rate = `60 / median interval`, RRV = std of intervals).
-
-> Frequency-domain HRV (HF, LF/HF) is **omitted** — there is no neurokit2/scipy on-device — so the parasympathetic-tone signal is **RMSSD only**. The respiration peak-finder is a faithful port (the reference derived these "robustly ourselves" too, without neurokit).
-
-### Stage 2 — percentile-band classifier (`classifyOne`)
-
-Reference distributions are taken over the session's **sleep-period** epochs (Cole–Kripke = sleep). A motion fraction and the per-epoch features are compared against session-relative percentiles:
-
-| Class | Rule |
-|---|---|
-| **wake** | sustained motion (`moveFrac ≥ 0.15`) **and** activated cardiac (high HR or high DoG-HR variability), or no HR to vet the motion |
-| **deep** | still (`moveFrac ≤ 0.10`) **and** high parasympathetic tone (RMSSD ≥ 70th pct) **and** low HR (≤ 25th pct) **and** regular respiration |
-| **rem** | still body **and** activated cardiac **and** irregular respiration (RRV ≥ 65th pct); a fallback requires both cardiac signals when respiration is unavailable |
-| **light** | everything else (the default) |
-
-### Stage 3 — smoothing + physiology re-imposition
-
-- 5-epoch **median smoothing** of the label sequence (`smoothLabels`).
-- **No REM in the first 15 min** after onset (`reimposePhysiology` → demote to light).
-- **No deep after the first third** of the night (deep is biased early) → demote to light.
-- Pre-onset and post-final-wake epochs are forced to `wake`.
-
-Consecutive same-stage epochs are merged into `StageSegment`s tiling `[start, end]`.
-
-### Outputs
-
-- `SleepSession` — `start`, `end`, `efficiency` (AASM `asleep / in-bed`, where `asleep = in-bed − wake`), `stages`, per-session `restingHR` (lowest 5-min rolling-mean HR) and `avgHRV` (**median** RMSSD over 5-min tumbling windows, each window ectopic-rejected, and **wake windows excluded** via the hypnogram — a steadier, sleep-only parasympathetic read).
-- `hypnogramMetrics(_:)` — AASM-style roll-up: TIB / TST / SPT / SOL / REM latency / WASO / efficiency / disturbances, plus deep/REM/light minutes and percentages.
-
----
-
-## `SleepRegularityIndex` — sleep-timing regularity (SRI)
-
-Source: `SleepRegularityIndex.swift` (FER-214). The **Sleep Regularity Index** (Phillips et al. 2017, *Sci Rep* 7:3216) scores how repeatable your sleep TIMING is, independent of duration or quality: the probability of being in the same state (asleep vs awake) at two instants exactly 24 h apart, averaged over the window and rescaled `SRI = (2·P − 1)·100` (100 = a perfectly repeated schedule; 0 = chance; negatives clamped to 0). Windred et al. 2024 (*Sleep* 47(1):zsad253, DOI 10.1093/sleep/zsad253) found the SRI predicts all-cause mortality **above** sleep duration — which is why `VitalityEngine`'s regularity hazard prefers it to the `1 − CV` duration proxy it ships with.
-
-Cénit records only during sleep sessions (a night wearable, not 24/7 actigraphy), so the index compares consecutive nights over a **±12 h coverage window** around each night's onset rather than a continuous round-the-clock timeline: daytime reads as awake on both days (a match), and a missing night drops out of the 24 h pairing instead of reading as an all-awake day. Coverage gate: fewer than `minNights` (7) → `nil`, and the orchestration falls back to the duration proxy.
-
-**Comparability caveat (FER-657).** When `VitalityEngine` scores this SRI against the population **median 60** from **Cribb et al. 2023** (24/7 accelerometry, UK Biobank), the two are not measured on the same timeline: Cribb's SRI sees the full round-the-clock day, ours sees only the ±12 h windows around recorded nights. A window-restricted SRI tends to read **higher** than a full 24/7 SRI (it excludes daytime irregularity and counts near-certain daytime awake-awake matches), so comparing it against 60 is if anything **optimistic** — biased toward "regular", i.e. conservative in the direction that would *age* you. The Vitality regularity factor keeps its 0.450 slope rather than widening the band: it is already a soft input (a real SRI only when coverage exists, else the `1 − CV` duration proxy), and the bias does not over-penalize. See `VitalityEngine.contributions` (correction #5).
-
-**What counts as a night — the "main night" gate (FER-298).** Both schedule-regularity engines — the SRI here (`fromSessions`) and the mid-sleep SD (`SleepRegularity.compute`) — score the *main* sleep period, so a **nap is excluded**: a short daytime sleep sits ~11 h from the nocturnal mid-sleep (near anti-phase on the 24 h circle), and counted as a "night" it would tank the SRI / explode the SD (13 steady nights + one 2 h nap → SD 126.9 min, score 0). Criterion: a session counts only if it lasts at least **3 h** (`SleepMainNight.minDurationMinutes`); shorter sleeps are naps and never enter the read. The threshold is a product-calibration boundary (it cleanly separates a typical nap ≤ ~2 h from a main sleep), not a clinical claim. Applied at the **session** level — not inside `compute(asleepIntervals:)`, which receives sub-night hypnogram spans that are legitimately short.
-
-The per-night asleep timeline comes from the **already-persisted hypnogram** — the `stagesJSON` segments for on-device nights (every non-`wake` segment), via `AnalyticsEngine.decodeStages` — or, for imported / Apple-Health nights that store only stage totals, the session's whole `[start, end]` span (a coarser timeline that captures bed/wake-time regularity but not intra-night wakes). APPROXIMATE; no clinical claim.
-
----
-
-## `SleepRegularity` — mid-sleep timing SD (circular)
-
-Source: `SleepRegularity.swift` (FER-218). Live in `SleepDetailScreen`. A second, complementary take on sleep-timing regularity to the SRI above: instead of the epoch-to-epoch overlap probability, it reports the **standard deviation of the mid-sleep point** (the midpoint between onset and wake) over a rolling window of nights. Lower SD = a steadier schedule. It also reports the **weekend shift** (social jetlag): the shortest-arc gap between the typical weekend and weekday mid-sleep.
-
-Mid-sleep is treated as a point on the 24 h **clock circle** and reduced with **circular statistics**, so a 23:30 and a 00:30 mid-sleep average to ~midnight rather than ~11:30 — the midnight wrap is built into the math, not patched with an origin. Each clock minute `m` becomes an angle `θ = 2π·m/1440`; with mean resultant length `R = |mean(e^{iθ})|`, the circular SD is `√(−2·ln R)` scaled back to minutes by `1440/2π` (a degenerate `R≈0` is clamped to the 12 h cap). The weekend median uses a wrap-aware circular median (the candidate minimizing summed shortest-arc distance).
-
-The SD in minutes is the load-bearing, literature-anchored figure; the **0–100 score is presentation only** — a bounded, linear remap of the SD anchored so SD ≈ 0 → ~100 and SD ≥ `worstMidSleepSwingMinutes` (120, a product-calibration knob) → ~0. Gates: `nil` below `minNights` (7); flagged `preliminary` until `stableNights` (14); the rolling window is the most recent `windowNights` (14).
-
-**Sampling limit — main nights only (FER-298).** A nap sits ~11 h from the nocturnal mid-sleep (near anti-phase on the circle) and would wreck the SD, so only sessions lasting ≥ 3 h (`SleepMainNight.qualifies`) feed the read; naps are excluded. The 3 h boundary is a product-calibration threshold, not a clinical claim — so the SD reflects schedule, not nap noise.
-
-APPROXIMATE; no clinical claim. References: **Wittmann et al. 2006** (Wittmann, Dinich, Merrow & Roenneberg, "Social Jetlag: Misalignment of Biological and Social Time" — mid-sleep point & social jetlag, *Chronobiology International* 23(1–2):497–509); **Mardia & Jupp 2000** (*Directional Statistics* — circular mean/SD); supporting outcome links **Huang & Redline 2019** (*Diabetes Care* 42) and **Windred et al. 2024** (*Sleep* 47(1)).
-
----
-
-## `Baselines` — personal rolling baselines
-
-Source: `Baselines.swift`. Per-metric personal baselines that `RecoveryScorer` consumes. Two interchangeable paths produce the same `BaselineState` shape.
-
-### 1. Winsorized EWMA (production model — `update` / `foldHistory`)
-
-A robust, recency-weighted center with an EWMA-of-absolute-deviation spread tracker:
-
-- **Half-life → smoothing factor:** `λ = 1 − 0.5^(1/halfLife)`. Center half-life 14 nights; spread half-life 21 (slower).
-- **Sanity gate:** values outside `[minVal, maxVal]` (per-metric) → skip-and-hold.
-- **Hard outlier rejection:** once seeded, a value > `hardOutlierK = 5 ×` spread away is seen but not folded.
-- **Winsor clamp:** fold only within `± winsorK = 3 ×` spread of the current baseline, so a single big night can't yank the center; the **spread** uses the unclamped deviation so real change is still tracked.
-
-```swift
-let clamped = max(lo, min(hi, value))                       // ±3·spread
-let newBaseline = lb * clamped + (1 - lb) * state.baseline
-let newSpread   = max(cfg.floorSpread, ls * abs(value - newBaseline) + (1 - ls) * state.spread)
-```
-
-### 2. Trailing-window mean/SD (`rollingMeanSD`)
-
-The simple, maximally auditable path: plain mean and sample SD (ddof = 1) over the trailing N (default 30) valid nights, with the σ floor applied and converted back into abs-dev space (`÷ 1.253`) so `deviation()` recovers the intended Gaussian σ unchanged.
-
-### Log-domain baseline for HRV (`logDomain`)
-
-Nightly HRV (RMSSD) is **~log-normal**, so HRV is baselined and z-scored on **`ln(RMSSD)`**, not raw ms (Plews et al. 2013, who monitor **lnRMSSD**; RMSSD itself per Task Force 1996). A `MetricCfg.logDomain` flag drives this — set only for `hrv`. Everything happens in "center space" (`ln(value)` for HRV, the raw value for every other metric), so the Winsor/EWMA/trailing math above is unchanged; only the space differs:
-
-- **Center** — the stored `baseline` is the **geometric mean** (back in ms, so display is untouched), not the arithmetic mean. On a log-symmetric series the geometric mean is the true center; the arithmetic mean sits above it.
-- **Spread** — kept in **ln units**; `deviation()` and the ±σ band (`Baselines.normalRange`) read `state.logDomain` to z-score on `ln(value)` and to make the normal-range band **multiplicative** (`exp(lnBaseline ± k·σ)`), so it stays positive and asymmetric in ms.
-- **Plausibility gate** — `minVal`/`maxVal` stay the ms bounds, applied *before* the log transform.
-- **Why it matters** — a raw-ms baseline biases the center **up** and underweights low nights (a −1σ_ln night scored z ≈ −0.89 instead of −1.0). Since HRV weighs `0.60` in `RecoveryScorer`, that bias propagated into both Recovery and Readiness. Measured on 58 real nights: center bias **+1.9 %**, recovery shifted **−1.4 pts** on average (median |Δ| ≈ 1.8, max ≈ 9.5 pts on the lowest nights — exactly where the linear z under-reacted).
-
-### Status lifecycle (`BaselineStatus`)
-
-| Status | Condition |
-|---|---|
-| `calibrating` | fewer than `minNightsSeed = 4` valid nights (no score yet) |
-| `provisional` | `4 … 13` valid nights (usable, higher uncertainty) |
-| `trusted` | ≥ `minNightsTrust = 14` valid nights |
-| `stale` | usable but no update for > `staleDays = 14` nights |
-
-### Per-metric config (`metricCfg`)
-
-| Metric | min | max | floor spread | center / spread half-life |
-|---|---|---|---|---|
-| `hrv` | 5 | 250 | 0.08 (ln units, **log-domain**) | 14 / 21 |
-| `resting_hr` | 30 | 120 | 2.0 | 14 / 21 |
-| `resp` | 4 | 40 | 0.5 | 14 / 21 |
-| `skin_temp` | 20 | 42 | 0.3 | 14 / 21 |
-
-### Deviation
-
-`deviation(_:state:)` returns a robust z-score, a signed physical-units delta, a fractional ratio (`value/baseline − 1`), and an `inNormalRange` flag (`|z| ≤ 1`). For a log-domain baseline (HRV) the z is taken on `ln(value)` vs `ln(baseline)`; `delta` and `ratio` stay in ms.
-
----
-
-## `WorkoutDetector` + `Calories` — retroactive workout detection
-
-Source: `WorkoutDetector.swift`. Finds workouts in the stored 1 Hz HR + gravity streams (no manual logging).
-
-A workout is a **sustained window** (≥ `minExerciseMin = 5` min) where **both** gates hold per sample:
-
-- **Elevated HR** — above `RHR + hrMarginBPM (15 bpm)`. RHR defaults to the day's 10th-percentile HR.
-- **Sustained motion** — gravity-derived intensity (10-second trailing mean) above `motionThreshold = 0.20`.
-
-Active samples are grouped into runs (merging gaps < `mergeGapS = 150 s`), then qualified by intensity: ≥ `minIntensityZ2Plus = 0.50` of the bout in Edwards zone 2+. Per bout it reports avg/peak HR, duration, Edwards zone-time %, mean `%HRR`, strain (via `StrainScorer`), and calories.
-
-### Calories (`Calories.estimateBoutCalories`)
-
-Per-second blend of **Keytel (2005)** active expenditure and **revised Harris–Benedict** BMR (resting), with sex-specific coefficients (`male` / `female` / `nonbinary`). Below a `RHR + 0.30 × HRR` threshold the resting rate is used; above it, the HR-driven active rate. Returns `(kcal, kJ)`. **Approximate** — not laboratory calorimetry.
-
-### Strength sessions (`Calories.estimateStrengthEnergy`)
-
-A guided strength session uses `Calories.estimateStrengthEnergy`, which prefers heart rate when the session captured it (FER-399): with ≥2 Apple Watch HR samples it uses the **Keytel (2005)** HR model (`estimateBoutCalories`, the same as detected bouts); without usable HR it falls back to a **MET** estimate (`estimateStrengthCalories`): `kcal = MET × bodyMassKg × hours`, with MET from the **Compendium of Physical Activities (Ainsworth et al. 2011)** — resistance training ≈ 3.5 MET (8–15 reps, varied resistance), the moderate value since a no-HR session doesn't measure effort. Body mass falls back to 70 kg when unknown; duration is clamped to [0, 6 h]. The captured HR also yields the session's `avgHr` + `strain` (`StrainScorer`). **Approximate** — not laboratory calorimetry.
-
----
-
-## `FitnessAgeEngine` — on-device "Fitness Age" (Nes/HUNT)
-
-Source: `FitnessAgeEngine.swift`. A pure, **independent** implementation of the **Nes et al. 2011** HUNT non-exercise VO₂max model (waist-circumference variant), inverted into a **"Fitness Age"**. It is a *fitness comparison, never a biological or clinical age*. **Live** — orchestrated from `CuerpoView` (`FitnessAgeEngine.snapshot`) with its own detail view (FER-141, done).
+Almost no engine compares a value to a population norm. They compare it to **your own rolling
+normal**, and `Baselines` is the single implementation of that idea.
 
 ### The model
 
-- **VO₂max (ml/kg/min), Nes 2011 waist variant** — coefficients from the primary Nes 2011 (PMID 21502897); a secondary "verbatim reproduction" ([PMC7428991](https://pmc.ncbi.nlm.nih.gov/articles/PMC7428991/)) could not be verified, so the primary source alone anchors them (FER-657). SEE ≈ 5.70 (men) / 5.14 (women):
+A winsorized exponentially weighted moving average, folded one night at a time. Each metric carries a
+configuration with six fields: a plausible range, a noise floor for the dispersion, separate
+half-lives for the center and the spread, and a flag for whether the whole thing lives in log space.
+
+Folding one night follows six rules, each shadowing the ones after it:
+
+1. No prior state, and a usable value — seed the center there.
+2. No prior state, no usable value — park the center at the midpoint of the plausible range, with
+   nothing folded.
+3. Missing value — hold everything; only the gap counter advances.
+4. Value outside the plausible range, checked in the metric's own units before any log transform —
+   same as missing.
+5. Beyond the hard-rejection width, **and the baseline is already mature** — the night is *seen*
+   (the staleness counter resets) but not folded.
+6. Otherwise — winsorize toward the center, then fold.
+
+Rule 5's maturity condition is the subtle one. While a baseline is young the hard gate is
+**suspended**, because a badly placed seed would otherwise reject exactly the genuine low nights that
+ought to correct it, and the center would sit wrong for weeks.
+
+### The constants
+
+| Constant | Value | What it is |
+| --- | --- | --- |
+| Winsorization width | 3 dispersions | Tonight is clamped this far from the center before folding. The bounded-influence convention (Huber 1964). |
+| Hard-rejection width | 5 dispersions | Past this, a mature baseline sees the night but does not fold it. Compared against the raw dispersion, so roughly 6.3σ in practice. |
+| Dispersion-to-sigma bridge | 1.253 | For a normal distribution the mean absolute deviation is σ·√(2/π). An identity of the method, not a knob. |
+| Nights to seed | 4 | Below this, nothing compares against the baseline. This is the denominator the calibration copy shows. |
+| Nights to trust | 14 | At and above this, the baseline is mature and the young-baseline branches switch off exactly. |
+| Staleness threshold | 14 nights | A mature baseline that has not seen a reading in this long is declared stale. |
+| Confidence floor | 0.5 | The minimum weight a thin baseline's z-score keeps. |
+| Early center half-life | 3 nights | Much faster than the mature half-life, so a bad seed converges in days rather than weeks. |
+| Early spread inflation | 1.5× | Keeps the band honestly wide while the dispersion estimate is still worthless. |
+
+Center and spread have **different half-lives on purpose** — 14 and 21 nights respectively for every
+shipped metric. The spread is meant to move slower than the center. And the spread reads the
+*unclamped* night, so a real shift widens the band instead of hiding inside it.
+
+### Confidence shrinkage
+
+`Baselines.confidence(nValid:)` returns the fraction of a z-score a consumer should keep, given how
+many valid nights the baseline has folded: the floor at or below the seed, 1.0 at or above trust,
+linear between. Thin evidence gets pulled toward the center rather than believed — the empirical-Bayes
+argument (Efron and Morris 1977).
+
+This matters more than it sounds. Every driver in the recovery composite multiplies its z by this
+factor, which is what stops a four-night-old baseline from producing a confident verdict.
+
+### Log domain
+
+Variability metrics are right-skewed, so their baselines live in natural-log space (Plews 2013). The
+center is then a geometric mean and the band is multiplicative — a value at one dispersion below
+scores exactly −1, symmetrically with one above. The flag travels **inside the baseline state**, not
+in the config, so a reader never needs the configuration back to interpret the numbers.
+
+### The seven shipped configurations
+
+| Metric | Range | Dispersion floor | Log |
+| --- | --- | --- | --- |
+| Variability (`hrv`) | 5–250 ms | 0.08 ln-units, about ±10% | yes |
+| Variability, second construct (`sdnn`) | identical to above | | yes |
+| Resting heart rate | 30–120 bpm | 2.0 bpm | no |
+| Respiration | 4–40 breaths/min | 0.5 | no |
+| Skin temperature | 20–42 °C absolute | 0.3 °C | no |
+| Sleep efficiency | 0.2–1.0 **as a fraction** | 0.03 | no |
+| Sleeping-pulse thirds delta | −30 to +30 bpm | 2.5 bpm | no |
+
+Two entries deserve a note. The second variability configuration is byte-identical to the first but
+**keeps its own key deliberately**, because the two measurements it serves come from different
+instruments and must never share a baseline — retuning one can then never move the other. And sleep
+efficiency is a *fraction*, never a percentage; the importer depends on that scale to avoid a
+hundred-fold error.
+
+The thirds-delta configuration is the only one that can go negative, which is why it is never
+logarithmic, and its bounds are explicitly product calibration rather than validated physiology.
+
+---
+
+## Autonomic signals
+
+### `HRVAnalyzer` — variability from beat intervals
+
+Two statistics, reproduced exactly as defined by the Task Force of the European Society of Cardiology
+and the North American Society of Pacing and Electrophysiology (1996):
 
 ```
-men:    100.27  − 0.296·age + 0.226·PA − 0.369·waist − 0.155·RHRseated
-women:   74.736 − 0.247·age + 0.198·PA − 0.259·waist − 0.114·RHRseated
+RMSSD = sqrt( mean( (NN[i+1] − NN[i])² ) )
+SDNN  = sample standard deviation of NN, ddof = 1
 ```
 
-- **PA-index (0–15)** — the HUNT1 PA-Q (Kurtze 2008): `frequency(0–5) × intensity(1–3) × duration(0.10–1.0)`, reconstructed from weekly signals since Cénit has no questionnaire.
-- **Fitness Age** — invert the *same* Nes equation against a reference-fit peer: `FA = age + (rhrC·(RHR − RHRref) − paiC·(PA − PAref)) / ageC`. The waist term appears in both the user's estimate and the reference curve, so it **cancels** — the headline needs no body measurement, and an average-fitness person maps to their own chronological age by construction.
+Plus the mean interval and the proportion of successive differences exceeding 50 ms.
 
-### Cénit domain-transfer corrections (FER-122)
+**Cleaning runs first**, and the order matters because the root-mean-square is an L2 statistic — one
+enormous difference dominates a whole night.
 
-The Nes model was calibrated on HUNT questionnaire inputs; Cénit feeds it wearable signals from a different domain. Three documented corrections (each verified by a test), after an expert review of the model's assumptions:
+1. **Range filter.** Drop anything outside 300–2000 ms, which is roughly 200 down to 30 beats per
+   minute.
+2. **Ectopic rejection.** Drop beats deviating more than 20% from a local median over a five-beat
+   window. This is the classical rule (Malik et al. 1989).
+3. **Minimum count.** Twenty clean intervals before any result is returned at all.
 
-1. **Resting-HR domain.** Nes/CERG use **seated** resting HR ("sit 10 min, count your pulse"); wrist wearables typically report **nocturnal** RHR, ≈7 bpm lower (nocturnal dip; [Dial 2025](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12367097/) confirms wrist-worn nocturnal RHR tracks accurately vs ECG — the gap is the *domain*, not the device). Feeding nocturnal RHR against a seated reference would read everyone ≈0.52 yr/bpm × 7 ≈ **3.7 yr too young**. Fix: the engine's RHR contract is **nocturnal throughout**; `restingHRReference = 58` (the validated seated anchor 65 minus the 7-bpm dip); the absolute VO₂max converts nocturnal → seated-equivalent internally. The Fitness Age uses `(RHR − RHRref)` with both terms nocturnal, so the dip cancels and the delta is unbiased.
-2. **Activity scale.** `physicalActivityIndexFromStrain` is recalibrated to **this repo's 0–21 strain scale** (the upstream engine assumed 0–100, where a real workout would read as sedentary here). The strain→PA-index bridge is an **unvalidated heuristic** in any scale, so activity is a *soft* input: resting HR drives the headline, and sparse activity coverage caps confidence at `.estimate`.
-3. **Uncertainty band.** The per-reading Nes SEE (≈5.70 ml/kg/min over the ~0.3/yr age slope ≈ **±19 yr**) is far wider than the displayed ±5. The ±5 band is defensible **only for the age delta** (the shared structural SEE of the same model cancels between user and reference); it does **not** apply to the absolute VO₂max, which is presented as a coarse estimate.
+The file states its own deviation plainly: the reference implementation used a published artifact
+classifier that models missed and extra beats, which is unavailable on device. The 20% local-median
+rule is a simpler, fully deterministic approximation of the same intent, and it does not model beat
+insertion.
 
-### Readiness & honesty
+**The segmented nocturnal path is a different filter, on purpose.** Wrist-derived beats arrive gappy
+and non-contiguous, where a five-beat local median is unreliable. That path instead applies a
+*pairwise* successive-difference rule: a beat-to-beat change exceeding 20% of the shorter interval is
+rejected. The threshold matches the ectopic one by design, but the mechanism is distinct. Crucially it
+counts a pair only when the two intervals are genuinely adjacent in time and both lie in the plausible
+range — a pair crossing a recording gap is not beat-to-beat and is excluded rather than bridged. The
+divisor is the number of **valid pairs**, not n−1, so a night stitched from many short segments is
+scored only on its real successive differences.
 
-`assessReadiness` returns `.ready` / `.estimate` / `.notReady` from profile completeness + 7-day coverage. RHR (the validated driver) gates confidence: `.ready` needs a well-covered RHR week; sparse activity never promotes to `.ready`. Body metrics (height/weight/waist) only power the separate VO₂max and never block the headline. References: **Nes 2011** (Med Sci Sports Exerc 43(11):2024-30), **Kurtze 2008** (HUNT1 PA-Q), **Dial 2025** (nocturnal RHR validation).
+The timestamp on a segmented interval is **fractional seconds**, deliberately. Truncating to whole
+seconds would collapse two beats less than a second apart onto the same tick and silently drop valid
+pairs, in a way that varies with heart rate.
 
----
+The 20% figure was validated against 46 real nights: idle on clean nights, correcting the roughly
+seven artifact-flipped directions, with 15% over-rejecting genuine respiratory variation and 25%
+performing about the same.
 
-## `VO2maxTrend` — the trajectory of VO₂max, not a point (FER-679)
+### `NocturnalHRV` and `AutonomicTrend`
 
-Source: `VO2maxTrend.swift`. **Live** — surfaced in `FitnessAgeDetailView`. `FitnessAgeEngine` (above) estimates a single VO₂max, but that estimate carries a standard error of ≈5.7 ml·kg⁻¹·min⁻¹ (Nes 2011), so day-to-day jitter swamps real change. This engine reports the **direction over weeks** — subiendo / estable / bajando — with a noise floor that refuses to call a trend the estimator can't resolve.
-
-### Method (independent implementation of standard robust methods)
-
-- **Slope** — the **Theil–Sen estimator**: the median of all pairwise slopes `(yⱼ−yᵢ)/(xⱼ−xᵢ)`, which ignores outlier estimates that would tilt an ordinary least-squares line (Sen, "Estimates of the regression coefficient based on Kendall's tau", *JASA* 1968;63:1379–1389).
-- **Band** — the 25th/75th percentiles of those same pairwise slopes give a robust, distribution-free interval on the slope; projected over the observed span they bound the change.
-- **Gates** — a direction is reported only when BOTH the slope band excludes zero AND the projected change beats the noise floor `~SEE/√n`; otherwise `.stable` (or `nil` below `minPoints`/`minSpanDays` → hide).
-
-### Honesty
-
-The √n noise floor is a **product-calibration knob, NOT a derived standard error** — the weekly estimates are not independent replicates (they share slowly-moving inputs: age, WHR, resting HR), so √n shrinks *too fast* and at large n the floor becomes permissive, not conservative (CDO review, FER-834 — left as-is deliberately). The **primary** guard against a spurious direction is therefore the distribution-free band-excludes-zero gate, not the floor. Fitness is among the strongest mortality predictors (**Mandsager 2018**, *JAMA Netw Open* 1(6):e183605, HR 5.04 low-vs-elite), but the engine shows a DIRECTION only — never a longevity promise, never "years of life". APPROXIMATE, not a clinical measurement.
-
----
-
-## Experimental & library-only rhythm engines (FER-656)
-
-Five newer engines from the "métricas de valor" epic. All are pure, deterministic, DB-free and **not yet surfaced on their own screen** (HRR-60s / DFA-α1 sit behind the experimental-metrics flag). Each reports the user's OWN trend against their OWN baseline — never a population cut-off, risk category or diagnosis.
-
-### `NocturnalDC` — nocturnal Deceleration Capacity via PRSA (FER-680)
-
-Quantifies how much the heart can "ease off" (decelerate) at rest — the deceleration component RMSSD/SDNN blend together. **Method** (Bauer A, Kantelhardt JW, Barthel P, et al., "Deceleration capacity of heart rate as a predictor of mortality after myocardial infarction", *Lancet* 2006;367(9523):1674–1681): mark every beat longer than the one before (an artifact guard rejects increases beyond 5%), align a short window around each anchor, average over all anchors (Phase-Rectified Signal Averaging), then take Bauer's Haar-wavelet quantifier at scale T=1: `DC = [X̄(0) + X̄(1) − X̄(−1) − X̄(−2)] / 4` ms. PRSA averages over thousands of anchors, so it tolerates residual wrist-PPG noise far better than a per-window nonlinear exponent (DFA-α1) would — which is why DC is **not** flag-gated; signal quality is surfaced through `confidence`. **Hedge:** Bauer's mortality cut-offs (≈DC ≤ 4.5 ms high-risk) were derived from post-infarction ECG at 1000 Hz and are **deliberately NOT imported** — DC is shown only as the user's own trend ("more / about the same / less braking reserve than your normal"), never a mortality score. APPROXIMATE, not a medical device.
-
-### `ThermalStabilityEngine` — nocturnal distal warming + its night-to-night stability (FER-681)
-
-Reports the magnitude of the wrist-skin warming that accompanies sleep onset (skin temp rises as core falls and distal vasodilation dumps heat — **Kräuchi et al.**, "Warm feet promote the rapid onset of sleep", *Nature* 1999;401:36–37) and how consistent it is night-to-night, reusing the shipped `Baselines` EWMA for a robust center/spread and a descriptive 3-band coefficient-of-variation label. **Sensor honesty (load-bearing):** Cénit has skin temp only *while asleep*, so it CANNOT fit a 24 h cosinor and never claims a "24 h circadian amplitude". The UK-Biobank association between a flattened 24 h amplitude and future cardiometabolic risk (**Brooks TG, Skarke C, et al.**, "Diurnal rhythms of wrist temperature are associated with future disease risk in the UK Biobank", *Nat Commun* 2023;14:5172; peer-reviewed; association, never causal) is a population 24 h result — NOT this nocturnal-only signal — so the copy never invokes the disease link. **Hedge:** the CV cutoffs and 0.1 °C floor are product-calibration knobs, NOT validated against the legacy wearable's real skin-temp resolution — they must be checked before the band is ever shown. APPROXIMATE.
-
-### `HeartRateRecovery` — post-session 60-second HR recovery (HRR-60s) (FER-683)
-
-How many bpm the heart rate falls in the first minute after a hard effort ends — a window dominated by parasympathetic (vagal) reactivation; a faster drop reflects better autonomic recovery, a blunted drop tracks fatigue. Takes the end HR as a median over `[end − 2·halfWidth, end]` (looking back into the effort) and the recovery HR as a median over `[end + 60 ± halfWidth]`, returning an uncovered result when either window is empty so a missing tail never fabricates a drop; compares the drop only to the user's own prior sessions (`bluntedVsNormal` at 2σ). **Hedge — intra-user trend, NOT Cole's cutoff:** the clinical literature (**Cole et al.**, *NEJM* 1999;341:1351, abnormal ≤ 12 bpm at 1 min as a mortality predictor; Qiu et al., *JAHA* 2017 meta-analysis HR ~1.68) derives population cut-offs from graded treadmill tests with a fixed recovery protocol — a wrist wearable after an arbitrary workout is not that protocol, so this engine NEVER applies the 12-bpm cut-off or any mortality framing. Wellness / training awareness, APPROXIMATE, not a diagnosis. The **safer half** of FER-683 (the wearable is still and PPG is clean once effort stops).
-
-### `DFAAlpha1` — short-scale DFA exponent α1 as an experimental threshold proxy (FER-683)
-
-The short-scale detrended-fluctuation-analysis exponent (α1) of the R-R series as an EXPERIMENTAL proxy for the aerobic/anaerobic thresholds. **Method** (Peng et al., "Mosaic organization of DNA nucleotides", *Phys Rev E* 1994;49:1685 — the origin of DFA): integrate the mean-removed R-R series, least-squares detrend non-overlapping boxes at short scales n ∈ [4, 16] beats, and take α1 = slope of log F(n) vs log n. As intensity rises α1 falls from ~1.0 toward ~0.5; the intensity landmarks used as a proxy — α1 ≈ 0.75 ↔ first ventilatory/aerobic threshold (VT1), α1 ≈ 0.5 ↔ second/anaerobic threshold (VT2) — are from **Rogers B, Giles D, Draper N, Hoos O, Gronwald T**, "A New Detection Method Defining the Aerobic Threshold… Based on Fractal Correlation Properties of Heart Rate Variability", *Front Physiol* 2021;11:596567, and the same group's anaerobic-threshold work. **Hedge — why it is experimental (load-bearing):** DFA-α1 was validated against ECG R-R at ~1000 Hz and is exquisitely sensitive to R-R artifacts, and wrist PPG *during motion* — exactly the exercising window where α1 matters — injects artifacts that can read a false threshold (PPG↔ECG equivalence is unresolved in the literature; **Rogers et al.**, *Sensors* 2021;21(3):821 show even 1/3/6% missed beats materially bias α1). So the engine is inert unless the caller passes `experimentalEnabled = true`, refuses to output unless the cleaned R-R clears a strict ≤5% artifact gate, and carries a standing caveat on every result. Presented as a descriptive proxy, never a measured threshold, VO2max, fitness verdict or prescription. APPROXIMATE.
+The one variability figure the app actually shows is a **direction, not a number**: whether your
+nocturnal variability is running above, at, or below your own baseline. It reads real nocturnal
+root-mean-square variability, and it deliberately does not come through the cross-source masking layer
+described below, because it is already single-construct by construction.
 
 ---
 
-## `VitalityEngine` — on-device "Vitality" score + "Body Age" (a published healthspan / body-age method)
+## The morning verdict
 
-Source: `VitalityEngine.swift`. A pure, **independent** implementation of a published all-cause-mortality "healthspan / body age" method: map each wearable input to its **all-cause-mortality hazard ratio** vs a population reference, sum the log-hazards with an overlap correction, and convert the combined hazard to **years of aging** via the Gompertz mortality-rate doubling time (~8 yr). Returns both a **Vitality** score (0–100) and a **Body Age** (years). It is a *wellness comparison, never a biological or clinical age*. **Live** — orchestrated from `CuerpoView` (`VitalityEngine.compute` → `BodyAgeSheet`) (FER-145, done).
+### `Preparedness` — a categorical answer, never a score
 
-**Differentiation from Fitness Age:** Fitness Age (above) is cardiorespiratory only (Nes/HUNT). Body Age is a **whole-body** composite that adds sleep duration, sleep regularity, HRV and steps; the two deliberately share the RHR/VO₂max signal, and the presentation layer keeps them distinct.
+The current morning verdict is a pure, deterministic composition that returns a **category**, not a
+number between 0 and 100. It answers one question: push today, or ease off.
 
-### The model
+Its design is the most heavily argued in the package, and the argument is worth preserving because it
+is a negative result.
 
-- **Factors** — each a signed log-hazard vs a reference (positive = ages you): resting HR, VO₂max vs the age/sex-expected value, sleep duration, sleep regularity, HRV (RMSSD), daily steps. `compute` returns nil until ≥ `minFactors` (3) are present (honesty gate).
-- **Combine** — `Δage = (Σ lnHR · shrink) / (ln2 / 8)`; `bodyAge = age + Δage` (clamped [20, 90]); `vitality = clamp(50 + (age − bodyAge)·2.5, 0, 100)`. `contributions` exposes the per-factor breakdown that drives the "what's moving this" UI.
+**All-day variability is out of the vote entirely.** Its weight is zero. The reasoning: even in a
+*favourable* published comparison — a short supine morning reading on recent watch hardware against a
+reference chest monitor with clinical analysis software — the watch's variability figure ran a mean absolute
+percentage error near 29% with a negative bias. And the value actually available from the platform is
+a *worse* construct than that: an all-day average, not that morning reading. It survives only as a
+displayed read-out.
 
-### Cénit corrections (FER-124)
+What remains is what a wrist device measures well:
 
-An expert review against current primary literature found the upstream coefficients portable but **not verbatim**. Six documented corrections (each verified by a test):
+- **The autonomic axis is resting heart rate** against your own baseline. One signal, the dense and
+  reliable one.
+- **Sleep is graded** against need and efficiency, not a binary threshold at six hours (Van Dongen
+  2003).
+- **The illness sentinel requires corroboration.** Temperature and respiration must *both* be elevated
+  to vote. A lone temperature rise or a lone breathing rise no longer flags anything, which kills the
+  warm-room and the talking false positives (Mishra 2020).
 
-1. **Resting-HR domain [= FER-122].** Re-anchored from the seated 65 to the **nocturnal** domain by reusing `FitnessAgeEngine.restingHRReference` (58) — one shared constant across both engines. Slope kept (≈+10%/10 bpm; Zhang 2016 / Aune 2017).
-2. **Sleep duration — asymmetric.** Optimum 7.0 h (±0.5 neutral); short arm 0.060, long arm 0.120 (Yin 2017; Cappuccio 2010), replacing the symmetric 0.110 that over-penalized short sleep.
-3. **Overlap shrink — factor-count-dependent.** `1/(1+0.35·(n−1))` instead of a fixed 0.75, which over-counted correlated signals and unfairly cut users with few inputs (e.g. steps only, no wearable).
-4. **HRV — attenuated.** Weight 0.160 → 0.110, in log form (`ln(norm/rmssd)`, Hillebrand 2013) — the HRs come from clinical short-term ECG, not nocturnal PPG, and the daytime-calibrated norm table already makes the factor conservative. Carries a mandatory non-clinical domain caveat. *Citation scope (FER-657):* Hillebrand 2013 (*Europace* 15(5):742–749) is a **first-cardiovascular-event** dose-response, **not** all-cause mortality — we borrow only its log-linear shape; the all-cause direction rests on **Jarczok 2022 / Dekker-ARIC 2000**.
-5. **Sleep regularity — reference.** Slope kept; the SRI p5-vs-median all-cause-mortality HR 1.53 (95% CI 1.41–1.66) and the population median SRI ≈60 (→0.60 on an SRI/100 scale) are from **Cribb 2023** (*eLife* 12:RP88359). Windred 2024 is the "regularity predicts mortality more strongly than duration" result — its cohort median runs higher (~81), so it is *not* the source of the 0.60 reference. Upstream ref 0.75 → 0.60 so the average user is neutral. The orchestration (FER-145, `CuerpoView.computeSleepRegularity` → `SleepRegularityIndex.fromSessions`) passes a **real SRI/100**; the engine's `sleepConsistency` (1 − CV of durations) remains only as a cold-start fallback.
-6. **Steps — age-aware threshold.** Reference `age ≥ 60 ? 7000 : 8500` (Paluch 2022); per-1,000 weight 0.064 and the 11k protection cap kept (conservative vs Jayedi 2022).
+**Consensus is by axis, not by signal.** A single bad night moves several correlated signals at once;
+grouping them into three axes — autonomic, sleep, sentinel — means that night casts one vote rather
+than three.
 
-Kept **verbatim** (well-centered, documented): VO₂max 0.130/MET (Kodama 2009 / Singh 2025; estimated ≈ measured); Gompertz MRDT 8 yr (within the human 7.7–9.9 range, a global ±~15% scale). The full per-coefficient review with primary sources is logged on the FER-124 issue. References: **Zhang 2016 / Aune 2017** (RHR), **Kodama 2009 / Singh 2025** (VO₂max), **Yin 2017 / Cappuccio 2010** (sleep), **Cribb 2023 / Windred 2024** (regularity), **Jarczok 2022 / Hillebrand 2013** (HRV), **Paluch 2022 / Jayedi 2022** (steps).
+Optional inputs all default to no-ops: a true nocturnal resting heart rate substituted through the
+*whole* series so the baseline and the day share one construct; a luteal allowance applied to the
+scored day **only, never the baseline**, so a normal cyclical shift is not misread as out of range
+(Shilaih 2017, Maijala 2019); and dense-night nocturnal variability, which never votes without
+resting heart rate present.
 
----
+One method was considered and **deliberately not implemented**: post-exercise heart-rate recovery.
+The literature validates it in a standardized exercise test as a mortality marker (Cole 1999), not as
+a free-living daily readiness signal, and the engine declines to stretch it.
 
-## `ReadinessEngine` — ACWR / training-load engine
+The honest limit is stated in the engine's own header: the platform's variability figure is sampled
+all day rather than during sleep, and its resting pulse is an awake-sedentary aggregate. This is *your
+resting signals against your own norm*, not an overnight measurement, and the copy is forbidden from
+claiming otherwise.
 
-Source: `ReadinessEngine.swift`. Live in `TodayView` and `CuerpoView` as the **ACWR / training-load** engine behind `TrainingLoadStrip`/`TrainingLoadSheet` — **not** the morning verdict hero. `Preparedness` (above) is the sole hero and explicitly does not reuse this engine (its "ACWR/monotony load machinery is band-era, out of scope for a passive Apple morning read"); `TodayView` calls `ReadinessEngine.evaluate` only to read `.acwr`/`.loadBand` into the `TrainingLoadModel` the strip/sheet render. The type is still a pure, deterministic synthesis of a handful of established sports-science signals from the daily-metrics history into one readiness `Level` (`primed` / `balanced` / `strained` / `rundown` / `insufficient`) plus the drivers behind it, but only its ACWR signal is surfaced live today. Each signal is a flag (`good` / `neutral` / `watch` / `bad`):
+### `RecoveryScorer` — the bounded composite
 
-- **HRV / resting-HR** — z-scores against the robust EWMA personal baseline `RecoveryScorer` also consumes (shrunk toward neutral on thin baselines). An HRV drop / RHR rise flags autonomic fatigue / overtraining (Plews et al. 2013; Buchheit 2014). **Respiratory rate** uses a plain trailing-window Gaussian z (mean / sample-SD over the recent baseline window) and **skin-temperature** uses fixed °C deviation thresholds (≈ +0.4 / +0.8 °C) rather than a baseline z — a rise in either is an early illness marker. (`RecoveryScorer.recovery()` *does* route all four through the EWMA baseline, so the score and this verdict can differ slightly for resp / skin-temp.)
-- **Training Stress Balance (ACWR)** — a **coupled EWMA** acute ÷ chronic workload ratio (Williams et al. 2017, λ = 2/(N+1) over the 7-day acute / 28-day chronic horizons — not a rolling 7-day/28-day mean), banded `<0.8 / 0.8–1.3 / 1.3–1.5 / ≥1.5`. Computed on a **linearized** TRIMP-like load (inverting `StrainScorer`'s log map) so a spike reads as a spike, not flattened. Needs ≥ `minChronic` (14) days of strain. **The signal copy is purely descriptive of where your acute load sits vs your chronic** ("acute above chronic", "acute well above chronic") — no injury-risk imperative (FER-657): **Impellizzeri et al. 2020** (*Br J Sports Med* 54:1451–1462) show the ACWR does **not** predict injury, so Cénit states the load relationship, not a risk verdict.
-- **Training monotony** — week-long mean ÷ SD of strain; high monotony (low day-to-day variety) is associated with higher strain/illness (Foster 1998).
+The older, numeric composite: a weighted z-score run through a logistic. It remains the reference for
+how a multi-driver score should behave.
 
-A short night (< 6 h) flags the morning read **low-confidence** (a short night suppresses HRV / lifts RHR regardless of true recovery). A separate, testable `BridgeKind` reconciles a high recovery score against a cautious verdict (the classic "you woke up recovered, but your training load is the thing to watch" divergence), reusing `RecoveryScorer.bandYellowMax` as the "recovery high" threshold.
+**Weights**
 
-**Honest note — the ACWR is coupled EWMA.** Every calendar day updates both legs of the exponentially-weighted average (Williams et al. 2017) — the acute leg is never excluded from the chronic leg, faithful to the original Gabbett coupling — so this is the "coupled" ACWR whose statistical properties (spurious correlation, ratio artefacts) were critiqued by **Lolli et al. 2019** — an uncoupled ACWR (acute vs the *preceding* chronic block) avoids the shared term. Cénit keeps the coupled form deliberately (it matches the published bands users may know), and the readout is an association, not a clinical risk model. APPROXIMATE. References: **Williams et al. 2017** (*Br J Sports Med* 51:209, EWMA-ACWR); **Gabbett 2016** (*Br J Sports Med* 50:273–280, ACWR); **Foster 1998** (*Med Sci Sports Exerc* 30(7), monotony); **Lolli et al. 2019** (*Br J Sports Med* 53(15):921–922, PMID 29101104, mathematical-coupling critique); **Plews et al. 2013**, **Buchheit 2014** (HRV/RHR).
+| Driver | Weight | Direction |
+| --- | --- | --- |
+| Variability | 0.60 | Higher is better. Dominant by design. |
+| Resting heart rate | 0.20 | Lower is better. |
+| Sleep performance | 0.15 | Higher is better. |
+| Skin temperature | 0.10 | Lower is better. Optional. |
+| Respiration | 0.05 | Lower is better. Optional. |
 
----
+**The robust z.** Each driver is standardized as `(value − mean) / (1.253 × spread)`, with the sign
+flipped for lower-is-better drivers by swapping the arguments. In log domain the z is taken on the
+logarithms. Each z is then multiplied by the baseline's confidence factor.
 
-## `RecoveryForecast` — one-day-ahead recovery projection
-
-Source: `RecoveryForecast.swift` (FER-188). Live in two places: `RecoveryDetailScreen` (the "Mañana, si descansas igual: ~X" block) and the post-session strength summary's recovery-cost block (FER-442, the "Mañana, si descansas bien, deberías rondar ~X%" line). Answers a narrow question — *given how recovery has been trending and assuming you rest about the same, roughly where does tomorrow land?* — as a **trend projection with a range**, never a guarantee.
-
-It projects the **recovery composite directly** rather than forecasting HRV and RHR separately and recomposing them: recovery is already the HRV-dominant composite, so its day-to-day series *is* the autoregressive trend of those drivers, de-noised and already on the 0–100 scale. The model is a **damped level + slope**:
-
-- `level` = mean of the last `levelDays` (7) valid days
-- `slope` = OLS slope of recovery vs day index over the trailing `window` (21 days), then `step = slope · 0.5`, clamped to ±8 pts/day (short noisy daily series over-extrapolate)
-- `debt` = a gentle, bounded downward drag from standing sleep debt (a **product heuristic**, not a peer-reviewed coefficient — "si descansas igual" means you won't repay it tomorrow)
-- `strain` = an **optional**, bounded downward drag from an acute session done *today* whose cost hasn't yet landed in the recovery series (FER-442). A harder session delays post-exercise parasympathetic reactivation, so tomorrow sits a little below the trend alone (**direction** per Stanley, Peake & Buckley 2013 — see citation below; **magnitude** is a product-calibration knob, capped at 8 pts to stay inside the engine's ±8 one-day envelope). Off (0) unless the caller passes a session strain — the strength cost block does, the Recovery-detail trend does not.
-- `estimate = clamp(level + step − debt − strain, 0…100)`; `range = estimate ± max(5, 1.15·σ)` — deliberately wide, because the band is the honesty
-
-**Honest gate:** returns `nil` below `minDays` (14, ≈ two weeks of baseline); the caller then **hides** the block rather than inventing a number. The window/damping/cap/band/debt/strain-drag constants are product-calibration knobs, not validated quantities. APPROXIMATE. References: **De Sabbata & Simonini 2025** (*J Healthcare Informatics Research*, PMC12037944) — for univariate short-term wearable forecasting, "refining model complexity offers minimal benefit" and a random-walk baseline "remains competitive, if not superior", which is exactly why this is a damped level+slope model and not something heavier (the paper's scope is short-term, cited accordingly); **Stanley, Peake & Buckley 2013** (*Sports Medicine* 43(12):1259–1277) — post-exercise cardiac parasympathetic reactivation is delayed by higher training load, the grounded *direction* (not magnitude) of the optional acute session-strain drag.
-
----
-
-## `RecoveryChange` / `RecoveryImpact` — «qué cambió vs ayer» day-over-day attribution — **not current**
-
-Source: previously `RecoveryChange.swift` (FER-642) + `RecoveryImpact.swift`. **Neither file exists in the tree anymore** (`git grep RecoveryChange RecoveryImpact` across `Packages/`/`Cenit/` = 0 hits) — the retirement-plan docs (`docs/_f5-subplan.md` and neighbours) show them deleted along with the 0–100 recovery number as part of the Apple-only / `Preparedness` redesign. This section previously documented a day-over-day change read-out («today shown − yesterday shown», plus the top 1–2 signals that moved alongside it) that was the companion to `RecoveryImpact`'s exact additive decomposition of a single day's level. Kept here only as a historical pointer — do not cite this section as describing live behavior. The live morning read is `Preparedness` (above); it does not currently offer a day-over-day change attribution.
-
----
-
-## Interactive engines (wired into screens)
-
-These are the **live** data-interrogation engines, used by `InsightsView`, `CompareView`, and `MetricExplorerView`.
-
-### `CorrelationEngine`
-
-Source: `CorrelationEngine.swift`. Pearson r, OLS regression, and an approximate two-sided p-value between two daily series.
+**The logistic.**
 
 ```
-r         = Σ(x−x̄)(y−ȳ) / sqrt( Σ(x−x̄)² · Σ(y−ȳ)² )
-slope     = Σ(x−x̄)(y−ȳ) / Σ(x−x̄)²          (OLS, y on x)
-intercept = ȳ − slope·x̄
-t         = r · sqrt( (n−2) / (1−r²) )
-p         = 2·Iₓ(df/2, ½),  x = df/(df+t²)  (exact two-sided Student-t tail, df = n−2)
+score = 100 / (1 + exp(−1.6 × (z − (−0.20))))
 ```
 
-- Returns `nil` for fewer than 3 pairs or zero variance in either variable.
-- The tail is the **exact** two-sided Student-t p-value via the regularised incomplete beta `Iₓ(df/2, ½)` (continued-fraction evaluation, Lentz's method; *Numerical Recipes* §6.4), df = n−2 — fully deterministic, no special-function tables. (FER-299 replaced the earlier normal approximation, which **understated** p for small n because the true Student-t tails are heavier.)
-- `alignByDay(...)` inner-joins two `yyyy-MM-dd`-keyed series; `lagged(x:y:lagDays:)` shifts y forward by `lagDays` (UTC day arithmetic) to probe directional/delayed effects — e.g. *today's strain vs tomorrow's recovery*.
+The spread of 1.6 puts roughly ±2 z-units across the full band. The offset is chosen so that z = 0
+lands at about 58, and that anchor is explicitly labeled in the source as a **commercial vendor's
+self-reported member average — a calibration anchor, not a peer-reviewed population norm.**
 
-### `BehaviorInsights`
+**Missing-driver shrinkage** is the part worth copying elsewhere. Renormalizing to the weight actually
+present lets a single driver speak for the whole composite: with variability alone, a strong night
+saturates toward 100 as though every signal agreed. So the composite z is additionally pulled toward
+neutral in proportion to the weight present, against a reference of the three *primary* drivers
+(0.95 of the maximum). Optional refinements are excluded from that reference, so their absence never
+shrinks a reading, and a composite standing on the primary three is unchanged.
 
-Source: `BehaviorInsights.swift`. The headline "does this behavior move an outcome?" feature. Splits days where a behavior was logged (e.g. *Alcohol*, *Late meal*, *Meditation*) from days it was not, and compares an outcome metric between the groups.
+**Cold start is a refusal.** If the dominant driver's baseline is not yet usable, the function returns
+nothing rather than a fabricated number. A separate helper reports honest calibration progress —
+"night N of 4" — using the *same validity predicate* as the baseline itself, so the displayed count
+can never overstate what the baseline actually folded.
 
-For each behavior/outcome it reports group means, signed `delta`, `pctChange`, **Cohen's d** (pooled SD), and a **Welch t-test** p-value (unequal variances, Welch–Satterthwaite df, exact Student-t tail via the regularised incomplete beta):
+**Bands** are thresholds at 34 and 67.
 
-```
-sp = sqrt( ((n1−1)·s1² + (n2−1)·s2²) / (n1+n2−2) )     d = (m1 − m2) / sp
-t  = (m1 − m2) / sqrt(s1²/n1 + s2²/n2)
-```
+**Resting heart rate** is the minimum over five-minute bin means within the sleep window, and a bin
+qualifies only with at least five samples **and** a mean of at least 25 bpm. Without those two gates
+the minimum latches onto a sparse dropout bin and fabricates a sub-physiological figure. No qualifying
+bin returns nothing — an honest absence rather than an impossible number.
 
-- `significant` requires `p < 0.05` **and** `min(nWith, nWithout) ≥ 5` (guards against spurious "significance" from a handful of days).
-- `rank(...)` orders effects by `|d|` descending, significant first.
-- `sentence(_:)` renders plain English, e.g. *"On days you logged 'Alcohol', Recovery was 12% lower (avg 61 vs 69, n=140 vs 498)."*
-
-**Eligible-day restriction (FER-385).** `effect(… , eligibleDays:)` takes an optional universe of days the behavior is even *measured* on. For journal behaviors it stays `nil` — absence of a log means "didn't do it", so every day is eligible. For **diet adherence** it's the set of days that carry a `diet-adherence` point: a day with no record is *unknown*, not non-adherent, and falls into **neither** group. The binary behavior is *"I followed my diet"* = days with `diet-adherence ≥ 80%` (`DietAdherence.adherentDayThreshold`; 80% is borrowed *by analogy* from the medication-adherence PDC/MPR convention — Karve 2009 — not a validated diet cutoff, so it's a Cénit product convention). `InsightEngine.Inputs.eligibleDaysByBehavior` threads the per-behavior universe in; the **N-of-1 experiment deliberately does NOT restrict** (its "without" group is the full baseline — restricting a 7-day window would starve it below the `minGroup` floor).
-
-### `MannWhitney` + `ExperimentVerdict.evaluateContrast` — the N-of-1 tag experiment (FER-1034)
-
-Source: `MannWhitney.swift`, `ExperimentVerdict.swift` (both `StrandAnalytics`, pure). The «te aprende a ti» Layer 2 of Preparación: does a context tag the user logs (alcohol, late caffeine, travel…) actually move an outcome (HRV/sleep/resting HR) *in them*? Unlike the legacy candidate-lever path (`evaluate`, Welch vs. the full baseline, one-sided), the tag path compares **two independent samples within the experiment window** and is **two-sided**.
-
-- **Test:** Wilcoxon rank-sum / **Mann-Whitney U**. Not the paired signed-rank — yes-days vs no-days have no natural pairing, so it is a two-sample test. Distribution-free by design: the outcomes (HRV especially) are right-skewed/log-normal (Plews 2013) and at n ≈ 5–10 per arm a normal-theory t-test is fragile. **Exact p** (DP over the U null distribution, Mann & Whitney 1947) when the combined sample has no ties and n₁+n₂ ≤ 30; otherwise the **tie-corrected normal approximation** with a continuity correction (Lehmann 1975). Effect for display: **Hodges-Lehmann** shift (median of pairwise differences, Hodges & Lehmann 1963) in native units, plus rank-biserial r.
-- **Arms (the bias fixes):** the universe is the window days with an **explicit** yes/no on the tag (absence of an answer = unknown = neither arm — the FER-385 eligible-universe discipline extended to experiments). Both arms live **inside the window** (not window-vs-full-history), removing the non-stationarity and no-silent-record biases of the legacy path.
-- **Confounder control:** `restrictConfounders` removes days with an explicit "yes" on any *other* confounder tag (sick/travel) from **both** arms — classic restriction-by-design — and surfaces the count («se excluyeron N días»).
-- **Floor:** ≥ **5 days per arm** after restriction (`BehaviorInsights.minGroupForSignificance`). Why 5: the smallest balanced design where the exact MWU can cross α = 0.05 with some overlap (5v5 min p = 2/252 ≈ 0.008; U = 2 still p ≈ 0.032). At 4v4 only perfect separation clears — the test degenerates to all-or-nothing.
-- **Association, NOT causation (`/cso` FER-1034, load-bearing).** The exposure is **self-assigned, not randomized** — the user chooses when to log «alcohol»/«caffeine», and yes-days differ systematically (weekends, late dinners, social load) in ways that move HRV on their own. `restrictConfounders` removes only sick/travel; day-of-week, sleep, load, cycle phase stay free. So the contrast establishes an **intra-person association, not a causal «effect»** — the copy must never say «efecto»/«causa» without the association hedge (this project's axis-6 rule: «coincidió con», never «causó»). This distinguishes it from a **randomized** n-of-1 trial (Lillie 2011), whose causal license comes precisely from the randomization this design lacks.
-- **Independence caveat (`/cso` FER-1034).** The MWU assumes independent observations; HRV / resting-HR / sleep are strongly autocorrelated day-to-day, and tagged exposures **cluster in time** (a travel week = a contiguous block of yes-days). A contiguous arm has effective n « nominal n, which makes the p-value **anti-conservative (inflates false positives)** — a second reason the copy reads «probable/todavía» as uncertainty, not precision. (Future, non-blocking: a temporal-dispersion guard when yes-days are contiguous.)
-- **Multiplicity (`/cso` → `/estadistico` FER-1034).** Each experiment runs one two-sided test at α = 0.05 with **no multiple-comparison correction** (unlike the legacy `BehaviorInsights` path, which applies FDR via `qVal`). The «one experiment at a time» invariant bounds *parallel* tests to one, but a user's *sequence* of experiments still accrues family-wise error; whether to apply FDR/BH across the history is a `/estadistico` decision, documented here when settled.
-- **Honesty of power (load-bearing for the copy):** by Noether (1987), detecting even a *large* effect (P(X>Y)=0.75) at 80% power, α = 0.05, needs ≈ 21 days per arm; a 21-day window typically yields 5–10/arm → real power ~20–40%. So **«no se ve» will be frequent and the copy must say «todavía»**, never «no existe» — abstention over noisy discovery (the Welltory/Oura Discoveries failure mode). Verdicts map to the shipped `Verdict` rawValues: `.sustained` = «posible patrón (en ti)» / «se asocia (en ti)» (never «efecto»), `.notSustained` = «no se ve (todavía)», `.insufficient` = «datos insuficientes».
-
-References: **Wilcoxon 1945** (*Biometrics Bulletin* 1(6):80); **Mann & Whitney 1947** (*Ann Math Statist* 18(1):50); **Hodges & Lehmann 1963** (*Ann Math Statist* 34(2):598); **Lehmann 1975** (*Nonparametrics*, Holden-Day); **Noether 1987** (*JASA* 82(398):645); randomized N-of-1 framing (contrast only — this design is observational, not randomized) **Lillie et al. 2011** (*Per Med* 8(2):161). APPROXIMATE, no clinical claim.
-
-#### Claims allow-list — N-of-1 tag experiment (PR-blocking)
-
-**Allowed:** «posible patrón (en ti)» / «se asocia (en ti)» · «no se ve (todavía)» · «datos insuficientes» · arm counts («5 días con · 7 sin») · «~X ms/min de diferencia típica» (Hodges-Lehmann, always with «~») · «se excluyeron N días (enfermedad/viaje)». **Forbidden:** the words «efecto»/«causa» without the association hedge, causal certainty («el alcohol TE baja la HRV»), population/clinical claims, a p-value as headline, deltas without «~», the word «descubrimos». The three result strings enter this allow-list before they surface.
-
-### `ComparisonEngine`
-
-Source: `ComparisonEngine.swift`. Period-over-period comparison of one daily metric.
-
-- `stat(_:)` → `SeriesStat`: mean, median, min, max, sample SD (ddof = 1), n, and least-squares slope-per-day (OLS against the 0-based index).
-- `compare(current:previous:)` → `PeriodComparison`: signed `delta` on the means, `pctChange` (nil when the previous mean is 0/empty), and a coarse `direction` (`-1/0/+1`).
-- `monthOverMonth(byDay:referenceDay:)` splits a `yyyy-MM-dd` series on the `yyyy-MM` prefix (locale/timezone-free) into the reference month vs the immediately preceding calendar month.
+A guard worth noting: when a resting-heart-rate baseline is present, the function asserts that the
+value handed to it is a real reading. Some callers pass a sentinel when the baseline is absent and the
+term is skipped; the assertion exists so a future refactor that reads the value under a present
+baseline fails loudly instead of quietly inflating every score.
 
 ---
 
-## The library orchestrator: `AnalyticsEngine`
+## Load
 
-Source: `AnalyticsEngine.swift`. A pure function that ties the recompute engines together for one day. **Implemented and tested**; the app wires recompute through `IntelligenceEngine` / store pipelines, and imported HealthKit/export rows take precedence where present.
+### `StrainScorer`
 
-`analyzeDay(day:hr:rr:resp:gravity:profile:baselines:maxHROverride:)` runs, in order:
+A bounded logarithmic load score built on published training-impulse methods.
 
-1. `SleepStager.detectSleep` → keep sessions whose `end` falls on `day` (UTC) — a night ending that morning.
-2. Daily sleep aggregates (in-bed-weighted efficiency; deep/REM/light minutes; disturbances) via `hypnogramMetrics`.
-3. Daily resting HR = lowest per-session resting HR; daily avg HRV = in-bed-weighted mean of per-session HRV.
-4. `RecoveryScorer.recovery(...)` with the personal HRV/RHR/resp/skin-temp baselines and a personal (own-baseline) sleep-efficiency term.
-5. `StrainScorer.strain(...)` over the full day's HR window (Tanaka HRmax from age unless overridden).
-6. `WorkoutDetector.detect(...)`.
+```
+HRR   = HRmax − RHR                                     (Karvonen 1957)
+%HRR  = clamp((HR − RHR)/HRR × 100, 0, 100)
 
-It assembles a `DailyMetric` (the `CenitStore` cache shape) plus rich `SleepSession`s and `CachedSleepSession` cache rows. Every derived value is **approximate** by construction.
+Edwards TRIMP  = Σ zoneWeight × sampleDurationMin       (Edwards 1993)
+   weights by %HRR: ≥90→5, ≥80→4, ≥70→3, ≥60→2, ≥50→1, else 0
+
+Banister TRIMP = Σ durationMin × x × 0.64 × e^(b·x)     (Banister 1991)
+   x = %HRR/100;  b = 1.92 male, 1.67 female
+
+score = 21 × ln(TRIMP + 1) / ln(7201)
+```
+
+**Why the denominator is 7201.** The top Edwards zone weight is 5. Sustained for 24 hours that is
+7200 impulse-minutes — the method's own theoretical daily ceiling. Adding one makes the logarithm of
+the ceiling equal the logarithm of the denominator, so the ceiling maps to exactly 21.0. The constant
+is derived, not tuned.
+
+**Maximum heart rate** comes from the age formula (Tanaka 2001: 208 − 0.7 × age) unless the user's own
+observed history says otherwise. With at least 600 samples the engine takes the interpolated 99.5th
+percentile of observed values and uses it *if it exceeds* the age estimate. A separate last-resort
+fallback of 220 − age exists and is labeled as such.
+
+**Sample duration is the median plausible gap**, not the first pair. A single early gap must not
+inflate the duration applied to every sample of the day. Gaps are counted only in a plausible window,
+with a one-second fallback.
+
+**The data gate** admits either 600 samples, or 20 samples spanning at least ten minutes. The sparse
+branch never fabricates load: the impulse still integrates honestly over whatever pulse is present, so
+a genuinely quiet day scores zero either way.
+
+**The inverse** exists so loads can be added on the linear axis and mapped back once. Because the
+forward direction rounds to two decimals, the round trip is exact only to about 0.21% relative —
+compare with a relative tolerance, never an absolute epsilon.
+
+**The incremental variant** keeps a running state so a live screen does not re-read 86 000 samples and
+re-sort every gap several times a minute. It stays byte-identical to the batch recompute at any hour,
+by a specific trick: the sample-duration scalar is factored *out* of both accumulators and applied
+once at materialization, so a shifting median re-weights every bucket exactly as the batch would. The
+median itself rides a bounded histogram of whole-second gaps, giving an order-statistic lookup that
+returns the identical value including the even-count average. Freezing the median early would be
+faster and would diverge, so it is deliberately not done.
+
+### `ReadinessEngine` — load balance
+
+Synthesizes established sports-science signals into a readiness level and the drivers behind it:
+variability against baseline (Plews 2013, Buchheit 2014), resting-pulse drift, respiratory drift, the
+acute-to-chronic workload ratio over 7 and 28 days, and training monotony (Foster 1998).
+
+The ratio's treatment is the notable part. The 0.8-to-1.3 band comes from Gabbett (2016), but the
+engine treats it as a **load-balance descriptor, not an injury predictor**, and says why: the ratio is
+coupled, since the acute window sits inside the chronic one, which inflates the correlation (Lolli
+2019), and the metric's statistical properties undercut causal use (Impellizzeri 2020).
+
+### `StrainCeiling` — no live caller
+
+Multiplies a 28-day chronic load by a recovery-derived factor spanning the same 0.8-to-1.3 band. Its
+own header is unusually candid: the linear map from recovery onto that band is **not from Gabbett or
+anyone** — it is a product calibration, physiologically sensible but unvalidated. It needs at least
+14 load-days and returns nothing otherwise.
 
 ---
 
-## `ActivityCostEngine` — per-sport recovery association
+## Sleep
 
-Source: `ActivityCostEngine.swift`. A pure, DB-free engine that describes, **per sport**, how far your next-morning Charge (recovery) tends to sit *below* your rest-day baseline after a session, and roughly how long it tends to take to climb back. **Live.** Surfaced in `ActivityRecoverySheet` (presented from `CuerpoView`), evaluated in `Repository` via `ActivityCostEngine.evaluate` (FER-139). The Kotlin/Android mirror is tracked in FER-140.
+### `SleepStager`
 
-Given `activityDaysBySport` (per sport, the set of `yyyy-MM-dd` day keys it was tagged on) and `recoveryByDay` (daily Charge 0–100), for each sport S:
+The largest engine in the package, and the most hedged. It finds sleep periods and labels each
+30-second epoch light, deep or REM.
+
+**Stage 0** builds the sleep-and-wake spine from motion stillness: a window counts as sleep when at
+least 70% of it is below a small movement threshold, runs are broken by long gaps, short runs are
+absorbed into their neighbours, and a candidate must exceed 60 minutes.
+
+Acceptance then applies four gates in order: duration; a **16-hour span cap** whose failure **drops**
+the run rather than truncating it, because truncating would fabricate a wake time; confirmation
+against a resting-pulse band; and an off-wrist backstop rejecting runs more than half covered by
+sensor gaps. The backstop disables itself entirely when the stream is naturally sparse, because a
+sparse night's ordinary gaps must not read as an absent wrist.
+
+**Stage 1** grids the session into 30-second epochs carrying movement counts, a movement fraction,
+mean pulse, pooled intervals and raw respiration. Missing motion coverage yields a movement fraction
+of 1.0 — treat as moving, the conservative direction.
+
+**Stage 2** classifies against **session-relative percentile bands**, not absolute thresholds:
 
 ```
-restDays       = days with a Charge value that are NEITHER tagged with any sport NOR inside any
-                 tagged day's forward window D+1…D+7   (your "untouched" days)
-baselineCenter = median(Charge over restDays)                        (shared across all sports)
-nextMorningCenter = median(Charge[D+1] over tagged days D that have a D+1 value)
-delta          = baselineCenter − nextMorningCenter        (positive → mornings sit below baseline)
-daysToBaseline = smallest k∈1…7 with median(Charge[D+k]) ≥ baselineCenter − 3      (.solid only)
+WAKE  : moving AND (cardiac activation OR no pulse data)
+DEEP  : still AND parasympathetic high AND pulse low AND intervals regular
+REM   : still AND cardiac activation AND intervals irregular
+REM'  : still AND pulse high AND pulse variance high AND no respiration data
+else  : LIGHT
 ```
 
-- **Excluding the post-effect window from the baseline** is the key bit of hygiene: the mornings *after* a session are exactly the days the gap suppresses, so counting them as "rest" would contaminate the baseline with the very thing being measured.
-- It is plain descriptive statistics over aligned day keys — in the spirit of HRV-/recovery-guided training monitoring (Plews et al. 2013; Task Force 1996 for the HRV that backs Charge). Nothing is learned.
+Missing respiration is treated as "regular", which is a documented bias toward deep.
 
-### Expert-review adjustments (FER-123)
+**Stage 3** median-smooths and re-imposes physiology: REM within the first 15 minutes after onset
+becomes light, and deep in the last two-thirds of the night becomes light.
 
-The engine was ported from the project's earlier implementation **after an expert review of the method**, which found several upstream thresholds sat below the measurement-noise floor. Five adjustments were applied (each covered by a test), deliberately breaking byte-parity with the upstream oracle:
+**Wake and sleep detection** uses the Cole-Kripke activity index (Cole et al. 1992), rescaled to
+30-second epochs per te Lindert and Van Someren (2013).
 
-| Lever | Upstream | Cénit | Why |
-|---|---|---|---|
-| Center | arithmetic mean | **median** | a single off night shouldn't dominate a thin sample (matches the robust-center house style of `Baselines`) |
-| `minSessions` | 4 | **6** | at n≈4 the standard error of the center (~5 pts for SD≈10) is the same order as the gap itself — mostly noise |
-| `barelyMovesPoints` | 1.0 | **3.0** | day-to-day Charge test-retest is ~±5–7 pts; a 1–2 pt "effect" is noise |
-| `daysToBaseline` | always | **`.solid` only** | the most fragile output (composite trajectory over different day subsets per horizon, `tol`=3 near the noise floor) |
-| Narrative | "cost you" | **association** | framed as correlation, not a causal cost (see below) |
+**The hedging is explicit and belongs in any surface that shows this data.** The stages are
+approximations, not validated against polysomnography, and the file names its own ceiling: published
+work puts four-class agreement without electroencephalography at roughly 65-73%. It goes further and
+names the weakest link — **the light-versus-deep separation, so deep-minute estimates are the least
+reliable output the engine produces.**
 
-Kept as-is: `solidSessions = 8`, `maxLookahead = 7` days (recovery from a single bout is largely done in 24–72 h, with DOMS/eccentric damage trailing to ~5–7 days), `tolerance = 3` pts.
+The frequency-domain features the reference implementation used are absent on device, so the
+parasympathetic-tone signal is the time-domain statistic alone.
 
-### This is association, not a causal "cost"
+### Sleep need and debt
 
-The narrative (`sentence()`) and these docs frame the gap as an **association over your own history**, never a cause. Three confounders make the causal reading wrong:
+The need is a **fixed published target of 450 minutes**, within the 7-to-9-hour range recommended for
+healthy adults (Hirshkowitz et al. 2015). Debt is the sum over the trailing seven nights of the
+shortfall, **floored per night**, so one long night does not pay off a short one.
 
-- **Regression to the mean** — you tend to train on days you wake up feeling good (high Charge), so the next morning drifts back down regardless of the session.
-- **Non-random rest days** — you rest when tired / sick / travelling, so "untouched" days are not a clean counterfactual for "what your Charge would have been without the session".
-- **Day-of-week & overlapping sessions** — a sport done mostly on weekends conflates the sport with weekend behaviour; two sports on the same day both inherit that D+1 morning.
+The fixed target replaced a personal trailing mean, and the reason is a good example of a definition
+being wrong rather than a value being wrong: against your own average, *any* night below it counts as
+debt while nights above never pay it back, so even a nine-hour sleeper with normal variance always
+owes sleep. The metric was positive by construction.
 
-A sport with fewer than `minSessions` next-morning pairs is **omitted entirely** (too thin to say anything honest); 6–7 pairs → `.building`, ≥ 8 → `.solid`. Results rank by `|delta|` descending, `.solid` before `.building`, then sport name — fully deterministic.
+### Two regularity engines
+
+**Mid-sleep timing** computes the circular standard deviation of the mid-sleep point over a 14-night
+window, requiring at least 7 nights and returning **nothing** below that so the interface can show a
+calibration state rather than a fabricated figure.
+
+```
+θ = 2π·m/1440
+R = |mean(e^{iθ})|
+circularSD (min) = √(−2·ln R) · 1440/(2π)
+score = round(100 × (1 − min(SD, 120)/120))
+```
+
+Two numerical guards matter. Fully dispersed input returns a capped 12 hours. And identical points
+return a **clean zero** — the standard library returns R slightly below 1 for identical inputs, which
+would otherwise leak a spurious few microseconds of standard deviation.
+
+The weekend shift compares circular medians of weekend and weekday onsets, requiring at least two
+nights on each side.
+
+Citations: the mid-sleep point and the social-jetlag convention (Wittmann et al. 2006); regularity's
+health associations (Huang and Redline 2019); regularity outpredicting duration for mortality (Windred
+et al. 2024); the circular statistics themselves (Mardia and Jupp 2000).
+
+**The regularity index** is the second engine and a different construct: the probability of being in
+the same sleep-or-wake state at two instants exactly 24 hours apart, rescaled so anti-phase clamps to
+zero (Phillips et al. 2017). An instant counts only when both it *and* its 24-hour partner fall within
+a half-day window of some night anchor, so a missing night drops out of the pairing instead of reading
+as an all-awake day.
+
+Both engines filter naps through a shared **three-hour threshold**, and the reason is measured: a
+nap's midpoint sits near anti-phase to nocturnal mid-sleep, so 13 steady nights plus one two-hour nap
+produced a standard deviation of 127 minutes and a score of zero. The threshold is labeled a
+product-calibration boundary, not a clinical claim.
+
+For both, **the raw quantity is the load-bearing figure and the 0-to-100 score is presentation only**
+— a bounded monotonic remap, never a clinical claim.
+
+### Choosing one sleep source
+
+When several sources write sleep for the same night, summing their stages double-counts and pushes
+efficiency to a false 100%. So one source is **chosen, not merged** — mixing stages from two sources
+is meaningless, because there is no answer to which stage a given minute was in.
+
+The rule: consider only sources reporting more than zero asleep minutes; prefer platform-native
+sources; within the chosen pool take the most asleep minutes; break ties deterministically. The
+nonzero gate exists because a source reporting a generic state with zero staged minutes would
+otherwise win on priority and knock out a source with real stages.
+
+Time-in-bed is handled separately and *may* be summed, because overlapping it can only lower
+efficiency, never invent a favourable one.
 
 ---
 
-## Data flow summary
+## Zones, workouts and energy
 
-```
-Apple Health (HealthKit) ──► HealthKitBridge ──► CenitStore (SQLite)
-Apple Health XML ──► StrandImport ────────────────────┘
-                                                      │
-                                                      ▼
-   importers / analyzers ──► DailyMetric (metrics cache)
-                                                      │
-                          ┌───────────────────────────┤
-                          ▼                           ▼
-   AnalyticsEngine.analyzeDay (recompute path)   Repository.days ─► TodayView,
-   (HRV/recovery/strain/sleep from raw streams)  InsightsView, CompareView,
-                                                 MetricExplorerView
+### `HRZones`
 
-   AppModel: HR smoothing · RMSSD · zone coaching ·
-             illness early-warning · resting-stress nudge
-```
+Maximum heart rate from the age formula (Tanaka 2001), with an optional manual override, and the five
+conventional bands at 50/60/70/80/90 percent of maximum.
 
----
+Note the deliberate split: **these are the display zones and they are a different model** from the
+load math, which uses reserve-based zones. The two coexist on purpose and must not be conflated.
 
-## `CyclePhaseEngine` — menstrual-cycle phase awareness (FER-672)
+### `WorkoutDetector`
 
-Estimates the **current** cycle phase (follicular-lean vs luteal-lean) from the nightly skin-temperature
-deviation Cénit already stores (`DailyMetric.skinTempDevC`). Pure, DB-free, computed on the fly — no new
-decode, no persistence, no migration. Opt-in and off by default; surfaced only in the Experiments sheet.
+A bout is a sustained window where **both** gates hold: pulse elevated above resting by a margin, and
+motion sustained above a threshold. Per bout it reports average and peak pulse, duration, zone time
+percentages, mean reserve percentage, load, and estimated energy.
 
-### Method
+### `Calories`
 
-A robust **luteal index** z over the trailing window: `z = 0.75·zTemp + 0.25·zRHR`, each term z-scored
-against the window's own median (centre) and robust σ (`IllnessWatch.robustSigma`, the repo's `× 1.253`
-mean-absolute-deviation convention). Skin temp is the dominant driver; resting HR corroborates. **HRV is
-NOT a term in the index** (decision H1): a DROP is luteal-ward, but for the RMSSD Cénit measures the
-effect is inconsistent, so HRV can only *raise confidence one notch* when it agrees with the temp+RHR
-lean — it never votes on the phase. A ≥42-night gate (`.learning` below it), a robust-σ noise floor and a
-minimum |z| guard the `.noClearPattern` state; confidence scales with |z| and night count.
+Two methods, chosen by what data exists.
 
-### Evidence (each an approximate, documented driver — not a reproduction of any algorithm)
+**With pulse data**, the active estimate uses Keytel (2005) with resting metabolism from the revised
+Harris-Benedict equation, adjusted for age, sex, mass and height.
 
-- **Skin temp ↑ in luteal (dominant), read from the Apple Watch's overnight WRIST temperature.**
-  Site-matched evidence (wrist): Shilaih et al. 2018, *Bioscience Reports* 38(6):BSR20171279
-  (doi:10.1042/BSR20171279): early-luteal **wrist** temp **+0.33 °C** vs the fertile window, biphasic in
-  **~82 %** of cycles, n=136 — the wrist does not attenuate the signal below the finger. Direct
-  Apple-Watch validation: Wang et al. 2025, *Human Reproduction* 40(3):469–478: Apple Watch overnight
-  wrist temperature estimates ovulation retrospectively at MAE **1.22–1.59 days** (~80–89 % within ±2
-  days) — evidence the wrist signal is present and usable; Cénit reads only the follicular/luteal **lean**,
-  never the ovulation day. Corroborating finger-site value: Maijala et al. 2019, *BMC Women's Health* 19
-  (doi:10.1186/s12905-019-0844-9): nightly **finger** skin temp **+0.30 °C** (SD 0.12), p<0.001.
-  Gombert-Labedens et al. 2024, *J Biol Rhythms* 39(4):331–350 (doi:10.1177/07487304241247893):
-  post-ovulatory thermal shift detectable in **~85 %** of cycles with a wearable.
-- **Resting HR ↑ in luteal (corroboration).** Shilaih et al. 2017, *Sci Rep* 7
-  (doi:10.1038/s41598-017-01433-9): sleeping pulse **+1.8 bpm** (mid-luteal vs fertile), +3.8 vs menses.
-- **HRV ↓ in luteal (weak, mixed — confidence only).** Real on average (Schmalenberger et al. 2019
-  systematic review, PMID 31726666; 2020 *J Clin Med* 9(3):617, doi:10.3390/jcm9030617), but for RMSSD
-  specifically inconsistent/null: Yazar & Yazıcı 2016, *Med Princ Pract* 25(4)
-  (doi:10.1159/000444322): rMSSD 38±12 → 41±27 ms, **n.s.** This is why HRV is reinforcement, not a term.
+**Without pulse data**, strength sessions fall back to a metabolic-equivalent estimate from the
+Compendium of Physical Activities (Ainsworth et al. 2011): resistance training at 3.5 metabolic
+equivalents — the moderate value, chosen because a session logged without pulse carries no measure of
+effort. Energy is then mass times equivalents times hours.
 
-### Honesty
+The whole-day path applies a **higher activity gate** than the bout path, and the asymmetry is
+principled: the active equation is validated for genuine exercise intensities, so applying it to a
+whole day of sedentary readings would extrapolate it far outside its fit. Each sample below the gate
+burns the resting rate instead, and the result is floored at resting metabolism. The bout path keeps
+the lower gate, because there the equation is being applied to a real workout.
 
-The weights (0.75/0.25) and the ≥42-night gate are **product-calibration knobs, NOT derived from any
-publication** (decision H2) — they encode the evidence hierarchy (temp ≫ RHR), nothing more, and are
-pinned by `CyclePhaseEngineTests.testCalibrationConstantsPinned`. The estimate is **retrospective**: the
-temperature shift confirms a phase 1–3 days *after* it changes, so the copy never implies real-time
-detection (H3). Wellness / self-knowledge only — never fertility, ovulation, contraception, a period
-date, or any clinical claim. **Consent gate (FER-183):** the recovery verdict applies its small luteal
-allowance (RHR −2 bpm, high-side temp −0.3 °C on likely-luteal days) **only when the user has opted in**
-to this experiment; off by default, the verdict ignores the cycle entirely. `CyclePhaseEngine.gatedPhase`
-is the one pure gate, pinned by test; the sheet's consent copy states the recovery adjustment before it
-can be enabled.
+Everything here is labeled approximate.
 
 ---
 
-## Conventions & honesty notes
+## Keeping sources honest
 
-- **Approximate by design.** Recovery, strain, sleep stages, workout intensity, and calories are transparent approximations of published methods — not reproductions of any proprietary algorithm. Each engine's source header states exactly where it approximates (e.g. Malik instead of Kubios; RMSSD-only parasympathetic tone).
-- **Deterministic.** No randomness, no wall-clock dependence inside the math, no DB/network access. Same inputs → same outputs, which makes the package unit-testable against fixed vectors.
-- **Robust statistics.** z-scores use EWMA mean-absolute-deviation (`× 1.253` to a Gaussian σ); resting HR uses 5-minute bin minima; HR display uses windowed medians — all chosen to resist single-sample outliers.
-- **Cold-start honesty.** When a baseline isn't trustworthy yet, the recovery scorer returns `nil` rather than a fabricated number.
-- **Not a medical device.** None of this is diagnostic or medical advice. The illness early-warning is a wellness nudge from your own baselines, not a clinical screen.
-- Cénit works with data you already own (Apple Health / HealthKit), entirely on-device.
+Two engines exist purely to stop different instruments' numbers from contaminating each other.
+
+### `SourceLens`
+
+The problem, stated concretely: one source's daily variability figure is a standard-deviation
+construct sampled all day, while the engines were tuned on a beat-difference construct measured during
+sleep. These are **different time-domain quantities with no published conversion** (Task Force 1996;
+Shaffer and Ginsberg 2017). Mixing them measurably moved a baseline mean from about 49.6 ms
+single-source to about 43.8 ms mixed.
+
+So the cross-source columns are **cleared** before the folds see them — and a cleared column reads as
+a *missing* night to the skip-and-hold rules, never as a zero.
+
+What survives clearing is instructive. **Duration survives**, because it is comparable across
+instruments and honestly feeds short-night confidence. **The stage breakdown does not**, because the
+instruments have measured offsets. **The temperature deviation does not**, because each instrument
+folds its own absolute baseline, so the stored deltas are not interchangeable.
+
+### `SourceFusion`
+
+Merges days from three partitions with a fixed precedence, and adds four rules worth naming:
+
+- **Loads add in impulse space**, never on the logarithmic axis, and are mapped back once.
+- **Sum when disjoint, take the maximum when overlapping.** A logged session overlapping a recorded
+  workout is probably the same training. Taking the maximum alone made a run plus a lifting session
+  read as just the run.
+- **Trained but load unknown holds.** A day with a session but no usable load becomes *nothing*
+  rather than zero, so the moving average holds instead of folding a false rest day. A stored zero is
+  treated as unknown for the same reason.
+- **The synthesis floor.** A day with no base row only gets a synthetic row from the first day that
+  has a real one, or within the last 56 days. Without that floor, an imported era with no rest days
+  seeds the chronic leg with per-session load instead of a daily dose, producing about four weeks of
+  falsely easing readings after an import.
+
+Nights merge per night rather than by timestamp, because the same sleep recorded by two instruments
+has different start times and a timestamp dedupe cannot catch it.
+
+---
+
+## Statistics
+
+### `MannWhitney`
+
+The two-sample rank-sum test, used by the single-subject experiment path. The choice is deliberate:
+the arms are independent — outcome on tagged days versus untagged — so the paired test does not apply,
+and at five to ten observations per arm with right-skewed outcomes a normal-theory test is fragile. A
+rank test needs no distributional assumption.
+
+Exact p-values by dynamic programming over the null distribution when there are no ties and the
+combined sample is at most 30; otherwise the tie-corrected normal approximation with a continuity
+correction. Two-sided only, because the templates carry no directional prior. The reported effect is
+the Hodges-Lehmann shift in native units plus the rank-biserial correlation.
+
+Citations: Wilcoxon 1945, Mann and Whitney 1947, Hodges and Lehmann 1963, Lehmann 1975.
+
+### `MultipleComparisons`
+
+Benjamini-Hochberg false-discovery-rate control (1995). The motivation is stated numerically: probing
+dozens of behavior-by-outcome pairs at once means a family of 40 pure-noise tests yields about two
+"significant" hits by chance.
+
+```
+sort ascending, then q(i) = min over k ≥ i of ( p(k) · m / k ), capped at 1
+```
+
+The running minimum enforces monotonicity, so the transform preserves the ordering of the raw
+p-values. Under the global null this also bounds the family-wise error rate, which is what lets a
+noise test assert that the fraction of random seeds producing any hit stays near the level.
+
+### Correlation and comparison
+
+`CorrelationEngine` and `ComparisonEngine` supply the cross-metric relationships and period
+comparisons the insight surfaces read. Both feed through the correction above rather than reporting
+raw p-values.
+
+---
+
+## Long-horizon estimates
+
+`FitnessAgeEngine` and `VitalityEngine` implement published population models with documented
+domain-transfer corrections, and `VO2maxTrend` reports a **trajectory rather than a point**, using
+standard robust methods, precisely because a single estimate carries more uncertainty than a direction
+does.
+
+Several rhythm engines are complete and tested but library-only today: nocturnal deceleration capacity
+by phase-rectified signal averaging, nocturnal warming and its night-to-night stability, post-session
+heart-rate recovery, and a short-scale detrended-fluctuation exponent. Each is labeled experimental in
+its own header.
+
+---
+
+## Citation index
+
+| Source | What it backs |
+| --- | --- |
+| Task Force ESC/NASPE 1996 | The variability definitions, and the requirement that artifacts be edited before computing them |
+| Malik et al. 1989 | The 20% local-median ectopic rejection |
+| Plews et al. 2013 | Log-domain variability baselines; variability against personal baseline |
+| Shaffer and Ginsberg 2017 | Why two variability constructs are not interchangeable |
+| Huber 1964 | The winsorization convention in the baseline fold |
+| Efron and Morris 1977 | Shrinking a thin baseline's z toward the center |
+| Karvonen 1957 | Percentage of heart-rate reserve |
+| Edwards 1993 | The five-zone weighted training impulse |
+| Banister 1991 | The exponential training impulse and its sex coefficients |
+| Tanaka et al. 2001 | Maximum heart rate from age |
+| Gabbett 2016 | The acute-to-chronic band |
+| Lolli et al. 2019; Impellizzeri et al. 2020 | Why that ratio is a descriptor, not a predictor |
+| Foster 1998 | Training monotony |
+| Buchheit 2014 | Resting-pulse drift as a training-status signal |
+| Cole et al. 1992; te Lindert and Van Someren 2013 | The activity index and its 30-second rescaling |
+| Walch 2019 | The four-class staging ceiling without electroencephalography |
+| Hirshkowitz et al. 2015 | The 450-minute sleep target |
+| Wittmann et al. 2006 | Mid-sleep point and social jetlag |
+| Huang and Redline 2019; Windred et al. 2024 | Regularity's health associations, and regularity over duration |
+| Mardia and Jupp 2000 | Circular statistics |
+| Phillips et al. 2017 | The regularity index definition |
+| Van Dongen et al. 2003 | Graded sleep loss rather than a threshold |
+| Mishra et al. 2020 | Requiring corroboration for an illness signal |
+| Shilaih 2017; Maijala 2019 | Cyclical shifts in resting pulse and temperature |
+| Cole 1999 | Heart-rate recovery, and why it is not used here |
+| Keytel et al. 2005 | Energy from heart rate |
+| Ainsworth et al. 2011 | Metabolic equivalents for resistance training |
+| Wilcoxon 1945; Mann and Whitney 1947; Hodges and Lehmann 1963; Lehmann 1975 | The rank-sum test, its effect size and its approximation |
+| Benjamini and Hochberg 1995 | False-discovery-rate control |
+| Lomb 1976; Scargle 1982 | The periodogram used for frequency-domain variability |
+| Cooper 1969 | Solar declination for the day-arc dial |
+
+---
+
+## Conventions
+
+**Nothing here is a measurement.** Every output is an approximation of a published method, computed
+from consumer-grade sensors, describing trends in one person's own data. There are no clinical claims
+and no diagnostic use.
+
+**A missing value is not a zero.** Engines return nothing rather than fabricate, and folds hold rather
+than absorb. If you find a code path that substitutes a default for an absent reading, that is a bug.
+
+**A raw quantity outranks its score.** Where an engine returns both, the raw quantity is the figure
+with literature behind it and the bounded score is presentation.
+
+**Two constructs never share a baseline.** This is enforced by separate configuration keys, by the
+clearing layer, and by tests. It is the single most expensive class of error this layer has produced.
+
+**Changing a constant changes every installed user's history.** Several thresholds are marked in the
+source as contract for exactly that reason. Moving one is a science change with a test to update, not
+a tuning exercise.

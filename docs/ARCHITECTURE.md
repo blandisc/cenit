@@ -339,9 +339,9 @@ download already fetched.
 
 ## 7. Storage model (CenitStore / SQLite)
 
-GRDB drives a migrator (the migrator currently reaches `v43`; see `Database.swift` — the source of
-truth is the migration list, not a constant). The schema groups into four
-concerns:
+GRDB drives the migrator, which currently reaches `v43` (`Database.swift` is the source of truth —
+the version is derived by counting registered migrations, never a hand-maintained constant). What it
+builds falls into these groups.
 
 **Sample streams** — two survive: `hrSample`, keyed `(deviceId, ts)`, and `rrInterval`, keyed
 `(deviceId, ts, rrMs)` because several intervals legitimately share one timestamp. A third,
@@ -361,7 +361,7 @@ in v37**; the Apple-sourced equivalents live as daily columns instead.
   mapping on demand and can never return nothing — which is what stops a caller from acknowledging
   data it failed to persist.
 
-**Metric caches** — the rolled-up shapes the screens read:
+**Rolled-up caches** — the day-grain and session-grain shapes the screens actually read:
 - `dailyMetric` — the widest table and the app's main read model, one row per source per civil day.
   Twenty columns grown across four migrations: the scores, the sleep breakdown, the nightly vitals,
   steps and an energy estimate, and a confidence tier for each of the two scores. Everything but the
