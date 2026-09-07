@@ -20,7 +20,7 @@ lente colapsa a una forma cerrada y determinista:
   TODAS las filas** (avgHrv/restingHr/respRateBpm/skinTempDevC/stages), dejando strain/steps/duración intactos.
 - `SourceLens.maskHrv(days, keep:.band, appleDays: todos)` → **nila TODOS los `avgHrv`**, resto intacto.
 - `SourceLens.maskForBaseline(days, keep:.apple, appleDays: todos)` → **identidad** (`days` verbatim).
-- `SourceLens.strapOnlyHistory(days, appleDays: todos)` → **`[]`** (lista vacía).
+- `SourceLens.bandaOnlyHistory(days, appleDays: todos)` → **`[]`** (lista vacía).
 
 **El punto de ciencia que gobierna todo F6:** ese enmascarado **NO es andamiaje muerto — es ciencia
 load-bearing.** En una fila Apple greenfield, `avgHrv` = **SDNN** de Apple, `restingHr` = RHR sedentario de
@@ -30,7 +30,7 @@ WhatMovesIt HRV) fueron construidos alrededor del **RMSSD de banda**. Si F6 les 
 ingerirían SDNN de Apple **como si fuera RMSSD** → **exactamente FER-519/629** (base meanHRV mezclada ≈43.8 ms
 vs banda ≈49.6 ms; RMSSD≠SDNN, sin conversión publicada — Task Force 1996, Circulation 93(5):1043-1065;
 Shaffer & Ginsberg 2017, Front Public Health 5:258). Por tanto el enmascarado **se conserva**; lo que muere es
-la **selección de fuente** (`keep:`/`appleDays:`/`Source`/`strapOnlyHistory`), que en un mundo de una sola
+la **selección de fuente** (`keep:`/`appleDays:`/`Source`/`bandaOnlyHistory`), que en un mundo de una sola
 fuente ya no decide nada.
 
 El RMSSD nocturno REAL de Apple (`apple_rmssd_night`) tiene su propio camino, **`SourceFusion.autonomicTrend`**,
@@ -38,7 +38,7 @@ que **no pasa por `SourceLens` ni por `DailyMetric.avgHrv`** — lee la partici�
 `metricSeries`. Ese camino VIVE y F6 **no lo toca**: el héroe autonómico no cambia de número.
 
 En una frase: **F6 sustituye cada lente `keep:.band` por un limpiador incondicional de columnas band-domain
-(que nila lo mismo, byte por byte), colapsa cada `keep:.apple` a `days`, borra `strapOnlyHistory` + `Source` +
+(que nila lo mismo, byte por byte), colapsa cada `keep:.apple` a `days`, borra `bandaOnlyHistory` + `Source` +
 el threading de `appleHealthDays`, y prueba con un test de no-regresión que (a) el resultado es idéntico y
 (b) que quitar el limpiado reintroduciría FER-519.**
 
@@ -47,7 +47,7 @@ el threading de `appleHealthDays`, y prueba con un test de no-regresión que (a)
 ## Supuestos (verificados contra el código, no adivinados)
 
 - **F1-F4 y F5 aplicadas.** `IntelligenceEngine`/`CircadianEngine` no existen; los bloques Impact/Change/Rules
-  de F5 tampoco. `SourceLens.strapOnlyHistory` YA vive en `SourceLens.swift:100` (reubicado en F4).
+  de F5 tampoco. `SourceLens.bandaOnlyHistory` YA vive en `SourceLens.swift:100` (reubicado en F4).
 - **Greenfield sólido:** `Repository.swift:366-367` fija `imported = []`, `computed = []`, `apple = appleRaw`.
   → `days = mergeDaily(imported:[], computed:[], apple:).days` = exactamente las filas Apple, y
   `appleHealthDays = merged.appleDays` = exactamente esos day-keys. **No existe una fila non-Apple en `days`**
@@ -81,7 +81,7 @@ Notación: `clearBandColumns(d)` ≡ `d.map { $0.crossSourceMasked() }` (el nuev
 | 4 | `InsightsProvider.rank:57` `bandDays` → `InsightEngine` | `avgHrv`/`restingHr`/`resp` nilados → baselines HRV/RHR/resp y sus correlaciones **dormidos**; `strain`/ACWR/comportamiento/dieta **vivos** | `clearBandColumns(days)` | **ALTO.** Identidad. Pasar `days` crudo = **REINTRODUCE FER-519** (SDNN en la base HRV). |
 | 5 | `WhatMovesIt.findings("hrv"):61` `maskHrv(keep:.band)` | `avgHrv` nilado → serie HRV vacía → **0 findings** (bloque oculto) | `clearBandHrv(days)` **o** retirar el `case "hrv"` (equivalente) | **ALTO.** Identidad. El `case "rhr"` lee `restingHr` Apple crudo (sin lente, `:65`) → **sin cambio**. |
 | 6 | `CyclePhaseSheet:50` `maskForBaseline(keep:.band)` | `avgHrv`/`skinTemp` nilados → `CyclePhaseEngine` vacío → estado «necesita banda» | `clearBandColumns(repo.days)` | **MED.** Identidad. La vista **SIGUE accesible** desde `AjustesView.swift:131` (`CyclePhaseSheet()`), gate `cyclePhaseOn` — **no está huérfana**; band-only por diseño (`CyclePhaseView.swift:48`). |
-| 7 | `AppModel+Illness.swift:85,90,128` `strapOnlyHistory` + `maskForBaseline(keep:.apple/signalSource)` | `signalSource`=`.apple` (constante); `vitalsDays`=`maskForBaseline(keep:.apple)`=**identidad** → lee `restingHr` Apple + `avgHrv`=**SDNN** within-source; `skinTempDays`=identidad; `strapDays`=**EMPTY** (solo la rama `.band` muerta lo usa) | `vitalsDays`=`days`; `skinTempDays`=`days`; **borrar** `strapDays`, `signalSource`, la rama `.band` | **CRÍT.** Identidad. ⚠️ El uso de **SDNN aquí es DELIBERADO** (z within-source contra la propia norma Apple — válido pese a SDNN≠RMSSD; Shaffer & Ginsberg 2017). **NO enrutar a RMSSD, NO mezclar historia.** |
+| 7 | `AppModel+Illness.swift:85,90,128` `bandaOnlyHistory` + `maskForBaseline(keep:.apple/signalSource)` | `signalSource`=`.apple` (constante); `vitalsDays`=`maskForBaseline(keep:.apple)`=**identidad** → lee `restingHr` Apple + `avgHrv`=**SDNN** within-source; `skinTempDays`=identidad; `bandaDays`=**EMPTY** (solo la rama `.band` muerta lo usa) | `vitalsDays`=`days`; `skinTempDays`=`days`; **borrar** `bandaDays`, `signalSource`, la rama `.band` | **CRÍT.** Identidad. ⚠️ El uso de **SDNN aquí es DELIBERADO** (z within-source contra la propia norma Apple — válido pese a SDNN≠RMSSD; Shaffer & Ginsberg 2017). **NO enrutar a RMSSD, NO mezclar historia.** |
 
 **Adyacente, FUERA de F6 (no es del read-model, no usa `SourceLens`):** `TodayView.computeHrvCounts(days:appleDays:)`
 (`:356`) cuenta `ownNights`/`recoveryCalibration` excluyendo `appleDays` — pertenece al **número de recuperación
@@ -99,7 +99,7 @@ retirado** (F5/FER-1030), no al lente. F6 **no lo toca**.
 | `mask(_:keep:appleDays:blank:)` (private, incl. fast-path identidad) | **MUERE** | Colapsa al `.map` incondicional en cada helper. |
 | `maskHrv(_:keep:appleDays:)` | **COLAPSA** → `clearBandHrv(_ days) = days.map { $0.hrvMasked() }` | Sin params; nila `avgHrv` en toda fila. |
 | `maskForBaseline(_:keep:appleDays:)` | **COLAPSA** → `clearBandColumns(_ days) = days.map { $0.crossSourceMasked() }` | Sin params; nila toda columna cross-source. |
-| `strapOnlyHistory(_:appleHealthDays:)` | **MUERE** | Solo lo usaba la rama `.band` muerta de illness. |
+| `bandaOnlyHistory(_:appleHealthDays:)` | **MUERE** | Solo lo usaba la rama `.band` muerta de illness. |
 | `crossSourceMasked()` / `hrvMasked()` (private ext `DailyMetric`) | **VIVEN** | Son los cuerpos de los dos helpers. |
 
 Resultado: `SourceLens` deja de ser un árbitro multi-fuente y queda como **«limpiador de columnas
@@ -112,14 +112,14 @@ cambió**, no solo el nombre.
 
 ### `SourceFusion.swift` (StrandAnalytics) — **F6 NO TOCA NADA AQUÍ**
 `autonomicTrend` (**el RMSSD real de Apple, el héroe**), `mergeDaily`, `strainEstimateEligibleDays`,
-`appleStrainEstimates`, `fusionByDay`, `mergeSleep*`, `appleSleepsNotCoveredByStrap`, `fillingNils`: **VIVEN**.
+`appleStrainEstimates`, `fusionByDay`, `mergeSleep*`, `appleSleepsNotCoveredByBanda`, `fillingNils`: **VIVEN**.
 El colapso de sus firmas multi-fuente (imported/computed vacíos) es **F7**.
 
 ### App-shell
 - `repo.appleHealthDays` (`Repository.swift:68/130/543`): **VIVE** (la produce `mergeDaily`; `RecoveryDetailModel.isAppleHealth`
   la lee, `:698`). F6 solo **deja de pasarla** a los call-sites del lente. Su retiro (siempre == todos los días)
   es **F7**.
-- `AppModel+Illness`: `signalSource`, `strapDays`, la rama `.band` y `repo.dataSourceMode == .appleHealthOnly`
+- `AppModel+Illness`: `signalSource`, `bandaDays`, la rama `.band` y `repo.dataSourceMode == .appleHealthOnly`
   (`:87`) → **MUEREN** (constantes). `vitalsDays`/`skinTempDays` → `days`.
 
 ---
@@ -166,14 +166,14 @@ introduce `apple_rmssd_night` en un consumidor que hoy no lo lee. Eso es lo que 
 
 **C. App — colapsar illness (`keep:.apple` → identidad; borrar la rama muerta):**
 8. `AppModel+Illness.swift`:
-   - Borrar `:85` (`strapDays`), `:87` (`signalSource`).
+   - Borrar `:85` (`bandaDays`), `:87` (`signalSource`).
    - `:89-91` `vitalsDays` → `let vitalsDays = days`.
    - `:128` `skinTempDays` → `let skinTempDays = days`.
    - `resp` ya lee `days` (`:133`) — sin cambio.
    - Actualizar el comentario `:71-84` a Apple-only (conservar la cita SDNN within-source deliberada).
 
 **D. StrandAnalytics — retirar la maquinaria de selección de fuente (ya sin consumidor tras B+C):**
-9. `SourceLens.swift`: borrar `maskHrv`, `maskForBaseline`, `strapOnlyHistory`, `mask`, `keeps`, `enum Source`.
+9. `SourceLens.swift`: borrar `maskHrv`, `maskForBaseline`, `bandaOnlyHistory`, `mask`, `keeps`, `enum Source`.
    Conservar `clearBandColumns`/`clearBandHrv` + las ext privadas `crossSourceMasked`/`hrvMasked`.
 
 **E. Tests (§5).**
@@ -188,11 +188,11 @@ introduce `apple_rmssd_night` en un consumidor que hoy no lo lee. Eso es lo que 
 
 | Test | Acción | Motivo |
 |---|---|---|
-| `StrandAnalytics/.../SourceLensTests.swift` | **ACTUALIZAR** | Reescribir los casos `keep:.band`/`keep:.apple`/`appleDays` a `clearBandColumns`/`clearBandHrv`. El invariante columna≡fila (`testBaselineMaskEqualsStrapOnlyRowDrop`) pierde su lado `strapOnlyHistory` (muere) → conservar la aserción de columnas. Los tests de `keep:.apple` complemento/identidad se retiran (fuente única). |
+| `StrandAnalytics/.../SourceLensTests.swift` | **ACTUALIZAR** | Reescribir los casos `keep:.band`/`keep:.apple`/`appleDays` a `clearBandColumns`/`clearBandHrv`. El invariante columna≡fila (`testBaselineMaskEqualsBandaOnlyRowDrop`) pierde su lado `bandaOnlyHistory` (muere) → conservar la aserción de columnas. Los tests de `keep:.apple` complemento/identidad se retiran (fuente única). |
 | `StrandAnalytics/.../VitalitySourceInvarianceTests.swift` | **ACTUALIZAR** | `maskForBaseline(keep:.band)` → `clearBandColumns`. **Conservar las aserciones** (Apple-only → factor HRV/RHR ausente, `rmssd/rmssdNorm` nil): son el pin de que Body Age no cambia. |
 | `CenitUnitTests/InsightsProviderSourceInvarianceTests.swift` | **ACTUALIZAR** | Re-apuntar al helper; conservar aserciones. |
-| `CenitUnitTests/IntelligenceBaselinePriorTests.swift` | **PARTIR/BORRAR** | Los casos `strapOnlyHistory` (`:24,29,45`) mueren con la función. Si no queda nada vivo, borrar el archivo. |
-| `CenitUnitTests/IllnessWatchSourceTests.swift` | **REESCRIBIR** | Los 3 usos de `strapOnlyHistory` (`:53,72,99`) + el caso FER-884 («Apple-only ⇒ strapOnlyHistory EMPTY») se sustituyen por: «illness Apple-only lee `days` directo, z within-source Apple SDNN/RHR». La semántica NO cambia (era ya el comportamiento efectivo); cambia el símbolo. |
+| `CenitUnitTests/IntelligenceBaselinePriorTests.swift` | **PARTIR/BORRAR** | Los casos `bandaOnlyHistory` (`:24,29,45`) mueren con la función. Si no queda nada vivo, borrar el archivo. |
+| `CenitUnitTests/IllnessWatchSourceTests.swift` | **REESCRIBIR** | Los 3 usos de `bandaOnlyHistory` (`:53,72,99`) + el caso FER-884 («Apple-only ⇒ bandaOnlyHistory EMPTY») se sustituyen por: «illness Apple-only lee `days` directo, z within-source Apple SDNN/RHR». La semántica NO cambia (era ya el comportamiento efectivo); cambia el símbolo. |
 | **NUEVO: `StrandAnalytics/.../SourceLensCollapseTests.swift`** | **CREAR** | El test de no-regresión SDNN↔RMSSD (abajo). |
 
 ### El test de no-regresión SDNN↔RMSSD (qué FIJA, concreto)
@@ -268,7 +268,7 @@ contrato para siempre.
 
 3. **Illness: mezclar su historia o cambiar su fuente.** Illness lee **SDNN de Apple within-source
    deliberadamente** (`vitalsDays = days`, z contra la propia norma Apple — válido pese a SDNN≠RMSSD; Shaffer
-   & Ginsberg 2017). Riesgo: al borrar `strapDays`/`signalSource`/rama `.band`, cambiar accidentalmente
+   & Ginsberg 2017). Riesgo: al borrar `bandaDays`/`signalSource`/rama `.band`, cambiar accidentalmente
    `vitalsDays` a algo ≠ `days`, o «corregir» el SDNN a RMSSD (rompería la base de 28 noches).
    **Mitigación:** `vitalsDays`/`skinTempDays` → exactamente `days`; `resp` ya lee `days`;
    `IllnessWatchSourceTests` reescrito pin el z within-source; el comentario conserva la cita.
@@ -283,13 +283,13 @@ futuro (p.ej. si alguien reañade una fila `computed`); el limpiado incondiciona
 ## 7. Criterios técnicos de aceptación (checklist de `/implement`)
 
 - [ ] `SourceLens.swift` NO contiene `enum Source`, `keeps`, `mask`, `maskHrv`, `maskForBaseline`,
-      `strapOnlyHistory`. SÍ contiene `clearBandColumns`/`clearBandHrv` (+ ext privadas
+      `bandaOnlyHistory`. SÍ contiene `clearBandColumns`/`clearBandHrv` (+ ext privadas
       `crossSourceMasked`/`hrvMasked`).
-- [ ] `grep -rn "keep: *\.band\|keep: *\.apple\|maskForBaseline\|maskHrv\|strapOnlyHistory\|SourceLens\.Source"
+- [ ] `grep -rn "keep: *\.band\|keep: *\.apple\|maskForBaseline\|maskHrv\|bandaOnlyHistory\|SourceLens\.Source"
       --include=*.swift Cenit Packages CenitUnitTests` → **0** (código y comentarios de call-site).
 - [ ] `grep -rn "appleHealthDays\|appleDays" --include=*.swift` NO aparece como **argumento** a ningún helper de
       `SourceLens` (la prop `repo.appleHealthDays` sigue viva para `isAppleHealth`; su retiro es F7).
-- [ ] `AppModel+Illness`: sin `strapDays`, sin `signalSource`, sin rama `.band`, sin `dataSourceMode ==`;
+- [ ] `AppModel+Illness`: sin `bandaDays`, sin `signalSource`, sin rama `.band`, sin `dataSourceMode ==`;
       `vitalsDays == days` y `skinTempDays == days` (`git diff` lo confirma).
 - [ ] `SourceFusion.swift` sin cambios (`git diff` vacío) — `autonomicTrend` y el resto intactos. `apple_rmssd_night`
       no aparece en ningún consumidor nuevo.
@@ -311,7 +311,7 @@ futuro (p.ej. si alguien reañade una fila `computed`); el limpiado incondiciona
 ## 8. Alternativas evaluadas
 
 - **Borrar `SourceLens` entero e inline el limpiado en cada sitio.** Descartada: dispersa la lógica FER-519 por
-  7 archivos (justo lo contrario de la consolidación que F4 hizo al mover `strapOnlyHistory` DENTRO de
+  7 archivos (justo lo contrario de la consolidación que F4 hizo al mover `bandaOnlyHistory` DENTRO de
   `SourceLens`); y el limpiado sigue siendo ciencia viva, no andamiaje.
 - **Pasar `days` crudo (sin limpiar) asumiendo que «Apple es la única fuente, ya no hay banda que aislar».**
   **Descartada — es el bug.** La fila Apple carga SDNN en `avgHrv`; los motores band-domain lo tomarían como
@@ -337,10 +337,10 @@ Cambio de arquitectura real (el read-model pierde su dimensión multi-fuente). D
 -   `restingHr`, `respRateBpm`, `deepMin`/`remMin`/`lightMin` — for band-anchored consumers (FER-632+): no
 -   band↔Apple metric is interchangeable without correction (RMSSD≠SDNN — Task Force 1996, Shaffer &
 -   Ginsberg 2017 — plus measured RHR/resp/stage offsets, FER-629). It is the column-level equivalent of
--   `IntelligenceEngine.strapOnlyHistory` (whole-row drop): under the skip-and-hold folds both yield the
+-   `IntelligenceEngine.bandaOnlyHistory` (whole-row drop): under the skip-and-hold folds both yield the
 -   same single-source baseline (pinned by test). The **z-score is the common currency** across sources;
 -   raw ms are never compared between them. `keep: .band, appleDays: []` is the identity for both lenses
--   (a strap-only user is unchanged).
+-   (a banda-only user is unchanged).
 + - **`SourceLens`** (FER-623 / FER-631; colapsado a single-source en el épico «la banda nunca existió», F6).
 +   Apple-only: cada fila diaria carga **SDNN** de Apple en `avgHrv`, RHR sedentario de Apple en `restingHr` y
 +   un Δ de temperatura propio — construcciones distintas de las de la banda (RMSSD≠SDNN, sin conversión
@@ -350,7 +350,7 @@ Cambio de arquitectura real (el read-model pierde su dimensión multi-fuente). D
 +   `clearBandHrv(_)` nila solo `avgHrv` antes de que un motor las pliegue — en greenfield esas sub-features
 +   HRV/RHR quedan **dormidas**, no contaminadas. El RMSSD nocturno REAL de Apple fluye por un camino separado
 +   (`SourceFusion.autonomicTrend` sobre `apple_rmssd_night`), nunca por este lente. La selección de fuente
-+   (`keep`/`appleDays`/`Source`/`strapOnlyHistory`) se retiró: con una sola fuente no hay qué seleccionar.
++   (`keep`/`appleDays`/`Source`/`bandaOnlyHistory`) se retiró: con una sola fuente no hay qué seleccionar.
 +   `AppModel+Illness` es la única excepción que lee SDNN de Apple **a propósito** (z within-source contra la
 +   propia norma Apple, no contra la de banda).
 ```

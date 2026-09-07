@@ -67,8 +67,7 @@ importers. Neither opens a socket.
 The exercise catalog can show an instructional image/GIF per exercise. Fetching it is
 off by default and entirely optional:
 
-- **Off until you enable it.** The toggle lives in Settings
-  (`noop.exerciseMediaEnabled`, default `false`). With it off, `MediaDownloadCoordinator`
+- **Off until you enable it.** The toggle lives in Settings, default `false`. With it off, `MediaDownloadCoordinator`
   never constructs a request — the zero-request guarantee is structural, not just a
   convention at the call sites.
 - **What is sent.** Once enabled, viewing (or bulk-downloading) an exercise's media is a
@@ -86,8 +85,7 @@ If you never enable exercise media download, Cénit makes zero network connectio
 
 ### 1.2 The iOS app's entitlements
 
-The iOS app ships with a deliberately minimal entitlement set
-(`CenitApp/Resources/NOOP.entitlements`):
+The iOS app ships with a deliberately minimal entitlement set:
 
 ```xml
 <key>com.apple.developer.healthkit</key>                       <true/>
@@ -119,11 +117,9 @@ because there is no network code to begin with, not merely by convention.
 ### 2.1 Where the data lives
 
 All durable data is stored in a single GRDB/SQLite database. The app
-opens it at (`Cenit/Data/StorePaths.swift`):
-
-```
-<Application Support>/OpenWhoop/whoop.sqlite
-```
+opens it inside `<Application Support>` (`Cenit/Data/StorePaths.swift`); the folder and
+filename still carry the project's original name and a migration to a `Cenit`-named path
+is planned (see `docs/ARCHITECTURE.md` §2), tracked separately and **in progress**.
 
 On iOS every app is sandboxed by the OS, so `<Application Support>` resolves **inside
 the app's private data container** (under the app's home directory), not in any
@@ -134,18 +130,21 @@ The schema is defined by a versioned `DatabaseMigrator` in
 It holds exactly the kinds of data you would expect from the features:
 
 - **Decoded biometric streams** (durable): `hrSample`, `rrInterval`, `spo2Sample`,
-  `skinTempSample`, `respSample`, `gravitySample`, `battery`, `event`.
+  `skinTempSample`, `respSample`, `gravitySample`, `battery`, `event`. All but `hrSample`
+  are legacy tables from a retired third-party wearable integration — no longer read, not
+  created on new installs (see `docs/DATA_MODEL.md`).
 - **Derived/cached metrics**: `sleepSession`, `dailyMetric`, `workout`, `journal`,
   `appleDaily`, and the generic long-format `metricSeries`.
-- **A transient raw outbox** (`rawBatch`): compressed raw BLE frames from the retired
-  band era — **dormant** and **prunable**.
-- **Device records** (`device`): device id (historical), MAC, name, first/last-seen timestamps.
+- **A transient raw outbox** (`rawBatch`): compressed raw frames from the retired
+  wearable integration — legacy, no longer read, and **prunable**.
+- **Device records** (`device`): legacy, no longer read (historical device id, MAC, name,
+  first/last-seen timestamps).
 
 The database is opened in WAL journal mode with `synchronous = NORMAL` and a busy
 timeout, tuned for bulk import/backfill writes
 (`Packages/CenitStore/Sources/CenitStore/CenitStore.swift`). WAL means you will also
-see `whoop.sqlite-wal` and `whoop.sqlite-shm` sidecar files alongside the main
-database — they live in the same container.
+see `-wal` and `-shm` sidecar files alongside the main database file — they live in the
+same container.
 
 ### 2.2 Encryption
 
@@ -190,8 +189,8 @@ aid.)
 
 ### 2.4 Diagnostics
 
-There is no live strap connection log in the shipping app (band pairing was retired,
-FER-1003). Diagnostics for HealthKit sync and imports stay on-device; nothing is
+There is no live wearable connection log in the shipping app (external band pairing was
+retired, FER-1003). Diagnostics for HealthKit sync and imports stay on-device; nothing is
 uploaded by Cénit.
 
 ### 2.5 Backups
@@ -200,7 +199,7 @@ Cénit's database can be backed up two ways, both entirely local to devices and 
 you already control — Cénit's own code never uploads a backup anywhere itself:
 
 - **Manual export / import** (`Cenit/Data/DataBackup.swift`). Export checkpoints the WAL
-  and copies the single `whoop.sqlite` file to a location you pick through the system
+  and copies the single database file to a location you pick through the system
   document picker (Files, iCloud Drive, AirDrop, etc.). Import validates the chosen file
   (checks the SQLite magic header), snapshots your current database to a rollback
   sidecar first, then swaps the new file in atomically — a failure mid-import leaves the
@@ -272,9 +271,9 @@ The Apple Health importer lives in `Packages/StrandImport/` and assumes the file
 - **No cloud, no sync, no remote backup.** Your data never leaves the machine via
   Cénit.
 - **No advertising identifiers, no tracking.**
-- **No WHOOP account or API credentials, and no live connection to a WHOOP strap.**
-  Cénit is Apple Health-only; it does not authenticate against, or pull from, any WHOOP
-  server, and no longer opens a Bluetooth connection to a strap at all.
+- **No third-party wearable account or API credentials, and no live Bluetooth connection
+  to any external device.** Cénit is Apple Health-only; it does not authenticate against,
+  or pull from, any third-party server, and does not open a Bluetooth connection at all.
 
 ---
 
@@ -283,7 +282,7 @@ The Apple Health importer lives in `Packages/StrandImport/` and assumes the file
 | Surface | Risk | Mitigation | Where |
 |---------|------|------------|-------|
 | Process | Data exfiltration / network egress | Only one opt-in feature networks: exercise media download (a GET to a fixed CDN, only when enabled — §1.1b); nothing else makes a network call | `Cenit/Media/MediaDownloadCoordinator.swift` |
-| Filesystem | Broad disk access | iOS app sandbox; imports read only the files you pick via the document picker; data stays in the app's private container | `CenitApp/Resources/NOOP.entitlements`, `Cenit/Data/StorePaths.swift` |
+| Filesystem | Broad disk access | iOS app sandbox; imports read only the files you pick via the document picker; data stays in the app's private container | the app's entitlements file, `Cenit/Data/StorePaths.swift` |
 | App state | Implausible-but-valid values | Range gates (e.g. HR 30–220) at HealthKit / import boundaries | `HealthKitBridge`, import glue |
 | Health import | XML bomb / multi-GB DOM blowup | Streaming SAX over `InputStream`; per-element autorelease pool | `StrandImport/AppleHealthImporter.swift` |
 | Health import | Zip bomb | 8 GB decompressed ceiling, chunked to disk, hard abort | `StrandImport/AppleHealthImporter.swift` |
@@ -308,5 +307,5 @@ good faith.
 - **`weichsel/ZIPFoundation`** — the archive reader used by the importers.
 
 See `ATTRIBUTION.md` and `DISCLAIMER.md` for the full attribution and good-faith
-notice. Cénit contains no WHOOP proprietary code, firmware, binaries, logos, or
+notice. Cénit contains no third-party proprietary code, firmware, binaries, logos, or
 assets, and performs no DRM circumvention.

@@ -1,4 +1,4 @@
-# Diseño técnico — F7: esquema greenfield v1 + naming `strap`→`apple`
+# Diseño técnico — F7: esquema greenfield v1 + naming `banda`→`apple`
 
 > Sub-plan de la Fase 7 del épico «la banda nunca existió». Fuente de verdad del épico:
 > `docs/_demolicion-banda-plan.md`. F1–F6 YA están DONE y committeadas en
@@ -14,9 +14,9 @@ Dos cambios de fondo, un solo PR pesado sobre `Packages/CenitStore` + capa app:
    `migrator.eraseDatabaseOnSchemaChange = true`. Un install con esquema viejo → GRDB **recrea
    la DB vacía** (no intenta migrar, no crashea); el dato Apple regresa por re-sync de HealthKit;
    el dato del usuario (fuerza/dieta/journal) se pierde a propósito (premisa greenfield del dueño).
-2. **Naming:** renombrar la partición literal **`"strap"` → `"apple"`** (id de dato, no hardware) y
-   los símbolos/campos `strap*`. NO se elimina la noción de `deviceId`: sigue viva y load-bearing
-   (separa dato importado de dato **computado on-device** vía el sufijo `-noop`).
+2. **Naming:** renombrar la partición literal **`"banda"` → `"apple"`** (id de dato, no hardware) y
+   los símbolos/campos `banda*`. NO se elimina la noción de `deviceId`: sigue viva y load-bearing
+   (separa dato importado de dato **computado on-device** vía el sufijo `(sufijo de fuente computada)`).
 
 ## Supuestos
 
@@ -44,8 +44,8 @@ Dos cambios de fondo, un solo PR pesado sobre `Packages/CenitStore` + capa app:
 | Paquete `CenitStore` (core) | `Sources/CenitStore/Database.swift` | Reescribir `makeMigrator()` a un solo `v1` + `eraseDatabaseOnSchemaChange`; borrar `renameDevicePartition`. |
 | Paquete `CenitStore` (core) | `StreamStore.swift`, `Reads.swift`, `RawOutbox.swift`, `CircadianPhaseStore.swift`, `CenitStore.swift` | Quitar métodos que tocan tablas muertas (limpieza de honestidad; SQL en string ⇒ runtime-safe). |
 | Paquete `CenitStore` (tests) | `Tests/CenitStoreTests/MigrationTests.swift` (+ `StoreBackendTests`, `DashboardSnapshotTests`, `StepSampleTests`) | Reescribir: se van los tests de v5/v15…v36/v21-rebuild/v36-rename; entran tests de v1-Apple-only + erase-on-mismatch. |
-| App | `Cenit/App/AppModel.swift` | `let deviceId = "apple"` (era `"strap"`) — **fuente única** de la partición base. |
-| App | `Cenit/Data/MetricCatalog.swift`, `MetricDetailSpec.swift`, `Cenit/Screens/TodayView.swift`, `CuerpoView.swift`, `ScreenshotFixtures.swift`, `Cenit/Data/DashboardSnapshot`(campo) | Literal `"strap"` de partición → `"apple"` **en lockstep** (ver «Naming» abajo). |
+| App | `Cenit/App/AppModel.swift` | `let deviceId = "apple"` (era `"banda"`) — **fuente única** de la partición base. |
+| App | `Cenit/Data/MetricCatalog.swift`, `MetricDetailSpec.swift`, `Cenit/Screens/TodayView.swift`, `CuerpoView.swift`, `ScreenshotFixtures.swift`, `Cenit/Data/DashboardSnapshot`(campo) | Literal `"banda"` de partición → `"apple"` **en lockstep** (ver «Naming» abajo). |
 
 **Contratos públicos que cambian:**
 - `CenitStoreInfo.schemaVersion` pasa de `36` a `1` (es derivado de `migrations.count`, no manual —
@@ -63,7 +63,7 @@ Dos cambios de fondo, un solo PR pesado sobre `Packages/CenitStore` + capa app:
 
 Por qué colapsar y no «dejar tablas dormidas + reset»:
 - El dueño pidió «como si la banda nunca hubiera existido». Una cadena `v1…v36` con 8 tablas de
-  streams de banda + `deviceIdMap` + `renameDevicePartition('my-whoop'→'strap')` es exactamente lo
+  streams de banda + `deviceIdMap` + `renameDevicePartition('legacy'→'banda')` es exactamente lo
   contrario: es el fósil de la banda. Colapsar deja el esquema honesto.
 - **`eraseDatabaseOnSchemaChange` ES el mecanismo GRDB-nativo, battle-tested, para justo esto**: al
   abrir, si las migraciones grabadas en `grdb_migrations` no son un prefijo de las registradas
@@ -124,18 +124,18 @@ demand (`resolvedDeviceId(createIfMissing:true)`); no hace falta el «floor inse
 > *número* 0-100 y `RecoveryImpact`; verificar en `/implement` si algún escritor la sigue poblando.
 > Dropearla es limpieza opcional, no F7 — no vale el riesgo de dejar un writer huérfano.
 
-### Decisión 2 — `deviceId = "strap"`: RENOMBRAR a `"apple"`, NO eliminar
+### Decisión 2 — `deviceId = "banda"`: RENOMBRAR a `"apple"`, NO eliminar
 
 Verificado: `deviceId` **no es cruft de banda vestigial**, es una clave de partición viva que
 separa tres orígenes:
-- `"strap"` (`AppModel.deviceId`, pasado como `noopDeviceId`): base import+computado. **→ `"apple"`**.
-- `"strap-noop"` (`Repository.computedDeviceId = deviceId + "-noop"`): métricas **computadas
-  on-device** (metricSeries + workouts detectados). **→ `"apple-noop"` automático** (derivado, sin
+- `"banda"` (`AppModel.deviceId`, pasado como `legacyDeviceId`): base import+computado. **→ `"apple"`**.
+- `"banda-computada"` (`Repository.computedDeviceId = deviceId + "(sufijo de fuente computada)"`): métricas **computadas
+  on-device** (metricSeries + workouts detectados). **→ `"apple-computada"` automático** (derivado, sin
   cambio de código).
-- `"apple-health"` (`AppModel.appleDeviceId`) y `"apple-health-noop"`: partición Apple separada. **Ya
+- `"apple-health"` (`AppModel.appleDeviceId`) y `"apple-health (partición computada dedicada)"`: partición Apple separada. **Ya
   limpia, NO se toca.**
 
-Eliminar `deviceId` colapsaría la separación import/computado (`-noop`) — eso es un cambio de
+Eliminar `deviceId` colapsaría la separación import/computado (`(sufijo de fuente computada)`) — eso es un cambio de
 read-model tamaño F6, NO un renombre. **Fuera de alcance de F7.** Recomendación: renombrar el
 literal, conservar el mecanismo.
 
@@ -144,38 +144,38 @@ literal, conservar el mecanismo.
 > etiqueta de la base era de banda). Renombrar la base a algo como `"cenit"` en vez de `"apple"`
 > evitaría la ambigüedad conceptual — decisión de nombre para el dueño. El plan asume `"apple"`.
 
-### Naming `strap` → `apple`: sitios concretos
+### Naming `banda` → `apple`: sitios concretos
 
 **Tier 1 — LOCKSTEP obligatorio (correctitud de ruteo de dato; un sitio olvidado = lecturas vacías
-en silencio, patrón FER-519/629).** El literal `"strap"` como id de partición debe moverse junto:
+en silencio, patrón FER-519/629).** El literal `"banda"` como id de partición debe moverse junto:
 
-- `Cenit/App/AppModel.swift:25` — `let deviceId = "strap"` → `"apple"` (**fuente**).
-- `Cenit/App/AppModel.swift:146` — `Repository(deviceId: "strap")` → usar la var `deviceId`
+- `Cenit/App/AppModel.swift:25` — `let deviceId = "banda"` → `"apple"` (**fuente**).
+- `Cenit/App/AppModel.swift:146` — `Repository(deviceId: "banda")` → usar la var `deviceId`
   (idealmente `Repository(deviceId: deviceId)` para eliminar el segundo literal).
-- `Cenit/Screens/TodayView.swift:2439` — `series(key:"stress", source:"strap")` → `"apple"`.
+- `Cenit/Screens/TodayView.swift:2439` — `series(key:"stress", source:"banda")` → `"apple"`.
 - `Cenit/Screens/CuerpoView.swift:1285` — idem.
-- `Cenit/Data/MetricDetailSpec.swift:191, 240` — `source: "strap"` → `"apple"`.
-- `Cenit/Data/MetricCatalog.swift` — ~34 entradas con columna `source` = `"strap"` (avg_hr, max_hr,
+- `Cenit/Data/MetricDetailSpec.swift:191, 240` — `source: "banda"` → `"apple"`.
+- `Cenit/Data/MetricCatalog.swift` — ~34 entradas con columna `source` = `"banda"` (avg_hr, max_hr,
   energy_kcal, recovery, hrv, rhr, resp_rate, spo2, skin_temp, sleep_*, strain, hr_zones*,
   strength_min, stress, …). **VERIFICAR primero** si `MetricCatalog.source` se usa como partición de
   lectura (`Repository.series(source:)`) o solo como etiqueta de agrupación de display. Si es
   partición → renombre lockstep obligatorio. Si es solo label → sigue siendo deseable por honestidad,
   riesgo bajo. (Esta verificación es un paso del secuenciado, no un supuesto.)
-- `Cenit/App/ScreenshotFixtures.swift:338` — `journalDeviceId = "strap"` → `"apple"` (+ `:197` ya usa
+- `Cenit/App/ScreenshotFixtures.swift:338` — `journalDeviceId = "banda"` → `"apple"` (+ `:197` ya usa
   `model.deviceId`, hereda el cambio).
 
 **Tier 2 — símbolos/campos/copy (renombre puro, riesgo bajo, mismo PR):**
-- `Packages/CenitStore/Sources/CenitStore/DashboardSnapshot.swift:16` — campo `strapDeviceId`
+- `Packages/CenitStore/Sources/CenitStore/DashboardSnapshot.swift:16` — campo `bandaDeviceId`
   → `appleDeviceId` (su VALOR viene del caller `Repository.swift:345`; renombre cosmético).
-- `Cenit/Data/Repository.swift` — vars locales `strapDeviceId`, `strapSleeps`, `strapDays`,
-  `computedDeviceId` (comentarios «strap»), `storedStrapDays` (`DataSourcesView.swift:533`).
-- `Cenit/Screens/SleepDetailScreen.swift:1386,1421` — `latestStrapNight`, `strapSessions` (vars).
+- `Cenit/Data/Repository.swift` — vars locales `bandaDeviceId`, `bandaSleeps`, `bandaDays`,
+  `computedDeviceId` (comentarios «banda»), `storedBandaDays` (`DataSourcesView.swift:533`).
+- `Cenit/Screens/SleepDetailScreen.swift:1386,1421` — `latestBandaNight`, `bandaSessions` (vars).
 - `Cenit/Screens/TodayView.swift:295,2492`, `CuerpoView.swift:37`, `MetricDetailScreen.swift:24` —
-  vars/comentarios `strapHrv`, `bandDays`, notas «series("strap")».
-- Comentarios internos con «strap»/«my-whoop» en `CenitStore.swift:37`, `WorkoutSource.swift:34`,
+  vars/comentarios `bandaHrv`, `bandDays`, notas «series("banda")».
+- Comentarios internos con «banda»/legado en `CenitStore.swift:37`, `WorkoutSource.swift:34`,
   `DailyStressModel.swift:11`, `Reads.swift`, `StreamStore.swift`: reescribir los que un lector del
   código encontraría engañosos; **no** churn gratis en cada mención.
-- **Copy visible es-MX** (`Cenit/Resources/Localizable.xcstrings`, ~259 hits «strap»/«banda»/WHOOP):
+- **Copy visible es-MX** (`Cenit/Resources/Localizable.xcstrings`, ~259 hits «banda»/«banda»/la banda):
   el barrido de copy residual visible es **F8** («docs + copy final») por el plan maestro. F7 toca
   solo el copy visible que sea *un id de dato disfrazado* (no hay ninguno confirmado). Dejar el
   barrido de strings es-MX a F8 evita colisión de dos fases sobre el mismo `.xcstrings`.
@@ -221,7 +221,7 @@ isolation.
 
 - **Offline only:** N/A al cambio; el reset re-sincroniza de **HealthKit local**, cero red. ✅
 - **BLE no destructivo / CRC:** N/A — F7 *elimina* el rastro de banda del esquema; no toca
-  `WhoopProtocol` (ya borrado en F1) ni emite bytes. ✅
+  `ProtocoloBanda` (ya borrado en F1) ni emite bytes. ✅
 - **Pureza de paquetes:** `CenitStore` sigue Foundation+GRDB, sin UIKit/CoreBluetooth. El cambio no
   introduce imports de framework. ✅
 - **Migraciones append-only:** **relajada a propósito por el dueño** solo para este reset v1
@@ -262,7 +262,7 @@ isolation.
   la historia de banda, no honra greenfield, más superficie, no resuelve el arranque sobre esquema
   roto tan limpio como el erase.
 - *Eliminar `deviceId` por completo.* Descartada: es un cambio de read-model (colapsa el split
-  import/computado `-noop`), tamaño F6, fuera de alcance; alto riesgo de ruteo silencioso.
+  import/computado `(sufijo de fuente computada)`), tamaño F6, fuera de alcance; alto riesgo de ruteo silencioso.
 - *Simplificar `hrSample`/`rrInterval` a TEXT deviceId + borrar `deviceIdMap`/`resolvedDeviceId`.*
   Descartada para F7: toca `StreamStore`/`Reads`/`CenitStore` (más blast radius) sin beneficio real
   bajo volumen Apple; se mantiene el surrogate intacto.
@@ -278,10 +278,10 @@ isolation.
    con dato real (thermal/nocturnal leen columnas diarias de Apple; readers crudos son dormantes/`[]`).
    **Mitigación:** `swift test` del nuevo `MigrationTests` + grep de callers antes de cada borrado;
    la lista MUERE/VIVE de arriba es el contrato. Si aparece un caller vivo, la tabla se queda.
-3. **Naming fuera de lockstep** → una parte lee `"apple"` y otra `"strap"` → verdict/serie vacía en
+3. **Naming fuera de lockstep** → una parte lee `"apple"` y otra `"banda"` → verdict/serie vacía en
    silencio (clase FER-519/629). **Mitigación:** verificar la semántica de `MetricCatalog.source`
    antes del renombre masivo; test de no-regresión de ruteo; cambiar `AppModel.deviceId` y todos los
-   literales `"strap"` de dato en el MISMO commit.
+   literales `"banda"` de dato en el MISMO commit.
 
 **Riesgo abierto (honestidad):** no corrí `swift test` de `CenitStore` (la suite actual prueba el
 esquema viejo que F7 reescribe; sería ruido). Solo anclé `swift build` verde. El diseño del nuevo
@@ -297,7 +297,7 @@ máquina idle.
 - [ ] `hrSample`/`rrInterval` son `WITHOUT ROWID` con `deviceId` INTEGER; `deviceIdMap` existe y está vacío en fresh.
 - [ ] Abrir sobre una DB con migraciones viejas grabadas **recrea** la DB sin throw (test de humo del erase).
 - [ ] `CenitStore.renameDevicePartition` y todos los tests `testV36*`/`testV21*` de rebuild/rename **eliminados**; nuevo `MigrationTests` verde.
-- [ ] `AppModel.deviceId == "apple"`; **cero** literal `"strap"` como id de dato en `Cenit/`/`CenitApp/` (grep `'"strap"'` no arroja ids de partición; solo comentarios permitidos si los hay).
+- [ ] `AppModel.deviceId == "apple"`; **cero** literal `"banda"` como id de dato en `Cenit/`/`CenitApp/` (grep `'"banda"'` no arroja ids de partición; solo comentarios permitidos si los hay).
 - [ ] `MetricCatalog`/`MetricDetailSpec`/`TodayView`/`CuerpoView` usan `"apple"` (o la var derivada) coherente con `AppModel.deviceId`; test de no-regresión de ruteo verde.
 - [ ] `swift build && swift test` de `CenitStore` verde.
 - [ ] Compile iOS completo verde (máquina idle, `-jobs 4`), app arranca en un install limpio Y sobre un install con DB vieja (erase-and-resync), sin crash.
@@ -307,12 +307,12 @@ máquina idle.
 
 Sí toca el doc (el esquema es parte del mapa). Diff propuesto (a aplicar por `/implement`):
 - Sección de esquema/almacenamiento: reemplazar la narrativa de «cadena v1…v36 + tablas de streams
-  crudos de banda + `deviceIdMap`/v21 rebuild + v36 relabel `my-whoop`→`strap`» por: **«esquema
+  crudos de banda + `deviceIdMap`/v21 rebuild + v36 relabel legado→`banda`» por: **«esquema
   greenfield `v1` Apple-only; `eraseDatabaseOnSchemaChange` recrea la DB en mismatch y re-sincroniza
   de HealthKit; sin tablas de streams crudos de banda (las columnas diarias Apple viven en
-  `dailyMetric`); partición base `"apple"` (+ `-noop` computado), `deviceIdMap` conservado como
+  `dailyMetric`); partición base `"apple"` (+ `(sufijo de fuente computada)` computado), `deviceIdMap` conservado como
   surrogate de partición».**
-- Retirar cualquier mención viva a `WhoopProtocol`/streams de banda en el path de almacenamiento
+- Retirar cualquier mención viva a `ProtocoloBanda`/streams de banda en el path de almacenamiento
   (coordinar con F8, que ya reescribió gran parte de los docs — evitar doble edición del mismo
   párrafo; F7 solo el bloque de esquema/DB).
 - `docs/DATA_MODEL.md`: actualizar la tabla de tablas a la lista VIVA de arriba; marcar las 9 tablas

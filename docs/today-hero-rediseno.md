@@ -37,7 +37,7 @@ Dentro de la rama pre-veredicto, el orden de prioridad es:
 ```swift
 if hasImportedBaseline {                                  // estado 2
     importedBaselineHero
-} else if strapSeen && ownNights < minNightsSeed {        // estado 3
+} else if bandaVista && ownNights < minNightsSeed {        // estado 3
     CalibrationProgressCard
 } else {                                                  // estados 1 y 4
     emptyHero
@@ -49,7 +49,7 @@ Señales que deciden (todas de **solo lectura**, sin tocar el motor):
 | Señal | Significado | Definición |
 |-------|-------------|------------|
 | `recovery` | El puntaje de recuperación de hoy | `repo.today?.recovery` (nil = sin veredicto) |
-| `strapSeen` | Se ha visto la banda alguna vez | `live.lastSyncedAt != nil \|\| liveBpm != nil` |
+| `bandaVista` | Se ha visto la banda alguna vez | `live.lastSyncedAt != nil \|\| liveBpm != nil` |
 | `ownNights` | Noches PROPIAS con HRV válida (banda) | cuenta sobre `repo.days` no-Apple |
 | `seededNights` | Noches con HRV válida en TODA la base (Apple + banda) | cuenta sobre `repo.days` |
 | `hasImportedBaseline` | La base la sembró Apple Health, no la banda | `seededNights ≥ 4 && ownNights < 4` (FER-106) |
@@ -61,10 +61,10 @@ Señales que deciden (todas de **solo lectura**, sin tocar el motor):
 ## 3. Los 6 estados
 
 ### Estado 1 — Vacío, sin banda
-- **Componente:** `emptyHero` (rama `strapSeen == false`)
+- **Componente:** `emptyHero` (rama `bandaVista == false`)
 - **Trigger:** nunca se vio banda, sin base importada.
 - **Muestra:** overline "Veredicto de hoy" · título **"Aún sin lectura"** · cuerpo
-  *"Conecta tu banda WHOOP para ver tu disposición, recuperación y ritmo cardiaco
+  *"Conecta tu banda para ver tu disposición, recuperación y ritmo cardiaco
   de la mañana."* · botón primario **"Buscar banda"** (dispara `model.scan()`).
 - **Rol en el journey:** primer arranque, sin nada todavía.
 
@@ -95,7 +95,7 @@ Señales que deciden (todas de **solo lectura**, sin tocar el motor):
 - **Rol:** calibración clásica para quien no importó nada.
 
 ### Estado 4 — Base propia lista, sin lectura de hoy
-- **Componente:** `emptyHero` (rama `strapSeen == true`)
+- **Componente:** `emptyHero` (rama `bandaVista == true`)
 - **Trigger:** ≥4 noches **propias** ya sembraron la base, pero hoy aún no llega la
   lectura (cae al `else`, no es calibración ni import).
 - **Muestra:** título **"Aún sin lectura de hoy"** · cuerpo *"Tu base está lista.

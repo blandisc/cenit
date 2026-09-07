@@ -7,7 +7,7 @@
 
 ## Resumen
 
-F5 retira la **maquinaria de descomposición de la recuperación estilo WHOOP** — los motores
+F5 retira la **maquinaria de descomposición de la recuperación estilo la banda** — los motores
 `RecoveryImpact` / `RecoveryRules` / `RecoveryChange` (StrandAnalytics), los componentes de dibujo
 `ImpactRows` / `FiveRules` (CenitDesign) y los bloques de UI que los renderizan («Hoy, vs tu normal» y
 «Qué cambió vs ayer» en RecoveryDetailScreen y MetricInfoSheet). **No toca** `RecoveryScorer`, el campo
@@ -27,10 +27,10 @@ llamadores de producción (solo tests + un comentario). La «curva intradía / c
 ## Supuestos
 
 - F1–F4 aplicadas en la rama (verificado: `IntelligenceEngine.swift` y `CircadianEngine.swift` no existen).
-  **Observación fuera de alcance:** `usesWhoop` sigue presente en `Cenit/Data/Repository.swift` y
-  `Packages/CenitStore/.../DashboardSnapshot.swift`, y `SourceLens.strapOnlyHistory` **no** está en
+  **Observación fuera de alcance:** `usesBanda` sigue presente en `Cenit/Data/Repository.swift` y
+  `Packages/CenitStore/.../DashboardSnapshot.swift`, y `SourceLens.bandaOnlyHistory` **no** está en
   SourceLens (solo un comentario lo menciona) → **F3 no aterrizó del todo**. F5 es **independiente** de eso
-  (no toca `usesWhoop` ni `strapOnlyHistory`), pero conviene que el orquestador confirme el estado de F3/F4
+  (no toca `usesBanda` ni `bandaOnlyHistory`), pero conviene que el orquestador confirme el estado de F3/F4
   antes de cerrar el épico.
 - Greenfield Apple-only: `DailyMetric.recovery == nil` en el path de producción; los 3 motores son band-only
   y devuelven `nil`/`[]` hoy.
@@ -175,7 +175,7 @@ referencia). Restaurado. Falta el compile iOS de la capa app (riesgo abierto, ve
 
 **Qué NO toca esta fase:** `RecoveryScorer`, `ReadinessEngine`, `RecoveryForecast`, `SourceLens`/`keep:.band`
 (F6), `DailyMetric.recovery` y el esquema (F7), el héroe de recuperación y su entrada (FER-1030), la
-AutonomicTrendCard y el sueño, `usesWhoop`/`strapOnlyHistory` (F3, aún pendiente aparte).
+AutonomicTrendCard y el sueño, `usesBanda`/`bandaOnlyHistory` (F3, aún pendiente aparte).
 
 ---
 

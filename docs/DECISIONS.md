@@ -16,7 +16,7 @@ el mismo PR** que la implementa (una línea basta: fecha, decisión, por qué).
   caminos quedaron accesibles en directo y la pantalla quedó sin ninguna puerta de entrada.
   Revivirla es una reversión explícita de esta entrada, no un accidente.
 
-- **2026-06 · Cero banda.** La banda WHOOP nunca existió para los usuarios de Cénit: la
+- **2026-06 · Cero banda.** La banda de terceros nunca existió para los usuarios de Cénit: la
   app es 100% Apple Health. Ningún copy, doc o feature nuevo la menciona como vigente
   (épico FER-1003; axioma «mundo nuevo cero banda»).
 - **2026-07 · Solo iOS.** Las demás plataformas se retiraron; el app target es `Cenit`.

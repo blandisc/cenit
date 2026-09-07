@@ -459,7 +459,7 @@ y el alto del skeleton de F5.
 - [ ] C5: cada variante/estado nuevo se agrega a `LiquidSheetEstadosRenderTests`
   (`Packages/CenitDesign/Tests/CenitDesignTests/`, mismo patrón que
   `LiquidHoyEstadosRenderTests`: macOS `ImageRenderer`, `\.liquidMotionDisabled = true`,
-  PNG por estado a `/tmp/noop-liquid/`, `swift test --filter LiquidSheetEstadosRenderTests`).
+  PNG por estado a una carpeta local en `/tmp`, `swift test --filter LiquidSheetEstadosRenderTests`).
 - [ ] design-lint verde; ningún hex/fuente/espaciado inline nuevo fuera de tokens.
 - [ ] Carriles (D6): F0, F3a/F3b, F5, F6 = PESADO con `/qa` independiente usando ESTA matriz
   (§1) como criterios; F1/F2/F4 = ligero (flag + preview).

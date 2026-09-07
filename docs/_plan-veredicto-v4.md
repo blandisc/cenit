@@ -417,7 +417,7 @@ amplíalo **a la vez** para base y día, o vuelves a mezclar constructos. El cos
 
 **El reencuadre que importa.** La premisa «la HRV de un wearable no sirve» es **falsa**; lo que no
 sirve es **el SDNN que Apple publica**. Dial 2025 (*Physiol Rep* 13(16):e70527, 536 noches vs ECG)
-mide RMSSD nocturno de Oura en CCC 0.99 / MAPE 5.96 % y de WHOOP en 0.94 / 8.17 %.
+mide RMSSD nocturno de Oura en CCC 0.99 / MAPE 5.96 % y de la banda en 0.94 / 8.17 %.
 ⚠️ **Dial EXCLUYÓ al Apple Watch. NO extrapolamos esos números a Cénit.** Lo que sí es nuestro:
 `NocturnalHRV` calcula RMSSD desde los **R-R crudos** (`HKHeartbeatSeriesSample`), no desde el SDNN de
 Apple, con gates propios de densidad — así que la señal es **de otra clase que el SDNN**, y su calidad
@@ -496,7 +496,7 @@ propio dentro del veredicto (usa la z de `AutonomicTrend`, que es un constructo 
 
 **Honestidad de copy.** 60 s de R-R es **HRV ultra-corta**: Esco & Flatt 2014 (*J Sports Sci Med*
 13(3):535–541) reporta validez aceptable a 60 s con degradación por debajo. Decirlo, no esconderlo.
-**Nunca** afirmar paridad con Oura/WHOOP.
+**Nunca** afirmar paridad con Oura/la banda.
 
 **Consecuencia de UI — bloqueante de producto, con dueño.** Aparece un **tercer orbe «VFC»** las
 noches densas. **Dueño: `/ux` + `/ui` antes de mergear la fase 2.** Ver «Deuda pendiente» (deuda de UI): la pantalla
@@ -690,7 +690,7 @@ los propios datos**, que es la postura defendible dada la literatura.
 | Fuente | Qué sostiene |
 |---|---|
 | O'Grady 2024, *Sensors* 24(19):6220 | FC-reposo Apple MAE 3.73 bpm/MAPE 5.91 %; **SDNN** MAPE 28.88 %, sesgo −8.31 ms. **Protocolo: 5 min supino matutino.** |
-| Dial 2025, *Physiol Rep* 13(16):e70527 | 536 noches vs ECG. RMSSD nocturno: Oura CCC 0.99/MAPE 5.96 %, WHOOP 0.94/8.17 %. FC nocturna MAE 0.98–1.78 bpm. **Apple Watch excluido.** |
+| Dial 2025, *Physiol Rep* 13(16):e70527 | 536 noches vs ECG. RMSSD nocturno: Oura CCC 0.99/MAPE 5.96 %, la banda 0.94/8.17 %. FC nocturna MAE 0.98–1.78 bpm. **Apple Watch excluido.** |
 | Herzig 2018, *Front Physiol* 8:1100 | RMSSD/HF ICC 0.84 en SWS; menor varianza entre segmentos; **algoritmo por HRV localiza SWS 87 % sin PSG**. |
 | Schyvens 2025, *SLEEP Adv* 6(2):zpaf021 | Apple Watch S8: sensibilidad N3 **50.66 %**, REM 68.57 %, κ=0.53. |
 | Alavi 2022, *Nat Med* 28(1):175–184 | `NightSignal` FSM sobre FC nocturna: 80 % sens., 87.7 % espec., 3 días pre-síntoma. |

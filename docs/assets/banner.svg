@@ -1,6 +1,6 @@
 <svg width="1280" height="320" viewBox="0 0 1280 320" xmlns="http://www.w3.org/2000/svg" role="img">
-  <title>Cénit — an on-device companion for WHOOP straps</title>
-  <desc>An 82 recovery score in deep green inside a ring on warm paper, beside the Cénit wordmark in ink and the line "Your strap. Your data. Your iPhone."</desc>
+  <title>Cénit — an on-device companion for Apple Health</title>
+  <desc>An 82 recovery score in deep green inside a ring on warm paper, beside the Cénit wordmark in ink and the line "Your body. Your data. Your iPhone."</desc>
   <!-- «Instrumento diurno» — warm paper, color only in the datum -->
   <rect x="0" y="0" width="1280" height="320" rx="24" fill="#F4F1E8"/>
   <!-- faint heartbeat baseline (hairline, never color) -->
@@ -11,6 +11,6 @@
   <text x="210" y="160" text-anchor="middle" dominant-baseline="central" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="92" font-weight="600" letter-spacing="-2" fill="#0C8F62">82</text>
   <!-- wordmark + lines, all ink on paper -->
   <text x="398" y="172" font-family="-apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="132" font-weight="800" letter-spacing="-3" fill="#221D16">Cénit</text>
-  <text x="402" y="224" font-family="-apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="30" font-weight="500" fill="#5C5648">Your strap. Your data. Your iPhone.</text>
-  <text x="402" y="260" font-family="-apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="21" font-weight="400" fill="#6F6857">On-device companion for WHOOP 4.0 &amp; 5.0/MG — no cloud, no account.</text>
+  <text x="402" y="224" font-family="-apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="30" font-weight="500" fill="#5C5648">Your body. Your data. Your iPhone.</text>
+  <text x="402" y="260" font-family="-apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="21" font-weight="400" fill="#6F6857">On-device companion for Apple Health — no cloud, no account.</text>
 </svg>
