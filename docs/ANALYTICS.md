@@ -613,6 +613,89 @@ noise test assert that the fraction of random seeds producing any hit stays near
 comparisons the insight surfaces read. Both feed through the correction above rather than reporting
 raw p-values.
 
+The correlation engine reads Pearson's r against the exact two-sided Student-t tail on n − 2 degrees
+of freedom (the regularised incomplete beta by Lentz's continued fraction; *Numerical Recipes* §6.4),
+and returns nothing below three pairs or at zero variance. `alignByDay` inner-joins two day-keyed
+series, `lagged` shifts one of them forward by whole days to probe a delayed effect, and `pairs`
+exposes that same pairing so another statistic can run over it. Two additions serve the «Tu
+patrón» family below:
+
+- **`spearman`** is Pearson on the midranks of each variable (ties share the mean rank), read
+  against the same t tail on n − 2 — the classic t-approximation for ρ (Zar 1972). It is used where
+  a series is zero-inflated (day strain is 0 on rest days) or heavy-tailed (steps), where Pearson
+  would mostly measure the 0-versus-not contrast.
+- **`effectiveN`** is Bartlett's AR(1) shrinkage of n for two autocorrelated series read over the
+  same pairs — `n_eff = n · (1 − ρ₁ₓρ₁ᵧ) / (1 + ρ₁ₓρ₁ᵧ)`, each lag-1 autocorrelation truncated at
+  0 so a train/rest alternation never buys evidence (Bartlett 1935; Dawdy and Matalas 1964).
+  `pValue(r:n:)` reads the t tail on that fractional n. It is still AR(1) only: the raw p stays
+  anticonservative on daily series, which is why the family never reads it directly.
+
+### `WhatMovesItEngine` — «Tu patrón»
+
+The «Tu patrón» block on a metric sheet says with which of the user's *own* daily series the metric
+tends to move. It is **direction only** — rises or falls, never a coefficient — and **association
+only** — «se mueve con», never a cause. The app layer maps a finding's copy key
+(`patron.<relationship>.<rises|falls>`) to its sentence and nothing else.
+
+Every pair is computed in one pass, so the multiplicity control can see all of them:
+
+| Relationship | x → y | Statistic | Lag | Floor | Extra |
+| --- | --- | --- | --- | --- | --- |
+| `sleep.priorStrain` | strain[D] → sleep duration[D+1] | Spearman | +1 | 42 | minority floor |
+| `sleep.priorNight` | sleep duration[D] → sleep duration[D+1] | Pearson | +1 | 42 | raw n (auto-lag) |
+| `strain.efficiency` | sleep efficiency[D] → strain[D] | Spearman | 0 | 56 | minority floor |
+| `efficiency.priorStrain` | strain[D] → sleep efficiency[D+1] | Spearman | +1 | 56 | minority floor |
+| `steps.efficiency` | sleep efficiency[D] → steps[D] | Spearman | 0 | 56 | today's partial count excluded |
+| `rhr.sleepDuration` | sleep duration[D] → resting HR[D] | Pearson | 0 | 42 | — |
+| `rhr.priorStrain` | strain[D] → resting HR[D+1] | Spearman | +1 | 42 | minority floor |
+
+Day keys are the storage keys — sleep and efficiency by the **waking** day; strain, steps and the
+resting pulse by the calendar day — so «strain[D] → sleep[D+1]» is today's load against the night
+that follows. Rows after the device's local today are ignored (a UTC «tomorrow» row), and the steps
+series also drops today itself, a partial running total.
+
+**The gate.** Every value in it is a labeled product knob, not a derived constant:
+
+1. **n floor** — 42 paired days (about six weeks, a calendar floor); **56** for the three pairs that
+   carry sleep efficiency, because a wrist sleep/wake reliability of about 0.5 attenuates any true r
+   by about √0.5, so a visible pattern needs more nights and the block flickers less.
+2. **Minority-class floor** — where the zero-inflated strain series enters and has any 0,
+   `min(#strain = 0, #strain > 0) ≥ 10`; otherwise seven training days out of 49 could pass a
+   «finding» on seven points.
+3. **Effective n** — every cross pair reads its p on `effectiveN`; the auto-lag pair does not,
+   because under the null the series is white and its own ρ₁ *is* the statistic — shrinking n by it
+   would double-count.
+4. **Family control** — the p-values of every testable pair go through Benjamini-Hochberg
+   (`MultipleComparisons`); a finding needs **q < 0.05**. Eight tests at α = 0.05 would otherwise
+   yield at least one false finding 34% of the time under the null.
+5. `|r| ≥ 0.20` is **cosmetic**: below n ≈ 97 the q is the binding bar (|r| ≥ 0.30 at n = 42).
+
+Below the gate the metric has nothing to assert, so the sheet hides the block and the detail says
+«todavía»; it never invents a direction. Power is deliberately low (r = 0.30 at n = 42 is about
+49%): the gate protects against the false positive, not the false negative.
+
+**Excluded, and why.** The science and statistics gates that ran before implementing settled each
+of these. **Variability** — the earlier block read the daily variability figure through the source
+lens that nils it on every Apple row, so it never painted, and Apple's all-day SDNN is the wrong
+construct to revive it on (Zhang 2025: sleep loss moves RMSSD, not SDNN); a dense nocturnal-RMSSD
+series is a separate issue. **Prior-day strain → strain** — for a strain that is 0 on rest days its
+lag-1 autocorrelation is −π/(1 − π) by construction: it described the calendar. **Same-day recovery
+→ strain** — the recovery column is nil on every Apple row. **Steps or energy ↔ strain** — circular,
+since the load estimator classifies rest by steps and energy. **Stress, the acute-to-chronic ratio,
+sleep performance** — composites of series already in the family (double counting). **Sleep stages
+and restorative minutes** — they scale with duration, and consumer staging agreement is about
+κ ≈ 0.5. **Skin temperature, oxygen saturation, respiration, VO₂max, regularity, latency,
+awakenings** — no defensible on-device relationship (no alcohol or altitude data, an intraday curve,
+a sparse trait, one number per window, nil columns).
+
+Citations, each verified by the science gate: Kredlow 2015 (acute exercise → total sleep time,
+efficiency, wake after onset, slow-wave sleep); Atoui 2021 (efficiency and wake after onset →
+next-day activity; activity → shorter total sleep, small); Lambiase 2013; Mead 2019 (day of week
+confounds activity — hence «el calendario también pesa»); Borbély 1982 and 2022 (process S);
+Dettoni 2012 and Faust 2020 (short or late nights → resting pulse up); Stanley 2013 (parasympathetic
+reactivation 24–48 h after hard effort); Zar 1972; Bartlett 1935; Benjamini and Hochberg 1995. Tests: `WhatMovesItTests` (a positive and a negative fixture per relationship plus one fixture per
+gate piece) and `CorrelationEngineOracleTests`.
+
 ---
 
 ## Long-horizon estimates
@@ -734,6 +817,12 @@ usable one of 4, because at four nights the spread is itself mostly noise.
 | Welch 1947; Satterthwaite 1946 | Unequal-variance comparison and its fractional degrees of freedom |
 | Cohen 1988 | The pooled standardized effect size |
 | Student 1908 | The significance of a correlation |
+| Zar 1972 | The t-approximation for Spearman's ρ |
+| Bartlett 1935; Dawdy and Matalas 1964 | The effective sample size of two autocorrelated daily series |
+| Kredlow et al. 2015; Atoui et al. 2021; Lambiase et al. 2013; Mead et al. 2019 | The exercise-sleep and sleep-activity relationships behind «Tu patrón», and the day-of-week confound |
+| Borbély 1982; Borbély 2022 | Process S, behind the night-to-night pair |
+| Dettoni et al. 2012; Faust et al. 2020; Stanley et al. 2013 | Short nights and hard effort against the next day's resting pulse |
+| Zhang 2025 | Why the variability block is not revived on the all-day construct |
 | Zourdos et al. 2016; Helms et al. 2016 | Effort-anchored progression, and reducing load only when reps were missed |
 | Steele et al. 2017 | Why a habitual high effort-rater must not be frozen out of progression |
 | Epley 1985; Brzycki 1993 | The two one-repetition-maximum estimates |

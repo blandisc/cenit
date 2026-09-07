@@ -377,3 +377,35 @@ Lo que **no** se tocó a propósito: la palabra inglesa `stranded` (comentarios/
 archivo y del CHANGELOG **no se reescriben** (esta entrada las supersede; la historia queda como
 rastro). El linter de diseño (`Tools/check-design-drift.py`), los scripts de horneado
 (`Tools/bake-exercisedb/*.py`) y el censo del sistema de diseño se actualizaron a los nombres `Cenit*`.
+## 2026-09-07 · «Tu patrón» para sueño, esfuerzo, eficiencia y pasos (FER-438) · director /orquesta FER-428, reversible por el dueño
+
+Gates de ciencia (/cso) y estadística (/estadistico) corridos antes de implementar; sus reportes son
+el contrato. Cuatro decisiones:
+
+1. **VFC queda SIN bloque «Tu patrón»** hasta tener una serie densa de RMSSD nocturno. El bloque de
+   FER-209 leía `avgHrv` a través de la lente que lo anula en toda fila Apple: nunca pintó. No se
+   revive sobre el SDNN de Apple (la literatura predice débil justo esa relación: Zhang 2025, RMSSD
+   sí, SDNN no). Issue de seguimiento: «VFC: Tu patrón con RMSSD nocturno denso».
+2. **Se retiran los dos drivers de esfuerzo de FER-239.** `priorDayStrain` disparaba por
+   construcción (con esfuerzo 0 en días de descanso, la autocorrelación lag 1 es −π/(1−π): «suele
+   ser menor el día después» para cualquiera que no entrene dos días seguidos; describía el
+   calendario). `sameDayRecovery` nunca disparó (`recovery` es nil en toda fila Apple). El bloque
+   de esfuerzo queda con «eficiencia de anoche → esfuerzo».
+3. **El gate es honesto o no es:** estadístico por relación (Spearman donde entra esfuerzo o pasos,
+   Pearson donde ambas series son continuas), p sobre n efectivo (Bartlett, ρ₁ truncada a ≥ 0) en
+   los pares cruzados, piso de clase minoritaria (≥ 10 días con y sin entreno cuando hay ceros),
+   y Benjamini-Hochberg sobre la familia completa calculada en una sola pasada (q < 0.05). El
+   `|r| ≥ 0.20` se queda rotulado como cosmético. Los pisos 42 / 56 (eficiencia) y el 10 son knobs
+   de producto, rotulados como tales. Consecuencia aceptada: «todavía» será lo normal; el gate
+   protege el falso positivo, no el falso negativo.
+4. **Cinco relaciones nuevas, con cita en el pie de cada métrica:** esfuerzo[D] → sueño[D+1]
+   (Kredlow 2015, Atoui 2021); sueño[D] → sueño[D+1] (Borbély 1982/2022); eficiencia[D] →
+   esfuerzo[D] (Atoui 2021, Lambiase 2013); esfuerzo[D] → eficiencia[D+1] (Kredlow 2015);
+   eficiencia[D] → pasos[D], sin el día en curso (Atoui 2021, Lambiase 2013, Mead 2019). FC en
+   reposo conserva las dos suyas, ahora con Spearman en la de esfuerzo y con las citas correctas
+   (Dettoni 2012, Faust 2020, Stanley 2013; «Plews 2013» no trataba sueño). Las demás métricas
+   (estrés, temperatura, SpO₂, FC, VO₂ máx, carga, regularidad, latencia, despertares, etapas,
+   rendimiento) quedan explícitamente sin bloque, con la razón en `docs/ANALYTICS.md`.
+
+Un solo hogar para el copy: `WhatMovesItFinding.phrase` resuelve `patron.<relación>.<rises|falls>`
+del catálogo; ninguna pantalla vuelve a llevar su propio switch de frases.

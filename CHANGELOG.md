@@ -1320,6 +1320,29 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
   with the door to the list. Never a modal. A fresh install has nothing to announce.
 - Train's "?" now opens Help at its section; the workshop stays one tap away from there.
 
+### «Tu patrón» para sueño, esfuerzo, eficiencia y pasos / Your pattern for sleep, strain, efficiency and steps (FER-438)
+### ES
+- «Tu patrón» ya no vive solo en la FC en reposo: las hojas de sueño, esfuerzo, eficiencia y pasos
+  te dicen, cuando tus propias semanas lo sostienen, con qué se mueve cada una (el esfuerzo del día
+  anterior, la noche anterior, la eficiencia de anoche). Dos frases, «se mueve con», nunca una causa.
+- La barra para afirmar un patrón sube: cada relación usa el estadístico que le toca, descuenta lo
+  parecidos que son tus días entre sí, exige días con y sin entreno, y controla de una vez toda la
+  familia de comparaciones. Verás «todavía» más seguido y menos patrones falsos.
+- VFC deja de reservar un bloque que nunca se pintaba, y el esfuerzo ya no dice «suele ser menor el
+  día después» solo porque no entrenas dos días seguidos.
+- El pie «Cómo se calcula» de cada métrica con patrón dice el método y la fuente.
+
+### EN
+- "Your pattern" no longer lives only on resting HR: the sleep, strain, efficiency and steps sheets
+  tell you, once your own weeks support it, what each one moves with (the previous day's effort, the
+  night before, last night's efficiency). Two sentences, "moves with", never a cause.
+- The bar for asserting a pattern goes up: each relationship uses the right statistic, discounts how
+  alike your days are, requires days with and without training, and controls the whole family of
+  comparisons at once. You will see "not yet" more often, and fewer false patterns.
+- HRV stops reserving a block that never painted, and strain no longer says "tends to be lower the
+  day after" just because you do not train two days in a row.
+- The "How it's calculated" foot of every metric with a pattern states the method and the source.
+
 ## Unreleased
 
 - **Hoy: la puerta al acta es ahora un ⓘ junto al veredicto / Today: the verdict's "how I got here" is now an ⓘ next to the word** (FER-71).

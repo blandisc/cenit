@@ -381,18 +381,9 @@ struct StrainDetailScreen: View {
         LiquidTendenciaCard(
             overline: String(localized: "What we see in your history"),
             chip: String(localized: "trend, not cause"),
-            lineas: model.drivers.map(Self.driverPhrase))
-    }
-
-    /// La frase direccional de un driver — el dato es siempre una DIRECCIÓN, nunca un número.
-    /// Texto SIN CAMBIOS (mismas 4 claves).
-    private static func driverPhrase(_ f: StrainDriverFinding) -> String {
-        switch (f.driver, f.trend) {
-        case (.sameDayRecovery, .rises): return String(localized: "Tends to run higher on days you start more recovered.")
-        case (.sameDayRecovery, .falls): return String(localized: "Tends to run lower on days you start more recovered.")
-        case (.priorDayStrain, .rises):  return String(localized: "Tends to run higher the day after a hard effort.")
-        case (.priorDayStrain, .falls):  return String(localized: "Tends to ease off the day after a hard effort.")
-        }
+            // FER-438 · La frase es `WhatMovesItFinding.phrase`, el único hogar del copy: siempre una
+            // DIRECCIÓN, nunca un número.
+            lineas: model.drivers.map(\.phrase))
     }
 
     // MARK: - Los carriles fijos — UNA sola escalera, compartida por niveles/historial/calendario
@@ -609,8 +600,9 @@ struct StrainDetailModel {
     /// Whether the repo finished its first load (drives loading vs empty hero copy).
     let loaded: Bool
     /// The gated, directional drivers of strain ("Qué mueve tu esfuerzo"), computed from the user's own
-    /// history (FER-239). Empty when nothing clears the sufficiency gate → the block stays hidden.
-    let drivers: [StrainDriverFinding]
+    /// history — since FER-438 the `strain` findings of the one «Tu patrón» family (last night's
+    /// efficiency → the day's strain). Empty when nothing clears the gate → the block stays hidden.
+    let drivers: [WhatMovesItFinding]
     /// Today's effort-confidence tier (FER-676), from the persisted `effortConfidence` — how much of the
     /// active day HR actually covered. nil when today has no score (nothing to grade → no sello).
     var confidence: ScoreConfidence? = nil
@@ -626,17 +618,14 @@ struct StrainDetailModel {
     /// Build the whole model from the repo's in-memory dashboard. Pure (no DB). `days` is the strap +
     /// on-device dashboard (`repo.days`, the baseline source — FER-149); `today` is `repo.today`; `todayKey`
     /// is the device's local day key (passed by the caller — `Repository.localDayKey` is main-isolated,
-    /// FER-976). The drivers are computed here off the same `days` (which carry recovery) via
-    /// `CenitAnalytics`, keeping the screen DB-free presentation over a ready-made model.
+    /// FER-976). The drivers are computed here off the same `days` via `CenitAnalytics`
+    /// (`WhatMovesItEngine`, FER-438), keeping the screen DB-free presentation over a ready-made model.
     static func build(days: [DailyMetric], today: DailyMetric?, loaded: Bool,
                       todayKey: String) -> StrainDetailModel {
         let series = days
             .compactMap { d in d.strain.map { (day: d.day, value: $0) } }
             .sorted { $0.day < $1.day }
-        let recovery = days
-            .compactMap { d in d.recovery.map { (day: d.day, value: $0) } }
-            .sorted { $0.day < $1.day }
-        let drivers = WhatMovesStrainEngine.drivers(strain: series, recovery: recovery)
+        let drivers = WhatMovesItEngine.findings(forMetricKey: "strain", days: days, today: todayKey)
         return StrainDetailModel(today: today?.strain, series: series, loaded: loaded, drivers: drivers,
                                  confidence: today?.effortConfidence.flatMap(ScoreConfidence.init(rawValue:)),
                                  strainHeat: buildHeat(series: series, todayKey: todayKey))
@@ -696,8 +685,7 @@ private func sampleStrainSeries(days: Int = 60) -> [(day: String, value: Double)
     Color.clear.sheet(isPresented: .constant(true)) {
         StrainDetailScreen(
             model: StrainDetailModel(today: 14.2, series: sampleStrainSeries(), loaded: true,
-                                     drivers: [.init(driver: .sameDayRecovery, trend: .rises),
-                                               .init(driver: .priorDayStrain, trend: .falls)]))
+                                     drivers: [.init(relationship: .strainEfficiency, trend: .rises)]))
     }
 }
 

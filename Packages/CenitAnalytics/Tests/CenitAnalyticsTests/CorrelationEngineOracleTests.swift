@@ -173,6 +173,97 @@ final class CorrelationEngineOracleTests: XCTestCase {
         XCTAssertEqual(lagged.n, joined.n)
     }
 
+    func testPairsAreThePairingBehindLagged() throws {
+        let x = series(from: 1, values: [3, 9, 4, 8, 5, 7, 6])
+        let y = series(from: 1, values: [10, 2, 9, 3, 8, 4, 7])
+        let atZero = CorrelationEngine.pairs(x: x, y: y, lagDays: 0)
+        let aligned = CorrelationEngine.alignByDay(x, y)
+        XCTAssertEqual(atZero.map { $0.0 }, aligned.map { $0.0 })
+        XCTAssertEqual(atZero.map { $0.1 }, aligned.map { $0.1 })
+        let atOne = CorrelationEngine.pairs(x: x, y: y, lagDays: 1)
+        XCTAssertEqual(atOne.count, 6)
+        XCTAssertEqual(atOne.map { $0.0 }, [3, 9, 4, 8, 5, 7])
+        XCTAssertEqual(atOne.map { $0.1 }, [2, 9, 3, 8, 4, 7])
+        let lagged = try XCTUnwrap(CorrelationEngine.lagged(x: x, y: y, lagDays: 1))
+        XCTAssertEqual(lagged.r, try XCTUnwrap(CorrelationEngine.pearson(atOne)).r, accuracy: 1e-12)
+    }
+
+    // MARK: - Spearman (FER-438)
+
+    func testMidranksShareTiedPositions() throws {
+        XCTAssertEqual(CorrelationEngine.midranks([10, 20, 20, 30]), [1, 2.5, 2.5, 4])
+        XCTAssertEqual(CorrelationEngine.midranks([5, 1, 3]), [3, 1, 2])
+        XCTAssertEqual(CorrelationEngine.midranks([7, 7, 7]), [2, 2, 2])
+        XCTAssertEqual(CorrelationEngine.midranks([0, 0, 0, 4, 0, 9]), [2.5, 2.5, 2.5, 5, 2.5, 6])
+        XCTAssertEqual(CorrelationEngine.midranks([]), [])
+    }
+
+    func testSpearmanMatchesHandComputedRanks() throws {
+        // y ranks with one tie: [1, 2, 3.5, 5, 3.5] against x ranks [1…5] → ρ = 8/√95.
+        let c = try XCTUnwrap(CorrelationEngine.spearman([(1, 5), (2, 6), (3, 7), (4, 8), (5, 7)]))
+        XCTAssertEqual(c.r, 8 / 95.0.squareRoot(), accuracy: 1e-12)
+        XCTAssertEqual(c.n, 5)
+        // …and its p is the t-approximation on df = n − 2, the same tail `pearson` reads.
+        let t = c.r * (3 / (1 - c.r * c.r)).squareRoot()
+        XCTAssertEqual(c.pApprox, CorrelationEngine.studentTTwoSided(t: t, df: 3), accuracy: 1e-12)
+    }
+
+    func testSpearmanIsOneOnAnyMonotoneRelationship() throws {
+        // y = x³ is far from linear (Pearson < 1) but perfectly monotone (ρ = 1).
+        let cubic = (1...8).map { (Double($0), pow(Double($0), 3)) }
+        XCTAssertEqual(try XCTUnwrap(CorrelationEngine.spearman(cubic)).r, 1.0, accuracy: 1e-12)
+        XCTAssertLessThan(try XCTUnwrap(CorrelationEngine.pearson(cubic)).r, 0.99)
+        let decreasing = (1...8).map { (Double($0), exp(-Double($0))) }
+        XCTAssertEqual(try XCTUnwrap(CorrelationEngine.spearman(decreasing)).r, -1.0, accuracy: 1e-12)
+    }
+
+    func testSpearmanRefusesAnAllTiedVariable() throws {
+        XCTAssertNil(CorrelationEngine.spearman([(5, 1), (5, 2), (5, 3)]), "every x rank is 2")
+        XCTAssertNil(CorrelationEngine.spearman([(1, 1), (2, 2)]), "below the pair floor")
+    }
+
+    // MARK: - Effective sample size (FER-438)
+
+    func testLag1AutocorrelationMatchesHandComputedValues() throws {
+        // Mean 3, deviations [−2, −1, 0, 1, 2]: numerator 2 + 0 + 0 + 2 = 4, denominator 10.
+        XCTAssertEqual(CorrelationEngine.lag1Autocorrelation([1, 2, 3, 4, 5]), 0.4, accuracy: 1e-12)
+        // A ±1 alternation: every consecutive product is −1 over n − 1 of n → −(n−1)/n.
+        XCTAssertEqual(CorrelationEngine.lag1Autocorrelation([1, -1, 1, -1, 1, -1]), -5.0 / 6, accuracy: 1e-12)
+        XCTAssertEqual(CorrelationEngine.lag1Autocorrelation([4, 4, 4, 4]), 0, "constant")
+        XCTAssertEqual(CorrelationEngine.lag1Autocorrelation([1, 2]), 0, "too short")
+    }
+
+    func testEffectiveNShrinksOnlyForPositivelyAutocorrelatedSeries() throws {
+        // Bartlett with ρ₁ₓ = ρ₁ᵧ = 0.4: n · 0.84 / 1.16.
+        let ramp: [Double] = [1, 2, 3, 4, 5]
+        XCTAssertEqual(CorrelationEngine.effectiveN(x: ramp, y: ramp), 5 * 0.84 / 1.16, accuracy: 1e-12)
+        // A negative autocorrelation is truncated at 0: it never buys evidence, so n_eff = n.
+        let zigzag: [Double] = [1, -1, 1, -1, 1]
+        XCTAssertEqual(CorrelationEngine.effectiveN(x: zigzag, y: ramp), 5, accuracy: 1e-12)
+        XCTAssertEqual(CorrelationEngine.effectiveN(x: zigzag, y: zigzag), 5, accuracy: 1e-12)
+        // Two smooth sines: the CDO fixture — n_eff collapses from 42 to ≈ 5.5.
+        let x = (0..<42).map { 10 * sin(2 * .pi * Double($0) / 28) + 1.5 * (Double($0 % 3) - 1) }
+        let y = (0..<42).map { 10 * sin(2 * .pi * Double($0 + 5) / 28) + 1.5 * (Double((7 * $0) % 5) - 2) }
+        XCTAssertEqual(CorrelationEngine.lag1Autocorrelation(x), 0.925, accuracy: 0.01)
+        XCTAssertEqual(CorrelationEngine.lag1Autocorrelation(y), 0.830, accuracy: 0.01)
+        XCTAssertEqual(CorrelationEngine.effectiveN(x: x, y: y), 5.52, accuracy: 0.05)
+    }
+
+    func testPValueOnFractionalNIsTheSameTail() throws {
+        let c = try XCTUnwrap(CorrelationEngine.pearson([(1, 2), (2, 4), (3, 5), (4, 4), (5, 5)]))
+        XCTAssertEqual(CorrelationEngine.pValue(r: c.r, n: 5), c.pApprox, accuracy: 1e-15, "integer n ≡ pApprox")
+        // Fewer effective observations → less evidence → a larger p, monotonically.
+        XCTAssertGreaterThan(CorrelationEngine.pValue(r: 0.5, n: 4.5), CorrelationEngine.pValue(r: 0.5, n: 20))
+        XCTAssertGreaterThan(CorrelationEngine.pValue(r: 0.5, n: 2.5), CorrelationEngine.pValue(r: 0.5, n: 4.5))
+        // No evidence at or below two, and no residual on a perfect fit.
+        XCTAssertEqual(CorrelationEngine.pValue(r: 0.9, n: 2), 1.0)
+        XCTAssertEqual(CorrelationEngine.pValue(r: 0.9, n: 1.5), 1.0)
+        XCTAssertEqual(CorrelationEngine.pValue(r: 1.0, n: 30), 0.0)
+        // The CDO flip: r = 0.381 passes on 42 raw pairs and fails on their ≈ 5.5 effective ones.
+        XCTAssertLessThan(CorrelationEngine.pValue(r: 0.381, n: 42), 0.05)
+        XCTAssertGreaterThan(CorrelationEngine.pValue(r: 0.381, n: 5.52), 0.3)
+    }
+
     // MARK: - Day shift
 
     func testShiftDayCrossesMonthYearAndLeapBoundaries() throws {

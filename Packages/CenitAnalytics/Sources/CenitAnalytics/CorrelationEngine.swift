@@ -23,10 +23,22 @@ import Foundation
 // • Lagged correlation: pair x[D] with y[D + lagDays]. A positive lag asks whether today predicts
 //   the day after; a negative one looks back.
 //
-// APPROXIMATE, and association only — never a cause. Worse, the p tests H0: r = 0 on observations
-// that are NOT independent: daily HRV / heart-rate / sleep series are strongly autocorrelated, so
-// the p is ANTICONSERVATIVE. That is precisely why `MetricTrend` degrades the result to a single
-// bit of direction behind its own gate, and why the screens put much higher n floors on top.
+// • Spearman's ρ (FER-438): Pearson's r on the MIDRANKS of each variable, read against the same
+//   Student's t on df = n − 2 (the classic t-approximation for ρ; Zar 1972, J Am Stat Assoc
+//   67(339):578-580). For a zero-inflated or heavy-tailed series (a day strain that is 0 on rest
+//   days, a step count with weekend spikes), where Pearson would mostly measure the 0-vs-not
+//   contrast.
+// • Effective sample size (FER-438): the p above tests H0: r = 0 on observations that are NOT
+//   independent, and daily series are autocorrelated, so on n raw pairs it is ANTICONSERVATIVE.
+//   `effectiveN` shrinks n by Bartlett's AR(1) factor, n_eff = n·(1 − ρ₁ₓρ₁ᵧ)/(1 + ρ₁ₓρ₁ᵧ)
+//   (Bartlett 1935, J R Stat Soc 98(3):536-543; Dawdy & Matalas 1964, Handbook of Applied
+//   Hydrology §8-III), each lag-1 autocorrelation truncated at 0, and `pValue(r:n:)` reads the
+//   tail on that fractional n. Still approximate (AR(1) only), so the hedge in the copy stays.
+//
+// APPROXIMATE, and association only — never a cause. `pApprox` on raw n remains anticonservative
+// on autocorrelated daily series; that is precisely why `MetricTrend` degrades the result to a
+// single bit of direction behind its own gate, why `WhatMovesIt` reads its p on n_eff and controls
+// the family, and why the screens put much higher n floors on top.
 
 /// Two daily series read against each other.
 public struct Correlation: Equatable, Sendable {
@@ -99,14 +111,89 @@ public enum CorrelationEngine {
     public static func lagged(x: [(day: String, value: Double)],
                               y: [(day: String, value: Double)],
                               lagDays: Int) -> Correlation? {
+        pearson(pairs(x: x, y: y, lagDays: lagDays))
+    }
+
+    /// The `(x[D], y[D + lagDays])` pairs behind `lagged`, ascending by D — exposed so a caller can run
+    /// a different statistic (ranks, an effective n) over exactly the same pairing. Days absent from
+    /// either side are skipped, never interpolated; a repeated day keeps its LAST entry. (FER-438)
+    public static func pairs(x: [(day: String, value: Double)],
+                             y: [(day: String, value: Double)],
+                             lagDays: Int) -> [(Double, Double)] {
         let source = lastWins(x)
         let target = lastWins(y)
-        var pairs: [(Double, Double)] = []
+        var out: [(Double, Double)] = []
         for day in source.keys.sorted() {
             guard let shifted = shiftDay(day, by: lagDays), let yv = target[shifted] else { continue }
-            pairs.append((source[day]!, yv))
+            out.append((source[day]!, yv))
         }
-        return pearson(pairs)
+        return out
+    }
+
+    // MARK: - Spearman's ρ (FER-438)
+
+    /// Spearman's rank correlation over `xy`: `pearson` on the midranks of each variable, so `r` is ρ
+    /// and `pApprox` its t-approximated two-sided p on df = n − 2 (Zar 1972). Same `nil` rules as
+    /// `pearson` (too few pairs, or a variable that does not vary — every value tied). `slope` and
+    /// `intercept` are the line through the RANKS, carried only so the type is shared; they are not a
+    /// scale in the data's units.
+    public static func spearman(_ xy: [(Double, Double)]) -> Correlation? {
+        let rx = midranks(xy.map { $0.0 })
+        let ry = midranks(xy.map { $0.1 })
+        return pearson(Array(zip(rx, ry)))
+    }
+
+    /// 1-based midranks: tied values all take the mean of the positions they occupy
+    /// (`[10, 20, 20, 30]` → `[1, 2.5, 2.5, 4]`).
+    static func midranks(_ values: [Double]) -> [Double] {
+        let order = values.indices.sorted { values[$0] < values[$1] }
+        var ranks = [Double](repeating: 0, count: values.count)
+        var i = 0
+        while i < order.count {
+            var j = i
+            while j + 1 < order.count, values[order[j + 1]] == values[order[i]] { j += 1 }
+            let mean = Double(i + j) / 2 + 1
+            for k in i...j { ranks[order[k]] = mean }
+            i = j + 1
+        }
+        return ranks
+    }
+
+    // MARK: - Effective sample size (FER-438)
+
+    /// Lag-1 sample autocorrelation of `values` in the order given:
+    /// Σ_{t<n}(v_t − v̄)(v_{t+1} − v̄) / Σ_t(v_t − v̄)². 0 for fewer than 3 values or a constant series.
+    public static func lag1Autocorrelation(_ values: [Double]) -> Double {
+        let n = values.count
+        guard n >= 3 else { return 0 }
+        let mean = values.reduce(0, +) / Double(n)
+        var denominator = 0.0
+        for v in values { denominator += (v - mean) * (v - mean) }
+        guard denominator > 0 else { return 0 }
+        var numerator = 0.0
+        for t in 0..<(n - 1) { numerator += (values[t] - mean) * (values[t + 1] - mean) }
+        return numerator / denominator
+    }
+
+    /// Bartlett's effective sample size for the correlation of two autocorrelated series read over
+    /// the SAME pairs (`x[i]` with `y[i]`, in day order): n·(1 − ρ₁ₓρ₁ᵧ)/(1 + ρ₁ₓρ₁ᵧ), with each lag-1
+    /// autocorrelation TRUNCATED at 0 — a negative one (a train/rest alternation) never buys extra
+    /// evidence. Equals n when either series is white. AR(1)-approximate. (FER-438)
+    public static func effectiveN(x: [Double], y: [Double]) -> Double {
+        let n = Double(min(x.count, y.count))
+        let product = max(0, lag1Autocorrelation(x)) * max(0, lag1Autocorrelation(y))
+        return n * (1 - product) / (1 + product)
+    }
+
+    /// Two-sided p for a coefficient `r` against Student's t on df = `n` − 2, where `n` may be a
+    /// FRACTIONAL effective sample size. `n ≤ 2` has no evidence to offer (1.0); a perfect |r| leaves
+    /// no residual variance (0.0). On an integer n this is exactly `Correlation.pApprox`.
+    public static func pValue(r: Double, n: Double) -> Double {
+        guard n > 2, n.isFinite else { return 1.0 }
+        if abs(r) >= 1 { return 0.0 }
+        let df = n - 2
+        let t = r * (df / (1 - r * r)).squareRoot()
+        return studentTTwoSided(t: t, df: df)
     }
 
     // MARK: - Student's t tail
@@ -158,14 +245,9 @@ public enum CorrelationEngine {
 
     // MARK: - Internals
 
-    /// Two-sided p for a coefficient. `n ≤ 2` has no evidence to offer; a perfect |r| leaves no
-    /// residual variance, so its tail is 0.
+    /// Two-sided p for a coefficient on an integer n — `pValue(r:n:)` on the raw pair count.
     private static func significance(r: Double, n: Int) -> Double {
-        guard n > 2 else { return 1.0 }
-        if abs(r) >= 1 { return 0.0 }
-        let df = Double(n - 2)
-        let t = r * (df / (1 - r * r)).squareRoot()
-        return studentTTwoSided(t: t, df: df)
+        pValue(r: r, n: Double(n))
     }
 
     /// Latest value per day key.

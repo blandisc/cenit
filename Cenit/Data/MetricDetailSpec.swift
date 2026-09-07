@@ -121,13 +121,15 @@ struct MetricDetailSpec: Identifiable {
     // MARK: - Factories (wrap + reuse the MetricInfo factories — no copy duplicated here)
 
     /// HRV detail. Full block set (it's the protagonist vital): selector, chart+band, normal range,
-    /// consistency, trend, night vitals, what-moves-it, method. Hero = 7-day moving average.
+    /// consistency, trend, night vitals, method. Hero = 7-day moving average.
+    /// FER-438: sin `.whatMovesIt` — el bloque de FER-209 leía `avgHrv` a través de la lente que lo
+    /// anula en toda fila Apple, así que nunca pintó; revivirlo pide RMSSD nocturno denso (issue aparte).
     static func hrv(_ value: Double?) -> MetricDetailSpec {
         MetricDetailSpec(
             descriptor: Self.catalog("hrv"),
             info: .hrv(value),
             blocks: [.periodSelector, .seriesChartBand, .normalRange, .consistency,
-                     .trend, .nightVitals, .whatMovesIt, .method],
+                     .trend, .nightVitals, .method],
             hero: .movingAverage7,
             baselineCfg: Baselines.hrvCfg,
             populationRange: 20...120
@@ -205,12 +207,13 @@ struct MetricDetailSpec: Identifiable {
     /// actually track), with the 7-day daily average as secondary context. The protagonist block is the
     /// daily trend (chart + month-over-month) — no personal "normal range", no consistency, and NO
     /// classificatory bands (the issue is explicit: steps carry no invented clinical band). Apple-sourced,
-    /// so `baselineCfg`/`populationRange` are nil. (FER-254)
+    /// so `baselineCfg`/`populationRange` are nil. (FER-254) Carries «Tu patrón» since FER-438
+    /// (last night's efficiency → today's steps, today's partial count excluded).
     static func steps(_ value: Int?) -> MetricDetailSpec {
         MetricDetailSpec(
             descriptor: Self.catalog("steps"),
             info: .steps(value),
-            blocks: [.periodSelector, .seriesChartBand, .trend, .method],
+            blocks: [.periodSelector, .seriesChartBand, .trend, .whatMovesIt, .method],
             hero: .latest,
             baselineCfg: nil,
             populationRange: nil,
