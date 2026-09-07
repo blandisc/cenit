@@ -178,6 +178,51 @@ final class ReadinessEngineTests: XCTestCase {
         XCTAssertLessThan(rhr?.z ?? 0, 0, "Resting HR below baseline → negative z (raw direction)")
     }
 
+    // MARK: - The baseline window (E6)
+
+    /// Consecutive real day keys from 2024-01-01. The engine only ever compares these as text, but a
+    /// fixture that invents 32 January is a trap for whoever reads it next.
+    private func dayKeys(_ n: Int) -> [String] {
+        let f = DateFormatter()
+        f.calendar = Calendar(identifier: .gregorian)
+        f.timeZone = TimeZone(secondsFromGMT: 0)
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.dateFormat = "yyyy-MM-dd"
+        let start = Date(timeIntervalSince1970: 1_704_067_200)   // 2024-01-01T00:00:00Z
+        return (0..<n).map { f.string(from: start.addingTimeInterval(Double($0) * 86_400)) }
+    }
+
+    /// A signal's baseline folds the LAST 30 NIGHTS ONLY, never the whole history (E6). Thirty nights
+    /// at 40 ms followed by thirty at 60 ms must therefore answer as if the 40 ms era never happened.
+    ///
+    /// Derivation. Folding thirty identical nights leaves `baseline = 60` — a constant series never
+    /// moves the centre — and `spread = 0.08` ln-units, which is `hrvCfg.floorSpread`: the EWMA of the
+    /// absolute deviation decays past that floor around night 17 and the floor wins from there on.
+    /// HRV is scored in the log domain, so σ = 1.253 × 0.08 = 0.10024 and
+    /// z = ln(70/60) / 0.10024 = 0.1541507 / 0.10024 = **1.5378**.
+    func testTheSignalBaselineFoldsOnlyTheLastThirtyNights() throws {
+        let keys = dayKeys(61)
+        var days: [DailyMetric] = []
+        for (i, key) in keys.enumerated() {
+            let hrv: Double = i == 60 ? 70 : (i < 30 ? 40 : 60)
+            days.append(DailyMetric(day: key, totalSleepMin: nil, efficiency: nil, deepMin: nil,
+                                    remMin: nil, lightMin: nil, disturbances: nil, restingHr: nil,
+                                    avgHrv: hrv, recovery: nil, strain: nil, exerciseCount: nil,
+                                    spo2Pct: nil, skinTempDevC: nil, respRateBpm: nil))
+        }
+
+        let z = try XCTUnwrap(ReadinessEngine.evaluate(days: days).signals
+            .first { $0.key == "hrv" }?.z)
+        XCTAssertEqual(z, 1.5378, accuracy: 1e-4)
+
+        // …and the window is load-bearing: folding all sixty nights still carries the 40 ms era and
+        // answers something else entirely.
+        let whole = Baselines.deviation(70, state: Baselines.foldHistory(
+            days.dropLast().map { $0.avgHrv }, cfg: Baselines.hrvCfg)).z
+        XCTAssertNotEqual(z, whole, accuracy: 0.05,
+                          "a 30-night window and a 60-night one must not agree here")
+    }
+
     func testNumericZIsNilForSkinTempAndLoad() {
         // Skin temperature is °C (asymmetric), and load is a ratio — neither carries a σ z.
         let r = ReadinessEngine.evaluate(days: baselineWithSkinTemp(1.0))
