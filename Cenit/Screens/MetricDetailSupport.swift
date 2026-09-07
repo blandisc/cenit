@@ -168,8 +168,15 @@ extension MetricDetailScreen {
     func clampFrac(_ v: Double) -> CGFloat { CGFloat(min(max(v, 0.02), 0.98)) }
 
     static func whatMovesArrow(_ f: WhatMovesItFinding) -> String { f.trend == .rises ? "↑" : "↓" }
+    /// Verde cuando lo que mueve la métrica es el sueño (duración o eficiencia de anoche), ámbar
+    /// cuando es el esfuerzo del día anterior (FER-438: el lado `x` de cada relación).
     func whatMovesColor(_ f: WhatMovesItFinding) -> Color {
-        f.relationship == .sleepDuration ? LiquidColor.verdePrimario : LiquidColor.ambar
+        switch f.relationship {
+        case .rhrSleepDuration, .sleepPriorNight, .strainEfficiency, .stepsEfficiency:
+            return LiquidColor.verdePrimario
+        case .sleepPriorStrain, .efficiencyPriorStrain, .rhrPriorStrain:
+            return LiquidColor.ambar
+        }
     }
 
     // MARK: - Colour + format
