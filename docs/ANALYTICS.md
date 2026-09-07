@@ -646,6 +646,16 @@ domain-transfer corrections, and `VO2maxTrend` reports a **trajectory rather tha
 standard robust methods, precisely because a single estimate carries more uncertainty than a direction
 does.
 
+The fitness-age engine now **refuses to score outside the age range its source model was fitted on**.
+Outside that range it extrapolates, and because the output is clamped, extrapolation would have
+produced a confidently wrong verdict rather than an obviously wrong one. Returning nothing is the
+honest answer, and it is the same refusal the recovery composite makes at cold start.
+
+Three domain-transfer corrections are documented in that engine, and the third is the one worth
+knowing: the per-reading standard error of the source model, divided by the age slope, works out to
+roughly ±19 years. The tighter band the interface shows is defensible **only for the age delta**, and
+explicitly does not apply to the absolute uptake estimate.
+
 Several rhythm engines are complete and tested but library-only today: nocturnal deceleration capacity
 by phase-rectified signal averaging, nocturnal warming and its night-to-night stability, post-session
 heart-rate recovery, and a short-scale detrended-fluctuation exponent. Each is labeled experimental in
