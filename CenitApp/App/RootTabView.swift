@@ -354,7 +354,7 @@ struct RootTabView: View {
             tabRouter.openMuscleMapInTrain = false
         }
         #if DEBUG
-        .onReceive(NotificationCenter.default.publisher(for: .noopDebugNav)) { note in
+        .onReceive(NotificationCenter.default.publisher(for: .cenitDebugNav)) { note in
             guard let screen = note.object as? String else { return }
             // Tab-level keys land on a clean hub root. "trends" → Cuerpo, "more"/"ajustes" → Ajustes.
             let tab: Tab? = switch screen {
