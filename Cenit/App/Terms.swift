@@ -3,7 +3,7 @@ import Foundation
 /// The Terms of Use the first-run gate presents. Bump `currentVersion` when the terms MATERIALLY
 /// change (risk / liability / medical / affiliation wording) to re-prompt every user for a fresh
 /// acknowledgment; leave it for typo fixes. Mirrored on Android by `NoopPrefs.TERMS_VERSION`. The
-/// full text lives in `TERMS.md`, shipped with Cénit.
+/// full text lives in `TERMS.md` in the repo and, for whoever installs the app, at `fullTermsURL`.
 enum Terms {
     static let currentVersion = "2.0"
 
@@ -59,10 +59,17 @@ enum Terms {
         String(localized: "terms.intro",
                defaultValue: "Please read and accept the points below.")
     }
+    /// FER-398: el texto completo vive en la web de soporte, no en un archivo del repo. «TERMS.md,
+    /// shipped with Cénit» era cierto para quien clona el repositorio y falso para quien baja la app
+    /// de la tienda: ese archivo no viaja dentro del bundle, así que la puerta remitía a un documento
+    /// inalcanzable. `TermsGateView` pinta esta línea como enlace a `fullTermsURL`.
     static var fine: String {
         String(localized: "terms.fine",
-               defaultValue: "The full terms are in TERMS.md, shipped with Cénit. This is not legal advice.")
+               defaultValue: "The full terms are at blandisc.github.io/cenit/terminos.html — this is not legal advice.")
     }
+
+    /// La URL que abre la letra chica de arriba.
+    static let fullTermsURL = URL(string: "https://blandisc.github.io/cenit/terminos.html")!
     static var consent: String {
         String(localized: "terms.consent",
                defaultValue: "I have read and accept these terms, and I'm using Cénit with my own device and my own data, at my own risk.")
