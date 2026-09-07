@@ -4,180 +4,295 @@ import StrandAnalytics
 import CenitStore
 import Foundation
 
-// MARK: - Apple Health (página por fuente) — Liquid Glass · El Eje (FER-108)
+// MARK: - Apple Health · dossier por fuente (Liquid Glass · El Eje)
 //
-// Visor por fuente en Liquid Glass · El Eje (hermano de Compare/Explore TND-30/31 y Fuentes):
-// `LiquidSheetFondo`, overlines inset, `LiquidRangeSelector`, tiles de métrica (héroe + spark,
-// sin Δ) y cards de gráfica del core Liquid con pie avg/min/max/puntos. Solo piel: lee
-// "apple-health", carga historial una vez, el rango ventanea client-side y las series ralas
-// se ensanchan igual. Color/nombre vía `MetricIdentity.identity(forIngestKey:)` +
-// `MetricCatalog.descriptor(forIngestKey:)?.canonicalTitle` (FER-108); métricas sin familia
-// caen al default documentado (verdePrimario).
+// Lector de UNA fuente: enseña, sin adornos, todo lo que «apple-health» dejó en la base local de
+// este iPhone. No sincroniza, no escribe y no sale a ningún lado — la puerta de entrada es
+// «Ver datos importados ›» en Fuentes de datos.
+//
+// Tres capas, deliberadamente separadas:
+//   1. `AppleHealthSpan`     — el vocabulario de ventanas (W · M · 3M · 6M · 1Y · ALL).
+//   2. `AppleHealthDossier`  — el recorte, resuelto UNA vez por carga y por toque del selector.
+//      Ahí vive toda la aritmética de ventanas; el render solo consulta.
+//   3. Las vistas            — encabezado, tarjetas de estado, rejilla de tiles y grupos de gráfica.
+//
+// El color y el nombre de cada métrica salen del puente único de claves de ingesta
+// (`MetricIdentity.identity(forIngestKey:)` + `MetricCatalog.descriptor(forIngestKey:)`), nunca de
+// rótulos inventados aquí.
 
-struct AppleHealthView: View {
-    @EnvironmentObject var repo: Repository
+// MARK: - Ventanas
 
-    // Imperial/Metric display preference (D#103). Weight and lean mass (stored kg) re-label to lb here;
-    // every other Apple Health metric is unit-agnostic. Display-only.
-    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw = UnitSystem.metric.rawValue
-    private var unitSystem: UnitSystem { UnitSystem(rawValue: unitSystemRaw) ?? .metric }
-    /// kg value → the active mass unit, full string with label (e.g. "74.5 kg" / "164.2 lb").
-    private func massLabel(_ kg: Double) -> String { UnitFormatter.massFromKilograms(kg, system: unitSystem) }
+/// Las seis ventanas del selector. El orden de `allCases` es a la vez el que ve el usuario
+/// (de la más corta a «todo») y el orden en que se busca una ventana mayor cuando la serie es rala.
+private enum AppleHealthSpan: CaseIterable {
+    case sevenDays
+    case thirtyDays
+    case ninetyDays
+    case halfYear
+    case fullYear
+    case everything
 
-    /// Optional pre-seeded data for previews; when set, the async store load is
-    /// skipped (store-backed reads can't be seeded in a preview). Production leaves
-    /// this nil and loads from the repository in `.task`.
-    private let previewData: PreviewData?
-
-    init() { self.previewData = nil }
-    fileprivate init(previewData: PreviewData) { self.previewData = previewData }
-
-    // Loaded state.
-    @State private var loaded = false
-    @State private var appleRows: [AppleDaily] = []
-    // FER-192: kept as the raw rows (not a precomputed count) so the workouts tile can window to the
-    // active range like every other tile on this page, instead of always showing the all-time total.
-    @State private var appleWorkouts: [WorkoutRow] = []
-
-    // Raw series (day, value) keyed by metric — ALL history, ascending by day.
-    @State private var series: [String: [(day: String, value: Double)]] = [:]
-
-    // The active range window. The data goes back years — never hard-cap.
-    @State private var range: RangeWindow = .quarter
-
-    /// Memoized per-metric resolved window. Resolving a key (effective range +
-    /// trimmed rows) re-slices the full multi-year series and, on auto-widen, slices
-    /// it once per candidate range. The view body asks for the same key many times
-    /// per render (every tile, every chart, plus rangeNote/rangeSummary), and
-    /// SwiftUI re-evaluates the body on hover / animation / 1Hz HR ticks. The inputs
-    /// (`series`, `range`) only change on load or pill tap, so we compute once and
-    /// cache, recomputing via .onChange(of:) when an input actually changes.
-    @State private var windowCache: [String: ResolvedSeries] = [:]
-
-    /// Memoized per-day rows trimmed to the active window. Read by both
-    /// `rangeSummaryCaption` and `spanSubtitle` every render; depends only on
-    /// `appleRows` + `range`, so it's cached alongside `windowCache`.
-    @State private var windowedRowsCache: [AppleDaily] = []
-
-    /// A key's resolved (possibly auto-widened) window: the effective range plus the
-    /// rows trimmed to it.
-    private struct ResolvedSeries {
-        var effective: RangeWindow
-        var rows: [(day: String, value: Double)]
+    /// Rótulo del segmento en el selector.
+    var pill: String {
+        switch self {
+        case .sevenDays:  return String(localized: "W")
+        case .thirtyDays: return String(localized: "M")
+        case .ninetyDays: return String(localized: "3M")
+        case .halfYear:   return String(localized: "6M")
+        case .fullYear:   return String(localized: "1Y")
+        case .everything: return String(localized: "ALL")
+        }
     }
 
-    // The series keys this page pulls from the apple-health source. FER-192: `skin_temp` added — it
-    // imports at HealthKitBridge stage 10 (and the illness/cycle-phase engines already read it), but
-    // it had no tile or chart here, so it was invisible in the ONE viewer meant to show everything
-    // that landed.
-    private static let seriesKeys = [
-        "steps", "active_kcal", "vo2max",
-        "resting_hr", "hrv", "spo2", "resp_rate", "skin_temp", "asleep_min",
-        "weight", "body_fat", "lean_mass", "bmi"
+    /// Cuántos días hacia atrás cubre; `nil` = sin tope.
+    var trailingDays: Int? {
+        switch self {
+        case .sevenDays:  return 7
+        case .thirtyDays: return 30
+        case .ninetyDays: return 90
+        case .halfYear:   return 180
+        case .fullYear:   return 365
+        case .everything: return nil
+        }
+    }
+
+    /// Sello en versalitas que acompaña al selector y a cada grupo de gráficas.
+    var stamp: String {
+        switch self {
+        case .sevenDays:  return String(localized: "7 DAYS")
+        case .thirtyDays: return String(localized: "30 DAYS")
+        case .ninetyDays: return String(localized: "90 DAYS")
+        case .halfYear:   return String(localized: "180 DAYS")
+        case .fullYear:   return String(localized: "365 DAYS")
+        case .everything: return String(localized: "ALL TIME")
+        }
+    }
+
+    /// La ventana dicha en prosa, para meterla dentro de una frase.
+    var phrase: String {
+        switch self {
+        case .sevenDays:  return String(localized: "week")
+        case .thirtyDays: return String(localized: "month")
+        case .ninetyDays: return String(localized: "3 months")
+        case .halfYear:   return String(localized: "6 months")
+        case .fullYear:   return String(localized: "year")
+        case .everything: return String(localized: "all history")
+        }
+    }
+
+    /// Esta ventana seguida de todas las mayores — el orden de búsqueda cuando la elegida sale vacía.
+    var thisAndWider: [AppleHealthSpan] {
+        let todas = Self.allCases
+        guard let desde = todas.firstIndex(of: self) else { return [.everything] }
+        return Array(todas[desde...])
+    }
+}
+
+// MARK: - Dossier resuelto
+
+/// Una serie ya recortada: qué ventana acabó mostrándose (puede ser mayor que la pedida, si los
+/// puntos son ralos) y los puntos que caen dentro, ascendentes por día.
+private struct AppleHealthSeriesWindow {
+    let span: AppleHealthSpan
+    let points: [(day: String, value: Double)]
+}
+
+/// La fotografía completa que pinta la pantalla, ya recortada a la ventana pedida.
+///
+/// Se arma dos veces: al terminar de leer la base y en cada toque del selector. Nunca dentro del
+/// render — el `body` se re-evalúa por hover, por animación y por cada tic del pulso, y volver a
+/// rebanar años de historia en cada pasada era el defecto que este tipo existe para cerrar.
+private struct AppleHealthDossier {
+    /// Las series que este dossier le pide a la fuente.
+    static let keys = [
+        "steps", "active_kcal", "vo2max", "resting_hr", "hrv", "spo2", "resp_rate",
+        "skin_temp", "asleep_min", "weight", "body_fat", "lean_mass", "bmi",
     ]
 
-    // Ronda 2 #7: clavados a `en_US_POSIX` salían en inglés bajo es-MX («28 Aug 2026»). Mismo
-    // patrón que CuerpoView (`dateHeader`, locale del app) y DataSourcesView (`shortDate`,
-    // `setLocalizedDateFormatFromTemplate`) — se usan los dos juntos aquí.
-    private static let spanFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.locale = .current
-        f.setLocalizedDateFormatFromTemplate("dMMMyyyy")
-        return f
-    }()
+    /// La ventana que el usuario eligió (no siempre la que cada serie logra mostrar).
+    let requested: AppleHealthSpan
+    private let windows: [String: AppleHealthSeriesWindow]
+    /// Filas diarias dentro de la ventana — alimentan el subtítulo y la leyenda.
+    let days: [AppleDaily]
+    /// Entrenamientos dentro de la ventana.
+    let workouts: Int
+    /// `false` solo en el caso raro de tener entrenamientos sin ninguna fila diaria contra la cual
+    /// recortar: entonces `workouts` es el total histórico y la tarjeta lo dice así.
+    let workoutsFollowSpan: Bool
 
-    private static let asOfFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.locale = .current
-        f.setLocalizedDateFormatFromTemplate("dMMM")
-        return f
-    }()
-
-    /// Chart card height — must match the Liquid chart core's internal `LiquidChartAlto.explorador`
-    /// (144, package-internal) so the single-point/empty wells this screen composes by hand line up
-    /// with the real chart. Same duplication precedent as `LiquidSheetSkeleton.Alto.grafica`.
-    private static let chartHeight: CGFloat = 144
-
-    // yyyy-MM-dd → Date via the shared UTC / en_US_POSIX parser (FER-325).
-    private func date(_ day: String) -> Date? { Repository.parseDayKey(day) }
-
-    /// The canonical short name for an Apple Health ingest key — the ONE bridge (FER-108
-    /// cimientos): never a locally invented label, and reconciled so a tile and its chart card
-    /// call the same metric by the same name.
-    private func metricLabel(_ key: String) -> String {
-        MetricCatalog.descriptor(forIngestKey: key)?.canonicalTitle ?? key
+    static func empty(_ span: AppleHealthSpan) -> AppleHealthDossier {
+        AppleHealthDossier(requested: span, windows: [:], days: [], workouts: 0, workoutsFollowSpan: true)
     }
 
-    // MARK: - Range control (W / M / 3M / 6M / 1Y / ALL) — the ONE pill control.
-
-    enum RangeWindow: String, CaseIterable, Identifiable {
-        case week, month, quarter, half, year, all
-        var id: String { rawValue }
-        var label: String {
-            switch self {
-            case .week:    return String(localized: "W")
-            case .month:   return String(localized: "M")
-            case .quarter: return String(localized: "3M")
-            case .half:    return String(localized: "6M")
-            case .year:    return String(localized: "1Y")
-            case .all:     return String(localized: "ALL")
-            }
-        }
-        /// Number of trailing days; nil = everything.
-        var days: Int? {
-            switch self {
-            case .week:    return 7
-            case .month:   return 30
-            case .quarter: return 90
-            case .half:    return 180
-            case .year:    return 365
-            case .all:     return nil
-            }
-        }
-        var caption: String {
-            switch self {
-            case .week:    return String(localized: "7 DAYS")
-            case .month:   return String(localized: "30 DAYS")
-            case .quarter: return String(localized: "90 DAYS")
-            case .half:    return String(localized: "180 DAYS")
-            case .year:    return String(localized: "365 DAYS")
-            case .all:     return String(localized: "ALL TIME")
-            }
-        }
-        var name: String {
-            switch self {
-            case .week:    return String(localized: "week")
-            case .month:   return String(localized: "month")
-            case .quarter: return String(localized: "3 months")
-            case .half:    return String(localized: "6 months")
-            case .year:    return String(localized: "year")
-            case .all:     return String(localized: "all history")
-            }
-        }
-        /// This range plus every LARGER range, ascending — the auto-expand search
-        /// order when the selected window holds zero points.
-        var widening: [RangeWindow] {
-            let order: [RangeWindow] = [.week, .month, .quarter, .half, .year, .all]
-            guard let i = order.firstIndex(of: self) else { return [.all] }
-            return Array(order[i...])
-        }
+    func window(_ key: String) -> AppleHealthSeriesWindow {
+        windows[key] ?? AppleHealthSeriesWindow(span: requested, points: [])
     }
+
+    /// Cierto si alguna serie tuvo que salirse de la ventana pedida para encontrar puntos.
+    var holdsWidenedSeries: Bool {
+        windows.values.contains { !$0.points.isEmpty && $0.span != requested }
+    }
+
+    // MARK: Armado
+
+    static func assemble(span: AppleHealthSpan,
+                         series: [String: [(day: String, value: Double)]],
+                         days: [AppleDaily],
+                         workouts: [WorkoutRow]) -> AppleHealthDossier {
+        var resolved: [String: AppleHealthSeriesWindow] = [:]
+        resolved.reserveCapacity(keys.count)
+        for key in keys {
+            resolved[key] = resolve(series[key] ?? [], within: span)
+        }
+
+        let floor = cutoff(newestDay: days.last?.day, span: span)
+        let visibleDays: [AppleDaily]
+        if span.trailingDays == nil {
+            visibleDays = days
+        } else if let floor {
+            visibleDays = days.filter { row in onOrAfter(row.day, floor) }
+        } else {
+            visibleDays = []
+        }
+
+        let counted: Int
+        let follows: Bool
+        if span.trailingDays == nil {
+            counted = workouts.count
+            follows = true
+        } else if let floor {
+            counted = workouts.filter { Date(timeIntervalSince1970: TimeInterval($0.startTs)) >= floor }.count
+            follows = true
+        } else {
+            counted = workouts.count
+            follows = false
+        }
+
+        return AppleHealthDossier(requested: span, windows: resolved, days: visibleDays,
+                                  workouts: counted, workoutsFollowSpan: follows)
+    }
+
+    /// La ventana pedida si tiene al menos un punto; si no, la menor de las mayores que sí lo tenga.
+    /// Una serie sin historia alguna se queda en la pedida (vacía) para no fingir un ensanchamiento.
+    private static func resolve(_ all: [(day: String, value: Double)],
+                                within span: AppleHealthSpan) -> AppleHealthSeriesWindow {
+        guard !all.isEmpty else { return AppleHealthSeriesWindow(span: span, points: []) }
+        for candidate in span.thisAndWider {
+            let recorte = trim(all, to: candidate)
+            if !recorte.isEmpty { return AppleHealthSeriesWindow(span: candidate, points: recorte) }
+        }
+        return AppleHealthSeriesWindow(span: .everything, points: all)
+    }
+
+    private static func trim(_ rows: [(day: String, value: Double)],
+                             to span: AppleHealthSpan) -> [(day: String, value: Double)] {
+        guard span.trailingDays != nil else { return rows }
+        guard let floor = cutoff(newestDay: rows.last?.day, span: span) else { return [] }
+        return rows.filter { row in onOrAfter(row.day, floor) }
+    }
+
+    /// El borde inferior de la ventana, anclado al ÚLTIMO día con dato — no a «ahora»: una historia
+    /// importada hace un mes seguiría teniendo algo que enseñar en la pestaña de la semana.
+    private static func cutoff(newestDay: String?, span: AppleHealthSpan) -> Date? {
+        guard let count = span.trailingDays else { return nil }
+        guard let newestDay, let newest = Repository.parseDayKey(newestDay) else { return nil }
+        return newest.addingTimeInterval(-Double(count - 1) * 86_400)
+    }
+
+    private static func onOrAfter(_ day: String, _ floor: Date) -> Bool {
+        guard let parsed = Repository.parseDayKey(day) else { return false }
+        return parsed >= floor
+    }
+}
+
+// MARK: - Recetas de bloque
+
+/// Un tile de la rejilla: de qué serie sale, con qué unidad se rotula y cómo se resume.
+private struct AppleHealthTileRecipe {
+    enum Summary { case newest, average }
+
+    let key: String
+    var unit: String = ""
+    var summary: Summary = .newest
+    let format: (Double) -> String
+}
+
+/// Una tarjeta de gráfica: su serie, el dominio con el que se dibuja cuando no hay datos que lo
+/// definan, y el formato de sus cifras.
+private struct AppleHealthChartRecipe {
+    let key: String
+    let fallbackDomain: ClosedRange<Double>
+    let format: (Double) -> String
+}
+
+// MARK: - Pantalla
+
+struct AppleHealthView: View {
+    @EnvironmentObject private var repo: Repository
+
+    /// Imperial/métrico (D#103): solo peso y masa magra (guardados en kg) se re-rotulan; el resto de
+    /// las métricas de Apple Health no dependen del sistema. Es preferencia de presentación.
+    @AppStorage(UnitPrefs.systemKey) private var storedUnitSystem = UnitSystem.metric.rawValue
+
+    /// Datos inyectados para el canvas; con ellos la lectura del store se salta por completo
+    /// (un preview no puede sembrar la base). En producción siempre es `nil`.
+    private let seed: Seed?
+
+    init() { self.seed = nil }
+    fileprivate init(seed: Seed) { self.seed = seed }
+
+    @State private var finishedReading = false
+    @State private var dailyRows: [AppleDaily] = []
+    /// Se guardan las filas crudas, no un conteo: así el tile de entrenamientos se recorta a la
+    /// ventana activa igual que todos los demás.
+    @State private var loggedWorkouts: [WorkoutRow] = []
+    /// Historia completa por clave, ascendente por día. El recorte lo hace el dossier.
+    @State private var rawSeries: [String: [(day: String, value: Double)]] = [:]
+    @State private var span: AppleHealthSpan = .ninetyDays
+    @State private var dossier = AppleHealthDossier.empty(.ninetyDays)
+
+    /// Alto del cuerpo de cada gráfica. Tiene que empatar con el alto interno del núcleo Liquid
+    /// (`LiquidChartAlto.explorador`, 144, interno al paquete) para que los pozos que esta pantalla
+    /// compone a mano queden a la misma línea que las gráficas reales.
+    private static let plotHeight: CGFloat = 144
+
+    /// Tramo del subtítulo («12 ago 2026»), en el idioma del app — no clavado a `en_US_POSIX`.
+    private static let spanStamp: DateFormatter = {
+        let formateador = DateFormatter()
+        formateador.locale = .current
+        formateador.setLocalizedDateFormatFromTemplate("dMMMyyyy")
+        return formateador
+    }()
+
+    /// Fecha corta («12 ago») para pies de tile y ejes de gráfica.
+    private static let dayStamp: DateFormatter = {
+        let formateador = DateFormatter()
+        formateador.locale = .current
+        formateador.setLocalizedDateFormatFromTemplate("dMMM")
+        return formateador
+    }()
+
+    // MARK: Cuerpo
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: LiquidSpace.s550) {
-                header
-                if loaded && !hasAnyData {
-                    emptyState
-                } else if !loaded {
-                    loadingState
-                } else {
-                    rangeControl
+                SourceHeader(subtitle: headerSubtitle)
+                switch phase {
+                case .reading:
+                    ReadingCard()
+                case .nothingImported:
+                    NothingImportedCard()
+                case .dossier:
+                    SpanBar(selection: spanSelection,
+                            legend: windowLegend,
+                            legendNeedsAttention: dossier.holdsWidenedSeries,
+                            stamp: span.stamp)
                     tileGrid
-                    heartSection
-                    activitySection
-                    bodySection
-                    sleepSection
+                    vitalsGroup
+                    activityGroup
+                    bodyGroup
+                    sleepGroup
                 }
             }
             .padding(.horizontal, LiquidSpace.s550)
@@ -187,40 +302,446 @@ struct AppleHealthView: View {
         }
         .scrollIndicators(.hidden)
         .background { LiquidSheetFondo().ignoresSafeArea() }
-        .task { await load() }
-        .onChange(of: range) { rebuildWindowCache() }
+        .task { await read() }
+        .onChange(of: span) { rebuild() }
     }
 
-    private var header: some View {
+    /// En qué de los tres estados está la pantalla.
+    private enum Phase { case reading, nothingImported, dossier }
+
+    private var phase: Phase {
+        guard finishedReading else { return .reading }
+        return holdsAnything ? .dossier : .nothingImported
+    }
+
+    /// Cierto cuando la fuente dejó ALGO: una fila diaria o una serie con puntos.
+    private var holdsAnything: Bool {
+        if !dailyRows.isEmpty { return true }
+        return rawSeries.values.contains { !$0.isEmpty }
+    }
+
+    // MARK: Lectura
+
+    private func read() async {
+        if let seed {
+            dailyRows = seed.days.sorted { $0.day < $1.day }
+            loggedWorkouts = seed.workouts
+            rawSeries = seed.series
+            rebuild()
+            finishedReading = true
+            return
+        }
+
+        #if DEBUG
+        await stallForScreenshotHarness()
+        #endif
+
+        async let pendingDays = repo.appleDailyRows(respectingMode: false)   // FER-485: diagnóstico, sin filtrar por modo
+        async let pendingWorkouts = repo.workoutRows(respectingMode: false)
+
+        // Una tarea por clave: en serie eran N+1 viajes al store (mismo patrón que Comparar,
+        // Explorador e Insights).
+        let fetched = await withTaskGroup(of: (String, [(day: String, value: Double)]).self) { group in
+            for key in AppleHealthDossier.keys {
+                group.addTask { (key, await repo.series(key: key, source: "apple-health")) }
+            }
+            var acumulado: [String: [(day: String, value: Double)]] = [:]
+            for await (key, puntos) in group { acumulado[key] = puntos }
+            return acumulado
+        }
+
+        let readDays = await pendingDays
+        // `classify` es la ÚNICA puerta que reconoce toda la familia «apple-health:<app>»; comparar
+        // por igualdad exacta se perdía cada fila con nombre de app.
+        let appleOnly = await pendingWorkouts.filter { WorkoutSource.classify($0.source) == .apple }
+
+        await MainActor.run {
+            var merged = fetched
+            // La temperatura de piel NO viaja como serie: HealthKit escribe la desviación nocturna en
+            // `DailyMetric.skinTempDevC`. Se toma de ahí para que no salga vacía en datos ya sincronizados.
+            merged["skin_temp"] = repo.days.compactMap { fila in
+                fila.skinTempDevC.map { (day: fila.day, value: $0) }
+            }
+            dailyRows = readDays.sorted { $0.day < $1.day }
+            loggedWorkouts = appleOnly
+            rawSeries = merged
+            rebuild()
+            finishedReading = true
+        }
+    }
+
+    #if DEBUG
+    /// FER-389 (mapa 100 %): leer el store es casi instantáneo, así que sin este freno el estado
+    /// «leyendo» nunca dura lo suficiente para una captura determinista del harness.
+    private func stallForScreenshotHarness() async {
+        let bandera = UserDefaults.standard.string(forKey: "cenit.slowLoad")?.lowercased()
+        guard bandera == "yes" else { return }
+        try? await Task.sleep(for: .seconds(3))
+    }
+    #endif
+
+    private func rebuild() {
+        dossier = AppleHealthDossier.assemble(span: span, series: rawSeries,
+                                              days: dailyRows, workouts: loggedWorkouts)
+    }
+
+    // MARK: Encabezado y selector
+
+    /// El subtítulo refleja el tramo VISIBLE de filas diarias; antes de terminar de leer, la frase
+    /// que describe la pantalla.
+    private var headerSubtitle: String {
+        let rows = finishedReading ? dossier.days : dailyRows
+        guard let opening = rows.first?.day, let closing = rows.last?.day,
+              let from = Repository.parseDayKey(opening),
+              let to = Repository.parseDayKey(closing) else {
+            return String(localized: "Steps, heart, sleep, body composition and VO₂ max: read locally on this iPhone.")
+        }
+        let desde = Self.spanStamp.string(from: from)
+        let hasta = Self.spanStamp.string(from: to)
+        let stretch = desde == hasta ? desde : "\(desde) → \(hasta)"
+        return String(localized: "\(rows.count) days · \(stretch)")
+    }
+
+    /// Puente entre el índice del selector Liquid y la ventana activa (el orden de `allCases` manda).
+    private var spanSelection: Binding<Int> {
+        Binding(
+            get: { AppleHealthSpan.allCases.firstIndex(of: span) ?? 0 },
+            set: { indice in span = AppleHealthSpan.allCases[indice] })
+    }
+
+    /// Cuántos días abarca la ventana, y si alguna serie rala se tuvo que ensanchar.
+    private var windowLegend: String {
+        let n = dossier.days.count
+        let unit = n == 1 ? String(localized: "day") : String(localized: "days")
+        guard dossier.holdsWidenedSeries else {
+            return String(localized: "\(n) \(unit) · \(span.phrase)")
+        }
+        return String(localized: "\(n) \(unit) · \(span.phrase) · some sparse series widened")
+    }
+
+    // MARK: Rejilla de tiles
+
+    private var tileRecipes: [AppleHealthTileRecipe] {
+        [
+            AppleHealthTileRecipe(key: "steps", format: { CenitFormat.groupedInt($0) }),
+            AppleHealthTileRecipe(key: "resting_hr", unit: String(localized: "bpm"),
+                                  format: { rounded($0) }),
+            AppleHealthTileRecipe(key: "hrv", unit: String(localized: "ms"),
+                                  format: { rounded($0) }),
+            AppleHealthTileRecipe(key: "vo2max", unit: String(localized: "ml/kg"),
+                                  format: { oneDecimal($0) }),
+            AppleHealthTileRecipe(key: "weight", format: { mass($0) }),
+            AppleHealthTileRecipe(key: "body_fat", unit: "%", format: { oneDecimal($0) }),
+            AppleHealthTileRecipe(key: "lean_mass", format: { mass($0) }),
+            AppleHealthTileRecipe(key: "asleep_min", summary: .average, format: { clock($0) }),
+        ]
+    }
+
+    private var tileGrid: some View {
+        LazyVGrid(
+            columns: [GridItem(.adaptive(minimum: 168), spacing: LiquidSpace.s200)],
+            alignment: .leading,
+            spacing: LiquidSpace.s200
+        ) {
+            ForEach(tileRecipes, id: \.key) { recipe in
+                tile(recipe)
+            }
+            workoutTile
+        }
+    }
+
+    /// Tile «quiet» de `LiquidMetricTile` (sin delta): héroe + pie + traza, todos leyendo la MISMA
+    /// ventana resuelta, así que el pie nunca describe un tramo distinto al de la traza.
+    private func tile(_ recipe: AppleHealthTileRecipe) -> some View {
+        let window = dossier.window(recipe.key)
+        let numbers = window.points.map(\.value)
+        let mark = MetricIdentity.identity(forIngestKey: recipe.key)
+
+        var hero = "—"
+        var footnote: String?
+        if !numbers.isEmpty {
+            switch recipe.summary {
+            case .newest:
+                hero = recipe.format(numbers.last ?? 0)
+                footnote = window.points.last
+                    .flatMap { Repository.parseDayKey($0.day) }
+                    .map { String(localized: "as of \(Self.dayStamp.string(from: $0))") }
+            case .average:
+                hero = recipe.format(average(numbers) ?? 0)
+                footnote = String(localized: "avg · \(numbers.count)d")
+            }
+        }
+
+        // El glifo no es opcional en el tile; las claves de composición corporal y VO₂ todavía no
+        // tienen familia propia y caen al de carga, igual que su preview en CenitDesign.
+        return LiquidMetricTile(label: metricName(recipe.key),
+                                value: hero,
+                                unit: recipe.unit,
+                                delta: nil,
+                                tone: numbers.isEmpty ? LiquidColor.tinta500 : mark.hue,
+                                icon: mark.glyph ?? .carga,
+                                caption: footnote,
+                                sparkline: numbers.count > 1 ? Array(numbers.suffix(40)) : nil)
+    }
+
+    /// Entrenamientos es un conteo, no una serie, pero se recorta a la misma ventana que el resto:
+    /// un total histórico repetido bajo la pestaña «W» se leería como «tus entrenamientos de la semana».
+    private var workoutTile: some View {
+        let total = dossier.workouts
+        let footnote: String?
+        if total == 0 {
+            footnote = nil
+        } else {
+            footnote = dossier.workoutsFollowSpan
+                ? String(localized: "Apple-logged")
+                : String(localized: "All-time total")
+        }
+        return LiquidMetricTile(label: String(localized: "Workouts"),
+                                value: "\(total)",
+                                delta: nil,
+                                tone: total > 0 ? LiquidColor.ambar : LiquidColor.tinta500,
+                                icon: .carga,
+                                caption: footnote)
+    }
+
+    // MARK: Grupos de gráfica
+
+    private var vitalsGroup: some View {
+        chartGroup(String(localized: "Heart & Vitals"), recipes: [
+            AppleHealthChartRecipe(key: "resting_hr", fallbackDomain: 40...80,
+                                   format: { "\(rounded($0)) \(String(localized: "bpm"))" }),
+            AppleHealthChartRecipe(key: "hrv", fallbackDomain: 20...120,
+                                   format: { "\(rounded($0)) ms" }),
+            AppleHealthChartRecipe(key: "spo2", fallbackDomain: 90...100,
+                                   format: { String(format: "%.1f%%", $0) }),
+            AppleHealthChartRecipe(key: "resp_rate", fallbackDomain: 10...22,
+                                   format: { String(format: "%.1f rpm", $0) }),
+            // Desviación respecto a la base (°C), no una temperatura absoluta — mismo formato que
+            // Cuerpo y la ficha de la métrica.
+            AppleHealthChartRecipe(key: "skin_temp", fallbackDomain: -1.5...1.5,
+                                   format: { String(format: "%+.1f°C", $0) }),
+        ])
+    }
+
+    private var activityGroup: some View {
+        chartGroup(String(localized: "Activity & Energy"), recipes: [
+            AppleHealthChartRecipe(key: "steps", fallbackDomain: 0...12000,
+                                   format: { CenitFormat.groupedInt($0) }),
+            AppleHealthChartRecipe(key: "active_kcal", fallbackDomain: 0...1000,
+                                   format: { "\(CenitFormat.groupedInt($0)) kcal" }),
+        ])
+    }
+
+    private var bodyGroup: some View {
+        chartGroup(String(localized: "Body Composition"), recipes: [
+            AppleHealthChartRecipe(key: "weight", fallbackDomain: 50...100, format: { mass($0) }),
+            AppleHealthChartRecipe(key: "body_fat", fallbackDomain: 8...35,
+                                   format: { String(format: "%.1f%%", $0) }),
+            AppleHealthChartRecipe(key: "lean_mass", fallbackDomain: 40...80, format: { mass($0) }),
+            AppleHealthChartRecipe(key: "bmi", fallbackDomain: 16...35, format: { oneDecimal($0) }),
+        ])
+    }
+
+    private var sleepGroup: some View {
+        chartGroup(String(localized: "Sleep"), recipes: [
+            AppleHealthChartRecipe(key: "asleep_min", fallbackDomain: 240...600, format: { clock($0) }),
+        ])
+    }
+
+    /// Un grupo: rótulo inset + sello de ventana, y debajo sus tarjetas.
+    private func chartGroup(_ title: String, recipes: [AppleHealthChartRecipe]) -> some View {
+        VStack(alignment: .leading, spacing: LiquidSpace.s300) {
+            HStack(alignment: .firstTextBaseline) {
+                Text(verbatim: title)
+                    .font(LiquidType.franja)
+                    .tracking(LiquidType.franjaTracking)
+                    .textCase(.uppercase)
+                    .foregroundStyle(LiquidColor.tinta500)
+                    .accessibilityAddTraits(.isHeader)
+                Spacer(minLength: LiquidSpace.s200)
+                Text(verbatim: span.stamp)
+                    .font(LiquidType.captionLectura)
+                    .foregroundStyle(LiquidColor.tinta500)
+            }
+            ForEach(recipes, id: \.key) { recipe in
+                chartCard(recipe)
+            }
+        }
+    }
+
+    /// Tarjeta de una serie: nombre canónico + nota de ventana + media en su tono, la traza cruda y
+    /// el pie promedio/mín/máx/puntos.
+    private func chartCard(_ recipe: AppleHealthChartRecipe) -> some View {
+        let window = dossier.window(recipe.key)
+        let numbers = window.points.map(\.value)
+        let name = metricName(recipe.key)
+        let tone = MetricIdentity.identity(forIngestKey: recipe.key).hue
+        let center = average(numbers)
+
+        return VStack(alignment: .leading, spacing: LiquidSpace.s300) {
+            HStack(alignment: .firstTextBaseline) {
+                VStack(alignment: .leading, spacing: LiquidSpace.s050) {
+                    Text(verbatim: name)
+                        .font(LiquidType.tituloFila)
+                        .foregroundStyle(LiquidColor.tinta900)
+                    Text(verbatim: readingsNote(window))
+                        .font(LiquidType.captionLectura)
+                        .foregroundStyle(LiquidColor.tinta500)
+                }
+                Spacer(minLength: LiquidSpace.s200)
+                if let center {
+                    Text(verbatim: recipe.format(center))
+                        .font(LiquidType.valorM)
+                        .foregroundStyle(tone)
+                }
+            }
+            plot(recipe, window: window, numbers: numbers, name: name, tone: tone)
+                .frame(height: Self.plotHeight)
+                .clipped()
+            LiquidResumenVentana(celdas: summaryCells(numbers, format: recipe.format, tone: tone))
+        }
+        .liquidTarjetaSeccion()
+    }
+
+    /// El cuerpo de la tarjeta. Un solo punto NO es una línea: se presenta como lectura suelta en vez
+    /// de fingir un «sin datos» sobre una serie que sí tiene algo que decir.
+    @ViewBuilder
+    private func plot(_ recipe: AppleHealthChartRecipe,
+                      window: AppleHealthSeriesWindow,
+                      numbers: [Double],
+                      name: String,
+                      tone: Color) -> some View {
+        let dots: [(fecha: Date, valor: Double)] = window.points.compactMap { punto in
+            guard let fecha = Repository.parseDayKey(punto.day) else { return nil }
+            return (fecha: fecha, valor: punto.value)
+        }
+        if dots.count >= 2 {
+            LiquidGraficaNiveles(
+                puntos: dots,
+                bandas: [],
+                dominio: domain(numbers, fallback: recipe.fallbackDomain),
+                ticksY: [],
+                tono: tone,
+                formatoValorScrub: recipe.format,
+                formatoFechaScrub: { Self.dayStamp.string(from: $0) },
+                formatoFechaEje: { Self.dayStamp.string(from: $0) },
+                estadoVacio: String(localized: "No readings recorded."),
+                a11yLabel: String(localized: "\(name) trend"))
+        } else if let lone = numbers.last {
+            LoneReadingWell(reading: recipe.format(lone), tone: tone)
+        } else {
+            NoReadingsWell()
+        }
+    }
+
+    private func summaryCells(_ numbers: [Double],
+                              format: (Double) -> String,
+                              tone: Color) -> [LiquidResumenVentana.Celda] {
+        guard let center = average(numbers),
+              let low = numbers.min(),
+              let high = numbers.max() else {
+            return [
+                LiquidResumenVentana.Celda(rotulo: String(localized: "Avg"), valor: "—"),
+                LiquidResumenVentana.Celda(rotulo: String(localized: "Min"), valor: "—"),
+                LiquidResumenVentana.Celda(rotulo: String(localized: "Max"), valor: "—"),
+                LiquidResumenVentana.Celda(rotulo: String(localized: "Points"), valor: "0"),
+            ]
+        }
+        return [
+            LiquidResumenVentana.Celda(rotulo: String(localized: "Avg"), valor: format(center), tono: tone),
+            LiquidResumenVentana.Celda(rotulo: String(localized: "Min"), valor: format(low)),
+            LiquidResumenVentana.Celda(rotulo: String(localized: "Max"), valor: format(high)),
+            LiquidResumenVentana.Celda(rotulo: String(localized: "Points"), valor: "\(numbers.count)"),
+        ]
+    }
+
+    /// «N lecturas · <ventana>», diciendo en voz alta cuándo hubo que ensanchar.
+    private func readingsNote(_ window: AppleHealthSeriesWindow) -> String {
+        let n = window.points.count
+        let unit = n == 1 ? String(localized: "reading") : String(localized: "readings")
+        guard window.span == span else {
+            return String(localized: "\(n) \(unit) · sparse: widened to \(window.span.phrase)")
+        }
+        return String(localized: "\(n) \(unit) · \(span.phrase)")
+    }
+
+    // MARK: Números y rótulos
+
+    /// El nombre canónico de una clave de ingesta — el ÚNICO puente. Nunca un rótulo inventado aquí,
+    /// para que el tile y su gráfica llamen igual a la misma métrica.
+    private func metricName(_ key: String) -> String {
+        guard let descriptor = MetricCatalog.descriptor(forIngestKey: key) else { return key }
+        return descriptor.canonicalTitle
+    }
+
+    private var unitSystem: UnitSystem {
+        UnitSystem(rawValue: storedUnitSystem) ?? .metric
+    }
+
+    /// Kilos → la unidad de masa activa, con su rótulo («74.5 kg» / «164.2 lb»).
+    private func mass(_ kilograms: Double) -> String {
+        UnitFormatter.massFromKilograms(kilograms, system: unitSystem)
+    }
+
+    private func rounded(_ value: Double) -> String {
+        "\(Int(value.rounded()))"
+    }
+
+    private func oneDecimal(_ value: Double) -> String {
+        String(format: "%.1f", value)
+    }
+
+    private func clock(_ minutes: Double) -> String {
+        let whole = Int(minutes.rounded())
+        let hours = whole / 60
+        let rest = whole % 60
+        return hours > 0 ? "\(hours)h \(rest)m" : "\(rest)m"
+    }
+
+    private func average(_ numbers: [Double]) -> Double? {
+        guard !numbers.isEmpty else { return nil }
+        return numbers.reduce(0, +) / Double(numbers.count)
+    }
+
+    /// Dominio de la traza: min/max con 12 % de aire; una serie plana se abre ±1; sin datos, el
+    /// dominio de respaldo de la receta.
+    private func domain(_ numbers: [Double], fallback: ClosedRange<Double>) -> ClosedRange<Double> {
+        guard let low = numbers.min(), let high = numbers.max() else { return fallback }
+        guard high > low else { return (low - 1)...(high + 1) }
+        let air = (high - low) * 0.12
+        return (low - air)...(high + air)
+    }
+}
+
+// MARK: - Piezas de la pantalla
+
+private struct SourceHeader: View {
+    let subtitle: String
+
+    var body: some View {
         VStack(alignment: .leading, spacing: LiquidSpace.s100) {
-            // Ronda 2 #20: el overline decía «Apple Health» igual que el título justo debajo — un
-            // overline es de ROL (Cuerpo: glifo + Tendencias + fecha), no el mismo nombre repetido.
+            // El overline dice el ROL, no repite el nombre que va justo debajo.
             LiquidOverline(String(localized: "Source"))
             Text(String(localized: "Apple Health"))
-                .font(LiquidType.displayS).tracking(LiquidType.displaySTracking)
+                .font(LiquidType.displayS)
+                .tracking(LiquidType.displaySTracking)
                 .foregroundStyle(LiquidColor.tinta900)
-            if let s = spanSubtitle {
-                Text(verbatim: s)
-                    .font(LiquidType.cuerpo)
-                    .foregroundStyle(LiquidColor.tinta500)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.top, LiquidSpace.s050)
-            }
+            Text(verbatim: subtitle)
+                .font(LiquidType.cuerpo)
+                .foregroundStyle(LiquidColor.tinta500)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.top, LiquidSpace.s050)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(.isHeader)
     }
+}
 
-    /// The honest empty state: no imported history at all yet. Composed from atoms (no 1:1 Liquid
-    /// piece for this) inside the same solid-card recipe every other block on this screen uses.
-    /// Ronda 2 #5: used to open straight on the 7-year zip export — the SLOW path — contradicting
-    /// Data Sources' own empty state two taps back («tap Sync now»), and named a macOS step («On an
-    /// iPhone:») nobody on this screen can be running. The fast path (Sync now / Connect, back in
-    /// Data Sources) leads; the zip is the long-history fallback, named as one.
-    /// Ronda 3 #4: cita el rótulo REAL del botón desconectado («Connect Apple Health»,
-    /// `DataSourcesView.swift:385`), no «Connect» a secas.
-    private var emptyState: some View {
+/// Todavía no hay nada importado. Manda el camino RÁPIDO (volver a Fuentes de datos y sincronizar);
+/// el .zip de años de historia queda como lo que es: el respaldo lento.
+private struct NothingImportedCard: View {
+    var body: some View {
         VStack(alignment: .leading, spacing: LiquidSpace.s150) {
             Text(String(localized: "Nothing imported yet"))
                 .font(LiquidType.tituloFila)
@@ -237,13 +758,14 @@ struct AppleHealthView: View {
         }
         .liquidTarjetaSeccion()
     }
+}
 
-    /// The loading state: it NAMES what it is doing, visibly — not only in VoiceOver — in the same
-    /// card the empty state uses. NOT `LiquidSheetSkeleton`, whose stage / hypnogram / double-data
-    /// geometry belongs to the sleep detail, not to an Apple-Health list (FER-108 · Grok).
-    private var loadingState: some View {
+/// El estado de espera NOMBRA lo que está pasando, a la vista y no solo en VoiceOver.
+private struct ReadingCard: View {
+    var body: some View {
         HStack(spacing: LiquidSpace.s250) {
-            ProgressView().tint(LiquidColor.tinta500)
+            ProgressView()
+                .tint(LiquidColor.tinta500)
             Text(String(localized: "Reading your Apple Health history…"))
                 .font(LiquidType.cuerpo)
                 .foregroundStyle(LiquidColor.tinta700)
@@ -251,399 +773,56 @@ struct AppleHealthView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .liquidTarjetaSeccion()
     }
+}
 
-    /// Rebuild the per-metric resolved-window cache from scratch. Called once after
-    /// load and again whenever `range` changes — never inside the render path.
-    private func rebuildWindowCache() {
-        var cache: [String: ResolvedSeries] = [:]
-        cache.reserveCapacity(Self.seriesKeys.count)
-        for key in Self.seriesKeys {
-            let eff = computeEffectiveRange(key)
-            cache[key] = ResolvedSeries(effective: eff, rows: slice(key, eff))
-        }
-        windowCache = cache
-        windowedRowsCache = computeWindowedRows()
-    }
+private struct SpanBar: View {
+    let selection: Binding<Int>
+    let legend: String
+    let legendNeedsAttention: Bool
+    let stamp: String
 
-    /// True if ANY series or per-day row holds data (drives the empty state).
-    private var hasAnyData: Bool {
-        if !appleRows.isEmpty { return true }
-        return series.values.contains { !$0.isEmpty }
-    }
-
-    // MARK: - Load
-
-    private func load() async {
-        // Previews inject data directly (store-backed reads can't be seeded).
-        if let pd = previewData {
-            appleRows = pd.rows.sorted { $0.day < $1.day }
-            appleWorkouts = pd.workouts
-            series = pd.series
-            rebuildWindowCache()
-            loaded = true
-            return
-        }
-
-        #if DEBUG
-        // FER-389 (mapa 100 %): `-cenit.slowLoad YES` alarga la ventana con `loaded == false` — la
-        // lectura real del store es casi instantánea, así que sin esto el estado «cargando» nunca dura
-        // lo bastante para un screenshot determinista del harness.
-        if UserDefaults.standard.string(forKey: "cenit.slowLoad")?.lowercased() == "yes" {
-            try? await Task.sleep(for: .seconds(3))
-        }
-        #endif
-
-        async let rows = repo.appleDailyRows(respectingMode: false)      // FER-485: diagnostic — show what's stored
-        async let workouts = repo.workoutRows(respectingMode: false)
-
-        // Load the per-key series concurrently (was a sequential await loop = N+1 round-trips).
-        // Same pattern as CompareView/InsightsView/MetricExplorerView (FER-318).
-        let fetched = await withTaskGroup(of: (String, [(day: String, value: Double)]).self) { group in
-            for key in Self.seriesKeys {
-                group.addTask { (key, await repo.series(key: key, source: "apple-health")) }
-            }
-            var out: [String: [(day: String, value: Double)]] = [:]
-            for await (key, s) in group { out[key] = s }
-            return out
-        }
-
-        let loadedRows = await rows
-        // FER-362 · C4: exact-equality missed every "apple-health:<app name>" row `mapWorkouts` now
-        // writes — `classify` is the one gate that recognizes the whole family, named or not.
-        let filteredWorkouts = await workouts.filter { WorkoutSource.classify($0.source) == .apple }
-
-        await MainActor.run {
-            appleRows = loadedRows.sorted { $0.day < $1.day }
-            appleWorkouts = filteredWorkouts
-            // FER-192: `skin_temp`'s series is NOT in `metricSeries` — HealthKit stage 10 writes the
-            // nightly wrist-temp DEVIATION to `DailyMetric.skinTempDevC`, not a series point. Source the
-            // chart from `repo.days` like `CuerpoView.skinTempStat`, so it isn't empty for already-synced
-            // data (the checklist already counts the same column).
-            var withSkin = fetched
-            withSkin["skin_temp"] = repo.days.compactMap { d in d.skinTempDevC.map { (day: d.day, value: $0) } }
-            series = withSkin
-            rebuildWindowCache()
-            loaded = true
-        }
-    }
-
-    // MARK: - Range control + header span
-
-    private var rangeControl: some View {
+    var body: some View {
         VStack(alignment: .leading, spacing: LiquidSpace.s200) {
-            LiquidRangeSelector(opciones: RangeWindow.allCases.map(\.label),
-                                seleccion: rangeIndex, tono: LiquidColor.tinta700)
+            LiquidRangeSelector(opciones: AppleHealthSpan.allCases.map(\.pill),
+                                seleccion: selection,
+                                tono: LiquidColor.tinta700)
                 .accessibilityLabel(String(localized: "Time range"))
             HStack(alignment: .firstTextBaseline) {
-                Text(verbatim: rangeSummaryCaption)
+                Text(verbatim: legend)
                     .font(LiquidType.captionLectura)
-                    .foregroundStyle(anyWidened ? LiquidColor.atencionTexto : LiquidColor.tinta500)
-                    .accessibilityLabel(rangeSummaryCaption)
+                    .foregroundStyle(legendNeedsAttention ? LiquidColor.atencionTexto : LiquidColor.tinta500)
+                    .accessibilityLabel(legend)
                 Spacer(minLength: LiquidSpace.s200)
-                Text(verbatim: range.caption)
-                    .font(LiquidType.captionLectura)
-                    .foregroundStyle(LiquidColor.tinta500)
-            }
-        }
-    }
-
-    /// A Binding<Int> bridging `LiquidRangeSelector`'s index to `range` (allCases order = W…ALL) —
-    /// the same bridge pattern Compare/Explore use for `ExploreRange`.
-    private var rangeIndex: Binding<Int> {
-        Binding(
-            get: { RangeWindow.allCases.firstIndex(of: range) ?? 0 },
-            set: { range = RangeWindow.allCases[$0] })
-    }
-
-    /// True if any tracked series had to auto-widen past the selected range.
-    private var anyWidened: Bool {
-        Self.seriesKeys.contains { !raw($0).isEmpty && effectiveRange($0) != range }
-    }
-
-    /// Window-level caption near the control: how many days the per-day rows span in
-    /// the selected range, plus a flag if any tracked series had to auto-widen.
-    private var rangeSummaryCaption: String {
-        let n = windowedRows.count
-        let unit = n == 1 ? String(localized: "day") : String(localized: "days")
-        return anyWidened
-            ? String(localized: "\(n) \(unit) · \(range.name) · some sparse series widened")
-            : String(localized: "\(n) \(unit) · \(range.name)")
-    }
-
-    /// Header subtitle reflects the windowed (visible) per-day span.
-    private var spanSubtitle: String? {
-        let rows = loaded ? windowedRows : appleRows
-        guard let first = rows.first?.day, let last = rows.last?.day,
-              let lo = date(first), let hi = date(last) else {
-            return String(localized: "Steps, heart, sleep, body composition and VO₂ max: read locally on this iPhone.")
-        }
-        let loS = Self.spanFormatter.string(from: lo)
-        let hiS = Self.spanFormatter.string(from: hi)
-        let span = loS == hiS ? loS : "\(loS) → \(hiS)"
-        return String(localized: "\(rows.count) days · \(span)")
-    }
-
-    /// AppleDaily rows trimmed to the active window (for the span readout), taken
-    /// RELATIVE TO THE LATEST recorded day rather than "now". Served from the
-    /// per-render cache; recomputed only when `appleRows`/`range` change.
-    private var windowedRows: [AppleDaily] {
-        loaded ? windowedRowsCache : computeWindowedRows()
-    }
-
-    /// The actual windowing of the per-day rows. Called only from
-    /// rebuildWindowCache and the not-yet-loaded fallback — never per render.
-    private func computeWindowedRows() -> [AppleDaily] {
-        guard let n = range.days else { return appleRows }
-        guard let lastDay = appleRows.last?.day, let last = date(lastDay) else { return [] }
-        let cutoff = last.addingTimeInterval(-Double(n - 1) * 86_400)
-        return appleRows.filter { row in
-            guard let d = date(row.day) else { return false }
-            return d >= cutoff
-        }
-    }
-
-    // MARK: - Metric tiles (uniform-height Liquid tiles in an adaptive grid)
-
-    private var tileGrid: some View {
-        LazyVGrid(
-            columns: [GridItem(.adaptive(minimum: 168), spacing: LiquidSpace.s200)],
-            alignment: .leading,
-            spacing: LiquidSpace.s200
-        ) {
-            metricTile(key: "steps", fmt: { intString($0) })
-            metricTile(key: "resting_hr", unit: String(localized: "bpm"),
-                       fmt: { "\(Int($0.rounded()))" })
-            metricTile(key: "hrv", unit: String(localized: "ms"),
-                       fmt: { "\(Int($0.rounded()))" })
-            metricTile(key: "vo2max", unit: String(localized: "ml/kg"),
-                       fmt: { String(format: "%.1f", $0) })
-            metricTile(key: "weight", fmt: { massLabel($0) })
-            metricTile(key: "body_fat", unit: "%", fmt: { String(format: "%.1f", $0) })
-            metricTile(key: "lean_mass", fmt: { massLabel($0) })
-            metricTile(key: "asleep_min", aggregate: .mean, fmt: { durationString($0) })
-            workoutsTile
-        }
-    }
-
-    /// How a tile's hero value is derived from its window.
-    private enum Aggregate { case latest, mean }
-
-    /// Quiet `LiquidMetricTile` (`delta: nil` + caption/sparkline) for an Apple Health series.
-    /// Sparse-safe: window auto-falls-back to ALL, hero is LATEST ("as of <date>") unless a mean
-    /// is requested, and sparkline + caption track the same resolved window.
-    private func metricTile(key: String, unit: String = "",
-                            aggregate: Aggregate = .latest,
-                            fmt: @escaping (Double) -> String) -> some View {
-        let rows = resolvedWindow(key)
-        let values = rows.map(\.value)
-        let identity = MetricIdentity.identity(forIngestKey: key)
-        let value: String
-        let caption: String?
-        if values.isEmpty {
-            value = "—"
-            caption = nil
-        } else {
-            switch aggregate {
-            case .latest:
-                let v = values.last ?? 0
-                value = fmt(v)
-                caption = rows.last.flatMap { date($0.day) }.map { String(localized: "as of \(Self.asOfFormatter.string(from: $0))") }
-            case .mean:
-                let m = mean(values) ?? 0
-                value = fmt(m)
-                caption = String(localized: "avg · \(values.count)d")
-            }
-        }
-        // Glyph is non-optional on LiquidMetricTile; body-comp / VO₂ keys still lack a family
-        // identity — `.carga` matches the quiet preview in CenitDesign (PESO).
-        return LiquidMetricTile(label: metricLabel(key), value: value, unit: unit, delta: nil,
-                                tone: values.isEmpty ? LiquidColor.tinta500 : identity.hue,
-                                icon: identity.glyph ?? .carga,
-                                caption: caption,
-                                sparkline: values.count > 1 ? sparkValues(values) : nil)
-    }
-
-    /// Workouts is a count, not a series — its own tile, still on the same recipe. FER-192: used to
-    /// always show the all-time total regardless of the W/M/3M/6M/1Y/ALL selector, unlike every other
-    /// tile on this page (steps/HR/weight… all trim to the active range) — an easy false "your workout
-    /// count" read on, say, the Week pill. Now windowed the same way, anchored to the latest daily-row
-    /// day like the rest of the page; when there's no daily anchor to window against (workouts with no
-    /// daily rows at all — edge case), it falls back to the honest all-time total, labeled as such
-    /// rather than silently mislabeling a partial count as the selected range.
-    private var workoutsTile: some View {
-        let n = windowedWorkoutCount
-        return LiquidMetricTile(
-            label: String(localized: "Workouts"),
-            value: "\(n)",
-            delta: nil,
-            tone: n > 0 ? LiquidColor.ambar : LiquidColor.tinta500,
-            icon: .carga,
-            caption: n > 0 ? (workoutCountIsWindowed ? String(localized: "Apple-logged") : String(localized: "All-time total")) : nil
-        )
-    }
-
-    /// Workout count trimmed to the active range, anchored to the latest daily-row day (same anchor
-    /// `computeWindowedRows` uses) rather than "now" — consistent with every other window on this page.
-    /// `.all` always returns everything, honestly (no anchor needed: the range itself means "all time").
-    private var windowedWorkoutCount: Int {
-        guard let n = range.days else { return appleWorkouts.count }
-        guard let lastDay = appleRows.last?.day, let last = date(lastDay) else { return appleWorkouts.count }
-        let cutoff = last.addingTimeInterval(-Double(n - 1) * 86_400)
-        return appleWorkouts.filter { Date(timeIntervalSince1970: TimeInterval($0.startTs)) >= cutoff }.count
-    }
-
-    /// False only in the edge case above: a bounded range selected but no daily-row anchor exists to
-    /// window workouts against, so `windowedWorkoutCount` fell back to the all-time total.
-    private var workoutCountIsWindowed: Bool {
-        guard range.days != nil else { return true }
-        return (appleRows.last?.day).flatMap(date) != nil
-    }
-
-    // MARK: - Chart sections (Liquid chart cards, uniform per page)
-
-    private var heartSection: some View {
-        chartSection(String(localized: "Heart & Vitals")) {
-            chartCard(key: "resting_hr", fallback: 40...80,
-                      fmt: { "\(Int($0.rounded())) \(String(localized: "bpm"))" })
-            chartCard(key: "hrv", fallback: 20...120,
-                      fmt: { "\(Int($0.rounded())) ms" })
-            chartCard(key: "spo2", fallback: 90...100,
-                      fmt: { String(format: "%.1f%%", $0) })
-            chartCard(key: "resp_rate", fallback: 10...22,
-                      fmt: { String(format: "%.1f rpm", $0) })
-            // FER-192: was imported (stage 10) and already drove the illness/cycle-phase engines, but
-            // had no chart on this page. Deviation from baseline (°C), not an absolute temperature —
-            // same unit/format `CuerpoView.skinTempStat` and `MetricInfoCatalog.skinTemp` use.
-            chartCard(key: "skin_temp", fallback: -1.5...1.5,
-                      fmt: { String(format: "%+.1f°C", $0) })
-        }
-    }
-
-    private var activitySection: some View {
-        chartSection(String(localized: "Activity & Energy")) {
-            chartCard(key: "steps", fallback: 0...12000,
-                      fmt: { intString($0) })
-            chartCard(key: "active_kcal", fallback: 0...1000,
-                      fmt: { "\(intString($0)) kcal" })
-        }
-    }
-
-    private var bodySection: some View {
-        chartSection(String(localized: "Body Composition")) {
-            chartCard(key: "weight", fallback: 50...100, fmt: { massLabel($0) })
-            chartCard(key: "body_fat", fallback: 8...35, fmt: { String(format: "%.1f%%", $0) })
-            chartCard(key: "lean_mass", fallback: 40...80, fmt: { massLabel($0) })
-            chartCard(key: "bmi", fallback: 16...35, fmt: { String(format: "%.1f", $0) })
-        }
-    }
-
-    private var sleepSection: some View {
-        chartSection(String(localized: "Sleep")) {
-            chartCard(key: "asleep_min", fallback: 240...600, fmt: { durationString($0) })
-        }
-    }
-
-    /// A Liquid chart section: an inset overline (Compare's pattern — never a franja a sangre) +
-    /// the range caption, then its cards.
-    @ViewBuilder
-    private func chartSection<Cards: View>(_ title: String, @ViewBuilder cards: () -> Cards) -> some View {
-        VStack(alignment: .leading, spacing: LiquidSpace.s300) {
-            HStack(alignment: .firstTextBaseline) {
-                Text(verbatim: title)
-                    .font(LiquidType.franja).tracking(LiquidType.franjaTracking).textCase(.uppercase)
-                    .foregroundStyle(LiquidColor.tinta500)
-                    .accessibilityAddTraits(.isHeader)
-                Spacer(minLength: LiquidSpace.s200)
-                Text(verbatim: range.caption)
+                Text(verbatim: stamp)
                     .font(LiquidType.captionLectura)
                     .foregroundStyle(LiquidColor.tinta500)
             }
-            cards()
         }
     }
+}
 
-    /// One Liquid chart card for a metric series: header (canonical name + "N readings · range" +
-    /// avg in tone) + the raw-line history (`LiquidGraficaNiveles`, no bands — this dossier has no
-    /// level ladder) with an avg/min/max/points footer (`LiquidResumenVentana`), on the solid-card
-    /// recipe. Sparse-safe via `resolvedWindow`; a lone reading and a truly-empty series get their
-    /// own honest wells (the shared chart engine folds both into one "not enough points" state, so
-    /// this screen keeps its own — the contract calls out the single-point state by name).
-    @ViewBuilder
-    private func chartCard(key: String, fallback: ClosedRange<Double>,
-                           fmt: @escaping (Double) -> String) -> some View {
-        let rows = resolvedWindow(key)
-        let pts = trendPoints(rows)
-        let vals = rows.map(\.value)
-        let title = metricLabel(key)
-        let hue = MetricIdentity.identity(forIngestKey: key).hue
-        let avg = mean(vals)
-        let footerCeldas: [LiquidResumenVentana.Celda] = {
-            guard let avg, let lo = vals.min(), let hi = vals.max() else {
-                return [
-                    .init(rotulo: String(localized: "Avg"), valor: "—"),
-                    .init(rotulo: String(localized: "Min"), valor: "—"),
-                    .init(rotulo: String(localized: "Max"), valor: "—"),
-                    .init(rotulo: String(localized: "Points"), valor: "0"),
-                ]
-            }
-            return [
-                .init(rotulo: String(localized: "Avg"), valor: fmt(avg), tono: hue),
-                .init(rotulo: String(localized: "Min"), valor: fmt(lo)),
-                .init(rotulo: String(localized: "Max"), valor: fmt(hi)),
-                .init(rotulo: String(localized: "Points"), valor: "\(vals.count)"),
-            ]
-        }()
+/// Pozo para una serie con exactamente una lectura en la ventana.
+private struct LoneReadingWell: View {
+    let reading: String
+    let tone: Color
 
-        VStack(alignment: .leading, spacing: LiquidSpace.s300) {
-            HStack(alignment: .firstTextBaseline) {
-                VStack(alignment: .leading, spacing: LiquidSpace.s050) {
-                    Text(verbatim: title).font(LiquidType.tituloFila).foregroundStyle(LiquidColor.tinta900)
-                    Text(verbatim: rangeNote(forKey: key)).font(LiquidType.captionLectura).foregroundStyle(LiquidColor.tinta500)
-                }
-                Spacer(minLength: LiquidSpace.s200)
-                if let avg {
-                    Text(verbatim: fmt(avg)).font(LiquidType.valorM).foregroundStyle(hue)
-                }
-            }
-            Group {
-                if pts.count >= 2 {
-                    LiquidGraficaNiveles(
-                        puntos: pts,
-                        bandas: [],
-                        dominio: valueRange(vals, fallback: fallback),
-                        ticksY: [],
-                        tono: hue,
-                        formatoValorScrub: fmt,
-                        formatoFechaScrub: { Self.asOfFormatter.string(from: $0) },
-                        formatoFechaEje: { Self.asOfFormatter.string(from: $0) },
-                        estadoVacio: String(localized: "No readings recorded."),
-                        a11yLabel: String(localized: "\(title) trend"))
-                } else if let only = vals.last {
-                    // A single point is not a line — present the lone reading, never an "empty"
-                    // state when the series has data.
-                    singlePoint(only, fmt: fmt, accent: hue)
-                } else {
-                    emptyChart
-                }
-            }
-            .frame(height: Self.chartHeight)
-            .clipped()
-            LiquidResumenVentana(celdas: footerCeldas)
-        }
-        .liquidTarjetaSeccion()
-    }
-
-    /// Lone-reading body for series with exactly one point in range.
-    private func singlePoint(_ value: Double, fmt: (Double) -> String, accent: Color) -> some View {
+    var body: some View {
         VStack(alignment: .leading, spacing: LiquidSpace.s150) {
-            Text(String(localized: "Latest reading")).liquidLabel().foregroundStyle(LiquidColor.tinta500)
-            Text(verbatim: fmt(value)).font(LiquidType.valorTileL).tracking(LiquidType.valorTileTracking)
-                .foregroundStyle(accent)
+            Text(String(localized: "Latest reading"))
+                .liquidLabel()
+                .foregroundStyle(LiquidColor.tinta500)
+            Text(verbatim: reading)
+                .font(LiquidType.valorTileL)
+                .tracking(LiquidType.valorTileTracking)
+                .foregroundStyle(tone)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
     }
+}
 
-    private var emptyChart: some View {
+/// Pozo para una serie sin ninguna lectura.
+private struct NoReadingsWell: View {
+    var body: some View {
         Text(String(localized: "No readings recorded."))
             .font(LiquidType.cuerpo)
             .foregroundStyle(LiquidColor.tinta500)
@@ -652,108 +831,15 @@ struct AppleHealthView: View {
             .background(LiquidColor.tinta7,
                         in: RoundedRectangle(cornerRadius: LiquidRadius.control, style: .continuous))
     }
-
-    // MARK: - Series helpers (sparse-data fallback to ALL)
-
-    /// All-history rows for a key (ascending by day).
-    private func raw(_ key: String) -> [(day: String, value: Double)] { series[key] ?? [] }
-
-    /// The latest recorded day for a key (anchors its windows).
-    private func latestDate(_ key: String) -> Date? {
-        guard let d = raw(key).last?.day else { return nil }
-        return date(d)
-    }
-
-    /// Rows for a key over a given range, taken RELATIVE TO THE LATEST data point
-    /// (not "now"); `.all` returns everything.
-    private func slice(_ key: String, _ r: RangeWindow) -> [(day: String, value: Double)] {
-        let all = raw(key)
-        guard let n = r.days else { return all }
-        guard let last = latestDate(key) else { return [] }
-        let cutoff = last.addingTimeInterval(-Double(n - 1) * 86_400)
-        return all.filter { row in
-            guard let d = date(row.day) else { return false }
-            return d >= cutoff
-        }
-    }
-
-    /// The range actually shown for a key: the SELECTED range whenever its window
-    /// holds ≥1 point, otherwise the smallest LARGER range that does — so switching
-    /// ranges stays visibly distinct and only sparse windows widen. Served from the
-    /// per-render cache; falls back to a fresh compute on a cache miss.
-    private func effectiveRange(_ key: String) -> RangeWindow {
-        windowCache[key]?.effective ?? computeEffectiveRange(key)
-    }
-
-    /// The actual effective-range computation (re-slices the series, once per widening
-    /// candidate). Called only from rebuildWindowCache and the cache-miss fallback —
-    /// never repeatedly within a single render.
-    private func computeEffectiveRange(_ key: String) -> RangeWindow {
-        guard !raw(key).isEmpty else { return range }
-        for r in range.widening where !slice(key, r).isEmpty { return r }
-        return .all
-    }
-
-    /// Rows for a key trimmed to its resolved (possibly widened) window. Served from
-    /// the per-render cache; falls back to a fresh compute on a cache miss.
-    private func resolvedWindow(_ key: String) -> [(day: String, value: Double)] {
-        if let cached = windowCache[key]?.rows { return cached }
-        return slice(key, computeEffectiveRange(key))
-    }
-
-    /// Card subtitle: "N readings · <range>", flagging an auto-widen when it happened.
-    private func rangeNote(forKey key: String) -> String {
-        let rows = resolvedWindow(key)
-        let eff = effectiveRange(key)
-        let n = rows.count
-        let unit = n == 1 ? String(localized: "reading") : String(localized: "readings")
-        if eff != range {
-            return String(localized: "\(n) \(unit) · sparse: widened to \(eff.name)")
-        }
-        return String(localized: "\(n) \(unit) · \(range.name)")
-    }
-
-    private func trendPoints(_ rows: [(day: String, value: Double)]) -> [(fecha: Date, valor: Double)] {
-        rows.compactMap { row in
-            guard let dt = date(row.day) else { return nil }
-            return (fecha: dt, valor: row.value)
-        }
-    }
-
-    /// Sparklines need a non-degenerate series; cap to the last ~40 samples.
-    private func sparkValues(_ values: [Double]) -> [Double] {
-        guard values.count > 1 else { return [values.first ?? 0, values.first ?? 0] }
-        return Array(values.suffix(40))
-    }
-
-    private func mean(_ values: [Double]) -> Double? {
-        guard !values.isEmpty else { return nil }
-        return values.reduce(0, +) / Double(values.count)
-    }
-
-    private func valueRange(_ values: [Double], fallback: ClosedRange<Double>, pad: Double = 0.12) -> ClosedRange<Double> {
-        guard let lo = values.min(), let hi = values.max() else { return fallback }
-        if hi <= lo { return (lo - 1)...(hi + 1) }
-        let span = hi - lo
-        return (lo - span * pad)...(hi + span * pad)
-    }
-
-    private func intString(_ v: Double) -> String { CenitFormat.groupedInt(v) }
-
-    private func durationString(_ minutes: Double) -> String {
-        let total = Int(minutes.rounded())
-        let h = total / 60, m = total % 60
-        return h > 0 ? "\(h)h \(m)m" : "\(m)m"
-    }
 }
 
-// MARK: - Preview seam
+// MARK: - Costura de preview
 
 extension AppleHealthView {
-    /// In-memory bundle that bypasses the store-backed async load for previews. `workouts` carries raw
-    /// rows (not a count) so the windowed workouts tile has real dates to window against in the canvas.
-    fileprivate struct PreviewData {
-        var rows: [AppleDaily]
+    /// Paquete en memoria que sustituye la lectura del store en el canvas. Los entrenamientos llegan
+    /// como filas crudas (no un conteo) para que el tile tenga fechas reales que recortar.
+    fileprivate struct Seed {
+        var days: [AppleDaily]
         var workouts: [WorkoutRow]
         var series: [String: [(day: String, value: Double)]]
     }
@@ -761,91 +847,101 @@ extension AppleHealthView {
 
 #if DEBUG
 @MainActor
-private func appleHealthPreviewData() -> AppleHealthView.PreviewData {
-    let cal = Calendar(identifier: .gregorian)
-    let fmt = DayKey.utcFormatter
-    let today = Date()
+private func seededAppleHealth() -> AppleHealthView.Seed {
+    let calendario = Calendar(identifier: .gregorian)
+    let claveDeDia = DayKey.utcFormatter
+    let ahora = Date()
+    let historia = 730
 
-    var rows: [AppleDaily] = []
+    var days: [AppleDaily] = []
     var workouts: [WorkoutRow] = []
-    var series: [String: [(day: String, value: Double)]] = [
-        "steps": [], "active_kcal": [], "vo2max": [],
-        "resting_hr": [], "hrv": [], "spo2": [], "resp_rate": [], "skin_temp": [], "asleep_min": [],
-        "weight": [], "body_fat": [], "lean_mass": [], "bmi": []
-    ]
+    var series: [String: [(day: String, value: Double)]] = [:]
+    for key in ["steps", "active_kcal", "vo2max", "resting_hr", "hrv", "spo2", "resp_rate",
+                "skin_temp", "asleep_min", "weight", "body_fat", "lean_mass", "bmi"] {
+        series[key] = []
+    }
 
-    // Seed ~2 years so the range control has real depth to window into.
-    for i in stride(from: 729, through: 0, by: -1) {
-        guard let d = cal.date(byAdding: .day, value: -i, to: today) else { continue }
-        let day = fmt.string(from: d)
-        let phase = Double(729 - i)
-        let steps  = 8000 + 3200 * sin(phase / 6.0) + Double((Int(phase) * 53) % 1800)
-        let active = 420 + 180 * sin(phase / 5.0 + 0.6) + Double((Int(phase) * 17) % 90)
-        let rhr    = 53 + 4 * sin(phase / 8.0) + Double((Int(phase) * 7) % 4) - 2
-        let hrv    = 58 + 16 * sin(phase / 9.0) + Double((Int(phase) * 13) % 11) - 5
-        let spo2   = 96 + 1.4 * sin(phase / 4.0) + Double((Int(phase) * 3) % 2)
-        let resp   = 14.5 + 1.2 * sin(phase / 7.0)
-        let vo2    = 47 + 2.2 * sin(phase / 21.0)
-        let asleep = 410 + 55 * sin(phase / 5.0 + 1.1) + Double((Int(phase) * 11) % 30) - 15
-        // Baseline deviation in °C, not an absolute temperature — mirrors the real skinTempDevC column.
-        let skinTemp = 0.15 * sin(phase / 10.0) + Double((Int(phase) * 7) % 5) * 0.05 - 0.1
-        // Slow body-composition drift over the two years (measured WEEKLY → sparse).
-        let weight = 78.0 - 5.0 * sin(phase / 220.0) + 0.6 * sin(phase / 13.0)
-        let bodyFat = 18.0 - 3.0 * sin(phase / 240.0) + 0.4 * sin(phase / 11.0)
-        let lean   = weight * (1.0 - bodyFat / 100.0)
-        let bmi    = weight / (1.78 * 1.78)
+    // Dos años de historia: suficiente profundidad para que las seis pestañas del selector se vean
+    // distintas entre sí.
+    for indice in 0..<historia {
+        let atras = historia - 1 - indice
+        guard let fecha = calendario.date(byAdding: .day, value: -atras, to: ahora) else { continue }
+        let dia = claveDeDia.string(from: fecha)
+        let t = Double(indice)
+        let ruido = { (semilla: Int, tope: Int) in Double((indice &* semilla) % tope) }
 
-        rows.append(AppleDaily(
-            day: day,
-            steps: Int(steps.rounded()),
-            activeKcal: max(120, active),
-            basalKcal: 1600,
-            vo2max: vo2,
-            avgHr: 72,
-            maxHr: 148,
-            walkingHr: 96,
-            weightKg: weight))
+        let pasos = 8000 + 3200 * sin(t / 6.0) + ruido(53, 1800)
+        let activas = max(120, 420 + 180 * sin(t / 5.0 + 0.6) + ruido(17, 90))
+        let fcReposo = max(40, 53 + 4 * sin(t / 8.0) + ruido(7, 4) - 2)
+        let vfc = max(15, 58 + 16 * sin(t / 9.0) + ruido(13, 11) - 5)
+        let oxigeno = min(100, 96 + 1.4 * sin(t / 4.0) + ruido(3, 2))
+        let respiracion = 14.5 + 1.2 * sin(t / 7.0)
+        let vo2 = 47 + 2.2 * sin(t / 21.0)
+        let dormido = max(180, 410 + 55 * sin(t / 5.0 + 1.1) + ruido(11, 30) - 15)
+        // Desviación en °C respecto a la base, igual que la columna real.
+        let piel = 0.15 * sin(t / 10.0) + ruido(7, 5) * 0.05 - 0.1
+        let peso = 78.0 - 5.0 * sin(t / 220.0) + 0.6 * sin(t / 13.0)
+        let grasa = 18.0 - 3.0 * sin(t / 240.0) + 0.4 * sin(t / 11.0)
 
-        series["steps"]?.append((day, max(0, steps)))
-        series["active_kcal"]?.append((day, max(80, active)))
-        series["vo2max"]?.append((day, vo2))
-        series["resting_hr"]?.append((day, max(40, rhr)))
-        series["hrv"]?.append((day, max(15, hrv)))
-        series["spo2"]?.append((day, min(100, spo2)))
-        series["resp_rate"]?.append((day, resp))
-        series["skin_temp"]?.append((day, skinTemp))
-        series["asleep_min"]?.append((day, max(180, asleep)))
-        // Body composition is logged once a week → deliberately sparse, to exercise
-        // the trailing-window → ALL fallback (a W/M view would otherwise be empty).
-        if Int(phase) % 7 == 0 {
-            series["weight"]?.append((day, weight))
-            series["body_fat"]?.append((day, bodyFat))
-            series["lean_mass"]?.append((day, lean))
-            series["bmi"]?.append((day, bmi))
+        days.append(AppleDaily(day: dia,
+                               steps: Int(max(0, pasos).rounded()),
+                               activeKcal: activas,
+                               basalKcal: 1600,
+                               vo2max: vo2,
+                               avgHr: 72,
+                               maxHr: 148,
+                               walkingHr: 96,
+                               weightKg: peso))
+
+        series["steps"]?.append((dia, max(0, pasos)))
+        series["active_kcal"]?.append((dia, activas))
+        series["vo2max"]?.append((dia, vo2))
+        series["resting_hr"]?.append((dia, fcReposo))
+        series["hrv"]?.append((dia, vfc))
+        series["spo2"]?.append((dia, oxigeno))
+        series["resp_rate"]?.append((dia, respiracion))
+        series["skin_temp"]?.append((dia, piel))
+        series["asleep_min"]?.append((dia, dormido))
+
+        // La composición corporal se mide UNA vez por semana: rala a propósito, para ejercitar el
+        // ensanchamiento automático de la ventana.
+        if indice % 7 == 0 {
+            series["weight"]?.append((dia, peso))
+            series["body_fat"]?.append((dia, grasa))
+            series["lean_mass"]?.append((dia, peso * (1.0 - grasa / 100.0)))
+            series["bmi"]?.append((dia, peso / (1.78 * 1.78)))
         }
-        // A workout roughly every 6 days, spread across the full 2-year span — FER-192: this feeds
-        // the windowed workouts tile, so the canvas can show a different count per range pill instead
-        // of the old all-time total repeated on every pill.
-        if Int(phase) % 6 == 0 {
-            let startTs = Int(d.timeIntervalSince1970)
-            workouts.append(WorkoutRow(
-                startTs: startTs, endTs: startTs + 2700, sport: "run", source: "apple-health",
-                durationS: 2700, energyKcal: 380, avgHr: 132, maxHr: 158, strain: nil,
-                distanceM: 5200, zonesJSON: nil, notes: nil))
+
+        // Un entrenamiento cada seis días, repartidos por los dos años: así el tile cambia de cifra
+        // al cambiar de pestaña.
+        if indice % 6 == 0 {
+            let arranque = Int(fecha.timeIntervalSince1970)
+            workouts.append(WorkoutRow(startTs: arranque,
+                                       endTs: arranque + 2700,
+                                       sport: "run",
+                                       source: "apple-health",
+                                       durationS: 2700,
+                                       energyKcal: 380,
+                                       avgHr: 132,
+                                       maxHr: 158,
+                                       strain: nil,
+                                       distanceM: 5200,
+                                       zonesJSON: nil,
+                                       notes: nil))
         }
     }
 
-    return .init(rows: rows, workouts: workouts, series: series)
+    return AppleHealthView.Seed(days: days, workouts: workouts, series: series)
 }
 
 #Preview("Apple Health: seeded") {
-    AppleHealthView(previewData: appleHealthPreviewData())
+    AppleHealthView(seed: seededAppleHealth())
         .environmentObject(Repository(deviceId: "preview"))
         .frame(width: 920, height: 980)
 }
 
 #Preview("Apple Health: empty") {
-    AppleHealthView(previewData: .init(rows: [], workouts: [], series: [:]))
+    AppleHealthView(seed: .init(days: [], workouts: [], series: [:]))
         .environmentObject(Repository(deviceId: "preview"))
         .frame(width: 920, height: 600)
 }
