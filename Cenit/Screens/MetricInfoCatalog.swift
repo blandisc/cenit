@@ -268,7 +268,7 @@ extension MetricInfo {
             unit: nil,
             headerTint: pct == nil ? .neutral : .metric,
             bands: bands,
-            note: "Your need is your own rolling average of recent nights, never under 7.5 h."
+            note: "Your need is a fixed 7.5 h target (within the recommended 7–9 h range), not your own average."
         )
     }
 
