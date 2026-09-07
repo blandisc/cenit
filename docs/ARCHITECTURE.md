@@ -334,35 +334,63 @@ download already fetched.
 
 ## 7. Storage model (CenitStore / SQLite)
 
-GRDB drives a migrator (the migrator currently reaches `v43`; see `Database.swift` — the source of
-truth is the migration list, not a constant). The schema groups into four
-concerns:
+GRDB drives a migrator with **exactly one** registered migration, `"v43"`, whose body is the whole
+DDL (`Schema.swift` — the source of truth is that list, never a hand-written constant).
 
-**Durable decoded streams** — natural key `(deviceId, ts)`, one row per sample:
-`hrSample`, `rrInterval`, `event`, `battery`, plus the type-47 biometrics `spo2Sample`,
-`skinTempSample`, `respSample`, `gravitySample`.
-- The five 1 Hz tables (`hrSample`, `rrInterval`, `skinTempSample`, `respSample`, `gravitySample`)
-  are **`WITHOUT ROWID` + `STRICT`** with an **integer `deviceId` surrogate** as of **v21 (FER-513)**.
-  A rowid table with a composite PK keeps a second `sqlite_autoindex` copy of the key + rowid on every
-  row (~46% of the DB); `WITHOUT ROWID` makes the natural PK *be* the table (no autoindex), and the int
-  surrogate replaces the repeated legacy device-id TEXT — together ~−60% on these tables, zero data loss.
-  The dead `synced` column (v5) is dropped from these five. `event`/`battery`/`stepSample`/`spo2Sample`
-  keep TEXT `deviceId` + rowid (marginal / empty — out of scope). `spo2Sample` is decoded but no longer
-  written (**v20, FER-511**) and its rows were purged; it survives empty for downgrade-safe reads.
-- The surrogate map is **`deviceIdMap(deviceId TEXT PK, intId INTEGER UNIQUE)`** — distinct from
-  `device` (hardware): writes/tests insert sample rows for source partitions that never have a `device`
-  row, so binding the surrogate to `device.rowid` would JOIN-drop them. `CenitStore` translates at the
-  actor boundary via a `[String: Int64]` cache (`resolvedDeviceId`), so the public read/write API still
-  takes `deviceId: String`. The write path creates the mapping on demand (never throws on an unknown id
-  → the Backfiller, which acks+trims history even when `insert` fails, can't lose acked data).
+The identifier is load-bearing (FER-393). A database installed before the clean-room rewrite carries
+the 43 identifiers `v1`…`v43` of the previous incremental history in its `grdb_migrations` ledger, and
+GRDB silently ignores applied identifiers a migrator doesn't know about — so that database reads
+`"v43"` as applied, finds nothing pending, and **executes not one schema statement**. A fresh install
+arrives with an empty ledger, runs `"v43"`, and gets the full schema. Two consequences, both pinned by
+tests: **the next migration is `"v44"`** (reusing `"v1"`…`"v42"` would be skipped in silence on an
+installed database, leaving its schema behind with no error), and **`eraseDatabaseOnSchemaChange`
+stays off** (with it on, GRDB would read those 43 unknown identifiers as a schema change and erase the
+file). The DDL is pasted verbatim from a `.schema` dump of a real migrated database
+(`Tests/CenitStoreTests/Resources/legacy-schema.sql`) and a test compares `sqlite_master` against it
+character by character; the guard against a second execution lives in Swift, checking `sqlite_master`
+per object, so the recorded text stays exact.
 
-**Metric caches** — the rolled-up shapes the screens read:
+The schema groups into five concerns:
+
+**Durable beat streams** — `hrSample` (`(deviceId, ts)`) and `rrInterval` (`(deviceId, ts, rrMs)`),
+one row per sample. The band-era stream tables (`event`, `battery`, `spo2Sample`, `skinTempSample`,
+`respSample`, `gravitySample`, `stepSample`, `rawBatch`, `device`, `circadianPhase`) were dropped and
+are not recreated; `Streams` still carries the dormant arrays, and `insert` simply does not persist
+them — writing to a table that isn't there would throw and take the beats down with it.
+- Both are **`WITHOUT ROWID` + `STRICT`** with an **integer `deviceId` surrogate**. A rowid table with
+  a composite PK keeps a second `sqlite_autoindex` copy of the key + rowid on every row (~46% of the
+  DB); `WITHOUT ROWID` makes the natural PK *be* the table, and the surrogate replaces a repeated TEXT
+  label on every one of ~86 000 rows per day of pulse. Neither carries the dead `synced` column of the
+  retired upload feature.
+- The surrogate map is **`deviceIdMap(deviceId TEXT PK, intId INTEGER UNIQUE)`**. `CenitStore`
+  translates at the actor boundary through a `[String: Int64]` cache it owns (the actor serializes
+  lookup-then-insert, so two callers can't assign two integers to one label), and the public read/write
+  API still takes `deviceId: String`. A read of an unknown partition returns empty instead of throwing;
+  a write creates the mapping on demand, so an insert can never fail for a missing surrogate.
+
+**Metric caches** — the rolled-up shapes the screens read. The name is a little misleading: there is
+no invalidation, no dirty flag and no notification anywhere in the package. They are durable rows of
+already-computed values, rewritten by whoever recomputes them.
 - `dailyMetric` — one row per `(deviceId, day)`: `recovery`, `strain`, sleep stage minutes,
-  `restingHr`, `avgHrv`, `spo2Pct`, `skinTempDevC`, `respRateBpm`, `exerciseCount`.
+  `restingHr`, `avgHrv`, `spo2Pct`, `skinTempDevC`, `respRateBpm`, `exerciseCount`, `steps`,
+  `activeKcalEst`, and the two confidence tiers. Its conflict rule is **not** a replacement: the
+  engine re-scores every night in its window on each pass, and a night whose sleep session isn't
+  detected yet comes back all nulls, so each column merges as `COALESCE(incoming, stored)` and a day
+  is cleared by DELETING it, never by writing nulls over it. `strain` merges by a narrower rule a
+  plain `COALESCE` gets wrong in one case — a stored `0` (usually a false rest from a pass without
+  pulse) may go back to NULL, while a stored load above 0 never degrades to rest or to «no data». The
+  seven cases are pinned one by one in `DayCacheStoreTests`.
 - `sleepSession` — one row per `(deviceId, startTs)` with `efficiency`, `restingHr`, `avgHrv`, and
-  a JSON `stagesJSON` hypnogram.
-- `journal`, `workout`, `appleDaily` — imported journal answers, workouts (legacy + Apple Health),
-  and Apple-Health daily aggregates.
+  a JSON `stagesJSON` hypnogram. Reads return the sessions that **overlap** the window, not the ones
+  that start inside it: falling asleep before local midnight puts the night's start outside the
+  window, and it is still that night.
+- `journal`, `workout`, `appleDaily` — journal answers, workouts (imported history + Apple Health),
+  and Apple-Health daily aggregates. All three arrive in batches, and SQLite refuses to resolve the
+  same conflict key twice inside one `INSERT … ON CONFLICT DO UPDATE`, so a batch is deduplicated
+  first, keeping the LAST appearance of each natural key in first-appearance order — «row by row, last
+  wins», resolved before the write. `dailyMetric` can't use that shortcut (its rule merges column by
+  column, so collapsing would lose what only the first appearance carried) and is split into passes
+  instead, which applied in order reproduce row-by-row semantics exactly.
 - `experiment` (v12, FER-307) — one row per N-of-1 experiment, natural key `id` (UUID): the lever
   (`behavior` × `outcome`), `startDay`/`windowDays`, `status` (running/completed/canceled), and the
   verdict columns filled on completion. Additive only; one experiment runs at a time (app-enforced),
@@ -418,9 +446,11 @@ aggregates. FER-868 added the daily motion derivatives under the same computed-s
 (the civil day's gravity motion volume, `StepsEstimateEngine.dayMotionIntensity` — the steps-estimate
 input) and `act_h00`…`act_h23` (the per-local-hour motion profile feeding `CircadianEngine`'s cosinor;
 a row exists iff the hour had samples, even at 0.0 — absent hour = no row, preserving the pooled-bins
-semantics). Persisting them means the engine reads each day's raw `gravitySample` rows ONCE when the
-day's data changes, instead of re-reading 60+14 days of gravity every 15-minute pass — and the derived
-motion history survives both an app relaunch and a raw-stream safe-trim.
+semantics). Persisting them meant the engine read each day's raw accelerometer rows ONCE when the
+day's data changed, instead of re-reading 60+14 days of them every 15-minute pass — and the derived
+motion history survives both an app relaunch and a raw-stream safe-trim. That raw table is gone now,
+so those scalars are read-only history: whatever a database already holds still reads back, and
+nothing writes new ones.
 
 FER-972 (P-05) adds two more per-night scalars under the same computed-source suffix: `night_dc_ms`
 (nocturnal Deceleration Capacity, ms, over the night's main in-bed session) and `night_warming_c`
@@ -438,37 +468,30 @@ heartbeat series; `Repository.autonomicTrend` reads `apple_rmssd_night` back to 
 baseline is a construct of its own and must never be pooled with the legacy wearable's RMSSD or with Apple's SDNN
 (three separate baselines — the "own baseline per construct" invariant, FER-629).
 
-**Circadian phase** — `circadianPhase(deviceId, day, tempMinHour, acrophaseHours, offsetMinutes,
-confidence, daysObserved, bedtimeHour, wakeHour, computedAt)`, PK `(deviceId, day)`: one structured
-record per local civil day holding `CircadianEngine`'s cosinor phase estimate for the «Tu reloj
-corporal» surface (FER-712). Written by the nightly `IntelligenceEngine` pass (gated to legacy wearables —
-the phase signal is the accelerometer rest-activity rhythm). A dedicated table, not `metricSeries`,
-because the record is multi-field including an enum confidence. `confidence` is stored as the raw
-`PhaseConfidence` string; `CenitStore` keeps no dependency on `StrandAnalytics`.
+**Bookkeeping** — `cursors(name TEXT PK, value INTEGER)`: one-shot flags and forward-only watermarks.
+Two name prefixes are contract, `highwater:<stream>` (upload mark) and `read:<stream>` (pull cursor);
+they have to differ so the two marks of one stream can't collide.
 
-**Raw outbox** — `rawBatch`: the compressed, **transient, prunable** record of original frames,
-captured only when the research toggle is on. Decoded data is always committed *before* raw is queued,
-so pruning raw (`PrunePolicy`: 24h window / 50MB cap) can never lose a metric. `cursors` holds durable
-watermarks such as a trim cursor for the legacy device path.
+`deviceId` is the per-source partition key. The app uses `"apple-health"` for imported Apple Health
+(the live source), `"strap"` for the band-era history it still holds, `"-noop"`-suffixed partitions
+for what it computes on top of each, and `"noop-journal"` for journal answers logged in Cénit — so
+per-source pages and cross-source "consensus" views read the same tables filtered by source. On
+`hrSample` and `rrInterval` the stored `deviceId` is the integer surrogate from `deviceIdMap`;
+everywhere else it is the TEXT label.
 
-`deviceId` is the per-source partition key. The app uses a dedicated legacy-device label for the
-retired wearable partition and `"apple-health"` for imported Apple Health, so per-source pages and
-cross-source "consensus" views read the same tables filtered by source. On the five v21 `WITHOUT ROWID` sample tables the stored
-`deviceId` is the integer surrogate from `deviceIdMap`; everywhere else it is still the TEXT partition
-key.
+The imported partition was labelled after the band's brand until **FER-993** relabelled it to the
+neutral `"strap"` (the app ships to the App Store, so the id written into the user's data can't carry
+a third-party brand). That relabel is history now — it is baked into the installed database and does
+not exist as a step any more — but it explains why the label lives in exactly one row of
+`deviceIdMap`: re-pointing millions of sample rows was a single UPDATE. `auto_vacuum=INCREMENTAL`
+keeps later deletes reclaimable, and `vacuum()` (off the launch path, gated by a `cursors` flag) is
+what returns freed pages to the OS.
 
-The legacy device partition originally carried a third-party brand name in its label until **v36
-(FER-993)**, which relabels it to a brand-neutral value (the app ships to the App Store, so the id it
-writes into the user's data can't carry a third-party brand). The relabel is lossless by two different mechanisms: the five v21 tables
-store the *surrogate*, so rewriting the single `deviceIdMap` row re-points all their rows at once
-without touching a sample row; every other table stores the label as TEXT and is swept in place. The
-sweep is driven off the **live schema** (`sqlite_master` + `pragma table_info`, TEXT `deviceId` columns
-only) rather than a hand-written table list — a forgotten table would silently orphan real rows, and
-reading the schema also self-corrects for the v21 tables (their `deviceId` is INTEGER, so it skips
-them). The derived computed partition follows by the same prefix rewrite, and
-`workout.source` — which stores the computed id for detector-derived bouts — moves in lockstep. A one-time VACUUM after the v21 rebuild (and after the v20 spo2 purge) returns the freed pages to
-the OS — each runs once per install, gated by a `cursors` flag (`rebuildVacuumV1Done` / `spo2VacuumV1Done`),
-off the launch path; `auto_vacuum=INCREMENTAL` (FER-511) keeps later deletes reclaimable.
+**Orphan, deliberately left alone:** `CircadianPhaseStore.swift` still reads and writes a
+`circadianPhase` table that no longer exists. Its calls throw at runtime and the app layer swallows
+them with `try?`, so «Tu reloj corporal» has read `nil` since the table was dropped. Preserving that
+status quo was the right call inside FER-393 (a fix is either retiring the file or recreating the
+table, and both are product decisions); it needs its own issue.
 
 ### Day-key convention (local civil day)
 

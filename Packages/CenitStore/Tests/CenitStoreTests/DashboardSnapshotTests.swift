@@ -5,11 +5,11 @@ import BiometricStreams
 /// FER-970 (R-03) — `dashboardSnapshot` reads everything the dashboard refresh consumes in ONE
 /// transaction. These tests pin (1) field-by-field equivalence with the individual accessors,
 /// (2) the source-mode gating flags — with the load-bearing exception that `appleDays` and the
-/// raw strap sleeps are NEVER gated (FER-485 coverage) — and (3) identical window bounds.
+/// raw imported sleeps are NEVER gated (FER-485 coverage) — and (3) identical window bounds.
 final class DashboardSnapshotTests: XCTestCase {
 
-    private let strap = "my-whoop"
-    private let comp = "my-whoop-noop"
+    private let imported = "fuente-importada"
+    private let comp = "fuente-derivada"
     private let apple = "apple-health"
     /// 2026-06-01 00:00:00 UTC.
     private let t0 = 1_780_272_000
@@ -21,13 +21,13 @@ final class DashboardSnapshotTests: XCTestCase {
     }
 
     private func seed(_ store: CenitStore) async throws {
-        for (dev, hrv) in [(strap, 40.0), (comp, 41.0), (apple, 42.0)] {
+        for (dev, hrv) in [(imported, 40.0), (comp, 41.0), (apple, 42.0)] {
             _ = try await store.upsertDailyMetrics([
                 dm("2026-06-01", hrv: hrv, strain: 9.5),
                 dm("2026-06-02", hrv: hrv + 1, strain: nil),
             ], deviceId: dev)
         }
-        for (i, dev) in [strap, comp, apple].enumerated() {
+        for (i, dev) in [imported, comp, apple].enumerated() {
             _ = try await store.upsertSleepSessions([
                 CachedSleepSession(startTs: t0 + i * 60, endTs: t0 + 8 * 3600 + i * 60,
                                    efficiency: 90, restingHr: 52, avgHrv: 45,
@@ -44,14 +44,14 @@ final class DashboardSnapshotTests: XCTestCase {
         }
         for key in ["sleep_performance", "sleep_consistency", "sleep_need_min", "sleep_debt_min"] {
             _ = try await store.upsertMetricSeries([MetricPoint(day: "2026-06-01", key: key, value: 77)],
-                                                   deviceId: strap)
+                                                   deviceId: imported)
         }
     }
 
     private func request(includeApple: Bool = true, includeWhoop: Bool = true,
                          fromDay: String = "2026-05-30", toDay: String = "2026-06-03",
                          fromTs: Int? = nil, toTs: Int? = nil) -> DashboardReadRequest {
-        DashboardReadRequest(strapDeviceId: strap, computedDeviceId: comp, appleDeviceId: apple,
+        DashboardReadRequest(strapDeviceId: imported, computedDeviceId: comp, appleDeviceId: apple,
                              fromDay: fromDay, toDay: toDay,
                              fromTs: fromTs ?? (t0 - 86_400), toTs: toTs ?? (t0 + 3 * 86_400),
                              sleepLimit: 4000, includeApple: includeApple,
@@ -64,7 +64,7 @@ final class DashboardSnapshotTests: XCTestCase {
         let req = request()
         let snap = try await store.dashboardSnapshot(req)
 
-        let importedDays = try await store.dailyMetrics(deviceId: strap, from: req.fromDay, to: req.toDay)
+        let importedDays = try await store.dailyMetrics(deviceId: imported, from: req.fromDay, to: req.toDay)
         let computedDays = try await store.dailyMetrics(deviceId: comp, from: req.fromDay, to: req.toDay)
         let appleDays = try await store.dailyMetrics(deviceId: apple, from: req.fromDay, to: req.toDay)
         XCTAssertEqual(snap.importedDays, importedDays)
@@ -72,7 +72,7 @@ final class DashboardSnapshotTests: XCTestCase {
         XCTAssertEqual(snap.appleDays, appleDays)
         XCTAssertFalse(snap.importedDays.isEmpty)
 
-        let impSleeps = try await store.sleepSessions(deviceId: strap, from: req.fromTs, to: req.toTs, limit: req.sleepLimit)
+        let impSleeps = try await store.sleepSessions(deviceId: imported, from: req.fromTs, to: req.toTs, limit: req.sleepLimit)
         let compSleeps = try await store.sleepSessions(deviceId: comp, from: req.fromTs, to: req.toTs, limit: req.sleepLimit)
         let appleSleeps = try await store.sleepSessions(deviceId: apple, from: req.fromTs, to: req.toTs, limit: req.sleepLimit)
         XCTAssertEqual(snap.importedSleeps, impSleeps)
@@ -90,7 +90,7 @@ final class DashboardSnapshotTests: XCTestCase {
                            (snap.sleepConsistency, "sleep_consistency"),
                            (snap.sleepNeed, "sleep_need_min"),
                            (snap.sleepDebt, "sleep_debt_min")] {
-            let expected = try await store.metricSeries(deviceId: strap, key: key, from: req.fromDay, to: req.toDay)
+            let expected = try await store.metricSeries(deviceId: imported, key: key, from: req.fromDay, to: req.toDay)
             XCTAssertEqual(got, expected)
             XCTAssertFalse(got.isEmpty, key)
         }
@@ -105,7 +105,7 @@ final class DashboardSnapshotTests: XCTestCase {
         XCTAssertTrue(noApple.appleAgg.isEmpty)
         XCTAssertFalse(noApple.appleDays.isEmpty,
                        "appleDays is NEVER gated — it feeds the FER-485 stored-coverage diagnostic")
-        XCTAssertFalse(noApple.importedSleeps.isEmpty, "raw strap sleeps are never gated either")
+        XCTAssertFalse(noApple.importedSleeps.isEmpty, "raw imported sleeps are never gated either")
 
         let noWhoop = try await store.dashboardSnapshot(request(includeWhoop: false))
         XCTAssertTrue(noWhoop.stepsEst.isEmpty)
@@ -123,10 +123,10 @@ final class DashboardSnapshotTests: XCTestCase {
         let req = request(fromDay: "2026-06-02", toDay: "2026-06-02",
                           fromTs: t0 + 9 * 3600, toTs: t0 + 10 * 3600)
         let snap = try await store.dashboardSnapshot(req)
-        let days = try await store.dailyMetrics(deviceId: strap, from: "2026-06-02", to: "2026-06-02")
+        let days = try await store.dailyMetrics(deviceId: imported, from: "2026-06-02", to: "2026-06-02")
         XCTAssertEqual(snap.importedDays, days)
         XCTAssertEqual(snap.importedDays.map(\.day), ["2026-06-02"])
-        let sleeps = try await store.sleepSessions(deviceId: strap, from: req.fromTs, to: req.toTs, limit: 4000)
+        let sleeps = try await store.sleepSessions(deviceId: imported, from: req.fromTs, to: req.toTs, limit: 4000)
         XCTAssertEqual(snap.importedSleeps, sleeps,
                        "overlap semantics (s <= to AND e >= from) must match the accessor exactly")
     }
