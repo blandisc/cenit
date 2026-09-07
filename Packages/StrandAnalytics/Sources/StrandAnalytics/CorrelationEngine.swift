@@ -1,44 +1,44 @@
 import Foundation
 
-// CorrelationEngine.swift — relationships between two daily series.
+// CorrelationEngine.swift — how two daily series move together.
 //
-// Pure, deterministic, DB-free. Computes the Pearson product-moment correlation r,
-// a simple ordinary-least-squares regression line (slope/intercept of y on x), and
-// an approximate two-sided p-value for r.
+// Pure, deterministic, DB-free, Foundation-only. Pearson's coefficient, the least-squares line, an
+// EXACT two-sided p, an inner join of two dated series, and the same thing at a lag.
 //
-//   r = Σ(x−x̄)(y−ȳ) / sqrt( Σ(x−x̄)² · Σ(y−ȳ)² )         (Pearson)
-//   slope     = Σ(x−x̄)(y−ȳ) / Σ(x−x̄)²                     (OLS, y on x)
-//   intercept = ȳ − slope·x̄
+// METHOD:
+// • Coefficient and line: r = Sxy/√(Sxx·Syy), slope = Sxy/Sxx, intercept = ȳ − slope·x̄ (Pearson
+//   1896, Phil Trans R Soc A 187:253-318; OLS Legendre 1805 / Gauss 1809). `r` is clamped to
+//   [−1, 1] to absorb floating-point overshoot.
+// • Significance: the classic t of a correlation, t = r·√((n−2)/(1−r²)), read against Student's t
+//   on df = n − 2 (Student 1908, Biometrika 6(1):1-25). The tail is the REGULARIZED INCOMPLETE
+//   BETA — p = I_x(df/2, 1/2) with x = df/(df + t²), the standard t ↔ beta identity — evaluated by
+//   the modified Lentz continued fraction (Lentz 1976, Applied Optics 15(3):668; the presentation
+//   in Numerical Recipes §6.4), with the front factor taken through `lgamma` for stability and the
+//   reflection I_x(a,b) = 1 − I_{1−x}(b,a) applied where the fraction converges slowly.
 //
-// The p-value uses the standard t-statistic for a correlation,
-//   t = r · sqrt( (n−2) / (1−r²) ),
-// converted to a two-sided tail probability with the EXACT Student-t distribution
-// (n−2 degrees of freedom), evaluated through the regularised incomplete beta
-// function Iₓ(a,b):
-//   p = Iₓ(df/2, 1/2),  x = df / (df + t²)             (Student 1908)
-// This replaces the earlier NORMAL approximation (2·(1−Φ(|t|))), which understated
-// p badly at small n — the Student-t tails are heavier, e.g. at n=5 the normal
-// tail gave p≈0.034 where the true t tail is p≈0.124 (a 3.66× understatement).
-// Iₓ is computed with the Lentz continued fraction (Numerical Recipes §6.4),
-// deterministic and dependency-free (only `lgamma`/`exp` from the C math library).
+//   It is EXACT, not a normal approximation, and that matters: on a short series Student's tails
+//   are much heavier, and the normal understates p badly (at n = 5 the normal says ≈ 0.034 where
+//   the t says ≈ 0.124 — a factor of 3.66 in the user's favour, in the wrong direction).
 //
-// `alignByDay` inner-joins two "yyyy-MM-dd"-keyed series on the day key, returning
-// (x, y) pairs sorted by day. `lagged` shifts y forward by `lagDays` relative to x
-// (x on day D paired with y on day D+lag) and correlates the result, which lets a
-// caller probe directional / delayed effects (e.g. today's strain vs tomorrow's
-// recovery).
+// • Lagged correlation: pair x[D] with y[D + lagDays]. A positive lag asks whether today predicts
+//   the day after; a negative one looks back.
+//
+// APPROXIMATE, and association only — never a cause. Worse, the p tests H0: r = 0 on observations
+// that are NOT independent: daily HRV / heart-rate / sleep series are strongly autocorrelated, so
+// the p is ANTICONSERVATIVE. That is precisely why `MetricTrend` degrades the result to a single
+// bit of direction behind its own gate, and why the screens put much higher n floors on top.
 
-/// The result of correlating two aligned series.
+/// Two daily series read against each other.
 public struct Correlation: Equatable, Sendable {
-    /// Pearson correlation coefficient in [-1, 1].
+    /// Pearson product-moment coefficient, in [−1, 1].
     public let r: Double
-    /// Number of paired observations used.
+    /// Pairs actually used.
     public let n: Int
-    /// Two-sided p-value for H0: r = 0 (exact Student-t, df = n−2).
+    /// Two-sided p for H0: r = 0, from Student's t on df = n − 2. The tail is EXACT (the name is
+    /// historical). Anticonservative on autocorrelated daily series — see the file note.
     public let pApprox: Double
-    /// OLS slope of y on x.
+    /// Least-squares slope of y on x.
     public let slope: Double
-    /// OLS intercept of y on x.
     public let intercept: Double
 
     public init(r: Double, n: Int, pApprox: Double, slope: Double, intercept: Double) {
@@ -52,181 +52,183 @@ public struct Correlation: Equatable, Sendable {
 
 public enum CorrelationEngine {
 
-    // MARK: - Pearson + regression
+    // MARK: - Coefficient and line
 
-    /// Pearson r plus an OLS regression line and approximate p-value for the pairs.
-    /// Returns nil when fewer than 3 pairs, or when either variable has zero
-    /// variance (r undefined).
+    /// Pearson's r plus the least-squares line over `xy`.
+    ///
+    /// `nil` below `CorrelationStrength.minPairs` pairs — the mathematical floor, since at n = 2 the
+    /// coefficient is trivially ±1 — and `nil` when either variable does not vary at all (r would
+    /// be undefined). A screen may demand far more than this floor before it will SHOW a
+    /// correlation; that is display policy, not this engine's.
     public static func pearson(_ xy: [(Double, Double)]) -> Correlation? {
         let n = xy.count
-        guard n >= 3 else { return nil }
+        guard n >= CorrelationStrength.minPairs else { return nil }
+
         let nD = Double(n)
-
-        var sumX = 0.0, sumY = 0.0
-        for p in xy { sumX += p.0; sumY += p.1 }
-        let meanX = sumX / nD
-        let meanY = sumY / nD
-
+        let meanX = xy.reduce(0) { $0 + $1.0 } / nD
+        let meanY = xy.reduce(0) { $0 + $1.1 } / nD
         var sxx = 0.0, syy = 0.0, sxy = 0.0
-        for p in xy {
-            let dx = p.0 - meanX
-            let dy = p.1 - meanY
+        for (x, y) in xy {
+            let dx = x - meanX, dy = y - meanY
             sxx += dx * dx
             syy += dy * dy
             sxy += dx * dy
         }
+        guard sxx > 0, syy > 0 else { return nil }
 
-        // Zero variance in either variable → correlation undefined.
-        guard sxx > 0 && syy > 0 else { return nil }
-
-        var r = sxy / (sxx.squareRoot() * syy.squareRoot())
-        // Clamp tiny floating-point overshoot so |r| ≤ 1 exactly.
-        if r > 1.0 { r = 1.0 }
-        if r < -1.0 { r = -1.0 }
-
+        let r = min(1, max(-1, sxy / (sxx * syy).squareRoot()))
         let slope = sxy / sxx
-        let intercept = meanY - slope * meanX
-        let p = pValue(r: r, n: n)
-
-        return Correlation(r: r, n: n, pApprox: p, slope: slope, intercept: intercept)
+        return Correlation(r: r, n: n, pApprox: significance(r: r, n: n),
+                           slope: slope, intercept: meanY - slope * meanX)
     }
 
-    // MARK: - Day alignment
+    // MARK: - Joining two dated series
 
-    /// Inner-join two "yyyy-MM-dd"-keyed series on the day key, returning the (x, y)
-    /// value pairs for days present in BOTH, sorted ascending by day. Later entries
-    /// for a duplicated day in either series win (last-write).
+    /// Inner join of two dated series: the `(a, b)` pairs of the days present in BOTH, ascending by
+    /// day. A repeated day keeps its LAST entry, on either side.
     public static func alignByDay(_ a: [(day: String, value: Double)],
                                   _ b: [(day: String, value: Double)]) -> [(Double, Double)] {
-        var mapA: [String: Double] = [:]
-        for row in a { mapA[row.day] = row.value }
-        var mapB: [String: Double] = [:]
-        for row in b { mapB[row.day] = row.value }
-
-        let commonDays = mapA.keys.filter { mapB[$0] != nil }.sorted()
-        return commonDays.map { (mapA[$0]!, mapB[$0]!) }
+        let left = lastWins(a)
+        let right = lastWins(b)
+        return left.keys.filter { right[$0] != nil }.sorted().map { (left[$0]!, right[$0]!) }
     }
 
-    // MARK: - Lagged correlation
-
-    /// Correlate x[day] against y[day + lagDays]. A positive lag asks "does x today
-    /// predict y `lagDays` later?"; a negative lag looks backward. Days are matched
-    /// on the calendar by offsetting x's day key by `lagDays` and joining to y.
-    ///
-    /// Returns nil when fewer than 3 lag-matched pairs survive or when `pearson`
-    /// rejects them (zero variance).
+    /// Correlate `x` on day D against `y` on day D + `lagDays`. A `lagDays` of 0 is exactly
+    /// `pearson(alignByDay(x, y))`. Days of `x` are walked in order so the pair list is
+    /// deterministic.
     public static func lagged(x: [(day: String, value: Double)],
                               y: [(day: String, value: Double)],
                               lagDays: Int) -> Correlation? {
-        var mapY: [String: Double] = [:]
-        for row in y { mapY[row.day] = row.value }
-
+        let source = lastWins(x)
+        let target = lastWins(y)
         var pairs: [(Double, Double)] = []
-        // Sort x by day for deterministic ordering of the pair list.
-        let sortedX = x.sorted { $0.day < $1.day }
-        for row in sortedX {
-            guard let shifted = shiftDay(row.day, by: lagDays) else { continue }
-            if let yv = mapY[shifted] {
-                pairs.append((row.value, yv))
-            }
+        for day in source.keys.sorted() {
+            guard let shifted = shiftDay(day, by: lagDays), let yv = target[shifted] else { continue }
+            pairs.append((source[day]!, yv))
         }
         return pearson(pairs)
     }
 
-    // MARK: - p-value
+    // MARK: - Student's t tail
 
-    /// Two-sided p-value for H0: r = 0 via t = r·sqrt((n−2)/(1−r²)) and the EXACT
-    /// Student-t tail (df = n−2). n ≤ 2 → 1.0 (no evidence); |r| = 1 → 0.0.
-    static func pValue(r: Double, n: Int) -> Double {
-        guard n > 2 else { return 1.0 }
-        let oneMinusR2 = 1.0 - r * r
-        if oneMinusR2 <= 0 { return 0.0 }  // |r| == 1
-        let t = r * (Double(n - 2) / oneMinusR2).squareRoot()
-        return studentTTwoSided(t: t, df: Double(n - 2))
-    }
-
-    // MARK: - Student-t two-sided tail (exact, via regularised incomplete beta)
-
-    /// Two-sided tail probability P(|T| ≥ |t|) for a Student-t with `df` degrees of
-    /// freedom: p = Iₓ(df/2, 1/2) with x = df/(df + t²). Exact (not a normal
-    /// approximation); df may be fractional (Welch–Satterthwaite). df ≤ 0 → 1.0,
-    /// t = 0 → 1.0. (Student 1908.)
+    /// Two-sided tail of Student's t at `df` degrees of freedom: P(|T| ≥ |t|).
+    ///
+    /// `df` may be FRACTIONAL — Welch-Satterthwaite produces one, and so does the stress
+    /// time-of-day family. `df ≤ 0` or `t = 0` yield 1.0 (no evidence); the result is clamped to
+    /// [0, 1].
     static func studentTTwoSided(t: Double, df: Double) -> Double {
-        guard df > 0 else { return 1.0 }
-        let t2 = t * t
-        guard t2 > 0 else { return 1.0 }
-        let x = df / (df + t2)
-        return min(1.0, max(0.0, incompleteBeta(x, df / 2.0, 0.5)))
+        guard df > 0, t != 0, t.isFinite, df.isFinite else { return 1.0 }
+        let x = df / (df + t * t)
+        return min(1, max(0, regularizedIncompleteBeta(a: df / 2, b: 0.5, x: x)))
     }
 
-    /// Regularised incomplete beta Iₓ(a,b) for x∈[0,1], a,b>0 — Lentz continued
-    /// fraction (Numerical Recipes §6.4), accurate to ~1e-10. Used for the Student-t
-    /// tail; no external tables.
-    static func incompleteBeta(_ x: Double, _ a: Double, _ b: Double) -> Double {
-        if x <= 0 { return 0 }
-        if x >= 1 { return 1 }
-        // Front factor x^a·(1−x)^b / B(a,b), via lgamma for stability.
-        let lbeta = lgamma(a + b) - lgamma(a) - lgamma(b)
-        let front = exp(lbeta + a * log(x) + b * log(1 - x))
-        // The continued fraction converges fast for x < (a+1)/(a+b+2); else use the
-        // symmetry Iₓ(a,b) = 1 − I₁₋ₓ(b,a).
-        if x < (a + 1) / (a + b + 2) {
-            return front * betaCF(x, a, b) / a
-        } else {
-            return 1 - front * betaCF(1 - x, b, a) / b
-        }
-    }
+    // MARK: - Civil day arithmetic
 
-    /// Continued fraction for the incomplete beta (modified Lentz). Helper for
-    /// `incompleteBeta`; not called directly.
-    private static func betaCF(_ x: Double, _ a: Double, _ b: Double) -> Double {
-        let tiny = 1e-30
-        let qab = a + b, qap = a + 1, qam = a - 1
-        var c = 1.0
-        var d = 1.0 - qab * x / qap
-        if abs(d) < tiny { d = tiny }
-        d = 1.0 / d
-        var h = d
-        for m in 1...200 {
-            let mD = Double(m)
-            let m2 = 2.0 * mD
-            // even step
-            var aa = mD * (b - mD) * x / ((qam + m2) * (a + m2))
-            d = 1.0 + aa * d; if abs(d) < tiny { d = tiny }
-            c = 1.0 + aa / c; if abs(c) < tiny { c = tiny }
-            d = 1.0 / d; h *= d * c
-            // odd step
-            aa = -(a + mD) * (qab + mD) * x / ((a + m2) * (qap + m2))
-            d = 1.0 + aa * d; if abs(d) < tiny { d = tiny }
-            c = 1.0 + aa / c; if abs(c) < tiny { c = tiny }
-            d = 1.0 / d
-            let del = d * c
-            h *= del
-            if abs(del - 1.0) < 1e-12 { break }   // converged
-        }
-        return h
-    }
-
-    // MARK: - Day arithmetic
-
-    /// Shift a "yyyy-MM-dd" day string by `delta` days (can be negative), returning
-    /// a normalised "yyyy-MM-dd" string. Uses a fixed UTC calendar so it is
-    /// deterministic and timezone-free. Returns nil if the input can't be parsed.
+    /// `day` plus `delta` days, as a normalised `"yyyy-MM-dd"` key. Gregorian, fixed to UTC, so it
+    /// never moves with the device's time zone. A `delta` of 0 returns the string unchanged.
+    ///
+    /// `nil` unless the string has exactly three integer components with the month in 1…12 and the
+    /// day at least 1. Output always carries a four-digit year and two-digit month and day.
+    ///
+    /// (The package's OTHER day arithmetic is `ComparisonEngine.epochDay`, which turns a key into
+    /// an integer by pure arithmetic. Two exist because their consumers want different types; do
+    /// not add a third.)
     static func shiftDay(_ day: String, by delta: Int) -> String? {
-        if delta == 0 { return day }
         let parts = day.split(separator: "-", omittingEmptySubsequences: false)
         guard parts.count == 3,
-              let y = Int(parts[0]), let m = Int(parts[1]), let d = Int(parts[2]),
-              (1...12).contains(m), d >= 1 else { return nil }
+              let year = Int(parts[0]), let month = Int(parts[1]), let dayOfMonth = Int(parts[2]),
+              (1...12).contains(month), dayOfMonth >= 1 else { return nil }
+        guard delta != 0 else { return day }
 
-        var comps = DateComponents()
-        comps.year = y; comps.month = m; comps.day = d
-        var cal = Calendar(identifier: .gregorian)
-        cal.timeZone = TimeZone(identifier: "UTC")!
-        guard let base = cal.date(from: comps),
-              let shifted = cal.date(byAdding: .day, value: delta, to: base) else { return nil }
-        let out = cal.dateComponents([.year, .month, .day], from: shifted)
-        guard let oy = out.year, let om = out.month, let od = out.day else { return nil }
-        return String(format: "%04d-%02d-%02d", oy, om, od)
+        var calendar = Calendar(identifier: .gregorian)
+        guard let utc = TimeZone(secondsFromGMT: 0) else { return nil }
+        calendar.timeZone = utc
+
+        var components = DateComponents()
+        components.year = year
+        components.month = month
+        components.day = dayOfMonth
+        guard let anchor = calendar.date(from: components),
+              let moved = calendar.date(byAdding: .day, value: delta, to: anchor) else { return nil }
+
+        let out = calendar.dateComponents([.year, .month, .day], from: moved)
+        guard let y = out.year, let m = out.month, let d = out.day else { return nil }
+        return String(format: "%04d-%02d-%02d", y, m, d)
+    }
+
+    // MARK: - Internals
+
+    /// Two-sided p for a coefficient. `n ≤ 2` has no evidence to offer; a perfect |r| leaves no
+    /// residual variance, so its tail is 0.
+    private static func significance(r: Double, n: Int) -> Double {
+        guard n > 2 else { return 1.0 }
+        if abs(r) >= 1 { return 0.0 }
+        let df = Double(n - 2)
+        let t = r * (df / (1 - r * r)).squareRoot()
+        return studentTTwoSided(t: t, df: df)
+    }
+
+    /// Latest value per day key.
+    private static func lastWins(_ rows: [(day: String, value: Double)]) -> [String: Double] {
+        var out: [String: Double] = [:]
+        for row in rows { out[row.day] = row.value }
+        return out
+    }
+
+    /// Regularized incomplete beta I_x(a, b), to ~1e-10. Deterministic: `lgamma`, `exp`, `log` and
+    /// a continued fraction, no tables.
+    private static func regularizedIncompleteBeta(a: Double, b: Double, x: Double) -> Double {
+        if x <= 0 { return 0 }
+        if x >= 1 { return 1 }
+        // xᵃ(1−x)ᵇ / B(a,b), through log-gamma so the factorials never overflow.
+        let front = exp(lgamma(a + b) - lgamma(a) - lgamma(b) + a * log(x) + b * log1p(-x))
+        // The fraction converges fast only on the near side of the distribution's mode; past it,
+        // reflect: I_x(a,b) = 1 − I_{1−x}(b,a).
+        if x < (a + 1) / (a + b + 2) {
+            return front * betaFraction(a: a, b: b, x: x) / a
+        }
+        return 1 - front * betaFraction(a: b, b: a, x: 1 - x) / b
+    }
+
+    /// The continued fraction of the incomplete beta, by modified Lentz. `guard` is the zero-pivot
+    /// floor, and the loop stops as soon as a factor stops moving.
+    private static func betaFraction(a: Double, b: Double, x: Double) -> Double {
+        let guardFloor = 1e-30
+        let maxIterations = 200
+        let tolerance = 1e-12
+
+        let qab = a + b, qap = a + 1, qam = a - 1
+        var c = 1.0
+        var d = 1 - qab * x / qap
+        if abs(d) < guardFloor { d = guardFloor }
+        d = 1 / d
+        var h = d
+
+        for m in 1...maxIterations {
+            let mD = Double(m)
+            let m2 = 2 * mD
+
+            // Even step.
+            var numerator = mD * (b - mD) * x / ((qam + m2) * (a + m2))
+            d = 1 + numerator * d
+            if abs(d) < guardFloor { d = guardFloor }
+            c = 1 + numerator / c
+            if abs(c) < guardFloor { c = guardFloor }
+            d = 1 / d
+            h *= d * c
+
+            // Odd step.
+            numerator = -(a + mD) * (qab + mD) * x / ((a + m2) * (qap + m2))
+            d = 1 + numerator * d
+            if abs(d) < guardFloor { d = guardFloor }
+            c = 1 + numerator / c
+            if abs(c) < guardFloor { c = guardFloor }
+            d = 1 / d
+            let factor = d * c
+            h *= factor
+
+            if abs(factor - 1) < tolerance { break }
+        }
+        return h
     }
 }

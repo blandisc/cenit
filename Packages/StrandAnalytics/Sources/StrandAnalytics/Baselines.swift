@@ -1,33 +1,60 @@
 import Foundation
 
-// Baselines.swift — personal rolling baselines per nightly metric.
+// Baselines.swift — your own normal, per nightly metric, and how far tonight sits from it.
 //
-// Ported from server/ingest/app/analysis/baselines.py.
+// Pure, deterministic, DB-free, Foundation-only. Keeps a robust CENTER and a robust SPREAD per
+// metric, both weighted toward recent nights, and answers the only question the screens ask:
+// "this value, against YOUR normal — near or far?" Preparación, the typical-range band, the vital
+// anomaly notice and the onboarding cold start all stand on it.
 //
-// Two paths are provided:
-//   1. Winsorized EWMA (the production model): robust, recency-weighted center
-//      with an EWMA-of-absolute-deviation spread tracker, cold-start gating, hard
-//      outlier rejection, and Winsor clamping. This is `update`/`foldHistory`.
-//   2. Trailing-window mean/SD (the task's "trailing 30-day mean/SD"): a simple,
-//      auditable rolling mean and sample SD over the trailing N valid nights.
-//      This is `rollingMeanSD`. Useful for explainability and cross-checking.
+// METHOD, and why each piece is the published one:
 //
-// Both produce a `BaselineState` so RecoveryScorer can consume either uniformly.
+// • Centering space. Nightly RMSSD is approximately LOG-NORMAL, and the established practice is to
+//   monitor lnRMSSD rather than raw ms (Plews et al. 2013, Sports Med 43(9):773-781; RMSSD itself
+//   per Task Force 1996, Circulation 93(5):1043-1065). Averaging in ms biases the center UPWARD and
+//   under-weights the low nights, which are exactly the ones that matter. Apple's SDNN is just as
+//   right-skewed and gets the same treatment. Linear metrics (resting HR, respiration, skin temp)
+//   are centered as-is.
+//
+// • Center update: winsorized EWMA. Tonight is CLAMPED to ±`winsorK` dispersions of the current
+//   center before it is folded in — bounded influence, the classic robust move (Huber 1964, Ann
+//   Math Statist 35(1):73-101): an extreme night is capped, never deleted.
+//
+// • Spread update: EWMA of the ABSOLUTE deviation, computed from the UNCLAMPED value, so a genuine
+//   regime change widens the band instead of hiding inside it.
+//
+// • Absolute deviation → σ. What we store is a mean absolute deviation, not a standard deviation.
+//   For a normal, E|X − μ| = σ·√(2/π), so σ ≈ 1.253·spread. That bridge is an identity of the
+//   method, not a tunable. (The canonical ALTERNATIVE robust estimator is the scaled MAD,
+//   σ̂ = 1.4826·median|xᵢ − median(x)| — Rousseeuw & Croux 1993, JASA 88(424):1273-1283. It is NOT
+//   used here: this estimator has to run one night at a time with no history retained, which the
+//   MAD cannot do. The MAD shows up in the tests only as a cross-check of magnitude.)
+//
+// • Thin-baseline shrinkage. `confidence(nValid:)` is the weight a consumer uses to pull a z back
+//   toward neutral while the base is young — empirical-Bayes / James-Stein shrinkage (Efron &
+//   Morris 1977, JASA 72(360):311-319): thin evidence gets pulled to the center.
+//
+// APPROXIMATE by construction. Nothing here is a clinical instrument or a diagnosis.
 
-/// Per-metric configuration for the baseline model.
+/// How one nightly metric is bounded, floored and smoothed. Constructed per metric; the shipped set
+/// lives in `Baselines.metricCfg`, and neighbours (skin-temp deviation, warming magnitude, spectral
+/// band power) build their own with the same shape.
 public struct MetricCfg: Equatable, Sendable {
-    public let minVal: Double       // physiological lower bound (hard reject below)
-    public let maxVal: Double       // physiological upper bound (hard reject above)
-    public let floorSpread: Double  // σ_floor: minimum dispersion (in the metric's CENTER space)
-    public let halfLifeB: Double    // baseline-center half-life (nights)
-    public let halfLifeS: Double    // spread half-life (nights, slower than center)
-    /// Baseline in the natural-log domain. Nightly HRV (RMSSD) is ~log-normal
-    /// (Plews et al. 2013, who monitor **lnRMSSD**); centering and z-scoring on the
-    /// raw ms biases the center up and underweights low nights. When true, the center
-    /// and spread are computed on ln(value): the stored `baseline` is the geometric
-    /// mean (back in ms, so display is unchanged), `spread` is the dispersion in ln
-    /// units, and `minVal`/`maxVal` stay the ms plausibility gate applied before the
-    /// log transform. `floorSpread` is then a floor in ln units, not ms.
+    /// Lower physiological bound, in the metric's own units. A night outside `[minVal, maxVal]` is
+    /// not folded (checked BEFORE any log transform).
+    public let minVal: Double
+    /// Upper physiological bound, in the metric's own units.
+    public let maxVal: Double
+    /// Noise floor for the dispersion, expressed in the CENTERING space — ln-units when
+    /// `logDomain`, metric units otherwise.
+    public let floorSpread: Double
+    /// Half-life of the center, in nights: after this many nights a night's weight has halved.
+    public let halfLifeB: Double
+    /// Half-life of the dispersion, in nights. Deliberately slower than the center's.
+    public let halfLifeS: Double
+    /// Center and scale in ln(value) instead of the raw value. For right-skewed metrics (RMSSD,
+    /// SDNN, spectral power) this is what makes the center a geometric mean and the band
+    /// multiplicative.
     public let logDomain: Bool
 
     public init(minVal: Double, maxVal: Double, floorSpread: Double,
@@ -41,31 +68,34 @@ public struct MetricCfg: Equatable, Sendable {
     }
 }
 
-/// Baseline status flags (cold-start → trusted → stale).
+/// How much a baseline can be trusted, by how many valid nights it has folded and how long since it
+/// last saw one.
 public enum BaselineStatus: String, Equatable, Sendable {
-    case calibrating  // fewer than MIN_NIGHTS_SEED valid nights; no score yet
-    case provisional  // between seed and trust thresholds; usable, higher uncertainty
-    case trusted      // at least MIN_NIGHTS_TRUST valid nights
-    case stale        // usable but no update for > STALE_DAYS nights
+    /// Too few nights to compare against at all.
+    case calibrating
+    /// Enough to compare, not enough to lean on.
+    case provisional
+    /// Mature.
+    case trusted
+    /// Mature once, but it has not seen a night in too long to still describe you.
+    case stale
 }
 
-/// Immutable snapshot of a personal baseline for one metric after N nights.
+/// A metric's personal baseline at one point in the night series.
 public struct BaselineState: Equatable, Sendable {
-    /// Robust EWMA center (the personal "mean").
+    /// The center, always in DISPLAY units (ms, bpm, °C…) — de-centered for you, even in log domain.
     public let baseline: Double
-    /// EWMA of absolute deviations, floored at cfg.floorSpread. Multiply by 1.253
-    /// to approximate Gaussian σ.
+    /// The internal absolute dispersion, in the CENTERING space: ln-units when `logDomain`, metric
+    /// units otherwise. It is NOT a σ — multiply by 1.253 for that, which `deviation` and
+    /// `normalRange` already do. The unit depends on `logDomain`, which is why the flag travels
+    /// inside the state: readers never need the `MetricCfg` back.
     public let spread: Double
-    /// Count of valid nights contributing to the state.
+    /// Nights actually folded into the center.
     public let nValid: Int
-    /// Consecutive nights with no valid value (staleness tracking).
+    /// Nights since the last night that moved the center.
     public let nightsSinceUpdate: Int
-    /// Cold-start / staleness status.
     public let status: BaselineStatus
-    /// True when this baseline was built in the natural-log domain (HRV): `baseline`
-    /// is the geometric mean (ms) and `spread` is the dispersion in ln units, so
-    /// `deviation` z-scores on ln(value). Carried so consumers (deviation, the ±σ
-    /// band) interpret `spread` in the right space without needing the `MetricCfg`.
+    /// Whether `baseline`/`spread` were computed in ln space.
     public let logDomain: Bool
 
     public init(baseline: Double, spread: Double, nValid: Int,
@@ -78,383 +108,350 @@ public struct BaselineState: Equatable, Sendable {
         self.logDomain = logDomain
     }
 
-    /// True iff fully trusted (not calibrating or stale).
+    /// Mature enough to carry a verdict on its own.
     public var trusted: Bool { status == .trusted }
-    /// True iff at least provisionally usable (nValid ≥ MIN_NIGHTS_SEED).
+    /// Enough nights to be worth comparing against at all (`.provisional` or `.trusted`).
     public var usable: Bool { status == .provisional || status == .trusted }
 }
 
-/// Three forms of deviation from a personal baseline.
+/// One value read against one baseline.
 public struct Deviation: Equatable, Sendable {
-    /// Robust z-score: (value − baseline) / (1.253 × spread).
+    /// Standardized distance from the center, in the centering space (ln for log metrics).
     public let z: Double
-    /// Signed physical-units delta: value − baseline.
+    /// Signed difference from the center, ALWAYS in display units.
     public let delta: Double
-    /// Fractional deviation: value / baseline − 1.
+    /// Signed fractional difference from the center (`value/baseline − 1`), display units; 0 when
+    /// the center is 0.
     public let ratio: Double
-    /// True iff |z| ≤ 1.0.
+    /// Inside the typical range, i.e. |z| ≤ 1.
     public let inNormalRange: Bool
 
     public init(z: Double, delta: Double, ratio: Double, inNormalRange: Bool) {
-        self.z = z; self.delta = delta; self.ratio = ratio
+        self.z = z
+        self.delta = delta
+        self.ratio = ratio
         self.inNormalRange = inNormalRange
     }
 }
 
 public enum Baselines {
 
-    // MARK: - Constants (baselines.py)
+    // MARK: - Method constants
 
-    /// Winsorization clamp: fold only within ±WINSOR_K × spread.
+    /// Winsorization width: tonight is clamped to ±3 dispersions of the center before folding
+    /// (Huber 1964's bounded-influence convention).
     public static let winsorK: Double = 3.0
-    /// Hard-reject gate: drop the night if > HARD_OUTLIER_K × spread away.
+    /// Hard-rejection width: past ±5 dispersions a night is SEEN but not folded. Compared against
+    /// `spread`, not σ — so ≈ 6.3 σ in practice. Deliberate: moving it silently changes which
+    /// nights enter the baseline of every installed user.
     public static let hardOutlierK: Double = 5.0
-    /// Minimum valid nights before "provisionally" trusted.
+
+    /// The mean-absolute-deviation → σ bridge for a normal: E|X − μ| = σ·√(2/π), so σ ≈ 1.253·MAD.
+    /// An identity of the method, not a knob.
+    private static let sigmaPerAbsDev: Double = 1.253
+
+    // MARK: - Contract constants (a screen shows these, or divides by them)
+
+    /// Valid nights before a baseline is worth comparing against. Shown to the user as the
+    /// denominator of «Noche N de 4» during the cold start.
     public static let minNightsSeed: Int = 4
-    /// Minimum valid nights before fully trusted.
+    /// Valid nights before a baseline is trusted. The denominator of the confidence bar.
     public static let minNightsTrust: Int = 14
-    /// Missing-night count after which a baseline is marked stale.
+    /// Nights without a reading after which a mature baseline is declared `.stale` — «tu base se
+    /// quedó atrás».
     public static let staleDays: Int = 14
+    /// Floor of the thin-baseline shrinkage weight. It moves displayed scores, so it is contract.
+    public static let confidenceFloor: Double = 0.5
 
-    // MARK: - Cold-start anti-anchoring (FER-673)
+    // MARK: - Cold-start knobs (product calibration)
 
-    /// Center half-life (nights) used while the baseline is still YOUNG (nValid <
-    /// minNightsTrust). Much faster than the mature `cfg.halfLifeB` (~14) so a baseline
-    /// seeded from artificially-high early nights converges to the true center in days,
-    /// not weeks. Without this, a high seed anchors the center and crushes Charge for
-    /// ~2-3 weeks. Reverts to `cfg.halfLifeB` once trusted, so mature users are unchanged.
+    /// Center half-life while the base is young. Much faster than the mature one on purpose: a
+    /// badly placed seed has to converge in days, not weeks.
     public static let earlyHalfLifeB: Double = 3.0
-
-    /// Spread-floor multiplier at seed, ramping linearly back to 1.0 at trust. While the
-    /// baseline is young the dispersion estimate is unreliable and a too-tight spread both
-    /// (a) makes the z extreme (crushing Charge) and (b) narrows the Winsor clamp. Inflating
-    /// the floor early keeps the normal-range band honestly wide until enough nights accrue.
-    /// At/after trust the multiplier is exactly 1.0, so mature baselines are byte-identical.
+    /// Dispersion-floor multiplier at the seed, ramping down to 1.0 at `minNightsTrust`. Keeps the
+    /// band honestly wide while the dispersion estimate is still worthless.
     public static let earlySpreadInflation: Double = 1.5
 
-    /// Whether the baseline is still young (has not yet earned full trust). While young the
-    /// cold-start anti-anchoring applies: fast center half-life, suspended hard-outlier gate,
-    /// inflated spread floor. At/after `minNightsTrust` everything reverts to mature behavior.
-    static func isYoung(nValid: Int) -> Bool { nValid < minNightsTrust }
+    // MARK: - Per-metric configuration
 
-    /// Spread-floor inflation factor for a baseline with `nValid` nights: `earlySpreadInflation`
-    /// at (or below) seed, ramping linearly to 1.0 at trust, and exactly 1.0 once trusted.
-    /// Mirrors the `confidence` ramp so the two cold-start softenings move together.
-    static func spreadInflation(nValid: Int) -> Double {
-        if nValid >= minNightsTrust { return 1.0 }
-        if nValid <= minNightsSeed { return earlySpreadInflation }
-        let frac = Double(nValid - minNightsSeed) / Double(minNightsTrust - minNightsSeed)
-        return earlySpreadInflation + (1.0 - earlySpreadInflation) * frac
-    }
+    // Bounds are physiological plausibility; `floorSpread` is a noise floor; half-lives are the
+    // repo convention (center 14 nights, dispersion 21 — slower on purpose).
 
-    /// Default per-metric configurations (HRV, resting HR, respiration, skin temp).
+    /// RMSSD/SDNN in ms. Log domain (Plews 2013): the floor is in ln-units, ≈ a ±10 % band.
+    private static let hrvLike = MetricCfg(minVal: 5, maxVal: 250, floorSpread: 0.08,
+                                           halfLifeB: 14, halfLifeS: 21, logDomain: true)
+    /// Resting heart rate, bpm.
+    private static let restingHR = MetricCfg(minVal: 30, maxVal: 120, floorSpread: 2.0,
+                                             halfLifeB: 14, halfLifeS: 21)
+    /// Respiration rate, breaths per minute.
+    private static let respiration = MetricCfg(minVal: 4, maxVal: 40, floorSpread: 0.5,
+                                               halfLifeB: 14, halfLifeS: 21)
+    /// Wrist skin temperature, ABSOLUTE °C (the deviation-semantics config lives in `VitalBands`).
+    private static let skinTemp = MetricCfg(minVal: 20, maxVal: 42, floorSpread: 0.3,
+                                            halfLifeB: 14, halfLifeS: 21)
+    /// Sleep efficiency as a FRACTION, never a percentage — `StrandImport` depends on this scale to
+    /// avoid the 100× import error.
+    private static let efficiency = MetricCfg(minVal: 0.2, maxVal: 1.0, floorSpread: 0.03,
+                                              halfLifeB: 14, halfLifeS: 21)
+    /// Sleeping-HR delta (bpm) between the first and last third of the night. The ONLY metric that
+    /// can be negative, so it is never logarithmic. Bounds and floor are product calibration, not
+    /// validated physiology.
+    private static let nightThirdsDelta = MetricCfg(minVal: -30, maxVal: 30, floorSpread: 2.5,
+                                                    halfLifeB: 14, halfLifeS: 21)
+
+    /// The shipped configs, keyed by metric. Exactly seven keys — callers index them directly.
+    ///
+    /// `"sdnn"` is byte-identical to `"hrv"` but keeps its OWN key on purpose: Apple's SDNN and
+    /// nocturnal RMSSD are different measurements and must never share one baseline, so retuning
+    /// one can never move the other.
     public static let metricCfg: [String: MetricCfg] = [
-        // HRV is baselined in ln(RMSSD): nightly RMSSD is ~log-normal (Plews 2013).
-        // floorSpread is now a ln-unit dispersion floor (σ_floor ≈ 1.253 × 0.08 ≈ 0.10,
-        // ~a 10% night-to-night band) instead of the old 5 ms.
-        "hrv": MetricCfg(minVal: 5.0, maxVal: 250.0, floorSpread: 0.08,
-                         halfLifeB: 14.0, halfLifeS: 21.0, logDomain: true),
-        // Apple's SDNN, baselined WITHIN-SOURCE (Apple SDNN vs the user's own Apple-SDNN norm —
-        // never mixed with band or Apple RMSSD, the three-baseline invariant). Identical machinery to
-        // "hrv" because SDNN is right-skewed / log-normal too and the standard treatment is the same
-        // log-transform (Task Force 1996; SDNN log-normality, Sci Rep 2019). Kept as its OWN key
-        // (not reusing "hrv") so a future RMSSD retune can never silently move the SDNN baseline.
-        // Signed by /cso for FER-1030 (Preparedness autonomic axis).
-        "sdnn": MetricCfg(minVal: 5.0, maxVal: 250.0, floorSpread: 0.08,
-                          halfLifeB: 14.0, halfLifeS: 21.0, logDomain: true),
-        "resting_hr": MetricCfg(minVal: 30.0, maxVal: 120.0, floorSpread: 2.0,
-                                halfLifeB: 14.0, halfLifeS: 21.0),
-        "resp": MetricCfg(minVal: 4.0, maxVal: 40.0, floorSpread: 0.5,
-                          halfLifeB: 14.0, halfLifeS: 21.0),
-        "skin_temp": MetricCfg(minVal: 20.0, maxVal: 42.0, floorSpread: 0.3,
-                               halfLifeB: 14.0, halfLifeS: 21.0),
-        "efficiency": MetricCfg(minVal: 0.2, maxVal: 1.0, floorSpread: 0.03,
-                                halfLifeB: 14.0, halfLifeS: 21.0),
-        // FER-7 · Veredicto v4 Fase 4: the first-third − last-third sleeping-HR delta (bpm), baselined
-        // against the user's own history for a DESCRIPTIVE "vs your normal" read (never a vote). A
-        // difference metric so it can be negative → NOT log-domain. bounds ±30 bpm and floorSpread=2.5
-        // are PRODUCT-CALIBRATION knobs (not validated): 2.5 keeps the σ floor (2.5·1.253≈3.1 bpm)
-        // above the delta's measurement noise so an ultra-consistent sleeper isn't flagged on noise.
-        // To be signed by /estadistico + /cso on real data.
-        "night_thirds_delta": MetricCfg(minVal: -30.0, maxVal: 30.0, floorSpread: 2.5,
-                                        halfLifeB: 14.0, halfLifeS: 21.0),
+        "hrv": hrvLike,
+        "sdnn": hrvLike,
+        "resting_hr": restingHR,
+        "resp": respiration,
+        "skin_temp": skinTemp,
+        "efficiency": efficiency,
+        "night_thirds_delta": nightThirdsDelta,
     ]
 
-    /// Convenience accessors for the standard configs.
-    public static var hrvCfg: MetricCfg { metricCfg["hrv"]! }
-    public static var restingHRCfg: MetricCfg { metricCfg["resting_hr"]! }
-    public static var respCfg: MetricCfg { metricCfg["resp"]! }
+    public static var hrvCfg: MetricCfg { hrvLike }
+    public static var restingHRCfg: MetricCfg { restingHR }
+    public static var respCfg: MetricCfg { respiration }
 
-    /// Convert a half-life in nights to an EWMA smoothing factor.
-    static func lambda(halfLife: Double) -> Double {
-        1.0 - pow(0.5, 1.0 / halfLife)
+    // MARK: - Shrinkage weight
+
+    /// How much of a z a consumer should keep, given how many valid nights the baseline folded.
+    /// `confidenceFloor` at or below the seed, 1.0 at or above trust, linear in between. Empirical
+    /// Bayes: thin evidence is pulled toward the center rather than believed (Efron & Morris 1977).
+    public static func confidence(nValid: Int) -> Double {
+        confidenceFloor + (1.0 - confidenceFloor) * maturityRamp(nValid)
     }
 
-    /// Map a metric value into the space the center/spread live in: ln(value) for a
-    /// log-domain metric (HRV), identity otherwise. Inverse of `fromCenter`. Takes the
-    /// flag directly so both the build path (`cfg.logDomain`) and the read path
-    /// (`state.logDomain`, where no `MetricCfg` is in hand) share one definition.
-    static func toCenter(_ v: Double, logDomain: Bool) -> Double {
+    // MARK: - One night
+
+    /// Fold one night into a baseline and return the new state. `nil` state seeds it; `nil` or
+    /// out-of-bounds value holds it. Deterministic, no I/O, no clock.
+    ///
+    /// Order of evaluation (each rule shadows the ones after it):
+    /// 1. No prior state → seed.
+    /// 2. Missing value → skip and hold (`nightsSinceUpdate` advances, nothing else moves).
+    /// 3. Outside `[cfg.minVal, cfg.maxVal]` → same as 2, checked in the metric's own units.
+    /// 4. Past `hardOutlierK` dispersions AND the base is already mature → the night is SEEN
+    ///    (`nightsSinceUpdate` resets) but not folded. While the base is young this gate is
+    ///    SUSPENDED: otherwise a high seed would reject exactly the genuine low nights that ought
+    ///    to correct it, and the center would sit wrong for weeks.
+    /// 5. First real value after a midpoint seed → treat as a clean first night.
+    /// 6. Otherwise → winsorized EWMA of the center, EWMA of the absolute deviation for the spread.
+    ///
+    /// While the base is young (`nValid < minNightsTrust`) the center uses `earlyHalfLifeB`, the
+    /// hard gate is off, and the dispersion floor is inflated. At and above `minNightsTrust` all
+    /// three revert exactly — the mature path is bit-identical to a model with no young branch.
+    public static func update(_ state: BaselineState?, value: Double?, cfg: MetricCfg) -> BaselineState {
+        let inBounds = value.map { $0 >= cfg.minVal && $0 <= cfg.maxVal } ?? false
+
+        guard let prior = state else {
+            // 1. Seed. A usable first night anchors the center; anything else parks it at the
+            // midpoint of the physiological range with nothing folded yet.
+            guard let v = value, inBounds else {
+                return settled(baseline: (cfg.minVal + cfg.maxVal) / 2, spread: cfg.floorSpread,
+                               nValid: 0, nightsSinceUpdate: 1, logDomain: cfg.logDomain)
+            }
+            return settled(baseline: v, spread: cfg.floorSpread, nValid: 1,
+                           nightsSinceUpdate: 0, logDomain: cfg.logDomain)
+        }
+
+        // 2 & 3. Nothing usable tonight: hold everything, only the gap grows.
+        guard let v = value, inBounds else { return holding(prior, nightsSinceUpdate: prior.nightsSinceUpdate + 1) }
+
+        let young = prior.nValid < minNightsTrust
+        let c = centered(v, logDomain: cfg.logDomain)
+        let b = centered(prior.baseline, logDomain: cfg.logDomain)
+
+        // 4. Hard outlier, mature bases only.
+        if !young, abs(c - b) > hardOutlierK * prior.spread {
+            return holding(prior, nightsSinceUpdate: 0)
+        }
+
+        // 5. First real value after a midpoint seed: anchor rather than drag the midpoint.
+        if prior.nValid == 0 {
+            return settled(baseline: v, spread: cfg.floorSpread, nValid: 1,
+                           nightsSinceUpdate: 0, logDomain: cfg.logDomain)
+        }
+
+        // 6. Winsorize, then fold.
+        let reach = winsorK * prior.spread
+        let clamped = min(b + reach, max(b - reach, c))
+        let lambdaB = decayFactor(halfLife: young ? earlyHalfLifeB : cfg.halfLifeB)
+        let center = lambdaB * clamped + (1 - lambdaB) * b
+
+        // The spread reads the UNCLAMPED night, so a real shift widens the band instead of hiding.
+        let lambdaS = decayFactor(halfLife: cfg.halfLifeS)
+        let raw = lambdaS * abs(c - center) + (1 - lambdaS) * prior.spread
+        let spread = max(dispersionFloor(cfg, nValid: prior.nValid), raw)
+
+        return settled(baseline: decentered(center, logDomain: cfg.logDomain), spread: spread,
+                       nValid: prior.nValid + 1, nightsSinceUpdate: 0, logDomain: cfg.logDomain)
+    }
+
+    // MARK: - Whole series
+
+    /// Fold a night series (oldest first) into one baseline. `nil` entries are missing nights and
+    /// advance the staleness gap without moving the center.
+    public static func foldHistory(_ values: [Double?], cfg: MetricCfg) -> BaselineState {
+        var state: BaselineState?
+        for v in values { state = update(state, value: v, cfg: cfg) }
+        return state ?? seed(cfg)
+    }
+
+    /// Fold a dated night series, dropping every night strictly before `epoch` first. This is the
+    /// re-anchor behind "recalibrate": nights before the epoch never touch the new baseline.
+    ///
+    /// The comparison is a plain lexicographic one on the `"yyyy-MM-dd"` key — that ordering is
+    /// order-preserving for this format, so no date parsing, locale or time zone is involved.
+    /// Input must be oldest-first. `epoch == nil` cuts nothing.
+    public static func foldHistory(_ values: [(day: String, value: Double?)],
+                                   epoch: String?, cfg: MetricCfg) -> BaselineState {
+        let kept = epoch.map { e in values.filter { $0.day >= e } } ?? values
+        return foldHistory(kept.map(\.value), cfg: cfg)
+    }
+
+    /// The PRIOR baseline for every night, in one forward pass: element `i` is the state folded
+    /// over the strict prefix `values[0..<i]` — the base night `i` should be judged against,
+    /// without judging itself. Element 0 is the empty seed, and the array has exactly
+    /// `values.count` elements.
+    ///
+    /// Identical, value for value, to calling `foldHistory` on each prefix; only the cost differs
+    /// (O(n) instead of O(n²)).
+    public static func prefixStates(_ values: [Double?], cfg: MetricCfg) -> [BaselineState] {
+        var out: [BaselineState] = []
+        out.reserveCapacity(values.count)
+        var running: BaselineState?
+        for v in values {
+            out.append(running ?? seed(cfg))
+            running = update(running, value: v, cfg: cfg)
+        }
+        return out
+    }
+
+    /// The plain, auditable path: mean and sample SD over the trailing `window` valid nights, with
+    /// no recency weighting at all. Used where a screen wants a band it can explain in one line.
+    ///
+    /// Everything is computed in the centering space, so for a log metric `baseline` is the
+    /// GEOMETRIC mean — the right center for a log-symmetric series (the arithmetic mean sits
+    /// above it). The SD is divided by the σ bridge BEFORE the floor is applied, which puts the
+    /// result in the same internal space as the incremental path so the two agree exactly at the
+    /// floor. With a single night there is no dispersion to estimate, so the floor stands alone.
+    public static func rollingMeanSD(_ values: [Double?], cfg: MetricCfg, window: Int = 30) -> BaselineState {
+        let valid = values.compactMap { $0 }.filter { $0 >= cfg.minVal && $0 <= cfg.maxVal }
+        let tail = window > 0 ? Array(valid.suffix(window)) : []
+        let n = tail.count
+        guard n > 0 else { return seed(cfg) }
+
+        let points = tail.map { centered($0, logDomain: cfg.logDomain) }
+        let mean = points.reduce(0, +) / Double(n)
+        let sd: Double
+        if n >= 2 {
+            let ss = points.reduce(0) { $0 + ($1 - mean) * ($1 - mean) }
+            sd = (ss / Double(n - 1)).squareRoot()
+        } else {
+            sd = cfg.floorSpread * sigmaPerAbsDev
+        }
+        return settled(baseline: decentered(mean, logDomain: cfg.logDomain),
+                       spread: max(cfg.floorSpread, sd / sigmaPerAbsDev),
+                       nValid: n, nightsSinceUpdate: 0, logDomain: cfg.logDomain)
+    }
+
+    // MARK: - Reading a value against a baseline
+
+    /// How far `value` sits from `state`. `z` is standardized in the centering space (ln for a log
+    /// metric); `delta` and `ratio` stay in display units, because that is what the screens print.
+    public static func deviation(_ value: Double, state: BaselineState) -> Deviation {
+        let sigma = max(sigmaPerAbsDev * state.spread, 1e-9)
+        let z = (centered(value, logDomain: state.logDomain)
+                 - centered(state.baseline, logDomain: state.logDomain)) / sigma
+        let ratio = state.baseline == 0 ? 0 : value / state.baseline - 1
+        return Deviation(z: z, delta: value - state.baseline, ratio: ratio,
+                         inNormalRange: abs(z) <= 1)
+    }
+
+    /// The TYPICAL RANGE band: ±k·σ around the center, returned in display units.
+    ///
+    /// For a log metric the band is MULTIPLICATIVE — exp(ln b ± k·σ_ln) — so it stays positive and
+    /// asymmetric in ms, which is the correct shape for a log-normal. That is exactly why it lives
+    /// here and not in a view: `baseline ± 1.253·spread` is simply wrong in log space, and a screen
+    /// must never re-derive it by hand.
+    ///
+    /// This is the person's typical range. It is NOT a smallest-worthwhile-change (SWC), and no
+    /// copy may call it one or present leaving it as a clinical event.
+    public static func normalRange(_ state: BaselineState, k: Double = 1.0) -> ClosedRange<Double> {
+        let center = centered(state.baseline, logDomain: state.logDomain)
+        let half = k * sigmaPerAbsDev * state.spread
+        let a = decentered(center - half, logDomain: state.logDomain)
+        let b = decentered(center + half, logDomain: state.logDomain)
+        return Swift.min(a, b)...Swift.max(a, b)
+    }
+
+    // MARK: - Internals
+
+    /// ln(v) for log metrics, v otherwise.
+    private static func centered(_ v: Double, logDomain: Bool) -> Double {
         logDomain ? Foundation.log(v) : v
     }
 
-    /// Map a center-space value back to the metric's display units (ms for HRV).
-    static func fromCenter(_ c: Double, logDomain: Bool) -> Double {
+    /// The inverse of `centered`.
+    private static func decentered(_ c: Double, logDomain: Bool) -> Double {
         logDomain ? Foundation.exp(c) : c
     }
 
-    static func computeStatus(nValid: Int, nightsSinceUpdate: Int) -> BaselineStatus {
+    /// EWMA weight for a half-life of `h` nights: λ = 1 − 0.5^(1/h), so after `h` steps a night's
+    /// weight has halved.
+    private static func decayFactor(halfLife: Double) -> Double {
+        1 - Foundation.pow(0.5, 1 / halfLife)
+    }
+
+    /// Where `nValid` sits on the seed → trust ramp, clamped to [0, 1]. Shared by the shrinkage
+    /// weight and the cold-start dispersion inflation so the two ramps can never drift apart.
+    private static func maturityRamp(_ nValid: Int) -> Double {
+        let span = Double(minNightsTrust - minNightsSeed)
+        guard span > 0 else { return nValid >= minNightsTrust ? 1 : 0 }
+        return Swift.min(1, Swift.max(0, Double(nValid - minNightsSeed) / span))
+    }
+
+    /// The dispersion floor for a base that has folded `nValid` nights: inflated at the seed,
+    /// ramping down to exactly `cfg.floorSpread` at `minNightsTrust`.
+    private static func dispersionFloor(_ cfg: MetricCfg, nValid: Int) -> Double {
+        let inflation = earlySpreadInflation + (1 - earlySpreadInflation) * maturityRamp(nValid)
+        return cfg.floorSpread * inflation
+    }
+
+    /// Lifecycle label, in this order: gone stale (mature but unseen too long) → calibrating →
+    /// provisional → trusted.
+    private static func lifecycle(nValid: Int, nightsSinceUpdate: Int) -> BaselineStatus {
         if nightsSinceUpdate > staleDays && nValid >= minNightsSeed { return .stale }
         if nValid < minNightsSeed { return .calibrating }
         if nValid < minNightsTrust { return .provisional }
         return .trusted
     }
 
-    /// Confidence weight at `nValid` valid nights (FER-13). The lowest weight a
-    /// usable baseline ever earns: a freshly-seeded baseline (nValid == minNightsSeed)
-    /// counts for this fraction of its z-score; from there it ramps linearly to 1.0.
-    public static let confidenceFloor: Double = 0.5
-
-    /// Shrinkage weight in [confidenceFloor, 1] for a baseline with `nValid` nights.
-    ///
-    /// Multiply a z-score by this to pull thin-evidence signals toward neutral so the
-    /// recovery/readiness engine doesn't over-react to a value measured against a
-    /// barely-seeded baseline. Ramps linearly from `confidenceFloor` at `minNightsSeed`
-    /// (the first night a score appears) to 1.0 at `minNightsTrust`. A fully trusted
-    /// baseline (nValid ≥ minNightsTrust) returns 1.0 — no shrinkage, so established
-    /// users are unaffected.
-    public static func confidence(nValid: Int) -> Double {
-        if nValid >= minNightsTrust { return 1.0 }
-        if nValid <= minNightsSeed { return confidenceFloor }
-        let frac = Double(nValid - minNightsSeed) / Double(minNightsTrust - minNightsSeed)
-        return confidenceFloor + (1.0 - confidenceFloor) * frac
+    /// A state with its lifecycle label derived rather than passed in — the only way one is built.
+    private static func settled(baseline: Double, spread: Double, nValid: Int,
+                                nightsSinceUpdate: Int, logDomain: Bool) -> BaselineState {
+        BaselineState(baseline: baseline, spread: spread, nValid: nValid,
+                      nightsSinceUpdate: nightsSinceUpdate,
+                      status: lifecycle(nValid: nValid, nightsSinceUpdate: nightsSinceUpdate),
+                      logDomain: logDomain)
     }
 
-    // MARK: - Winsorized EWMA update (production model)
-
-    /// Incorporate one new nightly value into the baseline state.
-    ///
-    /// - `state == nil`: seed the first night.
-    /// - `value == nil` or out-of-range: skip-and-hold (carry forward).
-    /// - hard outlier (> HARD_OUTLIER_K × spread): seen but not folded.
-    /// - otherwise: Winsorized EWMA center + EWMA-abs-dev spread update.
-    public static func update(_ state: BaselineState?, value: Double?, cfg: MetricCfg) -> BaselineState {
-        let ls = lambda(halfLife: cfg.halfLifeS)
-
-        // First night ever.
-        guard let state = state else {
-            if let v = value, cfg.minVal <= v && v <= cfg.maxVal {
-                return BaselineState(baseline: v, spread: cfg.floorSpread, nValid: 1,
-                                     nightsSinceUpdate: 0, status: .calibrating,
-                                     logDomain: cfg.logDomain)
-            }
-            let seed = (cfg.minVal + cfg.maxVal) / 2.0
-            return BaselineState(baseline: seed, spread: cfg.floorSpread, nValid: 0,
-                                 nightsSinceUpdate: 1, status: .calibrating,
-                                 logDomain: cfg.logDomain)
-        }
-
-        // Missing night: skip-and-hold.
-        guard let value = value else {
-            let m = state.nightsSinceUpdate + 1
-            return BaselineState(baseline: state.baseline, spread: state.spread,
-                                 nValid: state.nValid, nightsSinceUpdate: m,
-                                 status: computeStatus(nValid: state.nValid, nightsSinceUpdate: m),
-                                 logDomain: state.logDomain)
-        }
-
-        // Step 0: sanity gate — physiologically implausible → skip-and-hold. The bounds
-        // are ms either way; for a log-domain metric the transform happens only after this.
-        if !(cfg.minVal <= value && value <= cfg.maxVal) {
-            let m = state.nightsSinceUpdate + 1
-            return BaselineState(baseline: state.baseline, spread: state.spread,
-                                 nValid: state.nValid, nightsSinceUpdate: m,
-                                 status: computeStatus(nValid: state.nValid, nightsSinceUpdate: m),
-                                 logDomain: state.logDomain)
-        }
-
-        // All center/spread math runs in CENTER space: ln(value) for a log-domain
-        // metric (HRV), the raw value otherwise.
-        let center = toCenter(value, logDomain: cfg.logDomain)
-        let baseCenter = toCenter(state.baseline, logDomain: cfg.logDomain)
-
-        // Hard outlier rejection — MATURE baselines only (FER-673). While the baseline is
-        // still young the gate is SUSPENDED: a high early seed would otherwise reject the
-        // genuine lower nights that should pull the center down, anchoring it (and crushing
-        // Charge) for ~2-3 weeks. Physiological bounds (minVal/maxVal, checked above) still
-        // reject the truly impossible; the Winsor clamp below still bounds a spike's pull.
-        if !isYoung(nValid: state.nValid) {
-            let dev = abs(center - baseCenter)
-            if dev > hardOutlierK * state.spread {
-                return BaselineState(baseline: state.baseline, spread: state.spread,
-                                     nValid: state.nValid, nightsSinceUpdate: 0,
-                                     status: computeStatus(nValid: state.nValid, nightsSinceUpdate: 0),
-                                     logDomain: state.logDomain)
-            }
-        }
-
-        // First real value after a None-placeholder seed: treat as clean first night.
-        if state.nValid == 0 {
-            return BaselineState(baseline: value, spread: cfg.floorSpread, nValid: 1,
-                                 nightsSinceUpdate: 0, status: .calibrating,
-                                 logDomain: cfg.logDomain)
-        }
-
-        // Step 1: Winsorized EWMA update (in center space). While young, use the fast
-        // early half-life so a mis-seeded center converges in days, not weeks (FER-673).
-        let lb = lambda(halfLife: isYoung(nValid: state.nValid) ? earlyHalfLifeB : cfg.halfLifeB)
-        let lo = baseCenter - winsorK * state.spread
-        let hi = baseCenter + winsorK * state.spread
-        let clamped = max(lo, min(hi, center))
-        let newCenter = lb * clamped + (1.0 - lb) * baseCenter
-
-        // Spread uses the UNCLAMPED value so true deviations are tracked. While young the
-        // floor is inflated (ramping to 1.0 at trust) so the early band isn't spuriously
-        // tight; at/after trust the multiplier is 1.0, so mature spreads are unchanged.
-        let absDev = abs(center - newCenter)
-        let floor = cfg.floorSpread * spreadInflation(nValid: state.nValid)
-        let newSpread = max(floor, ls * absDev + (1.0 - ls) * state.spread)
-        let newN = state.nValid + 1
-
-        return BaselineState(baseline: fromCenter(newCenter, logDomain: cfg.logDomain), spread: newSpread, nValid: newN,
-                             nightsSinceUpdate: 0,
-                             status: computeStatus(nValid: newN, nightsSinceUpdate: 0),
-                             logDomain: cfg.logDomain)
+    /// Everything held, only the gap moves.
+    private static func holding(_ prior: BaselineState, nightsSinceUpdate: Int) -> BaselineState {
+        settled(baseline: prior.baseline, spread: prior.spread, nValid: prior.nValid,
+                nightsSinceUpdate: nightsSinceUpdate, logDomain: prior.logDomain)
     }
 
-    /// Like `foldHistory`, but drops the nights with `day < epoch` BEFORE the replay — the
-    /// baseline re-anchoring behind "Recalibrar recuperación" (FER-677). `epoch == nil` means
-    /// no cut (identical to folding the raw values). The cut is a lexicographic comparison on the
-    /// "YYYY-MM-DD" day key, which is order-preserving, so no date parsing is needed. `values` must
-    /// be ordered oldest → newest by `day`. Delegates to the value-only fold, so every invariant of
-    /// the model (log-domain HRV, young-baseline anti-anchoring, spread floor) is preserved unchanged.
-    public static func foldHistory(_ values: [(day: String, value: Double?)],
-                                   epoch: String?, cfg: MetricCfg) -> BaselineState {
-        let kept = epoch.map { e in values.filter { $0.day >= e } } ?? values
-        return foldHistory(kept.map { $0.value }, cfg: cfg)
-    }
-
-    /// Replay an ordered sequence of nightly values (oldest first) to build state.
-    /// `nil` entries are treated as missing nights (skip-and-hold).
-    public static func foldHistory(_ values: [Double?], cfg: MetricCfg) -> BaselineState {
-        var state: BaselineState? = nil
-        for v in values { state = update(state, value: v, cfg: cfg) }
-        if let s = state { return s }
-        return emptyState(cfg: cfg)
-    }
-
-    /// One forward pass returning, for each index `i`, the baseline state built from `values[0..<i]`
-    /// — exactly the "priors" baseline `foldHistory` would produce for that strict prefix (the state
-    /// `values[i]` should be deviated against), but O(n) for the whole sequence instead of O(n²)
-    /// across all prefixes. Reuses the SAME `update` reduce, so `prefixStates(v)[i]` is bit-identical
-    /// to `foldHistory(Array(v[0..<i]))` — only the cost changes. Element 0 is the empty seed.
-    /// (FER-1040: lets `Preparedness` compute every per-day raw verdict without re-folding history.)
-    public static func prefixStates(_ values: [Double?], cfg: MetricCfg) -> [BaselineState] {
-        var out: [BaselineState] = []
-        out.reserveCapacity(values.count)
-        let empty = emptyState(cfg: cfg)
-        var state: BaselineState? = nil
-        for v in values {
-            out.append(state ?? empty)     // state BEFORE folding day i = the priors baseline for day i
-            state = update(state, value: v, cfg: cfg)
-        }
-        return out
-    }
-
-    /// The "no nights yet" seed `foldHistory` returns for an empty history.
-    private static func emptyState(cfg: MetricCfg) -> BaselineState {
-        let seed = (cfg.minVal + cfg.maxVal) / 2.0
-        return BaselineState(baseline: seed, spread: cfg.floorSpread, nValid: 0,
-                             nightsSinceUpdate: 0, status: .calibrating,
-                             logDomain: cfg.logDomain)
-    }
-
-    // MARK: - Deviation
-
-    /// Compute z / delta / ratio / in-normal-range for a value vs a baseline.
-    /// z uses (centerValue − centerBaseline) / (1.253 × spread); 1.253 converts
-    /// EWMA-abs-dev to an approximate Gaussian σ (E[|X−μ|] = σ·√(2/π) ≈ σ/1.253).
-    /// For a log-domain baseline (HRV) the z is taken on ln(value) vs ln(baseline),
-    /// so a value at −1σ_ln scores z = −1 symmetrically; `delta` and `ratio` stay in
-    /// the metric's display units (ms) for surfaces that show them.
-    public static func deviation(_ value: Double, state: BaselineState) -> Deviation {
-        let sigma = max(1.253 * state.spread, 1e-9)
-        let center = toCenter(value, logDomain: state.logDomain)
-        let baseCenter = toCenter(state.baseline, logDomain: state.logDomain)
-        let z = (center - baseCenter) / sigma
-        let delta = value - state.baseline
-        let ratio = state.baseline != 0 ? (value / state.baseline - 1.0) : 0.0
-        return Deviation(z: z, delta: delta, ratio: ratio, inNormalRange: abs(z) <= 1.0)
-    }
-
-    /// The ±k·σ "normal range" around the baseline, in the metric's display units.
-    /// For a log-domain baseline (HRV) the band is multiplicative — exp(lnBaseline ± k·σ_ln)
-    /// — so it stays positive and asymmetric in ms, matching the log-normal shape; for a
-    /// linear baseline it is the plain baseline ± k·σ. Centralizes the band math so
-    /// consumers don't hand-roll `baseline ± 1.253·spread` (which is wrong in log space).
-    public static func normalRange(_ state: BaselineState, k: Double = 1.0) -> ClosedRange<Double> {
-        let sigma = 1.253 * state.spread
-        let c = toCenter(state.baseline, logDomain: state.logDomain)
-        let lo = fromCenter(c - k * sigma, logDomain: state.logDomain)
-        let hi = fromCenter(c + k * sigma, logDomain: state.logDomain)
-        return Swift.min(lo, hi)...Swift.max(lo, hi)
-    }
-
-    // MARK: - Trailing-window mean/SD (simple, auditable)
-
-    /// Rolling personal baseline from the trailing `window` valid nights, as a
-    /// plain mean and sample SD (ddof=1). This is the task's "trailing 30-day
-    /// mean/SD" path: no recency weighting, maximally explainable.
-    ///
-    /// Physiologically implausible values (outside cfg bounds) and nils are
-    /// dropped. The spread returned is stored in the SAME internal units the
-    /// Winsor EWMA uses (abs-dev space), i.e. SD / 1.253, so that
-    /// `deviation()` recovers the intended Gaussian σ unchanged.
-    ///
-    /// - Parameters:
-    ///   - values: ordered nightly values (oldest → newest); nils allowed.
-    ///   - cfg: metric config (bounds + floor spread).
-    ///   - window: number of trailing valid nights to use (default 30).
-    public static func rollingMeanSD(_ values: [Double?], cfg: MetricCfg, window: Int = 30) -> BaselineState {
-        let valid = values.compactMap { v -> Double? in
-            guard let v = v, cfg.minVal <= v && v <= cfg.maxVal else { return nil }
-            return v
-        }
-        guard !valid.isEmpty else {
-            let seed = (cfg.minVal + cfg.maxVal) / 2.0
-            return BaselineState(baseline: seed, spread: cfg.floorSpread, nValid: 0,
-                                 nightsSinceUpdate: 0, status: .calibrating,
-                                 logDomain: cfg.logDomain)
-        }
-        let trailing = valid.suffix(window)
-        let n = trailing.count
-        // Center space: ln(value) for a log-domain metric (HRV), the raw value otherwise.
-        // The center maps back to display units via exp() so HRV's baseline is the
-        // geometric mean (Plews et al. 2013, Sports Med 43(9):773–781), not the up-biased arithmetic mean.
-        let centers = trailing.map { toCenter($0, logDomain: cfg.logDomain) }
-        let mean = centers.reduce(0, +) / Double(n)
-
-        let sd: Double
-        if n >= 2 {
-            var ss = 0.0
-            for c in centers { let d = c - mean; ss += d * d }
-            sd = (ss / Double(n - 1)).squareRoot()
-        } else {
-            // Single sample: no dispersion estimate; fall back to the σ floor.
-            sd = cfg.floorSpread * 1.253
-        }
-
-        // Floor the spread in the SAME internal abs-dev space the EWMA `update` path uses, so the
-        // scoring baseline and this displayed normal-range band agree near the floor: convert the σ to
-        // abs-dev (÷1.253), then floor at `floorSpread` exactly like `update` does. Effective σ floor =
-        // floorSpread·1.253 (≈0.10 for HRV) — matching `update` and the n<2 fallback above (which was
-        // already `floorSpread·1.253`). (Was `max(floorSpread, sd)/1.253`, a σ floor of `floorSpread`
-        // ≈0.08 — a 1.253× mismatch vs the scoring path.)
-        let spreadInternal = max(cfg.floorSpread, sd / 1.253)
-
-        return BaselineState(baseline: fromCenter(mean, logDomain: cfg.logDomain), spread: spreadInternal, nValid: n,
-                             nightsSinceUpdate: 0,
-                             status: computeStatus(nValid: n, nightsSinceUpdate: 0),
-                             logDomain: cfg.logDomain)
+    /// The state of a baseline that has seen nothing at all: parked at the midpoint of the
+    /// physiological range with nothing folded.
+    private static func seed(_ cfg: MetricCfg) -> BaselineState {
+        settled(baseline: (cfg.minVal + cfg.maxVal) / 2, spread: cfg.floorSpread,
+                nValid: 0, nightsSinceUpdate: 0, logDomain: cfg.logDomain)
     }
 }
