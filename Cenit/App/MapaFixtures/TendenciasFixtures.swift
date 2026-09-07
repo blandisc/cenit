@@ -101,7 +101,7 @@ enum TendenciasFixtures {
             // `series`). «calibrando» (1 día) deja un puñado de puntos, no la jornada completa: la
             // curva se ve apenas empezada, no un día lleno con historia de una sola noche (incoherente).
             let hr = syntheticHRSamples(today: today, sparse: nDays == 1)
-            if !hr.isEmpty { _ = try? await store.insert(Streams(hr: hr), deviceId: model.deviceId) }
+            if !hr.isEmpty { _ = try? await store.insert(Streams(hr: hr), deviceId: model.legacyDeviceId) }
         }
 
         model.repo.setDashboard(days: days, appleHealthDays: Set(days.map(\.day)))
