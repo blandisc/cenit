@@ -40,11 +40,20 @@ private struct WatchFaceMetrics: View {
     }
 
     // State 8 — a quiet line; heart rate and time keep running. Clears itself on reconnect.
+    // FER-433 · Y qué pasa con lo que registras mientras: se guarda y se sincroniza al reconectar.
     private var disconnectedLine: some View {
-        Text("No connection to iPhone")
-            .font(LiquidType.pie)
-            .foregroundStyle(LiquidOLED.tintaTerciaria)
-            .lineLimit(2)
+        VStack(alignment: .leading, spacing: .zero) {
+            Text("No connection to iPhone")
+                .font(LiquidType.pie)
+                .foregroundStyle(LiquidOLED.tintaTerciaria)
+                .lineLimit(2)
+            Text(String(localized: "vacio.watch.sin-conexion.comoSeLlena",
+                        defaultValue: "Your sets are saved and sync when it reconnects"))
+                .font(LiquidType.pie)
+                .foregroundStyle(LiquidOLED.tintaTerciaria)
+                .lineLimit(2)
+        }
+        .accessibilityElement(children: .combine)
     }
 
     // State 3 — heart rate is the hero; time and routine subordinate. State 7 swaps time+routine for the
@@ -369,6 +378,11 @@ private struct WatchPlanRotor: View {
                     ForEach(Array(plan.exercises.enumerated()), id: \.offset) { _, ex in planRow(ex) }
                 } else {
                     Text("No plan yet").font(LiquidType.filaConteo).foregroundStyle(LiquidOLED.tintaSecundaria)
+                    // FER-433 · De dónde sale el plan. En sesión viva NO es primer uso (el iPhone aún no lo
+                    // mandó), así que no promete la corona ni «arma tu semana».
+                    Text(String(localized: "vacio.watch.sin-plan.comoSeLlena",
+                                defaultValue: "It comes from your routine on the iPhone"))
+                        .font(LiquidType.pie).foregroundStyle(LiquidOLED.tintaTerciaria)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)

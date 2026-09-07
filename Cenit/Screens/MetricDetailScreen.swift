@@ -657,9 +657,10 @@ struct MetricDetailScreen: View {
             return String(localized: "Cénit can't read this vital: Apple Health hasn't granted permission. Turn it on and your readings will show up here.")
         }
         if enoughHistory {
-            return liquidNocturno
-                ? String(localized: "No reading from last night yet: your recent history is below.")
-                : String(localized: "No reading from today yet: your recent history is below.")
+            // FER-433: las tres partes del vacío (qué va aquí · cómo se llena · dónde sigue),
+            // en prosa dentro de la cláusula: el campo teñido no puede alojar `LiquidVacio`
+            // (tinta sobre tono no pasa contraste) y el layout del héroe es de la familia.
+            return liquidNocturno ? Self.vacioAnocheClausula : Self.vacioHoyClausula
         }
         // VIT-14: primera persona del sistema («Necesito…»), la voz de la familia — claves de
         // esta rama, renombradas. El CTA «Manage Apple Health permissions» QUEDA como está
@@ -673,6 +674,48 @@ struct MetricDetailScreen: View {
     private static func abrirAjustesSalud() {
         guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
         UIApplication.shared.open(url)
+    }
+
+    // MARK: FER-433 · Vacíos que enseñan (claves `vacio.detalle.*`, registro `tendencias.vitales`)
+
+    /// «Aún no hay lectura de anoche» en tres partes, para la cláusula del campo apagado.
+    /// La usa también `SkinTempDetailScreen` (mismo héroe de la familia).
+    static var vacioAnocheClausula: String {
+        [String(localized: "vacio.detalle.anoche.queEs", defaultValue: "Last night's reading goes here."),
+         String(localized: "vacio.detalle.anoche.comoSeLlena",
+                defaultValue: "It arrives when the watch publishes your night; usually in the morning."),
+         String(localized: "vacio.detalle.anoche.salida", defaultValue: "Your recent history is still below.")]
+            .joined(separator: " ")
+    }
+
+    /// Idem, en voz diurna (FC en reposo, pasos): la lectura de hoy llega con Apple Salud.
+    static var vacioHoyClausula: String {
+        [String(localized: "vacio.detalle.hoy.queEs", defaultValue: "Today's reading goes here."),
+         String(localized: "vacio.detalle.hoy.comoSeLlena",
+                defaultValue: "It arrives when Apple Health receives today's data."),
+         String(localized: "vacio.detalle.anoche.salida", defaultValue: "Your recent history is still below.")]
+            .joined(separator: " ")
+    }
+
+    /// El vacío de la gráfica del historial cuando el rango no da para una tendencia: sustituye
+    /// al pozo (`LiquidGraficaNiveles` con `puntos: []`). `noches` elige la voz.
+    static func vacioTendencia(noches: Bool) -> LiquidVacio {
+        LiquidVacio(
+            queEs: Text(String(localized: "vacio.detalle.tendencia.queEs",
+                               defaultValue: "This period's trend goes here.")),
+            comoSeLlena: Text(Self.vacioTendenciaComoSeLlena(noches: noches)),
+            salida: .dondeVive(Text(String(localized: "vacio.detalle.tendencia.salida",
+                                           defaultValue: "Change the period above, or come back in a few days."))))
+    }
+
+    /// El mismo «cómo se llena», como `String`: es lo que las gráficas con datos reciben en
+    /// `estadoVacio:` (parámetro obligatorio que nunca se pinta con ≥2 puntos).
+    static func vacioTendenciaComoSeLlena(noches: Bool) -> String {
+        noches
+            ? String(localized: "vacio.detalle.tendencia.comoSeLlena.noches",
+                     defaultValue: "It needs more nights with data in the chosen range.")
+            : String(localized: "vacio.detalle.tendencia.comoSeLlena",
+                     defaultValue: "It needs more days with data in the chosen range.")
     }
 
     /// El veredicto en palabras bajo el numeral — la COSTURA hoja→detalle: las MISMAS frases
@@ -945,12 +988,8 @@ struct MetricDetailScreen: View {
                         : String(localized: "How many days of the period fell in each band. Tap one to see its days on the chart."))
                 }
             } else {
-                // Una sola lectura o ninguna en el rango → el pozo vacío honesto (calco gemelas).
-                LiquidGraficaNiveles(puntos: [], bandas: [],
-                                     dominio: liquidDominio(plot: []), ticksY: [],
-                                     tono: liquidTono,
-                                     estadoVacio: liquidEstadoVacio,
-                                     a11yLabel: liquidA11yGrafica)
+                // Una sola lectura o ninguna en el rango → el vacío que enseña (FER-433).
+                Self.vacioTendencia(noches: liquidNocturno)
             }
         }
     }
@@ -1106,10 +1145,10 @@ struct MetricDetailScreen: View {
             : String(localized: "7-day moving average: day-to-day values are noisy.")
     }
 
+    /// FER-433: el «cómo se llena» del vacío de tendencia; las gráficas con datos lo reciben en
+    /// `estadoVacio:` y el pozo vacío real lo pinta `MetricDetailScreen.vacioTendencia(noches:)`.
     private var liquidEstadoVacio: String {
-        liquidNocturno
-            ? String(localized: "Not enough nights in this range to draw a trend.")
-            : String(localized: "Not enough days in this range to draw a trend.")
+        Self.vacioTendenciaComoSeLlena(noches: liquidNocturno)
     }
 
     private var liquidA11yGrafica: String {
@@ -1445,7 +1484,7 @@ struct MetricDetailScreen: View {
             return String(localized: "Cénit can't read your steps: Apple Health hasn't granted permission. Turn it on and your daily count will show up here.")
         }
         if enoughHistory {
-            return String(localized: "No reading from today yet: your recent history is below.")
+            return Self.vacioHoyClausula   // FER-433: tres partes en prosa (ver `liquidClausulaSinDato`)
         }
         return String(localized: "Gathering your days · \(series.count) of 7. Walk a few more days and your daily average and trend will show up here.")
     }
@@ -1499,12 +1538,8 @@ struct MetricDetailScreen: View {
                     LiquidNotaLine(String(localized: "How many days of the period fell in each band. Tap one to see its days on the chart."))
                 }
             } else {
-                // Un solo día completo o ninguno en el rango → el pozo vacío honesto (calco).
-                LiquidGraficaNiveles(puntos: [], bandas: [],
-                                     dominio: liquidDominio(plot: []), ticksY: [],
-                                     tono: liquidTono,
-                                     estadoVacio: liquidEstadoVacio,
-                                     a11yLabel: liquidA11yGrafica)
+                // Un solo día completo o ninguno en el rango → el vacío que enseña (FER-433).
+                Self.vacioTendencia(noches: false)
             }
         }
     }
@@ -1941,7 +1976,12 @@ struct MetricDetailScreen: View {
         if sinPermiso {
             return String(localized: "Cénit can't read this vital: Apple Health hasn't granted permission. Turn it on and your readings will show up here.")
         }
-        return String(localized: "No readings yet today.")
+        // FER-433: las mismas dos partes que el vacío de la curva en la hoja de Hoy.
+        return [String(localized: "vacio.hoja-metrica.fc-hoy.queEs",
+                       defaultValue: "Your pulse today goes here, in five-minute steps."),
+                String(localized: "vacio.hoja-metrica.fc-hoy.comoSeLlena",
+                       defaultValue: "It fills as the watch measures through the day.")]
+            .joined(separator: " ")
     }
 
     // MARK: TND-23 · 2. Tu día — la curva de la hoja + referencia y pico del papel

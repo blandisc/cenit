@@ -179,21 +179,12 @@ struct PersonalRecordsScreen: View {
 
     // MARK: - Empty / error
 
+    /// FER-433 · El vacío que enseña (`LiquidVacio`), con el copy de siempre.
     private var emptyState: some View {
-        VStack(alignment: .leading, spacing: .zero) {
-            Rectangle().fill(LiquidColor.tinta10).frame(height: LiquidRadius.hairline)
-            VStack(alignment: .leading, spacing: LiquidSpace.s200) {
-                Image(systemName: "trophy")
-                    .font(LiquidType.infoGlifoTitular).foregroundStyle(LiquidColor.tinta500)
-                    .accessibilityHidden(true)
-                Text("You don't have any marks yet").font(LiquidType.titulo).foregroundStyle(LiquidColor.tinta900)
-                Text("Once you log a strength set (weight or reps), your best mark shows up here.")
-                    .font(LiquidType.cuerpoBanner).foregroundStyle(LiquidColor.tinta700)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.vertical, LiquidSpace.s400)
-        }
+        LiquidVacio(
+            simbolo: "trophy",
+            queEs: Text("You don't have any marks yet"),
+            comoSeLlena: Text("Once you log a strength set (weight or reps), your best mark shows up here."))
     }
 
     /// «Error de lectura», distinto de «cero marcas» — con CTA real de reintento (spec), mismo patrón

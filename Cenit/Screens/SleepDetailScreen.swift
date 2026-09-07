@@ -792,13 +792,24 @@ struct SleepDetailScreen: View {
                 LiquidLevelsList(filas: carrilesHistorial(window), tono: Self.tono)
                 LiquidNotaLine(String(localized: "How many nights of the period fell in each band. Tap one to see its nights on the chart."))
             } else {
-                LiquidGraficaNiveles(
-                    puntos: [], bandas: [], dominio: Self.dominioSueno, ticksY: [],
-                    tono: Self.tono,
-                    estadoVacio: String(localized: "Not enough nights yet to draw a trend."),
-                    a11yLabel: String(localized: "History"))
+                // FER-433 · Con menos de dos noches en el rango, el vacío que enseña, con la
+                // cuenta honesta: el motor dibuja desde DOS noches (no siete), y en este estado
+                // solo puede haber una o ninguna.
+                LiquidVacio(
+                    queEs: Text(String(localized: "vacio.sueno.tendencia.queEs",
+                                       defaultValue: "The trend of your nights goes here.")),
+                    comoSeLlena: Text(Self.vacioTendenciaComoSeLlena),
+                    cuenta: window.values.count == 1
+                        ? Text(String(localized: "vacio.sueno.tendencia.cuenta.una",
+                                      defaultValue: "You have one night so far."))
+                        : nil)
             }
         }
+    }
+
+    /// El «cómo se llena» del vacío de tendencia; la gráfica con datos lo recibe en `estadoVacio:`.
+    private static var vacioTendenciaComoSeLlena: String {
+        String(localized: "vacio.sueno.tendencia.comoSeLlena", defaultValue: "It draws with two nights or more.")
     }
 
     /// El índice del selector ⇄ `ExploreRange`; cambiar de rango suelta el carril explorado.
@@ -835,7 +846,7 @@ struct SleepDetailScreen: View {
             formatoFechaEje: { Self.ejeFechaFmt.string(from: $0) },
             // Los puntos se apagan SOLO cuando el usuario explora un carril (paridad `GraficaRangos`).
             atenuarFuera: bandaExplorada != nil,
-            estadoVacio: String(localized: "Not enough nights yet to draw a trend."),
+            estadoVacio: Self.vacioTendenciaComoSeLlena,
             a11yLabel: String(localized: "History"))
     }
 
@@ -857,11 +868,13 @@ struct SleepDetailScreen: View {
                 conteo: String(localized: "\(n) of your last \(window.values.count) nights"),
                 tono: Self.tono)
         } else {
-            LiquidFraseNivel(
-                nivel: nil,
-                conteo: String(localized: "\(window.values.count) nights with data in this range"),
-                tono: Self.tono,
-                sinLectura: String(localized: "No reading last night"))
+            // FER-433 · Sin noche de anoche, el vacío que enseña (con el conteo del rango como
+            // cuenta) en lugar de la frase de nivel muda.
+            LiquidVacio(
+                queEs: Text(String(localized: "vacio.sueno.anoche.queEs", defaultValue: "Last night goes here.")),
+                comoSeLlena: Text(String(localized: "vacio.sueno.anoche.comoSeLlena",
+                                         defaultValue: "No sleep was recorded: sleep with the watch on and come back tomorrow.")),
+                cuenta: Text(String(localized: "\(window.values.count) nights with data in this range")))
         }
     }
 

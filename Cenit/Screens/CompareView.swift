@@ -128,7 +128,14 @@ struct CompareView: View {
                     // Fewer than two picked isn't a data problem — the picker is right there.
                     // Telling them to connect Apple Health would lie (TND30-2). The HealthKit
                     // copy is reserved below, for when nothing they picked has ANY history.
-                    emptyWell(String(localized: "Pick 2–4 metrics to overlay."))
+                    // FER-433: with NOTHING picked the selector's own `LiquidVacio` already
+                    // teaches (one lesson, not two); this one only speaks with one picked.
+                    if !selected.isEmpty {
+                        LiquidVacio(
+                            queEs: Text(String(localized: "vacio.comparar.selector.queEs",
+                                               defaultValue: "Two to four signals overlay here.")),
+                            comoSeLlena: Text("Pick 2–4 metrics to overlay."))
+                    }
                 } else {
                     let series = activeSeries
                     if series.allSatisfy({ $0.rows.isEmpty }) {
@@ -136,9 +143,12 @@ struct CompareView: View {
                             // Two causes, two copies (TND30-2): nothing has ANY history (the
                             // real no-permission / no-data case → connect Apple Health) vs.
                             // there is history but none in THIS window (→ widen the range).
-                            emptyWell(noHistoryAtAll
-                                ? String(localized: "Compare needs at least two metrics with history. Connect Apple Health in Data Sources first.")
-                                : sinDatosMensaje)
+                            LiquidVacio(
+                                queEs: Text(String(localized: "vacio.comparar.sin-datos.queEs",
+                                                   defaultValue: "The signals you picked compare here.")),
+                                comoSeLlena: Text(noHistoryAtAll
+                                    ? String(localized: "Compare needs at least two metrics with history. Connect Apple Health in Data Sources first.")
+                                    : sinDatosMensaje))
                         } else {
                             LiquidSheetSkeleton(a11yCargando: String(localized: "Reading your history…"))
                         }
@@ -321,9 +331,12 @@ struct CompareView: View {
             }
 
             if selected.isEmpty {
-                Text(String(localized: "Nothing selected yet."))
-                    .font(LiquidType.cuerpo)
-                    .foregroundStyle(LiquidColor.tinta500)
+                // FER-433: el selector vacío enseña qué se superpone aquí y cómo empezar.
+                LiquidVacio(
+                    queEs: Text(String(localized: "vacio.comparar.selector.queEs",
+                                       defaultValue: "Two to four signals overlay here.")),
+                    comoSeLlena: Text(String(localized: "vacio.comparar.selector.comoSeLlena",
+                                             defaultValue: "Pick the first one with the button above.")))
             } else {
                 LiquidFlujoLeyenda(espacioH: LiquidSpace.s150, espacioV: LiquidSpace.s150) {
                     ForEach(selected) { metric in
@@ -497,7 +510,10 @@ struct CompareView: View {
                 LiquidNotaLine(String(localized: "Association, not cause: moving together isn't one driving the other."))
 
                 if pairs.isEmpty {
-                    emptyWell(String(localized: "Not enough overlapping days between these metrics in \(range.phrase). Widen the range."))
+                    LiquidVacio(
+                        queEs: Text(String(localized: "vacio.comparar.pares.queEs",
+                                           defaultValue: "How each pair moves together goes here.")),
+                        comoSeLlena: Text(String(localized: "Not enough overlapping days between these metrics in \(range.phrase). Widen the range.")))
                 } else {
                     ForEach(pairs) { p in
                         pairCard(p)
@@ -586,15 +602,6 @@ struct CompareView: View {
     }
 
     /// An honest empty state on opaque paper (inside a glass sheet, never glass-on-glass).
-    private func emptyWell(_ text: String) -> some View {
-        Text(verbatim: text)
-            .font(LiquidType.cuerpo)
-            .foregroundStyle(LiquidColor.tinta500)
-            .multilineTextAlignment(.center)
-            .frame(maxWidth: .infinity)
-            .liquidTarjetaSeccion()
-    }
-
     // MARK: - Insight language
 
     /// "Weight ↔ Recovery: r = −0.34 (moderate negative) over N shared days." + a plain-English

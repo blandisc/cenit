@@ -75894,6 +75894,958 @@
           }
         }
       }
+    },
+    "vacio.biblioteca.filtros.accion" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear filters"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quitar filtros"
+          }
+        }
+      }
+    },
+    "vacio.biblioteca.filtros.comoSeLlena" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "None meets every filter at once."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ninguno cumple todos los filtros a la vez."
+          }
+        }
+      }
+    },
+    "vacio.biblioteca.filtros.queEs" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The exercises that match go here."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aquí van los ejercicios que coinciden."
+          }
+        }
+      }
+    },
+    "vacio.comparar.pares.queEs" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How each pair moves together goes here."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aquí va cómo se mueve cada par."
+          }
+        }
+      }
+    },
+    "vacio.comparar.selector.comoSeLlena" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pick the first one with the button above."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elige la primera con el botón de arriba."
+          }
+        }
+      }
+    },
+    "vacio.comparar.selector.queEs" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Two to four signals overlay here."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aquí se superponen de dos a cuatro señales."
+          }
+        }
+      }
+    },
+    "vacio.comparar.sin-datos.queEs" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The signals you picked compare here."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aquí se comparan las señales que elegiste."
+          }
+        }
+      }
+    },
+    "vacio.detalle.anoche.comoSeLlena" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It arrives when the watch publishes your night; usually in the morning."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Llega cuando el reloj publica tu noche; suele ser en la mañana."
+          }
+        }
+      }
+    },
+    "vacio.detalle.anoche.queEs" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last night's reading goes here."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aquí va la lectura de anoche."
+          }
+        }
+      }
+    },
+    "vacio.detalle.anoche.salida" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your recent history is still below."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu historial reciente sigue abajo."
+          }
+        }
+      }
+    },
+    "vacio.detalle.hoy.comoSeLlena" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It arrives when Apple Health receives today's data."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Llega cuando Apple Salud recibe el dato de hoy."
+          }
+        }
+      }
+    },
+    "vacio.detalle.hoy.queEs" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today's reading goes here."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aquí va la lectura de hoy."
+          }
+        }
+      }
+    },
+    "vacio.detalle.tendencia.comoSeLlena" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It needs more days with data in the chosen range."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Necesita más días con dato en el rango elegido."
+          }
+        }
+      }
+    },
+    "vacio.detalle.tendencia.comoSeLlena.noches" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It needs more nights with data in the chosen range."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Necesita más noches con dato en el rango elegido."
+          }
+        }
+      }
+    },
+    "vacio.detalle.tendencia.queEs" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This period's trend goes here."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aquí va la tendencia de este periodo."
+          }
+        }
+      }
+    },
+    "vacio.detalle.tendencia.salida" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change the period above, or come back in a few days."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cambia el periodo arriba, o vuelve en unos días."
+          }
+        }
+      }
+    },
+    "vacio.fuentes.salud.comoSeLlena" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It fills when you sync, or when you import your export."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se llena al sincronizar o al importar tu export."
+          }
+        }
+      }
+    },
+    "vacio.fuentes.salud.queEs" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What Cénit read from Apple Health goes here."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aquí va lo que Cénit leyó de Apple Salud."
+          }
+        }
+      }
+    },
+    "vacio.fuentes.salud.salida" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Sync now button is right above."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El botón Sincronizar ahora está arriba."
+          }
+        }
+      }
+    },
+    "vacio.historial.periodo.comoSeLlena" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "There were no sessions on these dates."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hubo sesiones en estas fechas."
+          }
+        }
+      }
+    },
+    "vacio.historial.periodo.queEs" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your sessions for this period go here."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aquí van tus sesiones de este periodo."
+          }
+        }
+      }
+    },
+    "vacio.historial.periodo.salida" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change the period above."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cambia el periodo arriba."
+          }
+        }
+      }
+    },
+    "vacio.hoja-metrica.fc-hoy.comoSeLlena" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It fills as the watch measures through the day."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se llena conforme el reloj mide durante el día."
+          }
+        }
+      }
+    },
+    "vacio.hoja-metrica.fc-hoy.queEs" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your pulse today goes here, in five-minute steps."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aquí va tu pulso de hoy, en tramos de cinco minutos."
+          }
+        }
+      }
+    },
+    "vacio.hoja-metrica.tendencia-una.comoSeLlena" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It draws with two readings or more; today there is one."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se dibuja con dos lecturas o más; hoy hay una."
+          }
+        }
+      }
+    },
+    "vacio.hoja-metrica.tendencia-una.salida" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Come back tomorrow: every night with the watch adds a point."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vuelve mañana: cada noche con el reloj agrega un punto."
+          }
+        }
+      }
+    },
+    "vacio.hoja-metrica.tendencia-una.salida.dia" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Come back tomorrow: every day with data adds a point."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vuelve mañana: cada día con dato agrega un punto."
+          }
+        }
+      }
+    },
+    "vacio.hoja-metrica.tendencia.comoSeLlena" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It fills with recent nights wearing the watch."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se llena con noches recientes con el reloj puesto."
+          }
+        }
+      }
+    },
+    "vacio.hoja-metrica.tendencia.comoSeLlena.dia" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It fills with recent days with data in Apple Health."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se llena con días recientes con dato en Apple Salud."
+          }
+        }
+      }
+    },
+    "vacio.hoja-metrica.tendencia.queEs" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your line for the last 14 days goes here."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aquí va tu línea de los últimos 14 días."
+          }
+        }
+      }
+    },
+    "vacio.hoja-metrica.tendencia.salida" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings › Data sources › Sync now, if Apple Health already has them."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajustes › Fuentes de datos › Sincronizar ahora, si Apple Salud ya los tiene."
+          }
+        }
+      }
+    },
+    "vacio.live-activity.por-fc.linea" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rest ends when your pulse drops to %lld"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El descanso termina cuando tu pulso baja a %lld"
+          }
+        }
+      }
+    },
+    "vacio.live-activity.por-fc.linea.sin-umbral" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rest ends when your pulse drops"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El descanso termina cuando tu pulso baja"
+          }
+        }
+      }
+    },
+    "vacio.mosaico.dosis.linea" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "With 3 sessions in 7 days I tell you your dose; you have %lld."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Con 3 sesiones en 7 días te digo tu dosis; llevas %lld."
+          }
+        }
+      }
+    },
+    "vacio.mosaico.volumen.linea" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "With 3 sessions in 8 weeks I tell you your volume; you have %lld."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Con 3 sesiones en 8 semanas te digo tu volumen; llevas %lld."
+          }
+        }
+      }
+    },
+    "vacio.plan.rutinas.comoSeLlena" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create one, start from a template, or import a plan."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Crea una, parte de una plantilla o importa un plan."
+          }
+        }
+      }
+    },
+    "vacio.salud.importado.salida" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings › Data sources › Sync now."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajustes › Fuentes de datos › Sincronizar ahora."
+          }
+        }
+      }
+    },
+    "vacio.salud.seccion.comoSeLlena" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Health has no data of this kind yet."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Salud no tiene datos de este tipo todavía."
+          }
+        }
+      }
+    },
+    "vacio.salud.seccion.queEs" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This section's readings go here."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aquí van las lecturas de esta sección."
+          }
+        }
+      }
+    },
+    "vacio.sueno.anoche.comoSeLlena" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No sleep was recorded: sleep with the watch on and come back tomorrow."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hubo registro de sueño: duerme con el reloj puesto y vuelve mañana."
+          }
+        }
+      }
+    },
+    "vacio.sueno.anoche.queEs" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last night goes here."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aquí va tu noche de anoche."
+          }
+        }
+      }
+    },
+    "vacio.sueno.tendencia.comoSeLlena" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It draws with two nights or more."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se dibuja con dos noches o más."
+          }
+        }
+      }
+    },
+    "vacio.sueno.tendencia.cuenta.una" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You have one night so far."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Llevas una noche."
+          }
+        }
+      }
+    },
+    "vacio.sueno.tendencia.queEs" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The trend of your nights goes here."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aquí va la tendencia de tus noches."
+          }
+        }
+      }
+    },
+    "vacio.tendencias.heroe.comoSeLlena" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It comes from your resting heart rate and your sleep; with a watch, on the fourth night."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sale de tu corazón en reposo y tu sueño; con reloj, a la cuarta noche."
+          }
+        }
+      }
+    },
+    "vacio.tendencias.heroe.comoSeLlena.sinReloj" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Without an Apple Watch there is no word: Train works in full."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin Apple Watch no hay palabra: Entrenar sí funciona completo."
+          }
+        }
+      }
+    },
+    "vacio.tendencias.heroe.queEs" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your word for today goes here."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aquí va tu palabra de hoy."
+          }
+        }
+      }
+    },
+    "vacio.tendencias.heroe.salida" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today tells you what it's missing."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoy te dice qué le falta."
+          }
+        }
+      }
+    },
+    "vacio.tendencias.pasos.comoSeLlena" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "They fill when you connect Apple Health."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se llenan al conectar Apple Salud."
+          }
+        }
+      }
+    },
+    "vacio.tendencias.pasos.queEs" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your steps and more Apple Health signals go here."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aquí van tus pasos y más señales de Apple Salud."
+          }
+        }
+      }
+    },
+    "vacio.watch.primer-uso.comoSeLlena" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Build your week on your iPhone; here you start it and log sets with the crown"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arma tu semana en tu iPhone; aquí la empiezas y registras series con la corona"
+          }
+        }
+      }
+    },
+    "vacio.watch.primer-uso.queEs" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your routine for today starts here"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu rutina de hoy empieza aquí"
+          }
+        }
+      }
+    },
+    "vacio.watch.sin-conexion.comoSeLlena" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your sets are saved and sync when it reconnects"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tus series se guardan y se sincronizan al reconectar"
+          }
+        }
+      }
+    },
+    "vacio.widget.rancio.comoSeLlena" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Cénit to refresh"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abre Cénit para actualizar"
+          }
+        }
+      }
+    },
+    "vacio.widget.sin-plan.comoSeLlena" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Build your week in Cénit"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arma tu semana en Cénit"
+          }
+        }
+      }
+    },
+    "vacio.widget.sin-plan.queEs" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your routine for today"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu rutina de hoy"
+          }
+        }
+      }
     }
   },
   "version" : "1.1"

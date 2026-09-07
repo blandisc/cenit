@@ -1132,6 +1132,86 @@
           }
         }
       }
+    },
+    "vacio.live-activity.por-fc.linea" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rest ends when your pulse drops to %lld"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El descanso termina cuando tu pulso baja a %lld"
+          }
+        }
+      }
+    },
+    "vacio.live-activity.por-fc.linea.sin-umbral" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rest ends when your pulse drops"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El descanso termina cuando tu pulso baja"
+          }
+        }
+      }
+    },
+    "vacio.widget.rancio.comoSeLlena" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Cénit to refresh"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abre Cénit para actualizar"
+          }
+        }
+      }
+    },
+    "vacio.widget.sin-plan.comoSeLlena" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Build your week in Cénit"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arma tu semana en Cénit"
+          }
+        }
+      }
+    },
+    "vacio.widget.sin-plan.queEs" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your routine for today"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu rutina de hoy"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

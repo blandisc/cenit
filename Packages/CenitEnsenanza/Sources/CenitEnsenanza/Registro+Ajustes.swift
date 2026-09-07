@@ -2,6 +2,7 @@ import Foundation
 
 // Entradas de la pestaña «ajustes» del registro (semilla del épico FER-428, L4/FER-430).
 // Generado por `Tools/gen-ensenanza.py` a partir de `Tools/ensenanza-semilla.json`.
+// FER-433: las piezas `.vacio(clave:)` se añadieron a mano (el generador aún no las conoce).
 extension Registro {
     public static let ajustes: [Funcionalidad] = [
         Funcionalidad(
@@ -15,7 +16,7 @@ extension Registro {
             id: .ajustesFuentes,
             pestana: .ajustes,
             requiere: [],
-            piezas: [.ayuda(seccion: .ajustes)],
+            piezas: [.ayuda(seccion: .ajustes), .vacio(clave: "vacio.fuentes.salud.queEs"), .vacio(clave: "vacio.salud.seccion.queEs")],
             desde: "1.85"
         ),
         Funcionalidad(

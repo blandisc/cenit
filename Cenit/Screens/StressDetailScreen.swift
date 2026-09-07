@@ -505,10 +505,8 @@ struct StressDetailScreen: View {
                 LiquidLevelsList(filas: carrilesHistorial(model, window), tono: tono)
                 LiquidNotaLine(String(localized: "How many days of the period fell in each band. Tap one to see its days on the chart."))
             } else {
-                LiquidGraficaNiveles(puntos: [], bandas: [], dominio: Self.dominioEstres, ticksY: [],
-                                     tono: tono,
-                                     estadoVacio: String(localized: "Not enough days in this range to draw a trend."),
-                                     a11yLabel: String(localized: "Stress history"))
+                // Un solo día o ninguno en el rango → el vacío que enseña (FER-433, calco gemelas).
+                MetricDetailScreen.vacioTendencia(noches: false)
             }
         }
     }
@@ -586,7 +584,7 @@ struct StressDetailScreen: View {
             formatoFechaScrub: { Self.ejeFechaFmt.string(from: $0) },
             formatoFechaEje: { Self.ejeFechaFmt.string(from: $0) },
             atenuarFuera: bandaExplorada != nil,
-            estadoVacio: String(localized: "Not enough days in this range to draw a trend."),
+            estadoVacio: MetricDetailScreen.vacioTendenciaComoSeLlena(noches: false),   // FER-433 (nunca se pinta con ≥2 puntos)
             a11yLabel: String(localized: "Stress history"))
             .id(range)
     }

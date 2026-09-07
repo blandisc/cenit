@@ -484,6 +484,12 @@ private struct EntrenarLanding: View {
         )
         EntrenarHubDosis(rows: dosisRows)
             .padding(.top, dosisRows.isEmpty ? 0 : LiquidSpace.s100)
+        if dosisRows.isEmpty {
+            // FER-433 · DOSIS calla con <3 sesiones en 7 días; en vez de silencio, la cuenta.
+            LiquidNotaLine(String(localized: "vacio.mosaico.dosis.linea",
+                                  defaultValue: "With 3 sessions in 7 days I tell you your dose; you have \(sessionsIn7Days)."))
+                .padding(.top, LiquidSpace.s100)
+        }
         EntrenarHubPar(raises: parRaises, restReal: nil,
                       onOpenRaises: { if let r = todayRoutine { openRoutine(r.id) } })
             .padding(.top, parRaises.isEmpty ? 0 : LiquidSpace.s100)
@@ -493,8 +499,15 @@ private struct EntrenarLanding: View {
         }
         // FER-360: la tesela «Marcas» ya no calla sin PRs — siempre se muestra (modelo vacío honesto
         // + tap → «Tus marcas»); solo VOLUMEN sigue con su propio silencio (<3 sesiones en 8 semanas).
-        EntrenarHubMarcasVolumen(marca: marcasData, volumen: volumenData, onOpenMarcas: openMarcas)
+        let volumen = volumenData
+        EntrenarHubMarcasVolumen(marca: marcasData, volumen: volumen, onOpenMarcas: openMarcas)
             .padding(.top, LiquidSpace.s100)
+        if volumen == nil {
+            // FER-433 · VOLUMEN calla con <3 sesiones en 8 semanas; en vez de silencio, la cuenta.
+            LiquidNotaLine(String(localized: "vacio.mosaico.volumen.linea",
+                                  defaultValue: "With 3 sessions in 8 weeks I tell you your volume; you have \(volumenSesiones)."))
+                .padding(.top, LiquidSpace.s100)
+        }
         EntrenarHubConstancia(
             semanas: constanciaSemanas,
             sessionsThisMonth: TrainingWeeks.sessionsThisMonth(
@@ -510,9 +523,13 @@ private struct EntrenarLanding: View {
 
     // MARK: - DOSIS (v18) — top 4 músculos por series en 7 días; silencio con <3 sesiones en la ventana.
 
-    private var dosisRows: [EntrenarHubDosis.Fila] {
+    /// FER-433 · Sesiones cerradas en los últimos 7 días: la regla de silencio de DOSIS y su cuenta.
+    private var sessionsIn7Days: Int {
         let sevenDaysAgo = Date().timeIntervalSince1970 - 7 * 86_400
-        let sessionsIn7Days = sessions.filter { $0.endTs != nil && Double($0.startTs) >= sevenDaysAgo }.count
+        return sessions.filter { $0.endTs != nil && Double($0.startTs) >= sevenDaysAgo }.count
+    }
+
+    private var dosisRows: [EntrenarHubDosis.Fila] {
         guard sessionsIn7Days >= 3 else { return [] }
         let volumes = MuscleFatigueMap.weeklyVolumes(events: muscleEvents, days: 7)
         return volumes.prefix(4).map { v in
@@ -629,6 +646,9 @@ private struct EntrenarLanding: View {
     /// numeral y delta describirían la MISMA semana). El mock empareja numeral de semana en curso +
     /// delta de tendencia — sin condición; las reglas de silencio del propio motor (`nil` con <4
     /// semanas completas) siguen aplicando solas.
+    /// FER-433 · Sesiones en las 8 cubetas: la regla de silencio de VOLUMEN y su cuenta.
+    private var volumenSesiones: Int { volumenBuckets.reduce(0) { $0 + $1.sessionCount } }
+
     private var volumenData: EntrenarHubMarcasVolumen.Volumen? {
         let buckets = volumenBuckets
         let totalSessions = buckets.reduce(0) { $0 + $1.sessionCount }

@@ -902,20 +902,12 @@ struct ExerciseDetailScreen: View {
 
     // MARK: - Honest empty
 
+    /// FER-433 · El vacío que enseña (`LiquidVacio`), con el copy de siempre.
     private var emptyHistory: some View {
-        VStack(alignment: .leading, spacing: .zero) {
-            Rectangle().fill(LiquidColor.tinta10).frame(height: LiquidRadius.hairline)
-            VStack(alignment: .leading, spacing: LiquidSpace.s200) {
-                Image(systemName: "clock.arrow.circlepath")
-                    .font(LiquidType.infoGlifoTitular).foregroundStyle(LiquidColor.tinta500)
-                Text("Not logged yet").font(LiquidType.titulo).foregroundStyle(LiquidColor.tinta900)
-                Text("Your best mark, your last session and your estimated 1RM appear here once you complete a work set.")
-                    .font(LiquidType.cuerpoBanner).foregroundStyle(LiquidColor.tinta700)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.vertical, LiquidSpace.s400)
-        }
+        LiquidVacio(
+            simbolo: "clock.arrow.circlepath",
+            queEs: Text("Not logged yet"),
+            comoSeLlena: Text("Your best mark, your last session and your estimated 1RM appear here once you complete a work set."))
     }
 
 }

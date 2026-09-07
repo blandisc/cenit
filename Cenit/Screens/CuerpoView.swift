@@ -964,16 +964,29 @@ private struct CuerpoLanding: View {
             Text("\(calibrando)")
                 .font(LiquidType.displayL).tracking(LiquidType.displayLTracking)
                 .foregroundStyle(LiquidColor.tinta900)
-            Text(recoverySubtitle(calibrating: calibrando))
+            Text(recoverySubtitle)
                 .font(LiquidType.clausulaCampo).foregroundStyle(LiquidColor.tinta700)
             recoveryHeroAccessory(calibrating: calibrando)
         } else {
-            Text("—")
-                .font(LiquidType.displayL).tracking(LiquidType.displayLTracking)
-                .foregroundStyle(LiquidColor.tinta500)
-            Text(recoverySubtitle(calibrating: nil))
-                .font(LiquidType.clausulaCampo).foregroundStyle(LiquidColor.tinta700)
+            // FER-433 · Sin lectura, el héroe (apagado: papel, tinta) aloja el vacío que enseña:
+            // qué va aquí, de qué sale la palabra (con o sin reloj) y a dónde ir.
+            LiquidVacio(
+                queEs: Text(String(localized: "vacio.tendencias.heroe.queEs",
+                                   defaultValue: "Your word for today goes here.")),
+                comoSeLlena: Text(sinReloj
+                    ? String(localized: "vacio.tendencias.heroe.comoSeLlena.sinReloj",
+                             defaultValue: "Without an Apple Watch there is no word: Train works in full.")
+                    : String(localized: "vacio.tendencias.heroe.comoSeLlena",
+                             defaultValue: "It comes from your resting heart rate and your sleep; with a watch, on the fourth night.")),
+                salida: .dondeVive(Text(String(localized: "vacio.tendencias.heroe.salida",
+                                               defaultValue: "Today tells you what it's missing."))))
         }
+    }
+
+    /// «Sin reloj» = ninguna FC en reposo nocturna en todo el historial (la misma verdad que
+    /// `OnboardingLanding.sinRitmoEnReposo`, leída del repo en vez del cobertor de Apple).
+    private var sinReloj: Bool {
+        !repo.days.contains { $0.restingHr != nil }
     }
 
     /// El acompañante del héroe: la barra de calibración mientras la base madura. SOLO la barra —
@@ -1251,26 +1264,18 @@ private struct CuerpoLanding: View {
 
     /// Apple-only metrics (Steps) invite connecting Apple Health when it isn't authorized and there's no
     /// stored value — without promising data that doesn't exist. Opens Data Sources.
+    /// FER-433: el nudge bespoke (tinta azul) es ahora el vacío que enseña, con la acción real.
     @ViewBuilder private var connectNudge: some View {
         let notConnected = health.auth != .authorized && health.auth != .unavailable
         if notConnected && freshSteps == nil {
-            Button { darkSheet = .screen(.dataSources) } label: {
-                HStack(spacing: LiquidSpace.s200) {
-                    LiquidIcon(.corazon, size: 17, color: LiquidColor.azul)
-                    Text("Connect Apple Health to fill steps and more.")
-                        .font(LiquidType.cuerpo).foregroundStyle(LiquidColor.tinta700)
-                    Spacer(minLength: LiquidSpace.s150)
-                    LiquidIcon(.chevron, size: 12, color: LiquidColor.tinta500)
-                }
-                .padding(.horizontal, LiquidSpace.s400)
-                .padding(.vertical, LiquidSpace.s300)
-                .background(LiquidColor.azul.opacity(0.07),  // token-exempt(optico): nudge tint, preview-approved
-                           in: RoundedRectangle(cornerRadius: LiquidRadius.tarjeta, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: LiquidRadius.tarjeta, style: .continuous)
-                    .strokeBorder(LiquidColor.azul.opacity(0.14), lineWidth: 1))  // token-exempt(optico): nudge border, preview-approved
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.liquidPress)
+            LiquidVacio(
+                queEs: Text(String(localized: "vacio.tendencias.pasos.queEs",
+                                   defaultValue: "Your steps and more Apple Health signals go here.")),
+                comoSeLlena: Text(String(localized: "vacio.tendencias.pasos.comoSeLlena",
+                                         defaultValue: "They fill when you connect Apple Health.")),
+                salida: .accion(etiqueta: Text("Connect Apple Health"), simbolo: "heart") {
+                    darkSheet = .screen(.dataSources)
+                })
         }
     }
 
@@ -1728,11 +1733,9 @@ private struct CuerpoLanding: View {
         return Int((v.reduce(0, +) / Double(v.count)).rounded())
     }
 
-    /// La línea bajo el héroe cuando todavía no hay veredicto que decir. FER-119 le quitó
-    /// el parámetro `score`: el puntaje 0-100 murió con la banda, y su rama era inalcanzable.
-    private func recoverySubtitle(calibrating: Int?) -> LocalizedStringKey {
-        calibrating != nil ? "Calibrating your baseline" : "No reading yet"
-    }
+    /// La línea bajo el héroe mientras calibra. FER-119 le quitó el parámetro `score`; FER-433
+    /// le quitó la rama «Aún no hay lectura» (hoy es un `LiquidVacio` en `preparacionHeroe`).
+    private var recoverySubtitle: LocalizedStringKey { "Calibrating your baseline" }
 
     private func sleepText(_ mins: Double) -> String {
         guard mins.isFinite else { return "—" }   // FER-428: `Int(NaN/∞)` es trap.

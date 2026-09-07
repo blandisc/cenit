@@ -212,30 +212,24 @@ struct AppleHealthView: View {
         .accessibilityAddTraits(.isHeader)
     }
 
-    /// The honest empty state: no imported history at all yet. Composed from atoms (no 1:1 Liquid
-    /// piece for this) inside the same solid-card recipe every other block on this screen uses.
-    /// Ronda 2 #5: used to open straight on the 7-year zip export — the SLOW path — contradicting
-    /// Data Sources' own empty state two taps back («tap Sync now»), and named a macOS step («On an
-    /// iPhone:») nobody on this screen can be running. The fast path (Sync now / Connect, back in
-    /// Data Sources) leads; the zip is the long-history fallback, named as one.
-    /// Ronda 3 #4: cita el rótulo REAL del botón desconectado («Connect Apple Health»,
-    /// `DataSourcesView.swift:385`), no «Connect» a secas.
+    /// The honest empty state: no imported history at all yet. FER-433: `LiquidVacio` (qué va aquí ·
+    /// cómo se llena · dónde vive), plano sobre el lienzo como manda el componente. Ronda 2 #5 sigue
+    /// en pie: el camino rápido (Sincronizar ahora, en Fuentes de datos) manda; el zip de años es
+    /// el respaldo largo, nombrado como tal en la nota de abajo.
     private var emptyState: some View {
         VStack(alignment: .leading, spacing: LiquidSpace.s150) {
-            Text(String(localized: "Nothing imported yet"))
-                .font(LiquidType.tituloFila)
-                .foregroundStyle(LiquidColor.tinta900)
-            Text(String(localized: "Go back to Data Sources and tap Sync now (or Connect Apple Health, if it isn't linked yet)."))
-                .font(LiquidType.cuerpo)
-                .lineSpacing(LiquidType.cuerpoLineSpacing)
-                .foregroundStyle(LiquidColor.tinta700)
-                .fixedSize(horizontal: false, vertical: true)
+            LiquidVacio(
+                queEs: Text(String(localized: "vacio.fuentes.salud.queEs",
+                                   defaultValue: "What Cénit read from Apple Health goes here.")),
+                comoSeLlena: Text(String(localized: "vacio.fuentes.salud.comoSeLlena",
+                                         defaultValue: "It fills when you sync, or when you import your export.")),
+                salida: .dondeVive(Text(String(localized: "vacio.salud.importado.salida",
+                                               defaultValue: "Settings › Data sources › Sync now."))))
             Text(String(localized: "For years of history at once: Health app → your photo → Export All Health Data, then import that .zip in Data Sources."))
                 .font(LiquidType.captionLectura)
                 .foregroundStyle(LiquidColor.tinta500)
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .liquidTarjetaSeccion()
     }
 
     /// The loading state: it NAMES what it is doing, visibly — not only in VoiceOver — in the same
@@ -605,29 +599,30 @@ struct AppleHealthView: View {
                     Text(verbatim: fmt(avg)).font(LiquidType.valorM).foregroundStyle(hue)
                 }
             }
-            Group {
-                if pts.count >= 2 {
-                    LiquidGraficaNiveles(
-                        puntos: pts,
-                        bandas: [],
-                        dominio: valueRange(vals, fallback: fallback),
-                        ticksY: [],
-                        tono: hue,
-                        formatoValorScrub: fmt,
-                        formatoFechaScrub: { Self.asOfFormatter.string(from: $0) },
-                        formatoFechaEje: { Self.asOfFormatter.string(from: $0) },
-                        estadoVacio: String(localized: "No readings recorded."),
-                        a11yLabel: String(localized: "\(title) trend"))
-                } else if let only = vals.last {
-                    // A single point is not a line — present the lone reading, never an "empty"
-                    // state when the series has data.
-                    singlePoint(only, fmt: fmt, accent: hue)
-                } else {
-                    emptyChart
-                }
+            if pts.count >= 2 {
+                LiquidGraficaNiveles(
+                    puntos: pts,
+                    bandas: [],
+                    dominio: valueRange(vals, fallback: fallback),
+                    ticksY: [],
+                    tono: hue,
+                    formatoValorScrub: fmt,
+                    formatoFechaScrub: { Self.asOfFormatter.string(from: $0) },
+                    formatoFechaEje: { Self.asOfFormatter.string(from: $0) },
+                    estadoVacio: Self.vacioSeccionComoSeLlena,
+                    a11yLabel: String(localized: "\(title) trend"))
+                    .frame(height: Self.chartHeight)
+                    .clipped()
+            } else if let only = vals.last {
+                // A single point is not a line — present the lone reading, never an "empty"
+                // state when the series has data.
+                singlePoint(only, fmt: fmt, accent: hue)
+                    .frame(height: Self.chartHeight)
+                    .clipped()
+            } else {
+                // FER-433 · El vacío que enseña, sin la altura fija del pozo: a AX5 no se recorta.
+                emptyChart
             }
-            .frame(height: Self.chartHeight)
-            .clipped()
             LiquidResumenVentana(celdas: footerCeldas)
         }
         .liquidTarjetaSeccion()
@@ -643,14 +638,18 @@ struct AppleHealthView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
     }
 
+    /// FER-433 · Sección sin lecturas: el vacío que enseña (`LiquidVacio`, dos partes).
     private var emptyChart: some View {
-        Text(String(localized: "No readings recorded."))
-            .font(LiquidType.cuerpo)
-            .foregroundStyle(LiquidColor.tinta500)
-            .multilineTextAlignment(.center)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-            .background(LiquidColor.tinta7,
-                        in: RoundedRectangle(cornerRadius: LiquidRadius.control, style: .continuous))
+        LiquidVacio(
+            queEs: Text(String(localized: "vacio.salud.seccion.queEs",
+                               defaultValue: "This section's readings go here.")),
+            comoSeLlena: Text(Self.vacioSeccionComoSeLlena))
+    }
+
+    /// El «cómo se llena» de la sección; la gráfica con datos lo recibe en `estadoVacio:` (nunca se pinta).
+    private static var vacioSeccionComoSeLlena: String {
+        String(localized: "vacio.salud.seccion.comoSeLlena",
+               defaultValue: "Apple Health has no data of this kind yet.")
     }
 
     // MARK: - Series helpers (sparse-data fallback to ALL)

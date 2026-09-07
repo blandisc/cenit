@@ -83,26 +83,40 @@ struct WeekWidgetView: View {
                 .tracking(M.overlineTracking)
                 .foregroundStyle(LiquidColor.tinta500)
             Spacer(minLength: 0)
-            Text("Open Cénit")
+            // FER-433 · Para qué abrirla, no solo «Abre Cénit».
+            Text(verbatim: TrainWidgetSnapshot.rancioComoSeLlena)
                 .font(.system(size: M.title, weight: .bold, design: .rounded))
                 .foregroundStyle(LiquidColor.tinta900)
+                .lineLimit(2)
+                .minimumScaleFactor(0.8)
             Spacer(minLength: 0)
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text("Open Cénit"))
+        .accessibilityLabel(Text(verbatim: TrainWidgetSnapshot.rancioComoSeLlena))
     }
 
     @ViewBuilder private func header(snapshot: TrainWidgetSnapshot) -> some View {
         if let today = snapshot.today {
             Button(intent: StartTodayRoutineIntent()) {
                 headerRow(title: Text(verbatim: today.routineName), verdict: snapshot.verdict,
-                          cta: today.sessionLive ? "Continue" : "Start")
+                          cta: today.sessionLive ? Text("Continue") : Text("Start"))
             }
             .buttonStyle(.plain)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel((today.sessionLive ? Text("Continue") : Text("Start routine"))
                 + Text(verbatim: ", ") + Text(verbatim: today.routineName))
             .accessibilityHint(Text("Opens today's guided session"))
+            .accessibilityAddTraits(.isButton)
+        } else if !snapshot.hasPlan {
+            // FER-433 · Sin plan (primer uso): qué va aquí y cómo se llena; el toque abre Cénit en Entrenar.
+            Button(intent: StartTodayRoutineIntent()) {
+                headerRow(title: Text(verbatim: TrainWidgetSnapshot.sinPlanQueEs), verdict: snapshot.verdict,
+                          cta: Text(verbatim: TrainWidgetSnapshot.sinPlanComoSeLlena))
+            }
+            .buttonStyle(.plain)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text(verbatim: TrainWidgetSnapshot.sinPlanQueEs)
+                + Text(verbatim: ". ") + Text(verbatim: TrainWidgetSnapshot.sinPlanComoSeLlena))
             .accessibilityAddTraits(.isButton)
         } else {
             headerRow(title: Text("Rest day"), verdict: snapshot.verdict, cta: nil)
@@ -111,7 +125,9 @@ struct WeekWidgetView: View {
         }
     }
 
-    private func headerRow(title: Text, verdict: TrainWidgetSnapshot.Verdict?, cta: LocalizedStringKey?) -> some View {
+    /// FER-433: `cta` es un `Text` ya resuelto (antes `LocalizedStringKey?`) para que el primer uso pueda
+    /// pasar su copy `verbatim` sin una segunda firma.
+    private func headerRow(title: Text, verdict: TrainWidgetSnapshot.Verdict?, cta: Text?) -> some View {
         HStack(alignment: .firstTextBaseline) {
             VStack(alignment: .leading, spacing: M.microGap) {
                 Text("Today")
@@ -133,7 +149,7 @@ struct WeekWidgetView: View {
                         .lineLimit(1)
                 }
                 if let cta {
-                    Text(cta)
+                    cta
                         .font(LiquidType.cuerpoBanner.weight(.semibold))
                         .foregroundStyle(LiquidColor.tinta900)
                 }

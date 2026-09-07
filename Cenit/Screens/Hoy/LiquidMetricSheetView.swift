@@ -693,7 +693,53 @@ struct LiquidMetricSheetView: View {
 
     // MARK: Trend 14d (paridad `trendSection` :984-1036)
 
-    private var trendBlock: some View {
+    /// FER-433 · Sin línea que trazar, el pozo de la gráfica cede su lugar al vacío que enseña
+    /// (`LiquidVacio`, tres partes): qué va aquí, cómo se llena y a dónde ir. El `String` que
+    /// `LiquidChartEstado.vacio` exige sigue viajando en `trendEstado`, pero ya no se pinta.
+    @ViewBuilder private var trendBlock: some View {
+        if case .vacio = trendEstado {
+            trendVacio
+        } else {
+            trendChart
+        }
+    }
+
+    private var trendVacio: some View {
+        LiquidVacio(
+            queEs: Text(String(localized: "vacio.hoja-metrica.tendencia.queEs",
+                               defaultValue: "Your line for the last 14 days goes here.")),
+            comoSeLlena: Text(trendVacioComoSeLlena),
+            salida: .dondeVive(Text(trendVacioSalida)))
+    }
+
+    /// Con UNA lectura se dice lo honesto (hay una, faltan más); sin ninguna, cómo se llena.
+    /// La voz sigue a la métrica (`nightly`): noches con el reloj vs días con dato. La hoja no
+    /// sabe si hay reloj (no recibe `health`), así que no promete la variante «sin reloj».
+    private var trendVacioComoSeLlena: String {
+        if trendData.count == 1 {
+            return String(localized: "vacio.hoja-metrica.tendencia-una.comoSeLlena",
+                          defaultValue: "It draws with two readings or more; today there is one.")
+        }
+        return nightly
+            ? String(localized: "vacio.hoja-metrica.tendencia.comoSeLlena",
+                     defaultValue: "It fills with recent nights wearing the watch.")
+            : String(localized: "vacio.hoja-metrica.tendencia.comoSeLlena.dia",
+                     defaultValue: "It fills with recent days with data in Apple Health.")
+    }
+
+    private var trendVacioSalida: String {
+        if trendData.count == 1 {
+            return nightly
+                ? String(localized: "vacio.hoja-metrica.tendencia-una.salida",
+                         defaultValue: "Come back tomorrow: every night with the watch adds a point.")
+                : String(localized: "vacio.hoja-metrica.tendencia-una.salida.dia",
+                         defaultValue: "Come back tomorrow: every day with data adds a point.")
+        }
+        return String(localized: "vacio.hoja-metrica.tendencia.salida",
+                      defaultValue: "Settings › Data sources › Sync now, if Apple Health already has them.")
+    }
+
+    private var trendChart: some View {
         // Fuera del call: el type-checker de iOS se atora con expresiones largas dentro de
         // un builder (ver la nota de `curvaEstado`).
         let puntos: [(fecha: Date, valor: Double)] =
@@ -751,14 +797,12 @@ struct LiquidMetricSheetView: View {
     /// saltaba al esqueleto, y usar la serie vacía como proxy colgaría el esqueleto para
     /// siempre en una métrica que de verdad no tiene historia. (b) Con EXACTAMENTE una
     /// lectura la hoja negaba el dato que su propia cabecera acaba de imprimir; se dice lo
-    /// honesto, con la clave que el resto de la app ya usa para este caso.
+    /// honesto. FER-433: el texto del `.vacio` es el «cómo se llena» de `trendVacio`, que es
+    /// quien se pinta en ese estado (la gráfica no).
     private var trendEstado: LiquidChartEstado {
         if trendLoading || (trendLoader != nil && !trendIntentado) { return .cargando }
         if trendData.count > 1 { return .datos }
-        if trendData.count == 1 {
-            return .vacio(String(localized: "Only one reading in this range: not enough to draw a line yet."))
-        }
-        return .vacio(String(localized: "No data for the last 14 days."))
+        return .vacio(trendVacioComoSeLlena)
     }
 
     /// Paridad `rangeReadout` (:852-867): banda activa = la de hoy (o la última lectura
@@ -988,6 +1032,13 @@ struct LiquidMetricSheetView: View {
         let marcasY: [(valor: Double, etiqueta: String)] =
             Self.ticksY(v, cuanto: 1,
                         formato: { (val: Double) -> String in "\(Int(val.rounded()))" })
+        // FER-433 · Sin lecturas de hoy, el vacío que enseña sustituye al pozo de la curva.
+        if case .vacio = curvaEstado {
+            LiquidVacio(
+                queEs: Text(String(localized: "vacio.hoja-metrica.fc-hoy.queEs",
+                                   defaultValue: "Your pulse today goes here, in five-minute steps.")),
+                comoSeLlena: Text(curvaVacioComoSeLlena))
+        } else {
         LiquidCurvaFC(
             titulo: String(localized: "Beats per minute"),
             subtitulo: String(localized: "5-minute average · since midnight"),
@@ -1007,14 +1058,21 @@ struct LiquidMetricSheetView: View {
             formatoFechaEje: ejeFmt,
             estado: curvaEstado,
             a11yLabel: String(localized: "Heart Rate"))
+        }
     }
 
     /// Estados de la curva (paridad :924-928) — fuera del call para no anidar ternarios
-    /// (trampa conocida del type-checker en iOS).
+    /// (trampa conocida del type-checker en iOS). FER-433: el `String` del `.vacio` es el
+    /// «cómo se llena» del `LiquidVacio` que se pinta en su lugar.
     private var curvaEstado: LiquidChartEstado {
         if heartRateCurve.count > 1 { return .datos }
         if heartRateLoading { return .cargando }
-        return .vacio(String(localized: "No readings yet today."))
+        return .vacio(curvaVacioComoSeLlena)
+    }
+
+    private var curvaVacioComoSeLlena: String {
+        String(localized: "vacio.hoja-metrica.fc-hoy.comoSeLlena",
+               defaultValue: "It fills as the watch measures through the day.")
     }
 
     /// Min / prom / max ya formateados (paridad `hrFooter` :933-941).

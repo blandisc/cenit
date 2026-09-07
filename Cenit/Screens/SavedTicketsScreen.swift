@@ -118,26 +118,10 @@ struct SavedTicketsScreen: View {
         }
     }
 
+    /// FER-433 · El vacío que enseña (`LiquidVacio`), con el copy de siempre; sigue alineado a la
+    /// izquierda como el Detalle (FER-293).
     private var emptyState: some View {
-        // FER-293: misma receta del Detalle — alineado a la IZQUIERDA (única desviación de «solo piel»).
-        VStack(alignment: .leading, spacing: .zero) {
-            Rectangle().fill(LiquidColor.tinta10).frame(height: 0.5)
-            VStack(alignment: .leading, spacing: LiquidSpace.s200) {
-                Image(systemName: "doc.plaintext")
-                    .font(LiquidType.infoGlifoTitular)
-                    .foregroundStyle(LiquidColor.tinta500)
-                    .accessibilityHidden(true)
-                Text(emptyTitle)
-                    .font(LiquidType.titulo)
-                    .foregroundStyle(LiquidColor.tinta900)
-                Text(emptyCaption)
-                    .font(LiquidType.cuerpoBanner)
-                    .foregroundStyle(LiquidColor.tinta700)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.vertical, LiquidSpace.s400)
-        }
+        LiquidVacio(simbolo: "doc.plaintext", queEs: Text(emptyTitle), comoSeLlena: Text(emptyCaption))
     }
 
     /// «Error de lectura» (Estados, decisión #16 del épico): LiquidAviso sustituye el

@@ -587,14 +587,11 @@ struct TrainingBodyScreen: View {
                 .aspectRatio(200.0 / 430.0, contentMode: .fit)
                 .frame(maxHeight: 220)
                 .padding(.top, LiquidSpace.s200)
-            Text("Train to fill your map")
-                .font(LiquidType.displayS).tracking(LiquidType.displaySTracking)
-                .foregroundStyle(LiquidColor.tinta900)
-            Text("Log your sets and you'll see which muscles are loaded and which are fresh to train today.")
-                .font(LiquidType.cuerpoLista).foregroundStyle(LiquidColor.tinta700)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(.horizontal, LiquidSpace.s200)
+            // FER-433 · La silueta queda fuera (el componente solo admite un SF Symbol); el texto va
+            // dentro de `LiquidVacio`, con el copy de siempre.
+            LiquidVacio(
+                queEs: Text("Train to fill your map"),
+                comoSeLlena: Text("Log your sets and you'll see which muscles are loaded and which are fresh to train today."))
         }
         .frame(maxWidth: .infinity)
         .padding(.top, LiquidSpace.s600)
@@ -799,15 +796,11 @@ struct TrainingBodyScreen: View {
         .accessibilityElement(children: .combine)
     }
 
+    /// FER-433 · El vacío que enseña (`LiquidVacio`), con el copy de siempre.
     private var volumeEmptyState: some View {
-        VStack(alignment: .leading, spacing: LiquidSpace.s150) {
-            Text("No sets in this range")
-                .font(LiquidType.displayS).tracking(LiquidType.displaySTracking)
-                .foregroundStyle(LiquidColor.tinta900)
-            Text("Log your workouts and you'll see each muscle's weekly volume against the band.")
-                .font(LiquidType.cuerpoLista).foregroundStyle(LiquidColor.tinta700)
-                .fixedSize(horizontal: false, vertical: true)
-        }
+        LiquidVacio(
+            queEs: Text("No sets in this range"),
+            comoSeLlena: Text("Log your workouts and you'll see each muscle's weekly volume against the band."))
     }
 
     /// Fetch the max span (a year) once; the span picker re-slices in memory (`volumes`) with no more I/O.

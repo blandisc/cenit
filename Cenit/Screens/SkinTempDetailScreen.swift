@@ -201,7 +201,8 @@ struct SkinTempDetailScreen: View {
             return String(localized: "Cénit can't read your skin temperature: Apple Health hasn't granted permission. Turn it on and your nights will show up here.")
         }
         if !model.series.isEmpty {
-            return String(localized: "No reading from last night yet: your recent history is below.")
+            // FER-433: las tres partes del vacío en prosa (mismo héroe de la familia que el detalle de vital).
+            return MetricDetailScreen.vacioAnocheClausula
         }
         return String(localized: "No skin-temperature reading yet. Wear your Apple Watch to sleep and open this again after it syncs.")
     }
@@ -328,10 +329,8 @@ struct SkinTempDetailScreen: View {
                 LiquidLevelsList(filas: carrilesHistorial(window), tono: Self.tono)
                 LiquidNotaLine(String(localized: "How many nights of the period fell in each band. Tap one to see its nights on the chart."))
             } else {
-                LiquidGraficaNiveles(puntos: [], bandas: [], dominio: Self.dominioTemp([]), ticksY: [],
-                                     tono: Self.tono,
-                                     estadoVacio: String(localized: "Not enough nights in this range to draw a trend."),
-                                     a11yLabel: String(localized: "Skin temp history"))
+                // Una sola noche o ninguna en el rango → el vacío que enseña (FER-433, calco gemelas).
+                MetricDetailScreen.vacioTendencia(noches: true)
             }
         }
     }
@@ -363,10 +362,14 @@ struct SkinTempDetailScreen: View {
                              conteo: String(localized: "\(n) of your last \(window.values.count) nights"),
                              tono: Self.tono)
         } else {
-            LiquidFraseNivel(nivel: nil,
-                             conteo: String(localized: "\(window.values.count) nights with data in this range"),
-                             tono: Self.tono,
-                             sinLectura: String(localized: "No reading last night"))
+            // FER-433 · Sin noche de anoche, el vacío que enseña (con el conteo del rango como
+            // cuenta) en lugar de la frase de nivel muda; calco de `SleepDetailScreen`.
+            LiquidVacio(
+                queEs: Text(String(localized: "vacio.detalle.anoche.queEs",
+                                   defaultValue: "Last night's reading goes here.")),
+                comoSeLlena: Text(String(localized: "vacio.detalle.anoche.comoSeLlena",
+                                         defaultValue: "It arrives when the watch publishes your night; usually in the morning.")),
+                cuenta: Text(String(localized: "\(window.values.count) nights with data in this range")))
         }
     }
 
@@ -392,7 +395,7 @@ struct SkinTempDetailScreen: View {
             formatoFechaScrub: { Self.ejeFechaFmt.string(from: $0) },
             formatoFechaEje: { Self.ejeFechaFmt.string(from: $0) },
             atenuarFuera: bandaExplorada != nil,
-            estadoVacio: String(localized: "Not enough nights in this range to draw a trend."),
+            estadoVacio: MetricDetailScreen.vacioTendenciaComoSeLlena(noches: true),   // FER-433 (nunca se pinta con ≥2 puntos)
             a11yLabel: String(localized: "Skin temp history"))
             .id(range)
     }

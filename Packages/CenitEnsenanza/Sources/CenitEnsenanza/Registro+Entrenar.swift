@@ -2,6 +2,7 @@ import Foundation
 
 // Entradas de la pestaña «entrenar» del registro (semilla del épico FER-428, L4/FER-430).
 // Generado por `Tools/gen-ensenanza.py` a partir de `Tools/ensenanza-semilla.json`.
+// FER-433: las piezas `.vacio(clave:)` se añadieron a mano (el generador aún no las conoce).
 extension Registro {
     public static let entrenar: [Funcionalidad] = [
         Funcionalidad(
@@ -43,14 +44,14 @@ extension Registro {
             id: .entrenarMosaico,
             pestana: .entrenar,
             requiere: [],
-            piezas: [.ayuda(seccion: .entrenar)],
+            piezas: [.ayuda(seccion: .entrenar), .vacio(clave: "vacio.mosaico.dosis.linea"), .vacio(clave: "vacio.mosaico.volumen.linea")],
             desde: "1.85"
         ),
         Funcionalidad(
             id: .entrenarPlan,
             pestana: .entrenar,
             requiere: [],
-            piezas: [.ayuda(seccion: .entrenar), .tip(id: "entrenar.plan.semana-ligera")],
+            piezas: [.ayuda(seccion: .entrenar), .tip(id: "entrenar.plan.semana-ligera"), .vacio(clave: "No routines yet")],
             desde: "1.85"
         ),
         Funcionalidad(
@@ -85,7 +86,7 @@ extension Registro {
             id: .entrenarBiblioteca,
             pestana: .entrenar,
             requiere: [],
-            piezas: [.ayuda(seccion: .entrenar)],
+            piezas: [.ayuda(seccion: .entrenar), .vacio(clave: "vacio.biblioteca.filtros.queEs"), .vacio(clave: "Not logged yet")],
             desde: "1.85"
         ),
         Funcionalidad(
@@ -120,28 +121,28 @@ extension Registro {
             id: .entrenarRecibo,
             pestana: .entrenar,
             requiere: [],
-            piezas: [.ayuda(seccion: .entrenar)],
+            piezas: [.ayuda(seccion: .entrenar), .vacio(clave: "No tickets yet"), .vacio(clave: "No cardio tickets yet")],
             desde: "1.85"
         ),
         Funcionalidad(
             id: .entrenarHistorial,
             pestana: .entrenar,
             requiere: [],
-            piezas: [.ayuda(seccion: .entrenar), .hito(id: "entrenar.historial.primera-sesion")],
+            piezas: [.ayuda(seccion: .entrenar), .hito(id: "entrenar.historial.primera-sesion"), .vacio(clave: "No workouts yet"), .vacio(clave: "vacio.historial.periodo.queEs")],
             desde: "1.85"
         ),
         Funcionalidad(
             id: .entrenarMarcas,
             pestana: .entrenar,
             requiere: [.entrenos],
-            piezas: [.ayuda(seccion: .entrenar), .hito(id: "entrenar.marcas.primer-record")],
+            piezas: [.ayuda(seccion: .entrenar), .hito(id: "entrenar.marcas.primer-record"), .vacio(clave: "You don't have any marks yet")],
             desde: "1.85"
         ),
         Funcionalidad(
             id: .entrenarMapaMuscular,
             pestana: .entrenar,
             requiere: [.entrenos],
-            piezas: [.ayuda(seccion: .entrenar)],
+            piezas: [.ayuda(seccion: .entrenar), .vacio(clave: "Train to fill your map"), .vacio(clave: "No sets in this range")],
             desde: "1.85"
         ),
         Funcionalidad(

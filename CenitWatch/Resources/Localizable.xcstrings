@@ -1289,6 +1289,70 @@
           }
         }
       }
+    },
+    "vacio.watch.primer-uso.comoSeLlena" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Build your week on your iPhone; here you start it and log sets with the crown"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arma tu semana en tu iPhone; aquí la empiezas y registras series con la corona"
+          }
+        }
+      }
+    },
+    "vacio.watch.primer-uso.queEs" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your routine for today starts here"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu rutina de hoy empieza aquí"
+          }
+        }
+      }
+    },
+    "vacio.watch.sin-conexion.comoSeLlena" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your sets are saved and sync when it reconnects"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tus series se guardan y se sincronizan al reconectar"
+          }
+        }
+      }
+    },
+    "vacio.watch.sin-plan.comoSeLlena" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It comes from your routine on the iPhone"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Viene de tu rutina en el iPhone"
+          }
+        }
+      }
     }
   },
   "version" : "1.1"
