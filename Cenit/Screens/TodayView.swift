@@ -416,7 +416,7 @@ struct TodayView: View {
                     todayFromApple: todayVitalFromApple(spec.descriptor.key),
                     // FER-635: which nights are Apple-sourced, so the detail folds the baseline/σ, CV and Δ%
                     // on a single source (band-anchored) instead of mixing RMSSD↔SDNN and the band↔Apple offsets.
-                    appleRows: repo.appleHealthDays,
+                    appleDays: repo.appleHealthDays,
                     seriesLoader: { vitalSeries(for: spec.descriptor.key) },
                     nightVitalsLoader: spec.blocks.contains(.nightVitals) ? { await loadNightVitals() } : nil,
                     whatMovesItLoader: spec.blocks.contains(.whatMovesIt)
@@ -1628,7 +1628,7 @@ struct TodayView: View {
         // FER-149) so a strap-partial night still derives, and anchors "today" to the local day so a
         // UTC-bucketed "tomorrow" row (FER-226) can't blank the tile.
         stress = StressModel(days: repo.displayDays, stored: await stressRows,
-                             todayKey: Repository.localDayKey(Date()), appleRows: repo.appleHealthDays)
+                             todayKey: Repository.localDayKey(Date()), appleDays: repo.appleHealthDays)
         // Ola 2: live day-strain fold retired with the band; settled daily strain via repo.today is enough.
     }
 
@@ -1790,7 +1790,7 @@ struct TodayView: View {
     /// The gated, directional "Qué la mueve" findings (FER-209), computed from the user's own history.
     /// Empty → the detail hides the block.
     private func whatMovesItFindings(for key: String) -> [WhatMovesItFinding] {
-        WhatMovesItEngine.findings(forMetricKey: key, days: repo.displayDays, appleRows: repo.appleHealthDays)
+        WhatMovesItEngine.findings(forMetricKey: key, days: repo.displayDays, appleDays: repo.appleHealthDays)
     }
 
     /// Last night's companion vitals (respiration + resting HR) for the detail's "Vitales de la noche".
