@@ -1,0 +1,18 @@
+# Nodos del Mapa 100 % (docs/appmap/mapa/*.json) que todavía no cuelgan de ninguna funcionalidad
+# del registro de enseñanza (Tools/ensenanza-semilla.json, campo `mapa`). Lo lee
+# Tools/check-ensenanza-mapa.py. Una ruta `familia/nodo` por línea; SOLO baja: cuando una
+# funcionalidad adopte un nodo, quita su línea (el gate falla si queda una línea ya cubierta).
+# Sembrado en FER-439: onboarding (sin funcionalidad en el registro — no es pestaña), los gates de
+# arranque, el soporte y dos estados heredados de Hoy (banda / .insufficient).
+ajustes/soporte
+hoy/descargando
+hoy/insufficient
+onboarding/encendido
+onboarding/entrada-arranque
+onboarding/permiso
+onboarding/promesa
+onboarding/salida
+onboarding/sindatos
+onboarding/sinritmo
+onboarding/store-failure
+onboarding/terms-gate
