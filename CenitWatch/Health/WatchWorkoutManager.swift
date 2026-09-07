@@ -641,10 +641,16 @@ final class WatchWorkoutManager: NSObject, ObservableObject {
     private func handle(_ message: WorkoutMirrorMessage) {
         switch message {
         case let .start(sid, routine, _):
-            // FER-452: adopt the identity like the sibling cases (rest/capture/plan) — only when we're
-            // not already running one. A re-delivered `.start` (the mirror channel is durable) must NOT
-            // hijack a live or standalone session's id, which would mis-stamp its HealthKit save.
-            adoptIdentity(sid)
+            // FER-452 (revisado por FER-464): NO secuestrar la identidad de una sesión ACTIVA con un
+            // `.start` re-entregado tarde por el canal durable. Pero `sessionId` persiste después de que
+            // una sesión termina (`cleanup` no lo resetea, a propósito, para `openReceiptFromWrist`), así
+            // que la guarda debe mirar `sessionActive`, no `sessionId == nil`: con ese `adoptIdentity`
+            // (solo-si-nil) toda sesión POSTERIOR a la primera quedaba ignorada. Regla correcta: adopta
+            // salvo que YA haya una sesión viva con OTRO id (ese es el único caso de secuestro real).
+            if !(sessionActive && sessionId != nil && sessionId != sid) {
+                sessionId = sid
+                externalUUID = WorkoutMirrorKey.externalUUID(for: sid)
+            }
             if !routine.isEmpty { routineName = routine }
         case let .rest(snapshot):
             adoptIdentity(snapshot.sessionId)
