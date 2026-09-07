@@ -2273,19 +2273,20 @@ enum StrengthHistoryFormat {
 
     /// Total volume in the user's unit, with thousands grouping: "3,325 kg" / "7,330 lb".
     static func volume(_ kg: Double, system: UnitSystem) -> String {
+        guard kg.isFinite else { return "—" }   // FER-465 (sentinel simple; el gate no-emdash-string exige «—» solo)
         let value = system == .imperial ? UnitFormatter.kgToPounds(kg) : kg
         let num = volumeFormatter.string(from: NSNumber(value: value.rounded())) ?? "\(Int(value.rounded()))"
         return "\(num) \(StrengthDisplay.weightUnit(system))"
     }
 
-    static func strain(_ v: Double) -> String { String(format: "%.1f", v) }
+    static func strain(_ v: Double) -> String { v.isFinite ? String(format: "%.1f", v) : "—" }   // FER-465
 
     /// «QUEDABAN» read for a day's captured effort (FER-147) — the Historial tab's per-day subrow.
     /// Same RIR reading as `LiveStrengthSheet.qLabel`: per set `rir = clamp(10 − round(rpe), 0, 4)`,
     /// 4 reads «4+»; the day shows the RANGE across only the sets that captured an RPE. `nil` when no
     /// set of the day captured one — the fragment is omitted entirely, silence over a fabricated zero.
     static func rirRange(rpes: [Double]) -> String? {
-        let rirs = rpes.map { min(max(10 - Int($0.rounded()), 0), 4) }
+        let rirs = rpes.filter(\.isFinite).map { min(max(10 - Int($0.rounded()), 0), 4) }   // FER-465
         guard let lo = rirs.min(), let hi = rirs.max() else { return nil }
         func label(_ r: Int) -> String { r >= 4 ? "4+" : "\(r)" }
         return lo == hi ? label(lo) : "\(label(lo))-\(label(hi))"
@@ -2300,8 +2301,8 @@ enum StrengthHistoryFormat {
             return "\(StrengthDisplay.weight(w, system: system)) × \(r)" + maxSuffix
         }
         if let r = s.reps { return String(localized: "\(r) reps") + maxSuffix }
-        if let t = s.timeS { return "\(Int(t)) s" }
-        if let d = s.distanceM { return "\(Int(d)) m" }
+        if let t = s.timeS, t.isFinite { return "\(Int(t)) s" }   // FER-465
+        if let d = s.distanceM, d.isFinite { return "\(Int(d)) m" }   // FER-465
         return "—"
     }
 }

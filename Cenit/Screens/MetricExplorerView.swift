@@ -201,6 +201,7 @@ struct MetricDetailView: View {
     /// `UnitFormatter.massFromKilograms`; °C → °C/°F at the metric's precision), so the range never
     /// double-labels in either system. Everything else falls to the plain decimals path (`format`).
     private func bareNumber(_ v: Double) -> String {
+        guard v.isFinite else { return "—" }   // FER-465
         switch metric.unit {
         case "kg":
             return String(format: "%.1f", unitSystem == .imperial ? UnitFormatter.kgToPounds(v) : v)
@@ -358,6 +359,7 @@ struct MetricDetailView: View {
     private func heroDato(_ v: Double) -> LiquidCampoDato {
         // C-01: no rótulo — the numeral carried a repeated category («Recovery» under a «Recovery»
         // title). The title names the metric; the «as of <date>» clause dates the number.
+        guard v.isFinite else { return .init(valor: "—", rotulo: "") }   // FER-465
         switch metric.unit {
         case "kg", "°C":
             return .init(valor: fmt(v), rotulo: "")

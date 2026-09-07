@@ -1,5 +1,6 @@
 #if os(iOS)
 import SwiftUI
+import TipKit
 import CenitDesign
 import StrandAnalytics
 import CenitStore
@@ -101,9 +102,22 @@ struct StressDetailScreen: View {
                         seccion(String(localized: "Levels")) { levelsContent(model) }
                     }
                     // Level 1.5 · mapa del día BEFORE «qué lo mueve» (FER-433).
+                    // FER-432 · tip 10 sobre el bloque del mapa (si el caller pasa dayMap).
                     if let dayMap {
+                        TipView(TendenciasMapaDelDiaTip(), arrowEdge: .bottom)
+                            .padding(.horizontal, LiquidSpace.s600)
                         seccion(String(localized: "Stress through the day")) {
                             StressDayMapBlock(model: dayMap, tono: tono)
+                                .onChange(of: dayMap.phase) { _, phase in
+                                    alimentarPermisoCalendario(phase)
+                                    switch phase {
+                                    case .needsPermission, .denied, .restricted:
+                                        break
+                                    default:
+                                        TendenciasMapaDelDiaTip().invalidate(reason: .actionPerformed)
+                                    }
+                                }
+                                .onAppear { alimentarPermisoCalendario(dayMap.phase) }
                         }
                     }
                     if model.heroIsFresh {
@@ -146,6 +160,21 @@ struct StressDetailScreen: View {
             stressHeatCache = heat
             if let patternsLoader { patterns = await patternsLoader() }
             if let eventPatternsLoader { eventPatterns = await eventPatternsLoader() }
+        }
+        // FER-432 · cada apertura del detalle dona al tip del mapa del día.
+        .onAppear {
+            TendenciasMapaDelDiaTip.detalleEstresAbierto.sendDonation()
+            if let dayMap { alimentarPermisoCalendario(dayMap.phase) }
+        }
+    }
+
+    /// `permisoCalendario == false` hace elegible el tip 10; true lo apaga.
+    private func alimentarPermisoCalendario(_ phase: CalendarDayMap.Phase) {
+        switch phase {
+        case .needsPermission, .denied, .restricted:
+            TendenciasMapaDelDiaTip.permisoCalendario = false
+        default:
+            TendenciasMapaDelDiaTip.permisoCalendario = true
         }
     }
 

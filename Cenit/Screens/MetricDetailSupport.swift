@@ -193,6 +193,7 @@ extension MetricDetailScreen {
     /// four-figure step count reads "9,210", not "9210"; the vitals stay under 1,000 so they're
     /// visually unchanged. (FER-254)
     func fmt(_ v: Double) -> String {
+        guard v.isFinite else { return "—" }   // FER-465: NaN/±Inf → «—», nunca `Int(nan)` (trap)
         guard spec.descriptor.decimals == 0 else { return String(format: "%.\(spec.descriptor.decimals)f", v) }
         return Self.groupedInt.string(from: NSNumber(value: Int(v.rounded()))) ?? "\(Int(v.rounded()))"
     }

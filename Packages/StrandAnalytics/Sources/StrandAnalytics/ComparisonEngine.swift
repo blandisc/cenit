@@ -109,7 +109,11 @@ public enum ComparisonEngine {
         let cur = stat(current)
         let prev = stat(previous)
         let delta = cur.mean - prev.mean
-        let pct: Double? = (prev.n > 0 && prev.mean != 0) ? delta / abs(prev.mean) * 100 : nil
+        // FER-465: `prev.mean != 0` deja pasar NaN (`NaN != 0` es `true`) → `pct` NaN, que aguas
+        // abajo hace `Int(pct.rounded())` un trap en los formateadores. Exige operandos finitos: un
+        // periodo con un valor no-finito da `pctChange == nil` (sin porcentaje), no un crash.
+        let pct: Double? = (prev.n > 0 && prev.mean.isFinite && prev.mean != 0 && delta.isFinite)
+            ? delta / abs(prev.mean) * 100 : nil
         let direction: Int
         if cur.n == 0 || prev.n == 0 {
             direction = 0

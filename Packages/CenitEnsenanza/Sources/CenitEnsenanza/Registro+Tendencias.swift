@@ -15,14 +15,14 @@ extension Registro {
             id: .tendenciasPeriodo,
             pestana: .tendencias,
             requiere: [],
-            piezas: [.ayuda(seccion: .tendencias)],
+            piezas: [.ayuda(seccion: .tendencias), .tip(id: "tendencias.periodo")],
             desde: "1.85"
         ),
         Funcionalidad(
             id: .tendenciasPreparacion,
             pestana: .tendencias,
             requiere: [.watch, .noches(4)],
-            piezas: [.ayuda(seccion: .tendencias)],
+            piezas: [.ayuda(seccion: .tendencias), .tip(id: "tendencias.preparacion")],
             desde: "1.85"
         ),
         Funcionalidad(
@@ -36,7 +36,7 @@ extension Registro {
             id: .tendenciasMapaDelDia,
             pestana: .tendencias,
             requiere: [.watch, .permiso(.calendario)],
-            piezas: [.ayuda(seccion: .tendencias)],
+            piezas: [.ayuda(seccion: .tendencias), .tip(id: "tendencias.mapa-del-dia")],
             desde: "1.85"
         ),
         Funcionalidad(
@@ -57,14 +57,14 @@ extension Registro {
             id: .tendenciasComparar,
             pestana: .tendencias,
             requiere: [],
-            piezas: [.ayuda(seccion: .tendencias)],
+            piezas: [.ayuda(seccion: .tendencias), .tip(id: "tendencias.comparar")],
             desde: "1.85"
         ),
         Funcionalidad(
             id: .tendenciasExplorar,
             pestana: .tendencias,
             requiere: [],
-            piezas: [.ayuda(seccion: .tendencias)],
+            piezas: [.ayuda(seccion: .tendencias), .tip(id: "tendencias.explorar")],
             desde: "1.85"
         ),
         Funcionalidad(
