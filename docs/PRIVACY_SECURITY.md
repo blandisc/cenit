@@ -85,7 +85,8 @@ If you never enable exercise media download, Cénit makes zero network connectio
 
 ### 1.2 The iOS app's entitlements
 
-The iOS app ships with a deliberately minimal entitlement set:
+The iOS app ships with a deliberately minimal entitlement set
+(`CenitApp/Resources/Cenit.entitlements`):
 
 ```xml
 <key>com.apple.developer.healthkit</key>                       <true/>
@@ -282,7 +283,7 @@ The Apple Health importer lives in `Packages/StrandImport/` and assumes the file
 | Surface | Risk | Mitigation | Where |
 |---------|------|------------|-------|
 | Process | Data exfiltration / network egress | Only one opt-in feature networks: exercise media download (a GET to a fixed CDN, only when enabled — §1.1b); nothing else makes a network call | `Cenit/Media/MediaDownloadCoordinator.swift` |
-| Filesystem | Broad disk access | iOS app sandbox; imports read only the files you pick via the document picker; data stays in the app's private container | the app's entitlements file, `Cenit/Data/StorePaths.swift` |
+| Filesystem | Broad disk access | iOS app sandbox; imports read only the files you pick via the document picker; data stays in the app's private container | `CenitApp/Resources/Cenit.entitlements`, `Cenit/Data/StorePaths.swift` |
 | App state | Implausible-but-valid values | Range gates (e.g. HR 30–220) at HealthKit / import boundaries | `HealthKitBridge`, import glue |
 | Health import | XML bomb / multi-GB DOM blowup | Streaming SAX over `InputStream`; per-element autorelease pool | `StrandImport/AppleHealthImporter.swift` |
 | Health import | Zip bomb | 8 GB decompressed ceiling, chunked to disk, hard abort | `StrandImport/AppleHealthImporter.swift` |

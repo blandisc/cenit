@@ -17,7 +17,7 @@ enum PendingIntents {
         let date: Date
     }
 
-    private static let key = "noop.pendingIntents"
+    private static let key = PrefKey.pendingIntents.rawValue
     /// Shared App-Group store, with the same logged `.standard` fallback as `AppGroup.sharedDefaults`
     /// (FER-32) instead of a silent no-op when the entitlement is missing.
     private static var defaults: UserDefaults { AppGroup.sharedDefaults() }

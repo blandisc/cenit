@@ -23,8 +23,17 @@ struct CenitApp: App {
         // Canary: reports a missing App Group entitlement before any silent no-op (e.g. Shortcuts'
         // PendingIntents) can mask it. Logs a fault on device, asserts in the Simulator.
         AppGroup.warnIfGroupUnprovisioned()
-        configureInstrumentoControlAppearance()   // FER-408: warm the native segmented control once at launch
-        EntrenarTips.configure()   // ola 1 · E12: TipKit datastore, 100% on-device (sin red)
+        // FER-398 · las dos migraciones de identificador, en ESTE orden y ANTES de `AppModel()`:
+        // ① las preferencias (`noop.*` → `cenit.*`), porque `AppModel` y los `@AppStorage` de la
+        //    primera pantalla leen su valor; si corriera después, el usuario vería el onboarding otra
+        //    vez y la app escribiría un default nuevo encima del suyo.
+        // ② el contenedor en disco (`OpenWhoop/whoop.sqlite` → `Cenit/cenit.sqlite`), porque
+        //    `AppModel()` abre el store — mover el archivo bajo una conexión viva es cómo se corrompe.
+        // Las dos son idempotentes: en una instalación ya migrada cuestan unos `fileExists`.
+        PrefMigration.migrateLegacyKeysIfNeeded()
+        if let appSupport = try? StorePaths.appSupport() {
+            StorePaths.migrateLegacyContainerIfNeeded(appSupport: appSupport)
+        }
         // Recarga en caliente SOLO en Debug (FER-398: el puente vive en `Cenit/System/HotReload.swift`,
         // ya no en el paquete `Inject`, que viajaba dentro del binario de la tienda). Con
         // InjectionNext.app abierta (y Xcode lanzado DESDE ella) sobre el Simulador, intercambia el
@@ -32,6 +41,8 @@ struct CenitApp: App {
         #if DEBUG
         HotReload.loadBundleIfAvailable()
         #endif
+        configureInstrumentoControlAppearance()   // FER-408: warm the native segmented control once at launch
+        EntrenarTips.configure()   // ola 1 · E12: TipKit datastore, 100% on-device (sin red)
         // Warm the bundled Space Grotesk registration OFF the main thread (perf): otherwise the first
         // Grotesk token during TodayView's first render pays the one-time CoreText registration on the
         // launch path. `ensureFontsRegistered()` is idempotent + thread-safe (a `static let`), so this

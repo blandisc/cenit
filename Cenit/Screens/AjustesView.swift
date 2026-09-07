@@ -82,7 +82,7 @@ private struct AjustesLanding: View {
 
     // Imperial/Metric display preference (D#103). Stored data is always SI; this only changes how
     // distances/weights/heights/temperatures are SHOWN — and lets the profile fields take imperial entry.
-    @AppStorage("noop.apariencia") private var apariencia = "sistema"   // A4/FER-348
+    @AppStorage(PrefKey.apariencia.rawValue) private var apariencia = "sistema"   // A4/FER-348
     @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw = UnitSystem.metric.rawValue
     @AppStorage(UnitPrefs.temperatureKey) private var temperatureRaw = ""
     private var unitSystem: UnitSystem { UnitSystem(rawValue: unitSystemRaw) ?? .metric }

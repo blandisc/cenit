@@ -79,7 +79,7 @@ targets:
       - path: CenitApp
         excludes:
           - "Resources/Info.plist"
-          - "Resources/NOOP.entitlements"
+          - "Resources/Cenit.entitlements"
       - path: CenitShared
       # FER-721: the ActivityKit contract + cross-process bridge are shared with the widget extension,
       # so both processes agree on the state shape. Only `Shared/` (not the widget's own views) compiles
@@ -141,7 +141,7 @@ targets:
             CFBundleURLSchemes:
               - cenit
     entitlements:
-      path: CenitApp/Resources/NOOP.entitlements
+      path: CenitApp/Resources/Cenit.entitlements
       properties:
         com.apple.developer.healthkit: true
         # NOTE: com.apple.developer.healthkit.access (Clinical/Verifiable Health

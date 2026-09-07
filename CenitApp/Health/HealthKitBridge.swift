@@ -528,16 +528,20 @@ final class HealthKitBridge: ObservableObject {
         // the estimate — it is NOT written to Apple Health as heart-rate samples.
         let kcal = Calories.estimateStrengthEnergy(hrSamples: hrSamples, durationSeconds: end.timeIntervalSince(start),
                                                    profile: profile, hrMax: hrMax.map(Double.init))
-        let externalUUID = "noop:strength:\(sessionId)"
+        // FER-398: one source of truth for the key, shared with the watch (`WorkoutMirrorKey`), instead
+        // of the literal that used to live here beside it. New writes carry `cenit:strength:<id>`.
+        let externalUUID = WorkoutMirrorKey.externalUUID(for: sessionId)
         let config = HKWorkoutConfiguration()
         config.activityType = .traditionalStrengthTraining
 
         do {
             // Idempotency: delete our own prior workout for this session, then write a fresh one.
-            // Scoped to this app's samples + this session's external UUID.
+            // Scoped to this app's samples + this session's external UUID — BOTH spellings of it
+            // (FER-398): a session first saved under `noop:strength:` has to be REPLACED, not
+            // duplicated, the day it is re-saved under the new prefix.
             let bySource = HKQuery.predicateForObjects(from: HKSource.default())
             let byKey = HKQuery.predicateForObjects(withMetadataKey: HKMetadataKeyExternalUUID,
-                                                    allowedValues: [externalUUID])
+                                                    allowedValues: WorkoutMirrorKey.dedupeUUIDs(for: sessionId))
             let pred = NSCompoundPredicate(andPredicateWithSubpredicates: [bySource, byKey])
             _ = try? await store.deleteObjects(of: HKObjectType.workoutType(), predicate: pred)
 

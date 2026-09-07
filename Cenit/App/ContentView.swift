@@ -16,10 +16,10 @@ enum EntradaDeArranque {
 
 /// Root — the sidebar shell, with the first-run onboarding/pairing wizard overlaid until complete.
 struct ContentView: View {
-    @AppStorage("noop.onboarded") private var onboarded = false
-    @AppStorage("noop.acceptedTermsVersion") private var acceptedTerms = ""
+    @AppStorage(PrefKey.onboarded.rawValue) private var onboarded = false
+    @AppStorage(PrefKey.acceptedTermsVersion.rawValue) private var acceptedTerms = ""
     /// A4/FER-348: apariencia elegida por el usuario — "sistema" (default) · "claro" · "oscuro".
-    @AppStorage("noop.apariencia") private var apariencia = "sistema"
+    @AppStorage(PrefKey.apariencia.rawValue) private var apariencia = "sistema"
     /// FER-41: la entrada sigue puesta hasta que su coreografía termina (o el usuario la toca).
     @State private var entradaLista = false
     /// El frame REAL del orbe del héroe en pantalla (para que la entrada aterrice sin costura).
@@ -48,7 +48,7 @@ struct ContentView: View {
     /// FER-116: la conexión con Apple Salud es la señal que decide si la oferta de restaurar tiene
     /// sentido siquiera (ver `maybeOfferRestore`).
     @EnvironmentObject private var health: HealthKitBridge
-    @AppStorage("noop.didOfferRestore") private var didOfferRestore = false
+    @AppStorage(PrefKey.didOfferRestore.rawValue) private var didOfferRestore = false
     @State private var showRestoreOffer = false
     @State private var restoreMessage = ""
     @State private var showRestoreResult = false

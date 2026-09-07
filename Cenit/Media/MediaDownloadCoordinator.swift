@@ -15,10 +15,10 @@ import StrandTraining
 // (FER-790) — one download, one cached file, rendered still in rows and animated in the detail hero.
 @MainActor
 final class MediaDownloadCoordinator: ObservableObject {
-    static let enabledKey = "noop.exerciseMediaEnabled"
+    static let enabledKey = PrefKey.exerciseMediaEnabled.rawValue
     /// Exercise ids with no baked media, so bulk downloads don't retry them every run. Small
     /// (≤ catalog size), non-critical — UserDefaults is fine; re-derivable by re-running the bulk pass.
-    private static let missedIdsKey = "noop.exerciseMediaMissedIds"
+    private static let missedIdsKey = PrefKey.exerciseMediaMissedIds.rawValue
 
     /// The bulk thumb download's observable progress (FER-778) — Ajustes reads this instead of a
     /// mute button. A miss (no baked `gifUrl` for that exercise) is expected and never retried.

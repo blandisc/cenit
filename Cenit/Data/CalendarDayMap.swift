@@ -58,7 +58,7 @@ final class CalendarDayMap: ObservableObject {
     /// Sleep spans (wall-clock seconds) overlapping `[from, to]`, to exclude from the waking reference.
     private let sleepLoader: (_ from: Int, _ to: Int) async -> [ClosedRange<Int>]
 
-    private static let selectionKey = "noop.stress.calendarIDs"
+    private static let selectionKey = PrefKey.stressCalendarIDs.rawValue
     /// How many trailing days of waking RR feed the personal reference.
     private static let referenceDays = 7
 

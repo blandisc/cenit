@@ -207,7 +207,7 @@ struct TodayView: View {
     /// HERMANOS de un `ZStack`, así que Hoy se pinta completo debajo de una capa opaca. Se lee aquí
     /// —y no allá— porque el `.environment(\.liquidAmbientPaused)` de esta pantalla sobrescribe
     /// cualquier valor que venga de arriba para todo su subárbol.
-    @AppStorage("noop.onboarded") private var onboarded = false
+    @AppStorage(PrefKey.onboarded.rawValue) private var onboarded = false
 
 
     // Metric-info sheet — tapping any Key Metrics row presents this.

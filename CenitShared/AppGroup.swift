@@ -10,7 +10,7 @@ import os
 public enum AppGroup {
     /// App Group suite the app (and extensions) use. Must match the
     /// `com.apple.security.application-groups` entitlement on every target that shares it
-    /// (`NOOP.entitlements`, `CenitWidgets.entitlements`, and the `project.yml` mirrors of both).
+    /// (`Cenit.entitlements`, `CenitWidgets.entitlements`, and the `project.yml` mirrors of both).
     ///
     /// This is the ONE declaration of the suite — `RestActivityBridge` reads it rather than repeating
     /// the literal. It has already drifted twice from the entitlements (each time a leftover from an

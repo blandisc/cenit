@@ -392,7 +392,7 @@ footer code{{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12px;b
   </ol></div>
   <div><h4 class="g">De dónde sale</h4>
     <p style="margin:0 0 6px">Capturas del {esc(shots_date)}{pr}. Página armada el {today} sobre el árbol <code>{esc(head)}</code>. Paleta leída de <code>LiquidColor.swift</code>; tipografía Space Grotesk, la misma que va en el bundle.</p>
-    <p style="margin:0">Cada pieza se monta con un launch-arg de debug <code>&lt;Nombre&gt;</code> sobre <code>LiquidColor.fondoGradient</code>, con el uso de su propio <code>#Preview</code>.</p></div>
+    <p style="margin:0">Cada pieza se monta con el launch-arg <code>-cenit.component &lt;Nombre&gt;</code> sobre <code>LiquidColor.fondoGradient</code>, con el uso de su propio <code>#Preview</code>.</p></div>
 </footer>
 </main>
 
@@ -405,7 +405,7 @@ footer code{{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12px;b
     detail = []
     for p in pieces:
         detail.append({"t": p["name"], "r": p["rol"], "img": p["full"], "d": [
-            ["Familia", p["fam"]], ["Archivo", p["archivo"]], ["Se monta con", f"launch-arg de debug: {p['name']}"],
+            ["Familia", p["fam"]], ["Archivo", p["archivo"]], ["Se monta con", f"-cenit.component {p['name']}"],
             ["Cuándo usarlo", p["usar"]], ["Cuándo no", p["no"]]]})
     for s in screens:
         for n in s["nodes"]:

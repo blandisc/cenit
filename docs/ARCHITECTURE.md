@@ -96,7 +96,9 @@ CenitWatch/                     watchOS 10 companion app (single target, FER-740
 The app target is **`Cenit`** (Swift module `Cenit`, product `Cenit.app`): its shell (scene, HealthKit,
 widgets, intents) lives in **`CenitApp/`**, and it compiles the app-layer under **`Cenit/`** (screens,
 data, media). Its linked packages (`project.yml`) are `BiometricStreams`, `CenitStore`,
-`StrandAnalytics`, `StrandImport`, `CenitDesign`, `StrandTraining`, and `Inject`. The user-visible name
+`StrandAnalytics`, `StrandImport`, `CenitDesign` and `StrandTraining` (FER-398 dropped `Inject`: the
+hot-reload shim now lives in-repo at `Cenit/System/HotReload.swift`, so no dev-only third-party code
+ships in the store binary). The user-visible name
 stays **Cénit** (`CFBundleDisplayName`); the visible rebrand to "Cénit" is tracked separately. The macOS
 app and its `Strand`/`StrandTests` targets were retired (FER-143) and the dead `#if os(macOS)`/`AppKit`
 branches removed (FER-144); the app-layer unit tests run as **`CenitUnitTests`** in the simulator. The
@@ -108,13 +110,26 @@ with the design tokens — both are pure (Foundation-only / SwiftUI behind `#if 
 with `#if os(iOS)` guards on the two haptic/hover-scrub spots). `CenitStore`/`StrandAnalytics`/
 `StrandImport` are **not** watchOS-bound: no DB or analytics runs on the wrist.
 
-**Legacy identifiers, migrated once at startup.** The on-disk database folder/file
-(`Cenit/Data/StorePaths.swift`) and a family of UserDefaults keys still carry the name of the
-project's predecessor. Owner decision 2026-09-06 (see `docs/DECISIONS.md`): these are no longer
-frozen — a one-time startup migration renames the on-disk folder/file to a `Cenit`-named path and
-rewrites the UserDefaults key prefix to `cenit.*`, copying (never deleting) the old location/keys
-so a downgrade or a crash mid-migration can't strand a user's data. This migration is implemented
-by a separate change (lane A1); this document describes the target state.
+**Legacy identifiers migrated once at launch (FER-398).** The on-disk container and the
+`UserDefaults` keys used to be frozen under the NOOP names, because renaming either one silently
+resets a live install. They are unfrozen now, each behind its own one-time migration, run from
+`CenitApp.init()` **before `AppModel()` opens the store**:
+
+- **Container** — `<AppSupport>/OpenWhoop/whoop.sqlite` → `<AppSupport>/Cenit/cenit.sqlite`.
+  `StorePaths.migrateLegacyContainerIfNeeded(appSupport:)` does ONE atomic folder rename, which
+  carries the DB, its `-wal`/`-shm`, any restore sidecar and `MediaCache/` together — no window
+  where half the data is in each place. The file rename that follows is **sidecar-first, main file
+  last**, so the main file's name is the "done" mark and an interrupted run resumes on the next
+  launch. Nothing is ever deleted: if the move fails, the old folder stays whole and the app opens
+  on an empty `Cenit/`. It returns a `LegacyMigrationOutcome`, and `StorePathsMigrationTests` covers
+  the move, a fresh install, both-containers-exist, the resumed crash and idempotency.
+- **Preferences** — `noop.*` → `cenit.*`. `PrefKey` is the single enum of every key Cénit persists
+  (with its suite: `.standard` or the App Group), and `PrefMigration.migrateLegacyKeysIfNeeded`
+  **copies then deletes**, key by key, over `allCases` — so a key added to the enum can never be
+  forgotten by the migration. Idempotent with no flag of its own: after the first run there is no
+  legacy key left to find.
+- **Not migrated here:** the persisted schema tags `noop.workout.v1` / `noop.diet.v1` are wire
+  contracts of `StrandImport` and move with that package, not with this file.
 
 The bundle id and App Group used to be frozen alongside them, but were **not** in the end: the old
 App ID turned out to be registered to a different Apple team, so Xcode refused to provision any of

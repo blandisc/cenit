@@ -53,6 +53,15 @@ el mismo PR** que la implementa (una línea basta: fecha, decisión, por qué).
   `LiquidGlassButton(.primary)` en TODOS los contextos, incluido día de descanso. El ámbar
   `dataStrain` queda como excepción nombrada SOLO en el pill «+ Serie». «Hoy subes» habla en
   `verdeCarga` (identidad de carga), nunca `verdePrimario`.
+- **2026-09-06 · Identificadores congelados de ARCHITECTURE §2, DESCONGELADOS** (FER-398).
+  La ruta en disco pasa a `Cenit/cenit.sqlite` y las preferencias al prefijo `cenit.*`, con
+  **una migración única al arrancar** (`StorePaths.migrateLegacyContainerIfNeeded` —un rename
+  atómico de carpeta, luego sidecars primero y archivo principal al final, reanudable— y
+  `PrefMigration.migrateLegacyKeysIfNeeded`, copiar-y-luego-borrar sobre `PrefKey.allCases`).
+  Estaban congelados porque renombrarlos a secas reseteaba una instalación viva; con la
+  migración eso deja de ser cierto, y la app deja de llevar el nombre del proyecto anterior en
+  su propio disco. Los tags de esquema `noop.workout.v1` / `noop.diet.v1` NO entran aquí: son
+  contrato de cable de `StrandImport` y se mueven con ese paquete.
 
 ## Proceso
 
