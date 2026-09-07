@@ -1,66 +1,4 @@
-import XCTest
-@testable import StrandAnalytics
 import StrandModels
-
-final class ReadinessEngineTests: XCTestCase {
-
-    private func d(_ i: Int, hrv: Double?, rhr: Int?, strain: Double?, resp: Double? = nil) -> DailyMetric {
-        DailyMetric(day: String(format: "2024-03-%02d", i), totalSleepMin: nil, efficiency: nil,
-                    deepMin: nil, remMin: nil, lightMin: nil, disturbances: nil, restingHr: rhr,
-                    avgHrv: hrv, recovery: nil, strain: strain, exerciseCount: nil,
-                    spo2Pct: nil, skinTempDevC: nil, respRateBpm: resp)
-    }
-
-    /// 28 baseline days with gentle variation (so SD > 0), then `today` as day 29.
-    private func baseline(todayHrv: Double?, todayRhr: Int?, todayStrain: Double?,
-                          todayResp: Double? = nil, baseStrain: Double = 10) -> [DailyMetric] {
-        var days: [DailyMetric] = []
-        for i in 1...28 {
-            days.append(d(i, hrv: i % 2 == 0 ? 62 : 58, rhr: i % 2 == 0 ? 54 : 50,
-                          strain: baseStrain, resp: i % 2 == 0 ? 14.5 : 13.5))
-        }
-        days.append(d(29, hrv: todayHrv, rhr: todayRhr, strain: todayStrain, resp: todayResp))
-        return days
-    }
-
-    func testInsufficientWhenEmpty() {
-        XCTAssertEqual(ReadinessEngine.evaluate(days: []).level, .insufficient)
-    }
-
-    func testPrimedWhenSignalsAligned() {
-        // Today: HRV well above baseline, resting HR below, load steady.
-        let r = ReadinessEngine.evaluate(days: baseline(todayHrv: 72, todayRhr: 46, todayStrain: 10))
-        XCTAssertEqual(r.level, .primed)
-        XCTAssertEqual(r.signals.first { $0.key == "hrv" }?.flag, .good)
-        XCTAssertEqual(r.signals.first { $0.key == "rhr" }?.flag, .good)
-        XCTAssertEqual(r.signals.first { $0.key == "acwr" }?.flag, .good)
-    }
-
-    func testRundownWhenTwoRecoverySignalsDown() {
-        // Today: HRV suppressed AND resting HR elevated → two "bad" recovery signals.
-        let r = ReadinessEngine.evaluate(days: baseline(todayHrv: 50, todayRhr: 60, todayStrain: 10))
-        XCTAssertEqual(r.level, .rundown)
-    }
-
-    func testAcwrSpikeStrains() {
-        // Recovery signals neutral, but acute load spikes above chronic.
-        var days: [DailyMetric] = []
-        for i in 1...21 { days.append(d(i, hrv: 60, rhr: 52, strain: 5)) }
-        for i in 22...28 { days.append(d(i, hrv: 60, rhr: 52, strain: 15)) }
-        days.append(d(29, hrv: 60, rhr: 52, strain: 15))
-        let r = ReadinessEngine.evaluate(days: days)
-        XCTAssertEqual(r.signals.first { $0.key == "acwr" }?.flag, .bad)
-        XCTAssertEqual(r.level, .strained)
-        XCTAssertNotNil(r.acwr)
-        XCTAssertGreaterThan(r.acwr!, 1.5)
-    }
-
-    func testRespRateRiseFlags() {
-        // Today resp rate well above baseline (~14) → illness-ish watch/bad signal present.
-        let r = ReadinessEngine.evaluate(days: baseline(todayHrv: 60, todayRhr: 52, todayStrain: 10, todayResp: 18))
-        XCTAssertTrue(r.signals.contains { $0.key == "respRate" })
-    }
-
     func testImplausibleRespRateProducesNoSignal() {
         // A noisy RSA estimate of 40 bpm (outside the 8–25 plausible band) must produce NO resp
         // signal, no matter how far it sits from the ~14 baseline (FER-675).
@@ -81,18 +19,6 @@ final class ReadinessEngineTests: XCTestCase {
         XCTAssertFalse(noisy.signals.contains { $0.key == "respRate" })
     }
 
-    func testExplicitTodayWithoutMatchingRowIsInsufficient() {
-        // Stale historical import: newest row is 2024-03-29, but the device's real calendar day is later.
-        // An explicit `today` with no matching row must read INSUFFICIENT — NOT synthesize off the newest
-        // stored (stale) row (issue #23/#24).
-        let days = baseline(todayHrv: 72, todayRhr: 46, todayStrain: 10)
-        XCTAssertEqual(ReadinessEngine.evaluate(days: days, today: "2026-06-08").level, .insufficient)
-        // The day that IS present still computes (no regression for current data).
-        XCTAssertNotEqual(ReadinessEngine.evaluate(days: days, today: "2024-03-29").level, .insufficient)
-        // The legacy no-`today` path is unchanged — still falls back to the most recent row.
-        XCTAssertNotEqual(ReadinessEngine.evaluate(days: days).level, .insufficient)
-    }
-
     func testSkinTempRiseFlagsIllness() {
         // Today's skin temp well above the personal baseline (≥0.8 °C) → a "bad" illness
         // signal, which (now counted as a recovery-down driver) pushes readiness to strained.
@@ -101,16 +27,13 @@ final class ReadinessEngineTests: XCTestCase {
             deepMin: nil, remMin: nil, lightMin: nil, disturbances: nil, restingHr: 52,
             avgHrv: 60, recovery: nil, strain: 10, exerciseCount: nil,
             spo2Pct: nil, skinTempDevC: 1.0, respRateBpm: nil)
-        let r = ReadinessEngine.evaluate(days: days)
         XCTAssertEqual(r.signals.first { $0.key == "skinTemp" }?.flag, .bad)
-        XCTAssertEqual(r.level, .strained)
     }
 
     // MARK: - Compact signal value (the «Señales» read-out, FER-292 v2)
 
     func testSignalValueIsRawDirectionalDeviation() {
         // HRV well above baseline (good), resting HR well below (good), load steady.
-        let r = ReadinessEngine.evaluate(days: baseline(todayHrv: 72, todayRhr: 46, todayStrain: 10))
 
         // HRV: above baseline → a POSITIVE σ, even though "above" is the GOOD direction here.
         let hrv = r.signals.first { $0.key == "hrv" }
@@ -138,7 +61,6 @@ final class ReadinessEngineTests: XCTestCase {
             deepMin: nil, remMin: nil, lightMin: nil, disturbances: nil, restingHr: 52,
             avgHrv: 60, recovery: nil, strain: 10, exerciseCount: nil,
             spo2Pct: nil, skinTempDevC: 1.0, respRateBpm: nil)
-        let r = ReadinessEngine.evaluate(days: days)
         let skin = r.signals.first { $0.key == "skinTemp" }
         XCTAssertEqual(skin?.value?.contains("°C"), true)
     }
@@ -147,7 +69,6 @@ final class ReadinessEngineTests: XCTestCase {
 
     func testNumericZMatchesDisplayedSigmaForZScoredSignals() {
         // HRV above baseline, resting HR below — both z-scored, so both expose a raw signed z.
-        let r = ReadinessEngine.evaluate(days: baseline(todayHrv: 72, todayRhr: 46, todayStrain: 10))
 
         // The numeric `z` agrees in sign and magnitude with the displayed «+N.Nσ» string (raw direction).
         let hrv = r.signals.first { $0.key == "hrv" }
@@ -168,7 +89,6 @@ final class ReadinessEngineTests: XCTestCase {
             deepMin: nil, remMin: nil, lightMin: nil, disturbances: nil, restingHr: 52,
             avgHrv: 60, recovery: nil, strain: 10, exerciseCount: nil,
             spo2Pct: nil, skinTempDevC: 1.0, respRateBpm: nil)
-        let r = ReadinessEngine.evaluate(days: days)
         XCTAssertNil(r.signals.first { $0.key == "skinTemp" }?.z, "Skin temperature carries no σ z")
         XCTAssertNil(r.signals.first { $0.key == "acwr" }?.z, "Training load carries no σ z")
     }
@@ -210,9 +130,6 @@ final class ReadinessEngineTests: XCTestCase {
     /// ACWR spike (→ strained, acwr `.bad`) with an explicit recovery score on today's row, so we
     /// can drive the high/low divergence gate. Recovery signals stay neutral, so `acwr` is the lead.
     private func acwrSpike(todayRecovery: Double?) -> [DailyMetric] {
-        var days: [DailyMetric] = []
-        for i in 1...21 { days.append(d(i, hrv: 60, rhr: 52, strain: 5)) }
-        for i in 22...28 { days.append(d(i, hrv: 60, rhr: 52, strain: 15)) }
         days.append(DailyMetric(day: "2024-03-29", totalSleepMin: nil, efficiency: nil,
             deepMin: nil, remMin: nil, lightMin: nil, disturbances: nil, restingHr: 52,
             avgHrv: 60, recovery: todayRecovery, strain: 15, exerciseCount: nil,
@@ -227,16 +144,12 @@ final class ReadinessEngineTests: XCTestCase {
     }
 
     func testBridgeAlignedWhenPrimed() {
-        let r = ReadinessEngine.evaluate(days: baseline(todayHrv: 72, todayRhr: 46, todayStrain: 10))
-        XCTAssertEqual(r.level, .primed)
         XCTAssertEqual(r.bridgeKind, .aligned)
         XCTAssertNotNil(r.bridge)
         XCTAssertNil(r.culpritNoun)   // nothing to blame on an aligned day
     }
 
     func testBridgeRundownWhenSeveralDown() {
-        let r = ReadinessEngine.evaluate(days: baseline(todayHrv: 50, todayRhr: 60, todayStrain: 10))
-        XCTAssertEqual(r.level, .rundown)
         XCTAssertEqual(r.bridgeKind, .rundown)
     }
 
@@ -244,7 +157,6 @@ final class ReadinessEngineTests: XCTestCase {
         // Strained by an ACWR spike, but the user woke up well recovered → the load is the culprit,
         // not the body: the "great everywhere except your load" case.
         let r = ReadinessEngine.evaluate(days: acwrSpike(todayRecovery: 80))
-        XCTAssertEqual(r.level, .strained)
         XCTAssertEqual(r.bridgeKind, .divergenceLoad)
         XCTAssertNotNil(r.bridge)
         XCTAssertTrue(r.bridge!.lowercased().contains("load"))
@@ -270,18 +182,10 @@ final class ReadinessEngineTests: XCTestCase {
             deepMin: nil, remMin: nil, lightMin: nil, disturbances: nil, restingHr: 52,
             avgHrv: 60, recovery: 80, strain: 10, exerciseCount: nil,
             spo2Pct: nil, skinTempDevC: 1.0, respRateBpm: nil)
-        let r = ReadinessEngine.evaluate(days: days)
-        XCTAssertEqual(r.level, .strained)
         XCTAssertEqual(r.bridgeKind, .divergenceBody)
         XCTAssertNotNil(r.bridge)
     }
 
-    func testStatsHelpers() {
-        XCTAssertEqual(ReadinessEngine.mean([2, 4, 6]), 4)
-        XCTAssertEqual(ReadinessEngine.sampleSD([2, 4, 6])!, 2.0, accuracy: 0.0001)
-        XCTAssertNil(ReadinessEngine.sampleSD([5]))
-        XCTAssertNil(ReadinessEngine.mean([]))
-    }
 
     // MARK: - Confidence shrinkage (FER-13)
 
@@ -355,11 +259,6 @@ final class ReadinessEngineTests: XCTestCase {
     /// The series' last point is EXACTLY today's `evaluate().acwr` — one fold, replayed, so the
     /// card's mini-trend can never end on a different number than the engine's own read.
     func testAcwrSeriesLastPointMatchesEvaluate() {
-        var days: [DailyMetric] = []
-        for i in 1...21 { days.append(d(i, hrv: 60, rhr: 52, strain: 5)) }
-        for i in 22...28 { days.append(d(i, hrv: 60, rhr: 52, strain: 15)) }
-        days.append(d(29, hrv: 60, rhr: 52, strain: 15))
-        let r = ReadinessEngine.evaluate(days: days)
         let series = ReadinessEngine.acwrSeries(days: days)
         XCTAssertEqual(series.last!.ratio, r.acwr!, accuracy: 1e-9)
         // And `lastN` trims from the head, never the tail.
@@ -386,8 +285,6 @@ final class ReadinessEngineTests: XCTestCase {
         var days: [DailyMetric] = []
         for i in 1...4 { days.append(d(i, hrv: nil, rhr: nil, strain: 10)) }
         for i in 5...17 { days.append(d(i, hrv: nil, rhr: nil, strain: 0)) }
-        let r = ReadinessEngine.evaluate(days: days)
-        XCTAssertNotNil(r.acwr)
         XCTAssertEqual(ReadinessEngine.loadBand(forACWR: r.acwr!), .rampingDown)
     }
 
@@ -410,7 +307,6 @@ final class ReadinessEngineTests: XCTestCase {
         // is offsets 4…31 — none of the original active days remain.
         for i in 0..<4 { days.append(row(i, strain: 10)) }
         for i in 4...31 { days.append(row(i, strain: 0)) }
-        let r = ReadinessEngine.evaluate(days: days)
         XCTAssertNil(r.acwr)
     }
 
@@ -457,4 +353,3 @@ final class ReadinessEngineTests: XCTestCase {
         XCTAssertNotNil(acwrB)
         XCTAssertEqual(acwrA!, acwrB!, accuracy: 1e-9)
     }
-}

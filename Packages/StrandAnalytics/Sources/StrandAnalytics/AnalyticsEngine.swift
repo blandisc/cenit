@@ -1,24 +1,10 @@
-import Foundation
-
 // AnalyticsEngine.swift — day-key + stage-JSON helpers.
-//
 // The per-day orchestration path (`analyzeDay`) was retired with the WHOOP band
 // (épico «la banda nunca existió»): the shipping app is Apple-only and never
 // called it. What remains here are the small PURE helpers that outlived that
 // path and are still used across the app + packages:
 //   • civil-day keying (`dayString`, `localMidnight`, `futureLocalDaysToPrune`)
 //   • the sleep-stage JSON codec (`encodeStages` / `decodeStages`).
-
-public enum AnalyticsEngine {
-
-    private static let isoDay: DateFormatter = {
-        let f = DateFormatter()
-        f.locale = Locale(identifier: "en_US_POSIX")
-        f.timeZone = TimeZone(identifier: "UTC")
-        f.dateFormat = "yyyy-MM-dd"
-        return f
-    }()
-
     /// Format a unix-seconds timestamp as a `YYYY-MM-DD` day string in a wall-clock zone
     /// `tzOffsetSeconds` east of UTC. Default 0 = UTC, which keeps pure-function callers and tests on
     /// UTC. The device's LOCAL civil day is obtained by shifting the instant by the offset and
@@ -45,14 +31,6 @@ public enum AnalyticsEngine {
     public static func futureLocalDaysToPrune(stored: [String], today: String,
                                               written: Set<String>) -> [String] {
         stored.filter { $0 > today && !written.contains($0) }
-    }
-
-    /// JSON-encode stage segments to the verbatim array shape CachedSleepSession stores.
-    static func encodeStages(_ stages: [StageSegment]) -> String? {
-        guard let data = try? JSONEncoder().encode(stages) else { return nil }
-        return String(data: data, encoding: .utf8)
-    }
-
     /// Decode a COMPUTED `stagesJSON` (the `[{start,end,stage}]` segment array `encodeStages` writes)
     /// back to `[StageSegment]`. Returns nil for the IMPORTED dict-of-totals form (no per-segment
     /// timeline) or empty/malformed input, so callers fall back to a coarse `[start,end]` interval.
@@ -63,4 +41,3 @@ public enum AnalyticsEngine {
               !segs.isEmpty else { return nil }
         return segs
     }
-}

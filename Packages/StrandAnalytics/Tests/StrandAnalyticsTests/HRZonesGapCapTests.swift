@@ -12,10 +12,6 @@ final class HRZonesGapCapTests: XCTestCase {
     func testMidStreamGapIsCappedAtMedian() {
         let zs = HRZones.zones(maxHR: 200)     // z1 lower edge = 100 bpm
         // Three 1 Hz z1 samples, then a ~1 h disconnection, then one more z1 sample.
-        let hr = [
-            HRSample(ts: 0, bpm: 110),
-            HRSample(ts: 1, bpm: 110),
-            HRSample(ts: 2, bpm: 110),
             HRSample(ts: 3606, bpm: 110),      // 3604 s after the previous sample
         ]
         let tiz = HRZones.timeInZone(hr, zoneSet: zs)

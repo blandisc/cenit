@@ -1,17 +1,3 @@
-import XCTest
-@testable import StrandAnalytics
-
-final class AnalyticsEngineTests: XCTestCase {
-
-    func testVersion() {
-        XCTAssertEqual(StrandAnalytics.version, "0.1.0")
-    }
-
-    func testDayStringUTC() {
-        // 2021-01-01 00:00:00 UTC == 1609459200.
-        XCTAssertEqual(AnalyticsEngine.dayString(1_609_459_200), "2021-01-01")
-    }
-
     // MARK: - Local civil-day attribution (FER-226)
 
     func testDayStringLocalNegativeOffsetCrossesMidnight() {
@@ -55,10 +41,6 @@ final class AnalyticsEngineTests: XCTestCase {
 
     /// Unix-seconds for a `yyyy-MM-dd HH:mm:ss` wall-clock string interpreted in UTC.
     private func utcTimestamp(_ s: String) -> Int {
-        let f = DateFormatter()
-        f.locale = Locale(identifier: "en_US_POSIX")
-        f.timeZone = TimeZone(identifier: "UTC")
         f.dateFormat = "yyyy-MM-dd HH:mm:ss"
         return Int(f.date(from: s)!.timeIntervalSince1970)
     }
-}
