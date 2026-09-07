@@ -76846,6 +76846,210 @@
           }
         }
       }
+    },
+    "onb.3.estrofa.corazon.overline" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your resting heart"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu corazón en reposo"
+          }
+        }
+      }
+    },
+    "onb.3.estrofa.corazon.cuerpo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This is what decides your word every morning."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esto es lo que decide tu palabra de cada mañana."
+          }
+        }
+      }
+    },
+    "onb.3.estrofa.corazon.pie" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lives in Today"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vive en Hoy"
+          }
+        }
+      }
+    },
+    "onb.3.estrofa.noches.overline" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your nights"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tus noches"
+          }
+        }
+      }
+    },
+    "onb.3.estrofa.noches.cuerpo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I don't compare you to anyone: I build your range from this."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No te comparo con nadie: construyo tu rango con esto."
+          }
+        }
+      }
+    },
+    "onb.3.estrofa.noches.pie" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lives in Trends"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vive en Tendencias"
+          }
+        }
+      }
+    },
+    "onb.3.estrofa.entrenos.overline" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your workouts"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tus entrenamientos"
+          }
+        }
+      }
+    },
+    "onb.3.estrofa.entrenos.cuerpo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I don't count steps here. I count what you loaded."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aquí no cuento pasos. Cuento lo que cargaste."
+          }
+        }
+      }
+    },
+    "onb.3.estrofa.entrenos.pie" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lives in Train"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vive en Entrenar"
+          }
+        }
+      }
+    },
+    "onb.3.estrofa.guardado.overline" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saving to your iPhone"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guardando en tu iPhone"
+          }
+        }
+      }
+    },
+    "onb.3.estrofa.guardado.cuerpo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All of this stays here. It never left."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todo esto se queda aquí. No salió."
+          }
+        }
+      }
+    },
+    "onb.3.estrofa.guardado.pie" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings · privacy"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajustes · privacidad"
+          }
+        }
+      }
     }
   },
   "version" : "1.1"
