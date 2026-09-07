@@ -21,6 +21,8 @@ struct SupportView: View {
             VStack(alignment: .leading, spacing: LiquidSpace.s800) {
                 header
                 aboutCard
+                creditsSection
+                linksSection
                 disclaimer
             }
             .padding(.horizontal, LiquidSpace.s550)
@@ -74,6 +76,74 @@ struct SupportView: View {
                 .fixedSize(horizontal: false, vertical: true)
         }
         .liquidTarjetaSeccion()
+    }
+
+    // MARK: - Credits & licenses (FER-398)
+
+    /// Third-party work Cénit ships. `ATTRIBUTION.md` and the bundled `SpaceGrotesk-OFL.txt` carry
+    /// the full texts; this is the in-app acknowledgment, which is the one an App Store reviewer
+    /// (and a user) can actually reach. Not a link list on purpose — naming the work and its
+    /// licence is what attribution owes; a chevron here would promise a screen that doesn't exist.
+    private var creditsSection: some View {
+        section(String(localized: "Credits & licenses")) {
+            VStack(spacing: .zero) {
+                creditRow("GRDB.swift", "MIT")
+                creditRow("ZIPFoundation", "MIT")
+                // Los nombres de licencia NO se traducen: son nombres propios, igual que los de las
+                // bibliotecas. Por eso van como literal y no por el catálogo.
+                creditRow("Space Grotesk", "SIL Open Font License 1.1")
+                creditRow("free-exercise-db", "The Unlicense", divider: false)
+            }
+            .liquidTarjetaSeccion()
+        }
+    }
+
+    /// One credit: the work on the left, its licence in the row's accessory slot. The licence rides
+    /// in `accessory` rather than `trailing` on purpose — a non-`EmptyView` accessory REPLACES the
+    /// standard affordance, so the row drops the chevron it would otherwise promise.
+    private func creditRow(_ name: String, _ license: String, divider: Bool = true) -> some View {
+        LiquidListRow(title: name, divider: divider) {
+            Text(license)
+                .font(LiquidType.unidadCompacta)
+                .foregroundStyle(LiquidColor.tinta500)
+        }
+    }
+
+    // MARK: - Links (FER-398)
+
+    /// The three pages App Review asks for by name — privacy policy, support, terms — reachable from
+    /// inside the app, not only from the store listing. `Link` over `LiquidListRow`: the row keeps the
+    /// system's geometry and chevron, and the link gives VoiceOver the right trait.
+    private var linksSection: some View {
+        section(String(localized: "Links")) {
+            VStack(spacing: .zero) {
+                Link(destination: Self.privacyURL) {
+                    LiquidListRow(title: String(localized: "Privacy policy"))
+                }
+                Link(destination: Self.supportURL) {
+                    LiquidListRow(title: String(localized: "Support"))
+                }
+                Link(destination: Terms.fullTermsURL) {
+                    LiquidListRow(title: String(localized: "Terms of use"), divider: false)
+                }
+            }
+            .liquidTarjetaSeccion()
+        }
+    }
+
+    private static let privacyURL = URL(string: "https://blandisc.github.io/cenit/privacidad.html")!
+    private static let supportURL = URL(string: "https://blandisc.github.io/cenit/soporte.html")!
+
+    // MARK: - Section shell
+
+    /// Overline + content, the same shape the rest of the sheet families use.
+    private func section<Content: View>(_ title: String,
+                                        @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: LiquidSpace.s300) {
+            LiquidOverline(title)
+            content()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     // MARK: - Disclaimer (single, quiet, at the foot)
