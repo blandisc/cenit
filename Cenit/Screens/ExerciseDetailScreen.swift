@@ -23,10 +23,8 @@ struct ExerciseDetailScreen: View {
     }
 
     @Environment(\.openURL) private var openURL
-    @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var repo: Repository
     @EnvironmentObject private var mediaCoordinator: MediaDownloadCoordinator
-    @EnvironmentObject private var tabRouter: TabRouter
     @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw = UnitSystem.metric.rawValue
     private var system: UnitSystem { UnitSystem(rawValue: unitSystemRaw) ?? .metric }
     /// FER-722/778/790: the exercise's cached media — a single animated GIF that the hero shows both
@@ -263,7 +261,6 @@ struct ExerciseDetailScreen: View {
                 .frame(maxWidth: .infinity).frame(height: EntrenarMetrics.detailHeroMedia).clipped()
                 .overlay(RoundedRectangle(cornerRadius: ExerciseThumbnail.heroCornerRadius, style: .continuous)
                     .strokeBorder(familyTint, lineWidth: 1.5))  // token-exempt(optico): aro del hero El Eje (1.5)
-                if !mediaCoordinator.isEnabled { mediaOffHint }
             }
         }
     }
@@ -274,23 +271,6 @@ struct ExerciseDetailScreen: View {
         // r21: mapeo PROMOVIDO a CenitDesign (`LiquidRampas.movementFamilyTint`) — misma clasificación, una
         // sola fuente de verdad (se conserva el «solo el primer músculo» de esta pantalla).
         LiquidRampas.movementFamilyTint([exercise.primaryMuscles.first ?? ""])
-    }
-
-    /// Discreet nudge shown only when the media download toggle is off — never when it's on and this
-    /// exercise simply has no EDB match (that's a quiet, honest miss, not something to fix in Ajustes).
-    private var mediaOffHint: some View {
-        Button {
-            tabRouter.select(.settings)
-            dismiss()
-        } label: {
-            HStack(spacing: LiquidSpace.s150) {
-                Image(systemName: "play.rectangle").font(LiquidType.iconSF(size: 12))
-                Text("Turn on library downloads in Settings to see video")
-                    .font(LiquidType.cuerpo)
-            }
-            .foregroundStyle(LiquidColor.tinta500)
-        }
-        .buttonStyle(EntrenarPressStyle())
     }
 
     /// «Progreso» — the handoff's fixed composition: the estimated-1RM hero + delta chip, the axis
