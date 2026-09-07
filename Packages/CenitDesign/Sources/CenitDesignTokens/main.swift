@@ -655,6 +655,11 @@ public let catalogEntries: [CatalogEntry] = [
                  archivo: "LiquidGlass/LiquidGlow.swift",
                  cuandoUsarlo: "Contorno que late (aviso, filo con aura) o disco radial desenfocado (orbe de respiración): la pantalla pasa color/fase y el blur vive en la pieza.",
                  cuandoNo: "No para sombra de elevación (`liquidShadow`); no vidrio (`liquidGlass(_:)`); no `.blur` + fill a mano en pantallas."),
+    // —— FER-430 · el estado vacío que enseña (épico FER-428 «Sistema de aprendizaje») ——
+    CatalogEntry(rol: "Estado vacío que enseña", simbolo: "LiquidVacio",
+                 archivo: "LiquidGlass/LiquidVacio.swift",
+                 cuandoUsarlo: "Cualquier lista/sección/pantalla que todavía no tiene datos: qué va aquí · cómo se llena (con `cuenta` «faltan 3 noches» si aplica) · dónde vive o UNA acción (`Salida`). Recibe `Text` ya resuelto por la app desde el registro de enseñanza; plano sobre el lienzo, alineado a la izquierda, donde irán los datos.",
+                 cuandoNo: "No para error de lectura ni aviso (`LiquidAviso`); no para «calibrando» con barra (`LiquidCalibracionCard`); no una hoja de onboarding; no reinventar icono+título+cuerpo a mano en la pantalla."),
 ]
 
 func catalogoTable() -> String {
