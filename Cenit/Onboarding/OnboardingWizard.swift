@@ -87,6 +87,10 @@ struct OnboardingWizard: View {
     // se fijan al entrar (`irAPerfil`) en vez de que el acto los adivine.
     @State private var perfilAtras: OnbActo = .encendido
     @State private var perfilLuego: OnbPerfilLuego = .ciclo
+    /// A dónde sale el Ciclo adaptado (FER-431). En la ruta con reloj queda `.ciclo` y
+    /// `terminar()` sigue sin Entrenar; en `.sinRitmoEnReposo` / `.sinDatos` guarda el
+    /// `.entrar` / `.entrenar` que eligió el Perfil.
+    @State private var cicloLuego: OnbPerfilLuego = .ciclo
     /// Lo que dejó el autollenado del perfil. Vive aquí y no en el acto porque volver al perfil
     /// (desde el ciclo) lo reconstruye en blanco: sin este sello afuera, el autollenado correría
     /// una segunda vez y pisaría lo que la persona acaba de corregir.
@@ -168,8 +172,9 @@ struct OnboardingWizard: View {
         case .ciclo:
             OnbActoCiclo(
                 landing: landing,
+                destinoEntrenar: cicloLuego == .entrenar,
                 onAtras: { ir(a: .perfil) },
-                onEntrar: { terminar() })
+                onEntrar: { terminar(irAEntrenar: cicloLuego == .entrenar) })
         case .salida:
             OnbActoSalida(
                 onReconsiderar: { ir(a: .permiso) },
@@ -232,9 +237,18 @@ struct OnboardingWizard: View {
 
     private func salirDelPerfil() {
         switch perfilLuego {
-        case .ciclo:    ir(a: .ciclo)
-        case .entrar:   terminar()
-        case .entrenar: terminar(irAEntrenar: true)
+        case .ciclo:
+            cicloLuego = .ciclo
+            ir(a: .ciclo)
+        case .entrar, .entrenar:
+            // Sin reloj: Ciclo adaptado entre Perfil y destino (FER-431). «Ahora no» llega con
+            // `landing == nil` y no entra aquí al predicado — sigue saliendo directo.
+            if landing?.esSinReloj == true {
+                cicloLuego = perfilLuego
+                ir(a: .ciclo)
+            } else {
+                perfilLuego == .entrenar ? terminar(irAEntrenar: true) : terminar()
+            }
         }
     }
 
