@@ -1,9 +1,13 @@
 import Foundation
 
-/// The Terms of Use the first-run gate presents. Bump `currentVersion` when the terms MATERIALLY
-/// change (risk / liability / medical / affiliation wording) to re-prompt every user for a fresh
-/// acknowledgment; leave it for typo fixes. Mirrored on Android by `NoopPrefs.TERMS_VERSION`. The
-/// full text lives in `TERMS.md` in the repo and, for whoever installs the app, at `fullTermsURL`.
+/// Los Términos de Uso que enseña la puerta del primer arranque.
+///
+/// `currentVersion` es lo que decide si hay que volver a preguntar: súbela cuando el texto cambie
+/// **de fondo** — riesgo, responsabilidad, salud, afiliación — y todos los usuarios verán la puerta
+/// otra vez para aceptar de nuevo. Un typo corregido no mueve la versión.
+///
+/// El texto completo vive en `TERMS.md` dentro del repositorio y, para quien instala el app, en
+/// `fullTermsURL`.
 enum Terms {
     static let currentVersion = "2.0"
 
