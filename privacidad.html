@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacidad · Cénit</title>
+<style>
+:root{
+  --bg-top:#FEFEFD;
+  --bg-bottom:#F3F4F2;
+  --ink-900:#221D16;
+  --ink-700:#5C5648;
+  --ink-500:#6F6857;
+  --green:#0C8F62;
+  --green-deep:#00774B;
+  --rule: rgba(34,29,22,0.10);
+  --card: rgba(255,255,255,0.6);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg-top:#0C0B0A;
+    --bg-bottom:#0C0B0A;
+    --ink-900:#ECE9E0;
+    --ink-700:#ECE9E0;
+    --ink-500:#A6A298;
+    --green:#2EB27D;
+    --green-deep:#2EB27D;
+    --rule: rgba(236,233,224,0.14);
+    --card: rgba(255,255,255,0.04);
+  }
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background: linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
+  color: var(--ink-900);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+.wrap{ max-width: 68ch; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
+nav.top{
+  display:flex; flex-wrap:wrap; gap:0.25rem 1rem;
+  max-width: 68ch; margin: 0 auto; padding: 1.25rem 1.25rem 0; font-size: 0.95rem;
+}
+nav.top a{ color: var(--ink-700); text-decoration:none; padding: 0.35rem 0.1rem; border-bottom: 2px solid transparent; }
+nav.top a[aria-current="page"]{ color: var(--green-deep); border-bottom-color: var(--green); font-weight:600; }
+nav.top a:hover{ color: var(--green-deep); }
+h1{ font-size: 1.7rem; letter-spacing:-0.01em; margin: 0.2rem 0 0.4rem; color: var(--ink-900); }
+h2{ font-size: 1.15rem; margin: 2rem 0 0.6rem; color: var(--ink-900); }
+h2.lang-switch{ margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--rule); }
+p, li{ color: var(--ink-700); }
+.meta{ color: var(--ink-500); font-size:0.9rem; margin-bottom:1.6rem; }
+a{ color: var(--green-deep); }
+ul{ padding-left:1.2rem; }
+li{ margin: 0.35rem 0; }
+.lang-tag{
+  display:inline-block; font-size:0.75rem; letter-spacing:0.06em; text-transform:uppercase;
+  color: var(--green-deep); background: rgba(12,143,98,0.10); border-radius: 999px;
+  padding: 0.15rem 0.6rem; margin-bottom: 0.6rem;
+}
+footer{
+  max-width: 68ch; margin: 1rem auto 0; padding: 1.25rem 1.25rem 2.5rem;
+  color: var(--ink-500); font-size: 0.85rem; border-top: 1px solid var(--rule);
+}
+</style>
+</head>
+<body>
+<nav class="top">
+  <a href="index.html">Inicio</a>
+  <a href="privacidad.html" aria-current="page">Privacidad</a>
+  <a href="soporte.html">Soporte</a>
+  <a href="terminos.html">Términos</a>
+</nav>
+<div class="wrap">
+  <span class="lang-tag">Español</span>
+  <h1>Política de privacidad de Cénit</h1>
+  <p class="meta">6 de septiembre de 2026</p>
+
+  <p>Cénit guarda tus datos en tu iPhone. Cénit no tiene servidor. Cénit no te pide una cuenta.</p>
+
+  <h2>Qué lee de Apple Salud</h2>
+  <p>Con tu permiso, Cénit lee de Apple Salud:</p>
+  <ul>
+    <li>Frecuencia cardiaca y frecuencia cardiaca en reposo.</li>
+    <li>Variabilidad de la frecuencia cardiaca (HRV) y tus latidos individuales, para calcular tu HRV con más detalle.</li>
+    <li>Oxígeno en sangre y frecuencia respiratoria.</li>
+    <li>Pasos y energía activa.</li>
+    <li>Sueño y entrenamientos.</li>
+    <li>Sexo, fecha de nacimiento, peso y estatura, para ajustar los cálculos a ti.</li>
+  </ul>
+  <p>Puedes revisar y quitar cada permiso cuando quieras: abre la app Salud, toca Compartir, luego Apps, y elige Cénit.</p>
+
+  <h2>Qué escribe en Apple Salud</h2>
+  <p>Por default, Cénit no escribe nada en Apple Salud.</p>
+  <p>Si tú activas «Guardar entrenamientos en Apple Salud» en Ajustes, Cénit guarda ahí tus sesiones de fuerza y la energía activa de esa sesión.</p>
+  <p>Cénit nunca escribe esto sin que tú lo actives primero.</p>
+
+  <h2>Apple Watch</h2>
+  <p>Si usas la app de Cénit para Apple Watch, el reloj registra tu sesión de fuerza y la guarda directo en la Apple Salud de tu reloj.</p>
+  <p>El reloj no manda esa sesión a ningún servidor. Solo se comunica con tu iPhone para avisar que terminaste.</p>
+
+  <h2>Otros permisos, todos opcionales</h2>
+  <ul>
+    <li><strong>Calendario:</strong> si lo activas, Cénit cruza tus eventos con el estrés de tu día. Cénit solo lee tu calendario en tu iPhone.</li>
+    <li><strong>Fotos:</strong> Cénit solo guarda en tu carrete la tarjeta de resumen que tú decides compartir. Cénit no lee el resto de tus fotos.</li>
+    <li><strong>Notificaciones:</strong> si las activas, tu iPhone te muestra recordatorios. Tu iPhone genera estas notificaciones, no un servidor.</li>
+  </ul>
+
+  <h2>Dónde vive tu información</h2>
+  <p>Cénit guarda todo en una base de datos SQLite dentro de tu iPhone.</p>
+  <p>Cénit no tiene servidor propio, no tiene cuenta de usuario, no usa herramientas de analítica ni de publicidad de terceros, y no se conecta a internet.</p>
+
+  <h2>Respaldo y copias</h2>
+  <p>Puedes elegir una carpeta de tu propia iCloud Drive para que Cénit guarde ahí una copia de tu base de datos. Esa copia vive en tu iCloud, no en un servidor de Cénit.</p>
+  <p>También puedes exportar o importar tu base de datos completa, o un CSV de tus entrenamientos de fuerza, cuando tú lo pidas.</p>
+  <p>Si respaldas tu iPhone completo, por iCloud o por tu computadora, esa copia incluye los datos de Cénit — igual que con cualquier otra app.</p>
+
+  <h2>Cómo borrar tus datos</h2>
+  <p>Elimina la app de tu iPhone. Esto borra tu base de datos local.</p>
+  <p>Si elegiste una carpeta de iCloud Drive para respaldo, borra también esa carpeta ahí.</p>
+  <p>Para quitar el acceso a Salud sin desinstalar la app: app Salud → Compartir → Apps → Cénit.</p>
+
+  <h2>Menores de edad</h2>
+  <p>Cénit no está dirigida a menores de 13 años. La clasificación de edad de Cénit la fija su ficha de App Store.</p>
+
+  <h2>Esto no es consejo médico</h2>
+  <p>Cénit no es un dispositivo médico. Sus números son estimaciones, no un diagnóstico. Lee los <a href="terminos.html">Términos de uso</a> para más detalle.</p>
+
+  <h2>Cambios a esta política</h2>
+  <p>Si esta política cambia, la nueva versión se publica en esta misma dirección, con la fecha actualizada arriba.</p>
+
+  <h2>Contacto</h2>
+  <p>Escríbenos abriendo un issue en GitHub: <a href="https://github.com/blandisc/cenit/issues">github.com/blandisc/cenit/issues</a>. Cénit no publica un correo de soporte ni un nombre personal.</p>
+
+  <h2 class="lang-switch"><span class="lang-tag">English</span><br>Privacy Policy</h2>
+  <p class="meta">September 6, 2026</p>
+
+  <p>Cénit keeps your data on your iPhone. Cénit has no server. Cénit does not ask for an account.</p>
+
+  <h2>What Cénit reads from Apple Health</h2>
+  <p>With your permission, Cénit reads:</p>
+  <ul>
+    <li>Heart rate and resting heart rate.</li>
+    <li>Heart rate variability (HRV) and your individual heartbeats, for more detailed HRV.</li>
+    <li>Blood oxygen and respiratory rate.</li>
+    <li>Steps and active energy.</li>
+    <li>Sleep and workouts.</li>
+    <li>Sex, date of birth, weight, and height, to tailor the calculations to you.</li>
+  </ul>
+  <p>You can review and remove each permission at any time: open the Health app, tap Sharing, then Apps, and choose Cénit.</p>
+
+  <h2>What Cénit writes to Apple Health</h2>
+  <p>By default, Cénit writes nothing to Apple Health.</p>
+  <p>If you turn on "Save workouts to Apple Health" in Settings, Cénit saves your strength sessions there, along with the active energy from that session.</p>
+  <p>Cénit never writes this until you turn it on yourself.</p>
+
+  <h2>Apple Watch</h2>
+  <p>If you use the Cénit Apple Watch app, the watch records your strength session and saves it directly to your watch's own Apple Health.</p>
+  <p>The watch does not send that session to any server. It only talks to your iPhone to signal that the session ended.</p>
+
+  <h2>Other permissions, all optional</h2>
+  <ul>
+    <li><strong>Calendar:</strong> if you turn it on, Cénit cross-references your events with your day's stress. Cénit only reads your calendar on your iPhone.</li>
+    <li><strong>Photos:</strong> Cénit only saves the summary card you choose to share to your camera roll. Cénit does not read the rest of your photos.</li>
+    <li><strong>Notifications:</strong> if you turn them on, your iPhone shows you reminders. Your iPhone generates these notifications, not a server.</li>
+  </ul>
+
+  <h2>Where your information lives</h2>
+  <p>Cénit stores everything in a SQLite database on your iPhone.</p>
+  <p>Cénit has no server of its own, no user account, no third-party analytics or advertising tools, and makes no network connections.</p>
+
+  <h2>Backups and copies</h2>
+  <p>You can choose a folder in your own iCloud Drive so Cénit keeps a copy of your database there. That copy lives in your iCloud, not on a Cénit server.</p>
+  <p>You can also export or import your full database, or a CSV of your strength workouts, whenever you ask for it.</p>
+  <p>If you back up your whole iPhone, through iCloud or your computer, that backup includes Cénit's data — the same as with any other app.</p>
+
+  <h2>How to delete your data</h2>
+  <p>Delete the app from your iPhone. This removes your local database.</p>
+  <p>If you chose an iCloud Drive folder for backup, delete that folder there too.</p>
+  <p>To remove Health access without deleting the app: Health app → Sharing → Apps → Cénit.</p>
+
+  <h2>Minors</h2>
+  <p>Cénit is not directed at children under 13. Cénit's age rating is set by its App Store listing.</p>
+
+  <h2>This is not medical advice</h2>
+  <p>Cénit is not a medical device. Its numbers are estimates, not a diagnosis. See the <a href="terminos.html">Terms of Use</a> for detail.</p>
+
+  <h2>Changes to this policy</h2>
+  <p>If this policy changes, the new version is published at this same address, dated at the top.</p>
+
+  <h2>Contact</h2>
+  <p>Reach us by opening an issue on GitHub: <a href="https://github.com/blandisc/cenit/issues">github.com/blandisc/cenit/issues</a>. Cénit does not publish a support email address or a personal name.</p>
+</div>
+<footer>Cénit · última actualización 6 de septiembre de 2026</footer>
+</body>
+</html>

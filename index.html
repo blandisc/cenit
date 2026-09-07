@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cénit</title>
+<style>
+:root{
+  --bg-top:#FEFEFD;
+  --bg-bottom:#F3F4F2;
+  --ink-900:#221D16;
+  --ink-700:#5C5648;
+  --ink-500:#6F6857;
+  --green:#0C8F62;
+  --green-deep:#00774B;
+  --rule: rgba(34,29,22,0.10);
+  --card: rgba(255,255,255,0.6);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg-top:#0C0B0A;
+    --bg-bottom:#0C0B0A;
+    --ink-900:#ECE9E0;
+    --ink-700:#ECE9E0;
+    --ink-500:#A6A298;
+    --green:#2EB27D;
+    --green-deep:#2EB27D;
+    --rule: rgba(236,233,224,0.14);
+    --card: rgba(255,255,255,0.04);
+  }
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background: linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
+  color: var(--ink-900);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+.wrap{ max-width: 68ch; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
+nav.top{
+  display:flex; flex-wrap:wrap; gap:0.25rem 1rem;
+  max-width: 68ch; margin: 0 auto; padding: 1.25rem 1.25rem 0; font-size: 0.95rem;
+}
+nav.top a{ color: var(--ink-700); text-decoration:none; padding: 0.35rem 0.1rem; border-bottom: 2px solid transparent; }
+nav.top a[aria-current="page"]{ color: var(--green-deep); border-bottom-color: var(--green); font-weight:600; }
+nav.top a:hover{ color: var(--green-deep); }
+h1{ font-size: 1.9rem; letter-spacing:-0.01em; margin: 0.2rem 0 0.5rem; color: var(--ink-900); }
+h2{ font-size: 1.2rem; margin: 2.2rem 0 0.6rem; color: var(--ink-900); }
+p, li{ color: var(--ink-700); }
+.meta{ color: var(--ink-500); font-size:0.95rem; margin-bottom:1.6rem; }
+a{ color: var(--green-deep); }
+.card{ background: var(--card); border: 1px solid var(--rule); border-radius: 14px; padding: 0.4rem 1.2rem; margin: 1.4rem 0; }
+.card ul{ padding-left:1.1rem; }
+.card li{ margin: 0.7rem 0; }
+.lang-tag{
+  display:inline-block; font-size:0.75rem; letter-spacing:0.06em; text-transform:uppercase;
+  color: var(--green-deep); background: rgba(12,143,98,0.10); border-radius: 999px;
+  padding: 0.15rem 0.6rem; margin-bottom: 0.8rem;
+}
+footer{
+  max-width: 68ch; margin: 1rem auto 0; padding: 1.25rem 1.25rem 2.5rem;
+  color: var(--ink-500); font-size: 0.85rem; border-top: 1px solid var(--rule);
+}
+</style>
+</head>
+<body>
+<nav class="top">
+  <a href="index.html" aria-current="page">Inicio</a>
+  <a href="privacidad.html">Privacidad</a>
+  <a href="soporte.html">Soporte</a>
+  <a href="terminos.html">Términos</a>
+</nav>
+<div class="wrap">
+  <span class="lang-tag">Cénit</span>
+  <h1>Cénit</h1>
+  <p>Cénit es una app de iOS que lee tu Apple Health en tu iPhone y calcula ahí mismo tu recuperación, esfuerzo, HRV y sueño. No hay servidor de Cénit. No hay cuenta.</p>
+  <p class="meta">Cénit is an iOS app that reads your Apple Health on your iPhone and computes your recovery, strain, HRV, and sleep right there. No Cénit server. No account.</p>
+
+  <div class="card">
+    <ul>
+      <li><a href="privacidad.html">Política de privacidad — Privacy Policy</a></li>
+      <li><a href="soporte.html">Soporte — Support</a></li>
+      <li><a href="terminos.html">Términos de uso — Terms of Use</a></li>
+    </ul>
+  </div>
+
+  <p>¿Preguntas o problemas? Abre un issue en <a href="https://github.com/blandisc/cenit/issues">github.com/blandisc/cenit</a>.</p>
+  <p class="meta">Questions or issues? Open an issue on <a href="https://github.com/blandisc/cenit/issues">github.com/blandisc/cenit</a>.</p>
+</div>
+<footer>Cénit · última actualización 6 de septiembre de 2026</footer>
+</body>
+</html>

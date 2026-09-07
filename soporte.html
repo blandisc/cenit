@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Soporte · Cénit</title>
+<style>
+:root{
+  --bg-top:#FEFEFD;
+  --bg-bottom:#F3F4F2;
+  --ink-900:#221D16;
+  --ink-700:#5C5648;
+  --ink-500:#6F6857;
+  --green:#0C8F62;
+  --green-deep:#00774B;
+  --rule: rgba(34,29,22,0.10);
+  --card: rgba(255,255,255,0.6);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg-top:#0C0B0A;
+    --bg-bottom:#0C0B0A;
+    --ink-900:#ECE9E0;
+    --ink-700:#ECE9E0;
+    --ink-500:#A6A298;
+    --green:#2EB27D;
+    --green-deep:#2EB27D;
+    --rule: rgba(236,233,224,0.14);
+    --card: rgba(255,255,255,0.04);
+  }
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background: linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
+  color: var(--ink-900);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+.wrap{ max-width: 68ch; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
+nav.top{
+  display:flex; flex-wrap:wrap; gap:0.25rem 1rem;
+  max-width: 68ch; margin: 0 auto; padding: 1.25rem 1.25rem 0; font-size: 0.95rem;
+}
+nav.top a{ color: var(--ink-700); text-decoration:none; padding: 0.35rem 0.1rem; border-bottom: 2px solid transparent; }
+nav.top a[aria-current="page"]{ color: var(--green-deep); border-bottom-color: var(--green); font-weight:600; }
+nav.top a:hover{ color: var(--green-deep); }
+h1{ font-size: 1.7rem; letter-spacing:-0.01em; margin: 0.2rem 0 0.4rem; color: var(--ink-900); }
+h2{ font-size: 1.15rem; margin: 2rem 0 0.6rem; color: var(--ink-900); }
+h2.lang-switch{ margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--rule); }
+h3{ font-size: 1rem; margin: 1.1rem 0 0.3rem; color: var(--ink-900); }
+p, li{ color: var(--ink-700); }
+.meta{ color: var(--ink-500); font-size:0.9rem; margin-bottom:1.6rem; }
+a{ color: var(--green-deep); }
+ul, ol{ padding-left:1.2rem; }
+li{ margin: 0.35rem 0; }
+.card{ background: var(--card); border: 1px solid var(--rule); border-radius: 14px; padding: 0.9rem 1.2rem; margin: 0.9rem 0; }
+.lang-tag{
+  display:inline-block; font-size:0.75rem; letter-spacing:0.06em; text-transform:uppercase;
+  color: var(--green-deep); background: rgba(12,143,98,0.10); border-radius: 999px;
+  padding: 0.15rem 0.6rem; margin-bottom: 0.6rem;
+}
+footer{
+  max-width: 68ch; margin: 1rem auto 0; padding: 1.25rem 1.25rem 2.5rem;
+  color: var(--ink-500); font-size: 0.85rem; border-top: 1px solid var(--rule);
+}
+</style>
+</head>
+<body>
+<nav class="top">
+  <a href="index.html">Inicio</a>
+  <a href="privacidad.html">Privacidad</a>
+  <a href="soporte.html" aria-current="page">Soporte</a>
+  <a href="terminos.html">Términos</a>
+</nav>
+<div class="wrap">
+  <span class="lang-tag">Español</span>
+  <h1>Soporte de Cénit</h1>
+
+  <h2>Requisitos</h2>
+  <ul>
+    <li>Un iPhone con iOS 17 o más nuevo.</li>
+    <li>Un Apple Watch, opcional pero recomendado: mejora los datos de sueño y frecuencia cardiaca.</li>
+  </ul>
+
+  <h2>Las primeras noches</h2>
+  <p>Cénit necesita unas cuantas noches de sueño para calcular tu línea base. Durante esos primeros días vas a ver «calibrando» en vez de un número. Es normal, no es un error.</p>
+
+  <h2>Cómo conectar Apple Salud</h2>
+  <ol>
+    <li>Abre Cénit y sigue el onboarding, o ve a Ajustes → Fuentes de datos.</li>
+    <li>Toca «Conectar Apple Salud».</li>
+    <li>iOS te muestra la lista de permisos. Actívalos todos para la mejor experiencia, o solo los que quieras compartir.</li>
+    <li>Puedes volver después y cambiar cualquier permiso desde la app Salud → Compartir → Apps → Cénit.</li>
+  </ol>
+
+  <h2>Exportar y restaurar tus datos</h2>
+  <div class="card">
+    <p><strong>Exportar:</strong> Ajustes → Datos y respaldo → Exportar base de datos. Guarda el archivo donde quieras, o en una carpeta de iCloud Drive para respaldo automático.</p>
+    <p><strong>Restaurar:</strong> Ajustes → Datos y respaldo → Importar base de datos, y elige el archivo. Cénit te pide reabrir la app para que el cambio tome efecto.</p>
+    <p><strong>CSV de fuerza:</strong> también puedes exportar un CSV de tus entrenamientos de fuerza desde el historial de Entrenar.</p>
+  </div>
+
+  <h2>Preguntas frecuentes</h2>
+  <h3>¿Por qué mi recuperación dice «calibrando»?</h3>
+  <p>Porque Cénit todavía no tiene suficientes noches de tu sueño para calcular tu línea base. Dale unos días.</p>
+  <h3>¿Necesito un Apple Watch?</h3>
+  <p>No. Cénit funciona solo con tu iPhone y los datos que ya tengas en Apple Salud. Un reloj mejora la precisión del sueño y la frecuencia cardiaca, pero no es obligatorio.</p>
+  <h3>¿Cénit funciona sin internet?</h3>
+  <p>Sí. Cénit no se conecta a internet para calcular ni para guardar tus datos.</p>
+  <h3>¿Necesito crear una cuenta?</h3>
+  <p>No. Cénit no tiene cuentas ni inicio de sesión.</p>
+  <h3>¿Qué pasa si desinstalo la app?</h3>
+  <p>Se borra tu base de datos local. Si guardaste una copia en una carpeta de iCloud Drive, esa copia se queda ahí hasta que tú la borres.</p>
+  <h3>¿Cénit da consejo médico?</h3>
+  <p>No. Cénit muestra estimaciones para tu interés personal, no un diagnóstico. Lee los <a href="terminos.html">Términos de uso</a>.</p>
+
+  <h2>¿Sigues atorado?</h2>
+  <p>Abre un issue en GitHub: <a href="https://github.com/blandisc/cenit/issues">github.com/blandisc/cenit/issues</a>. Describe qué esperabas y qué pasó — entre más detalle, más rápido lo resolvemos.</p>
+
+  <h2 class="lang-switch"><span class="lang-tag">English</span><br>Support</h2>
+
+  <h2>Requirements</h2>
+  <ul>
+    <li>An iPhone running iOS 17 or newer.</li>
+    <li>An Apple Watch, optional but recommended: it improves sleep and heart-rate data.</li>
+  </ul>
+
+  <h2>The first few nights</h2>
+  <p>Cénit needs a few nights of sleep data to compute your baseline. During those first days you'll see "calibrating" instead of a number. That's expected, not an error.</p>
+
+  <h2>Connecting Apple Health</h2>
+  <ol>
+    <li>Open Cénit and follow onboarding, or go to Settings → Data Sources.</li>
+    <li>Tap "Connect Apple Health."</li>
+    <li>iOS shows you the permission list. Turn them all on for the best experience, or only the ones you want to share.</li>
+    <li>You can change any permission later from the Health app → Sharing → Apps → Cénit.</li>
+  </ol>
+
+  <h2>Export and restore your data</h2>
+  <div class="card">
+    <p><strong>Export:</strong> Settings → Data & Backup → Export Database. Save the file wherever you like, or to an iCloud Drive folder for automatic backup.</p>
+    <p><strong>Restore:</strong> Settings → Data & Backup → Import Database, and choose the file. Cénit asks you to relaunch the app for the change to take effect.</p>
+    <p><strong>Strength CSV:</strong> you can also export a CSV of your strength workouts from Train's history.</p>
+  </div>
+
+  <h2>Frequently asked questions</h2>
+  <h3>Why does my recovery say "calibrating"?</h3>
+  <p>Cénit doesn't yet have enough nights of your sleep to compute a baseline. Give it a few days.</p>
+  <h3>Do I need an Apple Watch?</h3>
+  <p>No. Cénit works with just your iPhone and the data already in Apple Health. A watch improves sleep and heart-rate accuracy, but it's not required.</p>
+  <h3>Does Cénit work without internet?</h3>
+  <p>Yes. Cénit makes no internet connection to compute or store your data.</p>
+  <h3>Do I need to create an account?</h3>
+  <p>No. Cénit has no accounts and no sign-in.</p>
+  <h3>What happens if I delete the app?</h3>
+  <p>Your local database is deleted. If you saved a copy to an iCloud Drive folder, that copy stays there until you delete it yourself.</p>
+  <h3>Does Cénit give medical advice?</h3>
+  <p>No. Cénit shows estimates for personal interest, not a diagnosis. See the <a href="terminos.html">Terms of Use</a>.</p>
+
+  <h2>Still stuck?</h2>
+  <p>Open an issue on GitHub: <a href="https://github.com/blandisc/cenit/issues">github.com/blandisc/cenit/issues</a>. Describe what you expected and what happened — more detail gets it fixed faster.</p>
+</div>
+<footer>Cénit · última actualización 6 de septiembre de 2026</footer>
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Términos de uso · Cénit</title>
+<style>
+:root{
+  --bg-top:#FEFEFD;
+  --bg-bottom:#F3F4F2;
+  --ink-900:#221D16;
+  --ink-700:#5C5648;
+  --ink-500:#6F6857;
+  --green:#0C8F62;
+  --green-deep:#00774B;
+  --rule: rgba(34,29,22,0.10);
+  --card: rgba(255,255,255,0.6);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg-top:#0C0B0A;
+    --bg-bottom:#0C0B0A;
+    --ink-900:#ECE9E0;
+    --ink-700:#ECE9E0;
+    --ink-500:#A6A298;
+    --green:#2EB27D;
+    --green-deep:#2EB27D;
+    --rule: rgba(236,233,224,0.14);
+    --card: rgba(255,255,255,0.04);
+  }
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background: linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
+  color: var(--ink-900);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+.wrap{ max-width: 68ch; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
+nav.top{
+  display:flex; flex-wrap:wrap; gap:0.25rem 1rem;
+  max-width: 68ch; margin: 0 auto; padding: 1.25rem 1.25rem 0; font-size: 0.95rem;
+}
+nav.top a{ color: var(--ink-700); text-decoration:none; padding: 0.35rem 0.1rem; border-bottom: 2px solid transparent; }
+nav.top a[aria-current="page"]{ color: var(--green-deep); border-bottom-color: var(--green); font-weight:600; }
+nav.top a:hover{ color: var(--green-deep); }
+h1{ font-size: 1.7rem; letter-spacing:-0.01em; margin: 0.2rem 0 0.4rem; color: var(--ink-900); }
+h2{ font-size: 1.1rem; margin: 1.8rem 0 0.5rem; color: var(--ink-900); }
+h2.lang-switch{ margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--rule); font-size: 1.15rem; }
+p, li{ color: var(--ink-700); }
+.meta{ color: var(--ink-500); font-size:0.9rem; margin-bottom:1.6rem; }
+.note{ color: var(--ink-500); font-size:0.9rem; font-style: italic; margin: 0 0 1.6rem; }
+a{ color: var(--green-deep); }
+.lang-tag{
+  display:inline-block; font-size:0.75rem; letter-spacing:0.06em; text-transform:uppercase;
+  color: var(--green-deep); background: rgba(12,143,98,0.10); border-radius: 999px;
+  padding: 0.15rem 0.6rem; margin-bottom: 0.6rem;
+}
+footer{
+  max-width: 68ch; margin: 1rem auto 0; padding: 1.25rem 1.25rem 2.5rem;
+  color: var(--ink-500); font-size: 0.85rem; border-top: 1px solid var(--rule);
+}
+</style>
+</head>
+<body>
+<nav class="top">
+  <a href="index.html">Inicio</a>
+  <a href="privacidad.html">Privacidad</a>
+  <a href="soporte.html">Soporte</a>
+  <a href="terminos.html" aria-current="page">Términos</a>
+</nav>
+<div class="wrap">
+  <span class="lang-tag">Español</span>
+  <h1>Términos de uso de Cénit</h1>
+  <p class="meta">Versión 3.0 — 6 de septiembre de 2026</p>
+  <p class="note">Esto no es un consejo legal; que un abogado lo revise antes de tratarlo como vinculante.</p>
+
+  <p>Al instalar o usar Cénit, aceptas los términos de abajo. Si no los aceptas, quita la app de tu dispositivo.</p>
+
+  <h2>1. Qué es Cénit y quién lo ofrece</h2>
+  <p>Cénit es una app de iOS que lee tus datos de Apple Salud, calcula tu recuperación, esfuerzo, HRV y sueño en tu iPhone, y guarda los resultados solo ahí. Estos términos los ofrece el desarrollador de Cénit, al que llamamos aquí «el desarrollador». «Tú» significa la persona que instala y usa Cénit.</p>
+  <p>Cénit es gratis hoy. Si en el futuro se introduce una función de pago, se anunciará dentro de la app y en su ficha de App Store antes de aplicarse, y estos términos se actualizarán para reflejarlo.</p>
+  <p>Para contactar al desarrollador, abre un issue en <a href="https://github.com/blandisc/cenit/issues">github.com/blandisc/cenit/issues</a>. Ese es el único canal de soporte — el desarrollador no publica un correo de soporte ni un nombre personal.</p>
+
+  <h2>2. Proyecto independiente, no afiliado con Apple</h2>
+  <p>Cénit es un proyecto independiente. No está afiliado con Apple Inc., ni Apple lo respalda o lo patrocina. «Apple Health» y «HealthKit» son marcas de Apple Inc., nombradas aquí solo para describir el framework del dispositivo del que Cénit lee — un uso nominativo legítimo — nunca para sugerir que Apple construyó, revisó o respalda Cénit.</p>
+
+  <h2>3. Usa Cénit bajo tu propio riesgo</h2>
+  <p>Cénit es software experimental. Sus números de recuperación, esfuerzo, HRV y sueño se calculan en tu dispositivo con métodos publicados y aproximados; pueden estar equivocados, incompletos, o cambiar entre versiones conforme esos métodos se afinan. Usas estos números, y la app, bajo tu propio riesgo, y eres responsable de cumplir las leyes o acuerdos que te apliquen.</p>
+
+  <h2>4. Solo lee la API pública de HealthKit — sin material de terceros</h2>
+  <p>Cénit lee tus datos de salud exclusivamente a través de la API pública y documentada de HealthKit de Apple, bajo los permisos de lectura y escritura que tú otorgas y puedes revocar cuando quieras en la app Salud. Cénit solo contiene trabajo original de su desarrollador: sin código propietario de terceros, sin material producto de ingeniería inversa, y sin evadir ningún control de acceso, inicio de sesión o muro de pago.</p>
+
+  <h2>5. Cénit no ejerce la medicina</h2>
+  <p>Cénit no es un dispositivo médico y no da consejo médico. Cada métrica que muestra —recuperación, esfuerzo, HRV, etapas de sueño y las demás— es una aproximación calculada con fórmulas publicadas, no una medición clínica. No uses Cénit para diagnosticar, monitorear, o tomar una decisión sobre una condición de salud. Ante cualquier duda médica, consulta a un profesional de la salud calificado o busca atención de emergencia, en vez de confiar en Cénit.</p>
+
+  <h2>6. Sin garantía, responsabilidad limitada</h2>
+  <p>Cénit se ofrece «tal cual», sin garantía de ningún tipo, expresa o implícita, hasta donde la ley lo permita. El desarrollador no es responsable de ninguna pérdida que surja de tu uso de Cénit, incluyendo datos perdidos o inexactos — excepto donde la ley que te aplica te otorgue derechos o protecciones que estos términos no puedan renunciar. En ese caso, esta sección aplica solo hasta donde esa ley lo permita, y el resto de estos términos sigue vigente.</p>
+
+  <h2>7. Privacidad</h2>
+  <p>Qué lee, guarda y comparte Cénit —y qué nunca envía a ningún lado— está descrito por completo en la <a href="privacidad.html">Política de privacidad</a>: <a href="https://blandisc.github.io/cenit/privacidad.html">blandisc.github.io/cenit/privacidad.html</a>.</p>
+
+  <h2>8. Cambios y versión</h2>
+  <p>El desarrollador puede actualizar estos términos. La versión vigente siempre se publica en esta misma dirección, fechada arriba. Si sigues usando Cénit después de un cambio, aceptas la versión actualizada.</p>
+
+  <h2 class="lang-switch"><span class="lang-tag">English</span><br>Terms of Use</h2>
+  <p class="meta">Version 3.0 — September 6, 2026</p>
+  <p class="note">This is not legal advice; have a lawyer review before relying on these terms as binding.</p>
+
+  <p>By installing or using Cénit, you accept the terms below. If you do not accept them, remove the app from your device.</p>
+
+  <h2>1. What Cénit is, and who provides it</h2>
+  <p>Cénit is an iOS app that reads your own data from Apple Health, computes recovery, strain, HRV, and sleep metrics on your iPhone, and stores the results only on that iPhone. These terms are provided by the developer of Cénit, referred to here as "the developer." "You" means the person installing and using Cénit.</p>
+  <p>Cénit is free to use today. If a paid feature is introduced later, it will be announced inside the app and on its App Store listing before it takes effect, and these terms will be updated to match.</p>
+  <p>To reach the developer, open an issue at <a href="https://github.com/blandisc/cenit/issues">github.com/blandisc/cenit/issues</a>. That is the only support channel — the developer does not publish a support email address or a personal name.</p>
+
+  <h2>2. Independent project, not affiliated with Apple</h2>
+  <p>Cénit is an independent project. It is not affiliated with, endorsed by, sponsored by, or connected to Apple Inc. in any way. "Apple Health" and "HealthKit" are trademarks of Apple Inc., named here only to describe the on-device framework Cénit reads from — nominative fair use — never to suggest that Apple built, reviewed, or backs Cénit. All other trademarks belong to their respective owners.</p>
+
+  <h2>3. Use Cénit at your own risk</h2>
+  <p>Cénit is experimental software. Its recovery, strain, HRV, and sleep numbers are computed on-device from published, approximate methods; they can be wrong, incomplete, or change between versions as those methods are refined. You use these numbers, and the app, at your own risk, and you are responsible for your own compliance with any laws or agreements that apply to you.</p>
+
+  <h2>4. Reads Apple's public HealthKit API only — no third-party material</h2>
+  <p>Cénit reads your health data exclusively through Apple's public, documented HealthKit API, under the read and write permissions you grant and can revoke at any time in the Health app. Cénit contains only its developer's own original work: no third-party proprietary code, no reverse-engineered or decompiled material, and no circumvention of any access control, login, or paywall.</p>
+
+  <h2>5. Cénit does not practice medicine</h2>
+  <p>Cénit is not a medical device and provides no medical advice. Every metric it shows — recovery, strain, HRV, sleep stages, and the rest — is an approximation computed from published formulas, not a clinical measurement. Do not use Cénit to diagnose, monitor, or make a decision about a health condition. For any medical concern, consult a qualified healthcare professional or seek emergency care instead of relying on Cénit.</p>
+
+  <h2>6. No warranty, limited liability</h2>
+  <p>Cénit is provided "as is," with no warranty of any kind, express or implied, to the extent the law allows. The developer is not liable for any loss arising from your use of Cénit, including lost or inaccurate data — except where the law that applies to you grants rights or protections that cannot be waived by these terms. In that case, this section applies only as far as that law permits, and the rest of these terms stay in effect.</p>
+
+  <h2>7. Privacy</h2>
+  <p>What Cénit reads, stores, and shares — and what it never sends anywhere — is described in full in the <a href="privacidad.html">Privacy Policy</a>: <a href="https://blandisc.github.io/cenit/privacidad.html">blandisc.github.io/cenit/privacidad.html</a>.</p>
+
+  <h2>8. Changes and version</h2>
+  <p>The developer may update these terms. The current version is always published at this same address, dated at the top. Continuing to use Cénit after a change means you accept the updated version.</p>
+</div>
+<footer>Cénit · última actualización 6 de septiembre de 2026</footer>
+</body>
+</html>
