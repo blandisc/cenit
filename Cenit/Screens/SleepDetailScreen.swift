@@ -1110,7 +1110,8 @@ struct SleepDetailScreen: View {
     }
 
     private static func sleepTotalHM(_ minutes: Double) -> String {
-        let m = Int(minutes.rounded())
+        guard minutes.isFinite else { return "—" }   // FER-428: `Int(NaN/∞)` es trap; no confíes en el llamador.
+        let m = Swift.max(0, Int(minutes.rounded()))
         return "\(m / 60) h \(String(format: "%02d", m % 60)) m"
     }
 
@@ -1122,6 +1123,7 @@ struct SleepDetailScreen: View {
     }
 
     private func hoursOnly(_ minutes: Double) -> String {
+        guard minutes.isFinite else { return "—" }   // FER-428
         let m = Swift.max(0, Int(minutes.rounded()))
         return String(format: "%d:%02d", m / 60, m % 60)
     }
@@ -1129,7 +1131,8 @@ struct SleepDetailScreen: View {
     /// Cómo VoiceOver dice una duración de sueño: «7 horas 12 minutos». «7:12» se dicta como
     /// hora del reloj («siete doce»), que no es lo que el numeral quiere decir.
     private func horasHabladas(_ minutes: Double) -> String {
-        let m = Swift.max(0, Int(minutes.rounded()))
+        let safe = minutes.isFinite ? Swift.max(0, minutes) : 0   // FER-428: nunca `Int(NaN/∞)`.
+        let m = Int(safe.rounded())
         return String(localized: "\(m / 60) hours \(m % 60) minutes")
     }
 
@@ -1148,7 +1151,8 @@ struct SleepDetailScreen: View {
     }
 
     private func hoursMinutes(_ minutes: Double) -> String {
-        let m = Int(minutes.rounded())
+        guard minutes.isFinite else { return "—" }   // FER-428
+        let m = Swift.max(0, Int(minutes.rounded()))
         return m >= 60 ? "\(m / 60) h \(m % 60) m" : "\(m) min"
     }
 
