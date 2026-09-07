@@ -330,7 +330,7 @@ private struct AjustesLanding: View {
                     // permiso del sistema: negarlo en Ajustes de iOS apaga el AVISO, no la vigilancia,
                     // así que el switch no se deshabilita ni se auto-apaga por esa respuesta.
                     Toggle(isOn: Binding(get: { illnessEncendido }, set: { encenderVigilanciaEnfermedad($0) })) {
-                        Text(String(localized: "Watch for illness signs"))
+                        Text(String(localized: "Watch for unusual-load signals"))
                             .font(LiquidType.tituloFila).foregroundStyle(LiquidColor.tinta900)
                     }
                     .tint(LiquidColor.verdePrimario)
@@ -339,7 +339,7 @@ private struct AjustesLanding: View {
                     // literal español «Hoy» dentro de la cadena fuente inglesa — el dock usa esa
                     // MISMA clave (`LiquidTabRotulos+Cenit.swift`), así que en UI inglesa esto ya
                     // dice «Today», el nombre real de la pestaña.
-                    Text(String(localized: "I cross your wrist temperature with your resting nighttime pulse to warn you early of a possible illness. It's approximate, not a diagnosis, and I need about two weeks of data. If it fires, you'll see it in \(String(localized: "Today")) and, if you've allowed notifications, in a notification."))
+                    Text(String(localized: "I cross your wrist temperature with your resting nighttime pulse to spot nights when your body is under more load than usual: a rough night, a hard day, or something you may be coming down with. It's approximate, not a diagnosis, and I need about two weeks of data. If it fires, you'll see it in \(String(localized: "Today")) and, if you allow notifications, as a notification."))
                         .font(LiquidType.captionLectura).foregroundStyle(LiquidColor.tinta500)
                         .fixedSize(horizontal: false, vertical: true)
                     if illnessNegado {
