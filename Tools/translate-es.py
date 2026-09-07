@@ -996,8 +996,16 @@ ES: dict[str, str] = {
     "Automations": "Automatizaciones",
     "Coach": "Coach",
     "Settings": "Configuración",
-    "Support": "Apoyo",
+    "Support": "Soporte",
     "About": "Acerca de",
+    # FER-398 · «Acerca de»: créditos + los tres enlaces que pide la tienda.
+    "Credits & licenses": "Créditos y licencias",
+    "Links": "Enlaces",
+    "Privacy policy": "Política de privacidad",
+    "Terms of use": "Términos de uso",
+    # FER-398 · la letra chica de la puerta de términos ahora es un enlace a la web.
+    # Sin em-dash en español (regla FER-879): «·».
+    "terms.fine": "Los términos completos están en blandisc.github.io/cenit/terminos.html · esto no es asesoría legal.",
     "Profile": "Perfil",
     "Data": "Datos",
     "More": "Más",
@@ -1748,7 +1756,6 @@ ES: dict[str, str] = {
     "Connect your wearable band to see this morning's readiness, recovery and heart rate.": "Conecta tu banda para ver tu disposición, recuperación y frecuencia cardiaca de esta mañana.",
     "Your scores are building": "Tus puntuaciones se están construyendo",
     "Your band is connected. Recovery, strain and sleep build over your next few nights of wear. Import your the band export in Data Sources to backfill instantly.": "Tu banda está conectada. La recuperación, el esfuerzo y el sueño se construyen durante tus próximas noches de uso. Importa tu exportación de the band en Fuentes de datos para rellenarlo al instante.",
-    "Scan for band": "Buscar banda",
     "Plan a hard session": "Planea una sesión dura",
     "Low conf": "Conf. baja",
     "Since midnight": "Desde medianoche",
