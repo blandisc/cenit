@@ -1,0 +1,249 @@
+{
+  "familia": "ajustes",
+  "titulo": "Ajustes · AjustesView",
+  "unidad": "estados",
+  "blurb": "La raíz de Ajustes (perfil inline + secciones por hoja) y sus hijas: unidades, FC máx, ciclo, las 3 ruedas de perfil, aviso matutino, recordatorio de entreno, la puerta de Historial de FA, Fuentes de datos, Apple Salud y Soporte.",
+  "nodos": [
+    {
+      "id": "raiz",
+      "titulo": "Ajustes · raíz",
+      "condicion": "Perfil inline (edad/sexo/peso/estatura/FC máx) + secciones App/Data/Biblioteca/Monitoreo/avisos/Experimental/More",
+      "pasos": [
+        { "nav": "ajustes", "settle": 3 }
+      ]
+    },
+    {
+      "id": "unidades",
+      "titulo": "Unidades y formato",
+      "condicion": "Hoja `UnidadesSheet` — sistema métrico/imperial + temperatura, ajustada al contenido",
+      "args": ["-noop.route", "ajustes/unidades"],
+      "pasos": [
+        { "nav": "ajustes", "settle": 3 }
+      ]
+    },
+    {
+      "id": "fc-max",
+      "titulo": "FC máxima",
+      "condicion": "Hoja `MaxHRSheet` — Automático (Tanaka 208 − 0.7×edad) / Manual (rueda 100–230 bpm)",
+      "args": ["-noop.route", "ajustes/fcmax"],
+      "pasos": [
+        { "nav": "ajustes", "settle": 3 }
+      ]
+    },
+    {
+      "id": "ciclo",
+      "titulo": "Fase del ciclo · consentimiento",
+      "condicion": "Hoja `CyclePhaseSheet` con el experimento apagado (default) — pantalla de consentimiento, qué hace/no hace",
+      "args": ["-noop.route", "ajustes/ciclo"],
+      "pasos": [
+        { "nav": "ajustes", "settle": 3 }
+      ]
+    },
+    {
+      "id": "perfil-edad",
+      "titulo": "Perfil · rueda de edad",
+      "condicion": "`ProfileWheelSheet` — Picker de rueda 13…100 años",
+      "args": ["-noop.route", "ajustes/perfil-edad"],
+      "pasos": [
+        { "nav": "ajustes", "settle": 3 }
+      ]
+    },
+    {
+      "id": "perfil-peso",
+      "titulo": "Perfil · rueda de peso",
+      "condicion": "`ProfileWheelSheet` — Picker de rueda en kg (o lb según preferencia de unidades)",
+      "args": ["-noop.route", "ajustes/perfil-peso"],
+      "pasos": [
+        { "nav": "ajustes", "settle": 3 }
+      ]
+    },
+    {
+      "id": "perfil-altura",
+      "titulo": "Perfil · rueda de estatura",
+      "condicion": "`ProfileWheelSheet` — Picker de rueda en cm (o ft/in según preferencia de unidades)",
+      "args": ["-noop.route", "ajustes/perfil-altura"],
+      "pasos": [
+        { "nav": "ajustes", "settle": 3 }
+      ]
+    },
+    {
+      "id": "aviso-matutino",
+      "titulo": "Aviso matutino",
+      "condicion": "`AvisoMatutinoSection` en su estado por defecto (apagado, permiso sin pedir) — toggle + glosa",
+      "pasos": [
+        { "nav": "ajustes", "settle": 2 },
+        { "swipeUp": 3 },
+        { "wait": 1 }
+      ]
+    },
+    {
+      "id": "recordatorio-entreno",
+      "titulo": "Recordatorio de entreno",
+      "condicion": "`RecordatorioEntrenoSection` en su estado por defecto (apagado, sin plan asignado aún)",
+      "pasos": [
+        { "nav": "ajustes", "settle": 2 },
+        { "swipeUp": 4 },
+        { "wait": 1 }
+      ]
+    },
+    {
+      "id": "historial-fa-informa",
+      "titulo": "Historial de FA · informa",
+      "condicion": "`HistorialFASection` visible (default sin evidencia de series densas) — las dos caras, qué afina / qué cuesta",
+      "args": ["-noop.freshStore", "YES"],
+      "pasos": [
+        { "nav": "ajustes", "settle": 2 },
+        { "swipeUp": 5 },
+        { "wait": 1 }
+      ]
+    },
+    {
+      "id": "historial-fa-oculta",
+      "titulo": "Historial de FA · sección oculta",
+      "condicion": "Con una noche `apple_rmssd_night` ya registrada, `HistorialFAPuerta.estado` da `.yaLleganSeries` y la sección desaparece del scroll",
+      "fixture": "historialFAOculta",
+      "pasos": [
+        { "nav": "ajustes", "settle": 2 },
+        { "swipeUp": 5 },
+        { "wait": 1 }
+      ]
+    },
+    {
+      "id": "descarga-animaciones-idle",
+      "titulo": "Exercise library · descarga (idle)",
+      "condicion": "MediaDownloadCoordinator.downloadState == .idle — sin UI propia (EmptyView), indistinguible del landing",
+      "omitido": "El grupo de 4 estados que el spec/inventario etiquetó «historial FA (idle/downloading/completed/failed)» en realidad corresponde a `MediaDownloadCoordinator.downloadState` (la tarjeta «Exercise library» de AjustesView), no a `AjustesHistorialFA.swift` — ningún tipo con esos 4 casos vive en el archivo de Historial de FA. `downloadState` es `private(set)` en `Cenit/Media/MediaDownloadCoordinator.swift`, fuera de la lista de archivos de esta familia, así que no hay palanca para fijarlo sin tocar ese archivo (o disparar una descarga real de red, la única excepción offline de la app). Ver `historial-fa-informa`/`historial-fa-oculta` arriba para los estados REALES de Historial de FA."
+    },
+    {
+      "id": "descarga-animaciones-descargando",
+      "titulo": "Exercise library · descarga (downloading)",
+      "condicion": "MediaDownloadCoordinator.downloadState == .downloading(completed:total:) — barra de progreso",
+      "omitido": "Mismo bloqueo que `descarga-animaciones-idle`: downloadState es private(set) fuera de Cenit/Media/MediaDownloadCoordinator.swift, fuera de alcance de esta familia."
+    },
+    {
+      "id": "descarga-animaciones-completado",
+      "titulo": "Exercise library · descarga (completed)",
+      "condicion": "MediaDownloadCoordinator.downloadState == .completed(matched:total:) — línea de resultado + botón «Borrar animaciones»",
+      "omitido": "Mismo bloqueo que `descarga-animaciones-idle`: downloadState es private(set) fuera de Cenit/Media/MediaDownloadCoordinator.swift, fuera de alcance de esta familia."
+    },
+    {
+      "id": "descarga-animaciones-fallo",
+      "titulo": "Exercise library · descarga (failed)",
+      "condicion": "MediaDownloadCoordinator.downloadState == .failed — nota de error",
+      "omitido": "Mismo bloqueo que `descarga-animaciones-idle`: downloadState es private(set) fuera de Cenit/Media/MediaDownloadCoordinator.swift, fuera de alcance de esta familia."
+    },
+    {
+      "id": "fuentes-sin-conexion",
+      "titulo": "Fuentes de datos · sin conexión",
+      "condicion": "health.auth ∈ {.unknown, .denied} (default de simulador sin autorizar) — botón «Connect Apple Health»",
+      "args": ["-noop.freshStore", "YES"],
+      "pasos": [
+        { "nav": "datasources", "settle": 3 }
+      ]
+    },
+    {
+      "id": "fuentes-con-dias",
+      "titulo": "Fuentes de datos · con días",
+      "condicion": "health.auth == .authorized con coverage.totalDays > 0 — resumen «N of 30 days with data»",
+      "omitido": "health.auth y health.coverage son private(set) en CenitApp/Health/HealthKitBridge.swift (fuera de la lista de archivos de esta familia) y solo los mueve una autorización HealthKit real + un sync real — no hay fixture ni arg viable sin tocar ese archivo. Riesgo ya señalado en el inventario (HealthKit real no determinista con addUIInterruptionMonitor)."
+    },
+    {
+      "id": "fuentes-health-lasterror",
+      "titulo": "Fuentes de datos · health.lastError",
+      "condicion": "health.lastError != nil — LiquidNotaLine ámbar bajo la sección Apple Health",
+      "omitido": "health.lastError es private(set) en CenitApp/Health/HealthKitBridge.swift (fuera de alcance de esta familia); solo lo escribe una llamada real a HealthKit que falle."
+    },
+    {
+      "id": "fuentes-strengthcsv-error",
+      "titulo": "Fuentes de datos · error de export CSV",
+      "condicion": "strengthCSVError == true — nota de error bajo «Export strength history (CSV)»",
+      "args": ["-noop.readError", "strengthCSV"],
+      "pasos": [
+        { "nav": "datasources", "settle": 2 },
+        { "swipeUp": 6 },
+        { "wait": 1 }
+      ]
+    },
+    {
+      "id": "fuentes-backup-ok",
+      "titulo": "Fuentes de datos · backup exportado",
+      "condicion": "LiquidAviso verde superior — «Backup exported»",
+      "args": ["-noop.readError", "backupOk"],
+      "pasos": [
+        { "nav": "datasources", "settle": 2 },
+        { "wait": 1 }
+      ]
+    },
+    {
+      "id": "fuentes-backup-error",
+      "titulo": "Fuentes de datos · problema de backup",
+      "condicion": "LiquidAviso rojo superior — «Backup problem»",
+      "args": ["-noop.readError", "backupError"],
+      "pasos": [
+        { "nav": "datasources", "settle": 2 },
+        { "wait": 1 }
+      ]
+    },
+    {
+      "id": "fuentes-autobackup-lasterror",
+      "titulo": "Fuentes de datos · autoBackup.lastError",
+      "condicion": "autoBackup.lastError != nil — LiquidNotaLine roja bajo «Automatic iCloud backup»",
+      "omitido": "AutoBackup.lastError es private(set) en Cenit/Data/DataBackup.swift (fuera de la lista de archivos de esta familia); solo lo escribe un backup/restore real que falle contra iCloud Drive."
+    },
+    {
+      "id": "apple-salud-cargando",
+      "titulo": "Apple Salud · cargando",
+      "condicion": "loaded == false — «Reading your Apple Health history…» con spinner",
+      "args": ["-noop.slowLoad", "YES"],
+      "pasos": [
+        { "nav": "applehealth", "settle": 1 }
+      ]
+    },
+    {
+      "id": "apple-salud-sin-filas",
+      "titulo": "Apple Salud · sin filas",
+      "condicion": "loaded == true, hasAnyData == false — «Nothing imported yet»",
+      "args": ["-noop.freshStore", "YES"],
+      "pasos": [
+        { "nav": "applehealth", "settle": 3 }
+      ]
+    },
+    {
+      "id": "apple-salud-con-filas",
+      "titulo": "Apple Salud · con filas",
+      "condicion": "loaded == true, hasAnyData == true — grid de tiles + gráficas por sección (Heart & Vitals, Activity, Body, Sleep)",
+      "fixture": "appleHealthDays",
+      "pasos": [
+        { "nav": "applehealth", "settle": 3 }
+      ]
+    },
+    {
+      "id": "soporte",
+      "titulo": "Acerca de y soporte",
+      "condicion": "`SupportView` — versión + qué es Cénit",
+      "pasos": [
+        { "nav": "support", "settle": 3 }
+      ]
+    }
+  ],
+  "aristas": [
+    { "de": "raiz", "a": "unidades", "etiqueta": "Units & format" },
+    { "de": "raiz", "a": "fc-max", "etiqueta": "Max heart rate" },
+    { "de": "raiz", "a": "ciclo", "etiqueta": "Cycle phase" },
+    { "de": "raiz", "a": "perfil-edad", "etiqueta": "Age" },
+    { "de": "raiz", "a": "perfil-peso", "etiqueta": "Weight" },
+    { "de": "raiz", "a": "perfil-altura", "etiqueta": "Height" },
+    { "de": "raiz", "a": "aviso-matutino", "etiqueta": "scroll" },
+    { "de": "raiz", "a": "recordatorio-entreno", "etiqueta": "scroll" },
+    { "de": "raiz", "a": "historial-fa-informa", "etiqueta": "scroll" },
+    { "de": "historial-fa-informa", "a": "historial-fa-oculta", "etiqueta": "series densas" },
+    { "de": "raiz", "a": "fuentes-sin-conexion", "etiqueta": "Data Sources" },
+    { "de": "fuentes-sin-conexion", "a": "fuentes-strengthcsv-error", "etiqueta": "Export CSV falla" },
+    { "de": "fuentes-sin-conexion", "a": "fuentes-backup-ok", "etiqueta": "Export ok" },
+    { "de": "fuentes-sin-conexion", "a": "fuentes-backup-error", "etiqueta": "Export falla" },
+    { "de": "fuentes-sin-conexion", "a": "apple-salud-cargando", "etiqueta": "Ver datos importados" },
+    { "de": "apple-salud-cargando", "a": "apple-salud-sin-filas", "etiqueta": "carga" },
+    { "de": "apple-salud-sin-filas", "a": "apple-salud-con-filas", "etiqueta": "con datos" },
+    { "de": "raiz", "a": "soporte", "etiqueta": "About & support" }
+  ]
+}
