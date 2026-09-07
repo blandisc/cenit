@@ -122,9 +122,9 @@ struct HealthTimestampReader {
         formatter.dateFormat = "yyyy-MM-dd HH:mm:ss Z"
         wallClockFormatter = formatter
 
-        let iso = ISO8601DateFormatter()
-        iso.formatOptions = [.withInternetDateTime]
-        isoFormatter = iso
+        let internetDates = ISO8601DateFormatter()
+        internetDates.formatOptions = [ISO8601DateFormatter.Options.withInternetDateTime]
+        isoFormatter = internetDates
     }
 
     /// Parses a timestamp, fast path first. `nil` when neither path recognises the text —
@@ -235,11 +235,11 @@ struct HealthTimestampReader {
     /// the string can hold a zone token, so the search is confined to the last six
     /// characters — otherwise the `-` of `2024-06-01` would be mistaken for a sign.
     static func trailingOffsetMinutes(_ text: String) -> Int {
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard let last = trimmed.last else { return 0 }
+        let compact = text.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+        guard let last = compact.last else { return 0 }
         if last == "Z" || last == "z" { return 0 }
 
-        let tail = trimmed.suffix(6)
+        let tail = compact.suffix(6)
         guard let signIndex = tail.firstIndex(where: { $0 == "+" || $0 == "-" }) else { return 0 }
         let sign = tail[signIndex] == "-" ? -1 : 1
 
