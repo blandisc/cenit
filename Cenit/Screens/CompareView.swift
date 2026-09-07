@@ -9,7 +9,6 @@ import CenitStore
 // línea se normaliza min–max DENTRO de su propia ventana: unidades distintas comparten el plot por
 // forma, jamás por magnitud. Debajo, cada par recibe su Pearson r vivo con una conclusión en prosa.
 // Pantalla de pura lectura: cada métrica se trae del repositorio y todo lo demás se deriva aquí.
-//
 // Se presenta como `.sheet` desde Cuerpo y desde la raíz; el fondo es `LiquidSheetFondo` (neutro:
 // Comparar no tiene un sujeto único que teñir), se cierra arrastrando y no anida NavigationStack.
 //
@@ -48,19 +47,19 @@ private func compareDate(_ day: String) -> Date? { Repository.parseDayKey(day) }
 /// Una métrica elegida, ya resuelta sobre la ventana activa: su descriptor, sus filas recortadas,
 /// su color de IDENTIDAD y su mínimo/máximo reales.
 private struct OverlaidMetric: Identifiable {
-    let metric: MetricDescriptor
+    let descriptor: MetricDescriptor
     /// El hue de identidad de la métrica, no un color por índice: ese es todo el punto del puente.
-    let color: Color
-    let rows: [(day: String, value: Double)]
+    let tone: Color
+    let window: [(day: String, value: Double)]
 
-    var id: String { metric.id }
-    var values: [Double] { rows.map(\.value) }
-    var lowest: Double { values.min() ?? 0 }
-    var highest: Double { values.max() ?? 0 }
+    var id: String { descriptor.id }
+    var readings: [Double] { window.map(\.value) }
+    var lowest: Double { readings.min() ?? 0 }
+    var highest: Double { readings.max() ?? 0 }
 
     /// El valor de un día concreto, si quedó registrado.
-    func value(on day: String) -> Double? {
-        rows.first { $0.day == day }?.value
+    func reading(on day: String) -> Double? {
+        window.first { $0.day == day }?.value
     }
 }
 
@@ -87,21 +86,24 @@ private struct PairedMetrics: Identifiable {
 private enum ComparePairing {
     /// Huella estable de las entradas de la corrida: si no cambia, la caché sigue siendo válida.
     static func fingerprint(_ series: [OverlaidMetric]) -> String {
-        series
-            .filter { !$0.rows.isEmpty }
-            .map { s in "\(s.id):\(s.rows.count):\(s.rows.first?.day ?? "")>\(s.rows.last?.day ?? "")" }
-            .joined(separator: "|")
+        var trazos: [String] = []
+        for s in series where !s.window.isEmpty {
+            let primera = s.window.first?.day ?? ""
+            let ultima = s.window.last?.day ?? ""
+            trazos.append("\(s.id):\(s.window.count):\(primera)>\(ultima)")
+        }
+        return trazos.joined(separator: "|")
     }
 
     /// La corrida cara: Sendable adentro, Sendable afuera, así que sirve igual síncrona que dentro de
     /// un `Task.detached`. El piso de cómputo y la escalera de fuerza son los canónicos de
     /// `CorrelationStrength`, nunca umbrales inventados aquí.
-    static func scan(_ series: [(id: String, rows: [(day: String, value: Double)])]) -> [PairScan] {
+    static func scan(_ series: [(id: String, puntos: [(day: String, value: Double)])]) -> [PairScan] {
         guard series.count >= 2 else { return [] }
         var hallazgos: [PairScan] = []
         for primera in 0..<(series.count - 1) {
             for segunda in (primera + 1)..<series.count {
-                let comunes = CorrelationEngine.alignByDay(series[primera].rows, series[segunda].rows)
+                let comunes = CorrelationEngine.alignByDay(series[primera].puntos, series[segunda].puntos)
                 guard comunes.count >= CorrelationStrength.minPairs,
                       let correlacion = CorrelationEngine.pearson(comunes) else { continue }
                 hallazgos.append(PairScan(aId: series[primera].id,
@@ -124,8 +126,8 @@ private enum ComparePairing {
 
     /// Corrida síncrona, usada SOLO como respaldo del mismo cuadro cuando la caché viene fría.
     static func immediate(_ series: [OverlaidMetric]) -> [PairedMetrics] {
-        let dibujables = series.filter { !$0.rows.isEmpty }
-        let foto = dibujables.map { (id: $0.id, rows: $0.rows) }
+        let dibujables = series.filter { !$0.window.isEmpty }
+        let foto = dibujables.map { (id: $0.id, puntos: $0.window) }
         return attach(scan(foto), to: dibujables)
     }
 }
@@ -167,10 +169,10 @@ private enum CompareWording {
     /// La conclusión en prosa. Los nombres son CANÓNICOS; cuando |r| no llega a 0.3 se dice que no hay
     /// relación clara, en vez de forzar una lectura que el número no sostiene.
     static func insight(_ p: PairedMetrics) -> String {
-        let aT = p.a.metric.canonicalTitle
-        let bT = p.b.metric.canonicalTitle
+        let aT = p.a.descriptor.canonicalTitle
+        let bT = p.b.descriptor.canonicalTitle
         let head = String(localized: "\(aT) ↔ \(bT): r = \(signedR(p.r)) (\(strengthAndDirection(p.r))) over \(p.n) shared days.")
-        guard abs(p.r) >= 0.3 else {
+        if abs(p.r) < 0.3 {
             return head + String(localized: " No clear relationship: they move largely independently.")
         }
         let aLower = aT.lowercased()
@@ -189,14 +191,14 @@ private enum CompareWording {
     static func spoken(_ p: PairedMetrics) -> String {
         String(format: String(localized: "compare.pair.a11y",
                               defaultValue: "%1$@ versus %2$@, r equals %3$@, %4$lld days"),
-               p.a.metric.canonicalTitle, p.b.metric.canonicalTitle, signedR(p.r), p.n)
+               p.a.descriptor.canonicalTitle, p.b.descriptor.canonicalTitle, signedR(p.r), p.n)
     }
 }
 
 // MARK: - Pantalla
 
 struct CompareView: View {
-    @EnvironmentObject var repo: Repository
+    @EnvironmentObject private var repo: Repository
     /// Tamaño de texto: en tamaños de accesibilidad la cabecera de la tarjeta de par se apila en vez
     /// de correr el título contra el valor de r.
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -211,12 +213,12 @@ struct CompareView: View {
     /// Abre en M, igual que el Explorador y los detalles de métrica.
     @State private var range: ExploreRange = .month
     /// Selección ordenada (tope 4). Manda el orden de la leyenda.
-    @State private var selected: [MetricDescriptor] = []
+    @State private var picked: [MetricDescriptor] = []
     /// El selector es una hoja y no un `Menu`: un menú reinicia su scroll en cada re-render del padre.
     @State private var showPicker = false
     /// Historia completa por id de métrica (ascendente por día); el recorte se hace en la vista.
-    @State private var fullSeries: [String: [(day: String, value: Double)]] = [:]
-    @State private var loadedOnce = false
+    @State private var history: [String: [(day: String, value: Double)]] = [:]
+    @State private var firstReadDone = false
     /// Series ya ventaneadas — se recalculan solo al cambiar selección, ventana o carga.
     @State private var windowed: [OverlaidMetric] = []
     /// Última corrida de pares y la huella de las entradas con que se calculó.
@@ -233,17 +235,18 @@ struct CompareView: View {
             .padding(.horizontal, LiquidSpace.s550)
             .padding(.top, LiquidSpace.s550)
             .padding(.bottom, LiquidSpace.s800)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: .infinity,
+                   alignment: .leading)
         }
         .scrollIndicators(.hidden)
         .presentationBackground { LiquidSheetFondo() }
         .presentationDragIndicator(.visible)
         .presentationCornerRadius(LiquidRadius.hoja)
         .sheet(isPresented: $showPicker) {
-            CompareMetricPicker(selected: $selected, ceiling: ceiling)
+            CompareMetricPicker(picked: $picked, ceiling: ceiling)
         }
         .task { await seedSelectionIfNeeded() }
-        .task(id: selectionKey) {
+        .task(id: pickedKey) {
             await loadMissingSeries()
             rewindow()
             refreshPairs(windowed)
@@ -261,12 +264,12 @@ struct CompareView: View {
     /// Lo que va debajo del selector: el pozo honesto que toque, o la superposición y sus correlaciones.
     @ViewBuilder
     private var readingArea: some View {
-        if selected.count < floorCount {
+        if picked.count < floorCount {
             // Elegir menos de dos no es un problema de datos: el selector está justo arriba. Decir
             // «conecta Apple Health» aquí sería mentir; esa copia se reserva para más abajo.
             CompareWell(text: String(localized: "Pick 2–4 metrics to overlay."))
-        } else if windowed.allSatisfy({ $0.rows.isEmpty }) {
-            if loadedOnce {
+        } else if windowed.allSatisfy({ $0.window.isEmpty }) {
+            if firstReadDone {
                 // Dos causas, dos copias: no hay historia de NADA (el caso real de sin datos / sin
                 // permiso) contra hay historia pero no en ESTA ventana.
                 CompareWell(text: noHistoryAtAll ? Self.connectCopy : outOfWindowCopy)
@@ -295,23 +298,23 @@ struct CompareView: View {
                 .accessibilityLabel(String(localized: "Time range"))
 
             HStack(alignment: .firstTextBaseline) {
-                if selected.count >= floorCount {
+                if picked.count >= floorCount {
                     Text(verbatim: readingsCaption)
                         .font(LiquidType.captionLectura)
-                        .foregroundStyle(anyWidened ? LiquidColor.atencionTexto : LiquidColor.tinta500)
+                        .foregroundStyle(someSeriesWidened ? LiquidColor.atencionTexto : LiquidColor.tinta500)
                         .accessibilityLabel(readingsCaption)
                 }
                 Spacer(minLength: LiquidSpace.s200)
                 pickerButton
             }
 
-            if selected.isEmpty {
+            if picked.isEmpty {
                 Text(String(localized: "Nothing selected yet."))
                     .font(LiquidType.cuerpo)
                     .foregroundStyle(LiquidColor.tinta500)
             } else {
                 LiquidFlujoLeyenda(espacioH: LiquidSpace.s150, espacioV: LiquidSpace.s150) {
-                    ForEach(selected) { metric in
+                    ForEach(picked) { metric in
                         LiquidChipSeleccion(
                             nombre: metric.canonicalTitle,
                             tono: MetricIdentity.hue(for: metric),
@@ -322,7 +325,8 @@ struct CompareView: View {
                 }
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity,
+               alignment: .leading)
     }
 
     /// Puente entre el índice del selector Liquid y la ventana activa.
@@ -335,7 +339,7 @@ struct CompareView: View {
     /// Abre la hoja de selección. Siempre pulsable: ahí se añade Y se quita, así que sigue alcanzable
     /// con las cuatro métricas puestas.
     private var pickerButton: some View {
-        let atCeiling = selected.count >= ceiling
+        let atCeiling = picked.count >= ceiling
         return Button {
             showPicker = true
         } label: {
@@ -357,7 +361,7 @@ struct CompareView: View {
 
     private func drop(_ metric: MetricDescriptor) {
         withAnimation(LiquidMotion.selector) {
-            selected.removeAll { $0 == metric }
+            picked.removeAll { $0 == metric }
         }
     }
 
@@ -368,11 +372,11 @@ struct CompareView: View {
         // estado honesto (con 2+ elegidas pero menos de 2 con lecturas cae en «sin datos en la
         // ventana», nunca en la copia de «conecta Apple Health»). El conteo del rótulo sí es el de
         // las que se dibujan.
-        let drawable = windowed.filter { !$0.rows.isEmpty }.count
+        let drawable = windowed.filter { !$0.window.isEmpty }.count
         return CompareBlock(title: String(localized: "Overlay"),
                             trailing: String(format: String(localized: "compare.overlay.count",
                                                             defaultValue: "%lld series"), drawable)) {
-            CompareOverlay(series: windowed, anyWidened: anyWidened, phrase: range.phrase)
+            CompareOverlay(series: windowed, widened: someSeriesWidened, phrase: range.phrase)
         }
     }
 
@@ -403,8 +407,8 @@ struct CompareView: View {
 
     // MARK: Ventaneo
 
-    private var selectionKey: String {
-        selected.map(\.id).sorted().joined(separator: "|")
+    private var pickedKey: String {
+        picked.map(\.id).sorted().joined(separator: "|")
     }
 
     private func parsed(_ full: [(day: String, value: Double)]) -> MetricWindowMath.Parsed {
@@ -412,33 +416,34 @@ struct CompareView: View {
     }
 
     private func rewindow() {
-        windowed = selected.map { metric in
-            let historia = fullSeries[metric.id] ?? []
-            let ventana = MetricWindowMath.make(parsed(historia), selected: range)
-            return OverlaidMetric(metric: metric,
-                                  color: MetricIdentity.hue(for: metric),
-                                  rows: ventana.rows)
+        windowed = picked.map { metric in
+            let completa = history[metric.id] ?? []
+            let recorte = MetricWindowMath.make(parsed(completa), selected: range)
+            return OverlaidMetric(descriptor: metric,
+                                  tone: MetricIdentity.hue(for: metric),
+                                  window: recorte.rows)
         }
     }
 
     /// Cierto si alguna serie elegida tuvo que salirse de la ventana pedida para encontrar puntos.
-    private var anyWidened: Bool {
-        selected.contains { metric in
-            let historia = fullSeries[metric.id] ?? []
-            guard !historia.isEmpty else { return false }
-            return MetricWindowMath.effectiveRange(parsed(historia), selected: range) != range
+    private var someSeriesWidened: Bool {
+        for metric in picked {
+            let completa = history[metric.id] ?? []
+            if completa.isEmpty { continue }
+            if MetricWindowMath.effectiveRange(parsed(completa), selected: range) != range { return true }
         }
+        return false
     }
 
     /// «N lecturas · <ventana>», con aviso cuando algo se ensanchó. El conteo de series NO va aquí:
     /// vive en el rótulo del bloque de superposición.
     private var readingsCaption: String {
-        let total = windowed.reduce(0) { $0 + $1.rows.count }
+        let total = windowed.reduce(0) { $0 + $1.window.count }
         let unit = total == 1 ? String(localized: "reading") : String(localized: "readings")
         let base = String(format: String(localized: "compare.caption.readings",
                                          defaultValue: "%1$lld %2$@ · %3$@"),
                           total, unit, range.phrase)
-        guard anyWidened else { return base }
+        guard someSeriesWidened else { return base }
         return String(format: String(localized: "compare.caption.widened",
                                      defaultValue: "%1$@ · sparse widened"), base)
     }
@@ -454,18 +459,20 @@ struct CompareView: View {
     /// Cierto, ya cargado, cuando NINGUNA métrica elegida tiene historia: el caso genuino de sin datos
     /// o sin permiso, distinto de «tiene historia, pero no en esta ventana».
     private var noHistoryAtAll: Bool {
-        selected.allSatisfy { (fullSeries[$0.id] ?? []).isEmpty }
+        picked.allSatisfy { (history[$0.id] ?? []).isEmpty }
     }
 
     // MARK: Carga
 
     private func seedSelectionIfNeeded() async {
-        guard selected.isEmpty else { return }
-        var picks = Self.openingKeys.compactMap { key in
+        guard picked.isEmpty else { return }
+        var arranque = Self.openingKeys.compactMap { key in
             MetricCatalog.all.first { $0.key == key }
         }
-        if picks.isEmpty { picks = Array(MetricCatalog.all.prefix(2)) }
-        selected = Array(picks.prefix(ceiling))
+        if arranque.isEmpty {
+            arranque = Array(MetricCatalog.all.prefix(2))
+        }
+        picked = Array(arranque.prefix(ceiling))
     }
 
     /// Trae (y guarda) la historia completa de cada métrica elegida que aún no se haya leído. Dos
@@ -473,12 +480,13 @@ struct CompareView: View {
     /// mismo que usa el Explorador, así una clave da el mismo número en ambas pantallas — y el resto
     /// cae a `series()`. Se guarda la historia entera para que la ventana pueda ensancharse sola.
     private func loadMissingSeries() async {
-        let pendientes = selected.filter { fullSeries[$0.id] == nil }
+        let pendientes = picked.filter { history[$0.id] == nil }
         var delTablero: [(id: String, series: [(day: String, value: Double)])] = []
         var porConsultar: [MetricDescriptor] = []
         for metric in pendientes {
-            if let series = MetricSeriesResolver.dashboardSeries(metric.key, from: repo.displayDays) {
-                delTablero.append((metric.id, series))
+            let delTableroSerie = MetricSeriesResolver.dashboardSeries(metric.key, from: repo.displayDays)
+            if let delTableroSerie {
+                delTablero.append((metric.id, delTableroSerie))
             } else {
                 porConsultar.append(metric)
             }
@@ -491,9 +499,9 @@ struct CompareView: View {
             for await (id, series) in group { acumulado.append((id, series)) }
             return acumulado
         }
-        for (id, series) in delTablero { fullSeries[id] = series }
-        for (id, series) in consultadas { fullSeries[id] = series }
-        loadedOnce = true
+        for (id, series) in delTablero { history[id] = series }
+        for (id, series) in consultadas { history[id] = series }
+        firstReadDone = true
     }
 
     // MARK: Pares
@@ -511,8 +519,8 @@ struct CompareView: View {
         let huella = ComparePairing.fingerprint(series)
         guard huella != pairFingerprint else { return }
         pairFingerprint = huella
-        let dibujables = series.filter { !$0.rows.isEmpty }
-        let foto = dibujables.map { (id: $0.id, rows: $0.rows) }
+        let dibujables = series.filter { !$0.window.isEmpty }
+        let foto = dibujables.map { (id: $0.id, puntos: $0.window) }
         Task {
             let scans = await Task.detached(priority: .userInitiated) {
                 ComparePairing.scan(foto)
@@ -536,7 +544,8 @@ private struct CompareHeader: View {
                 .font(LiquidType.cuerpo)
                 .foregroundStyle(LiquidColor.tinta500)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity,
+               alignment: .leading)
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(.isHeader)
     }
@@ -567,7 +576,8 @@ private struct CompareBlock<Content: View>: View {
             }
             content()
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity,
+               alignment: .leading)
     }
 }
 
@@ -615,7 +625,8 @@ private struct ComparePairCard: View {
             Text(verbatim: CompareWording.insight(pair))
                 .font(LiquidType.captionLectura)
                 .foregroundStyle(LiquidColor.tinta700)
-                .fixedSize(horizontal: false, vertical: true)
+                .fixedSize(horizontal: false,
+                           vertical: true)
 
             Text(verbatim: CompareWording.footer(pair))
                 .font(LiquidType.caption)
@@ -628,14 +639,14 @@ private struct ComparePairCard: View {
 
     private var swatches: some View {
         HStack(spacing: LiquidSpace.s075) {
-            Circle().fill(pair.a.color).frame(width: 8, height: 8)
-            Circle().fill(pair.b.color).frame(width: 8, height: 8)
+            Circle().fill(pair.a.tone).frame(width: 8, height: 8)
+            Circle().fill(pair.b.tone).frame(width: 8, height: 8)
         }
         .accessibilityHidden(true)
     }
 
     private var title: some View {
-        Text(verbatim: "\(pair.a.metric.canonicalTitle) ↔ \(pair.b.metric.canonicalTitle)")
+        Text(verbatim: "\(pair.a.descriptor.canonicalTitle) ↔ \(pair.b.descriptor.canonicalTitle)")
             .font(LiquidType.tituloFila)
             .foregroundStyle(LiquidColor.tinta900)
     }
@@ -658,12 +669,12 @@ private struct ComparePairCard: View {
 private struct CompareOverlay: View {
     /// TODAS las elegidas: la pieza necesita saber cuántas se pidieron para escoger su estado vacío.
     let series: [OverlaidMetric]
-    let anyWidened: Bool
+    let widened: Bool
     let phrase: String
 
     /// Las que de verdad se dibujan. El tooltip y la etiqueta de a11y siguen a la leyenda, que la
     /// pieza arma con estas.
-    private var drawable: [OverlaidMetric] { series.filter { !$0.rows.isEmpty } }
+    private var drawable: [OverlaidMetric] { series.filter { !$0.window.isEmpty } }
 
     private let liquidSeries: [LiquidGraficaSuperpuesta.Serie]
     private let descriptorById: [String: MetricDescriptor]
@@ -682,7 +693,7 @@ private struct CompareOverlay: View {
         UnitSystem(rawValue: storedUnitSystem) ?? .metric
     }
 
-    private var temperatureUnit: TemperatureUnit {
+    private var temperature: TemperatureUnit {
         UnitPrefs.resolveTemperature(system: unitSystem, override: storedTemperature)
     }
 
@@ -699,24 +710,24 @@ private struct CompareOverlay: View {
         return formateador
     }
 
-    init(series: [OverlaidMetric], anyWidened: Bool, phrase: String) {
+    init(series: [OverlaidMetric], widened: Bool, phrase: String) {
         self.series = series
-        self.anyWidened = anyWidened
+        self.widened = widened
         self.phrase = phrase
         self.liquidSeries = series.map { s in
             LiquidGraficaSuperpuesta.Serie(
                 id: s.id,
-                nombre: s.metric.canonicalTitle,
-                color: s.color,
-                puntos: s.rows.compactMap { row in
+                nombre: s.descriptor.canonicalTitle,
+                color: s.tone,
+                puntos: s.window.compactMap { row in
                     compareDate(row.day).map { (fecha: $0, valor: row.value) }
                 },
                 // Min–max de la ventana, por serie. Nunca una banda fija de niveles: eso metería una
                 // cuarta escala en un plot que ya comparte tres.
                 dominio: s.lowest...s.highest)
         }
-        self.descriptorById = Dictionary(uniqueKeysWithValues: series.map { ($0.id, $0.metric) })
-        let fechas = series.flatMap { $0.rows.compactMap { compareDate($0.day) } }
+        self.descriptorById = Dictionary(uniqueKeysWithValues: series.map { ($0.id, $0.descriptor) })
+        let fechas = series.flatMap { $0.window.compactMap { compareDate($0.day) } }
         let desde = fechas.min() ?? Date()
         let hasta = fechas.max() ?? Date()
         self.dateRange = desde...hasta
@@ -727,7 +738,8 @@ private struct CompareOverlay: View {
             Text(verbatim: methodCaption)
                 .font(LiquidType.captionLectura)
                 .foregroundStyle(LiquidColor.tinta500)
-                .fixedSize(horizontal: false, vertical: true)
+                .fixedSize(horizontal: false,
+                           vertical: true)
             ZStack(alignment: .top) {
                 LiquidGraficaSuperpuesta(
                     series: liquidSeries,
@@ -735,7 +747,7 @@ private struct CompareOverlay: View {
                     seleccion: $scrubDay,
                     formatoValor: { serie, valor in
                         descriptorById[serie.id]?
-                            .format(valor, system: unitSystem, temperature: temperatureUnit) ?? ""
+                            .format(valor, system: unitSystem, temperature: temperature) ?? ""
                     },
                     a11yLabel: spokenLabel,
                     formatoFechaEje: { Self.axisFormatter.string(from: $0) },
@@ -748,7 +760,8 @@ private struct CompareOverlay: View {
                     LiquidTooltipMulti(fecha: Self.tooltipFormatter.string(from: scrubDay),
                                        filas: tooltipRows(on: scrubDay))
                         .padding(.top, LiquidSpace.s200)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .frame(maxWidth: .infinity,
+                               alignment: .leading)
                         .allowsHitTesting(false)
                 }
             }
@@ -756,7 +769,7 @@ private struct CompareOverlay: View {
     }
 
     private var methodCaption: String {
-        guard anyWidened else {
+        guard widened else {
             return String(format: String(localized: "compare.overlay.caption",
                                          defaultValue: "Each line min–max normalized within %1$@ · drag to read values"),
                           phrase)
@@ -772,19 +785,19 @@ private struct CompareOverlay: View {
 
     private var spokenLabel: String {
         String(format: String(localized: "compare.chart.a11y", defaultValue: "Comparing %1$@"),
-               drawable.map(\.metric.canonicalTitle).joined(separator: ", "))
+               drawable.map(\.descriptor.canonicalTitle).joined(separator: ", "))
     }
 
     /// Una fila por serie dibujada, en el orden de la leyenda: el valor REAL de ese día, o nada.
     private func tooltipRows(on date: Date) -> [LiquidTooltipMulti.Fila] {
         let day = Repository.utcDayKey(date)
         return drawable.map { s in
-            let valor = s.value(on: day).map {
-                s.metric.format($0, system: unitSystem, temperature: temperatureUnit)
+            let valor = s.reading(on: day).map {
+                s.descriptor.format($0, system: unitSystem, temperature: temperature)
             }
             return LiquidTooltipMulti.Fila(id: s.id,
-                                           color: s.color,
-                                           nombre: s.metric.canonicalTitle,
+                                           color: s.tone,
+                                           nombre: s.descriptor.canonicalTitle,
                                            valor: valor)
         }
     }
@@ -797,7 +810,7 @@ private struct CompareOverlay: View {
 /// interruptor con palomita. Al tope de 4 las filas nuevas se apagan, pero las ya elegidas siguen
 /// pulsables para poder cambiarlas. Se cierra arrastrando.
 private struct CompareMetricPicker: View {
-    @Binding var selected: [MetricDescriptor]
+    @Binding var picked: [MetricDescriptor]
     let ceiling: Int
 
     /// Neutro: el selector tampoco tiene un sujeto único, así que su plasta es un gris cálido quieto.
@@ -811,9 +824,9 @@ private struct CompareMetricPicker: View {
                               numeral: nil)
             LiquidNotaLine(String(localized: "Pick 2–4 to overlay."))
             ForEach(MetricCatalog.categories, id: \.self) { category in
-                let metrics = MetricCatalog.inCategory(category)
-                if !metrics.isEmpty {
-                    group(category, metrics)
+                let delGrupo = MetricCatalog.inCategory(category)
+                if !delGrupo.isEmpty {
+                    group(category, delGrupo)
                 }
             }
         }
@@ -836,31 +849,31 @@ private struct CompareMetricPicker: View {
     }
 
     private func row(_ metric: MetricDescriptor, last: Bool) -> some View {
-        let picked = selected.contains(metric)
-        let blocked = !picked && selected.count >= ceiling
+        let marcada = picked.contains(metric)
+        let blocked = !marcada && picked.count >= ceiling
         return LiquidListRow(
             title: metric.canonicalTitle,
             // El mismo subtítulo de procedencia que lleva el catálogo del Explorador, en el
             // vocabulario cerrado: una métrica nombra su origen igual en los dos instrumentos.
             subtitle: originVocabulary(metric),
             tone: MetricIdentity.hue(for: metric),
-            seleccionado: picked,
+            seleccionado: marcada,
             deshabilitado: blocked,
             // Por qué la fila está inerte: si no, VoiceOver lee una fila apagada sin decir la razón.
             a11yHint: blocked ? String(localized: "At most 4 metrics.") : nil,
             divider: !last) {
                 withAnimation(LiquidMotion.selector) {
-                    if picked {
-                        selected.removeAll { $0 == metric }
-                    } else if selected.count < ceiling {
-                        selected.append(metric)
+                    if marcada {
+                        picked.removeAll { $0 == metric }
+                    } else if picked.count < ceiling {
+                        picked.append(metric)
                     }
                 }
             }
     }
 }
 
-// MARK: - Preview
+// MARK: - Canvas
 
 #if DEBUG
 @MainActor
