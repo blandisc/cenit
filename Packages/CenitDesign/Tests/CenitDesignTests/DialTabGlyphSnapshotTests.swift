@@ -13,7 +13,7 @@ import AppKit
 final class DialTabGlyphSnapshotTests: XCTestCase {
 
     private struct TabMock: View {
-        let theme: InstrumentoTheme?      // nil → dark StrandPalette
+        let theme: InstrumentoTheme?      // nil → dark CenitPalette
         let icon: (Color) -> AnyView
         let label: String
         let active: Bool
@@ -22,12 +22,12 @@ final class DialTabGlyphSnapshotTests: XCTestCase {
             if let t = theme { return active ? t.ink : t.inkTertiary }
             return active ? InstrumentoTheme.base.ink : InstrumentoTheme.base.inkSecondary
         }
-        private var dot: Color { theme?.dataRecovery ?? StrandPalette.accent }
+        private var dot: Color { theme?.dataRecovery ?? CenitPalette.accent }
 
         var body: some View {
             VStack(spacing: 5) {
                 icon(ink).frame(height: 23)
-                Text(label).font(StrandFont.footnote).fontWeight(active ? .medium : .regular).foregroundStyle(ink)
+                Text(label).font(CenitFont.footnote).fontWeight(active ? .medium : .regular).foregroundStyle(ink)
                 Circle().fill(active ? dot : .clear).frame(width: 5, height: 5)
             }
             .frame(maxWidth: .infinity)

@@ -1,7 +1,7 @@
 import SwiftUI
 import Foundation
 import CenitDesign
-import StrandAnalytics
+import CenitAnalytics
 
 // MARK: - Modo DEMO en vivo (/inject) — generadores de fixtures
 //

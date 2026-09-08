@@ -1,12 +1,12 @@
 import Foundation
 import GRDB
-import StrandModels
+import CenitModels
 
 // MARK: - v14 cache: prescribed-diet plan + daily adherence (FER-370)
 //
 // A nutritionist's plan, captured once (noop.diet.v1, via the BYO-LLM / import path in
-// StrandImport) and tracked for adherence — NOT a calorie counter. CenitStore stores the plan as
-// an OPAQUE JSON payload: it never decodes the nested meals/options (that's StrandImport's
+// CenitImport) and tracked for adherence — NOT a calorie counter. CenitStore stores the plan as
+// an OPAQUE JSON payload: it never decodes the nested meals/options (that's CenitImport's
 // `DietPlan`); denormalized columns (nombre, idioma, ciclo, createdAt) allow listing without
 // decoding. Adherence mirrors the `journal` table — one row per (deviceId, day, mealId).
 //
@@ -15,8 +15,8 @@ import StrandModels
 // thread). MVP is one active plan at a time — `activeDietPlan` returns the most recently created
 // one; the table keeps the full history.
 
-// Value type lives in StrandModels; re-exported here so existing CenitStore consumers are unchanged.
-public typealias DietMealStatus = StrandModels.DietMealStatus
+// Value type lives in CenitModels; re-exported here so existing CenitStore consumers are unchanged.
+public typealias DietMealStatus = CenitModels.DietMealStatus
 
 /// One persisted diet plan. Natural key `id` (app-generated UUID). `payloadJSON` is the canonical
 /// `noop.diet.v1` document; the other columns are denormalized from it for listing.

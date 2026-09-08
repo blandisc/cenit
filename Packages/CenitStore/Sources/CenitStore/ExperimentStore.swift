@@ -3,7 +3,7 @@ import GRDB
 
 // MARK: - v12 cache: N-of-1 experiments (FER-307)
 // One row per experiment, natural key `id` (UUID). An experiment runs a candidate lever — a logged
-// behavior × an outcome metric — for a fixed window, then a verdict (computed in StrandAnalytics over
+// behavior × an outcome metric — for a fixed window, then a verdict (computed in CenitAnalytics over
 // the existing journal/dailyMetric data) may promote the lever candidate→proven. Mirrors the
 // JournalWorkoutAppleCache pattern: a Codable struct, an idempotent upsert keyed by natural key, and
 // range/active reads, all via the actor's syncWrite/syncRead helpers (off the main thread).
@@ -20,7 +20,7 @@ public enum ExperimentStatus: String, Sendable, Equatable, Codable, CaseIterable
 }
 
 /// One N-of-1 experiment. Natural key `id`. Result columns are nil until a verdict is computed.
-/// `result` is the raw string of StrandAnalytics' `Verdict` (kept as a String so CenitStore stays
+/// `result` is the raw string of CenitAnalytics' `Verdict` (kept as a String so CenitStore stays
 /// free of an analytics dependency).
 public struct ExperimentRow: Equatable, Codable, Sendable {
     public let id: String

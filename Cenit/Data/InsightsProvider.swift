@@ -1,5 +1,5 @@
 import Foundation
-import StrandAnalytics
+import CenitAnalytics
 import CenitStore
 
 /// La lista rankeada de `Insight` — fuente única para «La conexión de hoy» del Daily Brief (FER-614).

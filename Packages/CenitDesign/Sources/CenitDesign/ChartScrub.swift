@@ -80,10 +80,10 @@ struct ChartTooltip: View {
                     .shadow(color: flat ? .clear : tinta.opacity(0.8), radius: flat ? 0 : 3)
             }
             VStack(alignment: .leading, spacing: MedidasDeLupa.textoSeparacion) {
-                Text(value).font(StrandFont.captionNumber).fontWeight(.semibold)
+                Text(value).font(CenitFont.captionNumber).fontWeight(.semibold)
                     .foregroundStyle(LiquidColor.tinta900)
                 label.map { texto in
-                    Text(texto).font(StrandFont.footnote).foregroundStyle(LiquidColor.tinta700)
+                    Text(texto).font(CenitFont.footnote).foregroundStyle(LiquidColor.tinta700)
                 }
             }
         }
@@ -292,9 +292,9 @@ struct PositionedTooltip: View {
 #if DEBUG
 #Preview("ChartTooltip · las tres lecturas") {
     let lecturas: [ChartTooltip] = [
-        ChartTooltip(value: "Recovery 88", label: "Tue 3 Jun", accent: StrandPalette.recoveryColor(88)),
+        ChartTooltip(value: "Recovery 88", label: "Tue 3 Jun", accent: CenitPalette.recoveryColor(88)),
         ChartTooltip(value: "62 ms", label: "HRV · sample 14"),
-        ChartTooltip(value: "18.7", label: "STRAIN · all-out", accent: StrandPalette.strainColor(18.7)),
+        ChartTooltip(value: "18.7", label: "STRAIN · all-out", accent: CenitPalette.strainColor(18.7)),
     ]
     return VStack(spacing: 24) {
         ForEach(Array(lecturas.enumerated()), id: \.offset) { _, lectura in lectura }

@@ -39,14 +39,14 @@ public extension InstrumentoType {
     /// Space Grotesk at an arbitrary fixed size. For numerals pair with `.monospacedDigit()`
     /// via the `groteskNumber(_:weight:)` variant, which bakes it in.
     static func grotesk(_ size: CGFloat, weight: GroteskWeight = .regular) -> Font {
-        StrandFont.ensureFontsRegistered()
+        CenitFont.ensureFontsRegistered()
         return .custom(weight.postScriptName, fixedSize: size)
     }
 
     /// Space Grotesk that scales with Dynamic Type relative to a text style — for the few
     /// grotesk tokens that are read as text (the verdict word, sheet headlines).
     static func grotesk(_ size: CGFloat, weight: GroteskWeight = .regular, relativeTo style: Font.TextStyle) -> Font {
-        StrandFont.ensureFontsRegistered()
+        CenitFont.ensureFontsRegistered()
         return .custom(weight.postScriptName, size: size, relativeTo: style)
     }
 
@@ -113,7 +113,7 @@ public extension InstrumentoType {
     /// Type relative to `.largeTitle` because it reads as a phrase that can wrap, not a fixed numeral.
     static let groteskVerdictHero = grotesk(34, weight: .bold, relativeTo: .largeTitle)
 
-    /// An in-screen headline — the Grotesk successor to the retired `StrandFont.serif(_:)` (FER-901:
+    /// An in-screen headline — the Grotesk successor to the retired `CenitFont.serif(_:)` (FER-901:
     /// the serif title voice retires). Medium (500), not bold, so it keeps the airy editorial presence
     /// the serif had rather than reading as a loud datum; scales with Dynamic Type relative to `.title2`.
     /// Verdict *phrases* (the datum) stay on `groteskVerdict` (Bold). (FER-901)
@@ -242,7 +242,7 @@ public extension Text {
             Text("Entrenar").font(InstrumentoType.groteskTabTitle).tracking(InstrumentoType.groteskTabTitleTracking).foregroundStyle(t.ink)
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 Text("7:12").font(InstrumentoType.groteskTileValue).foregroundStyle(t.dataSleep)
-                Text("h").font(StrandFont.footnote).foregroundStyle(t.inkTertiary)
+                Text("h").font(CenitFont.footnote).foregroundStyle(t.inkTertiary)
             }
             Text("Equilibrado · Hoy").font(InstrumentoType.groteskLane).tracking(InstrumentoType.groteskLaneTracking).textCase(.uppercase).foregroundStyle(t.dataRecovery)
         }

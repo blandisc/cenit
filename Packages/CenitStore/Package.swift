@@ -7,8 +7,8 @@ let package = Package(
     products: [.library(name: "CenitStore", type: .static, targets: ["CenitStore"])],
     dependencies: [
         .package(path: "../BiometricStreams"),
-        .package(path: "../StrandModels"),
-        .package(path: "../StrandTraining"),
+        .package(path: "../CenitModels"),
+        .package(path: "../CenitTraining"),
         .package(url: "https://github.com/groue/GRDB.swift.git", from: "6.0.0"),
     ],
     targets: [
@@ -16,8 +16,8 @@ let package = Package(
             name: "CenitStore",
             dependencies: [
                 "BiometricStreams",
-                "StrandModels",
-                "StrandTraining",
+                "CenitModels",
+                "CenitTraining",
                 .product(name: "GRDB", package: "GRDB.swift"),
             ],
             resources: [

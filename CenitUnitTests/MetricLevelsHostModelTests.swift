@@ -1,5 +1,5 @@
 import XCTest
-import StrandAnalytics
+import CenitAnalytics
 @testable import Cenit
 
 /// Paridad F3a (LIQUID-SHEET-CONTRACT §6): `MetricLevelsHostModel` reproduce BIT A BIT el

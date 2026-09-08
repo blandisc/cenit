@@ -4,7 +4,7 @@ import PackageDescription
 // BiometricStreams — the neutral vocabulary of decoded biometric rows (HRSample, RRInterval,
 // SkinTempSample, RespSample, GravitySample, `Streams`) plus `ParsedValue`.
 // Foundation-only and dependency-free BY DESIGN: it is the root of the package graph, so
-// persistence (CenitStore) and math (StrandAnalytics) can speak this vocabulary from a
+// persistence (CenitStore) and math (CenitAnalytics) can speak this vocabulary from a
 // single, dependency-free root (FER-993 · D2).
 let package = Package(
     name: "BiometricStreams",

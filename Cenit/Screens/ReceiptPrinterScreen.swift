@@ -2,8 +2,8 @@
 import SwiftUI
 import UIKit
 import CenitDesign
-import StrandAnalytics
-import StrandTraining
+import CenitAnalytics
+import CenitTraining
 
 // ReceiptPrinterScreen.swift — full-screen thermal receipt printer for a finished strength session.
 // Presents via `.fullScreenCover` so the printer mouth reaches the true top of the screen.

@@ -1,6 +1,6 @@
 import XCTest
 @testable import CenitStore
-import StrandTraining
+import CenitTraining
 
 /// FER-171 · Parte A — las 3 consultas nuevas de `personalRecord` que el hub v18 necesita
 /// («Marcas · N en mes» y «antes X · hace N días»). Sin tabla propia de historial de PRs

@@ -1,6 +1,6 @@
 import Foundation
-import StrandAnalytics
-import StrandModels
+import CenitAnalytics
+import CenitModels
 
 // MARK: - FER-51 · Inputs de la cara Matriz
 //

@@ -1,5 +1,5 @@
 import Foundation
-import StrandModels
+import CenitModels
 import GRDB
 
 // DayCacheStore.swift — los días y las noches ya puntuados.
@@ -9,8 +9,8 @@ import GRDB
 // recálculo incompleto es la regla de conflicto de aquí abajo, y es lo más delicado del paquete.
 
 /// Reexportados sin calificar porque la instantánea del tablero los usa así.
-public typealias DailyMetric = StrandModels.DailyMetric
-public typealias CachedSleepSession = StrandModels.CachedSleepSession
+public typealias DailyMetric = CenitModels.DailyMetric
+public typealias CachedSleepSession = CenitModels.CachedSleepSession
 
 extension CenitStore {
 

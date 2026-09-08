@@ -1,5 +1,5 @@
 import Foundation
-import StrandModels
+import CenitModels
 import GRDB
 
 // LogStore.swift — lo que se registró en un día: respuestas, entrenamientos y los totales de Apple.
@@ -9,7 +9,7 @@ import GRDB
 // sentencia, y estas altas llegan en lotes.
 
 /// Reexportado sin calificar porque la instantánea del tablero lo usa así.
-public typealias AppleDaily = StrandModels.AppleDaily
+public typealias AppleDaily = CenitModels.AppleDaily
 
 /// Una respuesta del diario. Clave natural `(deviceId, day, question)`.
 public struct JournalEntry: Equatable, Codable {

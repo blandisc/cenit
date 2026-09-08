@@ -1,6 +1,6 @@
 import XCTest
-import StrandAnalytics
-import StrandTraining
+import CenitAnalytics
+import CenitTraining
 @testable import Cenit
 
 // MARK: - TrainWidgetPublisherTests (FER-95 · E14)
@@ -8,7 +8,7 @@ import StrandTraining
 // The pure half of what crosses the App Group to `TrainTodayWidget`/`WeekWidget`. What these defend:
 //   1. `snapshot(...)` builds exactly what it's handed — no rest day invented when a routine is passed,
 //      no routine invented when none is.
-//   2. The week strip reuses `WeeklySplit.weekStates` verbatim (StrandAnalytics stays the one place that
+//   2. The week strip reuses `WeeklySplit.weekStates` verbatim (CenitAnalytics stays the one place that
 //      decides done/today/upcoming/rest) via `TrainWidgetSnapshot.WeekDayState.init(_:)`.
 //   3. The verdict's tone maps 1:1 from `LiquidHoyBuilder.HiloEntrenar.Tono` — the SAME four cases the
 //      landing's hilo already resolves, never a fifth invented state.

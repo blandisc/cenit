@@ -12,7 +12,7 @@ final class FontRegistrationTests: XCTestCase {
     private static let bundledWeights = ["Regular", "Medium", "SemiBold", "Bold"]
 
     func testSpaceGroteskRegistersFromBundle() {
-        StrandFont.ensureFontsRegistered()
+        CenitFont.ensureFontsRegistered()
         // The static Google builds ship weight-suffixed family names, so the PostScript name is the
         // stable identifier. CTFontCreateWithName returns a *fallback* (not nil) for an unknown name,
         // so the assertion is on the resolved PS name — equality proves it's our bundled face.

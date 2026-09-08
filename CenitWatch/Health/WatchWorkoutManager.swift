@@ -1,7 +1,7 @@
 import Foundation
 import HealthKit
 import WatchConnectivity
-import StrandTraining   // C1 (FER-361): the standalone logger mutates the real domain types (Decision A)
+import CenitTraining   // C1 (FER-361): the standalone logger mutates the real domain types (Decision A)
 import os
 
 /// watchOS side of the strength-session **workout mirroring** (FER-740). The wrist runs the *real*
@@ -588,7 +588,7 @@ final class WatchWorkoutManager: NSObject, ObservableObject {
     /// Hang a drop-set step off `setId` (the mother set, or an existing step already hanging off it) in
     /// `runId` while running standalone — mirrors `StrengthSessionModel.addDrop`'s invariants
     /// (mother-lookup, `SetVariants.maxDropSteps` cap, adjacency) with NO `PlateMath` rounding (the watch
-    /// can't import `StrandAnalytics`): the target weight is the raw `SetVariants.dropTargetKg(fromKg:)`.
+    /// can't import `CenitAnalytics`): the target weight is the raw `SetVariants.dropTargetKg(fromKg:)`.
     /// Returns `false` (and changes nothing) when there's no headroom — already at the step cap, the set
     /// isn't a work set, or the raw target isn't actually lower (e.g. a bodyweight set at 0 kg) — so a
     /// caller never inserts a step that lies.

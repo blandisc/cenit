@@ -66,19 +66,19 @@ public struct StepperButton: View {
     HStack(spacing: 16) {
         // PlatesScreen: circle 34, glyph .inline semibold
         StepperButton(system: "minus", size: 34, shape: .circle,
-                      glyph: StrandFont.glyph(.inline, weight: .semibold), action: {})
+                      glyph: CenitFont.glyph(.inline, weight: .semibold), action: {})
         StepperButton(system: "plus", size: 34, shape: .circle,
-                      glyph: StrandFont.glyph(.inline, weight: .semibold), action: {})
+                      glyph: CenitFont.glyph(.inline, weight: .semibold), action: {})
         // ProgressionSetupScreen: circle 32, caption
         StepperButton(system: "minus", size: 32, shape: .circle,
-                      glyph: StrandFont.caption, action: {})
+                      glyph: CenitFont.caption, action: {})
         StepperButton(system: "plus", size: 32, shape: .circle,
-                      glyph: StrandFont.caption, action: {})
+                      glyph: CenitFont.caption, action: {})
         // RestEditorScreen: roundedControl 44, glyph .lead
         StepperButton(system: "minus", size: 44, shape: .roundedControl,
-                      glyph: StrandFont.glyph(.lead), action: {})
+                      glyph: CenitFont.glyph(.lead), action: {})
         StepperButton(system: "plus", size: 44, shape: .roundedControl,
-                      glyph: StrandFont.glyph(.lead), action: {})
+                      glyph: CenitFont.glyph(.lead), action: {})
     }
     .padding(20)
     .background(LiquidColor.fondoAlto)

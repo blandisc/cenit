@@ -1,8 +1,8 @@
 #if os(iOS)
 import SwiftUI
 import CenitDesign
-import StrandAnalytics
-import StrandTraining
+import CenitAnalytics
+import CenitTraining
 import CenitStore   // WorkoutRow — the journal join that carries zones / max HR (FER-952)
 
 // «Mis entrenamientos» (FER-504): sesiones de fuerza completadas en Liquid Glass · El Eje (tinta en

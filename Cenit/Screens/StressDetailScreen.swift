@@ -2,7 +2,7 @@
 import SwiftUI
 import TipKit
 import CenitDesign
-import StrandAnalytics
+import CenitAnalytics
 import CenitStore
 import Foundation
 
@@ -16,7 +16,7 @@ import Foundation
 // (`LiquidRangeSelector` + `LiquidGraficaNiveles` + `LiquidResumenVentana` + `LiquidLevelsList`)
 // → calendario (`LiquidCalendario90`) → método + sello (patrón `pieMetodo` de Sueño).
 //
-// `StressModel` NO CAMBIA (contrato de datos congelado): consume `StrandAnalytics` tal cual —
+// `StressModel` NO CAMBIA (contrato de datos congelado): consume `CenitAnalytics` tal cual —
 // cero matemática nueva. El semáforo verde/ámbar/rojo del héroe de papel NO cruza al vidrio:
 // en la familia Liquid el estrés ACOMPAÑA, no vota (FER-73 · HJ-09, FER-60) — su identidad es
 // la rampa de CALOR `MatrizEscalerita.colorNivel` (tinta500 bajo · ocre medio · siena alto),

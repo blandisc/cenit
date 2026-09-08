@@ -3,7 +3,7 @@ import SwiftUI
 import UIKit             // UIApplication.openSettingsURLString (abrir Ajustes de iOS cuando negó un permiso)
 import UserNotifications // UNAuthorizationStatus, para releer el permiso real de enfermedad/descanso
 import CenitDesign
-import StrandAnalytics
+import CenitAnalytics
 import CenitStore
 
 // MARK: - Ajustes (the Settings tab root) — FER-337, reskinned to Liquid Glass (FER-176)

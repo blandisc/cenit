@@ -1,5 +1,5 @@
 import Foundation
-import StrandTraining
+import CenitTraining
 
 // MARK: - The single gate for exercise-media downloads (FER-722, FER-786, FER-790)
 //

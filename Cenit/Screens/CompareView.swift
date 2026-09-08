@@ -1,7 +1,7 @@
 import SwiftUI
 import Foundation
 import CenitDesign
-import StrandAnalytics
+import CenitAnalytics
 import CenitStore
 
 // MARK: - Compare — en vidrio «Liquid Glass» (FER-104 · TND-30)
@@ -641,7 +641,7 @@ struct CompareView: View {
     }
 
     /// The localized strength word for a coefficient. The CUTS are the canonical
-    /// `CorrelationStrength` ladder (StrandAnalytics, TND-29); the WORD is localized here.
+    /// `CorrelationStrength` ladder (CenitAnalytics, TND-29); the WORD is localized here.
     private func strengthWord(_ r: Double) -> String {
         switch CorrelationStrength.classify(r: r) {
         case .negligible: return String(localized: "negligible")

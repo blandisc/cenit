@@ -1,5 +1,5 @@
 import XCTest
-import StrandAnalytics
+import CenitAnalytics
 @testable import Cenit
 
 /// Pins Spec L1b (A3): the Apple workout-HR window for estimated «Carga del día» is the local

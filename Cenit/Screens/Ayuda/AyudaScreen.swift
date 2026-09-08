@@ -3,7 +3,7 @@
 import SwiftUI
 import CenitDesign
 import CenitEnsenanza
-import StrandAnalytics
+import CenitAnalytics
 
 // MARK: - «Cómo funciona Cénit» (épico FER-428 · L2/FER-435, D7 = A+B)
 //

@@ -18,7 +18,7 @@ Programas visibles y controlables sin reabrir pantallas archivadas ni el héroe:
 Tira = un solo elemento: «Programa, semana 3 de 5, semana ligera en 2 semanas». Celdas de numeral fijo (FER-394); desde AX1 la tira baja debajo de la línea; nunca trunca. Listas con palomita anuncian estado seleccionado.
 
 ## Alcance técnico
-`Cenit/Screens/CrearPlanChip.swift`, `StarterTemplatesSheet.swift:276-293`, `WeeklyPlanEditorView.swift` (línea + tira + filas), `Cenit/Screens/Entrenar/EntrenarHubSemana.swift` (tokens), `EntrenarView.swift` (kicker/meta/línea; sin estado nuevo), `Hoja/RoutineSheetLiveTarjeta.swift` (playhead), `Cenit/Data/WorkoutPrompt.swift`, `WorkoutImportView.swift:708-739` (escribir calendario + program), StrandDesign: componente de tira de semanas y lista con palomita (con #Preview; agente `componente`).
+`Cenit/Screens/CrearPlanChip.swift`, `StarterTemplatesSheet.swift:276-293`, `WeeklyPlanEditorView.swift` (línea + tira + filas), `Cenit/Screens/Entrenar/EntrenarHubSemana.swift` (tokens), `EntrenarView.swift` (kicker/meta/línea; sin estado nuevo), `Hoja/RoutineSheetLiveTarjeta.swift` (playhead), `Cenit/Data/WorkoutPrompt.swift`, `WorkoutImportView.swift:708-739` (escribir calendario + program), CenitDesign: componente de tira de semanas y lista con palomita (con #Preview; agente `componente`).
 
 ## Fuera de alcance
 Modelo (E10). Ondas entre semanas. First-run.

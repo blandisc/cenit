@@ -1,7 +1,7 @@
 #if os(iOS)
 import SwiftUI
 import CenitDesign
-import StrandAnalytics
+import CenitAnalytics
 import CenitStore
 import BiometricStreams
 import Foundation
@@ -1570,7 +1570,7 @@ struct SleepDetailModel {
     }
 
     /// Runs `build` off the MainActor (FER-953): snapshots the inputs from `repo` on the MainActor
-    /// (value-type copies), then hops the whole derivation — pure StrandAnalytics engines — to a
+    /// (value-type copies), then hops the whole derivation — pure CenitAnalytics engines — to a
     /// background executor; only the finished model returns to main. Single seam for every call-site.
     @MainActor
     static func buildDetached(repo: Repository) async -> SleepDetailModel {

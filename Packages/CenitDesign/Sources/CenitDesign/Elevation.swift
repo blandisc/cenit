@@ -3,7 +3,7 @@ import SwiftUI
 /// Elevation scale — 5 drop-shadow levels, all cast with the theme ink color.
 /// Values are derived from the real inline shadows across the app (grouped). The
 /// thermal receipt and ambient glows are a separate micro-system and stay exempt.
-public enum StrandElevation {
+public enum CenitElevation {
     case hairline   // tile, keypad
     case raised     // card that lifts
     case floating   // banner, menu
@@ -41,14 +41,14 @@ public enum StrandElevation {
 
 public extension View {
     /// Apply a named elevation shadow. Pass the theme ink color (e.g. `theme.ink`).
-    func strandElevation(_ level: StrandElevation, ink: Color) -> some View {
+    func strandElevation(_ level: CenitElevation, ink: Color) -> some View {
         shadow(color: ink.opacity(level.opacity), radius: level.radius, y: level.y)
     }
 }
 
 #Preview("Elevation") {
     VStack(spacing: 28) {
-        ForEach([StrandElevation.hairline, .raised, .floating, .overlay, .modal], id: \.radius) { level in
+        ForEach([CenitElevation.hairline, .raised, .floating, .overlay, .modal], id: \.radius) { level in
             RoundedRectangle(cornerRadius: 12)
                 .fill(Color(white: 0.98))
                 .frame(width: 220, height: 48)

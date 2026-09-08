@@ -5,7 +5,7 @@ Cénit is offline: exercise ROW thumbnails must exist without the network or the
 toggle. This step takes each catalog `gifUrl`, downloads the GIF once at build time, extracts its
 FIRST FRAME, and writes a small JPG to:
 
-    Packages/StrandTraining/.../Resources/exercise-stills/{id}.jpg
+    Packages/CenitTraining/.../Resources/exercise-stills/{id}.jpg
 
 Those baked stills ship in the bundle (~10–20 MB for ~1324 exercises) and feed every exercise row
 (Library, routine builder) with zero requests. The animated GIF stays an opt-in download for the
@@ -27,7 +27,7 @@ from PIL import Image
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 RES = os.path.abspath(os.path.join(
-    HERE, "..", "..", "Packages", "StrandTraining", "Sources", "StrandTraining", "Resources"))
+    HERE, "..", "..", "Packages", "CenitTraining", "Sources", "CenitTraining", "Resources"))
 CATALOG = os.path.join(RES, "exercises.json")
 STILLS_DIR = os.path.join(RES, "exercise-stills")
 

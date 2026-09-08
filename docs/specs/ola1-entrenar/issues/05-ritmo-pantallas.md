@@ -14,7 +14,7 @@ Progresión por ejercicio con una frase-resumen arriba, tres controles visibles,
 - Teclado de sesión: la fila «QUEDABAN 0·1·2·3·4+» se renombra «REPS EN RESERVA» (mismo control), y la fila hecha con 0 en reserva lee «· al fallo» en vez de «· Q0».
 
 ## Alcance técnico
-`Cenit/Screens/ProgressionSetupScreen.swift`, `EntrenarView.swift:371-383, 832-852`, `Hoja/RoutineSheetLiveLogic.swift:892-898`, `SessionKeypad.swift:67-74` (labels), `Hoja/RoutineSheetLiveTarjeta.swift` (sufijo). Solo tokens StrandDesign; la lista con palomita usa el componente de opciones existente o se crea uno en StrandDesign con #Preview (agente `componente`).
+`Cenit/Screens/ProgressionSetupScreen.swift`, `EntrenarView.swift:371-383, 832-852`, `Hoja/RoutineSheetLiveLogic.swift:892-898`, `SessionKeypad.swift:67-74` (labels), `Hoja/RoutineSheetLiveTarjeta.swift` (sufijo). Solo tokens CenitDesign; la lista con palomita usa el componente de opciones existente o se crea uno en CenitDesign con #Preview (agente `componente`).
 
 ## Fuera de alcance
 La regla (E4). El vocabulario del resto de la app (E12), salvo el teclado, que va aquí porque esta pantalla lo explica.

@@ -60,7 +60,7 @@ public struct CompactTrendToggle: View {
             .background { if active { Capsule().fill(LiquidColor.tinta900) } }
             .contentShape(Capsule())
             .onTapGesture {
-                withAnimation(StrandMotion.interactive) { mode = m }
+                withAnimation(CenitMotion.interactive) { mode = m }
             }
             .accessibilityAddTraits(active ? [.isSelected, .isButton] : .isButton)
     }

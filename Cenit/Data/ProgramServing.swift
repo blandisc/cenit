@@ -1,16 +1,16 @@
 import Foundation
-import StrandTraining
-import StrandAnalytics
+import CenitTraining
+import CenitAnalytics
 
 // ProgramServing.swift — cómo se SIRVE hoy la receta guardada (ola 1 · E10, FER-329).
 //
 // El puente de una sola pieza entre los tres motores puros que la semana ligera necesita y que viven
 // en paquetes que no se conocen entre sí:
-//   · `ProgramCalendar` (StrandTraining) dice en qué semana vamos,
-//   · `ProgramDeload` (StrandTraining) dice qué le pasa a la receta,
-//   · `ProgressionMath.deloadFraction` y `PlateMath.snap` (StrandAnalytics) ponen el 7,5 % y el
+//   · `ProgramCalendar` (CenitTraining) dice en qué semana vamos,
+//   · `ProgramDeload` (CenitTraining) dice qué le pasa a la receta,
+//   · `ProgressionMath.deloadFraction` y `PlateMath.snap` (CenitAnalytics) ponen el 7,5 % y el
 //     redondeo a un peso que de verdad se pueda armar.
-// StrandTraining no puede importar StrandAnalytics (ver docs/ARCHITECTURE.md), así que la composición
+// CenitTraining no puede importar CenitAnalytics (ver docs/ARCHITECTURE.md), así que la composición
 // es de la capa app — pero de UN solo punto, este, no de cada pantalla.
 //
 // Invariante dura: esto transforma la semilla EN MEMORIA. Nunca escribe en `routineSet`: el plan que el
@@ -70,7 +70,7 @@ enum ProgramServing {
         guard let context, context.isLight else { return re }
         let implement = PlateMath.Implement.from(equipment: equipment)
         // La normalización de las dos formas del plan (receta explícita vs. `targetSets` abanicado) la
-        // hace el motor, no este puente: aquí solo se inyecta lo que StrandTraining no puede importar.
+        // hace el motor, no este puente: aquí solo se inyecta lo que CenitTraining no puede importar.
         return ProgramDeload.apply(
             rule: context.program.deloadRule, to: re,
             // UNA familia de «bajar»: el mismo 7,5 % del deload reactivo, no una segunda copia.

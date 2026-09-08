@@ -1,8 +1,8 @@
 #if os(iOS)
 import SwiftUI
 import CenitDesign
-import StrandAnalytics
-import StrandTraining
+import CenitAnalytics
+import CenitTraining
 
 // MARK: - «Tu cuerpo» (Cuerpo) — FER-350 · rediseño «la respuesta lidera» · FER-91 · E10 fusión
 //
@@ -11,7 +11,7 @@ import StrandTraining
 // today. A tracker without physiology (Fitbod) can't cross in a verdict; a physiology app without set
 // logging (WHOOP) has no per-muscle load. Cénit has both.
 //
-// Liquid Glass · El Eje (color solo en el dato). La math es `MuscleFatigueMap` (StrandAnalytics):
+// Liquid Glass · El Eje (color solo en el dato). La math es `MuscleFatigueMap` (CenitAnalytics):
 // load = Σ involvement·decay, half-life 2 días, frescura relativa al músculo más cargado, volumen
 // semanal vs banda Schoenfeld 10–20. El gate sistémico se aplica AQUÍ desde el veredicto (FER-82).
 //
@@ -135,7 +135,7 @@ struct TrainingBodyScreen: View {
     /// Solo «Recupera» cierra la pantalla. «Hoy ve leve» retiene el PESO, no el entrenamiento, y un
     /// veredicto que solo va tarde (`pending`) no afirma nada: sería inventar un descanso que nadie
     /// ha dictaminado, y encima sin explicación porque la viñeta calla en ese estado. Regresión
-    /// probada en `TrainingRegulationTests.testOnlyRecoverGatesTraining` (StrandAnalytics): SOLO
+    /// probada en `TrainingRegulationTests.testOnlyRecoverGatesTraining` (CenitAnalytics): SOLO
     /// `.recover` gatea, `.lighter` nunca.
     private var systemicGate: Bool { TrainingRegulation.gatesTraining(repo.trainingAdvice) }
 

@@ -1,7 +1,7 @@
 import SwiftUI
 import CenitDesign
-import StrandTraining
-import StrandAnalytics
+import CenitTraining
+import CenitAnalytics
 import TipKit
 
 // MARK: - Progression setup (2c, FER-D · FER-293 Liquid Glass · El Eje)

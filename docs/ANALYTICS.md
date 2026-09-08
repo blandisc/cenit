@@ -1,7 +1,7 @@
 # The analytics layer
 
 Every number Cénit shows about a body is computed on the device by a pure function in
-`Packages/StrandAnalytics`. That package depends on `BiometricStreams` and `StrandModels` and nothing
+`Packages/CenitAnalytics`. That package depends on `BiometricStreams` and `CenitModels` and nothing
 else — no database, no file access, no clock, no network. Hand an engine values, get values back.
 
 This document is the reference for those engines: what each one computes, the actual formula with its

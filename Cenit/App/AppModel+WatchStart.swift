@@ -1,6 +1,6 @@
 import Foundation
-import StrandAnalytics
-import StrandTraining
+import CenitAnalytics
+import CenitTraining
 import CenitStore
 
 /// FER-96 — the Apple Watch's idle-face verdict, and a wrist-initiated «Empezar». Both need the SAME

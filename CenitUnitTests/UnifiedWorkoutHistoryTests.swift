@@ -1,6 +1,6 @@
 import XCTest
 import CenitStore
-import StrandTraining
+import CenitTraining
 @testable import Cenit
 
 /// FER-202 (épico «Entrenar en vidrio») — la proyección `UnifiedWorkoutHistory` funde el historial de

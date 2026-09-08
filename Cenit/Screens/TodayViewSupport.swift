@@ -1,5 +1,5 @@
 import SwiftUI
-import StrandAnalytics
+import CenitAnalytics
 import CenitStore
 import Foundation
 

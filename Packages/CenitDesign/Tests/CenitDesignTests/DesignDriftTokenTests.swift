@@ -11,11 +11,11 @@ final class DesignDriftTokenTests: XCTestCase {
 
     // H1 — escala de glifos: cuatro escalones fijos, crecientes.
     func test_glyphScaleIsFixedAndOrdered() {
-        XCTAssertEqual(StrandFont.GlyphSize.chevron.rawValue, 12)
-        XCTAssertEqual(StrandFont.GlyphSize.inline.rawValue, 15)
-        XCTAssertEqual(StrandFont.GlyphSize.lead.rawValue, 18)
-        XCTAssertEqual(StrandFont.GlyphSize.empty.rawValue, 34)
-        let sizes = [StrandFont.GlyphSize.chevron, .inline, .lead, .empty].map(\.rawValue)
+        XCTAssertEqual(CenitFont.GlyphSize.chevron.rawValue, 12)
+        XCTAssertEqual(CenitFont.GlyphSize.inline.rawValue, 15)
+        XCTAssertEqual(CenitFont.GlyphSize.lead.rawValue, 18)
+        XCTAssertEqual(CenitFont.GlyphSize.empty.rawValue, 34)
+        let sizes = [CenitFont.GlyphSize.chevron, .inline, .lead, .empty].map(\.rawValue)
         XCTAssertEqual(sizes, sizes.sorted())
     }
 
@@ -26,7 +26,7 @@ final class DesignDriftTokenTests: XCTestCase {
         XCTAssertEqual(CenitOpacity.strokeSoft, 0.30)
         XCTAssertEqual(CenitOpacity.dim, 0.45)
         XCTAssertEqual(CenitOpacity.muted, 0.60)
-        XCTAssertEqual(CenitOpacity.dim, StrandPalette.disabledOpacity,
+        XCTAssertEqual(CenitOpacity.dim, CenitPalette.disabledOpacity,
                        "`dim` debe seguir al precedente `disabledOpacity`")
         let scale: [Double] = [CenitOpacity.tintFill, CenitOpacity.tintFillStrong,
                                CenitOpacity.strokeSoft, CenitOpacity.dim, CenitOpacity.muted]
@@ -130,27 +130,27 @@ final class DesignDriftTokenTests: XCTestCase {
                        String(describing: Animation.spring(response: 0.15, dampingFraction: 0.35)))
     }
 
-    // FER-280·2e: puente valor-neutral StrandMotion → LiquidMotion (paridad congelada).
+    // FER-280·2e: puente valor-neutral CenitMotion → LiquidMotion (paridad congelada).
     // Animation no es Equatable; igualdad por descripción del toolchain.
     func test_strandMotionLiquidMotionParityFrozen() {
-        XCTAssertEqual(LiquidMotion.fundidoDuration, StrandMotion.durationStandard)
+        XCTAssertEqual(LiquidMotion.fundidoDuration, CenitMotion.durationStandard)
         XCTAssertEqual(LiquidMotion.conteoDuration, 0.75)
         XCTAssertEqual(String(describing: LiquidMotion.fundido),
-                       String(describing: StrandMotion.fade))
+                       String(describing: CenitMotion.fade))
         XCTAssertEqual(String(describing: LiquidMotion.suave),
-                       String(describing: StrandMotion.gentle))
+                       String(describing: CenitMotion.gentle))
         XCTAssertEqual(String(describing: LiquidMotion.toque),
-                       String(describing: StrandMotion.interactive))
+                       String(describing: CenitMotion.interactive))
         XCTAssertEqual(String(describing: LiquidMotion.heroe),
-                       String(describing: StrandMotion.hero))
+                       String(describing: CenitMotion.hero))
         XCTAssertEqual(String(describing: LiquidMotion.conteo),
-                       String(describing: StrandMotion.countUp))
+                       String(describing: CenitMotion.countUp))
         XCTAssertNil(LiquidMotion.condicionado(.snappy, true))
         XCTAssertNotNil(LiquidMotion.condicionado(.snappy, false))
         XCTAssertNil(LiquidMotion.condicionado(nil, false))
         XCTAssertEqual(
             String(describing: LiquidMotion.condicionado(.snappy, false)!),
-            String(describing: StrandMotion.gated(.snappy, false)!)
+            String(describing: CenitMotion.gated(.snappy, false)!)
         )
     }
 

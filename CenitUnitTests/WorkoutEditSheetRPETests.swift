@@ -1,5 +1,5 @@
 import XCTest
-import StrandTraining
+import CenitTraining
 @testable import Cenit
 
 /// FER-172 — `WorkoutEditSheet.save()` reconstructs each `SetEntry` from its `EditSet` working copy via

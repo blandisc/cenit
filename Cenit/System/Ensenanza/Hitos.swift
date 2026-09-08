@@ -3,7 +3,7 @@ import SwiftUI
 import TipKit
 import CenitDesign
 import CenitEnsenanza
-import StrandAnalytics
+import CenitAnalytics
 
 // ensenanza: hoy.primer-veredicto, hoy.base-firme, tendencias.pestana, tendencias.carga, entrenar.historial, entrenar.marcas
 

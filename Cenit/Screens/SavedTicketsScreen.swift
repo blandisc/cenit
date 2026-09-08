@@ -1,7 +1,7 @@
 #if os(iOS)
 import SwiftUI
 import CenitDesign
-import StrandTraining
+import CenitTraining
 
 // SavedTicketsScreen.swift — «Tickets guardados»: grid of thermal mini-receipts for completed
 // strength sessions. Read-only — never edits or deletes. Pushed from WorkoutHistoryScreen via

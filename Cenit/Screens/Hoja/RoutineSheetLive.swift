@@ -2,8 +2,8 @@
 import SwiftUI
 import TipKit
 import CenitDesign
-import StrandTraining
-import StrandAnalytics
+import CenitTraining
+import CenitAnalytics
 
 // MARK: - HojaSesionViva — «La Hoja» en modo `.live` (FER-167 · F2, épico FER-165, ronda 2)
 //

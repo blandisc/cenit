@@ -43,8 +43,8 @@ that make no network calls of their own.
 
 | Dependency | Requirement | Resolved | Used by | For |
 | --- | --- | --- | --- | --- |
-| GRDB.swift | `from: "6.0.0"` | 6.29.3 | `CenitStore` (and `StrandImport` transitively) | SQLite persistence and migrations |
-| ZIPFoundation | `from: "0.9.0"` | 0.9.20 | `StrandImport` | Reading the user's own Health export archive |
+| GRDB.swift | `from: "6.0.0"` | 6.29.3 | `CenitStore` (and `CenitImport` transitively) | SQLite persistence and migrations |
+| ZIPFoundation | `from: "0.9.0"` | 0.9.20 | `CenitImport` | Reading the user's own Health export archive |
 
 A third dependency, swift-syntax, exists only under `Tools/DesignCensus` — a developer executable
 that is never linked into a shipped target.
@@ -54,39 +54,39 @@ that is never linked into a shipped target.
 ## The graph
 
 ```
-BiometricStreams ──┬──────────────────► StrandAnalytics
-StrandModels ──────┘
+BiometricStreams ──┬──────────────────► CenitAnalytics
+CenitModels ──────┘
 
 BiometricStreams ──┐
-StrandModels ──────┤
-StrandTraining ────┼──► CenitStore ──┐
-GRDB ──────────────┘                 ├──► StrandImport
-StrandTraining ──────────────────────┤
+CenitModels ──────┤
+CenitTraining ────┼──► CenitStore ──┐
+GRDB ──────────────┘                 ├──► CenitImport
+CenitTraining ──────────────────────┤
 ZIPFoundation ───────────────────────┘
 
 CenitDesign        (no package dependencies)
 CenitEnsenanza     (no package dependencies)
 ```
 
-Five of the eight have **no inbound package edges at all**: `BiometricStreams`, `StrandModels`,
-`StrandTraining`, `CenitDesign` and `CenitEnsenanza`. Two chains grow out of that floor — the
+Five of the eight have **no inbound package edges at all**: `BiometricStreams`, `CenitModels`,
+`CenitTraining`, `CenitDesign` and `CenitEnsenanza`. Two chains grow out of that floor — the
 analytics chain and the persistence chain — and they meet only in the app.
 
-The direction is the rule. `CenitStore` and `StrandAnalytics` may depend on `BiometricStreams`;
+The direction is the rule. `CenitStore` and `CenitAnalytics` may depend on `BiometricStreams`;
 `BiometricStreams` may never depend on them. Four packages sit at the top and are imported by
-nobody else in the layer: `StrandAnalytics`, `StrandImport`, `CenitDesign` and `CenitEnsenanza` are
+nobody else in the layer: `CenitAnalytics`, `CenitImport`, `CenitDesign` and `CenitEnsenanza` are
 consumed only by the app, the widgets and the watch.
 
 ### Platform minimums
 
 | Package | iOS | macOS | watchOS |
 | --- | --- | --- | --- |
-| `BiometricStreams`, `StrandModels`, `CenitEnsenanza`, `CenitStore`, `StrandAnalytics`, `StrandImport` | 16 | 13 | — |
-| `StrandTraining` | 16 | 13 | 10 |
+| `BiometricStreams`, `CenitModels`, `CenitEnsenanza`, `CenitStore`, `CenitAnalytics`, `CenitImport` | 16 | 13 | — |
+| `CenitTraining` | 16 | 13 | 10 |
 | `CenitDesign` | 17 | 14 | 10 |
 
 `CenitDesign` carries the highest floor because it uses SwiftUI APIs that only exist there.
-`StrandTraining` gained watchOS so the watch companion can speak the real domain types over the
+`CenitTraining` gained watchOS so the watch companion can speak the real domain types over the
 wire rather than a parallel set of copies.
 
 ---
@@ -112,7 +112,7 @@ decode as an integer.
 
 Two test files cover the codec round-trips, the decode ordering and the struct defaults.
 
-### `StrandModels` — the row shapes
+### `CenitModels` — the row shapes
 
 Three files, 209 lines, no dependencies. A leaf, deliberately: it holds the value types that both
 the store and the analytics layer need to name, so neither has to depend on the other.
@@ -129,9 +129,9 @@ it alone). With plain optionals across nineteen fields those two intents collaps
 distinction is exactly what the store's monotonic upsert depends on.
 
 Two of its columns hold a raw confidence *string* rather than an enum, because the enum lives in
-`StrandAnalytics` — which sits above this package.
+`CenitAnalytics` — which sits above this package.
 
-### `StrandTraining` — the strength domain
+### `CenitTraining` — the strength domain
 
 Twenty-four files, about 3 400 lines, Foundation-only and dependency-free. No GRDB, no UI: GRDB
 conformance for these types is added by extension inside `CenitStore`, which is what keeps the
@@ -157,7 +157,7 @@ formats, program calendars, progression and deload boundaries, and catalog integ
 
 ### `CenitStore` — persistence
 
-Sixteen files, about 3 400 lines. Depends on `BiometricStreams`, `StrandModels`, `StrandTraining`
+Sixteen files, about 3 400 lines. Depends on `BiometricStreams`, `CenitModels`, `CenitTraining`
 and GRDB.
 
 `CenitStore` is an actor wrapping a GRDB writer, with two selectable backends and **one** registered
@@ -179,9 +179,9 @@ migration is a no-op rather than a failure.
 Twenty-one test files, about 5 500 lines, dominated by the migration and strength suites. All run
 against an in-memory store.
 
-### `StrandAnalytics` — the physiology
+### `CenitAnalytics` — the physiology
 
-Ninety-four files, about 15 900 lines. Depends on `BiometricStreams` and `StrandModels` and nothing
+Ninety-four files, about 15 900 lines. Depends on `BiometricStreams` and `CenitModels` and nothing
 else — **no GRDB, no database, no I/O.** Every engine is a pure function from values to values,
 which is what makes the whole package testable without a device.
 
@@ -199,9 +199,9 @@ One guard exists in this package, and it is the only conditional compilation out
 system: a `#if canImport(Darwin)` around localized-string lookup, so the package still builds on
 Linux — where the localization overload does not exist — and its math tests still run there.
 
-### `StrandImport` — bringing data in
+### `CenitImport` — bringing data in
 
-Fourteen files, about 4 000 lines. Depends on `CenitStore`, `StrandTraining` and ZIPFoundation.
+Fourteen files, about 4 000 lines. Depends on `CenitStore`, `CenitTraining` and ZIPFoundation.
 
 It handles four import shapes:
 
@@ -275,21 +275,21 @@ dependencies: [
 ```
 
 The app does the same through `project.yml`, which declares seven of the eight by local path.
-`StrandModels` is **not** declared there — it arrives transitively through `CenitStore` and
-`StrandAnalytics`, and adding it explicitly would be redundant rather than harmful.
+`CenitModels` is **not** declared there — it arrives transitively through `CenitStore` and
+`CenitAnalytics`, and adding it explicitly would be redundant rather than harmful.
 
 Which targets link what:
 
 | Target | Packages linked |
 | --- | --- |
 | `Cenit` (app) | All seven declared packages |
-| `CenitWatch` | `CenitDesign`, `StrandTraining` — no GRDB on the wrist |
+| `CenitWatch` | `CenitDesign`, `CenitTraining` — no GRDB on the wrist |
 | `CenitWidgets` | `CenitDesign` only |
-| `CenitUnitTests` | `BiometricStreams`, `CenitStore`, `StrandAnalytics`, `StrandTraining`, each with `link: false` |
+| `CenitUnitTests` | `BiometricStreams`, `CenitStore`, `CenitAnalytics`, `CenitTraining`, each with `link: false` |
 | `CenitUITests` | None |
 
 To vendor a package into another project, copy its directory and depend on it by path or URL. Only
-`CenitStore` and `StrandImport` pull anything external. The analytics and training packages have no
+`CenitStore` and `CenitImport` pull anything external. The analytics and training packages have no
 dependencies beyond the repository's own leaves, so they lift out cleanly.
 
 ---
@@ -310,7 +310,7 @@ the Metal-backed hero view. Seven other packages contain **zero** conditional co
 kind.
 
 The one exception to "guards live in the design system" is the localization shim in
-`StrandAnalytics` described above.
+`CenitAnalytics` described above.
 
 When you do need a platform-specific implementation, the shape is:
 
@@ -334,7 +334,7 @@ which is fine because those suites are macOS-hosted by construction.
 Every package is testable on its own, from its own directory:
 
 ```bash
-cd Packages/StrandAnalytics && swift build && swift test
+cd Packages/CenitAnalytics && swift build && swift test
 ```
 
 To run one case or one method:
@@ -344,14 +344,14 @@ swift test --filter <TestCaseOrMethod>
 ```
 
 Continuous integration builds and tests seven of the eight packages in a matrix, choosing the runner
-by what the package actually needs. `BiometricStreams`, `StrandAnalytics` and `CenitEnsenanza` run
+by what the package actually needs. `BiometricStreams`, `CenitAnalytics` and `CenitEnsenanza` run
 on Linux, which is the strongest possible proof that they carry no Apple-framework dependency.
-`StrandTraining`, `CenitStore` and `StrandImport` need macOS for compression. `CenitDesign` needs
+`CenitTraining`, `CenitStore` and `CenitImport` need macOS for compression. `CenitDesign` needs
 the newest macOS image for its SwiftUI APIs, and additionally cross-compiles for watchOS and iOS
 simulators — a compile-only check that catches a token or component that silently stopped building
 for the watch.
 
-`StrandModels` is not in that matrix; it is exercised transitively.
+`CenitModels` is not in that matrix; it is exercised transitively.
 
 One practical note: the design system's contrast tests resolve colors explicitly in light mode, but
 a Mac running in dark mode has been known to change what a color resolves to. If those tests fail

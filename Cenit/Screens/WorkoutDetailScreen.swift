@@ -1,10 +1,10 @@
 #if os(iOS)
 import SwiftUI
 import CenitDesign
-import StrandAnalytics
-import StrandTraining
+import CenitAnalytics
+import CenitTraining
 import CenitStore
-import StrandImport   // WorkoutHealthKitDedup.isClosedStrength (FER-362 · C4)
+import CenitImport   // WorkoutHealthKitDedup.isClosedStrength (FER-362 · C4)
 import Foundation
 
 // MARK: - WorkoutDetailScreen — detalle de UNA sesión (FER-261 → Liquid Glass · FER-294 B.2)

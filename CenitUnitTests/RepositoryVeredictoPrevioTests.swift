@@ -1,5 +1,5 @@
 import XCTest
-import StrandAnalytics
+import CenitAnalytics
 @testable import Cenit
 
 // MARK: - FER-74 · Un sync vacío no borra el veredicto que ya tenías

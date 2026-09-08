@@ -10,7 +10,7 @@ import SwiftUI
 // What remains in this file are the load-bearing pieces the retirement KEPT, because the
 // `DiurnalDial` (Hoy's 24h clock) and the paper derivations still need them:
 //   • `SolarWindow` — the injected sunrise/sunset value the dial consumes for its day arc
-//     (the app computes it from `StrandAnalytics.SolarClock`; injected, never imported, so
+//     (the app computes it from `CenitAnalytics.SolarClock`; injected, never imported, so
 //     `CenitDesign` stays the dependency-free leaf of the package graph).
 //   • `OKLab` — the perceptual colour space used across CenitDesign: the «Hoy» paper
 //     gradient (`paperHi`/`paperLo`/`inkDim`), `DiurnalDial.dayGold`, `ReferenceRange`,
@@ -20,10 +20,10 @@ import SwiftUI
 // per-minute `interpolated(to:)` / `contrastSafeDataHues()`, the 60s `InstrumentoThemeDriver`,
 // and the `instrumentoThemeByHour()` modifier. Screens now apply `.instrumentoTheme(.base)`.
 
-// MARK: - Solar window (injected; no StrandAnalytics dependency)
+// MARK: - Solar window (injected; no CenitAnalytics dependency)
 
 /// Local sunrise / sunset as clock hours (e.g. `6.5` == 06:30). The app computes these
-/// from `StrandAnalytics.SolarClock.sunWindow(on:in:)` and injects them so the
+/// from `CenitAnalytics.SolarClock.sunWindow(on:in:)` and injects them so the
 /// `DiurnalDial`'s day arc tracks the real sun. Keeping this a plain value here means
 /// `CenitDesign` stays dependency-free (the acyclic-graph rule).
 public struct SolarWindow: Equatable, Sendable {
@@ -82,7 +82,7 @@ public enum OKLab {
     }
 
     /// Interpolate two SwiftUI colors in OKLab. Uses the package's existing
-    /// `rgbaComponents` bridge (AppKit/UIKit) — the same path `StrandPalette`
+    /// `rgbaComponents` bridge (AppKit/UIKit) — the same path `CenitPalette`
     /// already interpolates through.
     static func mix(_ a: Color, _ b: Color, _ t: Double) -> Color {
         let ca = a.rgbaComponents, cb = b.rgbaComponents

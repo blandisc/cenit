@@ -1,9 +1,9 @@
 import Foundation
-import StrandTraining
-import StrandAnalytics
+import CenitTraining
+import CenitAnalytics
 
 /// La racha «días cumpliendo el plan» — UNA sola fuente para Entrenar y el bloque «Hoy en tu plan» del
-/// Daily Brief (FER-613), para que nunca diverjan. Vive en la capa de app (no en `StrandAnalytics`) porque
+/// Daily Brief (FER-613), para que nunca diverjan. Vive en la capa de app (no en `CenitAnalytics`) porque
 /// depende del calendario LOCAL y de las `StrengthSession` persistidas; la matemática de adherencia/racha sí
 /// es pura y vive en `WeeklySplit`.
 ///

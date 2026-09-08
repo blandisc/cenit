@@ -1,7 +1,7 @@
 #if os(iOS)
 import SwiftUI
 import CenitDesign
-import StrandAnalytics
+import CenitAnalytics
 
 // StressDayMapView.swift — the «mapa del día» block for the Detalle de Estrés (FER-377 · FER-860 ·
 // FER-101 · TND-11).

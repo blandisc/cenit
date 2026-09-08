@@ -65,7 +65,7 @@ public struct BodyAgeBand: View {
             ZStack(alignment: .topLeading) {
                 // Marker value, centered above the marker (the one coloured number).
                 Text("\(Int(bodyAge.rounded()))")
-                    .font(StrandFont.number(13, weight: .bold))
+                    .font(CenitFont.number(13, weight: .bold))
                     .foregroundStyle(color)
                     .position(x: markerX, y: 9)
 
@@ -88,20 +88,20 @@ public struct BodyAgeBand: View {
                     .position(x: markerX, y: 28)
 
                 // Band ends + the "you" reference, all in tertiary ink.
-                Text("\(Int(bandLo.rounded()))").font(StrandFont.footnote)
+                Text("\(Int(bandLo.rounded()))").font(CenitFont.footnote)
                     .foregroundStyle(LiquidColor.tinta500)
                     .position(x: loX, y: 48)
-                Text("\(Int(bandHi.rounded()))").font(StrandFont.footnote)
+                Text("\(Int(bandHi.rounded()))").font(CenitFont.footnote)
                     .foregroundStyle(LiquidColor.tinta500)
                     .position(x: hiX, y: 48)
-                Text(verbatim: "\(youLabel) \(Int(chronoAge.rounded()))").font(StrandFont.footnote)
+                Text(verbatim: "\(youLabel) \(Int(chronoAge.rounded()))").font(CenitFont.footnote)
                     .foregroundStyle(LiquidColor.tinta500)
                     .position(x: chronoX, y: 48)
             }
         }
         .frame(height: 58)
         .onAppear {
-            if animated && !reduceMotion { withAnimation(StrandMotion.drawIn) { drawn = true } }
+            if animated && !reduceMotion { withAnimation(CenitMotion.drawIn) { drawn = true } }
             else { drawn = true }
         }
         .accessibilityElement(children: .ignore)

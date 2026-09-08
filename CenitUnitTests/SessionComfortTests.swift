@@ -1,5 +1,5 @@
 import XCTest
-import StrandTraining
+import CenitTraining
 @testable import Cenit
 
 /// FER-93 — las dos comodidades de la sesión, con la regla que las hace aceptables: apagadas por

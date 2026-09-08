@@ -1,6 +1,6 @@
 import Foundation
 import GRDB
-import StrandTraining
+import CenitTraining
 
 // MARK: - v28: durable snapshot of the in-progress strength session (FER-798)
 //
@@ -9,7 +9,7 @@ import StrandTraining
 // a single-row snapshot of the session while it runs — written on start and on each durable edit, read
 // once at launch to rebuild the live session, deleted on save/discard.
 //
-// The snapshot (`StrengthSessionSnapshot`, defined in StrandTraining) is stored as an OPAQUE JSON string:
+// The snapshot (`StrengthSessionSnapshot`, defined in CenitTraining) is stored as an OPAQUE JSON string:
 // CenitStore never decodes its nested plan/sets. Mirrors the established store pattern — Codable payload,
 // idempotent ON CONFLICT upsert keyed by id, reads via the actor's syncWrite/syncRead helpers.
 

@@ -1,7 +1,7 @@
 # SPEC EJECUTABLE — Veredicto de preparación v3 (motor `Preparedness`)
 
 Derivado de la investigación científica 2026-07-24 (CSO + Grok convergidos, citas verificadas).
-Objetivo: dejar el motor `Preparedness.swift` (paquete puro StrandAnalytics) alineado con v3,
+Objetivo: dejar el motor `Preparedness.swift` (paquete puro CenitAnalytics) alineado con v3,
 verificable con `swift test`, SIN mergear (el veredicto lo valida el dueño en iPhone).
 
 ## Principio

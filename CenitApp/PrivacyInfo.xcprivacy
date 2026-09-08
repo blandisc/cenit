@@ -31,7 +31,7 @@
         </dict>
         <dict>
             <!-- The Apple Health importer checks the temp volume's free space before decompressing
-                 a multi-hundred-MB export.xml (StrandImport/AppleHealthImporter.swift:160,
+                 a multi-hundred-MB export.xml (CenitImport/AppleHealthImporter.swift:160,
                  `volumeAvailableCapacityForImportantUsage`), so it can fail early with a clear
                  message instead of writing a truncated XML. E174.1: display the space to the
                  person / decide whether the operation fits — the value never leaves the device. -->

@@ -1,6 +1,6 @@
 import XCTest
 import CenitStore
-import StrandAnalytics
+import CenitAnalytics
 @testable import Cenit
 
 /// FER-884 / F6 — Apple-only illness detection. The resting-HR term scores Apple's own RHR against the

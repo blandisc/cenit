@@ -1,7 +1,7 @@
 import SwiftUI
 import Foundation
 import CenitDesign
-import StrandAnalytics
+import CenitAnalytics
 
 // MARK: - LiquidMetricSheetView (épico hoja Liquid, pre-F6 — el COMPOSITOR)
 //

@@ -1,7 +1,7 @@
 #if os(iOS)
 import Foundation
 import CenitDesign
-import StrandTraining
+import CenitTraining
 
 // TicketMapping.swift — pure StrengthSession → MiniTicket mapper for the thermal-receipt grid.
 // No view code. Keeps ticket fields deterministic (stable order #, bars) so the same session always

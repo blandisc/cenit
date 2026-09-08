@@ -174,7 +174,7 @@ public struct GraficaRangos: View {
                 .font(InstrumentoType.groteskNumber(20, weight: .bold))
                 .foregroundColor(hue)
              + Text(verbatim: " · \(mediaNote)")
-                .font(StrandFont.scaled(12))
+                .font(CenitFont.scaled(12))
                 .foregroundColor(LiquidColor.tinta500)
              + Text(verbatim: mediaDelta.map { " \($0)" } ?? "")
                 .font(InstrumentoType.grotesk(12, weight: .semibold))
@@ -317,7 +317,7 @@ public struct GraficaRangos: View {
                 .offset(x: Self.gutter, y: top)
             if let label = wash.label {
                 Text(label)
-                    .font(StrandFont.scaled(9))
+                    .font(CenitFont.scaled(9))
                     .foregroundStyle(LiquidColor.tinta500)
                     .offset(x: Self.gutter + 4, y: top + 3)
             }
@@ -344,7 +344,7 @@ public struct GraficaRangos: View {
                     .stroke(LiquidColor.tinta500, style: StrokeStyle(lineWidth: 1, dash: [4, 3]))
                 if let label = ref.label {
                     Text(label)
-                        .font(StrandFont.scaled(9))
+                        .font(CenitFont.scaled(9))
                         .foregroundStyle(LiquidColor.tinta500)
                         .offset(x: Self.gutter + 4, y: y(ref.v) - 14)
                 }
@@ -471,7 +471,7 @@ public struct GraficaRangos: View {
         let active = activeLane == i
         let count = laneCounts[i]
         return Button {
-            withAnimation(StrandMotion.interactive) {
+            withAnimation(CenitMotion.interactive) {
                 activeLane = active ? nil : i
             }
         } label: {
@@ -480,7 +480,7 @@ public struct GraficaRangos: View {
                     .fill(b.color)
                     .frame(width: 9, height: 9)
                 Text(b.label)
-                    .font(StrandFont.scaled(14, weight: active ? .semibold : .regular))
+                    .font(CenitFont.scaled(14, weight: active ? .semibold : .regular))
                     .foregroundStyle(active ? LiquidColor.tinta900 : LiquidColor.tinta700)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 Text(b.range)

@@ -142,7 +142,7 @@
   {
     "file": "Cenit/Screens/WorkoutHistoryScreen.swift",
     "line": 1314,
-    "snippet": "HStack(spacing: CenitMetrics.gap) {             Text(\"Workout deleted\").font(StrandFont.subhead).foregroundStyle(them...",
+    "snippet": "HStack(spacing: CenitMetrics.gap) {             Text(\"Workout deleted\").font(CenitFont.subhead).foregroundStyle(them...",
     "isComposition": true,
     "labeler": "subagent-general-purpose-independent-labeler-2026-08-31"
   },
@@ -184,7 +184,7 @@
   {
     "file": "Cenit/Screens/WorkoutImportView.swift",
     "line": 306,
-    "snippet": "VStack(alignment: .leading, spacing: CenitMetrics.space2) {             Text(verbatim: name).font(StrandFont.body)   ...",
+    "snippet": "VStack(alignment: .leading, spacing: CenitMetrics.space2) {             Text(verbatim: name).font(CenitFont.body)   ...",
     "isComposition": false,
     "labeler": "subagent-general-purpose-independent-labeler-2026-08-31"
   },
@@ -226,7 +226,7 @@
   {
     "file": "Cenit/Screens/WorkoutImportView.swift",
     "line": 352,
-    "snippet": "HStack(spacing: CenitMetrics.space2) {                                 Image(systemName: \"sparkles\").font(StrandFont....",
+    "snippet": "HStack(spacing: CenitMetrics.space2) {                                 Image(systemName: \"sparkles\").font(CenitFont....",
     "isComposition": true,
     "labeler": "subagent-general-purpose-independent-labeler-2026-08-31"
   },
@@ -282,7 +282,7 @@
   {
     "file": "Cenit/Screens/LiveStrengthSheets.swift",
     "line": 458,
-    "snippet": "Text(\"Use\").font(StrandFont.caption).foregroundStyle(theme.ink)                 .padding(.horizontal, CenitMetrics.ga...",
+    "snippet": "Text(\"Use\").font(CenitFont.caption).foregroundStyle(theme.ink)                 .padding(.horizontal, CenitMetrics.ga...",
     "isComposition": true,
     "labeler": "subagent-general-purpose-independent-labeler-2026-08-31"
   },
@@ -296,7 +296,7 @@
   {
     "file": "Cenit/Screens/Hoja/RoutineSheetLiveTarjeta.swift",
     "line": 404,
-    "snippet": "Text(\"It was \\(vivo.plateNumber(vivo.displayWeight(target.weightKg / 10)))\")                             .font(Strand...",
+    "snippet": "Text(\"It was \\(vivo.plateNumber(vivo.displayWeight(target.weightKg / 10)))\")                             .font(Cenit...",
     "isComposition": true,
     "labeler": "subagent-general-purpose-independent-labeler-2026-08-31"
   },
@@ -366,7 +366,7 @@
   {
     "file": "Cenit/Screens/Hoja/RoutineSheetLive.swift",
     "line": 474,
-    "snippet": "(Text(\"Keep training\") + Text(verbatim: \" ›\"))                         .font(StrandFont.subhead.weight(.bold)).foregr...",
+    "snippet": "(Text(\"Keep training\") + Text(verbatim: \" ›\"))                         .font(CenitFont.subhead.weight(.bold)).foregr...",
     "isComposition": true,
     "labeler": "subagent-general-purpose-independent-labeler-2026-08-31"
   },
@@ -408,7 +408,7 @@
   {
     "file": "Cenit/Screens/WorkshopTricksScreen.swift",
     "line": 85,
-    "snippet": "Image(systemName: t.systemImage)                 .font(StrandFont.glyph(.inline))                 .foregroundStyle(th...",
+    "snippet": "Image(systemName: t.systemImage)                 .font(CenitFont.glyph(.inline))                 .foregroundStyle(th...",
     "isComposition": false,
     "labeler": "subagent-general-purpose-independent-labeler-2026-08-31"
   },
@@ -422,7 +422,7 @@
   {
     "file": "Cenit/Screens/WorkoutHistoryScreen.swift",
     "line": 1977,
-    "snippet": "Text(\"Estimated\")                     .font(StrandFont.caption).foregroundStyle(theme.inkSecondary)                  ...",
+    "snippet": "Text(\"Estimated\")                     .font(CenitFont.caption).foregroundStyle(theme.inkSecondary)                  ...",
     "isComposition": true,
     "labeler": "subagent-general-purpose-independent-labeler-2026-08-31"
   },
@@ -443,7 +443,7 @@
   {
     "file": "Cenit/Screens/ManualWorkoutSheet.swift",
     "line": 149,
-    "snippet": "Text(editing == nil ? \"Add\" : \"Save\")                         .font(StrandFont.headline)                         .for...",
+    "snippet": "Text(editing == nil ? \"Add\" : \"Save\")                         .font(CenitFont.headline)                         .for...",
     "isComposition": true,
     "labeler": "subagent-general-purpose-independent-labeler-2026-08-31"
   },
@@ -464,14 +464,14 @@
   {
     "file": "Cenit/Screens/LiveStrengthSheets.swift",
     "line": 415,
-    "snippet": "HStack(spacing: 9) {             CenitIcon.search.image.font(StrandFont.glyph(.inline)).foregroundStyle(theme.inkTer...",
+    "snippet": "HStack(spacing: 9) {             CenitIcon.search.image.font(CenitFont.glyph(.inline)).foregroundStyle(theme.inkTer...",
     "isComposition": true,
     "labeler": "subagent-general-purpose-independent-labeler-2026-08-31"
   },
   {
     "file": "Cenit/Screens/Hoja/RoutineSheetLiveFoco.swift",
     "line": 240,
-    "snippet": "Text(running ? String(localized: \"Stop and save\") : String(localized: \"Start\"))                     .font(StrandFont....",
+    "snippet": "Text(running ? String(localized: \"Stop and save\") : String(localized: \"Start\"))                     .font(CenitFont....",
     "isComposition": false,
     "labeler": "subagent-general-purpose-independent-labeler-2026-08-31"
   },
@@ -562,7 +562,7 @@
   {
     "file": "Cenit/Screens/SessionKeypad.swift",
     "line": 302,
-    "snippet": "Text(label)                 .font(StrandFont.subhead.weight(.semibold)).foregroundStyle(theme.paper)                 ...",
+    "snippet": "Text(label)                 .font(CenitFont.subhead.weight(.semibold)).foregroundStyle(theme.paper)                 ...",
     "isComposition": false,
     "labeler": "subagent-general-purpose-independent-labeler-2026-08-31"
   },
@@ -709,7 +709,7 @@
   {
     "file": "Cenit/Screens/Hoja/RoutineSheetLiveFoco.swift",
     "line": 498,
-    "snippet": "Text(\"ZONE \\(zone) · \\(bpm)\")             .font(StrandFont.caption.weight(.bold)).foregroundStyle(LiquidColor.tinta50...",
+    "snippet": "Text(\"ZONE \\(zone) · \\(bpm)\")             .font(CenitFont.caption.weight(.bold)).foregroundStyle(LiquidColor.tinta50...",
     "isComposition": true,
     "labeler": "subagent-general-purpose-independent-labeler-2026-08-31"
   },
@@ -772,7 +772,7 @@
   {
     "file": "Cenit/Screens/PlanAppliedToast.swift",
     "line": 20,
-    "snippet": "Text(\"Template applied · your week is set, edit it whenever\")                         .font(StrandFont.caption).fontW...",
+    "snippet": "Text(\"Template applied · your week is set, edit it whenever\")                         .font(CenitFont.caption).fontW...",
     "isComposition": false,
     "labeler": "subagent-general-purpose-independent-labeler-2026-08-31"
   },
@@ -786,14 +786,14 @@
   {
     "file": "Cenit/Screens/Hoja/RoutineSheetLiveFoco.swift",
     "line": 284,
-    "snippet": "Text(running ? String(localized: \"Stop and save\") : String(localized: \"Start\"))                     .font(StrandFont....",
+    "snippet": "Text(running ? String(localized: \"Stop and save\") : String(localized: \"Start\"))                     .font(CenitFont....",
     "isComposition": false,
     "labeler": "subagent-general-purpose-independent-labeler-2026-08-31"
   },
   {
     "file": "Cenit/Screens/StarterTemplatesSheet.swift",
     "line": 263,
-    "snippet": "HStack(spacing: 10) {             Text(name).font(StrandFont.body).foregroundStyle(theme.ink)                 .fixedS...",
+    "snippet": "HStack(spacing: 10) {             Text(name).font(CenitFont.body).foregroundStyle(theme.ink)                 .fixedS...",
     "isComposition": false,
     "labeler": "subagent-general-purpose-independent-labeler-2026-08-31"
   },
@@ -828,14 +828,14 @@
   {
     "file": "Cenit/Screens/Hoja/RoutineSheetLiveTarjeta.swift",
     "line": 361,
-    "snippet": "HStack(spacing: LiquidSpace.s150) {             Text(\"RECORD\").font(StrandFont.caption.weight(.bold)).foregroundStyle...",
+    "snippet": "HStack(spacing: LiquidSpace.s150) {             Text(\"RECORD\").font(CenitFont.caption.weight(.bold)).foregroundStyle...",
     "isComposition": false,
     "labeler": "subagent-general-purpose-independent-labeler-2026-08-31"
   },
   {
     "file": "Cenit/Screens/Hoja/RoutineSheetLiveTarjeta.swift",
     "line": 307,
-    "snippet": "HStack(alignment: .firstTextBaseline, spacing: LiquidSpace.s250) {                 Text(run.name).font(StrandFont.sub...",
+    "snippet": "HStack(alignment: .firstTextBaseline, spacing: LiquidSpace.s250) {                 Text(run.name).font(CenitFont.sub...",
     "isComposition": false,
     "labeler": "subagent-general-purpose-independent-labeler-2026-08-31"
   }

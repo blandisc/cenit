@@ -37,9 +37,9 @@ private struct KeyMetricsDemo: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(alignment: .firstTextBaseline) {
-                Text("Métricas clave").font(StrandFont.title1).foregroundStyle(t.ink)
+                Text("Métricas clave").font(CenitFont.title1).foregroundStyle(t.ink)
                 Spacer()
-                Text("Tendencia 14 días").font(StrandFont.footnote).foregroundStyle(t.inkTertiary)
+                Text("Tendencia 14 días").font(CenitFont.footnote).foregroundStyle(t.inkTertiary)
             }
             VStack(spacing: 0) {
                 MetricRow(label: "Esfuerzo del día", value: "8.5",

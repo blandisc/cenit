@@ -51,14 +51,14 @@ packages:
     path: Packages/BiometricStreams
   CenitStore:
     path: Packages/CenitStore
-  StrandAnalytics:
-    path: Packages/StrandAnalytics
-  StrandImport:
-    path: Packages/StrandImport
+  CenitAnalytics:
+    path: Packages/CenitAnalytics
+  CenitImport:
+    path: Packages/CenitImport
   CenitDesign:
     path: Packages/CenitDesign
-  StrandTraining:
-    path: Packages/StrandTraining
+  CenitTraining:
+    path: Packages/CenitTraining
   # CenitEnsenanza — el registro tipado de cómo se enseña cada funcionalidad (épico FER-428,
   # L4/FER-430). Foundation-only, sin dependencias.
   CenitEnsenanza:
@@ -187,10 +187,10 @@ targets:
     dependencies:
       - package: BiometricStreams
       - package: CenitStore
-      - package: StrandAnalytics
-      - package: StrandImport
+      - package: CenitAnalytics
+      - package: CenitImport
       - package: CenitDesign
-      - package: StrandTraining
+      - package: CenitTraining
       # CenitEnsenanza — registro tipado de enseñanza (épico FER-428, L4/FER-430).
       - package: CenitEnsenanza
       # FER-721: embed the Live Activity / widget extension into the app bundle.
@@ -251,7 +251,7 @@ targets:
         SWIFT_EMIT_LOC_STRINGS: NO
     dependencies:
       - package: CenitDesign
-      - package: StrandTraining   # C1 (FER-361): the wire + the on-wrist logger use the real domain types
+      - package: CenitTraining   # C1 (FER-361): the wire + the on-wrist logger use the real domain types
 
   # ---------------------------------------------------------------------------
   # FER-721: the app's first app-extension target — a WidgetKit extension that hosts the guided
@@ -323,7 +323,7 @@ targets:
 
   # ---------------------------------------------------------------------------
   # Unit-test bundle for the iOS app target. Runs the app-layer logic tests
-  # (migrated from the retired macOS StrandTests) against the Cenit module in the
+  # (migrated from the retired macOS CenitTests) against the Cenit module in the
   # simulator. TEST_HOST points at the iOS bundle's binary explicitly.
   CenitUnitTests:
     type: bundle.unit-test
@@ -340,9 +340,9 @@ targets:
         link: false
       - package: CenitStore
         link: false
-      - package: StrandAnalytics
+      - package: CenitAnalytics
         link: false
-      - package: StrandTraining
+      - package: CenitTraining
         link: false
     settings:
       base:

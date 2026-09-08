@@ -18,7 +18,7 @@ def find_stringsdata() -> list[Path]:
     derived = Path.home() / "Library/Developer/Xcode/DerivedData"
     out: list[Path] = []
     for root, _dirs, files in os.walk(derived):
-        if "Strand-" not in root:
+        if "Cenit-" not in root:
             continue
         for f in files:
             if f.endswith(".stringsdata"):

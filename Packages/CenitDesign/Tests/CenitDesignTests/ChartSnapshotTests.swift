@@ -29,10 +29,10 @@ final class ChartSnapshotTests: XCTestCase {
         let range = 0...max(peak * 1.15, 1)
 
         let view = VStack(alignment: .leading, spacing: 12) {
-            Text("How today added up").font(StrandFont.headline).foregroundStyle(InstrumentoTheme.base.ink)
+            Text("How today added up").font(CenitFont.headline).foregroundStyle(InstrumentoTheme.base.ink)
             TrendChart(
                 points: points,
-                gradient: StrandPalette.strainGradient,
+                gradient: CenitPalette.strainGradient,
                 valueRange: range,
                 showsArea: true,
                 height: 132,

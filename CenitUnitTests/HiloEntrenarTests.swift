@@ -1,5 +1,5 @@
 import XCTest
-import StrandAnalytics
+import CenitAnalytics
 @testable import Cenit
 
 /// FER-85 — el hilo de Entrenar sale del MISMO constructor que el héroe de Hoy, y estas pruebas

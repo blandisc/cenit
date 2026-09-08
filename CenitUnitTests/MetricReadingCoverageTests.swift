@@ -1,5 +1,5 @@
 import XCTest
-import StrandAnalytics
+import CenitAnalytics
 @testable import Cenit
 
 /// FER-29 · F3a-bis — el gate de cobertura del contrato 4. El compositor

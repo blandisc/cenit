@@ -52,7 +52,7 @@ repository.
 From any package directory:
 
 ```bash
-cd Packages/StrandAnalytics && swift build && swift test
+cd Packages/CenitAnalytics && swift build && swift test
 ```
 
 To run a single case or method:

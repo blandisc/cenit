@@ -25,7 +25,7 @@ public struct EntrenarStatusPill: View {
                 Circle().fill(dotColor).frame(width: 6, height: 6)
             }
             Text(text)
-                .font(StrandFont.caption)
+                .font(CenitFont.caption)
                 .foregroundStyle(LiquidColor.tinta900)
         }
         .padding(.horizontal, 12)
@@ -68,11 +68,11 @@ struct EntrenarToolCard<Content: View>: View {
     VStack(alignment: .leading, spacing: 16) {
         EntrenarToolCard {
             Text("Padding 16 (default)")
-                .font(StrandFont.subhead).foregroundStyle(LiquidColor.tinta900)
+                .font(CenitFont.subhead).foregroundStyle(LiquidColor.tinta900)
         }
         EntrenarToolCard(padding: 24) {
             Text("Padding 24")
-                .font(StrandFont.subhead).foregroundStyle(LiquidColor.tinta900)
+                .font(CenitFont.subhead).foregroundStyle(LiquidColor.tinta900)
         }
     }
     .padding(24)

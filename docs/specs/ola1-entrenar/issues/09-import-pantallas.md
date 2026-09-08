@@ -22,7 +22,7 @@ No reconocido: «No reconozco este archivo. Cénit lee el CSV que exportan Stron
 Resolver: cada fila un grupo («Cable Fly High, en 38 sesiones, sin resolver. Sugerencia: Aperturas en polea alta»), botones sueltos; «Faltan 4 por resolver, deshabilitado». Progreso `.updatesFrequently` con hitos. Dynamic Type: el numeral baja de talla antes de truncar; filas a dos líneas desde AX1; tap targets ≥ 44 pt.
 
 ## Alcance técnico
-`Cenit/Screens/DataSourcesView.swift:177-217, 701-723`, extraer `mappingFlow` de `WorkoutImportView.swift:261-380` a un componente compartido, `WorkoutHistoryScreen.swift:1166-1178, 1924-1946` (vacío + sello), `WorkoutDetailScreen.swift`. Solo tokens StrandDesign; regla de selectores (acciones = botones cortos; unidad kg/lb = riel segmentado).
+`Cenit/Screens/DataSourcesView.swift:177-217, 701-723`, extraer `mappingFlow` de `WorkoutImportView.swift:261-380` a un componente compartido, `WorkoutHistoryScreen.swift:1166-1178, 1924-1946` (vacío + sello), `WorkoutDetailScreen.swift`. Solo tokens CenitDesign; regla de selectores (acciones = botones cortos; unidad kg/lb = riel segmentado).
 
 ## Fuera de alcance
 Lector (E8). Rutinas desde nombres (D-Q9).

@@ -1,0 +1,268 @@
+import XCTest
+import CenitModels
+@testable import CenitAnalytics
+
+/// FER-51 · Lane 0 — `Read.bodyHistory` + `Read.thermalAdjustedDevC`: accesores de LECTURA sobre
+/// el pase forward que el veredicto ya corre. El contrato que estas pruebas fijan es PARIDAD, no
+/// matemática nueva: cada noche queda juzgada con la base de SU propio día y jamás se repinta al
+/// crecer la historia; el dev térmico expuesto es el mismo número que juzgó `thermalDriver`
+/// (con el descuento lúteo asOf, solo del lado alto); y el voto no se mueve ni un pelo.
+final class PreparednessBodyHistoryTests: XCTestCase {
+
+    // MARK: Fixtures (misma forma que PreparednessSentinelHistoryTests)
+
+    private func dm(_ day: String, hrv: Double? = 55, rhr: Int? = 55, resp: Double? = 14,
+                    sleep: Double? = 450, eff: Double? = nil, temp: Double? = 0.0) -> DailyMetric {
+        DailyMetric(day: day, totalSleepMin: sleep, efficiency: eff, deepMin: nil, remMin: nil,
+                    lightMin: nil, disturbances: nil, restingHr: rhr, avgHrv: hrv, recovery: nil,
+                    strain: nil, exerciseCount: nil, spo2Pct: nil, skinTempDevC: temp, respRateBpm: resp)
+    }
+
+    private func baseline(_ count: Int = 20) -> [DailyMetric] {
+        (1...count).map { i in
+            dm(String(format: "2026-06-%02d", i),
+               hrv: 52 + Double(i % 5), rhr: 54 + i % 3, resp: 13 + Double(i % 3))
+        }
+    }
+
+    private func read(_ days: [DailyMetric], asOf: String,
+                      cyclePhase: CyclePhaseEngine.Phase? = nil) -> Preparedness.Read {
+        Preparedness.evaluate(.init(days: days, strainByDay: [:], trend: nil, asOf: asOf,
+                                    nocturnalRestingHr: [:], cyclePhase: cyclePhase,
+                                    nocturnalRmssd: nil))
+    }
+
+    // MARK: (a) Cada noche se juzga con la base de SU día — jamás se repinta
+
+    func testHistoriaNoSeRepintaAlCrecerLaBase() throws {
+        // Día X con FC disparada vs la base que existía ESE día → fuera. Después llegan días con
+        // FC alta sostenida: si la historia se re-juzgara con la base de HOY (que ya subió), el
+        // día X dejaría de verse fuera. El contrato es que NO se re-aplica.
+        let spike = dm("2026-06-21", rhr: 75)
+        let asOfX = read(baseline() + [spike], asOf: "2026-06-21")
+        let nochesX = asOfX.bodyHistory
+        let entradaX = try XCTUnwrap(nochesX.last)
+        XCTAssertEqual(entradaX.day, "2026-06-21")
+        XCTAssertTrue(entradaX.autonomicOut, "75 lpm vs base ~55 debe quedar fuera con los priors de ese día")
+
+        // Ahora la base de hoy sería mucho más alta (FC 74–76 durante días).
+        let after = (22...28).map { i in dm(String(format: "2026-06-%02d", i), rhr: 74 + i % 3) }
+        let asOfLater = read(baseline() + [spike] + after, asOf: "2026-06-28")
+        let entradaXLater = try XCTUnwrap(asOfLater.bodyHistory.first(where: { $0.day == "2026-06-21" }))
+        XCTAssertEqual(entradaXLater, entradaX,
+                       "la noche del 21 debe ser BIT-IDÉNTICA aunque la base de hoy haya cambiado: la historia no se re-aplica")
+    }
+
+    func testBaseCentroEsLaDeSuPropioDia() throws {
+        // El centro de base acarreado por cada noche es el fold de los días ANTERIORES a ella —
+        // por eso dos noches distintas de la misma serie llevan centros distintos si la serie se movió.
+        let after = (22...28).map { i in dm(String(format: "2026-06-%02d", i), rhr: 75) }
+        let r = read(baseline() + after, asOf: "2026-06-28")
+        let temprano = try XCTUnwrap(r.bodyHistory.first(where: { $0.day == "2026-06-20" }))
+        let tardio = try XCTUnwrap(r.bodyHistory.last)
+        let cTemprano = try XCTUnwrap(temprano.rhrBaseCenter)
+        let cTardio = try XCTUnwrap(tardio.rhrBaseCenter)
+        XCTAssertLessThan(cTemprano, cTardio,
+                          "tras una semana a 75 lpm el centro de base del día 28 debe ser mayor que el del 20")
+        XCTAssertEqual(cTemprano, 55, accuracy: 2.0, "el centro temprano refleja la base ~55 de sus priors")
+    }
+
+    // MARK: (b) autonomicOut / sleepOut coinciden con los cortes del veredicto del propio día
+
+    func testAutonomicOutCoincideConElEjeDelVeredicto() throws {
+        let r = read(baseline() + [dm("2026-06-21", rhr: 75)], asOf: "2026-06-21")
+        let eje = try XCTUnwrap(r.drivers.first(where: { $0.axis == .autonomic }))
+        let noche = try XCTUnwrap(r.bodyHistory.last)
+        XCTAssertTrue(eje.state.isOut)
+        XCTAssertEqual(noche.autonomicOut, eje.state.isOut)
+        XCTAssertEqual(try XCTUnwrap(noche.autonomicOrientedZ), try XCTUnwrap(eje.orientedZ), accuracy: 1e-12,
+                       "el z acarreado es EL MISMO compuesto que votó, no una re-derivación")
+    }
+
+    func testAutonomicEnRangoCoincide() throws {
+        let r = read(baseline() + [dm("2026-06-21", rhr: 55)], asOf: "2026-06-21")
+        let eje = try XCTUnwrap(r.drivers.first(where: { $0.axis == .autonomic }))
+        let noche = try XCTUnwrap(r.bodyHistory.last)
+        XCTAssertFalse(eje.state.isOut)
+        XCTAssertFalse(noche.autonomicOut)
+    }
+
+    func testSleepOutCoincideConElEjeSueno_duracion() throws {
+        // 300 min < 420 − 45: el eje sueño del veredicto marca fuera; la noche también.
+        let r = read(baseline() + [dm("2026-06-21", sleep: 300)], asOf: "2026-06-21")
+        let eje = try XCTUnwrap(r.drivers.first(where: { $0.axis == .sleep }))
+        let noche = try XCTUnwrap(r.bodyHistory.last)
+        XCTAssertTrue(eje.state.isOut)
+        XCTAssertTrue(noche.sleepOut)
+    }
+
+    func testSleepOutCoincideConElEjeSueno_eficiencia() throws {
+        // 480 min con eficiencia 0.72 < 0.80: fuera por el brazo de eficiencia.
+        let r = read(baseline() + [dm("2026-06-21", sleep: 480, eff: 0.72)], asOf: "2026-06-21")
+        let eje = try XCTUnwrap(r.drivers.first(where: { $0.axis == .sleep }))
+        let noche = try XCTUnwrap(r.bodyHistory.last)
+        XCTAssertTrue(eje.state.isOut)
+        XCTAssertTrue(noche.sleepOut)
+    }
+
+    func testSleepEnRangoCoincide() throws {
+        let r = read(baseline() + [dm("2026-06-21", sleep: 450)], asOf: "2026-06-21")
+        let noche = try XCTUnwrap(r.bodyHistory.last)
+        XCTAssertFalse(noche.sleepOut)
+    }
+
+    // MARK: (c) thermalAdjustedDevC — descuento lúteo solo asOf y solo lado alto
+
+    func testThermalAdjustedAplicaDescuentoLutealAsOf() throws {
+        let r = read(baseline() + [dm("2026-06-21", temp: 0.9)], asOf: "2026-06-21",
+                     cyclePhase: .lutealLean)
+        XCTAssertEqual(try XCTUnwrap(r.thermalAdjustedDevC), 0.6, accuracy: 1e-12,
+                       "0.9 − 0.3 de descuento lúteo: el MISMO número que juzgó thermalDriver")
+        // Y coincide con el juicio del eje: 0.6 < 0.8 → en rango.
+        let eje = try XCTUnwrap(r.drivers.first(where: { $0.axis == .thermal }))
+        XCTAssertEqual(eje.state, .inRange)
+    }
+
+    func testThermalSinFaseNoDescuenta() throws {
+        let r = read(baseline() + [dm("2026-06-21", temp: 0.9)], asOf: "2026-06-21")
+        XCTAssertEqual(try XCTUnwrap(r.thermalAdjustedDevC), 0.9, accuracy: 1e-12)
+        let eje = try XCTUnwrap(r.drivers.first(where: { $0.axis == .thermal }))
+        XCTAssertEqual(eje.state, .high)
+    }
+
+    func testThermalLadoFrioNoSeDescuenta() throws {
+        let r = read(baseline() + [dm("2026-06-21", temp: -0.5)], asOf: "2026-06-21",
+                     cyclePhase: .lutealLean)
+        XCTAssertEqual(try XCTUnwrap(r.thermalAdjustedDevC), -0.5, accuracy: 1e-12,
+                       "el descuento lúteo jamás toca el lado frío")
+    }
+
+    func testThermalSinLecturaEsNil() {
+        let r = read(baseline() + [dm("2026-06-21", temp: nil)], asOf: "2026-06-21")
+        XCTAssertNil(r.thermalAdjustedDevC)
+    }
+
+    // MARK: Ventana, orden y cap
+
+    func testCapVeinteNochesViejoANuevo() {
+        let after = (21...28).map { i in dm(String(format: "2026-06-%02d", i)) }
+        let days = baseline() + after   // 28 noches
+        let r = read(days, asOf: "2026-06-28")
+        XCTAssertEqual(r.bodyHistory.count, Preparedness.bodyHistoryWindow)
+        XCTAssertEqual(r.bodyHistory.map(\.day), days.suffix(20).map(\.day),
+                       "las últimas 20 terminando en asOf, viejo → nuevo")
+    }
+
+    /// FER-77 · CONTRATO NUEVO: sin la fila de asOf no hay veredicto de HOY, pero la historia ya
+    /// juzgada de los días que SÍ están sobrevive. Antes se devolvía vacía y la Matriz perdía la
+    /// banda de FC, los «dentro/fuera» del arrastre y las alertas viejas — datos ya calculados.
+    /// Lo que sigue siendo nil es lo de HOY: no se inventa un día que no llegó.
+    func testRutaLowSignalSinFilaConservaLaHistoriaJuzgada() {
+        let r = read(baseline(), asOf: "2026-07-15")
+        XCTAssertEqual(r.verdict, .lowSignal)
+        XCTAssertFalse(r.bodyHistory.isEmpty, "la historia juzgada no se borra por un día ausente")
+        XCTAssertEqual(r.bodyHistory.last?.day, baseline().last?.day,
+                       "termina en la última noche que SÍ existe, no en asOf")
+        XCTAssertNil(r.thermalAdjustedDevC, "de HOY no se afirma nada: no llegó")
+        // FER-76: y la madurez que reporta es la REAL de tus priors, no un 0 que promete un
+        // progreso ya hecho.
+        XCTAssertTrue(r.autonomicPossible, "la baseline tiene FC en reposo")
+    }
+
+    /// REVISIÓN ADVERSARIAL · La historia que devuelve la ruta SIN fila de hoy tiene que ser
+    /// EXACTAMENTE la misma que produce la ruta normal para esos mismos días. Es la propiedad que
+    /// justifica que exista un helper aparte: si diverge, la Matriz mostraría un juicio distinto
+    /// según si el día de hoy llegó o no — la clase de bug que nadie ve hasta que un usuario
+    /// jura que ayer estaba «dentro» y hoy aparece «fuera» sin que cambiara ese día.
+    /// Segunda vuelta adversarial · la cláusula «la última noche presente tiene que ser
+    /// nocturna» pertenece al camino que JUZGA un día (ahí sí: la base y el día juzgado no
+    /// pueden ser de constructos distintos). Copiarla al helper sin día que juzgar tenía un
+    /// precio peor que el que quería evitar: una sola noche sin reloj al final de la ventana
+    /// tiraba las otras 19 al constructo despierto y la banda de la Matriz saltaba ~8 bpm entre
+    /// dos refrescos consecutivos.
+    func testUnaNocheSinFCNocturnaNoTiraLaVentanaAlConstructoDespierto() {
+        let dias = baseline()                                   // FC despierta ~54-56
+        // Nocturna (~45) en 19 de las 20 noches: la ÚLTIMA presente no la tiene.
+        var nocturna: [String: Double] = [:]
+        for d in dias.dropLast() { nocturna[d.day] = 45 }
+        let r = Preparedness.evaluate(.init(days: dias, strainByDay: [:], trend: nil,
+                                            asOf: "2026-06-21",   // sin fila de hoy: ruta temprana
+                                            nocturnalRestingHr: nocturna, cyclePhase: nil,
+                                            nocturnalRmssd: nil))
+        let usados = r.bodyHistory.compactMap(\.rhrResolved)
+        XCTAssertFalse(usados.isEmpty, "la historia se publica aunque no haya fila de hoy")
+        XCTAssertTrue(usados.contains { $0 < 50 },
+                      "19 noches nocturnas mandan: una sola faltante no reescribe las demás al "
+                      + "constructo despierto (la banda saltaría ~8 bpm entre refrescos): \(usados)")
+    }
+
+    func testHistoriaSinFilaDeHoyNoDivergeDeLaRutaNormal() {
+        let dias = baseline()                        // 20 noches, la última: 2026-06-20
+        let normal = read(dias, asOf: "2026-06-20")  // ruta principal (hay fila de asOf)
+        let sinHoy = read(dias, asOf: "2026-06-21")  // ruta temprana (no hay fila de asOf)
+
+        XCTAssertEqual(sinHoy.verdict, .lowSignal)
+        XCTAssertFalse(normal.bodyHistory.isEmpty)
+        // Mismos días, mismos juicios, misma base por noche.
+        XCTAssertEqual(sinHoy.bodyHistory.map(\.day), normal.bodyHistory.map(\.day))
+        XCTAssertEqual(sinHoy.bodyHistory.map(\.autonomicOut), normal.bodyHistory.map(\.autonomicOut))
+        XCTAssertEqual(sinHoy.bodyHistory.map(\.sleepOut), normal.bodyHistory.map(\.sleepOut))
+        XCTAssertEqual(sinHoy.bodyHistory.map(\.rhrResolved), normal.bodyHistory.map(\.rhrResolved))
+        XCTAssertEqual(sinHoy.sentinelHistory.map(\.day), normal.sentinelHistory.map(\.day))
+        XCTAssertEqual(sinHoy.sentinelHistory.map(\.tempOut), normal.sentinelHistory.map(\.tempOut))
+        XCTAssertEqual(sinHoy.sentinelHistory.map(\.respOut), normal.sentinelHistory.map(\.respOut))
+        XCTAssertEqual(sinHoy.sentinelHistory.map(\.respJudged), normal.sentinelHistory.map(\.respJudged))
+        // Y la madurez que reporta es la del MISMO fold, no un cero.
+        XCTAssertEqual(sinHoy.autonomicNights, normal.autonomicNights)
+        XCTAssertEqual(sinHoy.maturity, normal.maturity)
+    }
+
+    /// REVISIÓN ADVERSARIAL (segunda vuelta) · La concesión de fase lútea vale SOLO para el día
+    /// que se juzga. Sin fila de hoy no hay día juzgado, así que la fase NO puede tocar ninguna
+    /// noche del historial. El helper de esa ruta pasaba el día de CADA fila como `asOf`, y con
+    /// eso las 20 noches recibían la concesión: la historia salía distinta de la del camino
+    /// principal sin que nadie lo notara.
+    func testSinFilaDeHoyLaFaseLuteaNoTocaLaHistoria() {
+        let dias = baseline()
+        let conFase = read(dias, asOf: "2026-06-21", cyclePhase: .lutealLean)
+        let sinFase = read(dias, asOf: "2026-06-21", cyclePhase: nil)
+        XCTAssertEqual(conFase.verdict, .lowSignal)
+        XCTAssertEqual(conFase.bodyHistory.map(\.day), sinFase.bodyHistory.map(\.day))
+        XCTAssertEqual(conFase.bodyHistory.map(\.autonomicOrientedZ),
+                       sinFase.bodyHistory.map(\.autonomicOrientedZ),
+                       "sin día juzgado, la fase no puede mover ninguna z del historial")
+        XCTAssertEqual(conFase.bodyHistory.map(\.autonomicOut), sinFase.bodyHistory.map(\.autonomicOut))
+        XCTAssertEqual(conFase.sentinelHistory.map(\.tempOut), sinFase.sentinelHistory.map(\.tempOut))
+    }
+
+    func testRhrResolvedEsLaSerieResuelta() throws {
+        // Sin nocturna y con suavizado N=1 (default), la FC resuelta de una noche es su restingHr.
+        let r = read(baseline() + [dm("2026-06-21", rhr: 61)], asOf: "2026-06-21")
+        XCTAssertEqual(try XCTUnwrap(r.bodyHistory.last?.rhrResolved), 61)
+    }
+
+    func testHrvBaseCenterEnUnidadesNaturales() throws {
+        // La base SDNN vive en log-dominio: el centro expuesto debe venir ya en ms (exp), no en ln.
+        let r = read(baseline() + [dm("2026-06-21")], asOf: "2026-06-21")
+        let c = try XCTUnwrap(r.bodyHistory.last?.hrvBaseCenter)
+        XCTAssertEqual(c, 54, accuracy: 4.0, "≈ media geométrica de 52–56 ms, no ~4 (ln)")
+    }
+
+    // MARK: La adición es inerte para el voto y para los inits existentes
+
+    func testExponerLaHistoriaNoMueveElVeredicto() {
+        let days = baseline() + [dm("2026-06-21", rhr: 75)]
+        let r1 = read(days, asOf: "2026-06-21")
+        let r2 = read(days, asOf: "2026-06-21")
+        XCTAssertEqual(r1.verdict, r2.verdict)
+        XCTAssertFalse(r1.bodyHistory.isEmpty)
+    }
+
+    func testInitExistenteCompilaConDefaults() {
+        // El init pre-FER-51 (sin bodyHistory/thermalAdjustedDevC) sigue compilando tal cual.
+        let r = Preparedness.Read(verdict: .full, drivers: [], signalsPresent: 3, signalsTotal: 3,
+                                  maturity: .trusted, autonomicNights: 30, trend: nil)
+        XCTAssertTrue(r.bodyHistory.isEmpty)
+        XCTAssertNil(r.thermalAdjustedDevC)
+    }
+}

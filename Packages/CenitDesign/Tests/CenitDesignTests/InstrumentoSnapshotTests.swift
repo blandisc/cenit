@@ -42,14 +42,14 @@ private struct LanguageDemo: View {
             // Header — quiet overline + one title.
             VStack(alignment: .leading, spacing: 4) {
                 Text("MARTES 16 JUN").instrumentoOverline().foregroundStyle(t.inkTertiary)
-                Text("Hoy").font(StrandFont.title1).foregroundStyle(t.ink)
+                Text("Hoy").font(CenitFont.title1).foregroundStyle(t.ink)
             }
 
             // Rule 1 + 2: the ONE dominant number, colored because it's the datum.
             VStack(alignment: .leading, spacing: 2) {
                 Text("RECUPERACIÓN").instrumentoOverline().foregroundStyle(t.inkTertiary)
                 Text("82").instrumentoHero(96).foregroundStyle(t.dataRecovery)
-                Text("Listo para un día fuerte").font(StrandFont.body).foregroundStyle(t.inkSecondary)
+                Text("Listo para un día fuerte").font(CenitFont.body).foregroundStyle(t.inkSecondary)
             }
 
             Divider().overlay(t.hairline)
@@ -83,8 +83,8 @@ private struct LanguageDemo: View {
 
     private func signal(_ name: String, _ detail: String) -> some View {
         HStack(spacing: 8) {
-            Text(name).font(StrandFont.subhead).foregroundStyle(t.ink).frame(width: 110, alignment: .leading)
-            Text(detail).font(StrandFont.subhead).foregroundStyle(t.inkSecondary)
+            Text(name).font(CenitFont.subhead).foregroundStyle(t.ink).frame(width: 110, alignment: .leading)
+            Text(detail).font(CenitFont.subhead).foregroundStyle(t.inkSecondary)
             Spacer(minLength: 0)
         }
     }

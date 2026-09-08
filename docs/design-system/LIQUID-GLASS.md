@@ -27,7 +27,7 @@
 - **Entry points:** `LiquidColor` · `LiquidType` · `LiquidSpace` / `LiquidRadius` ·
   `LiquidElevation` · `LiquidMotion` · `LiquidHaptica` · `liquidGlass(_:)` (7 recetas de
   forma) · `liquidGlass(tono:regimen:)` · `LiquidTono` · `LiquidRegimen` · `LiquidIcon`
-  · (`Strand*` / `CenitMetrics` = legado en migración — ver `DESIGN.md`)
+  · (`Cenit*` / `CenitMetrics` = legado en migración — ver `DESIGN.md`)
 - **Pantalla de referencia:** `LiquidHoyScreen` (régimen sobrio) · hub Entrenar
   (`EntrenarModulo` / `EntrenarTile`, régimen mosaico por construcción)
 - **Relación con Instrumento:** marco retirado, en migración. Las pantallas/componentes de
@@ -366,7 +366,7 @@ Respiración, Estrés, Carga) se reconstruyen sobre **una sola familia**: planti
 compartidos + 6 contratos de datos. Principio rector: se cambia la familia, nunca por pantalla;
 lo «distinto» (Sueño) se resuelve con componentes en un slot opcional del mismo shell, jamás
 forkeando. Código canónico: `Packages/CenitDesign/.../LiquidGlass/` (shell y piezas) +
-`Packages/StrandAnalytics` (niveles, formato, frase) + el cableado en `Cenit/Screens/Hoy/`.
+`Packages/CenitAnalytics` (niveles, formato, frase) + el cableado en `Cenit/Screens/Hoy/`.
 
 ### 11.1 Papel opaco en tarjetas internas
 

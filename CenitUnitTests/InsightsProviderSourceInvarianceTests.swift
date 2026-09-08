@@ -1,6 +1,6 @@
 import XCTest
 import CenitStore
-import StrandAnalytics
+import CenitAnalytics
 @testable import Cenit
 
 /// `InsightsProvider` (Patrones + «La conexión de hoy» del Daily Brief) y lo que su lente deja pasar.

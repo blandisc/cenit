@@ -2,8 +2,8 @@
 import Foundation
 import CryptoKit
 import HealthKit
-import StrandAnalytics
-import StrandImport
+import CenitAnalytics
+import CenitImport
 import BiometricStreams
 import CenitStore
 
@@ -351,7 +351,7 @@ final class HealthKitBridge: ObservableObject {
 
         // FER-486: per-night Apple sleep SESSIONS with a stage timeline (for the Detalle de Sueño
         // hypnogram), ALONGSIDE the daily totals from collectSleep above — F3 is additive. Pure decode
-        // (SleepHKDecoder, StrandImport); the idempotent upsert below keeps a re-sync from duplicating.
+        // (SleepHKDecoder, CenitImport); the idempotent upsert below keeps a re-sync from duplicating.
         let appleSleepSessions = SleepHKDecoder.sessions(from: await collectSleepSamples(start: start, end: end))
 
         // FER-1006: the daily row's `efficiency` is READ OFF the decoded sessions rather than
@@ -772,7 +772,7 @@ final class HealthKitBridge: ObservableObject {
     }
 
     /// FER-486: the raw `sleepAnalysis` samples as platform-agnostic descriptors, so the pure
-    /// `SleepHKDecoder` (StrandImport) can group them into one per-night `CachedSleepSession` with a
+    /// `SleepHKDecoder` (CenitImport) can group them into one per-night `CachedSleepSession` with a
     /// stage timeline for the Detalle de Sueño hypnogram. Runs ALONGSIDE `collectSleep` (which keeps
     /// producing the daily totals) — F3 is additive. No mapping/grouping here: this is the thin shell.
     private func collectSleepSamples(start: Date, end: Date) async -> [SleepHKSample] {
@@ -795,7 +795,7 @@ final class HealthKitBridge: ObservableObject {
     /// Convierte la serie de latidos nocturnos de Apple en un RMSSD por noche (R2): trae los intervalos
     /// beat-to-beat en una ventana incremental, recorta cada noche a la UNIÓN de sus tramos dormido (la
     /// misma atribución de wake-day que usa `collectSleep`), y corre el motor puro `NocturnalHRV.night`
-    /// (StrandAnalytics) sobre los latidos ya recortados. Persiste en su PROPIA partición
+    /// (CenitAnalytics) sobre los latidos ya recortados. Persiste en su PROPIA partición
     /// (`apple-health-noop`) vía `metricSeries` — aditivo, nunca toca `byDay`/`DailyMetric`/el camino de
     /// la banda. No-op silencioso (0 filas, sin crash) si falta el permiso de la serie de latidos o si
     /// Apple simplemente no tiene datos beat-to-beat en la ventana.
@@ -1003,7 +1003,7 @@ final class HealthKitBridge: ObservableObject {
         // FER-1004: excludes our own `HKWorkout`s. `saveStrengthWorkout` mirrors every strength
         // session here, and `mapWorkouts` labels whatever comes back `source: "apple-health"`
         // unconditionally — so a date-only read re-imported each session as a second, Apple-branded
-        // copy of a workout StrandTraining already owns.
+        // copy of a workout CenitTraining already owns.
         let predicate = Self.readPredicate(start: start, end: end, options: .strictStartDate)
         return await withCheckedContinuation { (cont: CheckedContinuation<[HKWorkout], Never>) in
             let q = HKSampleQuery(sampleType: HKObjectType.workoutType(),

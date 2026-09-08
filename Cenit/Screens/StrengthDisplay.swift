@@ -1,6 +1,6 @@
 #if os(iOS)
 import SwiftUI
-import StrandTraining
+import CenitTraining
 
 // StrengthDisplay.swift — small display helpers shared by the strength screens (FER-346).
 //

@@ -1,6 +1,6 @@
 import Foundation
 import UserNotifications
-import StrandAnalytics
+import CenitAnalytics
 
 /// FER-114 · «Recuérdame leerme en la mañana»: UN solo recordatorio local al día, a la hora que el
 /// dueño elija. Nada sale del iPhone: son `UNCalendarNotificationTrigger`s, sin push, sin servidor.

@@ -145,9 +145,9 @@ public struct MuscleLoadRow: View {
         self.action = action
     }
 
-    /// El mismo formato que `MuscleFatigueMap.formattedSets` (StrandAnalytics): entero cuando el
+    /// El mismo formato que `MuscleFatigueMap.formattedSets` (CenitAnalytics): entero cuando el
     /// valor es entero, un decimal si no. Duplicado a propósito — este paquete es la raíz del grafo
-    /// (cero dependencias, ni siquiera StrandAnalytics) — así que mantener las dos fórmulas
+    /// (cero dependencias, ni siquiera CenitAnalytics) — así que mantener las dos fórmulas
     /// idénticas es responsabilidad de la prueba, no de un import.
     static func formattedSets(_ v: Double) -> String {
         v.formatted(.number.precision(.fractionLength(v == v.rounded() ? 0 : 1)))
@@ -169,13 +169,13 @@ public struct MuscleLoadRow: View {
             // conteo de series fuera de su columna. El nombre manda, el riel cede, y los dos datos
             // de la derecha se dimensionan por su contenido.
             Text(name)
-                .font(StrandFont.subhead)
+                .font(CenitFont.subhead)
                 .foregroundStyle(isFresh ? LiquidColor.tinta700 : LiquidColor.tinta900)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .fixedSize(horizontal: false, vertical: true)
             rail.frame(maxWidth: 120)
             Text(recency)
-                .font(StrandFont.caption).foregroundStyle(LiquidColor.tinta500)
+                .font(CenitFont.caption).foregroundStyle(LiquidColor.tinta500)
                 .fixedSize(horizontal: true, vertical: false)
             Text(verbatim: Self.formattedSets(sets))
                 .font(InstrumentoType.groteskNumber(14, weight: .bold, relativeTo: .caption))
@@ -183,7 +183,7 @@ public struct MuscleLoadRow: View {
                 .fixedSize(horizontal: true, vertical: false)
             if action != nil {
                 CenitIcon.disclosure.image
-                    .font(StrandFont.glyph(.chevron, weight: .semibold))
+                    .font(CenitFont.glyph(.chevron, weight: .semibold))
                     .foregroundStyle(LiquidColor.tinta500)
             }
         }
