@@ -75,7 +75,7 @@
 ## H13 · ALTA · pieza ③ / UX vs competencia
 - Qué falla: el numeral de serie (hoy tipografía ~11 pt, columna estrecha) pasa a ser puerta de `LiquidMenu`. En sesión, el tap de la fila confirma/palomea (`confirmOrToggleSet`); las tap-zones cubren peso/reps, no el número (`TapZonesSesion`, marca sin hit testing). Robar el numeral pelea con el gesto de ✓ y es peor que Strong/Hevy (badge W/D/F o `set_type` junto al peso, no el índice).
 - Evidencia: ux-B.md «El numeral de la serie es la puerta», B1, AX numeral 44 pt; RoutineSheetLiveTarjeta.swift:245-275; HojaMetrics.numeroSize = 11 (HojaMetrics.swift:44); Hevy/Strong (paridad citada en BRIEF/arq-A).
-- Por qué importa: fricción cada serie, 5×/semana; gesto nuevo no descubrible; accesibilidad 44 pt pelea con la geometría StrandDesign de la fila.
+- Por qué importa: fricción cada serie, 5×/semana; gesto nuevo no descubrible; accesibilidad 44 pt pelea con la geometría CenitDesign de la fila.
 - Propuesta: puerta en marca tipo (chip AMRAP/DROP / «···» de serie) o long-press de fila; numeral solo lectura; target 44 pt en el chip, no en el índice.
 
 ## H14 · ALTA · pieza ④
@@ -130,7 +130,7 @@
 - Qué falla: tira de semanas como un solo elemento VO (bien) pero celdas fijas FER-394 + ViewThatFits desde AX1; numeral de serie a 44 pt pelea con `HojaFilaSerie` densa. Menú de 5 acciones en el índice sin custom rotor/action documentado más allá del hint.
 - Evidencia: ux-B.md Accesibilidad + B16/B17; HojaFilaSerie VO actual arma «Set N» desde `numero` (HojaFilaSerie.swift:312-314).
 - Por qué importa: AX5 «nada se trunca» + 44 pt en columna de índice = redesign de HojaMetrics no presupuestado en arq-B («copy/UX no forma parte de este spec»).
-- Propuesta: CA de layout explícito en StrandDesign (ancho mínimo de puerta de tipo) o mover la puerta fuera del índice (H13).
+- Propuesta: CA de layout explícito en CenitDesign (ancho mínimo de puerta de tipo) o mover la puerta fuera del índice (H13).
 
 ## H23 · BAJA · transversal / docs
 - Qué falla: ARCHITECTURE.md aún dice migrator v41; DATA_MODEL.md corta en v26. H2/H3 de CONSOLIDACION lo notan como issue aparte, pero el PR-esquema de ola 1 puede mergear sin tocar docs y dejar el desfase peor (v43).

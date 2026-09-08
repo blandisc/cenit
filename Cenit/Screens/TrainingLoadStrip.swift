@@ -1,7 +1,7 @@
 #if os(iOS)
 import SwiftUI
 import CenitDesign
-import StrandAnalytics
+import CenitAnalytics
 import Foundation
 
 // FER-105 · TND-32: la franja se separó de `TrainingLoadSheet.swift` para que la HOJA migrara

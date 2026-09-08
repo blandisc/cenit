@@ -350,3 +350,30 @@ copy, y el sistema se pudre solo (README/FEATURES.md/tarjeta del taller desfasad
 Cinco principios que van en cada lote del épico: (1) después de la palabra, nada; (2) se enseña en
 el momento en que ocurre; (3) todo lo que se enseña una vez se puede volver a ver; (4) cada gesto
 tiene un botón; (5) una funcionalidad sin pieza de enseñanza no se mergea (D6, `Tools/check-ensenanza.py`).
+
+## 2026-09-07 · Adiós «Strand»: renombre total a `Cenit*` (FER-478, dueño)
+
+Orden explícita del dueño: «Cénit no se acabó, Strand se acabó.» **Revierte explícitamente** dos
+decisiones previas que hasta hoy mandaban:
+
+- La **4A (FER-287, 2026-09-01)** y su ejecución **FER-290 (2026-09-03)**, que fijaban que
+  `StrandFont`/`StrandPalette`/`StrandMotion` **NO se renombraban** («mueren, no se renombran»).
+- La política de `docs/ARCHITECTURE.md` de que los paquetes de núcleo/datos/analítica
+  **conservaban su prefijo `Strand*`** heredado de la era NOOP.
+
+A partir de FER-478 el prefijo `Strand` desaparece del árbol vivo. Renombres ejecutados
+(sustitución de token, sin colisiones):
+
+- **Paquetes:** `StrandModels → CenitModels`, `StrandAnalytics → CenitAnalytics`,
+  `StrandTraining → CenitTraining`, `StrandImport → CenitImport` (directorio, módulo, `Package.swift`,
+  `project.yml`, imports, matriz de CI `swift-packages.yml`).
+- **Tokens de diseño** (dentro de `CenitDesign`): `StrandFont → CenitFont`,
+  `StrandPalette → CenitPalette`, `StrandMotion → CenitMotion`, `StrandTone → CenitTone`,
+  `StrandElevation → CenitElevation`, `StrandAnimationModifier → CenitAnimationModifier`; y los
+  modificadores en minúscula `strandAnimation/strandElevation/strandOverline → cenit*`.
+
+Lo que **no** se tocó a propósito: la palabra inglesa `stranded` (comentarios/CHANGELOG) y el token
+`Strain*` (la carga fisiológica — es otra palabra, no el prefijo). Las entradas históricas de este
+archivo y del CHANGELOG **no se reescriben** (esta entrada las supersede; la historia queda como
+rastro). El linter de diseño (`Tools/check-design-drift.py`), los scripts de horneado
+(`Tools/bake-exercisedb/*.py`) y el censo del sistema de diseño se actualizaron a los nombres `Cenit*`.

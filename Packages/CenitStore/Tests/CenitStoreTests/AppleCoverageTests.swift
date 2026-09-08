@@ -1,5 +1,5 @@
 import XCTest
-import StrandModels
+import CenitModels
 @testable import CenitStore
 
 /// El panel de «qué alcanzó a traer la importación».

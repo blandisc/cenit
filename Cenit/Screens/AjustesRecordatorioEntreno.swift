@@ -4,7 +4,7 @@ import UIKit       // UIApplication.openSettingsURLString (abrir Ajustes de iOS 
 import UserNotifications
 import CenitDesign
 import CenitStore
-import StrandTraining
+import CenitTraining
 
 // MARK: - Recordatorio del día que toca entrenar (FER-95 · E14) — Liquid Glass (FER-178)
 //

@@ -140,12 +140,12 @@ public struct TrendStatSummary: View {
                 HStack(alignment: .firstTextBaseline, spacing: 2) {
                     Text(average).instrumentoHero(28).foregroundStyle(LiquidColor.tinta900)
                     if let unit {
-                        Text(unit).font(StrandFont.unit).foregroundStyle(LiquidColor.tinta500)
+                        Text(unit).font(CenitFont.unit).foregroundStyle(LiquidColor.tinta500)
                     }
                 }
                 if changeValue != nil { chip }
             }
-            Text(rangeText).font(StrandFont.footnote).foregroundStyle(LiquidColor.tinta700)
+            Text(rangeText).font(CenitFont.footnote).foregroundStyle(LiquidColor.tinta700)
         }
         .accessibilityElement(children: .combine)
     }
@@ -156,7 +156,7 @@ public struct TrendStatSummary: View {
                 Image(systemName: v >= 0 ? "arrow.up.right" : "arrow.down.right")
                     .font(.system(size: 11, weight: .semibold))
             }
-            Text(chipText).font(StrandFont.captionNumber)
+            Text(chipText).font(CenitFont.captionNumber)
         }
         .foregroundStyle(changeColor)
         .padding(.horizontal, 9)

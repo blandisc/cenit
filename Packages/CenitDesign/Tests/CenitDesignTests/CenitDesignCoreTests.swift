@@ -2,7 +2,7 @@ import XCTest
 import SwiftUI
 @testable import CenitDesign
 
-/// Coverage for the reimplemented core tokens/toolkit (FER-395): `Color(hex:)`, `StrandPalette`'s
+/// Coverage for the reimplemented core tokens/toolkit (FER-395): `Color(hex:)`, `CenitPalette`'s
 /// gradient sampling, `SleepInterval`, the chart-scrub geometry toolkit, and the small pure statics on
 /// `TrendChart`/`Sparkline`.
 final class CenitDesignCoreTests: XCTestCase {
@@ -40,10 +40,10 @@ final class CenitDesignCoreTests: XCTestCase {
         XCTAssertEqual(withHash.r, bare.r, accuracy: 0.001)
     }
 
-    // MARK: - StrandPalette gradients
+    // MARK: - CenitPalette gradients
 
     func testRecoveryGradientHasFiveOrderedStops() {
-        let stops = StrandPalette.recoveryStops
+        let stops = CenitPalette.recoveryStops
         XCTAssertEqual(stops.count, 5)
         XCTAssertEqual(stops.map(\.location), stops.map(\.location).sorted())
         XCTAssertEqual(stops.first?.location, 0.0)
@@ -51,68 +51,68 @@ final class CenitDesignCoreTests: XCTestCase {
     }
 
     func testRecoveryColorMatchesRampEndpointsExactly() {
-        let atZero = StrandPalette.recoveryColor(0).rgbaComponents
-        let rampStart = StrandPalette.recovery000.rgbaComponents
+        let atZero = CenitPalette.recoveryColor(0).rgbaComponents
+        let rampStart = CenitPalette.recovery000.rgbaComponents
         XCTAssertEqual(atZero.r, rampStart.r, accuracy: 0.02)
         XCTAssertEqual(atZero.g, rampStart.g, accuracy: 0.02)
 
-        let atHundred = StrandPalette.recoveryColor(100).rgbaComponents
-        let rampEnd = StrandPalette.recovery100.rgbaComponents
+        let atHundred = CenitPalette.recoveryColor(100).rgbaComponents
+        let rampEnd = CenitPalette.recovery100.rgbaComponents
         XCTAssertEqual(atHundred.b, rampEnd.b, accuracy: 0.02)
     }
 
     func testRecoveryColorOutOfDomainClampsRatherThanExtrapolates() {
-        let farBelow = StrandPalette.recoveryColor(-1_000).rgbaComponents
-        let atFloor = StrandPalette.recoveryColor(0).rgbaComponents
+        let farBelow = CenitPalette.recoveryColor(-1_000).rgbaComponents
+        let atFloor = CenitPalette.recoveryColor(0).rgbaComponents
         XCTAssertEqual(farBelow.r, atFloor.r, accuracy: 0.001)
 
-        let farAbove = StrandPalette.recoveryColor(9_999).rgbaComponents
-        let atCeiling = StrandPalette.recoveryColor(100).rgbaComponents
+        let farAbove = CenitPalette.recoveryColor(9_999).rgbaComponents
+        let atCeiling = CenitPalette.recoveryColor(100).rgbaComponents
         XCTAssertEqual(farAbove.g, atCeiling.g, accuracy: 0.001)
     }
 
     /// Each threshold checked one below its upper bound, since the mapping is a half-open ladder.
     func testRecoveryStateLadderThresholds() {
-        XCTAssertEqual(StrandPalette.recoveryState(24.9), "DEPLETED")
-        XCTAssertEqual(StrandPalette.recoveryState(49.9), "LOW")
-        XCTAssertEqual(StrandPalette.recoveryState(69.9), "MODERATE")
-        XCTAssertEqual(StrandPalette.recoveryState(87.9), "PRIMED")
-        XCTAssertEqual(StrandPalette.recoveryState(88.0), "PEAK")
+        XCTAssertEqual(CenitPalette.recoveryState(24.9), "DEPLETED")
+        XCTAssertEqual(CenitPalette.recoveryState(49.9), "LOW")
+        XCTAssertEqual(CenitPalette.recoveryState(69.9), "MODERATE")
+        XCTAssertEqual(CenitPalette.recoveryState(87.9), "PRIMED")
+        XCTAssertEqual(CenitPalette.recoveryState(88.0), "PEAK")
     }
 
     func testStrainColorAtRampEndpoints() {
-        let floor = StrandPalette.strainColor(0).rgbaComponents
-        let ramp0 = StrandPalette.strain000.rgbaComponents
+        let floor = CenitPalette.strainColor(0).rgbaComponents
+        let ramp0 = CenitPalette.strain000.rgbaComponents
         XCTAssertEqual(floor.r, ramp0.r, accuracy: 0.02)
 
-        let ceiling = StrandPalette.strainColor(21).rgbaComponents
-        let ramp100 = StrandPalette.strain100.rgbaComponents
+        let ceiling = CenitPalette.strainColor(21).rgbaComponents
+        let ramp100 = CenitPalette.strain100.rgbaComponents
         XCTAssertEqual(ceiling.b, ramp100.b, accuracy: 0.02)
     }
 
     func testHRZoneColorIndexingAndClamp() {
-        let zone2 = StrandPalette.hrZoneColor(2).rgbaComponents
-        let expected2 = StrandPalette.zone2.rgbaComponents
+        let zone2 = CenitPalette.hrZoneColor(2).rgbaComponents
+        let expected2 = CenitPalette.zone2.rgbaComponents
         XCTAssertEqual(zone2.g, expected2.g, accuracy: 0.001)
 
-        let clampedHigh = StrandPalette.hrZoneColor(42).rgbaComponents
-        let zone5 = StrandPalette.zone5.rgbaComponents
+        let clampedHigh = CenitPalette.hrZoneColor(42).rgbaComponents
+        let zone5 = CenitPalette.zone5.rgbaComponents
         XCTAssertEqual(clampedHigh.r, zone5.r, accuracy: 0.001)
 
-        let clampedLow = StrandPalette.hrZoneColor(-3).rgbaComponents
-        let zone1 = StrandPalette.zone1.rgbaComponents
+        let clampedLow = CenitPalette.hrZoneColor(-3).rgbaComponents
+        let zone1 = CenitPalette.zone1.rgbaComponents
         XCTAssertEqual(clampedLow.b, zone1.b, accuracy: 0.001)
     }
 
     func testSleepStageColorRoutesEachCase() {
         for stage in SleepStage.allCases {
-            let mapped = StrandPalette.sleepStageColor(stage).rgbaComponents
+            let mapped = CenitPalette.sleepStageColor(stage).rgbaComponents
             let direct: (r: Double, g: Double, b: Double, a: Double)
             switch stage {
-            case .awake: direct = StrandPalette.sleepAwake.rgbaComponents
-            case .light: direct = StrandPalette.sleepLight.rgbaComponents
-            case .deep:  direct = StrandPalette.sleepDeep.rgbaComponents
-            case .rem:   direct = StrandPalette.sleepREM.rgbaComponents
+            case .awake: direct = CenitPalette.sleepAwake.rgbaComponents
+            case .light: direct = CenitPalette.sleepLight.rgbaComponents
+            case .deep:  direct = CenitPalette.sleepDeep.rgbaComponents
+            case .rem:   direct = CenitPalette.sleepREM.rgbaComponents
             }
             XCTAssertEqual(mapped.r, direct.r, accuracy: 0.001, "\(stage)")
         }
@@ -124,16 +124,16 @@ final class CenitDesignCoreTests: XCTestCase {
             .init(color: Color(hex: "#F0F0F0"), location: 1),
         ]
         let lowEnd = 0x10 / 255.0, highEnd = 0xF0 / 255.0
-        let quarter = StrandPalette.sample(stops: twoToneRamp, at: 0.25).rgbaComponents
+        let quarter = CenitPalette.sample(stops: twoToneRamp, at: 0.25).rgbaComponents
         XCTAssertEqual(quarter.r, lowEnd + (highEnd - lowEnd) * 0.25, accuracy: 0.03)
-        let threeQuarters = StrandPalette.sample(stops: twoToneRamp, at: 0.75).rgbaComponents
+        let threeQuarters = CenitPalette.sample(stops: twoToneRamp, at: 0.75).rgbaComponents
         XCTAssertEqual(threeQuarters.r, lowEnd + (highEnd - lowEnd) * 0.75, accuracy: 0.03)
     }
 
     func testGradientSampleDegenerateCases() {
-        XCTAssertEqual(StrandPalette.sample(stops: [], at: 0.5).rgbaComponents.a, 0, accuracy: 0.001)
+        XCTAssertEqual(CenitPalette.sample(stops: [], at: 0.5).rgbaComponents.a, 0, accuracy: 0.001)
         let singleStop: [Gradient.Stop] = [.init(color: Color(hex: "#334455"), location: 0.5)]
-        let sampled = StrandPalette.sample(stops: singleStop, at: 0.1).rgbaComponents
+        let sampled = CenitPalette.sample(stops: singleStop, at: 0.1).rgbaComponents
         let literal = Color(hex: "#334455").rgbaComponents
         XCTAssertEqual(sampled.g, literal.g, accuracy: 0.001)
     }
@@ -150,13 +150,13 @@ final class CenitDesignCoreTests: XCTestCase {
         XCTAssertEqual(backwards.duration, 0, accuracy: 0.001)
     }
 
-    // MARK: - StrandTone
+    // MARK: - CenitTone
 
-    func testStrandToneColorsMatchTheirPaletteSource() {
-        XCTAssertEqual(StrandTone.warning.color.rgbaComponents.r,
-                       StrandPalette.statusWarning.rgbaComponents.r, accuracy: 0.001)
-        XCTAssertEqual(StrandTone.accent.color.rgbaComponents.g,
-                       StrandPalette.accent.rgbaComponents.g, accuracy: 0.001)
+    func testCenitToneColorsMatchTheirPaletteSource() {
+        XCTAssertEqual(CenitTone.warning.color.rgbaComponents.r,
+                       CenitPalette.statusWarning.rgbaComponents.r, accuracy: 0.001)
+        XCTAssertEqual(CenitTone.accent.color.rgbaComponents.g,
+                       CenitPalette.accent.rgbaComponents.g, accuracy: 0.001)
     }
 
     // MARK: - Chart scrub toolkit — nearest-index

@@ -50,7 +50,7 @@ public struct ExerciseCard: View {
             if let onMenu {
                 Button(action: onMenu) {
                     Image(systemName: "ellipsis")
-                        .font(StrandFont.glyph(.lead))
+                        .font(CenitFont.glyph(.lead))
                         .foregroundStyle(LiquidColor.tinta500)
                         .frame(width: EntrenarMetrics.row, height: EntrenarMetrics.row)
                         .contentShape(Rectangle())
@@ -66,13 +66,13 @@ public struct ExerciseCard: View {
             thumbnail
             VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: name)
-                    .font(StrandFont.body.weight(.semibold))
+                    .font(CenitFont.body.weight(.semibold))
                     .foregroundStyle(LiquidColor.tinta900)
                     .fixedSize(horizontal: false, vertical: true)
                     .multilineTextAlignment(.leading)
                 if let meta {
                     meta
-                        .font(StrandFont.caption).foregroundStyle(LiquidColor.tinta700)
+                        .font(CenitFont.caption).foregroundStyle(LiquidColor.tinta700)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
@@ -100,7 +100,7 @@ public struct ExerciseCard: View {
                     RoutineRegionGlyph(family.glyph, tint: family.tint()).padding(6)
                 } else {
                     Image(systemName: "dumbbell")
-                        .font(StrandFont.glyph(.lead))
+                        .font(CenitFont.glyph(.lead))
                         .foregroundStyle(LiquidColor.tinta500)
                 }
             }
@@ -143,13 +143,13 @@ public struct RecetaLine: View {
                 .fixedSize(horizontal: false, vertical: true)
             if let detail {
                 Text(detail)
-                    .font(StrandFont.caption).foregroundStyle(LiquidColor.tinta700)
+                    .font(CenitFont.caption).foregroundStyle(LiquidColor.tinta700)
                     .fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: LiquidSpace.s200)
             if action != nil {
                 CenitIcon.disclosure.image
-                    .font(StrandFont.glyph(.chevron, weight: .semibold))
+                    .font(CenitFont.glyph(.chevron, weight: .semibold))
                     .foregroundStyle(LiquidColor.tinta500)
                     .accessibilityHidden(true)
             }

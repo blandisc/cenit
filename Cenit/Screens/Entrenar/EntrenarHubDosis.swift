@@ -1,7 +1,7 @@
 #if os(iOS)
 import SwiftUI
 import CenitDesign
-import StrandAnalytics
+import CenitAnalytics
 
 // MARK: - Entrenar · DOSIS del hub v18 (FER-171 · Parte B)
 //

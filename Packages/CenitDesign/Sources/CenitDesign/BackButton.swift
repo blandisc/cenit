@@ -44,7 +44,7 @@ public struct BackButton: View {
     public var body: some View {
         Button(action: action) {
             Image(systemName: role.symbol)
-                .font(StrandFont.glyph(.inline, weight: .semibold))
+                .font(CenitFont.glyph(.inline, weight: .semibold))
                 .foregroundStyle(glyphColor)
                 // El disco mide 40; el marco de 44 le da el área táctil mínima de HIG sin
                 // engordar el dibujo.

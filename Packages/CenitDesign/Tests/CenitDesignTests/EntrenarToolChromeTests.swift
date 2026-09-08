@@ -27,28 +27,28 @@ final class EntrenarToolChromeTests: XCTestCase {
     }
 }
 
-/// FER-120 — primer uso real de `StrandMotion.gated` para envolver un `withAnimation(_:)` explícito
+/// FER-120 — primer uso real de `CenitMotion.gated` para envolver un `withAnimation(_:)` explícito
 /// (`IntervalTimerView.finishSession()`). La función existía desde antes sin una sola prueba: si
 /// alguien invirtiera la condición (p.ej. `reduceMotion ? animation : nil`), toda la sección seguiría
 /// compilando y las 3 pantallas que ya usan `.strandAnimation` (que sí ejercita esta misma función
 /// por dentro) fallarían en silencio bajo Reduce Motion — exactamente el bug que este ticket corrige
 /// en `finishSession()`.
-final class StrandMotionGatedTests: XCTestCase {
+final class CenitMotionGatedTests: XCTestCase {
 
     func testSinReduceMotionDevuelveLaAnimacion() {
-        let animation = StrandMotion.gated(.snappy, false)
+        let animation = CenitMotion.gated(.snappy, false)
         XCTAssertNotNil(animation, "sin Reduce Motion, gated() no puede apagar la animación")
     }
 
     func testConReduceMotionApagaLaAnimacion() {
-        let animation = StrandMotion.gated(.snappy, true)
+        let animation = CenitMotion.gated(.snappy, true)
         XCTAssertNil(animation, "con Reduce Motion activo, gated() tiene que devolver nil")
     }
 
     /// Un `Animation?` de entrada `nil` (p.ej. un caller que ya decidió no animar) se queda en
     /// `nil` sin Reduce Motion de por medio — `gated` no inventa una animación de la nada.
     func testAnimacionNilDeEntradaSeQuedaNil() {
-        XCTAssertNil(StrandMotion.gated(nil, false))
-        XCTAssertNil(StrandMotion.gated(nil, true))
+        XCTAssertNil(CenitMotion.gated(nil, false))
+        XCTAssertNil(CenitMotion.gated(nil, true))
     }
 }

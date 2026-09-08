@@ -11,17 +11,17 @@ The mapping is keyed by the catalog's exact English `name` (stable across re-bak
 the dataset keeps the exercise), so it's reviewable and re-derivable: run again after a re-bake
 and it fails loudly if a referenced exercise disappeared.
 
-Output: Packages/StrandImport/Sources/StrandImport/Resources/exercise-aliases.json
+Output: Packages/CenitImport/Sources/CenitImport/Resources/exercise-aliases.json
         { "<alias as a human writes it>": "<native id>" } — the Swift loader normalizes keys.
 """
 import json, os, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 CATALOG = os.path.abspath(os.path.join(
-    HERE, "..", "..", "Packages", "StrandTraining", "Sources", "StrandTraining",
+    HERE, "..", "..", "Packages", "CenitTraining", "Sources", "CenitTraining",
     "Resources", "exercises.json"))
 OUT = os.path.abspath(os.path.join(
-    HERE, "..", "..", "Packages", "StrandImport", "Sources", "StrandImport",
+    HERE, "..", "..", "Packages", "CenitImport", "Sources", "CenitImport",
     "Resources", "exercise-aliases.json"))
 
 # movement → (candidate catalog EN names, first that exists wins) + the aliases that map to it.

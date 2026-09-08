@@ -8,7 +8,7 @@ Un vocabulario en palabras en toda la app y cuatro capas de enseñanza: nombres,
 
 ## Comportamiento esperado
 - **Capa 1 · Nombres** (barrido del catálogo de strings de Entrenar; NO reescribe las cadenas que E5 y E7 ya cambiaron en el teclado y la sesión, solo verifica y completa el resto): «reps en reserva» (RIR chico donde quepa) en teclado, setup, hub y hojas; «las que puedas» (AMRAP), «bajar y seguir» (drop), «llegué al fallo»; «semana ligera» (nunca «descarga» en Entrenar); «esfuerzo estimado». Ninguna cadena visible dice «Q», «Quedaban», «AMRAP» solo, «drop» solo ni «descarga» en Entrenar.
-- **Capa 2 · Consejos (TipKit)**: un `Tip` por concepto, con regla de aparición (la primera vez que el concepto aparece en la pantalla del usuario), máximo uno por pantalla, se cierra con «Entendido» y no vuelve; estilo tinta sobre vidrio (StrandDesign, componente `LiquidConsejo` con #Preview). Conceptos: las que puedas, bajar y seguir, reps en reserva (en el teclado, la primera vez que se registra una serie), esfuerzo estimado (primer recibo con la pregunta), semana ligera (primera vez que Tu Plan la muestra), ritmo (primera vez en setup). Copy es-MX final (título · cuerpo), sin género, sin claims:
+- **Capa 2 · Consejos (TipKit)**: un `Tip` por concepto, con regla de aparición (la primera vez que el concepto aparece en la pantalla del usuario), máximo uno por pantalla, se cierra con «Entendido» y no vuelve; estilo tinta sobre vidrio (CenitDesign, componente `LiquidConsejo` con #Preview). Conceptos: las que puedas, bajar y seguir, reps en reserva (en el teclado, la primera vez que se registra una serie), esfuerzo estimado (primer recibo con la pregunta), semana ligera (primera vez que Tu Plan la muestra), ritmo (primera vez en setup). Copy es-MX final (título · cuerpo), sin género, sin claims:
   | Concepto | Título | Cuerpo |
   |---|---|---|
   | Las que puedas | Serie «las que puedas» | Haz todas las reps que puedas con buena forma y anota cuántas salieron. Cuenta para tus récords y para subir. |
@@ -22,7 +22,7 @@ Un vocabulario en palabras en toda la app y cuatro capas de enseñanza: nombres,
 - Reglas: nunca un modal que bloquee; todo lo avanzado nace escondido (serie normal, descanso fijo, sin programa).
 
 ## Alcance técnico
-`Cenit/Screens/WorkshopTricksScreen.swift`, catálogo `.xcstrings` (es bajo «es», nunca «es-MX»), StrandDesign `LiquidConsejo` (TipKit `TipView` estilizado o vista propia con `Tips.showTipsForTesting`), reglas de tips en `Cenit/System/EntrenarTips.swift` (nuevo). Gate i18n; gate anti-literales.
+`Cenit/Screens/WorkshopTricksScreen.swift`, catálogo `.xcstrings` (es bajo «es», nunca «es-MX»), CenitDesign `LiquidConsejo` (TipKit `TipView` estilizado o vista propia con `Tips.showTipsForTesting`), reglas de tips en `Cenit/System/EntrenarTips.swift` (nuevo). Gate i18n; gate anti-literales.
 
 ## Fuera de alcance
 Un onboarding/tour de Entrenar. Videos o imágenes del catálogo.

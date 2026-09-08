@@ -1,5 +1,5 @@
 import Foundation
-import StrandAnalytics
+import CenitAnalytics
 
 // MARK: - MetricDetailSpec — presentation descriptor for the unified Detalle de Métrica (FER-185)
 //

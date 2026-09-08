@@ -19,7 +19,7 @@ El plan es un calendario de siete casillas que se repite. Un programa es ese cal
 - Terminar programa: borra la fila `program`; rutinas y calendario intactos.
 
 ## Alcance técnico
-Nuevos: `Packages/StrandTraining/.../Program.swift` (Program, ProgramCalendar, ProgramTemplate), `ProgramDeload.swift`. Tocados: `ProgressionState.swift` (PastSession.deload + frontera), `StarterTemplates.swift`, `TrainingWeeks.swift` (`mondayFirst`, ~:35, hacerlo interno compartido), `Packages/StrandImport/.../WorkoutProgram.swift`, `CenitStore/StrengthStore.swift` (program CRUD, exclusiones SQL), `Cenit/Screens/Hoja/RoutineSheetLogic.swift:26-75`, `Cenit/Data/ProgressionPlanner.swift`, `Cenit/App/AppModel+Strength.swift`.
+Nuevos: `Packages/CenitTraining/.../Program.swift` (Program, ProgramCalendar, ProgramTemplate), `ProgramDeload.swift`. Tocados: `ProgressionState.swift` (PastSession.deload + frontera), `StarterTemplates.swift`, `TrainingWeeks.swift` (`mondayFirst`, ~:35, hacerlo interno compartido), `Packages/CenitImport/.../WorkoutProgram.swift`, `CenitStore/StrengthStore.swift` (program CRUD, exclusiones SQL), `Cenit/Screens/Hoja/RoutineSheetLogic.swift:26-75`, `Cenit/Data/ProgressionPlanner.swift`, `Cenit/App/AppModel+Strength.swift`.
 
 ## Fuera de alcance
 Pantallas (E11). Ondas de carga entre semanas.
@@ -34,4 +34,4 @@ Pantallas (E11). Ondas de carga entre semanas.
 - [ ] `StrengthSessionSnapshotTests`: `programWeek`/`deload` ida y vuelta.
 
 ## Definition of Done
-- [ ] `swift test` verde en StrandTraining, StrandAnalytics, StrandImport, CenitStore; `Tools/verify.sh` verde; /biomecanico PASS; /qa PASS.
+- [ ] `swift test` verde en CenitTraining, CenitAnalytics, CenitImport, CenitStore; `Tools/verify.sh` verde; /biomecanico PASS; /qa PASS.

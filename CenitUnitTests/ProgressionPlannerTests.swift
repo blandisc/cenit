@@ -1,7 +1,7 @@
 import XCTest
 import CenitStore
-import StrandAnalytics
-import StrandTraining
+import CenitAnalytics
+import CenitTraining
 @testable import Cenit
 
 /// Ola 1 · E4 — the app-layer bridge: the per-set effort has to REACH the classifier, and an exercise

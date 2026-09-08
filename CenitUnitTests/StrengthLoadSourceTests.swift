@@ -1,7 +1,7 @@
 import XCTest
 import BiometricStreams
-import StrandAnalytics
-import StrandTraining
+import CenitAnalytics
+import CenitTraining
 @testable import Cenit
 
 /// Ola 1 · E2 — the matrix of «where did this session's load come from», at the app seam that

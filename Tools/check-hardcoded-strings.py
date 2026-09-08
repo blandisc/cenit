@@ -37,7 +37,7 @@ DEFAULT_FILES = [
 # recibe del app (`LiquidTabRotulos`, `EcosistemaRotulos`, `ThermalReceipt`), nunca lo escribe.
 PAQUETES_SIN_CATALOGO = [
     "Packages/CenitDesign/Sources/**/*.swift",
-    "Packages/StrandTraining/Sources/**/*.swift",
+    "Packages/CenitTraining/Sources/**/*.swift",
 ]
 
 # Engine/data values that are intentionally the metric's stored label, and the brand name.

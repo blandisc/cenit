@@ -1,6 +1,6 @@
 import SwiftUI
 import CenitDesign
-import StrandAnalytics
+import CenitAnalytics
 
 // MARK: - Acto 5 · El acta (FER-109)
 //

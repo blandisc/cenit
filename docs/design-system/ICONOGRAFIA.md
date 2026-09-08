@@ -69,8 +69,8 @@ custom se justifica solo cuando la familia SF no cubre el significado con el est
 - **Estilo:** SF Symbols en su estilo por defecto; los glifos custom son de **línea** (coherentes
   con el instrumento de precisión del ADN Liquid Glass · El Eje). No mezclar filled/outlined al
   azar en una misma superficie.
-- **Tamaño ligado a texto/rejilla:** usa `StrandFont.GlyphSize` (chevron/inline/lead/empty) y
-  `StrandFont.glyph(_:)` para que el icono case con el texto y el grid (no `.font(.system(size:))`
+- **Tamaño ligado a texto/rejilla:** usa `CenitFont.GlyphSize` (chevron/inline/lead/empty) y
+  `CenitFont.glyph(_:)` para que el icono case con el texto y el grid (no `.font(.system(size:))`
   suelto). Un icono pareado a texto vive en su caja para alinear con la línea base.
 
 ## 6. Accesibilidad

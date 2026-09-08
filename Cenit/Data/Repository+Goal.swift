@@ -1,5 +1,5 @@
 import Foundation
-import StrandAnalytics
+import CenitAnalytics
 import CenitStore
 
 // Repository+Goal.swift — building a goal simulation from on-device data (FER-311).

@@ -13,11 +13,11 @@ licencia sana, no media.
 
 Recursos generados:
 
-- `Packages/StrandTraining/.../Resources/exercises.json(.zlib)` — catálogo inglés, 873 ejercicios con
+- `Packages/CenitTraining/.../Resources/exercises.json(.zlib)` — catálogo inglés, 873 ejercicios con
   **id nativo** de free-exercise-db (slug, ej. `Barbell_Bench_Press_-_Medium_Grip`).
-- `Packages/StrandTraining/.../Resources/exercises.es.json(.zlib)` — overlay es-MX (nombre +
+- `Packages/CenitTraining/.../Resources/exercises.es.json(.zlib)` — overlay es-MX (nombre +
   instrucciones), traducido por un LLM en el bake.
-- `Packages/StrandImport/.../Resources/exercise-aliases.json` — nombres comunes de gym → id nativo.
+- `Packages/CenitImport/.../Resources/exercise-aliases.json` — nombres comunes de gym → id nativo.
 - `Packages/CenitStore/.../Resources/{exercise-id-remap,legacy-exercise-data}.json.zlib` — los mapas
   que alimentan la **migración v33** que remapea el historial del usuario de los ids viejos
   (ExerciseDB) a los nuevos (ver `build_remap.py`).

@@ -3,7 +3,7 @@ import SwiftUI
 // MARK: - «Instrumento diurno» — the daytime design language (FER-131)
 //
 // A second visual language that lives ALONGSIDE the dark, instrument-grade
-// `StrandPalette` (which every shipped screen still uses). Where the legacy
+// `CenitPalette` (which every shipped screen still uses). Where the legacy
 // system is a near-black instrument panel, this one reads like a precision
 // instrument printed on warm paper:
 //
@@ -16,7 +16,7 @@ import SwiftUI
 //     hairlines divide, surfaces are used sparingly.
 //   • AA at every hour — every text/background pair clears WCAG AA.
 //
-// The roles are an instance `struct` (not static like `StrandPalette`) on
+// The roles are an instance `struct` (not static like `CenitPalette`) on
 // purpose: the design originally varied them by the hour (FER-132), but FER-398
 // retired that engine — the app now uses the single `.base` daytime anchor at
 // every hour. The instance shape stays (cheap, and keeps the door open). Nothing
@@ -166,7 +166,7 @@ public extension InstrumentoTheme {
 
 public extension InstrumentoTheme {
     /// The five heart-rate-zone colors for the «Instrumento» language (Z1 calm → Z5 intense), used by
-    /// the workout-session detail's zone bar. The legacy `StrandPalette.hrZoneColor` is tuned for the
+    /// the workout-session detail's zone bar. The legacy `CenitPalette.hrZoneColor` is tuned for the
     /// dark system (bright hues on near-black) and muddies on warm paper, so the daytime detail uses
     /// this warm ramp instead — cool-calm at the bottom, rising into the ember `dataStrain` family at
     /// the top. Computed (not stored) so it needs no change to the theme's init or the hour engine. A
@@ -407,7 +407,7 @@ public extension View {
 // MARK: - Type voice
 //
 // «Instrumento diurno» mostly reuses SF Pro with tabular digits (the legacy
-// `StrandFont`). It adds only the two moves the language is opinionated about: the
+// `CenitFont`). It adds only the two moves the language is opinionated about: the
 // protagonist numeral and a quieter overline. The hero numeral is set in SF Mono
 // (FER-206) so the dominant figure reads like an instrument's printed read-out, not
 // the system font blown up — the rest of the scale stays SF Pro.
@@ -492,7 +492,7 @@ public extension InstrumentoTheme {
         ForEach([("empuje", ["chest"]), ("jalón", ["lats"]), ("pierna", ["quadriceps"])], id: \.0) { name, muscles in
             VStack(spacing: 6) {
                 Circle().fill(t.movementFamilyTint(primaryMuscles: muscles)).frame(width: 22, height: 22)
-                Text(name).font(StrandFont.caption).foregroundStyle(t.inkSecondary)
+                Text(name).font(CenitFont.caption).foregroundStyle(t.inkSecondary)
             }
         }
     }
@@ -527,7 +527,7 @@ public extension InstrumentoTheme {
             VStack(alignment: .leading, spacing: 4) {
                 Text("RECUPERACIÓN").instrumentoOverline().foregroundStyle(t.inkTertiary)
                 Text("82").instrumentoHero(88).foregroundStyle(t.dataRecovery)
-                Text("Listo para un día fuerte").font(StrandFont.subhead).foregroundStyle(t.inkSecondary)
+                Text("Listo para un día fuerte").font(CenitFont.subhead).foregroundStyle(t.inkSecondary)
             }
             // overline normal vs prominente (FER-283/284): la prominente sube a 14/medium, tinta secundaria.
             VStack(alignment: .leading, spacing: 4) {
@@ -611,9 +611,9 @@ private func muestra(_ nombre: String, _ tinta: Color, _ t: InstrumentoTheme) ->
         .frame(height: 14)
         .clipShape(RoundedRectangle(cornerRadius: 7))
         HStack {
-            Text("Fresco").font(StrandFont.caption).foregroundStyle(t.inkSecondary)
+            Text("Fresco").font(CenitFont.caption).foregroundStyle(t.inkSecondary)
             Spacer()
-            Text("Cargado").font(StrandFont.caption).foregroundStyle(t.inkSecondary)
+            Text("Cargado").font(CenitFont.caption).foregroundStyle(t.inkSecondary)
         }
     }
     .padding(28)

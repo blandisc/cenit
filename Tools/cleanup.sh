@@ -136,9 +136,9 @@ else
 fi
 
 # Fósiles del rename Cénit: esas rutas ya no existen, es basura 100% segura.
-if compgen -G "$DD/Strand-*" >/dev/null; then
-  echo "  DerivedData fósil pre-rename: $(compgen -G "$DD/Strand-*" | wc -l | tr -d ' ') carpeta(s)"
-  [ $APPLY -eq 1 ] && rm -rf "$DD"/Strand-*
+if compgen -G "$DD/Cenit-*" >/dev/null; then
+  echo "  DerivedData fósil pre-rename: $(compgen -G "$DD/Cenit-*" | wc -l | tr -d ' ') carpeta(s)"
+  [ $APPLY -eq 1 ] && rm -rf "$DD"/Cenit-*
 fi
 
 # Ya sin los worktrees, su DerivedData quedó huérfano y el podador lo ve.

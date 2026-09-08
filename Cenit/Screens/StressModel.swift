@@ -1,20 +1,20 @@
 import SwiftUI
 import Foundation
-import StrandAnalytics
+import CenitAnalytics
 import CenitDesign
 import CenitStore
 
 // MARK: - Stress model (presentation layer)
 //
 // The math — the 0–3 stress proxy, its band thresholds and the per-source baseline derivation —
-// lives in `StrandAnalytics.DailyStressModel` / `StrandAnalytics.StressMath` (FER-756). This file
+// lives in `CenitAnalytics.DailyStressModel` / `CenitAnalytics.StressMath` (FER-756). This file
 // keeps only PRESENTATION: the band's copy and colors, the explanation copy, the calm-time strings,
 // and a thin `StressModel` shim so the live consumers (TodayView, CuerpoView, StressDetailScreen)
 // keep their surface unchanged.
 
 // MARK: - Stress band presentation (copy + color)
 //
-// The band enum (with its 0–3 → band init) lives in StrandAnalytics; every consumer screen already
+// The band enum (with its 0–3 → band init) lives in CenitAnalytics; every consumer screen already
 // imports the package, so `StressBand` resolves directly — only its presentation lives here.
 
 extension StressBand {
@@ -36,7 +36,7 @@ extension StressBand {
         }
     }
 
-    var tone: StrandTone {
+    var tone: CenitTone {
         switch self {
         case .low:    return .positive
         case .medium: return .warning
@@ -55,7 +55,7 @@ extension StressBand {
     }
 }
 
-// MARK: - Stress model shim (math in StrandAnalytics + copy here)
+// MARK: - Stress model shim (math in CenitAnalytics + copy here)
 
 struct StressModel: Sendable {
     let score: Double            // 0–3 (today)
@@ -81,7 +81,7 @@ struct StressModel: Sendable {
     var sparkValues: [Double] { Array(fullTrend.suffix(14)).map(\.value) }
 
     /// Build from oldest→newest daily metrics plus any stored "stress" series — delegates the math to
-    /// `DailyStressModel` (StrandAnalytics) and adds the display copy on top.
+    /// `DailyStressModel` (CenitAnalytics) and adds the display copy on top.
     /// Returns nil only when there is no usable signal at all.
     init?(days: [DailyMetric], stored: [(day: String, value: Double)], todayKey: String,
           appleDays: Set<String> = []) {

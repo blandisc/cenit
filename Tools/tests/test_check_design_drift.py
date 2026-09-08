@@ -66,7 +66,7 @@ class LegacyApiRule(unittest.TestCase):
             "InstrumentoType.titulo",
             "Text(\"x\").instrumentoOverline(theme)",
             ".instrumentoConfirm(",
-            "StrandPalette.ink",
+            "CenitPalette.ink",
         ]:
             self.assertTrue(drift.RE_LEGACY_API.search(line), line)
 
@@ -242,7 +242,7 @@ class Fer271CommentGaps(unittest.TestCase):
         # (c) `import CenitDesign // InstrumentoTheme` era falso positivo de no-legacy-api.
         with tempfile.TemporaryDirectory() as tmp:
             src = _swift(tmp, "Cenit/System/RoutineDragAndDrop.swift",
-                         ["import CenitDesign   // InstrumentoTheme, CenitMetrics, StrandMotion"])
+                         ["import CenitDesign   // InstrumentoTheme, CenitMetrics, CenitMotion"])
             self.assertEqual(drift.check([src], ["no-legacy-api"]), [])
 
     def test_deprecated_metrics_es_prohibicion_y_respeta_carveouts(self):
@@ -261,9 +261,9 @@ class Fer271CommentGaps(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             src = _swift(tmp, "Cenit/Screens/B.swift", [
                 ".foregroundStyle(theme.ink)",
-                ".font(StrandFont.caption)",
+                ".font(CenitFont.caption)",
                 "let c = theme.muscleLoadColor(0.4)",          # rampa de dato: fuera
-                "Task { StrandFont.ensureFontsRegistered() }",   # sistema: fuera
+                "Task { CenitFont.ensureFontsRegistered() }",   # sistema: fuera
                 ".outlineCapsule(.outline, size: .sm, theme: theme)",   # pass-through: fuera
                 ".foregroundStyle(LiquidColor.tinta900)",
             ])

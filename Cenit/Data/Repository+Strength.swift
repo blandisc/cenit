@@ -1,6 +1,6 @@
 import Foundation
-import StrandAnalytics
-import StrandTraining
+import CenitAnalytics
+import CenitTraining
 import CenitStore
 
 // Repository+Strength.swift — read/write pass-throughs to the strength tracker (FER-346).

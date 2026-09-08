@@ -4,9 +4,9 @@ import Combine
 import Observation
 import BiometricStreams
 import CenitStore
-import StrandImport
-import StrandAnalytics
-import StrandTraining
+import CenitImport
+import CenitAnalytics
+import CenitTraining
 /// Root app state: owns the on-device repository, profile, strength session, and Watch mirror.
 /// Strap BLE ownership was amputated in Ola 2 (Apple-only).
 @MainActor

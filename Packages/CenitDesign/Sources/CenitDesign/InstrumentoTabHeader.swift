@@ -53,13 +53,13 @@ public struct InstrumentoTabHeader<Glyph: View, Trailing: View>: View {
         InstrumentoTabHeader("Patrones") {
             PatronesGlyph(color: InstrumentoTheme.base.ink)
         } trailing: {
-            Text("THU 12 JUN").font(StrandFont.number(11, weight: .regular))
+            Text("THU 12 JUN").font(CenitFont.number(11, weight: .regular))
                 .foregroundStyle(InstrumentoTheme.base.inkTertiary).textCase(.uppercase)
         }
         InstrumentoTabHeader("Tendencias") {
             TendenciasGlyph(color: InstrumentoTheme.base.ink)
         } trailing: {
-            Text("THU 12 JUN").font(StrandFont.number(11, weight: .regular))
+            Text("THU 12 JUN").font(CenitFont.number(11, weight: .regular))
                 .foregroundStyle(InstrumentoTheme.base.inkTertiary).textCase(.uppercase)
         }
         // A deliberately TALLER trailing (mimics the recovery chip) — the title must NOT drop.
@@ -69,7 +69,7 @@ public struct InstrumentoTabHeader<Glyph: View, Trailing: View>: View {
         } trailing: {
             HStack(spacing: 7) {
                 Circle().strokeBorder(InstrumentoTheme.base.dataRecovery, lineWidth: 4).frame(width: 22, height: 22)
-                Text("68").font(StrandFont.number(17, weight: .semibold))
+                Text("68").font(CenitFont.number(17, weight: .semibold))
             }
             .padding(.leading, 8).padding(.trailing, 11).padding(.vertical, 5)
             .background(InstrumentoTheme.base.surface, in: Capsule())

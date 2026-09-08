@@ -163,7 +163,7 @@ public struct SegmentedPillControl<T: Hashable>: View { // ranura + pulgar; una 
     /// escucha el rasgo `.isSelected` solo en el activo.
     private func boton(para item: T) -> some View {
         let activo = item == selection
-        return Button(action: { withAnimation(StrandMotion.interactive) { selection = item } },
+        return Button(action: { withAnimation(CenitMotion.interactive) { selection = item } },
                       label: { segment(item, activo) })
             .buttonStyle(InstrumentoPressStyle())
             .accessibilityAddTraits(activo ? [.isSelected] : [])

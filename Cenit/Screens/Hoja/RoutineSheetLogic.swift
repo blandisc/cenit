@@ -1,8 +1,8 @@
 #if os(iOS)
 import SwiftUI
 import CenitDesign
-import StrandTraining
-import StrandAnalytics
+import CenitTraining
+import CenitAnalytics
 
 // MARK: - RoutineSheet — carga, guardado, deshacer y mutaciones (FER-166)
 //

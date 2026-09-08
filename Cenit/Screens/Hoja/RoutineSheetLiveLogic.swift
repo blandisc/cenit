@@ -2,8 +2,8 @@
 import SwiftUI
 import TipKit
 import CenitDesign
-import StrandTraining
-import StrandAnalytics
+import CenitTraining
+import CenitAnalytics
 
 // MARK: - HojaSesionViva — el motor del bucle B1-B4 (FER-167 · F2, ronda 2)
 //
@@ -133,7 +133,7 @@ extension HojaSesionViva {
 
     // MARK: - B10 · el guard de captura absurda (FER-169)
     //
-    // El umbral vive en `StrandTraining.CaptureGuard` — UNA constante que también usa `StrengthStore`
+    // El umbral vive en `CenitTraining.CaptureGuard` — UNA constante que también usa `StrengthStore`
     // al cerrar el PR y al sembrar la próxima sesión (`lastWorkSets`/`workSetHistory`), así que un
     // «SÍ» aquí no puede envenenar ninguno de los dos sin que este archivo tenga que saberlo. Sin
     // columna nueva: el `SetEntry` se guarda tal cual con «SÍ»; el propio umbral, recomputado ahí, es
@@ -690,7 +690,7 @@ extension HojaSesionViva {
         let priorWeight = prs[.maxWeight]?.valueKg
         let priorReps = prs[.maxReps]?.reps
         // El PR de volumen guarda el peso × reps de LA SERIE que lo puso, no el volumen ya multiplicado
-        // (`PersonalRecord.valueKg`/`reps`, StrandTraining) — el volumen previo se recompone aquí, no
+        // (`PersonalRecord.valueKg`/`reps`, CenitTraining) — el volumen previo se recompone aquí, no
         // se compara peso contra volumen por descuido.
         let priorVolume = prs[.maxVolume].map { ($0.valueKg ?? 0) * Double($0.reps ?? 0) }
         // Nancy · ronda 1: SIN marca previa no hay récord que batir. El `?? (valor > 0)` de antes

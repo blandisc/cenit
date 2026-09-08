@@ -62,7 +62,7 @@ public struct Sparkline: View {
     public let indexLabel: ((Int) -> String)?
 
     public init(values serie: [Double],
-                gradient rampa: Gradient = StrandPalette.recoveryGradient,
+                gradient rampa: Gradient = CenitPalette.recoveryGradient,
                 range rangoFijo: ClosedRange<Double>? = nil,
                 referenceBand banda: ClosedRange<Double>? = nil,
                 bandColor tintaDeBanda: Color = InstrumentoTheme.base.hairlineStrong,
@@ -107,7 +107,7 @@ public struct Sparkline: View {
             cabeza(trazo)
             lupa(trazo)
         }
-        .animation(StrandMotion.fade, value: dedoX)
+        .animation(CenitMotion.fade, value: dedoX)
         .contentShape(.rect)
         .scrubGesture(enabled: showsScrub, hoverX: $dedoX)
     }
@@ -206,7 +206,7 @@ public struct Sparkline: View {
 
     /// El color de la rampa en una posición normalizada del trazo.
     private func tinta(en posicion: Double) -> Color {
-        StrandPalette.sample(stops: gradient.stops, at: posicion)
+        CenitPalette.sample(stops: gradient.stops, at: posicion)
     }
 
     /// El recorrido de valores contra el que se dibuja, con la banda de referencia plegada dentro
@@ -308,9 +308,9 @@ private struct FichaConLinea: View {
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: MedidasDelMuestrario.aireEnFicha) {
-            Text(verbatim: "64").font(StrandFont.number(MedidasDelMuestrario.numeral))
+            Text(verbatim: "64").font(CenitFont.number(MedidasDelMuestrario.numeral))
                 .foregroundStyle(InstrumentoTheme.base.ink)
-            Text(verbatim: "bpm").font(StrandFont.caption)
+            Text(verbatim: "bpm").font(CenitFont.caption)
                 .foregroundStyle(InstrumentoTheme.base.inkTertiary)
             Spacer(minLength: 0)
             Sparkline(values: pulso,
@@ -326,9 +326,9 @@ private struct FichaConLinea: View {
     let pulso = pulsoDeMuestra()
     return VStack(alignment: .leading, spacing: 20) {
         FichaConLinea(pulso: pulso)
-        Sparkline(values: pulso, gradient: StrandPalette.strainGradient).frame(height: 60)
+        Sparkline(values: pulso, gradient: CenitPalette.strainGradient).frame(height: 60)
         Text(verbatim: "Raspa una línea para leer la muestra que queda bajo el cursor.")
-            .font(StrandFont.footnote).foregroundStyle(InstrumentoTheme.base.inkTertiary)
+            .font(CenitFont.footnote).foregroundStyle(InstrumentoTheme.base.inkTertiary)
     }
     .padding(24).frame(width: 380, height: 220)
     .background(InstrumentoTheme.base.surface).preferredColorScheme(.light)

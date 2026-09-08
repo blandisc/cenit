@@ -1,7 +1,7 @@
 # UX · Ola 1 · piezas ① «carga sin FC» y ② «RPE gobierna la progresión»
 
 ## Inventario (lo que se reutiliza)
-1. `RPESheet` + `EntrenarFilaEsfuerzo` (Cenit/Screens/LiveStrengthSheets.swift:20-153; StrandDesign EntrenarFilaEsfuerzo.swift): escala 6·7·8·9·9,5·10 con descriptores localizados. La pregunta de sesión es ESTA fila.
+1. `RPESheet` + `EntrenarFilaEsfuerzo` (Cenit/Screens/LiveStrengthSheets.swift:20-153; CenitDesign EntrenarFilaEsfuerzo.swift): escala 6·7·8·9·9,5·10 con descriptores localizados. La pregunta de sesión es ESTA fila.
 2. Recibo `summaryPhase` / `receiptHero` (LiveStrengthSheet.swift:1406-1585): ya degrada Esfuerzo→Duración vía `SessionEffortDisplay.resolve`; el bloque estimado sustituye el caso `.durationOnly`/`.durationWithHR`.
 3. Glifo «estimado» `~N` (docs/design-system/LENGUAJE.md §5.6) y chip «Estimated» (WorkoutHistoryScreen.swift:1923-1946, WorkoutDetailScreen.swift:307-312).
 4. `EntrenarHubHeroe.raiseLine` (EntrenarView.swift:371-383; copy `raiseText` 832-850 y «la subida espera» 852) y `ProgressionSetupScreen` filas + `SegmentedPillControl` (ProgressionSetupScreen.swift:110-141).

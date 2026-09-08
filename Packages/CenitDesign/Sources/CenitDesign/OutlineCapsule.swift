@@ -165,7 +165,7 @@ public extension OutlineCapsule where Label == Text {
         self.init(theme: theme, size: size, estilo: estilo, filled: filled, fill: fill,
                   action: action) {
             Text(title)
-                .font(StrandFont.caption.weight(weight))
+                .font(CenitFont.caption.weight(weight))
                 .foregroundStyle(fg)
         }
     }
@@ -302,24 +302,24 @@ private struct OutlineCapsuleChrome<CapsuleLabel: View>: ViewModifier {
 #if DEBUG
 #Preview("OutlineCapsule") {
     VStack(alignment: .leading, spacing: 16) {
-        Text("sm · outline").font(StrandFont.overline).foregroundStyle(LiquidColor.tinta500)
+        Text("sm · outline").font(CenitFont.overline).foregroundStyle(LiquidColor.tinta500)
         HStack(spacing: 10) {
             OutlineCapsule(size: .sm, action: {}) {
                 HStack(spacing: LiquidSpace.s150) {
                     Text(verbatim: "▲").foregroundStyle(LiquidColor.verdeProfundo)
-                    Text("Take the raise").font(StrandFont.caption.weight(.semibold))
+                    Text("Take the raise").font(CenitFont.caption.weight(.semibold))
                         .foregroundStyle(LiquidColor.tinta900)
                 }
             }
             OutlineCapsule("Start", size: .sm, weight: .bold, action: {})
             OutlineCapsule("Stop", size: .sm, weight: .bold, action: {})
         }
-        Text("md · filtro").font(StrandFont.overline).foregroundStyle(LiquidColor.tinta500)
+        Text("md · filtro").font(CenitFont.overline).foregroundStyle(LiquidColor.tinta500)
         HStack(spacing: 10) {
             OutlineCapsule("Equipment", size: .md, action: {})
             OutlineCapsule("Barbell", size: .md, filled: true, action: {})
         }
-        Text("pressed = EntrenarPressStyle 0.97").font(StrandFont.caption)
+        Text("pressed = EntrenarPressStyle 0.97").font(CenitFont.caption)
             .foregroundStyle(LiquidColor.tinta500)
     }
     .padding(24)
@@ -339,14 +339,14 @@ private struct OutlineCapsuleChrome<CapsuleLabel: View>: ViewModifier {
     ScrollView {
         VStack(alignment: .leading, spacing: 20) {
             ForEach(estilos, id: \.0) { nombre, estilo in
-                Text(nombre).font(StrandFont.overline).foregroundStyle(LiquidColor.tinta500)
+                Text(nombre).font(CenitFont.overline).foregroundStyle(LiquidColor.tinta500)
                 HStack(spacing: 10) {
                     ForEach(tallas, id: \.0) { tallaNombre, size in
                         OutlineCapsule(LocalizedStringKey(stringLiteral: tallaNombre),
                                        size: size, estilo: estilo, action: {})
                     }
                     Text(verbatim: "Z2")
-                        .font(StrandFont.caption.weight(.semibold))
+                        .font(CenitFont.caption.weight(.semibold))
                         .foregroundStyle(LiquidColor.tinta900)
                         .outlineCapsule(estilo, size: .sm)
                 }

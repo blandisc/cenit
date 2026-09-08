@@ -1,13 +1,13 @@
 import SwiftUI
 import CenitDesign
-import StrandAnalytics
+import CenitAnalytics
 import CenitStore
 
 // CyclePhaseView.swift — the opt-in «Fase del ciclo» experiment surface (FER-672). Lives in Ajustes →
 // Experiments, OFF by default. A tap opens the consent screen (declares what it is and is NOT); only an
 // explicit acknowledgement activates it. Once active, the same sheet shows the current-phase STATE card.
 //
-// All the math is in `CyclePhaseEngine` (pure, StrandAnalytics). This file only maps the daily metrics
+// All the math is in `CyclePhaseEngine` (pure, CenitAnalytics). This file only maps the daily metrics
 // NOOP already stores into the engine's input and renders the localized, hedged copy — never a date,
 // never fertility/ovulation/contraception/diagnosis (the hard claim frame lives in the copy below and
 // is guarded by CyclePhaseCopyGuardTests).

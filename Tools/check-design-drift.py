@@ -3,7 +3,7 @@
 
 `Packages/CenitDesign` is the single source of visual truth. A screen must not re-introduce a raw
 hex, an ad-hoc `.font(.system(size:))`, a literal corner radius, or a magic opacity — each is a token
-in the package (see `CenitMetrics`, `StrandFont.glyph`/`.micro`, `InstrumentoCardRadius`, `CenitOpacity`).
+in the package (see `CenitMetrics`, `CenitFont.glyph`/`.micro`, `InstrumentoCardRadius`, `CenitOpacity`).
 This linter fails with concrete `file:line: rule — snippet` lines when it finds one.
 
 Rules (each activated in the PR that finishes its migration — pass `--rules` to opt in incrementally):
@@ -16,7 +16,7 @@ Rules (each activated in the PR that finishes its migration — pass `--rules` t
     no-spacing-literal `.padding(<n>)`, `spacing: <n>`, `lineWidth: <n>`       (FER-258; ratchet over Cenit/Screens…App)
     no-legacy-api      call-site of a retired-generation symbol (Instrumento*/Paper*/…) (FER-263; ratchet)
     no-deprecated-metrics  a retired `CenitMetrics` member (space1/space2/gap/…) — pure prohibition (FER-306)
-    no-instrumento-theme   `theme.ink/paper/…` / `StrandFont.*` access outside the Watch/Widget carve-out (FER-306; ratchet)
+    no-instrumento-theme   `theme.ink/paper/…` / `CenitFont.*` access outside the Watch/Widget carve-out (FER-306; ratchet)
     no-weight-on-grotesk   `.weight(...)` on a grotesk `LiquidType` token — a silent no-op on `.custom` fonts (FER-308; pure)
     no-iphone-tone-on-oled  an iPhone data tone (`LiquidColor.rosa/negativo/…`) painted in `CenitWatch/` — OLED wants `LiquidOLED.*` (retro FER-309; pure)
     no-capsule-a-mano      `Capsule().fill/stroke/strokeBorder` drawn by hand (same line or the next) — the catalog has OutlineCapsule / HojaCapsulaAccion / LiquidStatePill; data tracks carry `token-exempt(dato)` (FER-338; pure)
@@ -161,7 +161,7 @@ RE_SPACING = re.compile(
 # canonical Live-Activity/watch theme there); CenitShared never imports CenitDesign.
 RE_LEGACY_API = re.compile(
     r"\b(InstrumentoTheme|InstrumentoFlowTitle|InstrumentoToolChip|InstrumentoTabHeader"
-    r"|PaperStepper|SectionBand|InstrumentoSectionBand|StrandPalette)\b"
+    r"|PaperStepper|SectionBand|InstrumentoSectionBand|CenitPalette)\b"
     r"|\.instrumentoTheme\("
     # FER-280·1b — el contrabando tipográfico que la auditoría B2 midió fuera del gate:
     # el sistema de tipos Instrumento (130 usos) y sus helpers de composición. `theme.*`
@@ -206,14 +206,14 @@ RE_DEPRECATED_METRICS = re.compile(
     r"\bCenitMetrics\.(?:space1|space2|gap|cardPadding|screenPadding|controlRadius|chipRadius|touchTarget)\b"
 )
 # no-instrumento-theme (FER-306, hallazgo 1): el acceso `theme.ink` / `theme.paper` / … de
-# `InstrumentoTheme` y la tipografía `StrandFont.*` — el idioma visual de la generación anterior —
+# `InstrumentoTheme` y la tipografía `CenitFont.*` — el idioma visual de la generación anterior —
 # que no-legacy-api no ve (solo mira el símbolo `InstrumentoTheme`). Las rampas de DATO
 # (`hrZoneRamp`, `muscleLoadRamp`, `muscleLoadColor`, `movementFamilyTint`) y el pass-through
 # `theme: theme` a piezas del catálogo quedan fuera a propósito. Ratchet con baseline.
 RE_INSTRUMENTO_THEME = re.compile(
     r"\btheme\.(?:ink|inkSecondary|inkTertiary|inkQuaternary|paper|surface|surfaceRaised|hairline|hairlineStrong"
     r"|data[A-Z][A-Za-z]*|verdict|critical|warning|positive|onPaper|accent)\b"
-    r"|\bStrandFont\."
+    r"|\bCenitFont\."
 )
 RE_DATA_RAMP = re.compile(r"hrZoneRamp|muscleLoadRamp|muscleLoadColor|movementFamilyTint|ensureFontsRegistered")
 

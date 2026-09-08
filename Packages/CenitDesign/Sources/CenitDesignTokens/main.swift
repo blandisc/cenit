@@ -145,7 +145,7 @@ func designTable() -> String {
 
 // MARK: Palette scale blocks (auditoría jul-2026, H6)
 //
-// Antes, el generador solo emitía `color.instrumento`; las escalas de `StrandPalette`
+// Antes, el generador solo emitía `color.instrumento`; las escalas de `CenitPalette`
 // (accent/status/metric/sleep/hrZone/recovery/strain) y `opacity` se mantenían A MANO, y una
 // derivó: `sleep.rem` decía `#5BE0C7` en el JSON pero el código dice `#3E9E8C` desde FER-234. Ahora
 // estas también salen del código (el código gana), con las descripciones curadas embebidas aquí para
@@ -175,7 +175,7 @@ func paletteBlock(_ key: String, parentDesc: String?, _ entries: [PEntry]) -> St
 /// scale added by the auditoría (H4).
 func opacityBlock() -> String {
     let entries: [(String, Double, String)] = [
-        ("disabled",       StrandPalette.disabledOpacity, "dimmed/disabled sections (= CenitOpacity.dim)"),
+        ("disabled",       CenitPalette.disabledOpacity, "dimmed/disabled sections (= CenitOpacity.dim)"),
         ("tintFill",       CenitOpacity.tintFill,        "chip/badge tint fill (absorbs 0.10–0.12)"),
         ("tintFillStrong", CenitOpacity.tintFillStrong,  "emphasized tint (absorbs 0.14–0.18)"),
         ("strokeSoft",     CenitOpacity.strokeSoft,      "soft tinted stroke (absorbs 0.28–0.40)"),
@@ -194,7 +194,7 @@ func opacityBlock() -> String {
     return lines.joined(separator: "\n")
 }
 
-let sp = StrandPalette.self
+let sp = CenitPalette.self
 let paletteScales: [(String, String?, [PEntry])] = [
     ("accent", nil, [
         PEntry(name: "default",   color: sp.accent, desc: "health green — chrome, not data"),
@@ -808,7 +808,7 @@ do {
         fail("✗ could not locate the \"instrumento\" object in \(jsonURL.path)")
     }
     newJSON = afterInstrumento
-    // Palette scales (H6): each color.* block re-emitted from StrandPalette. `color.recovery`/`color.strain`
+    // Palette scales (H6): each color.* block re-emitted from CenitPalette. `color.recovery`/`color.strain`
     // precede the `gradient.*` ones, so the first-match splice hits the color block.
     for (key, parentDesc, entries) in paletteScales {
         guard let spliced = replaceJSONObject(in: newJSON, key: key, with: paletteBlock(key, parentDesc: parentDesc, entries)) else {

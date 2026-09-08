@@ -146,7 +146,7 @@ public struct RestBand<Next: View>: View {
                 }
                 if let note {
                     Text(note)
-                        .font(StrandFont.caption).foregroundStyle(LiquidColor.tinta500)
+                        .font(CenitFont.caption).foregroundStyle(LiquidColor.tinta500)
                         .multilineTextAlignment(large ? .center : .leading)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -161,12 +161,12 @@ public struct RestBand<Next: View>: View {
                     Group {
                         if large {
                             Text(isCeilingRelease ? "Continue" : "Skip rest")
-                                .font(StrandFont.caption.weight(.semibold))
+                                .font(CenitFont.caption.weight(.semibold))
                                 .foregroundStyle(LiquidColor.tinta700)
                                 .outlineCapsule(.papel, size: .xl, theme: .base)
                         } else {
                             Text(isCeilingRelease ? "Continue" : "Skip rest")
-                                .font(StrandFont.caption.weight(.semibold))
+                                .font(CenitFont.caption.weight(.semibold))
                                 .foregroundStyle(LiquidColor.tinta700)
                                 .outlineCapsule(.papel, size: .lg, theme: .base)
                         }
@@ -209,7 +209,7 @@ public struct RestBand<Next: View>: View {
                         .foregroundStyle(LiquidColor.tinta900)
                     if let remaining, remaining > 0 {
                         Text("still \(remaining) bpm up · not on you")
-                            .font(StrandFont.subhead).foregroundStyle(LiquidColor.tinta700)
+                            .font(CenitFont.subhead).foregroundStyle(LiquidColor.tinta700)
                     }
                 }
                 .multilineTextAlignment(large ? .center : .leading)
@@ -228,7 +228,7 @@ public struct RestBand<Next: View>: View {
                         if showsAlmostCapsule(remaining: remaining) {
                             // 2A: «CASI» decorativa — cromo `.papel` (la cápsula ya pone el fondo).
                             Text("Almost")
-                                .font(StrandFont.caption.weight(.semibold))
+                                .font(CenitFont.caption.weight(.semibold))
                                 .textCase(.uppercase)
                                 .foregroundStyle(LiquidColor.tinta700)
                                 .outlineCapsule(.papel, size: .sm, theme: .base)
@@ -239,7 +239,7 @@ public struct RestBand<Next: View>: View {
                         .foregroundStyle(LiquidColor.rosa)
                      + Text(verbatim: " ")
                      + Text("♥ now · dropping")
-                        .font(StrandFont.subhead)
+                        .font(CenitFont.subhead)
                         .foregroundStyle(LiquidColor.tinta700))
                         .multilineTextAlignment(large ? .center : .leading)
                         .fixedSize(horizontal: false, vertical: true)
@@ -250,14 +250,14 @@ public struct RestBand<Next: View>: View {
             } else {
                 // Sin Watch / sin lectura: no inventar un numeral de pulso.
                 Text("Waiting for your pulse")
-                    .font(StrandFont.subhead).foregroundStyle(LiquidColor.tinta700)
+                    .font(CenitFont.subhead).foregroundStyle(LiquidColor.tinta700)
             }
         case .clock(let elapsed, let target):
             (Text(verbatim: elapsed)
                 .font(InstrumentoType.groteskNumber(headlineSize, weight: .bold, relativeTo: .largeTitle))
                 .foregroundStyle(LiquidColor.tinta900)
              + Text(verbatim: " ")
-             + Text("of \(target)").font(StrandFont.subhead).foregroundStyle(LiquidColor.tinta700))
+             + Text("of \(target)").font(CenitFont.subhead).foregroundStyle(LiquidColor.tinta700))
                 .multilineTextAlignment(large ? .center : .leading)
                 .fixedSize(horizontal: false, vertical: true)
                 .numeroVivo(value: elapsed)

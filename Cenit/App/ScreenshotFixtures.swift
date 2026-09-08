@@ -2,8 +2,8 @@
 import Foundation
 import BiometricStreams
 import CenitStore
-import StrandAnalytics
-import StrandTraining
+import CenitAnalytics
+import CenitTraining
 
 /// Deterministic synthetic data that forces TodayView into a specific readiness verdict, for the
 /// screenshot UI test (`CenitUITests/CenitScreenshotTests`). DEBUG-only — never compiled into a

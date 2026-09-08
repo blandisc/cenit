@@ -1,6 +1,6 @@
 import XCTest
 @testable import CenitStore
-import StrandTraining
+import CenitTraining
 
 /// Ola 1 · E10 (FER-329): la fila `program` (v43) y las exclusiones de la semana ligera.
 final class ProgramStoreTests: XCTestCase {

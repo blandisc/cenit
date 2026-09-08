@@ -1,7 +1,7 @@
 #if os(iOS)
 import SwiftUI
 import CenitDesign
-import StrandTraining
+import CenitTraining
 
 // RoutineSetEditing.swift — la lógica de descanso por serie + los componentes que comparten las
 // pantallas de entrenamiento: el editor «Rutina» (`RoutineEditorScreen`, FER-839) y la sesión activa
@@ -176,7 +176,7 @@ enum RoutineSetEditing {
     }
 
     /// La celda de reps del EDITOR (E7 · ola 1): «8 a máx» para un AMRAP, «8-10» para un rango,
-    /// «8» para un piso fijo. `RoutineSet.repsRangeLabel` (StrandTraining, puro) ya normaliza el DATO
+    /// «8» para un piso fijo. `RoutineSet.repsRangeLabel` (CenitTraining, puro) ya normaliza el DATO
     /// («8+»); esta es la palabra de INTERFAZ que ese archivo deja explícitamente a /ux (E7) — la
     /// receta editable dice «máx», el dato crudo no.
     static func editorRepsLabel(_ set: RoutineSet) -> String? {

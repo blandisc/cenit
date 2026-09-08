@@ -1,7 +1,7 @@
 #if os(iOS)
 import SwiftUI
 import CenitDesign
-import StrandTraining
+import CenitTraining
 
 // MARK: - HojaCabecera — cabecera + título + CTA de «La Hoja» (FER-166)
 //

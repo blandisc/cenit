@@ -1,7 +1,7 @@
 #if os(iOS)
 import SwiftUI
 import CenitDesign
-import StrandTraining
+import CenitTraining
 
 // MARK: - HojaCabeceraSesion — cabecera + avance + CTA de «La Hoja viva» (FER-167 · F2, ronda 2)
 //

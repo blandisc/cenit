@@ -1,7 +1,7 @@
 #if os(iOS)
 import SwiftUI
 import TipKit
-import StrandTraining
+import CenitTraining
 import CenitEnsenanza
 
 // MARK: - Consejos contextuales de Entrenar (ola 1 · E12, issue 12-vocabulario-tutorial;

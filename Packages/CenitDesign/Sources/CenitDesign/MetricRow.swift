@@ -13,7 +13,7 @@ struct MetricRow: View {
     let value: String
     var unit: String?
     var valueColor: Color
-    /// Tinta de label / unidad. Default legacy `StrandPalette`; pantallas Liquid pasan
+    /// Tinta de label / unidad. Default legacy `CenitPalette`; pantallas Liquid pasan
     /// `theme.inkSecondary` / `theme.inkTertiary`. (FER-135)
     var labelColor: Color
     var unitColor: Color
@@ -35,7 +35,7 @@ struct MetricRow: View {
                 valueColor: Color = InstrumentoTheme.base.ink,
                 labelColor: Color = InstrumentoTheme.base.inkSecondary,
                 unitColor: Color = InstrumentoTheme.base.inkTertiary,
-                flag: LocalizedStringKey? = nil, flagColor: Color = StrandPalette.statusWarning,
+                flag: LocalizedStringKey? = nil, flagColor: Color = CenitPalette.statusWarning,
                 sparkline: [Double]? = nil, sparkColor: Color = InstrumentoTheme.base.inkSecondary,
                 referenceBand: ClosedRange<Double>? = nil,
                 bandColor: Color = InstrumentoTheme.base.hairlineStrong,
@@ -66,11 +66,11 @@ struct MetricRow: View {
             // baja a una segunda línea, todo a tamaño completo.
             ViewThatFits(in: .horizontal) {
                 HStack(spacing: 6) {
-                    Text(label).font(StrandFont.body).foregroundStyle(labelColor).lineLimit(1)
+                    Text(label).font(CenitFont.body).foregroundStyle(labelColor).lineLimit(1)
                     if let flag { InlineFlagChip(flag, color: flagColor) }
                 }
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(label).font(StrandFont.body).foregroundStyle(labelColor)
+                    Text(label).font(CenitFont.body).foregroundStyle(labelColor)
                         .fixedSize(horizontal: false, vertical: true)
                     if let flag { InlineFlagChip(flag, color: flagColor) }
                 }
@@ -90,12 +90,12 @@ struct MetricRow: View {
             }
             .frame(width: 60, height: 26)
             HStack(alignment: .firstTextBaseline, spacing: 2) {
-                Text(value).font(StrandFont.number(20)).foregroundStyle(valueColor)
+                Text(value).font(CenitFont.number(20)).foregroundStyle(valueColor)
                     // VoiceOver reads "—" as "guion" / "dash". When there's no reading yet, say it
                     // plainly instead — the detail still exists. (FER-161)
                     .accessibilityLabel(isPlaceholder ? Text("no reading today") : Text(value))
                 if let unit {
-                    Text(unit).font(StrandFont.unit).foregroundStyle(unitColor)
+                    Text(unit).font(CenitFont.unit).foregroundStyle(unitColor)
                         // Don't append a unit to "sin dato de hoy".
                         .accessibilityHidden(isPlaceholder)
                 }
@@ -126,7 +126,7 @@ struct MetricRow: View {
 private struct InlineFlagChip: View {
     let text: LocalizedStringKey
     var color: Color
-    init(_ text: LocalizedStringKey, color: Color = StrandPalette.statusWarning) {
+    init(_ text: LocalizedStringKey, color: Color = CenitPalette.statusWarning) {
         self.text = text
         self.color = color
     }
@@ -145,11 +145,11 @@ private struct InlineFlagChip: View {
 #Preview("MetricRow") {
     VStack(spacing: 0) {
         MetricRow(label: "Day Strain", value: "8.5",
-                  sparkline: [6, 9, 7, 11, 8, 10, 8.5], sparkColor: StrandPalette.strain066,
+                  sparkline: [6, 9, 7, 11, 8, 10, 8.5], sparkColor: CenitPalette.strain066,
                   showsChevron: true)
         Divider().overlay(InstrumentoTheme.base.hairline)
-        MetricRow(label: "HRV", value: "41", unit: "ms", valueColor: StrandPalette.metricPurple,
-                  flag: "Low conf", sparkline: [58, 55, 52, 49, 46, 43, 41], sparkColor: StrandPalette.statusWarning,
+        MetricRow(label: "HRV", value: "41", unit: "ms", valueColor: CenitPalette.metricPurple,
+                  flag: "Low conf", sparkline: [58, 55, 52, 49, 46, 43, 41], sparkColor: CenitPalette.statusWarning,
                   showsChevron: true)
         Divider().overlay(InstrumentoTheme.base.hairline)
         // No data: chevron still shows — the detail exists even without a reading today.

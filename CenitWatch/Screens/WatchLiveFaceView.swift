@@ -163,7 +163,7 @@ private struct WatchFaceMetrics: View {
     /// (`manager.heartRate`, from its own `HKWorkoutSession`) against `rest.hrTarget` — no new data from
     /// the iPhone. Same 4-word vocabulary `RestBand` already defines for the iPhone (Ready / Almost /
     /// «you need N bpm» / waiting for your pulse), reused as WORDS — never re-derived from
-    /// `RestReadinessRule` (`CenitWatch` carries zero `StrandAnalytics` imports, by design).
+    /// `RestReadinessRule` (`CenitWatch` carries zero `CenitAnalytics` imports, by design).
     @ViewBuilder
     private func hrRestHeadline(_ rest: RestActivitySnapshot) -> some View {
         if let target = rest.hrTarget, manager.heartRate > 0 {
@@ -203,7 +203,7 @@ private struct WatchFaceMetrics: View {
         }
     }
 
-    /// Mirrors `RestReadinessRule.defaultBandBPM` (`Packages/StrandAnalytics`) as a plain constant — the
+    /// Mirrors `RestReadinessRule.defaultBandBPM` (`Packages/CenitAnalytics`) as a plain constant — the
     /// watch never imports that package, so this is the number, not the rule.
     private static let restHonestyBandBPM = 5
 

@@ -2,7 +2,7 @@
 import SwiftUI
 import CenitStore
 import CenitDesign
-import StrandAnalytics
+import CenitAnalytics
 import Foundation
 
 // MARK: - MetricDetailScreen — Detalle de Métrica unificado (FER-185) · Liquid Glass · El Eje

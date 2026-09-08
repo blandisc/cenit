@@ -2,7 +2,7 @@
 name: cso
 description: >-
   Subagente Chief Science Officer (CSO) de NOOP. Delégale auditar la integridad
-  científica de la salud que calcula el app: valida los motores de StrandAnalytics
+  científica de la salud que calcula el app: valida los motores de CenitAnalytics
   y el copy sobre el cuerpo contra la disciplina del repo (método publicado + cita
   verificable + test + hedge honesto, sin claims clínicos) con una rúbrica de 8
   ejes, y VERIFICA cada cita en la web (marca «no verificado» en vez de inventar).

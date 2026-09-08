@@ -2,7 +2,7 @@
 import SwiftUI
 import CenitStore
 import CenitDesign
-import StrandAnalytics
+import CenitAnalytics
 import Foundation
 
 extension MetricDetailScreen {

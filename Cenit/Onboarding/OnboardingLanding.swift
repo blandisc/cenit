@@ -1,5 +1,5 @@
 import Foundation
-import StrandAnalytics
+import CenitAnalytics
 
 // MARK: - OnboardingLanding  ·  el desenlace del onboarding (FER-109)
 //

@@ -1,10 +1,10 @@
 import Foundation
 import Combine
-import StrandAnalytics
+import CenitAnalytics
 
 /// The user's barbell + the plate denominations they own (FER-720 · 3a), UserDefaults-backed
 /// (single-user, on-device), mirroring `GoalStore`. Not analytics history, so no database table. The
-/// plate-math itself (per-side loading, warm-up ramp) lives in `StrandAnalytics.PlateMath`; this store
+/// plate-math itself (per-side loading, warm-up ramp) lives in `CenitAnalytics.PlateMath`; this store
 /// only holds the user's editable inventory and hands it over as `PlateStock`s. Pair counts are tracked
 /// per denomination so `PlateMath` can report an honest shortfall when the rack can't hit the target.
 @MainActor

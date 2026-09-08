@@ -53,9 +53,9 @@ public struct ContributionBars: View {
         return VStack(alignment: .leading, spacing: 11) {
             // Pole labels — once, in ink (orientation, not data).
             HStack(spacing: 8) {
-                Text(verbatim: leftPole).font(StrandFont.footnote).foregroundStyle(LiquidColor.tinta500)
+                Text(verbatim: leftPole).font(CenitFont.footnote).foregroundStyle(LiquidColor.tinta500)
                 Spacer(minLength: 8)
-                Text(verbatim: rightPole).font(StrandFont.footnote).foregroundStyle(LiquidColor.tinta500)
+                Text(verbatim: rightPole).font(CenitFont.footnote).foregroundStyle(LiquidColor.tinta500)
             }
 
             ForEach(items) { item in
@@ -67,7 +67,7 @@ public struct ContributionBars: View {
                         .frame(width: 96, alignment: .leading)
                     track(for: item, max: maxAbs)
                     Text(signed(item.years))
-                        .font(StrandFont.captionNumber).foregroundStyle(color(for: item.years))
+                        .font(CenitFont.captionNumber).foregroundStyle(color(for: item.years))
                         .frame(width: 40, alignment: .trailing)
                 }
                 .accessibilityElement(children: .ignore)
@@ -76,7 +76,7 @@ public struct ContributionBars: View {
             }
         }
         .onAppear {
-            if animated && !reduceMotion { withAnimation(StrandMotion.drawIn) { drawn = true } }
+            if animated && !reduceMotion { withAnimation(CenitMotion.drawIn) { drawn = true } }
             else { drawn = true }
         }
     }

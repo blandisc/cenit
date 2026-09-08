@@ -1,7 +1,7 @@
 #if os(iOS)
 import XCTest
 import CenitDesign
-import StrandAnalytics
+import CenitAnalytics
 @testable import Cenit
 
 /// El calendario de 90 noches del detalle de Sueño consume HORAS, no minutos.

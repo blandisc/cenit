@@ -2,13 +2,13 @@
 
 > Arquitecto. Rama `claude/demolicion-banda-nunca-existio`. Fuente maestra: plan histórico (ya no versionado).
 > F5 es UNA fase compile-válida (un commit verde). Este doc es el contrato que `/implement` ejecuta.
-> Baseline verificado 2026-07-21: `StrandAnalytics` y `CenitDesign` compilan; con los 3 motores + sus
-> 3 tests movidos fuera, `StrandAnalytics` **build y test-target compilan verde** (nada más los referencia).
+> Baseline verificado 2026-07-21: `CenitAnalytics` y `CenitDesign` compilan; con los 3 motores + sus
+> 3 tests movidos fuera, `CenitAnalytics` **build y test-target compilan verde** (nada más los referencia).
 
 ## Resumen
 
 F5 retira la **maquinaria de descomposición de la recuperación estilo la banda** — los motores
-`RecoveryImpact` / `RecoveryRules` / `RecoveryChange` (StrandAnalytics), los componentes de dibujo
+`RecoveryImpact` / `RecoveryRules` / `RecoveryChange` (CenitAnalytics), los componentes de dibujo
 `ImpactRows` / `FiveRules` (CenitDesign) y los bloques de UI que los renderizan («Hoy, vs tu normal» y
 «Qué cambió vs ayer» en RecoveryDetailScreen y MetricInfoSheet). **No toca** `RecoveryScorer`, el campo
 `DailyMetric.recovery`, el héroe de recuperación, ni el read-model `SourceLens`/`keep:.band` (F6).
@@ -21,7 +21,7 @@ que los consume está detrás de `if let impact = …, !impact.signals.isEmpty` 
 **F5 es una demolición de código muerto-en-prod con CERO cambio visible** para el usuario Apple-only. No es
 un rediseño: el reemplazo del héroe de recuperación es **FER-1030** (veredicto por ejes), fuera de F5.
 
-Además, `RecoveryRules` (StrandAnalytics) y `FiveRulesView` (CenitDesign) **ya están muertos**: 0
+Además, `RecoveryRules` (CenitAnalytics) y `FiveRulesView` (CenitDesign) **ya están muertos**: 0
 llamadores de producción (solo tests + un comentario). La «curva intradía / cinco reglas» se retiró antes.
 
 ## Supuestos
@@ -61,7 +61,7 @@ lo que ya está hoy (tendencia autonómica + sueño); su rediseño formal es FER
 
 ## 2. Tabla símbolo/archivo → MUERE / VIVE / DIFERIR-a-F7
 
-### StrandAnalytics (paquete puro)
+### CenitAnalytics (paquete puro)
 | Símbolo / archivo | Acción | Nota |
 |---|---|---|
 | `RecoveryImpact.swift` (enum completo) | **MUERE** | Descomposición band-only «qué la movió». Consumidores solo en la UI que muere. |
@@ -88,7 +88,7 @@ lo que ya está hoy (tendencia autonómica + sueño); su rediseño formal es FER
 | `…` `SourceLens.maskForBaseline(days, keep:.band, …)` `:861` | **VIVE (F6)** | **Frontera dura. No tocar.** |
 | `MetricInfoSheet.swift` — `impactBlock` `:1180`, `impactHeadline` `:1204`, `impactRow` `:1220`, `baseBandWord` `:1237`, `positionPhrase` `:1245`, `impactLegend` `:1254`, `impactLabel` `:1259`, `impactFlag` `:1272`, `impactColor` `:1277`, `impactBarely` `:1173` + las 2 invocaciones `:191`,`:239` | **MUERE** | Todos son privados del bloque impact. |
 | `MetricInfoSheet.swift` — `methodDisclosure`, `calibrationCard`, `levelsBlock`, `recoveryReading`, `recoveryZoneMeter`, `headlineText` | **VIVE** | La hoja de recuperación sigue (menos su impact). |
-| `MetricInfoCatalog.swift` — `var impact: RecoveryImpact.Result? = nil` `:27`; param `impact:` `:514`; `impact: impact,` `:552` | **MUERE** | El resto del builder `.recovery` (headline/method/calibration/`levelsMetric:.recovery`) **VIVE**. `import StrandAnalytics` se queda (usa `MetricLevels`/`Baselines`). |
+| `MetricInfoCatalog.swift` — `var impact: RecoveryImpact.Result? = nil` `:27`; param `impact:` `:514`; `impact: impact,` `:552` | **MUERE** | El resto del builder `.recovery` (headline/method/calibration/`levelsMetric:.recovery`) **VIVE**. `import CenitAnalytics` se queda (usa `MetricLevels`/`Baselines`). |
 | `TodayView.swift` — `recoveryInfo` `:971-979`: el cómputo `todayImpact` `:973-974` + el arg `impact:` `:978` | **MUERE** | `recoveryInfo` sigue devolviendo `.recovery(score:calibrationNights:nightsNeeded:)`. |
 | `TodayView.swift` — `recoveryScore` `:964`, entrada `:1568`, `autonomicTrendCardBlock` `:1167` | **VIVE** | El héroe/entrada son FER-1030; el fallback autonómico se queda. |
 
@@ -96,7 +96,7 @@ lo que ya está hoy (tendencia autonómica + sueño); su rediseño formal es FER
 | Símbolo | Nota |
 |---|---|
 | `DailyMetric.recovery` (campo) | Sigue `nil` en Apple-only; retirar el campo = F7 (esquema). Dejarlo `nil` **no rompe nada** (verificado: RepositoryMergeTests ya afirma `recovery == nil` en filas Apple). |
-| `RecoveryForecast` (StrandAnalytics) + su bloque | Band-era dormido (lee `.recovery` → serie vacía → devuelve `nil`, gate limpio). Fuera del alcance de F5 (brief acota a Impact/Rules/Change). Barrer en F7. |
+| `RecoveryForecast` (CenitAnalytics) + su bloque | Band-era dormido (lee `.recovery` → serie vacía → devuelve `nil`, gate limpio). Fuera del alcance de F5 (brief acota a Impact/Rules/Change). Barrer en F7. |
 | Héroe de recuperación `/100` en RecoveryDetail + entrada en Hoy | Rediseño = **FER-1030**; retiro del número persistido = F7. |
 
 ---
@@ -110,7 +110,7 @@ lo que ya está hoy (tendencia autonómica + sueño); su rediseño formal es FER
 1. `Cenit/Screens/TodayView.swift` `recoveryInfo`: borrar el cómputo `todayImpact` (`:973-974`) y el arg
    `impact: todayImpact` (`:978`). Queda `.recovery(score:calibrationNights:nightsNeeded:)`.
 2. `Cenit/Screens/MetricInfoCatalog.swift`: borrar `var impact` (`:27`), el param `impact:` del builder
-   `.recovery` (`:514`) y el arg `impact: impact,` (`:552`). Conservar `import StrandAnalytics`.
+   `.recovery` (`:514`) y el arg `impact: impact,` (`:552`). Conservar `import CenitAnalytics`.
 3. `Cenit/Screens/MetricInfoSheet.swift`: borrar los helpers del bloque impact (`impactBlock`,
    `impactHeadline`, `impactRow`, `baseBandWord`, `positionPhrase`, `impactLegend`, `impactLabel`,
    `impactFlag`, `impactColor`, `impactBarely`) y sus 2 invocaciones (`:191`, `:239`). No tocar `impactColor`
@@ -125,7 +125,7 @@ lo que ya está hoy (tendencia autonómica + sueño); su rediseño formal es FER
      `RecoveryDetailModel(...)`. **Conservar intacto `:861-877`** (`bandDays`/readiness/load/heat/forecast).
    - **NO tocar** `flagColor` (`:354`, lo usa el Panorama), ni `SourceLens.maskForBaseline` (`:861`, F6).
 
-**B. StrandAnalytics — borrar los motores (ya sin consumidor tras A):**
+**B. CenitAnalytics — borrar los motores (ya sin consumidor tras A):**
 5. Borrar `RecoveryImpact.swift`, `RecoveryRules.swift`, `RecoveryChange.swift`.
 
 **C. CenitDesign — borrar los componentes (ya sin consumidor tras A):**
@@ -133,7 +133,7 @@ lo que ya está hoy (tendencia autonómica + sueño); su rediseño formal es FER
 
 **D. Tests (§4).**
 
-**E. Verificar:** `swift build && swift test` de StrandAnalytics y `swift build` de CenitDesign (verdes).
+**E. Verificar:** `swift build && swift test` de CenitAnalytics y `swift build` de CenitDesign (verdes).
 El compile iOS completo (pasos A tocan `Cenit/**`) va **uno a la vez, máquina idle**
 (`while pgrep -x xcodebuild XCBBuildService; do sleep 30; done`), nunca en paralelo (regla anti-OOM).
 
@@ -143,12 +143,12 @@ El compile iOS completo (pasos A tocan `Cenit/**`) va **uno a la vez, máquina i
 
 | Test | Acción | Motivo |
 |---|---|---|
-| `Packages/StrandAnalytics/.../RecoveryImpactTests.swift` | **BORRAR** | El motor se borra. |
-| `Packages/StrandAnalytics/.../RecoveryRulesTests.swift` | **BORRAR** | El motor se borra. |
-| `Packages/StrandAnalytics/.../RecoveryChangeTests.swift` | **BORRAR** | El motor se borra. |
+| `Packages/CenitAnalytics/.../RecoveryImpactTests.swift` | **BORRAR** | El motor se borra. |
+| `Packages/CenitAnalytics/.../RecoveryRulesTests.swift` | **BORRAR** | El motor se borra. |
+| `Packages/CenitAnalytics/.../RecoveryChangeTests.swift` | **BORRAR** | El motor se borra. |
 | `CenitUnitTests/RecoveryDetailModelTests.swift` | **BORRAR** | Todo el archivo prueba `model.impact` / `model.change` (ambos eliminados); no queda aserción viva. |
-| `Packages/StrandAnalytics/.../RecoveryScorerTests.swift`, `RecoveryCalibrationTests.swift`, `ColdStartPriorTests.swift`, `ReadinessEngineTests.swift` | **SIN CAMBIO** | Prueban `RecoveryScorer`/`ReadinessEngine`, que **viven**. Verificado que compilan sin los 3 motores. |
-| `CDOAuditRegressionTests` | **SIN CAMBIO** (confirmar) | El build del test-target de StrandAnalytics pasó sin los motores → no los referencia. |
+| `Packages/CenitAnalytics/.../RecoveryScorerTests.swift`, `RecoveryCalibrationTests.swift`, `ColdStartPriorTests.swift`, `ReadinessEngineTests.swift` | **SIN CAMBIO** | Prueban `RecoveryScorer`/`ReadinessEngine`, que **viven**. Verificado que compilan sin los 3 motores. |
+| `CDOAuditRegressionTests` | **SIN CAMBIO** (confirmar) | El build del test-target de CenitAnalytics pasó sin los motores → no los referencia. |
 
 **Verificado (prueba del diseño):** moví los 3 `Recovery{Impact,Rules,Change}.swift` + sus 3 tests fuera del
 paquete → `swift build` **verde** y `swift build --build-tests` **verde** (ningún otro source/test los
@@ -166,7 +166,7 @@ referencia). Restaurado. Falta el compile iOS de la capa app (riesgo abierto, ve
   iba RMSSD).
 - **Riesgo 2 — no corrí el compile iOS** (regla anti-OOM: sin `xcodebuild` en esta sesión). El type-check de
   `TodayView`/`MetricInfoSheet`/`MetricInfoCatalog`/`RecoveryDetailScreen` queda como **riesgo abierto para
-  `/implement`**, que debe correr `xcodebuild … -jobs 4` con la máquina idle. Sí verifiqué que StrandAnalytics
+  `/implement`**, que debe correr `xcodebuild … -jobs 4` con la máquina idle. Sí verifiqué que CenitAnalytics
   y CenitDesign compilan tras el borrado, y que no hay consumidores intra-paquete.
 - **Riesgo 3 — confundir F5 con FER-1030 / F7.** Tentación de «terminar» retirando el héroe `/100`, la entrada
   de Hoy o el campo `DailyMetric.recovery`. **No.** El héroe es FER-1030; el campo/esquema es F7. F5 solo
@@ -181,7 +181,7 @@ AutonomicTrendCard y el sueño, `usesBanda`/`bandaOnlyHistory` (F3, aún pendien
 
 ## 6. Criterios técnicos de aceptación (checklist de `/implement`)
 
-- [ ] `Packages/StrandAnalytics/.../RecoveryImpact.swift`, `RecoveryRules.swift`, `RecoveryChange.swift` NO existen.
+- [ ] `Packages/CenitAnalytics/.../RecoveryImpact.swift`, `RecoveryRules.swift`, `RecoveryChange.swift` NO existen.
 - [ ] `Packages/CenitDesign/.../ImpactRows.swift`, `FiveRules.swift` NO existen.
 - [ ] `grep -rn "RecoveryImpact\|RecoveryRules\|RecoveryChange" --include=*.swift Cenit CenitApp CenitUnitTests Packages` (excluyendo los archivos borrados) → **0** en código; **0** comentarios residuales.
 - [ ] `grep -rn "ImpactSignalRow\|ImpactDivergentBar\|ImpactAxisLegend\|FiveRulesView" --include=*.swift .` → **0**.
@@ -190,7 +190,7 @@ AutonomicTrendCard y el sueño, `usesBanda`/`bandaOnlyHistory` (F3, aún pendien
 - [ ] `RecoveryScorer.swift` sin cambios (`git diff` vacío). `SourceLens.swift` sin cambios (F6 intacto).
 - [ ] `DailyMetric.recovery` sigue existiendo (F7).
 - [ ] Tests borrados: `RecoveryImpactTests`, `RecoveryRulesTests`, `RecoveryChangeTests`, `RecoveryDetailModelTests`.
-- [ ] `cd Packages/StrandAnalytics && swift build && swift test` → **verde**. `cd Packages/CenitDesign && swift build` → **verde**.
+- [ ] `cd Packages/CenitAnalytics && swift build && swift test` → **verde**. `cd Packages/CenitDesign && swift build` → **verde**.
 - [ ] `xcodebuild -project Cenit.xcodeproj -scheme Cenit -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO -jobs 4 build` → **compila** (máquina idle, uno a la vez).
 - [ ] En el Simulador/dispositivo Apple-only: RecoveryDetail y la hoja de recuperación se ven **idénticas** a antes (los bloques impact/change ya estaban ocultos); no aparece ningún hueco ni layout roto.
 

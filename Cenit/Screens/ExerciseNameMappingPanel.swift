@@ -1,8 +1,8 @@
 #if os(iOS)
 import SwiftUI
 import CenitDesign
-import StrandImport
-import StrandTraining
+import CenitImport
+import CenitTraining
 
 /// One free-text exercise name that still needs a catalog decision (FER-333 · E9).
 /// `sessionCount` / `setCount` come from CSV history import; plan import leaves them at 0.

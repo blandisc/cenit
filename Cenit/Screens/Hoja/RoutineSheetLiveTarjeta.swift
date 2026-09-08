@@ -1,8 +1,8 @@
 #if os(iOS)
 import SwiftUI
 import CenitDesign
-import StrandTraining
-import StrandAnalytics
+import CenitTraining
+import CenitAnalytics
 
 // MARK: - Tarjetas de «La Hoja viva» (FER-167 · F2, ronda 2)
 //

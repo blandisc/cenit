@@ -8,10 +8,10 @@ import Foundation
 //
 // Pure arithmetic over `[Double]`. It lives in CenitDesign (the dependency-free
 // leaf of the package graph) so the chart can use it WITHOUT importing
-// StrandAnalytics — same reason FER-132/133 inject `SolarWindow`/`SleepWindow` by
+// CenitAnalytics — same reason FER-132/133 inject `SolarWindow`/`SleepWindow` by
 // value instead of importing. The percentile is the same linear-interpolated method
 // (numpy.percentile default; Hyndman & Fan 1996, type 7) that `StrainScorer.percentile`
-// uses in StrandAnalytics — replicated here, not imported.
+// uses in CenitAnalytics — replicated here, not imported.
 
 enum ReferenceRange {
 

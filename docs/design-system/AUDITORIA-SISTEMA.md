@@ -12,7 +12,7 @@
 
 Conteos con `rg --glob '*.swift'` (hits / archivos distintos). Formato reportado: `N hits / F files`.
 
-Familias censadas: `LiquidColor.`, `StrandPalette.`, `InstrumentoTheme`, `theme.(paper|ink|…)`, `CenitColor.`, `LiquidSpace.`, `CenitMetrics.`, `LiquidRadius.`, `LiquidChip.`, `LiquidControl.`, `LiquidElevation.`, `liquidShadow(`, `StrandElevation.`, `strandElevation(`, `LiquidType.`, `StrandFont.`, `InstrumentoType.`, `LiquidMotion.`, `StrandMotion.`, `LiquidHaptica`, `EntrenarHaptic`, `ChartHaptics`, `CenitOpacity.`, `WidgetMetrics.`, `HomeWidgetMetrics.`, `WatchMetrics.`, más ~110 componentes/APIs (`liquidGlass(`, `LiquidMenu`, `StatTile`, …) y miembros sueltos de `LiquidSpace` / `CenitMetrics` / `StrandMotion` / `LiquidMotion` / `LiquidElevation`.
+Familias censadas: `LiquidColor.`, `CenitPalette.`, `InstrumentoTheme`, `theme.(paper|ink|…)`, `CenitColor.`, `LiquidSpace.`, `CenitMetrics.`, `LiquidRadius.`, `LiquidChip.`, `LiquidControl.`, `LiquidElevation.`, `liquidShadow(`, `CenitElevation.`, `strandElevation(`, `LiquidType.`, `CenitFont.`, `InstrumentoType.`, `LiquidMotion.`, `CenitMotion.`, `LiquidHaptica`, `EntrenarHaptic`, `ChartHaptics`, `CenitOpacity.`, `WidgetMetrics.`, `HomeWidgetMetrics.`, `WatchMetrics.`, más ~110 componentes/APIs (`liquidGlass(`, `LiquidMenu`, `StatTile`, …) y miembros sueltos de `LiquidSpace` / `CenitMetrics` / `CenitMotion` / `LiquidMotion` / `LiquidElevation`.
 
 **Tamaño del paquete:** 207 archivos `.swift` · ~48.8k LOC · ~338 tipos `public` (enum/struct/class/…) en 196 archivos.
 
@@ -26,12 +26,12 @@ Leyenda de **ruta**: **fusionar** (alias → un nombre) · **renombrar** · **de
 
 | Familia | Liquid (canónico) | Instrumento / neutral compartido | APP Liquid | APP otro | Ruta de consolidación |
 |---|---|---|---|---|---|
-| **Color** | `LiquidColor` (`LiquidColor.swift:15`) | `InstrumentoTheme` roles (`Instrumento.swift:28`) + `theme.*` vía env; `StrandPalette` residual (`Palette.swift:36`); `CenitColor.pantalla` (`PantallaFondo.swift:12`) | `LiquidColor` **843/56** | `theme.*` **1005/55**; `InstrumentoTheme` **127/49**; `StrandPalette` **3/3**; `CenitColor` **4/4** | **Liquid gana** para pantallas nuevas. `InstrumentoTheme` vive hasta `/migracion` del último consumidor (decidido). `StrandPalette` → dejar morir (3 call-sites). Escalas recovery/strain/HR de `StrandPalette` aún alimentan charts Instrumento en PKG (**51/14**) — fusionar lectura hacia `LiquidColor` / tonos de dato cuando migre el chart. |
+| **Color** | `LiquidColor` (`LiquidColor.swift:15`) | `InstrumentoTheme` roles (`Instrumento.swift:28`) + `theme.*` vía env; `CenitPalette` residual (`Palette.swift:36`); `CenitColor.pantalla` (`PantallaFondo.swift:12`) | `LiquidColor` **843/56** | `theme.*` **1005/55**; `InstrumentoTheme` **127/49**; `CenitPalette` **3/3**; `CenitColor` **4/4** | **Liquid gana** para pantallas nuevas. `InstrumentoTheme` vive hasta `/migracion` del último consumidor (decidido). `CenitPalette` → dejar morir (3 call-sites). Escalas recovery/strain/HR de `CenitPalette` aún alimentan charts Instrumento en PKG (**51/14**) — fusionar lectura hacia `LiquidColor` / tonos de dato cuando migre el chart. |
 | **Espacio** | `LiquidSpace` (`LiquidLayout.swift:8`) + roles FER-273/275 | `CenitMetrics` (`Components.swift:10`) — escala «Instrumento» + medidas compartidas (`cardGap`, `tileHeight`, …) | `LiquidSpace` **660/66** | `CenitMetrics` **577/51** | **Dos dialectos vivos con valores iguales.** Fusionar por alias valor-neutral (Fase 1 CONTRATO) los pares exactos; roles solo-Liquid (`topeScroll`, `handoff14`, …) se quedan; `cardGap` **decidido** en `CenitMetrics` — no mover sin dueño. |
 | **Radio** | `LiquidRadius` (`LiquidLayout.swift:175`) + `LiquidChip` / `LiquidControl` | `CenitMetrics.controlRadius/chipRadius/tileRadius/ctaRadius/insetRadius/cardRadius` | `LiquidRadius` **25/18**; `LiquidChip` **4/2**; `LiquidControl` **4/2** | radios vía `CenitMetrics.*Radius` (suma ~**58** hits APP) | Fusionar iguales (`control`↔`controlRadius`=12, `chip`↔`chipRadius`=8). `cardRadius`16 ≠ `tarjeta`18 y `tileRadius`17 — **no** envolver; van a `/migracion` o decisión de dueño (pixel). `LiquidRadius.pastilla`=999: **0** usos directos APP (se usa `Capsule` / receta `.pastilla`) — documentar, no borrar. |
-| **Tipo** | `LiquidType` (`LiquidType.swift:14`) | `StrandFont` SF (`Typography.swift:19`); `InstrumentoType` + grotesk (`Instrumento.swift:415`) | `LiquidType` **348/33** | `StrandFont` **511/46**; `InstrumentoType` **130/31** | Tres voces. Liquid gana display/valores; SF cuerpo puede vivir como subconjunto de `LiquidType` o `StrandFont` marcado «solo body». `InstrumentoType.grotesk*` es el motor real de Space Grotesk — **fusionar** la puerta pública hacia `LiquidType` (ya lo envuelve) y dejar de enseñar `InstrumentoType` en docs. |
-| **Sombra** | `LiquidElevation` + `liquidShadow` (`LiquidLayout.swift:231`, `:290`) | `StrandElevation` + `strandElevation` (`Elevation.swift:6`, `:44`) | `LiquidElevation` **3/1**; `liquidShadow(` **4/3** | `StrandElevation` / `strandElevation(` **0/0** APP | **Liquid gana.** `StrandElevation` es cadáver (solo PKG definición + 3–4 previews). Dejar morir. `LiquidElevation.tarjeta` **decidido** (`DECISIONS.md:120`). |
-| **Motion** | `LiquidMotion` (`LiquidMotion.swift:21`) + recetas press/entrada/sheet | `StrandMotion` (`Motion.swift:18`) + keyframes `rec*` en el mismo archivo | `LiquidMotion` **82/36** | `StrandMotion` **59/25** | **Liquid gana** para features nuevas (gate `no-motion-literal` ya empuja tokens). Fusionar springs/duraciones solapadas vía typealias; `StrandMotion.interactive/gentle/fade` aún calientes en APP — migrar call-sites luego borrar. Ambientales (`drift`/`flow`) solo PKG: OK. |
+| **Tipo** | `LiquidType` (`LiquidType.swift:14`) | `CenitFont` SF (`Typography.swift:19`); `InstrumentoType` + grotesk (`Instrumento.swift:415`) | `LiquidType` **348/33** | `CenitFont` **511/46**; `InstrumentoType` **130/31** | Tres voces. Liquid gana display/valores; SF cuerpo puede vivir como subconjunto de `LiquidType` o `CenitFont` marcado «solo body». `InstrumentoType.grotesk*` es el motor real de Space Grotesk — **fusionar** la puerta pública hacia `LiquidType` (ya lo envuelve) y dejar de enseñar `InstrumentoType` en docs. |
+| **Sombra** | `LiquidElevation` + `liquidShadow` (`LiquidLayout.swift:231`, `:290`) | `CenitElevation` + `strandElevation` (`Elevation.swift:6`, `:44`) | `LiquidElevation` **3/1**; `liquidShadow(` **4/3** | `CenitElevation` / `strandElevation(` **0/0** APP | **Liquid gana.** `CenitElevation` es cadáver (solo PKG definición + 3–4 previews). Dejar morir. `LiquidElevation.tarjeta` **decidido** (`DECISIONS.md:120`). |
+| **Motion** | `LiquidMotion` (`LiquidMotion.swift:21`) + recetas press/entrada/sheet | `CenitMotion` (`Motion.swift:18`) + keyframes `rec*` en el mismo archivo | `LiquidMotion` **82/36** | `CenitMotion` **59/25** | **Liquid gana** para features nuevas (gate `no-motion-literal` ya empuja tokens). Fusionar springs/duraciones solapadas vía typealias; `CenitMotion.interactive/gentle/fade` aún calientes en APP — migrar call-sites luego borrar. Ambientales (`drift`/`flow`) solo PKG: OK. |
 | **Hápticos** | `LiquidHaptica` (`LiquidHaptica.swift:20`) | `EntrenarHaptic` (sesión); `ChartHaptics` (scrub) | `LiquidHaptica` **8/4** | `EntrenarHaptic` **11/5**; `ChartHaptics` **1/1** APP (+ **12/9** PKG) | **Tres catálogos con rol distinto — decidido en comentarios del propio código** (`LiquidHaptica.swift:14–16`). No fusionar; sí documentar el mapa en CATALOGO. |
 | **Opacidad** | (vidrio en `LiquidColor.vidrio*`) | `CenitOpacity` (`Palette.swift:200`) — compartido | — | `CenitOpacity` **15/9** APP / **19/9** PKG | Neutral compartido útil. Se queda. Corregir docs que hablan de `opacity.disabled` → el token real es `CenitOpacity.dim` (`:208`). |
 | **Z-index** | — | *(capa z-index huérfana — archivo ya ausente del árbol)* | **0/0** | **0/0** | **Ya muerto** — no reintroducir. |
@@ -56,50 +56,50 @@ Leyenda de **ruta**: **fusionar** (alias → un nombre) · **renombrar** · **de
 
 ### Motion lado a lado (quién gana)
 
-| Necesidad | Liquid | Strand | Veredicto |
+| Necesidad | Liquid | Cenit | Veredicto |
 |---|---|---|---|
-| Interacción corta | `instant` 120 ms / `press` (`LiquidMotion.swift:26`, `:107`) | `interactive` spring 0.28 (`Motion.swift:23`) | Liquid para press; Strand spring aún en APP (**16** hits) → migrar |
+| Interacción corta | `instant` 120 ms / `press` (`LiquidMotion.swift:26`, `:107`) | `interactive` spring 0.28 (`Motion.swift:23`) | Liquid para press; Cenit spring aún en APP (**16** hits) → migrar |
 | Cambio de valor | `gentle` 420 ms (`:30`) | `gentle` spring 0.5 (`:27`) | Nombres iguales, curvas distintas — **trampa de API**. Renombrar o documentar; Liquid gana en pantallas Liquid |
-| Fade | `fadeTransition` (`:135`) | `fade` (`:57`) | Ambos vivos (Liquid **10** APP transitions; Strand fade **20** APP) |
-| Ambient loop | `drift*` / `flow*` (PKG) | `breathe` / `bob` / `livePulse` | Liquid para Hoy; Strand residual sesión/loading |
+| Fade | `fadeTransition` (`:135`) | `fade` (`:57`) | Ambos vivos (Liquid **10** APP transitions; Cenit fade **20** APP) |
+| Ambient loop | `drift*` / `flow*` (PKG) | `breathe` / `bob` / `livePulse` | Liquid para Hoy; Cenit residual sesión/loading |
 
 ---
 
 ## 2 · Duplicidades y solapes
 
-### 2.1 `StrandElevation` vs `LiquidElevation`
+### 2.1 `CenitElevation` vs `LiquidElevation`
 
-| | Strand | Liquid |
+| | Cenit | Liquid |
 |---|---|---|
 | API | `Elevation.swift:6–47` · `.strandElevation(_:ink:)` | `LiquidLayout.swift:231–323` · `.liquidShadow(_:)` |
 | APP | **0** | **3** + **4** `liquidShadow` |
 | PKG | definición + preview | recetas de vidrio + módulos |
 
-**Gana Liquid.** Costo de matar Strand: borrar un archivo + quitar del «entry points» de DESIGN (`DESIGN.md:26`) + baseline si aplica. Riesgo de pixel: nulo en APP.
+**Gana Liquid.** Costo de matar Cenit: borrar un archivo + quitar del «entry points» de DESIGN (`DESIGN.md:26`) + baseline si aplica. Riesgo de pixel: nulo en APP.
 
-### 2.2 `StrandMotion` vs `LiquidMotion`
+### 2.2 `CenitMotion` vs `LiquidMotion`
 
 Dos contratos completos. El comentario en `Motion.swift:8–16` aún habla de «two languages, one catalog» — eso **choca** con FER-229 (un solo dialecto).  
-**Gana LiquidMotion** para código nuevo. Costo de matar StrandMotion: ~**59** call-sites APP + **30** PKG + keyframes `rec*` del detalle de tendencias (mismo archivo, otro rol). Plan: (1) aliases Strand→Liquid donde la curva sea sustituible sin pixel-shift, (2) `/migracion` de springs restantes, (3) borrar enum.
+**Gana LiquidMotion** para código nuevo. Costo de matar CenitMotion: ~**59** call-sites APP + **30** PKG + keyframes `rec*` del detalle de tendencias (mismo archivo, otro rol). Plan: (1) aliases Cenit→Liquid donde la curva sea sustituible sin pixel-shift, (2) `/migracion` de springs restantes, (3) borrar enum.
 
 ### 2.3 `CenitMetrics` vs `LiquidSpace` / `LiquidRadius`
 
 El dolor #1 del sistema. Misma cifra, dos nombres; agentes y humanos eligen al azar → clase FER-119.  
 **Gana LiquidSpace/Radius** como DNA (`CONTRATO.md:15–16`). `CenitMetrics` conserva lo que no tiene gemelo Liquid (`cardGap` **decidido**, `tileHeight`, `chartHeight`, `liveSheetHeight`, `receiptPadding`, `screenTop`, …) hasta reubicarlos con rol propio.
 
-### 2.4 `StrandFont` vs `LiquidType` vs `InstrumentoType`
+### 2.4 `CenitFont` vs `LiquidType` vs `InstrumentoType`
 
-- `StrandFont`: APP **511/46** — sigue siendo la tipografía por defecto de pantallas no migradas y mucho chrome SF.  
+- `CenitFont`: APP **511/46** — sigue siendo la tipografía por defecto de pantallas no migradas y mucho chrome SF.  
 - `LiquidType`: APP **348/33** — voz Liquid.  
 - `InstrumentoType`: APP **130/31** — grotesk + helpers; `LiquidType` ya depende de grotesk empaquetado.
 
 Solape: Space Grotesk expuesto por dos puertas. **Gana `LiquidType` como puerta**; `InstrumentoType.grotesk*` puede quedar `internal`/`package` después de reexportar.
 
-### 2.5 `StrandPalette` vs `LiquidColor` vs `InstrumentoTheme`
+### 2.5 `CenitPalette` vs `LiquidColor` vs `InstrumentoTheme`
 
 - `LiquidColor` es el diccionario vivo (CATALOGO).  
 - `InstrumentoTheme` sigue siendo el **mayor consumidor de color en APP** (`theme.*` **1005** hits) — no es duplicado gratuito: es el tema inyectable por hora (FER-132). **Decidido:** vive hasta migrar pantallas.  
-- `StrandPalette`: **3** APP (`RootTabView` tint, 2× `disabledOpacity`) — matable ya.
+- `CenitPalette`: **3** APP (`RootTabView` tint, 2× `disabledOpacity`) — matable ya.
 
 ### 2.6 `StatTile` vs `LiquidMetricTile` vs átomos
 
@@ -133,9 +133,9 @@ Criterio: **0 consumidores en APP**. Se subdividen.
 | Símbolo | Evidencia |
 |---|---|
 | Capa z-index huérfana | Archivo ya ausente del árbol (0 usos) |
-| `StrandElevation` (casi) | APP 0; PKG definición + previews (`Elevation.swift`) |
+| `CenitElevation` (casi) | APP 0; PKG definición + previews (`Elevation.swift`) |
 | `HeroInvertido` | 0 en todo el árbol (ya borrado; docs aún lo nombran `DESIGN.md:283`) |
-| `StrandFontScaled` | 0 archivos |
+| `CenitFontScaled` | 0 archivos |
 | `CenitMetrics.liveSheetHeight` | 0 APP / 0 usos reales fuera de la definición (`Components.swift:26`) |
 | `CenitMetrics.sourceGlyph` | 0/0 |
 | `CenitMetrics.chartHeight` | 0 APP (PKG 0 usos de producto) |
@@ -153,7 +153,7 @@ Usadas por pantallas vía builders/compositores en PKG o como receta interna:
 
 `LiquidHoyScreen` (referencia; APP usa `LiquidHoyContent` **2/1**), `LiquidCargaBar`, `LiquidSectionHeader`, `LiquidPlasta`, `LiquidAuroraEdge`, `liquidLift`, `liquidKicker` / `liquidMicro`, `LiquidElevation.e0/e3/dial/modulo/tarjeta` (embebidos en recetas), muchos miembros `LiquidMotion.*` solo consumidos dentro de modificadores (`.liquidEntrada`, `.liquidPress` sí tienen APP: **39** / **31**).
 
-### 3.4 `StrandMotion` miembros APP 0 (dentro de un enum aún vivo)
+### 3.4 `CenitMotion` miembros APP 0 (dentro de un enum aún vivo)
 
 `durationStandard`, `durationSlow`, `breathPeriod`, `drawIn`, `pulse`, `spin`, `bob`, `livePulse` — APP 0. `breathe` 1, `countUp` 1, `hero` 1. Poda interna posible sin tocar el enum entero.
 
@@ -186,9 +186,9 @@ Dónde el sistema hace difícil lo correcto.
 
 ### 4.4 Defaults que invitan al literal / al dialecto viejo
 
-- `DESIGN.md:26` lista entry points **Strand\*** / `CenitMetrics` / `StrandElevation` — el agente lee eso primero y escribe Instrumento.  
+- `DESIGN.md:26` lista entry points **Cenit\*** / `CenitMetrics` / `CenitElevation` — el agente lee eso primero y escribe Instrumento.  
 - `DESIGN.md:152`: «The **one** spacing scale» = `CenitMetrics` — **falso** hoy.  
-- `Motion.swift` y `StrandMotion.gentle` vs `LiquidMotion.gentle` — mismo nombre, distinta curva.
+- `Motion.swift` y `CenitMotion.gentle` vs `LiquidMotion.gentle` — mismo nombre, distinta curva.
 
 ### 4.5 Recetas que piden componer a mano
 
@@ -208,7 +208,7 @@ Al censo, `no-legacy-api` incluía `PaperMenu` y APP tenía **26/10**. FER-281 e
 
 | Afirmación | Dónde | Realidad |
 |---|---|---|
-| Entry points = `StrandPalette`, `StrandFont`, `StrandMotion`, `CenitMetrics`, `StrandElevation` | `DESIGN.md:26` | Canónicos reales: `LiquidColor`, `LiquidType`, `LiquidSpace`/`LiquidRadius`, `LiquidElevation`, `LiquidMotion`, `liquidGlass`. Varios Strand\* están muertos o residuales. |
+| Entry points = `CenitPalette`, `CenitFont`, `CenitMotion`, `CenitMetrics`, `CenitElevation` | `DESIGN.md:26` | Canónicos reales: `LiquidColor`, `LiquidType`, `LiquidSpace`/`LiquidRadius`, `LiquidElevation`, `LiquidMotion`, `liquidGlass`. Varios Cenit\* están muertos o residuales. |
 | «Dark-only. … There is no light theme.» | `DESIGN.md:260` | Lienzo blanco + Liquid; dark retirado salvo Watch OLED (`DECISIONS.md:111–112`). |
 | «The **one** spacing scale» = `CenitMetrics` | `DESIGN.md:152–155` | Convivencia 660 vs 577 hits. |
 | Entrenar / Ajustes / Bucle / Dieta «siguen siendo canónicos» Instrumento; Entrenar consumidor vivo de papel | `DESIGN.md:281–286` | Entrenar es **mosaico Liquid** (`liquidGlass(tono:regimen:)`, `EntrenarModulo` APP **28/14`). Ajustes usa `LiquidColor` intensivo (p.ej. `AjustesView` en el censo de color). |
@@ -247,7 +247,7 @@ Cada una es un issue proponible. **Sin implementar aquí.**
 **Issue:** «DESIGN/LIQUID-GLASS: entry points Liquid; matar Dark-only; alinear §8 Entrenar; corregir dockBottom/ecosistemaAlto/radios/flowPeriod».  
 **Criterios verificables:**
 
-1. `DESIGN.md` lista entry points `LiquidColor|LiquidType|LiquidSpace|LiquidRadius|LiquidElevation|LiquidMotion|liquidGlass` y relega Strand\*/CenitMetrics a «legado en migración».  
+1. `DESIGN.md` lista entry points `LiquidColor|LiquidType|LiquidSpace|LiquidRadius|LiquidElevation|LiquidMotion|liquidGlass` y relega Cenit\*/CenitMetrics a «legado en migración».  
 2. No queda la frase «Dark-only» / «no light theme».  
 3. §8 no afirma que Entrenar sea canónico Instrumento.  
 4. `LIQUID-GLASS.md` cifras = `LiquidLayout.swift` / `LiquidMotion.swift` (tabla de 4 valores citados arriba).  
@@ -266,19 +266,19 @@ Cada una es un issue proponible. **Sin implementar aquí.**
 
 ### 3 — Un dialecto de motion (`LiquidMotion` gana) (dolor alto × costo medio)
 
-**Problema:** `gentle` significa dos cosas; StrandMotion **59** APP.  
-**Issue:** «Deprecar StrandMotion; migrar interactive/gentle/fade; poda miembros APP0».  
+**Problema:** `gentle` significa dos cosas; CenitMotion **59** APP.  
+**Issue:** «Deprecar CenitMotion; migrar interactive/gentle/fade; poda miembros APP0».  
 **Criterios:**
 
-1. Pantallas nuevas / diff de feature no introducen `StrandMotion.` (extender `no-legacy-api` o regla hermana — **alta legal de baseline** si sube conteo).  
-2. Miembros APP0 de StrandMotion borrados o `internal`.  
+1. Pantallas nuevas / diff de feature no introducen `CenitMotion.` (extender `no-legacy-api` o regla hermana — **alta legal de baseline** si sube conteo).  
+2. Miembros APP0 de CenitMotion borrados o `internal`.  
 3. Comentario `Motion.swift:8` deja de decir «two languages».  
 4. Tests de motion existentes verdes; Reduce Motion sin regresión en Hoy (smoke de `liquidEntrada` / press).
 
 ### 4 — Lote de poda de huérfanos públicos (dolor medio × costo bajo–medio)
 
 **Problema:** ~40 símbolos públicos APP0 ensucian CATALOGO y el autocomplete.  
-**Issue:** «Poda capa z-index huérfana + StrandElevation + componentes APP0 solo-preview; regenerar CATALOGO/CENSO».  
+**Issue:** «Poda capa z-index huérfana + CenitElevation + componentes APP0 solo-preview; regenerar CATALOGO/CENSO».  
 **Criterios:**
 
 1. Lista §3.1 + subset acordado de §3.2 eliminados del target.  
@@ -307,20 +307,20 @@ Cada una es un issue proponible. **Sin implementar aquí.**
 | `LiquidColor.` | 843/56 | 1248/104 |
 | `theme.(paper\|ink\|…)` | 1005/55 | 361/61 |
 | `InstrumentoTheme` | 127/49 | 339/81 |
-| `StrandPalette.` | 3/3 | 51/14 |
+| `CenitPalette.` | 3/3 | 51/14 |
 | `LiquidSpace.` | 660/66 | 627/83 |
 | `CenitMetrics.` | 577/51 | 116/30 |
 | `LiquidType.` | 348/33 | 298/72 |
-| `StrandFont.` | 511/46 | 201/53 |
+| `CenitFont.` | 511/46 | 201/53 |
 | `InstrumentoType.` | 130/31 | 153/37 |
 | `LiquidMotion.` | 82/36 | 70/32 |
-| `StrandMotion.` | 59/25 | 30/24 |
+| `CenitMotion.` | 59/25 | 30/24 |
 | `liquidGlass(` | 33/17 | 61/40 |
 | `LiquidGlassButton` | 48/17 | 7/3 |
 | `LiquidMenu` (ex-`PaperMenu`, FER-283) | migrado | definición en PKG |
 | `InstrumentoSectionBand` | 15/4 | 9/2 |
 | `LiquidElevation.` | 3/1 | 12/6 |
-| `StrandElevation.` / `strandElevation(` | 0/0 | 1/1 · 4/3 |
+| `CenitElevation.` / `strandElevation(` | 0/0 | 1/1 · 4/3 |
 | `CenitOpacity.` | 15/9 | 19/9 |
 | `.instrumentoTheme` | 76 inyecciones | — |
 | `liquidEntrada` / `liquidPress` | 39/12 · 31/17 | 7/5 · 33/21 |

@@ -1,5 +1,5 @@
 import Foundation
-import StrandAnalytics
+import CenitAnalytics
 
 // MARK: - HoyGramatica (FER-51 · F1)
 //

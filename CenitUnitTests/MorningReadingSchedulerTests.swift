@@ -1,5 +1,5 @@
 import XCTest
-import StrandAnalytics
+import CenitAnalytics
 @testable import Cenit
 
 // MARK: - MorningReadingSchedulerTests (FER-114 · FER-111)

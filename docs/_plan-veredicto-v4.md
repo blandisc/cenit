@@ -34,7 +34,7 @@
 > cd ~/code/noop && git fetch origin
 > git checkout iOS && git pull --ff-only   # la rama verdict-v3-engine se RETIRÓ; Parte A ya está en iOS
 > cat docs/_plan-veredicto-v4.md          # este documento (ARCHIVADO — ver banner de arriba)
-> cd Packages/StrandAnalytics && swift build && swift test   # línea base verde antes de tocar nada
+> cd Packages/CenitAnalytics && swift build && swift test   # línea base verde antes de tocar nada
 > ```
 > **Convenciones — leer completo, hay una excepción explícita a `CLAUDE.md`:**
 > - **Worktree vs canónico (EXCEPCIÓN CONSCIENTE).** `CLAUDE.md` manda trabajar en un worktree por
@@ -66,7 +66,7 @@
 
 ## 0 · Contexto en una página
 
-**Qué es el veredicto.** `Preparedness` (paquete puro `StrandAnalytics`) responde cada mañana
+**Qué es el veredicto.** `Preparedness` (paquete puro `CenitAnalytics`) responde cada mañana
 «¿empujo o me cuido hoy?» con **4 estados categóricos** (`full` / `caution` / `easy` / `lowSignal`),
 **nunca un score 0–100**. Es consenso por EJE, no por señal (FER-1010: una mala noche mueve varias
 señales a la vez y no debe contarse tres veces).
@@ -141,7 +141,7 @@ ramifica de `iOS`. Commits históricos de la rama, del más viejo al más nuevo:
 cites, re-córrelos.** Ojo: `swift test` del paquete **no compila `Cenit/Data/Repository.swift`** — si
 tocas la capa app, el `xcodebuild` es obligatorio, no opcional.
 ```bash
-cd ~/code/noop/Packages/StrandAnalytics && swift test          # línea base del paquete
+cd ~/code/noop/Packages/CenitAnalytics && swift test          # línea base del paquete
 swift test --filter Preparedness && swift test --filter NocturnalRestingHR
 ```
 
@@ -151,22 +151,22 @@ swift test --filter Preparedness && swift test --filter NocturnalRestingHR
 mezcla) · `NocturnalRestingHRTests` (6).
 
 **Archivos load-bearing (rutas relativas a la raíz del repo):**
-- `Packages/StrandAnalytics/Sources/StrandAnalytics/Preparedness.swift` — el motor.
-- `Packages/StrandAnalytics/Sources/StrandAnalytics/NocturnalRestingHR.swift` — cuantil nocturno.
-- `Packages/StrandAnalytics/Sources/StrandAnalytics/Baselines.swift` — `prefixStates`, `metricCfg`
+- `Packages/CenitAnalytics/Sources/CenitAnalytics/Preparedness.swift` — el motor.
+- `Packages/CenitAnalytics/Sources/CenitAnalytics/NocturnalRestingHR.swift` — cuantil nocturno.
+- `Packages/CenitAnalytics/Sources/CenitAnalytics/Baselines.swift` — `prefixStates`, `metricCfg`
   (`resting_hr`: `halfLifeB=14`), `minNightsSeed=4`, `minNightsTrust=14`, `confidence(nValid)`.
-- `Packages/StrandAnalytics/Sources/StrandAnalytics/NocturnalHRV.swift` — gates de densidad
+- `Packages/CenitAnalytics/Sources/CenitAnalytics/NocturnalHRV.swift` — gates de densidad
   (`minCleanBeats=60`, `minSuccessivePairs=30`), `NightResult{rmssdMs, nClean, nPairs}`.
-- `Packages/StrandAnalytics/Sources/StrandAnalytics/AutonomicTrend.swift` — `Read{direction,
+- `Packages/CenitAnalytics/Sources/CenitAnalytics/AutonomicTrend.swift` — `Read{direction,
   confidence, nightsUsable, **nightsToTrend**, recentDenseNights, z7d, spark, asOfWasDense}` (8
   campos). **`spark` = z por-noche (past-only), oldest→newest. ⚠️ `spark == []` salvo que
   `confidence == .solid`, y `spark.last` es el z de la noche asOf SOLO si `asOfWasDense == true`** —
   si no, es el de la última noche densa anterior. `z7d` es OTRO constructo (media de 7 d): no
   confundirlos.
-- `Packages/StrandAnalytics/Sources/StrandAnalytics/NightAutonomicShape.swift` — **ya existe y ya
+- `Packages/CenitAnalytics/Sources/CenitAnalytics/NightAutonomicShape.swift` — **ya existe y ya
   está cableado** en `SleepDetailScreen` (nadirHour, dipPct, fractionBelowRHR). Es descriptivo y
   **debe seguir siéndolo**: promoverlo al veredicto sería sobreafirmar.
-- `Packages/StrandAnalytics/Sources/StrandAnalytics/CyclePhaseEngine.swift` — `NightSample`, `Phase`,
+- `Packages/CenitAnalytics/Sources/CenitAnalytics/CyclePhaseEngine.swift` — `NightSample`, `Phase`,
   `estimate(_:asOf:)`.
 - `Cenit/Data/Repository.swift` — `performRefresh(windowDays:full:)` hace las LECTURAS (tiene
   `store`); `assembleDashboard(_:)` es `nonisolated async` y hace el cómputo PURO fuera del main
@@ -326,7 +326,7 @@ public var rhrSmoothingNights: Int = 1   // ⚠️ DEFAULT 1 A PROPÓSITO — ve
   N>1. Si tocas ese test, te saliste de la decisión de arriba. Lista exacta y cómo
   contarlas (el número se pudre; usa el comando):
   ```bash
-  cd ~/code/noop/Packages/StrandAnalytics && swift test --filter Preparedness   # PreparednessTests,
+  cd ~/code/noop/Packages/CenitAnalytics && swift test --filter Preparedness   # PreparednessTests,
   # PreparednessSignalReadParityTests, PreparednessV3Tests, PreparednessV3InputsTests
   swift test --filter NocturnalRestingHR
   ```
@@ -609,7 +609,7 @@ los propios datos**, que es la postura defendible dada la literatura.
    otro van **secuenciales**.
 4. **Verificación propia** (nunca el reporte del agente):
    ```bash
-   cd ~/code/noop/Packages/StrandAnalytics && swift build && swift test
+   cd ~/code/noop/Packages/CenitAnalytics && swift build && swift test
    cd ~/code/noop && xcodebuild -project Cenit.xcodeproj -scheme Cenit \
        -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO -jobs 4 build
    ```
