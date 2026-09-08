@@ -1,4 +1,5 @@
 import XCTest
+import Foundation
 import CenitModels
 @testable import CenitAnalytics
 
@@ -47,8 +48,16 @@ final class WhatMovesItTests: XCTestCase {
     }
 
     private func candidate(_ rel: WhatMovesItRelationship, in days: [DailyMetric], today: String,
+                           hrvNights: [(day: String, rmssdMs: Double)] = [],
                            gate: WhatMovesItGate = .default) -> WhatMovesItCandidate? {
-        WhatMovesItEngine.candidates(days: days, today: today, gate: gate).first { $0.relationship == rel }
+        WhatMovesItEngine.candidates(days: days, today: today, hrvNights: hrvNights, gate: gate)
+            .first { $0.relationship == rel }
+    }
+
+    /// One dense night's RMSSD reading, in raw milliseconds (the engine takes the natural log itself —
+    /// `hrvRow` mirrors `row`'s day-keying so a test can build both series off the same index `i`).
+    private func hrvRow(_ i: Int, lnRmssd: Double) -> (day: String, rmssdMs: Double) {
+        (day: day(i), rmssdMs: exp(lnRmssd))
     }
 
     private func finding(_ rel: WhatMovesItRelationship, _ trend: MetricTrend) -> WhatMovesItFinding {
@@ -339,6 +348,93 @@ final class WhatMovesItTests: XCTestCase {
         XCTAssertEqual(WhatMovesItEngine.family(days: days, today: day(60)), [:])
     }
 
+    // MARK: - hrv.sleepDuration (duration[D] → dense-night lnRMSSD[D], Pearson, lag 0 — FER-472)
+
+    func testHrvSleepDurationRisesOnLongerNights() throws {
+        // sl[i] mirrors the `rhr.sleepDuration` fixture's sleep pattern exactly; lnRmssd[i] = 3.9 +
+        // 0.002·(sl[i] − 420) + 0.15·K(i): a modest slope on the SAME K(i) noise that also perturbs
+        // sleep, so a plain Pearson genuinely reads a pattern (r = +0.624), not a coincidence.
+        let days = (0..<60).map { row($0, sleep: 420 + 40 * J($0) + 10 * K($0)) }
+        let nights = (0..<60).map { i -> (day: String, rmssdMs: Double) in
+            let sl = 420 + 40 * J(i) + 10 * K(i)
+            return hrvRow(i, lnRmssd: 3.9 + 0.002 * (sl - 420) + 0.15 * K(i))
+        }
+        let c = try XCTUnwrap(candidate(.hrvSleepDuration, in: days, today: day(60), hrvNights: nights))
+        XCTAssertEqual(c.n, 60)
+        XCTAssertEqual(c.r, 0.624, accuracy: 0.01)
+        XCTAssertLessThan(c.p, 1e-6)
+        XCTAssertEqual(WhatMovesItEngine.family(days: days, today: day(60), hrvNights: nights)["hrv"],
+                       [finding(.hrvSleepDuration, .rises)])
+    }
+
+    func testHrvSleepDurationHiddenWithoutRelationship() throws {
+        // Sleep varies as a period-4 sine, lnRMSSD only carries the unrelated K(i) noise — r ≈ 0,
+        // exactly the `rhr.sleepDuration` negative fixture's shape.
+        let days = (0..<60).map { i in row(i, sleep: 420 + 25 * sin(2 * .pi * Double(i) / 4) + 6 * J(i)) }
+        let nights = (0..<60).map { i in hrvRow(i, lnRmssd: 3.9 + 0.03 * K(i)) }
+        let c = try XCTUnwrap(candidate(.hrvSleepDuration, in: days, today: day(60), hrvNights: nights))
+        XCTAssertEqual(c.r, 0, accuracy: 0.01)
+        XCTAssertGreaterThan(c.p, 0.9)
+        XCTAssertNil(WhatMovesItEngine.family(days: days, today: day(60), hrvNights: nights)["hrv"])
+    }
+
+    // MARK: - hrv.priorStrain (strain[D] → dense-night lnRMSSD[D+1], Spearman partial, lag +1 — FER-472)
+
+    func testHrvPriorStrainFallsAfterHardDays() throws {
+        // lnRmssd[i] = 3.9 − 0.05·W(i−1) + 0.02·K(i): a lower dense-night reading the day after a
+        // training day. Held on today's own strain, the partial reads −0.528; the plain ρ reads
+        // −0.558 before the control (the same calendar shrinkage the `rhr.priorStrain`/`sleep.priorStrain`
+        // partials correct for).
+        let days = (0..<60).map { row($0, strain: strain($0)) }
+        let nights = (0..<60).map { i in hrvRow(i, lnRmssd: 3.9 - 0.05 * W(i - 1) + 0.02 * K(i)) }
+        let c = try XCTUnwrap(candidate(.hrvPriorStrain, in: days, today: day(60), hrvNights: nights))
+        XCTAssertEqual(c.n, 59)
+        XCTAssertEqual(c.r, -0.528, accuracy: 0.01, "the partial; the plain ρ reads −0.558")
+        XCTAssertLessThan(c.p, 1e-4)
+        XCTAssertEqual(WhatMovesItEngine.family(days: days, today: day(60), hrvNights: nights),
+                       ["hrv": [finding(.hrvPriorStrain, .falls)]])
+    }
+
+    func testHrvPriorStrainHiddenWithoutRelationship() throws {
+        let days = (0..<60).map { row($0, strain: strain($0)) }
+        let nights = (0..<60).map { i in hrvRow(i, lnRmssd: 3.9 + 0.02 * K(i)) }
+        let c = try XCTUnwrap(candidate(.hrvPriorStrain, in: days, today: day(60), hrvNights: nights))
+        XCTAssertEqual(c.r, 0.054, accuracy: 0.01)
+        XCTAssertGreaterThan(c.p, 0.5)
+        XCTAssertEqual(WhatMovesItEngine.family(days: days, today: day(60), hrvNights: nights), [:])
+    }
+
+    // MARK: - hrv edge cases: the floor, and no dense nights at all
+
+    func testHrvBelowFloorHidesBoth() throws {
+        // Only 30 dense nights — below the 42-pair calendar floor `hrv.*` shares with `rhr`/`sleep`
+        // (dense-night density gates the RMSSD side, not efficiency, so `hrv.*` never takes the higher
+        // 56-pair floor).
+        let days = (0..<30).map { row($0, sleep: 420 + 40 * J($0) + 10 * K($0), strain: strain($0)) }
+        let nights = (0..<30).map { i -> (day: String, rmssdMs: Double) in
+            let sl = 420 + 40 * J(i) + 10 * K(i)
+            return hrvRow(i, lnRmssd: 3.9 + 0.002 * (sl - 420) + 0.15 * K(i))
+        }
+        XCTAssertNil(candidate(.hrvSleepDuration, in: days, today: day(30), hrvNights: nights))
+        XCTAssertNil(candidate(.hrvPriorStrain, in: days, today: day(30), hrvNights: nights))
+        XCTAssertNil(WhatMovesItEngine.family(days: days, today: day(30), hrvNights: nights)["hrv"])
+    }
+
+    func testHrvAbsentWithoutDenseNightsButOtherMetricsUnaffected() throws {
+        // No dense RMSSD at all (`hrvNights` defaults to `[]` — the honest state for a band-less or
+        // Watch-less user, or one whose nights never clear `NocturnalHRV`'s density floor) must not
+        // crash and must never invent a direction — while `rhr.sleepDuration` on the exact same days
+        // keeps reading precisely as `testRhrSleepDurationFalls` does alone: `hrv` never leaks into,
+        // or drops out of, an unrelated relationship's pairing.
+        let days = (0..<60).map { i -> DailyMetric in
+            let sl = 420 + 40 * J(i) + 10 * K(i)
+            return row(i, sleep: sl, rhr: 58 - 0.05 * (sl - 420) + K(i))
+        }
+        let withoutHrv = WhatMovesItEngine.family(days: days, today: day(60))
+        XCTAssertNil(withoutHrv["hrv"])
+        XCTAssertEqual(withoutHrv["rhr"], [finding(.rhrSleepDuration, .falls)])
+    }
+
     // MARK: - The three gate pieces
 
     func testMinorityClassFloorHidesSevenTrainingDays() throws {
@@ -430,16 +526,18 @@ final class WhatMovesItTests: XCTestCase {
         XCTAssertEqual(a.r, b.r, accuracy: 1e-12)
     }
 
-    func testNoRelationshipTargetsHRV() {
-        // The FER-209 HRV block never painted (its series was cleared by the source lens); it is retired
-        // rather than revived on SDNN. The family can only ever address these five metrics.
+    func testFamilyTargetsExactlySixMetrics() {
+        // FER-472: `hrv` is back — on the dense-night lnRMSSD series, never Apple's all-day SDNN
+        // (`avgHrv`). The family now addresses exactly these six metrics.
         XCTAssertEqual(Set(WhatMovesItRelationship.allCases.map(\.metricKey)),
-                       ["sleep", "strain", "sleep_efficiency", "steps", "rhr"])
+                       ["sleep", "strain", "sleep_efficiency", "steps", "rhr", "hrv"])
     }
 
     func testCopyKeyIsTheOneHomeOfTheSentence() {
         XCTAssertEqual(finding(.sleepPriorStrain, .rises).copyKey, "patron.sleep.priorStrain.rises")
         XCTAssertEqual(finding(.rhrPriorStrain, .falls).copyKey, "patron.rhr.priorStrain.falls")
         XCTAssertEqual(finding(.stepsEfficiency, .falls).id, "steps.efficiency")
+        XCTAssertEqual(finding(.hrvSleepDuration, .rises).copyKey, "patron.hrv.sleepDuration.rises")
+        XCTAssertEqual(finding(.hrvPriorStrain, .falls).copyKey, "patron.hrv.priorStrain.falls")
     }
 }

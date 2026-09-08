@@ -77589,6 +77589,74 @@
         }
       }
     },
+    "patron.hrv.sleepDuration.rises" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tends to run higher on nights you sleep more."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suele ser más alta las noches que duermes más."
+          }
+        }
+      }
+    },
+    "patron.hrv.sleepDuration.falls" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tends to run lower on nights you sleep more."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suele ser más baja las noches que duermes más."
+          }
+        }
+      }
+    },
+    "patron.hrv.priorStrain.rises" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tends to rise the day after a hard effort."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suele subir el día después de un esfuerzo alto."
+          }
+        }
+      }
+    },
+    "patron.hrv.priorStrain.falls" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tends to dip the day after a hard effort."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suele bajar el día después de un esfuerzo alto."
+          }
+        }
+      }
+    },
     "Your pattern: Spearman correlation of last night's efficiency with the day's strain (lag 0, at least 56 paired days), with family control (Benjamini-Hochberg). Sources: Atoui 2021; Lambiase 2013." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -77636,6 +77704,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tu patrón: correlación de Pearson de la duración de la noche con la FC en reposo que registra Apple Salud ese día (lag 0, mínimo 42 pares) y de Spearman del esfuerzo del día anterior con ella (lag +1, mínimo 42 pares; parcial, ajustada por el esfuerzo del mismo día), con control de familia (Benjamini-Hochberg). Fuentes: Dettoni 2012; Faust 2020; Stanley 2013."
+          }
+        }
+      }
+    },
+    "Your pattern: Pearson correlation of your nightly RMSSD (natural-log domain, from your densest tracked nights) with that same night's sleep duration (lag 0, at least 42 paired nights) and Spearman correlation of the previous day's strain with it (lag +1, at least 42 pairs; partial, adjusted for the same day's strain), with family control (Benjamini-Hochberg). This reads your recomputed nocturnal RMSSD, never the SDNN number shown above. Sources: Stanley 2013; Zhang 2025." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your pattern: Pearson correlation of your nightly RMSSD (natural-log domain, from your densest tracked nights) with that same night's sleep duration (lag 0, at least 42 paired nights) and Spearman correlation of the previous day's strain with it (lag +1, at least 42 pairs; partial, adjusted for the same day's strain), with family control (Benjamini-Hochberg). This reads your recomputed nocturnal RMSSD, never the SDNN number shown above. Sources: Stanley 2013; Zhang 2025."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu patrón: correlación de Pearson de tu RMSSD nocturno (en dominio logarítmico, de tus noches más densas) con la duración de esa misma noche (lag 0, mínimo 42 pares) y de Spearman del esfuerzo del día anterior con ella (lag +1, mínimo 42 pares; parcial, ajustada por el esfuerzo del mismo día), con control de familia (Benjamini-Hochberg). Esto lee tu RMSSD nocturno recalculado, nunca el número de SDNN que se muestra arriba. Fuentes: Stanley 2013; Zhang 2025."
           }
         }
       }

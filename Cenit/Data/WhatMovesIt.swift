@@ -21,10 +21,13 @@ extension WhatMovesItFinding {
 
 extension WhatMovesItEngine {
     /// The gated, directional findings for the metric `key` (`sleep`, `strain`, `sleep_efficiency`,
-    /// `steps`, `rhr`), computed from the daily history. `today` is the device's local day key
+    /// `steps`, `rhr`, `hrv`), computed from the daily history. `today` is the device's local day key
     /// (`Repository.localDayKey`): rows after it are ignored and today's partial step count is dropped.
+    /// `hrvNights` — the dense-night RMSSD partition (`repo.nightlyRmssd`) the two `hrv.*` relationships
+    /// read; `[]` (the default) simply leaves them untestable, same as any caller that has none.
     /// `[]` when the metric carries no relationship or none clears the gate → the block stays hidden.
-    static func findings(forMetricKey key: String, days: [DailyMetric], today: String) -> [WhatMovesItFinding] {
-        family(days: days, today: today)[key] ?? []
+    static func findings(forMetricKey key: String, days: [DailyMetric], today: String,
+                         hrvNights: [(day: String, rmssdMs: Double)] = []) -> [WhatMovesItFinding] {
+        family(days: days, today: today, hrvNights: hrvNights)[key] ?? []
     }
 }
