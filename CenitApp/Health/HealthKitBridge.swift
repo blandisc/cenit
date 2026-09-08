@@ -25,6 +25,14 @@ final class HealthKitBridge: ObservableObject {
         let stageKey: String
         let done: Int
         let total: Int
+        /// FER-437: rows each FINISHED stage brought, keyed by its `stageKey` — days for the per-day
+        /// collectors, workouts / HR samples for the workout stages, and the total of upserted rows
+        /// for `saving` (recorded only after the store write succeeds). Cumulative over the run, not
+        /// "the stage that just finished": the onboarding samples this value every 100 ms, and a
+        /// stage that finishes faster than that would otherwise drop off the wire — with the
+        /// "every stage of the group finished" rule, one lost stage would mute its strophe forever.
+        /// A snapshot (mirror) of `syncRowsByStage`, which is the copy that outlives the run.
+        var rowsByStage: [String: Int] = [:]
     }
 
     @Published private(set) var auth: AuthState = .unknown
@@ -36,6 +44,13 @@ final class HealthKitBridge: ObservableObject {
     /// Live stage of the running import (nil when idle), so the card shows real progress instead of a
     /// context-free spinner. (FER-70)
     @Published private(set) var syncProgress: SyncProgress?
+    /// FER-437 (qa r1 · D2): the rows each finished stage of the current — or the LAST — run brought,
+    /// keyed by `stageKey`. Same map `SyncProgress.rowsByStage` mirrors, but this one OUTLIVES the run:
+    /// `syncProgress` goes nil in `sync()`'s `defer` in the same main-actor turn that records
+    /// `saving`, so a 100 ms sampler could never see the last stage's count and «Guardando en tu
+    /// iPhone» was a coin toss. Emptied when a run starts, filled by `finished(_:rows:)`, never
+    /// touched by the `defer`. The onboarding reads it once the run is over.
+    @Published private(set) var syncRowsByStage: [String: Int] = [:]
     /// What actually landed in the store under the apple-health source: days per metric + overall
     /// span. Reloaded after every `sync` and on demand via `refreshStatus`. Powers the coverage
     /// summary and the per-metric status list. (FER-70)
@@ -226,6 +241,7 @@ final class HealthKitBridge: ObservableObject {
     func sync(days: Int = 30, trigger: SyncTrigger = .manual) async -> Set<String> {
         guard auth == .authorized, !syncing else { return [] }
         syncing = true
+        syncRowsByStage = [:]   // FER-437: a fresh run starts with fresh counts (the `defer` leaves them be)
         defer { syncing = false; syncProgress = nil }
         guard let store = await repo.storeHandle() else { return [] }
 
@@ -253,69 +269,76 @@ final class HealthKitBridge: ObservableObject {
         // pipeline stages. Publishing the stage *before* running it turns the silent background pull
         // into "Importing HRV… (4/15)" in the UI; `done` counts stages already finished. (FER-70)
         let total = 15
-        func stage(_ done: Int, _ key: String) { syncProgress = SyncProgress(stageKey: key, done: done, total: total) }
+        func stage(_ done: Int, _ key: String) {
+            syncProgress = SyncProgress(stageKey: key, done: done, total: total, rowsByStage: syncRowsByStage)
+        }
+        // FER-437: how many rows stage `key` brought. Lands in `syncRowsByStage` (which outlives the run)
+        // and travels, mirrored, with every progress value published from here on (see
+        // `SyncProgress.rowsByStage`), so the onboarding can print «la espera enseña».
+        func finished(_ key: String, rows: Int) { syncRowsByStage[key] = rows }
 
         // Quantity aggregates per day.
         stage(0, "resting_hr")
-        await collect(.restingHeartRate, unit: HKUnit.count().unitDivided(by: .minute()), start: start, end: end, op: .discreteAverage) { day, v in
+        finished("resting_hr", rows: await collect(.restingHeartRate, unit: HKUnit.count().unitDivided(by: .minute()), start: start, end: end, op: .discreteAverage) { day, v in
             var a = agg(day); a.restingHr = v; byDay[day] = a
-        }
+        })
         stage(1, "avg_hr")
-        await collect(.heartRate, unit: HKUnit.count().unitDivided(by: .minute()), start: start, end: end, op: .discreteAverage) { day, v in
+        finished("avg_hr", rows: await collect(.heartRate, unit: HKUnit.count().unitDivided(by: .minute()), start: start, end: end, op: .discreteAverage) { day, v in
             var a = agg(day); a.avgHr = v; byDay[day] = a
-        }
+        })
         stage(2, "max_hr")
-        await collect(.heartRate, unit: HKUnit.count().unitDivided(by: .minute()), start: start, end: end, op: .discreteMax) { day, v in
+        finished("max_hr", rows: await collect(.heartRate, unit: HKUnit.count().unitDivided(by: .minute()), start: start, end: end, op: .discreteMax) { day, v in
             var a = agg(day); a.maxHr = v; byDay[day] = a
-        }
+        })
         stage(3, "hrv")
-        await collect(.heartRateVariabilitySDNN, unit: .secondUnit(with: .milli), start: start, end: end, op: .discreteAverage) { day, v in
+        finished("hrv", rows: await collect(.heartRateVariabilitySDNN, unit: .secondUnit(with: .milli), start: start, end: end, op: .discreteAverage) { day, v in
             var a = agg(day); a.hrv = v; byDay[day] = a
-        }
+        })
         stage(4, "spo2")
-        await collect(.oxygenSaturation, unit: .percent(), start: start, end: end, op: .discreteAverage) { day, v in
+        finished("spo2", rows: await collect(.oxygenSaturation, unit: .percent(), start: start, end: end, op: .discreteAverage) { day, v in
             var a = agg(day); a.spo2 = v * 100; byDay[day] = a   // 0…1 → percent
-        }
+        })
         stage(5, "resp_rate")
-        await collect(.respiratoryRate, unit: HKUnit.count().unitDivided(by: .minute()), start: start, end: end, op: .discreteAverage) { day, v in
+        finished("resp_rate", rows: await collect(.respiratoryRate, unit: HKUnit.count().unitDivided(by: .minute()), start: start, end: end, op: .discreteAverage) { day, v in
             var a = agg(day); a.respRate = v; byDay[day] = a
-        }
+        })
         stage(6, "steps")
-        await collect(.stepCount, unit: .count(), start: start, end: end, op: .cumulativeSum) { day, v in
+        finished("steps", rows: await collect(.stepCount, unit: .count(), start: start, end: end, op: .cumulativeSum) { day, v in
             var a = agg(day); a.steps = v; byDay[day] = a
-        }
+        })
         stage(7, "active_kcal")
-        await collect(.activeEnergyBurned, unit: .kilocalorie(), start: start, end: end, op: .cumulativeSum) { day, v in
+        finished("active_kcal", rows: await collect(.activeEnergyBurned, unit: .kilocalorie(), start: start, end: end, op: .cumulativeSum) { day, v in
             var a = agg(day); a.activeKcal = v; byDay[day] = a
-        }
+        })
         stage(8, "basal_kcal")
-        await collect(.basalEnergyBurned, unit: .kilocalorie(), start: start, end: end, op: .cumulativeSum) { day, v in
+        finished("basal_kcal", rows: await collect(.basalEnergyBurned, unit: .kilocalorie(), start: start, end: end, op: .cumulativeSum) { day, v in
             var a = agg(day); a.basalKcal = v; byDay[day] = a
-        }
+        })
         stage(9, "vo2max")
-        await collect(.vo2Max, unit: HKUnit(from: "ml/kg*min"), start: start, end: end, op: .discreteAverage) { day, v in
+        finished("vo2max", rows: await collect(.vo2Max, unit: HKUnit(from: "ml/kg*min"), start: start, end: end, op: .discreteAverage) { day, v in
             var a = agg(day); a.vo2max = v; byDay[day] = a
-        }
+        })
         // FER-882: Apple's sleeping wrist temperature (absolute °C) → nightly mean; deviation vs
         // Apple's OWN rolling baseline is computed just before DailyMetric construction below.
         stage(10, "skin_temp")
-        await collect(.appleSleepingWristTemperature, unit: .degreeCelsius(), start: start, end: end,
+        finished("skin_temp", rows: await collect(.appleSleepingWristTemperature, unit: .degreeCelsius(), start: start, end: end,
                       op: .discreteAverage) { day, v in
             var a = agg(day); a.skinTempC = v; byDay[day] = a
-        }
+        })
 
         // Sleep minutes per day (asleep stages summed; attributed to wake day).
         stage(11, "sleep")
-        await collectSleep(start: start, end: end) { day, asleepMin, deepMin, remMin, coreMin, inBedMin in
+        finished("sleep", rows: await collectSleep(start: start, end: end) { day, asleepMin, deepMin, remMin, coreMin, inBedMin in
             var a = agg(day)
             a.asleepMin = asleepMin; a.deepMin = deepMin; a.remMin = remMin; a.coreMin = coreMin
             a.inBedMin = inBedMin
             byDay[day] = a
-        }
+        })
 
         // Workouts: fetched directly from HealthKit and stored alongside WHOOP sessions.
         stage(12, "workouts")
         let hkWorkouts = await collectHKWorkouts(start: start, end: end)
+        finished("workouts", rows: hkWorkouts.count)
         let wkRows = Self.mapWorkouts(hkWorkouts)
 
         // FER-883: per-workout heart-rate samples (raw only — strain is scored at read time).
@@ -328,6 +351,7 @@ final class HealthKitBridge: ObservableObject {
         } else {
             workoutHrSamples = await collectWorkoutHeartRate(workouts: hkWorkouts)
         }
+        finished("hr_apple_workouts", rows: workoutHrSamples.count)
 
         // FER-486: per-night Apple sleep SESSIONS with a stage timeline (for the Detalle de Sueño
         // hypnogram), ALONGSIDE the daily totals from collectSleep above — F3 is additive. Pure decode
@@ -459,6 +483,13 @@ final class HealthKitBridge: ObservableObject {
                 try await store.insert(Streams(hr: workoutHrSamples), deviceId: appleDeviceId)
             }
             try await store.upsertSleepSessions(appleSleepSessions, deviceId: appleDeviceId)   // FER-486 (F3): per-night stage timeline
+            // FER-437: the store write is the last stage and nothing follows it, so re-publish it with
+            // its row count — same `done/total` and `stageKey` (the counter and the label don't move);
+            // only `rowsByStage["saving"]` appears, which is how the onboarding tells «saving finished
+            // with N rows» apart from «saving is running». Not recorded when the write threw.
+            finished("saving", rows: appleRows.count + dmRows.count + seriesRows.count + wkRows.count
+                     + workoutHrSamples.count + appleSleepSessions.count)
+            stage(14, "saving")
             // B (FER-1003): el write-back a Apple Health de métricas DERIVADAS de la banda (RHR/HRV/SpO2/
             // resp/sueño de la partición -noop) se APAGA. Apple-only, esas filas son viejas y stale, y
             // escribirlas contaminaría Salud (mezcla el RMSSD de banda bajo el SDNN de Apple). El HKWorkout
@@ -636,9 +667,10 @@ final class HealthKitBridge: ObservableObject {
         return NSCompoundPredicate(andPredicateWithSubpredicates: [byDate, notOurs])
     }
 
+    /// Returns the number of per-day rows handed to `sink` (FER-437).
     private func collect(_ id: HKQuantityTypeIdentifier, unit: HKUnit, start: Date, end: Date,
-                         op: HKStatisticsOptions, sink: @escaping (String, Double) -> Void) async {
-        guard let type = HKQuantityType.quantityType(forIdentifier: id) else { return }
+                         op: HKStatisticsOptions, sink: @escaping (String, Double) -> Void) async -> Int {
+        guard let type = HKQuantityType.quantityType(forIdentifier: id) else { return 0 }
         let cal = Calendar.current
         let anchor = cal.startOfDay(for: start)
         let predicate = Self.readPredicate(start: start, end: end, options: .strictStartDate)
@@ -667,11 +699,13 @@ final class HealthKitBridge: ObservableObject {
             store.execute(q)
         }
         for (day, v) in pairs { sink(day, v) }
+        return pairs.count
     }
 
+    /// Returns the number of nights handed to `sink` (FER-437).
     private func collectSleep(start: Date, end: Date,
-                              sink: @escaping (String, Double?, Double?, Double?, Double?, Double?) -> Void) async {
-        guard let type = HKObjectType.categoryType(forIdentifier: .sleepAnalysis) else { return }
+                              sink: @escaping (String, Double?, Double?, Double?, Double?, Double?) -> Void) async -> Int {
+        guard let type = HKObjectType.categoryType(forIdentifier: .sleepAnalysis) else { return 0 }
         let predicate = Self.readPredicate(start: start, end: end)
         // FER-978: same fix as `collect` — accumulate inside the HK handler, resume with a Sendable
         // per-day array, apply `sink` back on this @MainActor (no sink call from HK's queue).
@@ -740,6 +774,7 @@ final class HealthKitBridge: ObservableObject {
             store.execute(q)
         }
         for d in days { sink(d.day, d.asleep, d.deep, d.rem, d.core, d.inBed) }
+        return days.count
     }
 
     /// FER-486: the raw `sleepAnalysis` samples as platform-agnostic descriptors, so the pure
