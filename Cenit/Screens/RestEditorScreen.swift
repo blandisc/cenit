@@ -291,8 +291,9 @@ struct RestEditorScreen: View {
                 }
             }
             .frame(maxWidth: .infinity)
-            Slider(value: Binding(get: { Double(margin) }, set: { margin = Int($0.rounded()) }),
-                   in: 5...30, step: 1).tint(LiquidColor.verdeCarga)
+            LiquidSlider(value: Binding(get: { Double(margin) }, set: { margin = Int($0.rounded()) }),
+                         in: 5...30, step: 1,
+                         accessibilityValueText: marginTargetBpm.map { "\($0) bpm" } ?? "+\(margin) bpm")
             HStack {
                 Text("+5 hard").font(LiquidType.caption).foregroundStyle(LiquidColor.tinta500)
                 Spacer()
@@ -321,7 +322,8 @@ struct RestEditorScreen: View {
                     .foregroundStyle(LiquidColor.tinta700)
             }
             .frame(maxWidth: .infinity)
-            Slider(value: $reserve, in: 0.30...0.55, step: 0.01).tint(LiquidColor.verdeCarga)
+            LiquidSlider(value: $reserve, in: 0.30...0.55, step: 0.01,
+                         accessibilityValueText: thresholdBpm.map { "\($0) bpm" } ?? String(format: "%.0f%%", (reserve * 100).rounded()))
             HStack {
                 Text("30% hard").font(LiquidType.caption).foregroundStyle(LiquidColor.tinta500)
                 Spacer()
@@ -352,7 +354,8 @@ struct RestEditorScreen: View {
                     .foregroundStyle(LiquidColor.tinta700)
             }
             .frame(maxWidth: .infinity)
-            Slider(value: $peakDropFraction, in: 0.10...0.50, step: 0.01).tint(LiquidColor.verdeCarga)
+            LiquidSlider(value: $peakDropFraction, in: 0.10...0.50, step: 0.01,
+                         accessibilityValueText: String(format: "%.0f%%", (peakDropFraction * 100).rounded()))
             HStack {
                 Text("10% hard").font(LiquidType.caption).foregroundStyle(LiquidColor.tinta500)
                 Spacer()
@@ -381,8 +384,9 @@ struct RestEditorScreen: View {
                     .foregroundStyle(LiquidColor.tinta700)
             }
             .frame(maxWidth: .infinity)
-            Slider(value: Binding(get: { Double(fixedTargetBpm) }, set: { fixedTargetBpm = Int($0.rounded()) }),
-                   in: 80...170, step: 1).tint(LiquidColor.verdeCarga)
+            LiquidSlider(value: Binding(get: { Double(fixedTargetBpm) }, set: { fixedTargetBpm = Int($0.rounded()) }),
+                         in: 80...170, step: 1,
+                         accessibilityValueText: "\(fixedTargetBpm) bpm")
             HStack {
                 Text("80 bpm hard").font(LiquidType.caption).foregroundStyle(LiquidColor.tinta500)
                 Spacer()
