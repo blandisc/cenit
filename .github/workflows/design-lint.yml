@@ -38,12 +38,18 @@ jobs:
         run: python3 Tools/check-gate-parity.py
       - name: "Enseñanza: toda pantalla nueva lleva // ensenanza: <id> (D6, épico FER-428)"
         run: python3 Tools/check-ensenanza.py
+      - name: "Enseñanza: el registro y el Mapa 100 % no se desfasan (L9b, FER-439)"
+        run: python3 Tools/check-ensenanza-mapa.py
+      - name: "Enseñanza: docs/FEATURES.md al día con el registro (L9b, FER-439)"
+        run: python3 Tools/build-features.py --check
       - name: Design-drift linter — no raw hex (all roots)
         run: python3 Tools/check-design-drift.py --rules no-hex
       - name: Design-drift linter — no ad-hoc font/radius/opacity, ratchet (FER-276)
         run: python3 Tools/check-design-drift.py --rules no-adhoc-font,no-radius-literal,no-opacity-literal --baseline Tools/design-drift-baseline.json Cenit/Screens Cenit/Onboarding Cenit/System Cenit/App CenitApp
       - name: Design-drift linter — anti-evasión del colador, ratchet (FER-276)
         run: python3 Tools/check-design-drift.py --rules no-raw-color,no-edgeinsets-literal,no-token-arithmetic --baseline Tools/design-drift-baseline.json Cenit/Screens Cenit/Onboarding Cenit/System Cenit/App Cenit/Data Cenit/LiveActivity Cenit/Media CenitApp CenitWidgets CenitWatch
+      - name: Design-drift linter — no unsafe Int(x.rounded()) en display, ratchet (FER-466)
+        run: python3 Tools/check-design-drift.py --rules no-unsafe-int-cast --baseline Tools/design-drift-baseline.json Cenit/Screens Cenit/Data
       - name: Design-drift linter — no em-dash in copy (FER-879, app-wide)
         run: python3 Tools/check-design-drift.py --rules no-emdash-string Cenit/Screens Cenit/Onboarding
       - name: Design-drift linter — no raw shadow, use StrandElevation (migrated screens)
@@ -116,3 +122,11 @@ jobs:
           git show "FETCH_HEAD:Tools/check-ensenanza.py" > /tmp/check-ensenanza.py 2>/dev/null \
             || cp Tools/check-ensenanza.py /tmp/check-ensenanza.py
           python3 /tmp/check-ensenanza.py --base /tmp/ens-base.txt
+      - name: El baseline registro ⇄ mapa solo baja (L9b, FER-439)
+        run: |
+          # Mismo patrón que el paso anterior: base vía FETCH_HEAD, `|| true` para el alta
+          # estructural del propio baseline, y el guardia corriendo desde la BASE.
+          git show "FETCH_HEAD:Tools/ensenanza-mapa-baseline.txt" > /tmp/ens-mapa-base.txt 2>/dev/null || true
+          git show "FETCH_HEAD:Tools/check-ensenanza-mapa.py" > /tmp/check-ensenanza-mapa.py 2>/dev/null \
+            || cp Tools/check-ensenanza-mapa.py /tmp/check-ensenanza-mapa.py
+          python3 /tmp/check-ensenanza-mapa.py --base /tmp/ens-mapa-base.txt

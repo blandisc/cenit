@@ -20,6 +20,49 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
 
 ## Unreleased
 
+### Las frases de «la espera enseña» entran en cuanto su grupo termina / The "wait teaches" sentences land as soon as their group finishes (FER-475)
+- **ES** — Durante la primera lectura de Salud, una frase podía aparecer hasta una etapa después de que
+  su grupo terminara: el conteo de filas viajaba en dos copias y la pantalla leía la atrasada. Ahora hay
+  una sola fuente y la frase entra en cuanto su grupo termina. Nada más cambia: ni el guion, ni los
+  tiempos, ni los anuncios de VoiceOver.
+- **EN** — During the first Health read, a sentence could show up one stage after its group finished:
+  the row count travelled in two copies and the screen read the stale one. Now there is a single
+  source and the sentence lands as soon as its group finishes. Nothing else changes: not the script,
+  the timing, or the VoiceOver announcements.
+
+### La base de datos, reescrita por dentro sin tocar tus datos (FER-393)
+- La capa que guarda tu historial en el teléfono se reescribió desde cero. Para ti no cambia nada:
+  tu base abre igual, con las mismas filas, y al abrirla no se ejecuta ni una sola instrucción que
+  modifique su forma. Hay una prueba que lo comprueba sobre una base real, no sobre un argumento.
+- De paso desaparecieron tres funciones muertas que quedaron de la época del dispositivo anterior
+  y que consultaban tablas que ya no existen: fallaban en silencio en cada llamada y nadie leía su
+  resultado.
+
+### Motores de esfuerzo, pulso y diseño con código propio (FER-387, FER-385, FER-395)
+- Los cálculos de esfuerzo, zonas de pulso, variabilidad nocturna, pulso en reposo y calorías se
+  reescribieron desde el método publicado que ya citaban. Tus números no se mueven: un oráculo de
+  más de dos mil valores generado con el código anterior los compara uno a uno.
+- Se retiraron dos motores que ya no corrían desde que las fases de sueño vienen de Apple Health:
+  el clasificador de sueño propio y el detector de entrenamientos por pulso.
+- Las piezas heredadas del sistema de diseño (paleta, tipografía, movimiento y tres gráficas) se
+  reescribieron con estructura propia sin cambiar un solo píxel.
+
+### Las tres señales se tratan igual, y el método cierra en español (FER-401)
+- **La ficha de respiración vuelve a nombrar la misma posibilidad que las otras dos.** Oxígeno en
+  sangre y temperatura de piel ya decían que una lectura fuera de lo tuyo puede ser «algo que
+  podrías estar incubando»; respiración solo hablaba de esfuerzo, un día pesado o una cena tardía.
+  Ahora también la nombra, al final y como la última posibilidad, no como conclusión.
+- **Oxígeno en sangre suena a persona, no a manual:** una caída sostenida «vale la pena comentarla
+  con tu médico».
+- **El método de Preparación ya no cierra en inglés.** Con el teléfono en español, el plegable
+  explicaba todo en español y terminaba con la lista de estudios sin traducir.
+- **Se fueron del catálogo los textos de cuando el dato venía de una banda.** Ninguno se mostraba ya
+  —«Banda desconectada de día», «Banda sin señal», el paso que preguntaba si tenías una, y todo el
+  emparejamiento por Bluetooth—: eran textos huérfanos que solo pesaban. Las «bandas» de las
+  gráficas, que sí son tuyas, se quedan tal cual.
+- Las pantallas y la capa de datos que aún conservaban código del proyecto anterior se
+  reescribieron con expresión propia; nada cambia a la vista.
+
 ### Preparación para la App Store (FER-398)
 - **Acerca de** ahora reconoce el trabajo de otros que Cénit lleva dentro —GRDB.swift, ZIPFoundation,
   Space Grotesk y free-exercise-db, cada uno con su licencia— y suma los tres enlaces que antes solo
@@ -1192,6 +1235,80 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
 - Every gesture now has a button: Focus gets "Exit"; the weight the keypad is editing looks
   tappable; reordering sets also works from the card's "···" ("Move set up / down", on the set you
   are editing) and from the VoiceOver rotor.
+
+### La espera del primer arranque enseña / The first-launch wait teaches (FER-437)
+### ES
+- Mientras Cénit lee tus últimos 180 días de Salud, la línea «Leyendo: … · n de 15» se retira en
+  cuanto termina el primer grupo de señales y en su lugar entran, una por una, hasta cuatro frases:
+  tu corazón en reposo (lo que decide tu palabra; vive en Hoy), tus noches (con eso construye tu
+  rango; vive en Tendencias), tus entrenamientos (cuenta lo que cargaste; vive en Entrenar) y el
+  guardado en tu iPhone (nada salió). Cada frase aparece solo cuando su grupo terminó de leerse y
+  su señal principal trajo datos —reposo, sueño, entrenamientos, guardado—: el HRV de día no cuenta
+  como noche ni la energía activa como entrenamiento; si no trajo nada, no se enseña. La frase del
+  guardado ya no se pierde cuando la lectura termina justo antes de que la pantalla la vea. La
+  lectura no dura ni un segundo más: el contador, los titulares, el piso, el techo y los anuncios
+  de VoiceOver siguen igual.
+
+### EN
+- While Cénit reads your last 180 days of Health, the "Reading: … · n of 15" line steps aside as
+  soon as the first group of signals finishes, and up to four sentences take its place, one at a
+  time: your resting heart (what decides your word; lives in Today), your nights (what your range is
+  built from; lives in Trends), your workouts (it counts what you loaded; lives in Train) and the
+  save to your iPhone (nothing left). Each one appears only once its group finished reading and its
+  main signal brought data — resting HR, sleep, workouts, the save —: daytime HRV doesn't count as a
+  night, nor active energy as a workout; if it brought nothing, it isn't taught. The save sentence
+  is no longer lost when the read finishes right before the screen looks. The wait doesn't get a
+  second longer: the counter, the headings, the floor, the ceiling and the VoiceOver announcements
+  are unchanged.
+
+### Hitos del motor: seis tarjetas de una vez / Engine milestones: six one-time cards (FER-436)
+### ES
+- Cuando el motor cumple una promesa, lo dice una vez, con una tarjeta debajo del héroe (nunca
+  encima de la palabra, nunca modal): la primera lectura (noche 4) y la base firme (noche 14) en
+  Hoy, con puerta al acta; la primera tendencia y la carga leída en Tendencias; la primera sesión
+  de fuerza y la primera marca en Entrenar, con puerta al historial y a «Tus marcas». «Entendido»
+  la cierra y no vuelve.
+- Honestidad temporal: cada hito solo aparece si su umbral se cruzó DESPUÉS de instalar esta
+  versión. Quien ya tenía 40 noches nunca recibe «tu primera lectura». Sin reloj no aparece
+  ningún hito de Hoy. Los números 4 y 14 salen del motor, no del texto.
+
+### EN
+- When the engine keeps a promise, it says so once, with a card under the hero (never over the
+  word, never modal): first reading (night 4) and firm baseline (night 14) in Today, opening the
+  ballot; first trend and load read in Trends; first strength session and first record in Train,
+  opening History and "Your marks". "Got it" closes it for good.
+- Temporal honesty: a milestone only shows if its threshold was crossed AFTER installing this
+  version. Someone with 40 nights never gets "your first reading". Without a watch, no Today
+  milestone appears. The 4 and 14 come from the engine, not the copy.
+
+### Ayuda «Cómo funciona Cénit» y Novedades / Help "How Cénit works" and What's new (FER-435)
+### ES
+- **«Cómo funciona Cénit»**: una sola puerta para volver a aprender, en Ajustes → Más y en el «?»
+  de la cabecera de las cuatro pestañas (que abre la sección de esa pestaña). Lista, por pestaña,
+  todo lo que enseña la app: qué es, para qué y dónde vive, con la nota «Necesita Apple Watch»
+  cuando aplica y cada gesto con su botón. Donde ya existe la pieza (el taller, «¿Qué decide tu
+  día?», «Tu contexto», la hoja del guardián, el acta), se abre a un toque. Al pie de cada pestaña,
+  «Volver a ver los consejos»: sus consejos vuelven a salir y los hints de gesto se reactivan.
+- **«Novedades»** en Ajustes → Más, con un punto de no leído cuando hay una versión posterior a la
+  última que viste; la hoja lista, por versión, qué cambió y dónde encontrarlo. En una versión
+  «mayor», además una tarjeta de una vez al fondo de Hoy (debajo de la Matriz, nunca encima del
+  héroe) con la puerta a la lista. Nunca un modal. Al instalar por primera vez no hay nada que
+  anunciar.
+- El «?» de Entrenar ahora abre Ayuda en su sección; el taller «Lo que Cénit sabe hacer» y
+  «Palabras del gym» siguen a un toque desde ahí.
+
+### EN
+- **"How Cénit works"**: one door to learn again, in Settings → More and behind the "?" in each
+  tab's header (which opens that tab's section). It lists, tab by tab, everything the app teaches:
+  what it is, what it's for and where it lives, with a "Needs Apple Watch" note where it applies
+  and every gesture with its button. Where the piece already exists (the workshop, "What decides
+  your day?", "Your context", the guardian's sheet, the acta) it opens in one tap. At the foot of
+  each tab, "See the tips again": its tips become eligible again and the gesture hints come back.
+- **"What's new"** in Settings → More, with an unread dot when there is a version newer than the
+  last one you saw; the sheet lists, per version, what changed and where to find it. On a "major"
+  version, also a one-time card at the bottom of Today (below the Matrix, never over the hero)
+  with the door to the list. Never a modal. A fresh install has nothing to announce.
+- Train's "?" now opens Help at its section; the workshop stays one tap away from there.
 
 ## Unreleased
 

@@ -171,6 +171,14 @@ struct FitnessAgeDetailView: View {
 
     // MARK: - 4. Not ready (no number — honest empty state)
 
+    /// FER-469: la Edad física (Nes 2011/HUNT) está ajustada para adultos [minAge, maxAge]. Con una edad
+    /// fuera de ese rango el motor devuelve nil A PROPÓSITO (no extrapola un veredicto falso), así que el
+    /// «sin dato» aquí NO es por falta de datos: el checklist «añade tu edad» mentiría (ya la tiene). En
+    /// ese caso el vacío explica el PORQUÉ honesto en vez de pedir datos que sobran.
+    private var outsideAgeDomain: Bool {
+        Double(chronoAge) < FitnessAgeEngine.minAge || Double(chronoAge) > FitnessAgeEngine.maxAge
+    }
+
     @ViewBuilder private var notReadyBody: some View {
         LiquidCampoMetrica(
             tono: Self.tono,
@@ -180,8 +188,12 @@ struct FitnessAgeDetailView: View {
                           a11y: String(localized: "no data"), ausente: true)],
             // B2/B3: el vacío vive en la CLÁUSULA (no en el veredicto) y en voz impersonal de
             // la familia, como `SkinTempDetailScreen.campoSinDato` / `StrainDetailScreen`.
-            clausula: String(localized: "Cénit can't work out your physical age yet. The list below shows what it still needs."))
+            // FER-469: fuera del dominio validado, la cláusula dice el PORQUÉ, no pide datos que ya están.
+            clausula: outsideAgeDomain
+                ? String(localized: "Physical age is validated for ages 20 to 80. Cénit doesn't estimate it outside that range.")
+                : String(localized: "Cénit can't work out your physical age yet. The list below shows what it still needs."))
 
+        if outsideAgeDomain { EmptyView() } else {
         seccion(String(localized: "What we need")) {
             VStack(alignment: .leading, spacing: LiquidSpace.s250) {
                 VStack(alignment: .leading, spacing: .zero) {
@@ -202,6 +214,7 @@ struct FitnessAgeDetailView: View {
         }
         // B4: sin dato, sin pie de método ni chip de origen sobre un guion (paridad gemelas /
         // ActivityRecovery). El método y su sello viven solo en el estado con dato.
+        }
     }
 
     // MARK: - 5. Método + sello — patrón `pieMetodo` de Sueño (capilar sin franja propia)

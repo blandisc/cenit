@@ -36,6 +36,8 @@ struct AjustesView: View {
 /// A sibling screen presented as a self-contained sheet.
 private enum AjustesSheetScreen: String, Identifiable {
     case dataSources, support
+    /// FER-435: «Cómo funciona Cénit» y «Novedades» (sección «Más»).
+    case ayuda, novedades
     var id: String { rawValue }
 }
 
@@ -79,6 +81,11 @@ private struct AjustesLanding: View {
     @EnvironmentObject private var health: HealthKitBridge
     @EnvironmentObject private var behavior: BehaviorStore
     @EnvironmentObject private var autoBackup: AutoBackup
+    /// FER-435: las puertas de Ayuda hacia Hoy (acta, guardián) viajan por el router.
+    @EnvironmentObject private var tabRouter: TabRouter
+    /// FER-435: la última versión vista en Novedades — leída aquí (y no solo en `NovedadesEstado`)
+    /// para que la fila se repinte sin «Nuevo» en cuanto la hoja la marca.
+    @AppStorage(NovedadesEstado.claveUltimaVersionVista) private var novedadesUltimaVista = ""
 
     // Métrico o imperial, sólo para mostrar (D#103). Lo guardado siempre va en SI: esto cambia
     // cómo se LEEN distancias, pesos, estaturas y temperaturas, y deja que los campos del perfil
@@ -186,23 +193,29 @@ private struct AjustesLanding: View {
     // MARK: - Header (one-off chrome: wordmark + a privacy line)
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: LiquidSpace.s150) {
-            // FER-176: the wordmark alone, no `gearshape` — Tendencias doesn't repeat its dock glyph
-            // next to its title either (`TendenciasGlyph`, not the tab bar's SF Symbol); a tab root
-            // doesn't need to echo the icon that got you here.
-            // Ronda 2 #24: la clave-fuente era el texto español «Ajustes» (una isla), marcada
-            // `stale` en el catálogo — un prune futuro se la habría llevado. Ahora usa la MISMA
-            // clave inglesa que el rótulo del dock (`LiquidTabRotulos+Cenit.swift`), así que
-            // pantalla y dock siguen diciendo lo mismo en cualquier idioma.
-            Text(String(localized: "Settings"))
-                .font(LiquidType.displayS).tracking(LiquidType.displaySTracking)
-                .foregroundStyle(LiquidColor.tinta900)
-            Text(String(localized: "On this iPhone · no account · no server"))
-                .font(LiquidType.captionLectura)
-                .foregroundStyle(LiquidColor.tinta500)
+        HStack(alignment: .top, spacing: LiquidSpace.s200) {
+            VStack(alignment: .leading, spacing: LiquidSpace.s150) {
+                // FER-176: the wordmark alone, no `gearshape` — Tendencias doesn't repeat its dock glyph
+                // next to its title either (`TendenciasGlyph`, not the tab bar's SF Symbol); a tab root
+                // doesn't need to echo the icon that got you here.
+                // Ronda 2 #24: la clave-fuente era el texto español «Ajustes» (una isla), marcada
+                // `stale` en el catálogo — un prune futuro se la habría llevado. Ahora usa la MISMA
+                // clave inglesa que el rótulo del dock (`LiquidTabRotulos+Cenit.swift`), así que
+                // pantalla y dock siguen diciendo lo mismo en cualquier idioma.
+                Text(String(localized: "Settings"))
+                    .font(LiquidType.displayS).tracking(LiquidType.displaySTracking)
+                    .foregroundStyle(LiquidColor.tinta900)
+                Text(String(localized: "On this iPhone · no account · no server"))
+                    .font(LiquidType.captionLectura)
+                    .foregroundStyle(LiquidColor.tinta500)
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityAddTraits(.isHeader)
+            Spacer(minLength: LiquidSpace.s200)
+            // FER-435: el «?» → «Cómo funciona Cénit», sección Ajustes (mismo botón que las otras
+            // tres cabeceras).
+            AyudaBoton(seccion: .ajustes)
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityAddTraits(.isHeader)
     }
 
     // MARK: - Footer (version + a compact echo of the header's offline promise)
@@ -439,11 +452,43 @@ private struct AjustesLanding: View {
             }
             section(String(localized: "More")) {
                 VStack(spacing: .zero) {
+                    // FER-435: la puerta para volver a aprender y el registro de lo que cambió.
+                    LiquidListRow(title: String(localized: "How Cénit works"),
+                                  subtitle: String(localized: "ayuda.fila.subtitulo",
+                                                   defaultValue: "By tab · see the tips again")) {
+                        presentedSheet = .ayuda
+                    }
+                    novedadesRow
                     LiquidListRow(title: String(localized: "About & support"),
                                   subtitle: String(localized: "Version \(appVersion) · what Cénit is"),
                                   divider: false) { presentedSheet = .support }
                 }
                 .liquidTarjetaSeccion(padding: LiquidSpace.s300)
+            }
+        }
+    }
+
+    /// FER-435 · «Novedades»: con una versión posterior a la última vista, la fila lleva la palabra
+    /// «Nuevo» en `trailing` y el tono `verdePrimario` de `LiquidListRow` (punto con glow + chevron
+    /// en verde) — la palabra la lee VoiceOver sola, así que el color nunca es el único canal, y el
+    /// subtítulo lo dice también en texto. Nada dibujado a mano: la fila estándar en ambos estados.
+    /// Sin pendientes: «Estás al día · {versión}», sin tono.
+    @ViewBuilder private var novedadesRow: some View {
+        let pendientes = NovedadesEstado.pendientes(
+            ultimaVista: novedadesUltimaVista.isEmpty ? nil : novedadesUltimaVista)
+        if let nueva = pendientes.first?.version {
+            LiquidListRow(title: String(localized: "What's new"),
+                          subtitle: String(localized: "novedades.fila.pendientes",
+                                           defaultValue: "What changed in \(nueva)"),
+                          trailing: String(localized: "novedades.fila.nuevo", defaultValue: "New"),
+                          tone: LiquidColor.verdePrimario) {
+                presentedSheet = .novedades
+            }
+        } else {
+            LiquidListRow(title: String(localized: "What's new"),
+                          subtitle: String(localized: "novedades.fila.alDia",
+                                           defaultValue: "You're up to date · \(appVersion)")) {
+                presentedSheet = .novedades
             }
         }
     }
@@ -620,8 +665,8 @@ private struct AjustesLanding: View {
     private func section<Rows: View>(_ title: String, @ViewBuilder rows: () -> Rows) -> some View {
         VStack(alignment: .leading, spacing: LiquidSpace.s300) {
             Text(verbatim: title)
-                .font(LiquidType.franja).tracking(LiquidType.franjaTracking).textCase(.uppercase)
-                .foregroundStyle(LiquidColor.tinta500)
+                .liquidKicker()   // FER-471: estilo canónico de sección (= LiquidSectionHeader)
+                .foregroundStyle(LiquidColor.tinta700)
                 .accessibilityAddTraits(.isHeader)
             rows()
         }
@@ -667,6 +712,17 @@ private struct AjustesLanding: View {
             .environmentObject(health)
             .environmentObject(behavior)
             .environmentObject(autoBackup)
+        case .ayuda:
+            // FER-435: «Cómo funciona Cénit» trae su propio «Listo» (también la abre el «?» de
+            // cada pestaña); aquí solo el stack y los objetos que sus puertas necesitan.
+            NavigationStack { AyudaScreen() }
+                .environment(model)
+                .environmentObject(repo)
+                .environmentObject(tabRouter)
+        case .novedades:
+            NavigationStack { NovedadesSheet() }
+                .environment(model)
+                .environmentObject(repo)
         }
     }
 }
@@ -704,24 +760,17 @@ private struct ProfileWheelSheet: View {
     // viven como una barra DENTRO del VStack que `.fittedSheet()` mide, no en un toolbar de nav.
     var body: some View {
         VStack(alignment: .leading, spacing: LiquidSpace.s600) {
-            HStack {
-                Button(String(localized: "Cancel")) { dismiss() }
-                    .foregroundStyle(LiquidColor.tinta700)
-                Spacer()
-                Button(String(localized: "Done")) {
-                    profile.age = age
-                    profile.weightKg = weightKg
-                    profile.heightCm = heightCm
-                    dismiss()
-                }
-                .foregroundStyle(LiquidColor.tinta900)
+            AjustesSheetTopBar(onCancel: { dismiss() }) {   // FER-471: molde único de barra de hoja
+                profile.age = age
+                profile.weightKg = weightKg
+                profile.heightCm = heightCm
+                dismiss()
             }
-            .font(LiquidType.boton)
 
             VStack(alignment: .leading, spacing: LiquidSpace.s100) {
                 Text(String(localized: "Profile"))
-                    .font(LiquidType.franja).tracking(LiquidType.franjaTracking).textCase(.uppercase)
-                    .foregroundStyle(LiquidColor.tinta500)
+                    .liquidKicker()   // FER-471: estilo canónico de sección (= LiquidSectionHeader)
+                    .foregroundStyle(LiquidColor.tinta700)
                 Text(verbatim: title)
                     .font(LiquidType.displayS).tracking(LiquidType.displaySTracking)
                     .foregroundStyle(LiquidColor.tinta900)
@@ -832,22 +881,15 @@ private struct MaxHRSheet: View {
     // se recorte en el detent inicial.
     var body: some View {
         VStack(alignment: .leading, spacing: LiquidSpace.s600) {
-            HStack {
-                Button(String(localized: "Cancel")) { dismiss() }
-                    .foregroundStyle(LiquidColor.tinta700)
-                Spacer()
-                Button(String(localized: "Done")) {
-                    profile.hrMaxOverride = manual ? overrideBpm : 0
-                    dismiss()
-                }
-                .foregroundStyle(LiquidColor.tinta900)
+            AjustesSheetTopBar(onCancel: { dismiss() }) {   // FER-471: molde único de barra de hoja
+                profile.hrMaxOverride = manual ? overrideBpm : 0
+                dismiss()
             }
-            .font(LiquidType.boton)
 
             VStack(alignment: .leading, spacing: LiquidSpace.s100) {
                 Text(String(localized: "Profile"))
-                    .font(LiquidType.franja).tracking(LiquidType.franjaTracking).textCase(.uppercase)
-                    .foregroundStyle(LiquidColor.tinta500)
+                    .liquidKicker()   // FER-471: estilo canónico de sección (= LiquidSectionHeader)
+                    .foregroundStyle(LiquidColor.tinta700)
                 Text(String(localized: "Max heart rate"))
                     .font(LiquidType.displayS).tracking(LiquidType.displaySTracking)
                     .foregroundStyle(LiquidColor.tinta900)
@@ -905,17 +947,12 @@ private struct UnidadesSheet: View {
     // los bindings son vivos (`$unitSystemRaw`/`$temperatureRaw`), solo hay Listo para cerrar.
     var body: some View {
         VStack(alignment: .leading, spacing: LiquidSpace.s600) {
-            HStack {
-                Spacer()
-                Button(String(localized: "Done")) { dismiss() }
-                    .foregroundStyle(LiquidColor.tinta900)
-            }
-            .font(LiquidType.boton)
+            AjustesSheetTopBar { dismiss() }   // FER-471: molde único (solo Listo)
 
             VStack(alignment: .leading, spacing: LiquidSpace.s100) {
                 Text(String(localized: "Display"))
-                    .font(LiquidType.franja).tracking(LiquidType.franjaTracking).textCase(.uppercase)
-                    .foregroundStyle(LiquidColor.tinta500)
+                    .liquidKicker()   // FER-471: estilo canónico de sección (= LiquidSectionHeader)
+                    .foregroundStyle(LiquidColor.tinta700)
                 Text(String(localized: "Units & format"))
                     .font(LiquidType.displayS).tracking(LiquidType.displaySTracking)
                     .foregroundStyle(LiquidColor.tinta900)
@@ -959,3 +996,25 @@ private struct UnidadesSheet: View {
 }
 
 #endif
+
+
+/// FER-471: la barra Cancelar/Listo de las hojas de Ajustes vivía copiada VERBATIM en tres hojas
+/// (perfil, FC máx, unidades). Un solo molde privado: `Cancelar` opcional (tinta700) + `Listo`
+/// (tinta900), `font(.boton)`. No es rol de `LiquidSheetHeader` (ese es para hojas con dato-héroe);
+/// es una barra sencilla DENTRO del VStack que mide `.fittedSheet()`. Salida idéntica a las tres copias.
+private struct AjustesSheetTopBar: View {
+    var onCancel: (() -> Void)? = nil
+    let onDone: () -> Void
+    var body: some View {
+        HStack {
+            if let onCancel {
+                Button(String(localized: "Cancel"), action: onCancel)
+                    .foregroundStyle(LiquidColor.tinta700)
+            }
+            Spacer()
+            Button(String(localized: "Done"), action: onDone)
+                .foregroundStyle(LiquidColor.tinta900)
+        }
+        .font(LiquidType.boton)
+    }
+}

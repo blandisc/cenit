@@ -1,5 +1,6 @@
 import SwiftUI
 import CenitDesign
+import CenitEnsenanza
 import StrandAnalytics
 
 // MARK: - Actos 3 y 4  ·  el encendido (FER-109)
@@ -65,6 +66,9 @@ struct OnbActoEncendido: View {
     @State private var etapaN = 1
     @State private var ultimaEtapa = false
     @State private var anunciados: Set<Int> = []
+    /// «La espera enseña» (FER-437 · D1): las estrofas ya ganadas, en el orden en que se leen. Las
+    /// manda el progreso real (`EstrofasSync.ganadas`), nunca un temporizador.
+    @State private var estrofas: [EstrofaSync] = []
 
     // Los beats del reveal
     @State private var opacidadLectura: Double = 1
@@ -125,16 +129,36 @@ struct OnbActoEncendido: View {
         .animation(animContador, value: diasLeidos)
         .accessibilityElement(children: .combine)
 
-        Text(OnbCopy.conexionProgreso(nombreEtapa, etapaN).teñida(nombreEtapa, con: tonoEtapa))
-            .font(LiquidType.captionLectura)
-            .foregroundStyle(LiquidColor.tinta500)
-            .fixedSize(horizontal: false, vertical: true)
+        // «La espera enseña» (FER-437 · D1). Mientras ninguna estrofa se ha ganado (el primer
+        // segundo), la línea de progreso de siempre evita que la pantalla quede muda; en cuanto entra
+        // la primera, la línea se retira y cada grupo de señales que terminó de leerse —y trajo
+        // filas— imprime qué hará Cénit con eso y en qué pestaña vive. Cualquier prefijo es una clase
+        // completa: si el sync acaba en el piso, lo que alcanzó a salir se lee entero.
+        if estrofas.isEmpty {
+            Text(OnbCopy.conexionProgreso(nombreEtapa, etapaN).teñida(nombreEtapa, con: tonoEtapa))
+                .font(LiquidType.captionLectura)
+                .foregroundStyle(LiquidColor.tinta500)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.top, LiquidSpace.s250)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                // Se puede LEER barriendo (esconderla le quitaría el progreso a quien usa VoiceOver),
+                // pero no se ANUNCIA: los 15 pasos salen por hitos (≤3, ver `anunciarHitos`). Quince
+                // anuncios seguidos convierten una espera tranquila en una metralleta.
+                .accessibilityLabel(Text(String(OnbCopy.conexionProgreso(nombreEtapa, etapaN).characters)))
+        } else {
+            VStack(alignment: .leading, spacing: LiquidSpace.s300) {
+                ForEach(estrofas, id: \.self) { estrofa in
+                    // Cada fila entra con la entrada del sistema; bajo Reduce Motion se coloca
+                    // directo, sin animación. Se lee barriendo y no se anuncia (ver `anunciarHitos`).
+                    if reduceMotion {
+                        OnbEstrofaFila(estrofa)
+                    } else {
+                        OnbEstrofaFila(estrofa).liquidEntrada()
+                    }
+                }
+            }
             .padding(.top, LiquidSpace.s250)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            // Se puede LEER barriendo (esconderla le quitaría el progreso a quien usa VoiceOver),
-            // pero no se ANUNCIA: los 15 pasos salen por hitos (≤3, ver `anunciarHitos`). Quince
-            // anuncios seguidos convierten una espera tranquila en una metralleta.
-            .accessibilityLabel(Text(String(OnbCopy.conexionProgreso(nombreEtapa, etapaN).characters)))
+        }
 
         Spacer(minLength: LiquidSpace.s600)
 
@@ -478,12 +502,30 @@ struct OnbActoEncendido: View {
         etapaClave = nil
         etapaN = 1
         anunciados.removeAll()
+        estrofas.removeAll()
         arranque = Date()
         await correr()
     }
 
     @MainActor
     private func muestrear() {
+        // FER-437: las estrofas las manda el progreso real —qué etapas terminaron y con cuántas
+        // filas—, nunca un temporizador. `health.syncRowsByStage` es la única fuente del conteo
+        // (FER-475): va ACUMULADO, así que una etapa que terminó entre dos muestras de 100 ms no se
+        // pierde, y SOBREVIVE al sync (qa r1 · D2): `syncProgress` muere en el `defer` de `sync()`
+        // en el mismo turno en que llega `saving`, así que la muestra que sigue a `syncListo` sigue
+        // leyéndolo y «Guardando en tu iPhone» sale siempre que se guardó algo. Antes de que arranque
+        // el sync no se lee nada: un reintento vería las filas del intento anterior. Solo las
+        // estrofas viven aquí; el avance, la etapa y los anuncios se quedan donde los dejó la última
+        // muestra viva. El cambio se anima para que la línea de progreso ceda su sitio sin salto;
+        // bajo Reduce Motion, sin animación.
+        if health.syncProgress != nil || syncListo {
+            let ganadas = EstrofasSync.ganadas(terminadas: health.syncRowsByStage.map { (clave: $0.key, filas: $0.value) })
+            if ganadas != estrofas {
+                let anim: Animation? = reduceMotion ? nil : LiquidMotion.glassOut(LiquidMotion.gentle)
+                withAnimation(anim) { estrofas = ganadas }
+            }
+        }
         guard let p = health.syncProgress else { return }
         let nuevo = Double(p.done) / Double(max(1, p.total))
         etapaClave = p.stageKey
@@ -656,6 +698,30 @@ struct OnbVeredicto {
     }
 }
 
+// MARK: - Las estrofas de la espera (FER-437)
+
+/// Una estrofa de «la espera enseña»: qué grupo de señales terminó de leerse, qué hará Cénit con
+/// él y en qué pestaña vive. El overline lleva la identidad de la señal (los mismos tonos que la
+/// línea de progreso, `OnbEtapa.tono`); el cuerpo y el pie van en tinta. Para VoiceOver es UN
+/// elemento que se lee barriendo; nunca se anuncia: los ≤3 anuncios del acto son los de siempre.
+private struct OnbEstrofaFila: View {
+    let estrofa: EstrofaSync
+    init(_ estrofa: EstrofaSync) { self.estrofa = estrofa }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: LiquidSpace.s150) {
+            OnbOverline(OnbCopy.estrofaOverline(estrofa), tono: OnbEtapa.tono(estrofa))
+            OnbCuerpo(OnbCopy.estrofaCuerpo(estrofa))
+            Text(OnbCopy.estrofaPie(estrofa))
+                .font(LiquidType.captionLectura)
+                .foregroundStyle(LiquidColor.tinta500)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .accessibilityElement(children: .combine)
+    }
+}
+
 // MARK: - Las 15 etapas de la sincronización
 
 /// El nombre y el tono de cada etapa de `HealthKitBridge.sync`. Solo SIETE llevan hue: las que
@@ -695,6 +761,17 @@ enum OnbEtapa {
         // que `LiquidSheetHeader.tonoTexto` aplica dentro del paquete).
         case "workouts":   return LiquidColor.atencionTexto
         default:           return LiquidColor.tinta500
+        }
+    }
+
+    /// El tono de cada estrofa de la espera (FER-437): 1:1 con la señal que la encabeza, el mismo
+    /// que llevaba en la línea de progreso. La de guardado va en tinta: no es una señal.
+    static func tono(_ estrofa: EstrofaSync) -> Color {
+        switch estrofa {
+        case .corazon:  return tono("resting_hr")
+        case .noches:   return tono("sleep")
+        case .entrenos: return tono("workouts")
+        case .guardado: return LiquidColor.tinta500
         }
     }
 }

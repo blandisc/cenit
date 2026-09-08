@@ -875,13 +875,6 @@ final class Repository: ObservableObject {
         return []
     }
 
-    /// The latest persisted body-clock phase (computed source), for the «Tu reloj corporal» surface
-    /// (FER-712). nil until a nightly legacy phase pass has written one (dormant under Apple-only).
-    func latestCircadianPhase() async -> CircadianPhaseRow? {
-        guard let store = await ensureStore() else { return nil }
-        return (try? await store.latestCircadianPhase(deviceId: computedDeviceId)) ?? nil
-    }
-
     /// El pulso del aparato heredado, promediado en cubos de `bucketSeconds`, para la gráfica de las
     /// últimas 24 horas. La suma se hace en SQL: un día entero nunca carga las filas crudas de ~1 Hz.
     func hrBuckets(from: Int, to: Int, bucketSeconds: Int = 300) async -> [HRBucket] {

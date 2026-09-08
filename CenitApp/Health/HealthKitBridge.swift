@@ -43,6 +43,18 @@ final class HealthKitBridge: ObservableObject {
     /// Live stage of the running import (nil when idle), so the card shows real progress instead of a
     /// context-free spinner. (FER-70)
     @Published private(set) var syncProgress: SyncProgress?
+    /// FER-437: the rows each FINISHED stage of the current — or the LAST — run brought, keyed by
+    /// `stageKey` — days for the per-day collectors, workouts / HR samples for the workout stages,
+    /// and the total of upserted rows for `saving` (recorded only after the store write succeeds).
+    /// Cumulative over the run, not "the stage that just finished": the onboarding samples this map
+    /// every 100 ms, and a stage that finishes faster than that would otherwise drop off the wire —
+    /// with the "every stage of the group finished" rule, one lost stage would mute its strophe
+    /// forever. It OUTLIVES the run (qa r1 · D2): `syncProgress` goes nil in `sync()`'s `defer` in
+    /// the same main-actor turn that records `saving`, so a sampler reading the progress value could
+    /// never see the last stage's count and «Guardando en tu iPhone» was a coin toss. Emptied when a
+    /// run starts, filled by `finished(_:rows:)`, never touched by the `defer`. The single source of
+    /// the count (FER-475): the onboarding reads it during the run and once it is over.
+    @Published private(set) var syncRowsByStage: [String: Int] = [:]
     /// What actually landed in the store under the apple-health source: days per metric + overall
     /// span. Reloaded after every `sync` and on demand via `refreshStatus`. Powers the coverage
     /// summary and the per-metric status list. (FER-70)
@@ -294,6 +306,7 @@ final class HealthKitBridge: ObservableObject {
     func sync(days: Int = 30, trigger: SyncTrigger = .manual) async -> Set<String> {
         guard auth == .authorized, !syncing else { return [] }
         syncing = true
+        syncRowsByStage = [:]   // FER-437: una corrida nueva empieza con conteos nuevos (el `defer` no los toca)
         defer {
             syncing = false
             syncProgress = nil
@@ -327,21 +340,24 @@ final class HealthKitBridge: ObservableObject {
         let quantityStages = Self.dailyQuantityPulls.count
         let total = quantityStages + 4
         func stage(_ done: Int, _ key: String) { syncProgress = SyncProgress(stageKey: key, done: done, total: total) }
+        // FER-437: cuántas filas trajo la etapa `key`. Va a `syncRowsByStage` (que sobrevive a la
+        // corrida), para que el onboarding pueda mostrar «la espera enseña».
+        func finished(_ key: String, rows: Int) { syncRowsByStage[key] = rows }
 
         // Cantidades diarias: una pasada por la tabla. Cada renglón trae su unidad, su forma de
         // resumir el día y a qué campo del cubo va, así que aquí no se repite ninguna de las tres.
         for (position, pull) in Self.dailyQuantityPulls.enumerated() {
             stage(position, pull.stageKey)
-            await pullDailyQuantity(pull, start: start, end: end) { day, value in
+            finished(pull.stageKey, rows: await pullDailyQuantity(pull, start: start, end: end) { day, value in
                 var bucket = byDay[day] ?? DailyBucket()
                 pull.apply(value * pull.scale, &bucket)
                 byDay[day] = bucket
-            }
+            })
         }
 
         // Minutos de sueño por día (las etapas dormido se suman y se atribuyen al día de despertar).
         stage(quantityStages, "sleep")
-        await pullNightlySleep(start: start, end: end) { night in
+        finished("sleep", rows: await pullNightlySleep(start: start, end: end) { night in
             var bucket = byDay[night.day] ?? DailyBucket()
             bucket.asleepMin = night.asleep
             bucket.deepMin = night.deep
@@ -349,11 +365,12 @@ final class HealthKitBridge: ObservableObject {
             bucket.coreMin = night.core
             bucket.inBedMin = night.inBed
             byDay[night.day] = bucket
-        }
+        })
 
         // Entrenamientos: se leen directo de HealthKit y se guardan junto a los de la app.
         stage(quantityStages + 1, "workouts")
         let hkWorkouts = await collectHKWorkouts(start: start, end: end)
+        finished("workouts", rows: hkWorkouts.count)
         let wkRows = Self.mapWorkouts(hkWorkouts)
 
         // FER-883: per-workout heart-rate samples (raw only — strain is scored at read time).
@@ -366,6 +383,7 @@ final class HealthKitBridge: ObservableObject {
         } else {
             workoutHrSamples = await collectWorkoutHeartRate(workouts: hkWorkouts)
         }
+        finished("hr_apple_workouts", rows: workoutHrSamples.count)
 
         // FER-486: per-night Apple sleep SESSIONS with a stage timeline (for the Detalle de Sueño
         // hypnogram), ALONGSIDE the daily totals from pullNightlySleep above — F3 is additive. Pure decode
@@ -520,6 +538,11 @@ final class HealthKitBridge: ObservableObject {
                 try await db.insert(Streams(hr: workoutHrSamples), deviceId: appleDeviceId)
             }
             try await db.upsertSleepSessions(appleSleepSessions, deviceId: appleDeviceId)   // FER-486 (F3): línea de etapas por noche
+            // FER-437: el guardado es la última etapa y no le sigue nada; `syncRowsByStage["saving"]`
+            // es como el onboarding distingue «guardado terminó con N filas» de «guardando». No se
+            // registra si la escritura lanzó.
+            finished("saving", rows: appleRows.count + dmRows.count + seriesRows.count + wkRows.count
+                     + workoutHrSamples.count + appleSleepSessions.count)
             // B (FER-1003): el write-back a Apple Health de métricas DERIVADAS del dispositivo anterior
             // (RHR/HRV/SpO2/resp/sueño de esa partición) está APAGADO. Esas filas son viejas y
             // escribirlas contaminaría Salud: metería un RMSSD ajeno bajo el SDNN de Apple. El
@@ -735,8 +758,8 @@ final class HealthKitBridge: ObservableObject {
     /// handler solo junta pares `(día, valor)` —que sí son Sendable—, reanuda con ellos, y el `sink`
     /// se aplica de regreso en el actor principal, después del `await`.
     private func pullDailyQuantity(_ pull: QuantityPull, start: Date, end: Date,
-                                   sink: @escaping (String, Double) -> Void) async {
-        guard let type = HKQuantityType.quantityType(forIdentifier: pull.identifier) else { return }
+                                   sink: @escaping (String, Double) -> Void) async -> Int {
+        guard let type = HKQuantityType.quantityType(forIdentifier: pull.identifier) else { return 0 }
         let anchor = Calendar.current.startOfDay(for: start)
         let predicate = Self.readPredicate(start: start, end: end, options: .strictStartDate)
         // Se sacan del renglón ANTES de la consulta: el handler no debe capturar el `QuantityPull`
@@ -762,6 +785,7 @@ final class HealthKitBridge: ObservableObject {
             store.execute(query)
         }
         for entry in daily { sink(entry.day, entry.value) }
+        return daily.count   // FER-437: cuántas filas por día se entregaron
     }
 
     /// Una muestra de sueño reducida a lo único que el plegado necesita: qué noche, qué app la
@@ -856,8 +880,8 @@ final class HealthKitBridge: ObservableObject {
     /// persona despertó. FER-978: el plegado corre de regreso en este actor, nunca en la cola de
     /// HealthKit.
     private func pullNightlySleep(start: Date, end: Date,
-                                  sink: @escaping (NightlySleep) -> Void) async {
-        guard let type = HKObjectType.categoryType(forIdentifier: .sleepAnalysis) else { return }
+                                  sink: @escaping (NightlySleep) -> Void) async -> Int {
+        guard let type = HKObjectType.categoryType(forIdentifier: .sleepAnalysis) else { return 0 }
         let predicate = Self.readPredicate(start: start, end: end)
 
         let staged: [StagedSleepSample] = await withCheckedContinuation { cont in
@@ -875,7 +899,9 @@ final class HealthKitBridge: ObservableObject {
             }
             store.execute(query)
         }
-        for night in Self.foldNightlySleep(staged) { sink(night) }
+        let nights = Self.foldNightlySleep(staged)
+        for night in nights { sink(night) }
+        return nights.count   // FER-437: cuántas noches se entregaron, para `syncRowsByStage`
     }
 
     /// FER-486: las mismas muestras de `sleepAnalysis`, pero como descriptores sin HealthKit, para

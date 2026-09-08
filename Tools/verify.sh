@@ -70,6 +70,8 @@ run_lint() {
         --baseline Tools/design-drift-baseline.json Cenit/Screens Cenit/Onboarding Cenit/System Cenit/App Cenit/Data Cenit/LiveActivity Cenit/Media CenitApp CenitWidgets CenitWatch || ok=1
       python3 Tools/check-design-drift.py --rules no-motion-literal \
         --baseline Tools/design-drift-baseline.json Cenit/Screens Cenit/Onboarding Cenit/System Cenit/App CenitApp || ok=1
+      python3 Tools/check-design-drift.py --rules no-unsafe-int-cast \
+        --baseline Tools/design-drift-baseline.json Cenit/Screens Cenit/Data || ok=1
       python3 Tools/check-design-drift.py --rules no-dt-cap-adhoc Cenit/Screens Cenit/Onboarding Cenit/System Cenit/App Cenit/Data Cenit/LiveActivity Cenit/Media CenitWidgets CenitWatch CenitApp || ok=1
       python3 Tools/check-design-drift.py --rules no-legacy-api \
         --baseline Tools/design-drift-baseline.json Cenit/Screens Cenit/Onboarding Cenit/System Cenit/App Cenit/Data Cenit/LiveActivity Cenit/Media CenitApp CenitWidgets CenitWatch || ok=1
@@ -123,6 +125,21 @@ run_lint() {
   python3 Tools/check-ensenanza.py ${ens_base:+--base "$ens_base"} \
     || fail "enseñanza: pantalla nueva sin « // ensenanza: <id> », o el baseline SUBIÓ respecto a origin/iOS (Tools/check-ensenanza.py)."
   if [ -n "$ens_base" ]; then rm -f "$ens_base"; fi
+  # L9b (FER-439): el registro y el Mapa 100 % no se desfasan (todo «mapa» apunta a un nodo real;
+  # todo nodo de pantalla tiene dueño o está en Tools/ensenanza-mapa-baseline.txt, que solo baja
+  # respecto a origin/iOS — espejo del job `baseline-monotony`), y docs/FEATURES.md se regenera del
+  # registro. Corren SIEMPRE (barren la semilla, el mapa y el doc, no el diff). Sin guard de
+  # existencia a propósito: si un script desaparece, esto FALLA en vez de callar.
+  mapa_base=""
+  if git rev-parse --verify -q origin/iOS >/dev/null; then
+    mapa_base=$(mktemp)
+    git show origin/iOS:Tools/ensenanza-mapa-baseline.txt > "$mapa_base" 2>/dev/null || { rm -f "$mapa_base"; mapa_base=""; }
+  fi
+  python3 Tools/check-ensenanza-mapa.py ${mapa_base:+--base "$mapa_base"} \
+    || fail "enseñanza-mapa: un «mapa» apunta a un nodo inexistente, un nodo del mapa quedó sin dueño, o el baseline SUBIÓ respecto a origin/iOS (Tools/check-ensenanza-mapa.py)."
+  if [ -n "$mapa_base" ]; then rm -f "$mapa_base"; fi
+  python3 Tools/build-features.py --check \
+    || fail "docs/FEATURES.md está desfasado del registro: corre python3 Tools/build-features.py y commitea el resultado."
   echo "verify: linters OK"
 }
 

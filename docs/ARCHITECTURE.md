@@ -204,7 +204,7 @@ StrandImport ───────▶ CenitStore + StrandTraining + ZIPFoundatio
 | **StrandImport** | Parse Apple Health exports the user already owns (`export.xml`, streaming). | `ImportCoordinator.detectAndImport`, `AppleHealthImporter`, `AppleHealthAggregator`, `SleepHKEncoder`/`SleepHKDecoder` | **Parsing only** — returns normalized model arrays; the app maps them into the store. |
 | **CenitDesign** | The SwiftUI design system: palette, typography, motion, charts, components. | `StrandPalette`, `liquidGlass(_:)`, `RecoveryZoneGauge`, `Hypnogram`, `TrendChart`, `Sparkline`, `YearHeatStrip` (full index: [CATALOGO.md](design-system/CATALOGO.md)) | No data or protocol deps — pure presentation. |
 | **StrandTraining** | Strength-tracker domain types + the bundled, read-only exercise catalog (**free-exercise-db**, 873 exercises with native slug ids; FER-923, was ExerciseDB OSS in FER-779). The value models CenitStore persists and StrandAnalytics computes over. | `Exercise`, `ExerciseType`, `ExerciseCatalog`, `Routine`, `RoutineExercise` (with `supersetGroup` FER-346; optional fixed note seeded into each session and never copied to the session's acta, FER-166, v39), `RoutineSet` (per-set prescription, FER-492; optional per-set `RestConfig` override with exercise fallback, FER-715; optional `repsRangeTop` for a "floor-top" rep range, FER-94, migration v38), `RoutineSchedule` (the weekly split, FER-531), `StrengthSession` (with persisted `energyKcal`/`EnergySource`, FER-715), `SetEntry` (with `rpe` v34; `restTakenS` — the real rest that FOLLOWED the set, pause-excluded, captured by the live session, FER-167, v40), `PersonalRecord`; **the program engines** (ola 1 · FER-329): `Program` + `ProgramCalendar` (the ONE oracle of «which week am I in?» — derived from `startTs` + the weeks actually trained, never stored), `ProgramDeload` (the light-week rule; returns RAW kg, like `SetVariants`, because the plate rounding lives in `PlateMath`) and `ProgramTemplate` (the four engines, as data over `StarterTemplates`); `StarterGroupSchedule` + `WeeklySchedulePlanner` (FER-377 — the per-`StarterTemplate.Group` weekly frequency/spacing recipe and the pure, `taken`-aware placement of a group's routines across the week, best-effort; the app-layer `applyTemplateGroup` composes them) | **Pure** — Foundation only (no GRDB/UIKit). GRDB conformance lives in CenitStore by extension. (FER-345) |
-| **CenitEnsenanza** | The single declaration of how each feature is taught: `FuncionalidadID` (stable id = TipKit id), `Pestana`, `Requisito`, `Pieza` (`.vacio/.tip/.hito/.ayuda/.novedad/.gestoConBoton`), `Registro` (per-tab seed). Text and routes only — never logic or state. | `Registro.todas`, `Registro.por(_:)`, `Funcionalidad.nombreKey/paraQueKey/dondeViveKey` | **Leaf — Foundation only**, runs on Linux CI. Copy lives in the app catalog (keys `ensenanza.<id>.*`); `CenitDesign` never imports it (`LiquidVacio` takes `Text`). |
+| **CenitEnsenanza** | The single declaration of how each feature is taught: `FuncionalidadID` (stable id = TipKit id), `Pestana`, `Requisito`, `Pieza` (`.vacio/.tip/.hito/.ayuda/.novedad/.gestoConBoton`), `Registro` (per-tab seed). Text and routes only — never state, save the documented pure rules: `HitoPuerta`/`HitoHoy` (the «crossed after install» gate + the Read→milestone-eligibility map for the engine milestones, FER-436) and `EstrofasSync` (the tested rule of the onboarding sync strophes, FER-437). | `Registro.todas`, `Registro.por(_:)`, `Funcionalidad.nombreKey/paraQueKey/dondeViveKey` | **Leaf — Foundation only**, runs on Linux CI. Copy lives in the app catalog (keys `ensenanza.<id>.*`); `CenitDesign` never imports it (`LiquidVacio` takes `Text`). |
 
 > **Exercise type override (FER-541).** The user can override an exercise's `ExerciseType` — including a catalog entry's (e.g. mark a "Plank" as time-based). The override is *user data*, so it lives in CenitStore (`exerciseTypeOverride`, migration v24), **not** in the read-only bundled catalog. Precedence (user override > custom > catalog) is decided by the pure `ExerciseTypeResolver` and applied at a single resolver in `Cenit/Data/Repository+Strength.swift` (`resolvedExercise` / `allExercises`), which materializes the effective type into `Exercise.type`. Every downstream reader (guided session, builder, detail) sees the resolved type without bespoke logic; the catalog JSON is never mutated, so reverting is a plain delete.
 
@@ -990,7 +990,16 @@ Cada funcionalidad declara **una vez**, en `Packages/CenitEnsenanza`, cómo se e
 (`FuncionalidadID`, también el `id` de su tip), pestaña, requisitos declarativos (`.watch`,
 `.noches(n)`…), piezas (`.vacio`, `.tip`, `.hito`, `.ayuda`, `.novedad(version, mayor:)`,
 `.gestoConBoton`) y versión `desde`. El registro guarda texto (claves `ensenanza.<id>.*` del
-catálogo de la app) y rutas (la pestaña); nunca lógica ni estado. Un id nunca se renombra.
+catálogo de la app) y rutas (la pestaña); nunca estado. Un id nunca se renombra.
+**Excepciones documentadas** (reglas puras, sin estado, cubiertas por `swift test`, que viven
+aquí y no en la UI para correr sin simulador): `HitoPuerta`/`HitoHoy` (L3/FER-436) — un hito
+solo dispara si su umbral se cruzó DESPUÉS de la primera evaluación con esta versión
+(`HitoPuerta`), y `HitoHoy` mapea la lectura de Hoy a la elegibilidad de sus dos hitos, donde
+**dato ausente ≠ umbral no cruzado** (qa r1); y `EstrofasSync.ganadas(terminadas:)`
+(L8/FER-437), la regla de las estrofas de «la espera enseña» (qué grupos de etapas de
+`HealthKitBridge.sync` terminaron y cuya etapa ancla trajo filas, leídas de
+`HealthKitBridge.syncRowsByStage`, la única fuente del conteo, que sobrevive al sync — FER-475
+retiró el espejo que viajaba en `SyncProgress`).
 
 **Consumidores.** Ayuda/Novedades (L2) iteran `Registro.por(pestana)`; los hitos (L3) y los tips
 (L5/L7) son `Tip`s de TipKit cuyo `id` sale del registro (`Tips.configure([.displayFrequency(.daily)])`,
@@ -998,12 +1007,29 @@ catálogo de la app) y rutas (la pestaña); nunca lógica ni estado. Un id nunca
 los vacíos (L6) pintan `CenitDesign.LiquidVacio`, que recibe `Text` — el sistema de diseño no
 importa el registro. Palanca DEBUG `-noop.tips <all|none|reset>` antes de `Tips.configure()`.
 
+**Volver a ver y Novedades (L2, FER-435).** «Cómo funciona Cénit» (`Cenit/Screens/Ayuda/`) itera
+`Registro.por(pestana)`; el `id` de cada tip (y de sus `Tips.Event`) pasa por
+`Cenit/System/Ensenanza/EnsenanzaGeneracion.swift`: generación 0 = el id del registro tal cual,
+después `<id>#n` — un id nuevo es un tip nuevo para TipKit, sin `Tips.resetDatastore()` (global,
+se llevaría los hitos). Los hitos y la tarjeta de novedad mayor no llevan generación. Novedades
+es puro en el paquete (`Novedades.pendientes(en:ultimaVista:)`, orden `.numeric`); la app pone
+la versión (`CFBundleShortVersionString`) y las últimas vistas (`novedades.ultimaVersionVista`,
+`novedades.ultimaVistaTarjeta`, fijadas al terminar el onboarding). Palanca DEBUG
+`-noop.novedades <version>` inyecta una novedad `mayor` sintética sin tocar el registro.
+
 **Gate.** `Tools/check-ensenanza.py` (design-lint + `verify.sh quick`): todo archivo nuevo en
 `Cenit/Screens/**` respecto a `Tools/ensenanza-baseline.txt` lleva `// ensenanza: <id>` con un id
 grepeado de `FuncionalidadID.swift`; el baseline solo baja (job `baseline-monotony`). Los tests del
 paquete leen `CHANGELOG.md` y `Localizable.xcstrings` vía `#filePath` (misma técnica que
 `CatalogEntryArchivoExisteTests`): ids únicos, ≥1 pieza, `.novedad` con encabezado `## v`, claves
 bajo `es`. Límite: el gate ve archivos, no sub-vistas dentro de uno existente.
+
+**Docs derivadas (L9b/FER-439).** El registro alimenta dos docs para que no se pudran a mano:
+`Tools/build-features.py` regenera las secciones de producto de `docs/FEATURES.md` desde la semilla
+(`Tools/ensenanza-semilla.json`) + el catálogo (marcadores `GENERATED:ensenanza:*`; CI corre
+`--check`), y `Tools/check-ensenanza-mapa.py` cruza el campo `mapa` de cada `Funcionalidad` (nodos
+`<familia>/<nodo>` de `docs/appmap/mapa/*.json`) en ambos sentidos, con un baseline inverso que
+solo baja; `test_semillaCoincideConRegistro` mantiene la semilla igual al registro Swift.
 
 ---
 

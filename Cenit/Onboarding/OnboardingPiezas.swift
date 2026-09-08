@@ -1,5 +1,6 @@
 import SwiftUI
 import CenitDesign
+import CenitEnsenanza
 
 // MARK: - Piezas del onboarding en siete actos (FER-109 · FER-113)
 //
@@ -178,6 +179,47 @@ enum OnbCopy {
     static func conexionProgreso(_ etapa: String, _ n: Int) -> AttributedString {
         let fmt = String(localized: "onb.3.progreso", defaultValue: "Reading: %@ · %lld of 15")
         return AttributedString(String(format: fmt, etapa, n))
+    }
+
+    // Acto 3 · «La espera enseña» (FER-437 · D1). Cada estrofa dice qué HARÁ Cénit con el grupo de
+    // señales que acaba de leer y en qué pestaña vive; ninguna afirma un veredicto ni una tendencia.
+    // «Tu rango» es el propio de FC en reposo: el sueño se mide contra un piso (ver `conexionRegla`),
+    // así que la estrofa de las noches no dice «tu rango de sueño».
+    static func estrofaOverline(_ estrofa: EstrofaSync) -> String {
+        switch estrofa {
+        case .corazon:
+            return String(localized: "onb.3.estrofa.corazon.overline", defaultValue: "Your resting heart")
+        case .noches:
+            return String(localized: "onb.3.estrofa.noches.overline", defaultValue: "Your nights")
+        case .entrenos:
+            return String(localized: "onb.3.estrofa.entrenos.overline", defaultValue: "Your workouts")
+        case .guardado:
+            return String(localized: "onb.3.estrofa.guardado.overline", defaultValue: "Saving to your iPhone")
+        }
+    }
+    static func estrofaCuerpo(_ estrofa: EstrofaSync) -> String {
+        switch estrofa {
+        case .corazon:
+            return String(localized: "onb.3.estrofa.corazon.cuerpo",
+                          defaultValue: "This is what decides your word every morning.")
+        case .noches:
+            return String(localized: "onb.3.estrofa.noches.cuerpo",
+                          defaultValue: "I don't compare you to anyone: I build your range from this.")
+        case .entrenos:
+            return String(localized: "onb.3.estrofa.entrenos.cuerpo",
+                          defaultValue: "I don't count steps here. I count what you loaded.")
+        case .guardado:
+            return String(localized: "onb.3.estrofa.guardado.cuerpo",
+                          defaultValue: "All of this stays here. It never left.")
+        }
+    }
+    static func estrofaPie(_ estrofa: EstrofaSync) -> String {
+        switch estrofa {
+        case .corazon:  return String(localized: "onb.3.estrofa.corazon.pie", defaultValue: "Lives in Today")
+        case .noches:   return String(localized: "onb.3.estrofa.noches.pie", defaultValue: "Lives in Trends")
+        case .entrenos: return String(localized: "onb.3.estrofa.entrenos.pie", defaultValue: "Lives in Train")
+        case .guardado: return String(localized: "onb.3.estrofa.guardado.pie", defaultValue: "Settings · privacy")
+        }
     }
 
     // Acto 4 · Lectura

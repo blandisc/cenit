@@ -86,7 +86,7 @@ public enum VitalityEngine {
     /// (Jayedi 2022) — these signals are moderately, not fully, redundant.
     static let overlapRho = 0.35
     /// Body Age is clamped to a sane band; Vitality maps Δage linearly around 50 (= "at your age").
-    static let minBodyAge = 20.0, maxBodyAge = 90.0
+    public static let minBodyAge = 20.0, maxBodyAge = 90.0   // FER-469: público para que la UI gatee la nota de dominio
     static let vitalityPerYear = 2.5   // each year younger than your age = +2.5 Vitality points
 
     /// The wearable inputs Vitality reads. All optional — the score uses whatever is present (≥ minFactors).

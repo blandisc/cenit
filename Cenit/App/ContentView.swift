@@ -168,7 +168,13 @@ struct ContentView: View {
         // Check at launch (covers updated users) and again the moment onboarding completes (covers a
         // fresh install / reinstall, where `onboarded` flips false→true after this view appears).
         .task { await maybeOfferRestore() }
-        .onChange(of: onboarded) { _, done in if done { Task { await maybeOfferRestore() } } }
+        .onChange(of: onboarded) { _, done in
+            guard done else { return }
+            // FER-435: primera instalación — quien acaba de llegar no tiene nada que anunciar en
+            // Novedades (ni punto en Ajustes ni tarjeta al fondo de Hoy).
+            NovedadesEstado.marcarTodoVisto()
+            Task { await maybeOfferRestore() }
+        }
         #if DEBUG
         // FER-391 (mapa 100 %): `-cenit.restore offer|result` fuerza el estado SIN correr
         // `maybeOfferRestore()` (que depende de HealthKit real) ni tocar el store — puro estado
