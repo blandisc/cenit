@@ -87,7 +87,7 @@ struct TendenciasMapaDelDiaTip: Tip {
     static var permisoCalendario: Bool = true
 
     /// FER-435: con la generación de la pestaña (ver `EnsenanzaGeneracion`).
-    static var detalleEstresAbierto: Event {
+    static var detalleEstresAbierto: Tips.Event<Tips.EmptyDonation> {
         Event(id: EnsenanzaGeneracion.id("tendencias.mapa-del-dia.detalle-estres", .tendencias))
     }
 

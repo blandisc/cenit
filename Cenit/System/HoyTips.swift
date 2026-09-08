@@ -35,7 +35,7 @@ struct HoyScrubTip: Tip {
     @Parameter
     static var hayCeldaConDosNoches: Bool = false
 
-    static var scrubUsado: Event { Event(id: EnsenanzaGeneracion.id("hoy.scrub.usado", .hoy)) }
+    static var scrubUsado: Tips.Event<Tips.EmptyDonation> { Event(id: EnsenanzaGeneracion.id("hoy.scrub.usado", .hoy)) }
 
     var id: String { EnsenanzaGeneracion.tipID(.hoyScrub) }
     var title: Text { Text("tip.hoy.scrub.title") }
@@ -53,7 +53,7 @@ struct HoyEcosistemaTip: Tip {
     @Parameter
     static var hayVeredicto: Bool = false
 
-    static var separado: Event { Event(id: EnsenanzaGeneracion.id("hoy.ecosistema.separado", .hoy)) }
+    static var separado: Tips.Event<Tips.EmptyDonation> { Event(id: EnsenanzaGeneracion.id("hoy.ecosistema.separado", .hoy)) }
 
     var id: String { EnsenanzaGeneracion.tipID(.hoyEcosistema) }
     var title: Text { Text("tip.hoy.ecosistema.title") }
@@ -68,7 +68,7 @@ struct HoyEcosistemaTip: Tip {
 // MARK: 4 · hoy.manuales
 
 struct HoyManualesTip: Tip {
-    static var mananaConVeredicto: Event {
+    static var mananaConVeredicto: Tips.Event<Tips.EmptyDonation> {
         Event(id: EnsenanzaGeneracion.id("hoy.manuales.manana-con-veredicto", .hoy))
     }
 
@@ -84,7 +84,7 @@ struct HoyManualesTip: Tip {
 // MARK: 5 · hoy.sincronizar
 
 struct HoySincronizarTip: Tip {
-    static var franjaSinSync: Event {
+    static var franjaSinSync: Tips.Event<Tips.EmptyDonation> {
         Event(id: EnsenanzaGeneracion.id("hoy.sincronizar.franja-sin-sync", .hoy))
     }
 

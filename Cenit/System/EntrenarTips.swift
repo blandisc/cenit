@@ -142,19 +142,19 @@ struct RitmoDeSubidaTip: Tip {
 /// consejos de Entrenar» estrena eventos, y «nunca has entrado a Foco» vuelve a ser verdad.
 enum EntrenarTipEvents {
     /// Se dona al montar la Hoja viva (`HojaSesionViva.body`).
-    static var sesionIniciada: Tips.Event {
+    static var sesionIniciada: Tips.Event<Tips.EmptyDonation> {
         Tips.Event(id: EnsenanzaGeneracion.id("entrenar.sesion-viva.sesion-iniciada", .entrenar))
     }
     /// Se dona al entrar a Foco (`focusMode` → `true`).
-    static var focoEntrado: Tips.Event {
+    static var focoEntrado: Tips.Event<Tips.EmptyDonation> {
         Tips.Event(id: EnsenanzaGeneracion.id("entrenar.sesion-viva.foco-entrado", .entrenar))
     }
     /// Se dona al salir de Foco (`focusMode` → `false`).
-    static var focoSalido: Tips.Event {
+    static var focoSalido: Tips.Event<Tips.EmptyDonation> {
         Tips.Event(id: EnsenanzaGeneracion.id("entrenar.sesion-viva.foco-salido", .entrenar))
     }
     /// Se dona al registrar una serie de TRABAJO con peso real (`registerActiveSet`).
-    static var serieDeTrabajoConPeso: Tips.Event {
+    static var serieDeTrabajoConPeso: Tips.Event<Tips.EmptyDonation> {
         Tips.Event(id: EnsenanzaGeneracion.id("entrenar.sesion-viva.serie-de-trabajo-con-peso", .entrenar))
     }
 }
