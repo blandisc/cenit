@@ -703,19 +703,12 @@ private struct ProfileWheelSheet: View {
     // viven como una barra DENTRO del VStack que `.fittedSheet()` mide, no en un toolbar de nav.
     var body: some View {
         VStack(alignment: .leading, spacing: LiquidSpace.s600) {
-            HStack {
-                Button(String(localized: "Cancel")) { dismiss() }
-                    .foregroundStyle(LiquidColor.tinta700)
-                Spacer()
-                Button(String(localized: "Done")) {
-                    profile.age = age
-                    profile.weightKg = weightKg
-                    profile.heightCm = heightCm
-                    dismiss()
-                }
-                .foregroundStyle(LiquidColor.tinta900)
+            AjustesSheetTopBar(onCancel: { dismiss() }) {   // FER-471: molde único de barra de hoja
+                profile.age = age
+                profile.weightKg = weightKg
+                profile.heightCm = heightCm
+                dismiss()
             }
-            .font(LiquidType.boton)
 
             VStack(alignment: .leading, spacing: LiquidSpace.s100) {
                 Text(String(localized: "Profile"))
@@ -831,17 +824,10 @@ private struct MaxHRSheet: View {
     // se recorte en el detent inicial.
     var body: some View {
         VStack(alignment: .leading, spacing: LiquidSpace.s600) {
-            HStack {
-                Button(String(localized: "Cancel")) { dismiss() }
-                    .foregroundStyle(LiquidColor.tinta700)
-                Spacer()
-                Button(String(localized: "Done")) {
-                    profile.hrMaxOverride = manual ? overrideBpm : 0
-                    dismiss()
-                }
-                .foregroundStyle(LiquidColor.tinta900)
+            AjustesSheetTopBar(onCancel: { dismiss() }) {   // FER-471: molde único de barra de hoja
+                profile.hrMaxOverride = manual ? overrideBpm : 0
+                dismiss()
             }
-            .font(LiquidType.boton)
 
             VStack(alignment: .leading, spacing: LiquidSpace.s100) {
                 Text(String(localized: "Profile"))
@@ -904,12 +890,7 @@ private struct UnidadesSheet: View {
     // los bindings son vivos (`$unitSystemRaw`/`$temperatureRaw`), solo hay Listo para cerrar.
     var body: some View {
         VStack(alignment: .leading, spacing: LiquidSpace.s600) {
-            HStack {
-                Spacer()
-                Button(String(localized: "Done")) { dismiss() }
-                    .foregroundStyle(LiquidColor.tinta900)
-            }
-            .font(LiquidType.boton)
+            AjustesSheetTopBar { dismiss() }   // FER-471: molde único (solo Listo)
 
             VStack(alignment: .leading, spacing: LiquidSpace.s100) {
                 Text(String(localized: "Display"))
@@ -958,3 +939,25 @@ private struct UnidadesSheet: View {
 }
 
 #endif
+
+
+/// FER-471: la barra Cancelar/Listo de las hojas de Ajustes vivía copiada VERBATIM en tres hojas
+/// (perfil, FC máx, unidades). Un solo molde privado: `Cancelar` opcional (tinta700) + `Listo`
+/// (tinta900), `font(.boton)`. No es rol de `LiquidSheetHeader` (ese es para hojas con dato-héroe);
+/// es una barra sencilla DENTRO del VStack que mide `.fittedSheet()`. Salida idéntica a las tres copias.
+private struct AjustesSheetTopBar: View {
+    var onCancel: (() -> Void)? = nil
+    let onDone: () -> Void
+    var body: some View {
+        HStack {
+            if let onCancel {
+                Button(String(localized: "Cancel"), action: onCancel)
+                    .foregroundStyle(LiquidColor.tinta700)
+            }
+            Spacer()
+            Button(String(localized: "Done"), action: onDone)
+                .foregroundStyle(LiquidColor.tinta900)
+        }
+        .font(LiquidType.boton)
+    }
+}

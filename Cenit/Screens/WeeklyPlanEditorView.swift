@@ -953,7 +953,7 @@ struct WeeklyPlanEditorView: View {
                             .frame(width: 22, height: 22)
                             .frame(width: 38, height: 38)
                             .background(LiquidColor.tinta7,
-                                        in: RoundedRectangle(cornerRadius: LiquidRadius.control, style: .continuous))
+                                        in: RoundedRectangle(cornerRadius: LiquidRadius.insetTarjeta, style: .continuous))   // FER-471: alinear al motivo canónico (RoutineGlyph preview + Historial usan insetTarjeta)
                             .accessibilityHidden(true)
                         VStack(alignment: .leading, spacing: LiquidSpace.s050) {
                             Text(r.name)
