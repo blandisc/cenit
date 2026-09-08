@@ -19,15 +19,16 @@ final class SleepDetailModelTests: XCTestCase {
     func testFutureRowIgnored_awakeningsFromToday() {
         let today = dm("2026-06-17", sleep: 400, disturbances: 2)
         let future = dm("2026-06-18")   // empty UTC ghost row
-        let model = SleepDetailModel.build(days: [today, future], sleeps: [], importedSleep: [:],
-                                           appleHealthDays: [], loaded: true, todayKey: "2026-06-17")
+        let model = SleepDetailModel.build(days: [today, future], patternDays: [today, future], sleeps: [],
+                                           importedSleep: [:], appleHealthDays: [], loaded: true,
+                                           todayKey: "2026-06-17")
         XCTAssertEqual(model.awakenings, 2, "must read today's row, not the empty future one")
     }
 
     /// Without a future row, behavior is unchanged.
     func testNoFutureRow_unchanged() {
         let today = dm("2026-06-17", sleep: 400, disturbances: 2)
-        let model = SleepDetailModel.build(days: [today], sleeps: [], importedSleep: [:],
+        let model = SleepDetailModel.build(days: [today], patternDays: [today], sleeps: [], importedSleep: [:],
                                            appleHealthDays: [], loaded: true, todayKey: "2026-06-17")
         XCTAssertEqual(model.awakenings, 2)
     }

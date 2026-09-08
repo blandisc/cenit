@@ -617,7 +617,7 @@ The correlation engine reads Pearson's r against the exact two-sided Student-t t
 of freedom (the regularised incomplete beta by Lentz's continued fraction; *Numerical Recipes* §6.4),
 and returns nothing below three pairs or at zero variance. `alignByDay` inner-joins two day-keyed
 series, `lagged` shifts one of them forward by whole days to probe a delayed effect, and `pairs`
-exposes that same pairing so another statistic can run over it. Two additions serve the «Tu
+exposes that same pairing so another statistic can run over it. Three additions serve the «Tu
 patrón» family below:
 
 - **`spearman`** is Pearson on the midranks of each variable (ties share the mean rank), read
@@ -629,6 +629,15 @@ patrón» family below:
   0 so a train/rest alternation never buys evidence (Bartlett 1935; Dawdy and Matalas 1964).
   `pValue(r:n:)` reads the t tail on that fractional n. It is still AR(1) only: the raw p stays
   anticonservative on daily series, which is why the family never reads it directly.
+  `lag1Autocorrelation` reads the paired values in day order and treats consecutive pairs as
+  adjacent even when a day is missing between them: the dependence is measured at the sample's own
+  spacing (exact for a regular gap — every other night — approximate for an irregular one), and the
+  cross-gap products are kept rather than dropped, so the sample is never read as more independent
+  than its own consecutive products say — the conservative side.
+- **`spearmanPartial`** with `partialPValue` is the first-order partial Spearman,
+  `r_xy·z = (r_xy − r_xz·r_yz) / √((1 − r_xz²)(1 − r_yz²))` on the midranks of x, y and z, read
+  against the same t tail on **n − 3** degrees of freedom — one paid for the control (Fisher 1924).
+  `triples` is `pairs` with the control read on y's day.
 
 ### `WhatMovesItEngine` — «Tu patrón»
 
@@ -641,13 +650,13 @@ Every pair is computed in one pass, so the multiplicity control can see all of t
 
 | Relationship | x → y | Statistic | Lag | Floor | Extra |
 | --- | --- | --- | --- | --- | --- |
-| `sleep.priorStrain` | strain[D] → sleep duration[D+1] | Spearman | +1 | 42 | minority floor |
+| `sleep.priorStrain` | strain[D] → sleep duration[D+1] | Spearman, **partial** on strain[D+1] | +1 | 42 | minority floor |
 | `sleep.priorNight` | sleep duration[D] → sleep duration[D+1] | Pearson | +1 | 42 | raw n (auto-lag) |
 | `strain.efficiency` | sleep efficiency[D] → strain[D] | Spearman | 0 | 56 | minority floor |
-| `efficiency.priorStrain` | strain[D] → sleep efficiency[D+1] | Spearman | +1 | 56 | minority floor |
+| `efficiency.priorStrain` | strain[D] → sleep efficiency[D+1] | Spearman, **partial** on strain[D+1] | +1 | 56 | minority floor |
 | `steps.efficiency` | sleep efficiency[D] → steps[D] | Spearman | 0 | 56 | today's partial count excluded |
 | `rhr.sleepDuration` | sleep duration[D] → resting HR[D] | Pearson | 0 | 42 | — |
-| `rhr.priorStrain` | strain[D] → resting HR[D+1] | Spearman | +1 | 42 | minority floor |
+| `rhr.priorStrain` | strain[D] → resting HR[D+1] | Spearman, **partial** on strain[D+1] | +1 | 42 | minority floor |
 
 Day keys are the storage keys — sleep and efficiency by the **waking** day; strain, steps and the
 resting pulse by the calendar day — so «strain[D] → sleep[D+1]» is today's load against the night
@@ -665,10 +674,19 @@ series also drops today itself, a partial running total.
 3. **Effective n** — every cross pair reads its p on `effectiveN`; the auto-lag pair does not,
    because under the null the series is white and its own ρ₁ *is* the statistic — shrinking n by it
    would double-count.
-4. **Family control** — the p-values of every testable pair go through Benjamini-Hochberg
+4. **Partial on the lag +1 strain pairs** — `sleep.priorStrain`, `efficiency.priorStrain` and
+   `rhr.priorStrain` read Spearman's ρ holding fixed the strain of y's own day (z = strain[D+1];
+   `spearmanPartial`, p on n_eff − 3). Without it they inherit a calendar artefact: a strain that is
+   0 on rest days and never trains two days running has ρ₁ ≈ −0.39 at two sessions a week, so
+   whenever y follows the *same* day's strain (r₀) the lag +1 pair reads −r₀·|ρ₁| of it — a longer
+   night on training days painted as «shorter the night after». The post-implementation gate's
+   fixture (sleep = 420 + 35·W(i) + 8·K(i)) read ρ = −0.28, q = 0.03; the partial reads +0.04. A
+   real next-day effect survives the control (+0.78 → +0.75 on the positive fixture). The triples
+   need strain on both days, so a D whose next day has no strain leaves that pair.
+5. **Family control** — the p-values of every testable pair go through Benjamini-Hochberg
    (`MultipleComparisons`); a finding needs **q < 0.05**. Eight tests at α = 0.05 would otherwise
    yield at least one false finding 34% of the time under the null.
-5. `|r| ≥ 0.20` is **cosmetic**: below n ≈ 97 the q is the binding bar (|r| ≥ 0.30 at n = 42).
+6. `|r| ≥ 0.20` is **cosmetic**: below n ≈ 97 the q is the binding bar (|r| ≥ 0.30 at n = 42).
 
 Below the gate the metric has nothing to assert, so the sheet hides the block and the detail says
 «todavía»; it never invents a direction. Power is deliberately low (r = 0.30 at n = 42 is about
@@ -693,8 +711,10 @@ efficiency, wake after onset, slow-wave sleep); Atoui 2021 (efficiency and wake 
 next-day activity; activity → shorter total sleep, small); Lambiase 2013; Mead 2019 (day of week
 confounds activity — hence «el calendario también pesa»); Borbély 1982 and 2022 (process S);
 Dettoni 2012 and Faust 2020 (short or late nights → resting pulse up); Stanley 2013 (parasympathetic
-reactivation 24–48 h after hard effort); Zar 1972; Bartlett 1935; Benjamini and Hochberg 1995. Tests: `WhatMovesItTests` (a positive and a negative fixture per relationship plus one fixture per
-gate piece) and `CorrelationEngineOracleTests`.
+reactivation 24–48 h after hard effort); Zar 1972; Bartlett 1935; Fisher 1924; Benjamini and Hochberg
+1995. Tests: `WhatMovesItTests` (a positive and a negative fixture per relationship, one fixture per
+gate piece, and the calendar-artefact fixture the partial exists for) and
+`CorrelationEngineOracleTests`.
 
 ---
 
@@ -819,6 +839,7 @@ usable one of 4, because at four nights the spread is itself mostly noise.
 | Student 1908 | The significance of a correlation |
 | Zar 1972 | The t-approximation for Spearman's ρ |
 | Bartlett 1935; Dawdy and Matalas 1964 | The effective sample size of two autocorrelated daily series |
+| Fisher 1924 | The partial correlation and the degree of freedom it costs |
 | Kredlow et al. 2015; Atoui et al. 2021; Lambiase et al. 2013; Mead et al. 2019 | The exercise-sleep and sleep-activity relationships behind «Tu patrón», and the day-of-week confound |
 | Borbély 1982; Borbély 2022 | Process S, behind the night-to-night pair |
 | Dettoni et al. 2012; Faust et al. 2020; Stanley et al. 2013 | Short nights and hard effort against the next day's resting pulse |

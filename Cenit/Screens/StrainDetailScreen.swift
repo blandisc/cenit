@@ -616,37 +616,40 @@ struct StrainDetailModel {
     var hasData: Bool { today != nil || !series.isEmpty }
 
     /// Build the whole model from the repo's in-memory dashboard. Pure (no DB). `days` is the strap +
-    /// on-device dashboard (`repo.days`, the baseline source — FER-149); `today` is `repo.today`; `todayKey`
-    /// is the device's local day key (passed by the caller — `Repository.localDayKey` is main-isolated,
-    /// FER-976). The drivers are computed here off the same `days` via `CenitAnalytics`
-    /// (`WhatMovesItEngine`, FER-438), keeping the screen DB-free presentation over a ready-made model.
-    static func build(days: [DailyMetric], today: DailyMetric?, loaded: Bool,
+    /// on-device dashboard (`repo.days`, the baseline source — FER-149); `patternDays` the rows the
+    /// «Tu patrón» family reads (`repo.displayDays` — the SAME rows every surface of the family reads, so
+    /// the strain sheet and this screen can never disagree on a finding, FER-438); `today` is `repo.today`;
+    /// `todayKey` is the device's local day key (passed by the caller — `Repository.localDayKey` is
+    /// main-isolated, FER-976). The drivers are computed here via `CenitAnalytics` (`WhatMovesItEngine`),
+    /// keeping the screen DB-free presentation over a ready-made model.
+    static func build(days: [DailyMetric], patternDays: [DailyMetric], today: DailyMetric?, loaded: Bool,
                       todayKey: String) -> StrainDetailModel {
         let series = days
             .compactMap { d in d.strain.map { (day: d.day, value: $0) } }
             .sorted { $0.day < $1.day }
-        let drivers = WhatMovesItEngine.findings(forMetricKey: "strain", days: days, today: todayKey)
+        let drivers = WhatMovesItEngine.findings(forMetricKey: "strain", days: patternDays, today: todayKey)
         return StrainDetailModel(today: today?.strain, series: series, loaded: loaded, drivers: drivers,
                                  confidence: today?.effortConfidence.flatMap(ScoreConfidence.init(rawValue:)),
                                  strainHeat: buildHeat(series: series, todayKey: todayKey))
     }
 
     /// Runs `build` off the MainActor (FER-954, same seam as `SleepDetailModel.buildDetached` /
-    /// FER-953): snapshots `repo.days`/`repo.today`/`repo.loaded` on the MainActor (value-type
-    /// copies) plus `Repository.localDayKey(Date())` (main-isolated, resolved BEFORE the hop), then
-    /// hops the pure derivation to a background executor; only the finished model returns to main.
+    /// FER-953): snapshots `repo.days`/`repo.displayDays`/`repo.today`/`repo.loaded` on the MainActor
+    /// (value-type copies) plus `Repository.localDayKey(Date())` (main-isolated, resolved BEFORE the hop),
+    /// then hops the pure derivation to a background executor; only the finished model returns to main.
     @MainActor
     static func buildDetached(repo: Repository) async -> StrainDetailModel {
-        let days = repo.days, today = repo.today, loaded = repo.loaded
+        let days = repo.days, patternDays = repo.displayDays, today = repo.today, loaded = repo.loaded
         let todayKey = Repository.localDayKey(Date())
         return await Task.detached(priority: .userInitiated) {
-            build(days: days, today: today, loaded: loaded, todayKey: todayKey)
+            build(days: days, patternDays: patternDays, today: today, loaded: loaded, todayKey: todayKey)
         }.value
     }
 
     /// Placeholder while `buildDetached` runs: renders the screen's existing `!model.loaded` loading
     /// state (FER-954).
-    static let loading: StrainDetailModel = build(days: [], today: nil, loaded: false, todayKey: "")
+    static let loading: StrainDetailModel = build(days: [], patternDays: [], today: nil, loaded: false,
+                                                  todayKey: "")
 
     /// The trailing 90 calendar days as `RecoveryDay` (score = strain 0–21, nil where there's no
     /// reading). Moved from the view's per-render `strainHeat` computed property (FER-976) — same

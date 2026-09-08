@@ -1397,7 +1397,10 @@ struct SleepDetailModel {
 
     /// Build the whole model from the repo's in-memory dashboard. Pure (no DB); call from the caller's
     /// view, once per data change. `appleHealthDays` flags which day rows are Apple-sourced (no clock).
+    /// `patternDays` are the rows the «Tu patrón» family reads (`repo.displayDays` — the SAME rows every
+    /// surface of the family reads, so the efficiency sheet never disagrees with Hoy/Cuerpo, FER-438).
     static func build(days: [DailyMetric],
+                      patternDays: [DailyMetric],
                       sleeps: [CachedSleepSession],
                       appleSleeps: [CachedSleepSession] = [],
                       importedSleep: [String: ImportedSleepFigures],
@@ -1573,7 +1576,8 @@ struct SleepDetailModel {
             respirationTrend: respirationTrend,
             awakeningsTrend: awakeningsTrend,
             respNightly: respNightly,
-            patronEficiencia: WhatMovesItEngine.findings(forMetricKey: "sleep_efficiency", days: days, today: todayKey))
+            patronEficiencia: WhatMovesItEngine.findings(forMetricKey: "sleep_efficiency", days: patternDays,
+                                                         today: todayKey))
     }
 
     /// Runs `build` off the MainActor (FER-953): snapshots the inputs from `repo` on the MainActor
@@ -1581,12 +1585,13 @@ struct SleepDetailModel {
     /// background executor; only the finished model returns to main. Single seam for every call-site.
     @MainActor
     static func buildDetached(repo: Repository) async -> SleepDetailModel {
-        let days = repo.days, sleeps = repo.sleeps, appleSleeps = repo.appleSleeps
+        let days = repo.days, patternDays = repo.displayDays, sleeps = repo.sleeps, appleSleeps = repo.appleSleeps
         let importedSleep = repo.importedSleep, appleHealthDays = repo.appleHealthDays
         let loaded = repo.loaded, fusion = repo.fusion
         let todayKey = Repository.localDayKey(Date())
         return await Task.detached(priority: .userInitiated) {
-            build(days: days, sleeps: sleeps, appleSleeps: appleSleeps, importedSleep: importedSleep,
+            build(days: days, patternDays: patternDays, sleeps: sleeps, appleSleeps: appleSleeps,
+                  importedSleep: importedSleep,
                   appleHealthDays: appleHealthDays, loaded: loaded, todayKey: todayKey, fusion: fusion)
         }.value
     }
@@ -1594,7 +1599,7 @@ struct SleepDetailModel {
     /// Placeholder while `buildDetached` runs: renders the screen's existing `!loaded` loading state.
     /// Pure + deterministic, so it's computed once per process.
     static let loading: SleepDetailModel = build(
-        days: [], sleeps: [], appleSleeps: [], importedSleep: [:], appleHealthDays: [],
+        days: [], patternDays: [], sleeps: [], appleSleeps: [], importedSleep: [:], appleHealthDays: [],
         loaded: false, todayKey: "", fusion: [:])
 
     /// Trailing 14 nights of a metric, in whatever unit `pick` returns, as `TrendPoint`s. Skips nights

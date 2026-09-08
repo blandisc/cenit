@@ -8,7 +8,10 @@ import CenitModels
 // Pearson, exact t tail, Bartlett n_eff, BH) fixing the expected numbers: coefficients to ±0.01, p to an
 // order of magnitude. Every relationship has a positive and a negative case; on top, the three pieces
 // of the gate that the FER-209 block lacked — the minority-class floor, the effective n, and the
-// Benjamini-Hochberg control over the family — each get a fixture that flips the verdict.
+// Benjamini-Hochberg control over the family — each get a fixture that flips the verdict. The three
+// lag +1 strain pairs read Spearman's ρ PARTIAL on the same-day strain (the post-implementation gate's
+// finding), so their expected coefficients are the partial's — +0.747 where the plain ρ read +0.778 —
+// and the calendar fixture that fired at ρ = −0.28 (q = 0.03) reads +0.04.
 //
 // Notation (CDO): J(i) = (i % 3) − 1 · K(i) = ((7i) % 5) − 2 · W(i) = 1 on i % 7 ∈ {1, 4} (two training
 // days a week) else 0 · day(i) = 2026-01-01 + i. Strain = W(i)·(12 + i % 3): 0 on rest days.
@@ -59,11 +62,34 @@ final class WhatMovesItTests: XCTestCase {
         let days = (0..<60).map { row($0, sleep: 420 + 35 * W($0 - 1) + 8 * K($0), strain: strain($0)) }
         let c = try XCTUnwrap(candidate(.sleepPriorStrain, in: days, today: day(60)))
         XCTAssertEqual(c.n, 59)
-        XCTAssertEqual(c.r, 0.778, accuracy: 0.01)
-        XCTAssertLessThan(c.p, 1e-11)
+        XCTAssertEqual(c.r, 0.747, accuracy: 0.01, "the partial; the plain ρ reads +0.778")
+        XCTAssertLessThan(c.p, 1e-10)
         XCTAssertEqual(c.nEffective, 59, accuracy: 1e-9, "a 0/not series has ρ₁ < 0 → truncated → n_eff = n")
         XCTAssertTrue(WhatMovesItEngine.family(days: days, today: day(60))["sleep"]?
             .contains(finding(.sleepPriorStrain, .rises)) ?? false)
+    }
+
+    func testSleepPriorStrainIgnoresTheCalendarArtefact() throws {
+        // sleep[i] = 420 + 35·W(i) + 8K(i): longer ON training days, nothing about the night after. The
+        // strain never trains two days running (ρ₁ = −0.39), so the plain lag +1 ρ inherits −0.78·0.39 of
+        // the same-day relationship: −0.279, p = 0.032, q = 0.032 — a «shorter the night after» that
+        // describes the calendar. Held on today's strain it reads ≈ 0.
+        let days = (0..<60).map { row($0, sleep: 420 + 35 * W($0) + 8 * K($0), strain: strain($0)) }
+        let strainSeries = (0..<60).map { (day: day($0), value: strain($0)) }
+        let sleepSeries = (0..<60).map { (day: day($0), value: 420 + 35 * W($0) + 8 * K($0)) }
+        let plain = try XCTUnwrap(CorrelationEngine.spearman(
+            CorrelationEngine.pairs(x: strainSeries, y: sleepSeries, lagDays: 1)))
+        XCTAssertEqual(plain.r, -0.279, accuracy: 0.01, "what the block asserted before the partial")
+        XCTAssertLessThan(plain.pApprox, 0.05)
+
+        let c = try XCTUnwrap(candidate(.sleepPriorStrain, in: days, today: day(60)))
+        XCTAssertEqual(c.n, 59)
+        XCTAssertEqual(c.r, 0.042, accuracy: 0.01)
+        XCTAssertGreaterThan(c.p, 0.5)
+        // The auto-lag legitimately fires on this series (a long night is never followed by one); the
+        // strain pair does not.
+        XCTAssertFalse(WhatMovesItEngine.family(days: days, today: day(60))["sleep"]?
+            .contains { $0.relationship == .sleepPriorStrain } ?? false)
     }
 
     func testSleepPriorStrainHiddenWithoutRelationship() throws {
@@ -72,7 +98,7 @@ final class WhatMovesItTests: XCTestCase {
             row(i, sleep: 420 + 30 * sin(2 * .pi * Double(i) / 9) + 8 * K(i), strain: strain(i))
         }
         let c = try XCTUnwrap(candidate(.sleepPriorStrain, in: days, today: day(60)))
-        XCTAssertEqual(c.r, 0.007, accuracy: 0.01)
+        XCTAssertEqual(c.r, 0.006, accuracy: 0.01)
         XCTAssertGreaterThan(c.p, 0.5)
         XCTAssertFalse(WhatMovesItEngine.family(days: days, today: day(60))["sleep"]?
             .contains { $0.relationship == .sleepPriorStrain } ?? false)
@@ -122,6 +148,13 @@ final class WhatMovesItTests: XCTestCase {
         XCTAssertLessThan(c.p, 1e-8)
         XCTAssertEqual(WhatMovesItEngine.family(days: days, today: day(60))["strain"],
                        [finding(.strainEfficiency, .rises)])
+        // The same fixture fed the lag +1 pair −0.69·|ρ₁| of that same-day relationship: before the
+        // partial, `efficiency.priorStrain` came out «falls» (ρ = −0.292, q = 0.025) — the calendar, not a
+        // night. Held on today's strain it reads ≈ 0 and the efficiency sheet says nothing.
+        let inherited = try XCTUnwrap(candidate(.efficiencyPriorStrain, in: days, today: day(60)))
+        XCTAssertEqual(inherited.r, -0.031, accuracy: 0.01)
+        XCTAssertGreaterThan(inherited.p, 0.5)
+        XCTAssertNil(WhatMovesItEngine.family(days: days, today: day(60))["sleep_efficiency"])
     }
 
     func testStrainEfficiencyHiddenWithoutRelationship() throws {
@@ -150,7 +183,7 @@ final class WhatMovesItTests: XCTestCase {
         let days = (0..<60).map { row($0, eff: 86 + 4 * J($0) + 6 * W($0 - 1), strain: strain($0)) }
         let c = try XCTUnwrap(candidate(.efficiencyPriorStrain, in: days, today: day(60)))
         XCTAssertEqual(c.n, 59)
-        XCTAssertEqual(c.r, 0.554, accuracy: 0.01)
+        XCTAssertEqual(c.r, 0.548, accuracy: 0.01, "the partial; the plain ρ reads +0.554")
         XCTAssertLessThan(c.p, 1e-4)
         XCTAssertEqual(WhatMovesItEngine.family(days: days, today: day(60))["sleep_efficiency"],
                        [finding(.efficiencyPriorStrain, .rises)])
@@ -161,7 +194,7 @@ final class WhatMovesItTests: XCTestCase {
             row(i, eff: 88 + 4 * J(i) + 3 * sin(2 * .pi * Double(i) / 9), strain: strain(i))
         }
         let c = try XCTUnwrap(candidate(.efficiencyPriorStrain, in: days, today: day(60)))
-        XCTAssertEqual(c.r, -0.054, accuracy: 0.01)
+        XCTAssertEqual(c.r, -0.012, accuracy: 0.01)
         XCTAssertGreaterThan(c.p, 0.5)
         XCTAssertNil(WhatMovesItEngine.family(days: days, today: day(60))["sleep_efficiency"])
     }
@@ -217,14 +250,15 @@ final class WhatMovesItTests: XCTestCase {
     // MARK: - rhr.sleepDuration (duration[D] → rhr[D], Pearson, lag 0, n_eff)
 
     func testRhrSleepDurationFalls() throws {
-        // rhr[i] = 58 − 0.05·(sleep − 420) + K(i): a longer night, a lower resting HR.
+        // rhr[i] = 58 − 0.05·(sleep − 420) + K(i): a longer night, a lower resting HR. Stored as an Int
+        // (schoolbook rounding of the .5s), which is what moves the oracle's −0.684 to −0.678.
         let days = (0..<60).map { i -> DailyMetric in
             let sl = 420 + 40 * J(i) + 10 * K(i)
             return row(i, sleep: sl, rhr: 58 - 0.05 * (sl - 420) + K(i))
         }
         let c = try XCTUnwrap(candidate(.rhrSleepDuration, in: days, today: day(60)))
         XCTAssertEqual(c.n, 60)
-        XCTAssertEqual(c.r, -0.684, accuracy: 0.01)
+        XCTAssertEqual(c.r, -0.678, accuracy: 0.01)
         XCTAssertLessThan(c.p, 1e-8)
         XCTAssertEqual(WhatMovesItEngine.family(days: days, today: day(60))["rhr"],
                        [finding(.rhrSleepDuration, .falls)])
@@ -246,8 +280,8 @@ final class WhatMovesItTests: XCTestCase {
         let days = (0..<60).map { row($0, strain: strain($0), rhr: 58 + 3 * W($0 - 1) + K($0)) }
         let c = try XCTUnwrap(candidate(.rhrPriorStrain, in: days, today: day(60)))
         XCTAssertEqual(c.n, 59)
-        XCTAssertEqual(c.r, 0.678, accuracy: 0.01)
-        XCTAssertLessThan(c.p, 1e-8)
+        XCTAssertEqual(c.r, 0.640, accuracy: 0.01, "the partial; the plain ρ reads +0.678")
+        XCTAssertLessThan(c.p, 1e-6)
         XCTAssertEqual(WhatMovesItEngine.family(days: days, today: day(60)),
                        ["rhr": [finding(.rhrPriorStrain, .rises)]])
     }
@@ -255,7 +289,7 @@ final class WhatMovesItTests: XCTestCase {
     func testRhrPriorStrainHiddenWithoutRelationship() throws {
         let days = (0..<60).map { row($0, strain: strain($0), rhr: 58 + K($0)) }
         let c = try XCTUnwrap(candidate(.rhrPriorStrain, in: days, today: day(60)))
-        XCTAssertEqual(c.r, 0.068, accuracy: 0.01)
+        XCTAssertEqual(c.r, 0.054, accuracy: 0.01)
         XCTAssertGreaterThan(c.p, 0.5)
         XCTAssertEqual(WhatMovesItEngine.family(days: days, today: day(60)), [:])
     }
@@ -276,19 +310,20 @@ final class WhatMovesItTests: XCTestCase {
         let lax = WhatMovesItGate(minorityFloor: 7)
         let c = try XCTUnwrap(candidate(.sleepPriorStrain, in: days, today: day(49), gate: lax))
         XCTAssertEqual(c.n, 48)
-        XCTAssertEqual(c.r, 0.619, accuracy: 0.01)
+        XCTAssertEqual(c.r, 0.606, accuracy: 0.01, "the partial; the plain ρ reads +0.619")
     }
 
     func testEffectiveNFlipsTheGateOnSmoothSeries() throws {
-        // Two period-28 sines five days apart: r = +0.38 on n = 42 says p = 0.013 — a «finding» on raw n.
-        // Their lag-1 autocorrelations (≈ 0.93 / 0.83) leave an effective n of ≈ 5.5 → p ≈ 0.49 → nothing.
+        // Two period-28 sines five days apart: r = +0.38 on n = 42 says p = 0.014 — a «finding» on raw n.
+        // Their lag-1 autocorrelations (≈ 0.93 / 0.83) leave an effective n of ≈ 5.6 → p ≈ 0.49 → nothing.
+        // (Resting HR is stored as an Int; rounded, the oracle's +0.381 reads +0.3755.)
         let days = (0..<42).map { i in
             row(i, sleep: 10 * sin(2 * .pi * Double(i) / 28) + 1.5 * J(i) + 400,
                 rhr: 10 * sin(2 * .pi * Double(i + 5) / 28) + 1.5 * K(i) + 60)
         }
         let c = try XCTUnwrap(candidate(.rhrSleepDuration, in: days, today: day(42)))
         XCTAssertEqual(c.n, 42)
-        XCTAssertEqual(c.r, 0.381, accuracy: 0.02)
+        XCTAssertEqual(c.r, 0.3755, accuracy: 0.02)
         XCTAssertLessThan(CorrelationEngine.pValue(r: c.r, n: 42), 0.05, "raw n would have passed")
         XCTAssertLessThan(c.nEffective, 8)
         XCTAssertGreaterThan(c.p, 0.3)

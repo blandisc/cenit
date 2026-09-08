@@ -222,6 +222,64 @@ final class CorrelationEngineOracleTests: XCTestCase {
         XCTAssertNil(CorrelationEngine.spearman([(1, 1), (2, 2)]), "below the pair floor")
     }
 
+    // MARK: - Partial Spearman (FER-438)
+
+    func testPartialSpearmanMatchesHandComputedRanks() throws {
+        // Distinct integers, so the ranks are the values and ρ = 1 − 6Σd²/(n(n² − 1)), n(n² − 1) = 120:
+        // x·y Σd² = 4 → 0.8; x·z Σd² = 4 → 0.8; y·z Σd² = 14 → 0.3.
+        // r_xy·z = (0.8 − 0.8·0.3) / √((1 − 0.64)(1 − 0.09)) = 0.56 / √0.3276.
+        let xyz: [(Double, Double, Double)] = [(1, 2, 1), (2, 1, 3), (3, 4, 2), (4, 3, 5), (5, 5, 4)]
+        let c = try XCTUnwrap(CorrelationEngine.spearmanPartial(xyz))
+        XCTAssertEqual(c.r, 0.56 / 0.3276.squareRoot(), accuracy: 1e-12)
+        XCTAssertEqual(c.n, 5)
+        XCTAssertEqual(try XCTUnwrap(CorrelationEngine.partial(rxy: 0.8, rxz: 0.8, ryz: 0.3)),
+                       0.56 / 0.3276.squareRoot(), accuracy: 1e-12)
+        // …and its p is the t tail on df = n − 3 = 2: one degree of freedom paid for the control.
+        let t = c.r * (2 / (1 - c.r * c.r)).squareRoot()
+        XCTAssertEqual(c.pApprox, CorrelationEngine.studentTTwoSided(t: t, df: 2), accuracy: 1e-12)
+        XCTAssertEqual(c.pApprox, 0.021600819060, accuracy: 1e-9)
+    }
+
+    func testPartialSpearmanRemovesWhatTheControlExplains() throws {
+        // The calendar artefact in miniature: z runs against x (ρ_xz = −0.8), y tracks z (ρ_yz = +0.5), so x
+        // and y read ρ_xy = −0.4 without ever touching each other — x = strain[D], z = strain[D+1], y = a
+        // night that follows its OWN day's strain. Holding z fixed leaves exactly nothing.
+        let xyz: [(Double, Double, Double)] = [(1, 5, 4), (2, 3, 5), (3, 2, 3), (4, 1, 1), (5, 4, 2)]
+        let plain = try XCTUnwrap(CorrelationEngine.spearman(xyz.map { ($0.0, $0.1) }))
+        XCTAssertEqual(plain.r, -0.4, accuracy: 1e-12)
+        let c = try XCTUnwrap(CorrelationEngine.spearmanPartial(xyz))
+        XCTAssertEqual(c.r, 0, accuracy: 1e-12)
+        XCTAssertEqual(c.pApprox, 1.0, accuracy: 1e-12)
+        // Ranks, not values: a monotone transform of any variable (even a reversal of z) changes nothing.
+        let warped = xyz.map { (exp($0.0), $0.1 * $0.1, -$0.2) }
+        XCTAssertEqual(try XCTUnwrap(CorrelationEngine.spearmanPartial(warped)).r, 0, accuracy: 1e-12)
+    }
+
+    func testPartialSpearmanRefusesWhatItCannotEstimate() throws {
+        XCTAssertNil(CorrelationEngine.spearmanPartial([(1, 2, 1), (2, 1, 3), (3, 4, 2)]), "below the triple floor")
+        XCTAssertEqual(CorrelationStrength.minPairs + 1, 4, "one more than pearson's: the control costs a df")
+        // z identical to x: |r_xz| = 1 leaves nothing to correlate.
+        XCTAssertNil(CorrelationEngine.spearmanPartial([(1, 2, 1), (2, 1, 2), (3, 4, 3), (4, 3, 4), (5, 5, 5)]))
+        XCTAssertNil(CorrelationEngine.partial(rxy: 0.5, rxz: 1, ryz: 0.2))
+        // A variable that does not vary.
+        XCTAssertNil(CorrelationEngine.spearmanPartial([(1, 7, 1), (2, 7, 3), (3, 7, 2), (4, 7, 5)]))
+    }
+
+    func testPartialPValueIsTheTailOnOneFewerDegreeOfFreedom() throws {
+        // df = n − 3: the partial at n reads exactly the plain tail at n − 1, and less evidence → a larger p.
+        XCTAssertEqual(CorrelationEngine.partialPValue(r: 0.5, n: 10), CorrelationEngine.pValue(r: 0.5, n: 9),
+                       accuracy: 1e-15)
+        XCTAssertEqual(CorrelationEngine.partialPValue(r: 0.5, n: 10), 0.1704706607870542, accuracy: 1e-9)
+        XCTAssertGreaterThan(CorrelationEngine.partialPValue(r: 0.5, n: 10), CorrelationEngine.pValue(r: 0.5, n: 10))
+        // A fractional n (an effective n) is the same tail; n ≤ 3 has no evidence; a perfect fit no residual.
+        XCTAssertEqual(CorrelationEngine.partialPValue(r: 0.5, n: 10.5), CorrelationEngine.pValue(r: 0.5, n: 9.5),
+                       accuracy: 1e-15)
+        XCTAssertEqual(CorrelationEngine.partialPValue(r: 0.9, n: 3), 1.0)
+        XCTAssertEqual(CorrelationEngine.partialPValue(r: 1.0, n: 30), 0.0)
+        // The plain tail did not move.
+        XCTAssertEqual(CorrelationEngine.pValue(r: 0.9, n: 2), 1.0)
+    }
+
     // MARK: - Effective sample size (FER-438)
 
     func testLag1AutocorrelationMatchesHandComputedValues() throws {
