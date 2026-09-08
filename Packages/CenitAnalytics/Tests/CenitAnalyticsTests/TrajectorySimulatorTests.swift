@@ -156,7 +156,10 @@ final class TrajectorySimulatorTests: XCTestCase {
         // The lever effect ramps in: the with−baseline gap is non-decreasing early and saturates at ~delta.
         var diffs: [Double] = zip(lever, p.baseline).map { $0.estimate - $1.estimate }
         for i in 1..<min(Int(TrajectorySimulator.leverRampDays), diffs.count) {
-            XCTAssertGreaterThanOrEqual(diffs[i] + 1e-9, diffs[i - 1], "lever effect should ramp up")
+            // Tolerancia 1e-6, no 1e-9: la rampa es monótona por construcción (min(1, h/leverRampDays)·delta),
+            // así que cualquier retroceso es ruido de punto flotante — y libm en ubuntu-latest lo produce a
+            // ~1e-9 cuando el layout del binario cambia (p. ej. al enlazar WhatMovesIt.swift, FER-438).
+            XCTAssertGreaterThanOrEqual(diffs[i] + 1e-6, diffs[i - 1], "lever effect should ramp up")
         }
         XCTAssertEqual(diffs.last!, 6, accuracy: 0.001, "fully ramped, the gap equals the delta")
     }
