@@ -36,6 +36,8 @@ struct AjustesView: View {
 /// A sibling screen presented as a self-contained sheet.
 private enum AjustesSheetScreen: String, Identifiable {
     case dataSources, support
+    /// FER-435: «Cómo funciona Cénit» y «Novedades» (sección «Más»).
+    case ayuda, novedades
     var id: String { rawValue }
 }
 
@@ -79,6 +81,11 @@ private struct AjustesLanding: View {
     @EnvironmentObject private var health: HealthKitBridge
     @EnvironmentObject private var behavior: BehaviorStore
     @EnvironmentObject private var autoBackup: AutoBackup
+    /// FER-435: las puertas de Ayuda hacia Hoy (acta, guardián) viajan por el router.
+    @EnvironmentObject private var tabRouter: TabRouter
+    /// FER-435: la última versión vista en Novedades — leída aquí (y no solo en `NovedadesEstado`)
+    /// para que la fila se repinte sin «Nuevo» en cuanto la hoja la marca.
+    @AppStorage(NovedadesEstado.claveUltimaVersionVista) private var novedadesUltimaVista = ""
 
     // Imperial/Metric display preference (D#103). Stored data is always SI; this only changes how
     // distances/weights/heights/temperatures are SHOWN — and lets the profile fields take imperial entry.
@@ -185,23 +192,29 @@ private struct AjustesLanding: View {
     // MARK: - Header (one-off chrome: wordmark + a privacy line)
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: LiquidSpace.s150) {
-            // FER-176: the wordmark alone, no `gearshape` — Tendencias doesn't repeat its dock glyph
-            // next to its title either (`TendenciasGlyph`, not the tab bar's SF Symbol); a tab root
-            // doesn't need to echo the icon that got you here.
-            // Ronda 2 #24: la clave-fuente era el texto español «Ajustes» (una isla), marcada
-            // `stale` en el catálogo — un prune futuro se la habría llevado. Ahora usa la MISMA
-            // clave inglesa que el rótulo del dock (`LiquidTabRotulos+Cenit.swift`), así que
-            // pantalla y dock siguen diciendo lo mismo en cualquier idioma.
-            Text(String(localized: "Settings"))
-                .font(LiquidType.displayS).tracking(LiquidType.displaySTracking)
-                .foregroundStyle(LiquidColor.tinta900)
-            Text(String(localized: "On this iPhone · no account · no server"))
-                .font(LiquidType.captionLectura)
-                .foregroundStyle(LiquidColor.tinta500)
+        HStack(alignment: .top, spacing: LiquidSpace.s200) {
+            VStack(alignment: .leading, spacing: LiquidSpace.s150) {
+                // FER-176: the wordmark alone, no `gearshape` — Tendencias doesn't repeat its dock glyph
+                // next to its title either (`TendenciasGlyph`, not the tab bar's SF Symbol); a tab root
+                // doesn't need to echo the icon that got you here.
+                // Ronda 2 #24: la clave-fuente era el texto español «Ajustes» (una isla), marcada
+                // `stale` en el catálogo — un prune futuro se la habría llevado. Ahora usa la MISMA
+                // clave inglesa que el rótulo del dock (`LiquidTabRotulos+Cenit.swift`), así que
+                // pantalla y dock siguen diciendo lo mismo en cualquier idioma.
+                Text(String(localized: "Settings"))
+                    .font(LiquidType.displayS).tracking(LiquidType.displaySTracking)
+                    .foregroundStyle(LiquidColor.tinta900)
+                Text(String(localized: "On this iPhone · no account · no server"))
+                    .font(LiquidType.captionLectura)
+                    .foregroundStyle(LiquidColor.tinta500)
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityAddTraits(.isHeader)
+            Spacer(minLength: LiquidSpace.s200)
+            // FER-435: el «?» → «Cómo funciona Cénit», sección Ajustes (mismo botón que las otras
+            // tres cabeceras).
+            AyudaBoton(seccion: .ajustes)
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityAddTraits(.isHeader)
     }
 
     // MARK: - Footer (version + a compact echo of the header's offline promise)
@@ -438,11 +451,43 @@ private struct AjustesLanding: View {
             }
             section(String(localized: "More")) {
                 VStack(spacing: .zero) {
+                    // FER-435: la puerta para volver a aprender y el registro de lo que cambió.
+                    LiquidListRow(title: String(localized: "How Cénit works"),
+                                  subtitle: String(localized: "ayuda.fila.subtitulo",
+                                                   defaultValue: "By tab · see the tips again")) {
+                        presentedSheet = .ayuda
+                    }
+                    novedadesRow
                     LiquidListRow(title: String(localized: "About & support"),
                                   subtitle: String(localized: "Version \(appVersion) · what Cénit is"),
                                   divider: false) { presentedSheet = .support }
                 }
                 .liquidTarjetaSeccion(padding: LiquidSpace.s300)
+            }
+        }
+    }
+
+    /// FER-435 · «Novedades»: con una versión posterior a la última vista, la fila lleva la palabra
+    /// «Nuevo» en `trailing` y el tono `verdePrimario` de `LiquidListRow` (punto con glow + chevron
+    /// en verde) — la palabra la lee VoiceOver sola, así que el color nunca es el único canal, y el
+    /// subtítulo lo dice también en texto. Nada dibujado a mano: la fila estándar en ambos estados.
+    /// Sin pendientes: «Estás al día · {versión}», sin tono.
+    @ViewBuilder private var novedadesRow: some View {
+        let pendientes = NovedadesEstado.pendientes(
+            ultimaVista: novedadesUltimaVista.isEmpty ? nil : novedadesUltimaVista)
+        if let nueva = pendientes.first?.version {
+            LiquidListRow(title: String(localized: "What's new"),
+                          subtitle: String(localized: "novedades.fila.pendientes",
+                                           defaultValue: "What changed in \(nueva)"),
+                          trailing: String(localized: "novedades.fila.nuevo", defaultValue: "New"),
+                          tone: LiquidColor.verdePrimario) {
+                presentedSheet = .novedades
+            }
+        } else {
+            LiquidListRow(title: String(localized: "What's new"),
+                          subtitle: String(localized: "novedades.fila.alDia",
+                                           defaultValue: "You're up to date · \(appVersion)")) {
+                presentedSheet = .novedades
             }
         }
     }
@@ -666,6 +711,17 @@ private struct AjustesLanding: View {
             .environmentObject(health)
             .environmentObject(behavior)
             .environmentObject(autoBackup)
+        case .ayuda:
+            // FER-435: «Cómo funciona Cénit» trae su propio «Listo» (también la abre el «?» de
+            // cada pestaña); aquí solo el stack y los objetos que sus puertas necesitan.
+            NavigationStack { AyudaScreen() }
+                .environment(model)
+                .environmentObject(repo)
+                .environmentObject(tabRouter)
+        case .novedades:
+            NavigationStack { NovedadesSheet() }
+                .environment(model)
+                .environmentObject(repo)
         }
     }
 }

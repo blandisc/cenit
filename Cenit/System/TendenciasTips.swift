@@ -6,6 +6,7 @@ import CenitEnsenanza
 // MARK: - Consejos contextuales de Tendencias (FER-432 · L5)
 //
 // Mismo patrón que `HoyTips` / `EntrenarTips`. TipGroup propio de la pestaña, solo iOS 18+.
+// FER-435: el `id` pasa por `EnsenanzaGeneracion` («Volver a ver los consejos de Tendencias»).
 // Estilo visual: `LiquidConsejoTipStyle` en la raíz — no se repite.
 
 // MARK: TipGroup (iOS 18+)
@@ -27,7 +28,7 @@ struct TendenciasPeriodoTip: Tip {
     @Parameter
     static var diasConDato: Int = 0
 
-    var id: String { Registro.tipID(.tendenciasPeriodo) }
+    var id: String { EnsenanzaGeneracion.tipID(.tendenciasPeriodo) }
     var title: Text { Text("tip.tendencias.periodo.title") }
     var message: Text? { Text("tip.tendencias.periodo.message") }
     var options: [any Tip.Option] { [Tip.MaxDisplayCount(3)] }
@@ -42,7 +43,7 @@ struct TendenciasPreparacionTip: Tip {
     @Parameter
     static var hayVeredicto: Bool = false
 
-    var id: String { Registro.tipID(.tendenciasPreparacion) }
+    var id: String { EnsenanzaGeneracion.tipID(.tendenciasPreparacion) }
     var title: Text { Text("tip.tendencias.preparacion.title") }
     var message: Text? { Text("tip.tendencias.preparacion.message") }
     var options: [any Tip.Option] { [Tip.MaxDisplayCount(3)] }
@@ -57,7 +58,7 @@ struct TendenciasCompararTip: Tip {
     @Parameter
     static var diasConDosMetricas: Int = 0
 
-    var id: String { Registro.tipID(.tendenciasComparar) }
+    var id: String { EnsenanzaGeneracion.tipID(.tendenciasComparar) }
     var title: Text { Text("tip.tendencias.comparar.title") }
     var message: Text? { Text("tip.tendencias.comparar.message") }
     var options: [any Tip.Option] { [Tip.MaxDisplayCount(3)] }
@@ -69,7 +70,7 @@ struct TendenciasCompararTip: Tip {
 // MARK: 9 · tendencias.explorar
 
 struct TendenciasExplorarTip: Tip {
-    var id: String { Registro.tipID(.tendenciasExplorar) }
+    var id: String { EnsenanzaGeneracion.tipID(.tendenciasExplorar) }
     var title: Text { Text("tip.tendencias.explorar.title") }
     var message: Text? { Text("tip.tendencias.explorar.message") }
     var options: [any Tip.Option] { [Tip.MaxDisplayCount(3)] }
@@ -85,9 +86,12 @@ struct TendenciasMapaDelDiaTip: Tip {
     @Parameter
     static var permisoCalendario: Bool = true
 
-    static let detalleEstresAbierto: Event = Event(id: "tendencias.mapa-del-dia.detalle-estres")
+    /// FER-435: con la generación de la pestaña (ver `EnsenanzaGeneracion`).
+    static var detalleEstresAbierto: Tips.Event<Tips.EmptyDonation> {
+        Event(id: EnsenanzaGeneracion.id("tendencias.mapa-del-dia.detalle-estres", .tendencias))
+    }
 
-    var id: String { Registro.tipID(.tendenciasMapaDelDia) }
+    var id: String { EnsenanzaGeneracion.tipID(.tendenciasMapaDelDia) }
     var title: Text { Text("tip.tendencias.mapa-del-dia.title") }
     var message: Text? { Text("tip.tendencias.mapa-del-dia.message") }
     var options: [any Tip.Option] { [Tip.MaxDisplayCount(3)] }

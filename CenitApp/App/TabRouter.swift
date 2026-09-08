@@ -24,6 +24,15 @@ final class TabRouter: ObservableObject {
     /// Entrenar's own prefetched slots instead of duplicating the load (FER-613).
     @Published var startTodaySession = false
 
+    /// One-shot (FER-435): after landing on «Hoy», open the verdict's acta — or «¿Qué decide tu
+    /// día?» when there is no reading yet. Consumed (reset to false) by `TodayView`. The door in
+    /// «Cómo funciona Cénit» (`AyudaScreen`) sets it, since the acta is built from Today's own model.
+    @Published var abrirActa = false
+
+    /// One-shot (FER-435): after landing on «Hoy», open the guardian's sheet (its series are loaded
+    /// by Today). Consumed (reset to false) by `TodayView`; set by `AyudaScreen`.
+    @Published var abrirGuardian = false
+
     func select(_ tab: Tab) { requested = tab }
 
     /// Switch to «Entrenar» and ask it to push the fatigue map (the strength summary's «Ver mapa»).

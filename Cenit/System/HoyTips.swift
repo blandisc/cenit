@@ -6,6 +6,8 @@ import CenitEnsenanza
 // MARK: - Consejos contextuales de Hoy (FER-432 · L5)
 //
 // Mismo patrón que `EntrenarTips`: un `Tip` por consejo, `id` del registro, rules + options.
+// FER-435: el `id` y los `Event` pasan por `EnsenanzaGeneracion` — «Volver a ver los consejos
+// de Hoy» sube la generación de la pestaña y TipKit los trata como consejos nuevos.
 // El estilo `LiquidConsejoTipStyle` ya vive en la raíz (`CenitApp`) — no se repite aquí.
 // Cadencia diaria (`.displayFrequency(.daily)` en `EntrenarTips.configure`).
 // TipGroup de Hoy no cableado: los anclajes viven en dos hosts (TodayView + HoyModosHost)
@@ -18,7 +20,7 @@ struct HoyHojaMetricaTip: Tip {
     @Parameter
     static var hayCeldaConDato: Bool = false
 
-    var id: String { Registro.tipID(.hoyHojaMetrica) }
+    var id: String { EnsenanzaGeneracion.tipID(.hoyHojaMetrica) }
     var title: Text { Text("tip.hoy.hoja-metrica.title") }
     var message: Text? { Text("tip.hoy.hoja-metrica.message") }
     var options: [any Tip.Option] { [Tip.MaxDisplayCount(3)] }
@@ -33,9 +35,9 @@ struct HoyScrubTip: Tip {
     @Parameter
     static var hayCeldaConDosNoches: Bool = false
 
-    static let scrubUsado: Event = Event(id: "hoy.scrub.usado")
+    static var scrubUsado: Tips.Event<Tips.EmptyDonation> { Event(id: EnsenanzaGeneracion.id("hoy.scrub.usado", .hoy)) }
 
-    var id: String { Registro.tipID(.hoyScrub) }
+    var id: String { EnsenanzaGeneracion.tipID(.hoyScrub) }
     var title: Text { Text("tip.hoy.scrub.title") }
     var message: Text? { Text("tip.hoy.scrub.message") }
     var options: [any Tip.Option] { [Tip.MaxDisplayCount(3)] }
@@ -51,9 +53,9 @@ struct HoyEcosistemaTip: Tip {
     @Parameter
     static var hayVeredicto: Bool = false
 
-    static let separado: Event = Event(id: "hoy.ecosistema.separado")
+    static var separado: Tips.Event<Tips.EmptyDonation> { Event(id: EnsenanzaGeneracion.id("hoy.ecosistema.separado", .hoy)) }
 
-    var id: String { Registro.tipID(.hoyEcosistema) }
+    var id: String { EnsenanzaGeneracion.tipID(.hoyEcosistema) }
     var title: Text { Text("tip.hoy.ecosistema.title") }
     var message: Text? { Text("tip.hoy.ecosistema.message") }
     var options: [any Tip.Option] { [Tip.MaxDisplayCount(3)] }
@@ -66,9 +68,11 @@ struct HoyEcosistemaTip: Tip {
 // MARK: 4 · hoy.manuales
 
 struct HoyManualesTip: Tip {
-    static let mananaConVeredicto: Event = Event(id: "hoy.manuales.manana-con-veredicto")
+    static var mananaConVeredicto: Tips.Event<Tips.EmptyDonation> {
+        Event(id: EnsenanzaGeneracion.id("hoy.manuales.manana-con-veredicto", .hoy))
+    }
 
-    var id: String { Registro.tipID(.hoyManuales) }
+    var id: String { EnsenanzaGeneracion.tipID(.hoyManuales) }
     var title: Text { Text("tip.hoy.manuales.title") }
     var message: Text? { Text("tip.hoy.manuales.message") }
     var options: [any Tip.Option] { [Tip.MaxDisplayCount(3)] }
@@ -80,9 +84,11 @@ struct HoyManualesTip: Tip {
 // MARK: 5 · hoy.sincronizar
 
 struct HoySincronizarTip: Tip {
-    static let franjaSinSync: Event = Event(id: "hoy.sincronizar.franja-sin-sync")
+    static var franjaSinSync: Tips.Event<Tips.EmptyDonation> {
+        Event(id: EnsenanzaGeneracion.id("hoy.sincronizar.franja-sin-sync", .hoy))
+    }
 
-    var id: String { Registro.tipID(.hoySincronizar) }
+    var id: String { EnsenanzaGeneracion.tipID(.hoySincronizar) }
     var title: Text { Text("tip.hoy.sincronizar.title") }
     var message: Text? { Text("tip.hoy.sincronizar.message") }
     var options: [any Tip.Option] { [Tip.MaxDisplayCount(3)] }

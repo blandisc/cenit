@@ -18,7 +18,8 @@ import CenitEnsenanza
 // `RepsEnReservaTip`, `EsfuerzoEstimadoTip`) llevan `IgnoresDisplayFrequency(true)` porque son
 // conceptos que se enseñan en el momento exacto en que ocurren, no una campaña de notificaciones
 // que deba esperar su turno; `SemanaLigeraTip`/`RitmoDeSubidaTip` sí respetan la cadencia. Cada
-// `id` sale del registro `CenitEnsenanza` (también el id estable de la funcionalidad).
+// `id` sale del registro `CenitEnsenanza` (también el id estable de la funcionalidad), con la
+// generación de la pestaña por delante (`EnsenanzaGeneracion.tipID`, FER-435: «Volver a ver»).
 //
 // Copy es-MX final: `docs/specs/ola1-entrenar/tips-es.md` / issue 12 tabla de consejos. Ninguna
 // cadena promete que una sesión cambia el veredicto (D-Q12) — estos seis conceptos son de Entrenar,
@@ -66,7 +67,7 @@ enum EntrenarTips {
 /// «Serie «las que puedas»» — la primera vez que una fila de sesión muestra el chip AMRAP
 /// (`HojaFilaSerie` en `RoutineSheetLiveTarjeta`, ola 1 · E7).
 struct LasQuePuedasTip: Tip {
-    var id: String { Registro.tipID(.entrenarAmrapDrop, sufijo: "amrap") }
+    var id: String { EnsenanzaGeneracion.tipID(.entrenarAmrapDrop, sufijo: "amrap") }
     var title: Text { Text("The as-many-as-you-can set") }
     var message: Text? {
         Text("Do every rep you can with good form and log how many you got. It counts for your records and to raise.")
@@ -76,7 +77,7 @@ struct LasQuePuedasTip: Tip {
 
 /// «Bajar y seguir» — la primera vez que una fila de sesión muestra el chip de escalón drop.
 struct BajarYSeguirTip: Tip {
-    var id: String { Registro.tipID(.entrenarAmrapDrop, sufijo: "drop") }
+    var id: String { EnsenanzaGeneracion.tipID(.entrenarAmrapDrop, sufijo: "drop") }
     var title: Text { Text("About drop and continue") }
     var message: Text? {
         Text("When you finish the set, drop the weight and keep going without resting. It adds volume; it doesn't count to raise or for records.")
@@ -86,7 +87,7 @@ struct BajarYSeguirTip: Tip {
 
 /// «Reps en reserva» — el teclado de sesión, la primera vez que se registra una serie de trabajo.
 struct RepsEnReservaTip: Tip {
-    var id: String { Registro.tipID(.entrenarRir) }
+    var id: String { EnsenanzaGeneracion.tipID(.entrenarRir) }
     var title: Text { Text("About reps in reserve") }
     var message: Text? {
         Text("How many more reps you had left when you finished. 0 means you hit failure. The app uses it to decide whether you raise.")
@@ -96,7 +97,7 @@ struct RepsEnReservaTip: Tip {
 
 /// «¿Qué tan duro estuvo?» — el primer recibo que trae la pregunta de esfuerzo (ola 1 · E3).
 struct EsfuerzoEstimadoTip: Tip {
-    var id: String { Registro.tipID(.entrenarEsfuerzoEstimado) }
+    var id: String { EnsenanzaGeneracion.tipID(.entrenarEsfuerzoEstimado) }
     var title: Text { Text("About how hard it was") }
     var message: Text? {
         Text("One tap when you finish. With minutes and effort, your session enters your load even without a watch.")
@@ -106,7 +107,7 @@ struct EsfuerzoEstimadoTip: Tip {
 
 /// «Semana ligera» — la primera vez que Tu Plan la muestra en el kicker del programa (ola 1 · E11).
 struct SemanaLigeraTip: Tip {
-    var id: String { Registro.tipID(.entrenarPlan, sufijo: "semana-ligera") }
+    var id: String { EnsenanzaGeneracion.tipID(.entrenarPlan, sufijo: "semana-ligera") }
     var title: Text { Text("About the light week") }
     var message: Text? {
         Text("The last week of the cycle: half the sets, the same weight. You rest without stopping training.")
@@ -116,7 +117,7 @@ struct SemanaLigeraTip: Tip {
 
 /// «Ritmo de subida» — la sección «Ritmo» de `ProgressionSetupScreen` (ola 1 · E5).
 struct RitmoDeSubidaTip: Tip {
-    var id: String { Registro.tipID(.entrenarProgresion, sufijo: "ritmo") }
+    var id: String { EnsenanzaGeneracion.tipID(.entrenarProgresion, sufijo: "ritmo") }
     var title: Text { Text("About the raise rhythm") }
     var message: Text? {
         Text("Steady raises after 2 sessions in a row met; fast after 1; by reps in reserve, it raises 1 if you had 2 to spare and waits if you hit failure.")
@@ -131,26 +132,38 @@ struct RitmoDeSubidaTip: Tip {
 // de arriba. Cada regla es un `Tips.Event` que dona la Hoja viva (`RoutineSheetLive.swift`,
 // `RoutineSheetLiveLogic.swift`) o un `@Parameter` que fija la pantalla dueña del dato
 // (`EntrenarView`, `RoutineSheet`, `RestEditorScreen`). Usar la función invalida el consejo
-// (`.actionPerformed`); «Volver a ver» (L2) lo revive con `Tips.resetDatastore()`.
+// (`.actionPerformed`); «Volver a ver» (L2, FER-435) lo revive subiendo la generación de la pestaña
+// (`EnsenanzaGeneracion`: id y eventos nuevos), no con `Tips.resetDatastore()` (global: se
+// llevaría los hitos de una vez para siempre).
 
 /// Los eventos de TipKit que alimentan las reglas de L7. Un solo sitio, porque dos consejos
 /// comparten `focoEntrado` (el de entrar lo exige en cero; el de salir presupone ≥ 1).
+/// FER-435: cada id lleva la generación de la pestaña (`EnsenanzaGeneracion`) — «Volver a ver los
+/// consejos de Entrenar» estrena eventos, y «nunca has entrado a Foco» vuelve a ser verdad.
 enum EntrenarTipEvents {
     /// Se dona al montar la Hoja viva (`HojaSesionViva.body`).
-    static let sesionIniciada = Tips.Event(id: "entrenar.sesion-viva.sesion-iniciada")
+    static var sesionIniciada: Tips.Event<Tips.EmptyDonation> {
+        Tips.Event(id: EnsenanzaGeneracion.id("entrenar.sesion-viva.sesion-iniciada", .entrenar))
+    }
     /// Se dona al entrar a Foco (`focusMode` → `true`).
-    static let focoEntrado = Tips.Event(id: "entrenar.sesion-viva.foco-entrado")
+    static var focoEntrado: Tips.Event<Tips.EmptyDonation> {
+        Tips.Event(id: EnsenanzaGeneracion.id("entrenar.sesion-viva.foco-entrado", .entrenar))
+    }
     /// Se dona al salir de Foco (`focusMode` → `false`).
-    static let focoSalido = Tips.Event(id: "entrenar.sesion-viva.foco-salido")
+    static var focoSalido: Tips.Event<Tips.EmptyDonation> {
+        Tips.Event(id: EnsenanzaGeneracion.id("entrenar.sesion-viva.foco-salido", .entrenar))
+    }
     /// Se dona al registrar una serie de TRABAJO con peso real (`registerActiveSet`).
-    static let serieDeTrabajoConPeso = Tips.Event(id: "entrenar.sesion-viva.serie-de-trabajo-con-peso")
+    static var serieDeTrabajoConPeso: Tips.Event<Tips.EmptyDonation> {
+        Tips.Event(id: EnsenanzaGeneracion.id("entrenar.sesion-viva.serie-de-trabajo-con-peso", .entrenar))
+    }
 }
 
 /// «Entra a Foco» — bajo la tarjeta activa, desde la primera sesión viva y mientras nunca se haya
 /// entrado a Foco. Copy honesto: la puerta es el «⤢» de la tarjeta (orden del dueño 2026-08-29:
 /// tocar el cromo abre el detalle del ejercicio, no Foco).
 struct EntrarAFocoTip: Tip {
-    var id: String { Registro.tipID(.entrenarSesionViva, sufijo: "foco-entrar") }
+    var id: String { EnsenanzaGeneracion.tipID(.entrenarSesionViva, sufijo: "foco-entrar") }
     var title: Text { Text(String(localized: "tip.entrenar.foco-entrar.titulo", defaultValue: "Enter Focus")) }
     var message: Text? {
         Text(String(localized: "tip.entrenar.foco-entrar.mensaje",
@@ -165,7 +178,7 @@ struct EntrarAFocoTip: Tip {
 
 /// «Para salir» — dentro de Foco, junto al asa, hasta la primera salida.
 struct ParaSalirTip: Tip {
-    var id: String { Registro.tipID(.entrenarSesionViva, sufijo: "foco-salir") }
+    var id: String { EnsenanzaGeneracion.tipID(.entrenarSesionViva, sufijo: "foco-salir") }
     var title: Text { Text(String(localized: "tip.entrenar.foco-salir.titulo", defaultValue: "To leave")) }
     var message: Text? {
         Text(String(localized: "tip.entrenar.foco-salir.mensaje",
@@ -182,7 +195,7 @@ struct ParaSalirTip: Tip {
 /// con peso. Copy honesto: tocar el peso abre la consola; la tecla «discos» de la consola abre la
 /// calculadora.
 struct QueDiscosPonerTip: Tip {
-    var id: String { Registro.tipID(.entrenarSesionViva, sufijo: "discos") }
+    var id: String { EnsenanzaGeneracion.tipID(.entrenarSesionViva, sufijo: "discos") }
     var title: Text { Text(String(localized: "tip.entrenar.discos.titulo", defaultValue: "Which plates to load")) }
     var message: Text? {
         Text(String(localized: "tip.entrenar.discos.mensaje",
@@ -199,7 +212,7 @@ struct HoyDescansasTip: Tip {
     /// Lo fija `EntrenarView` (es quien sabe si hoy hay rutina).
     @Parameter static var hoyEsDescanso: Bool = false
 
-    var id: String { Registro.tipID(.entrenarOtraForma) }
+    var id: String { EnsenanzaGeneracion.tipID(.entrenarOtraForma) }
     var title: Text { Text(String(localized: "tip.entrenar.otra-forma.titulo", defaultValue: "You rest today")) }
     var message: Text? {
         Text(String(localized: "tip.entrenar.otra-forma.mensaje",
@@ -217,7 +230,7 @@ struct SubeSoloTip: Tip {
     /// Lo fija `RoutineSheet` (editor con ≥ 1 ejercicio de peso×reps y ninguna progresión activa).
     @Parameter static var rutinaSinProgresion: Bool = false
 
-    var id: String { Registro.tipID(.entrenarProgresion, sufijo: "activar") }
+    var id: String { EnsenanzaGeneracion.tipID(.entrenarProgresion, sufijo: "activar") }
     var title: Text { Text(String(localized: "tip.entrenar.progresion.titulo", defaultValue: "Raise on its own")) }
     var message: Text? {
         Text(String(localized: "tip.entrenar.progresion.mensaje",
@@ -235,7 +248,7 @@ struct DescansoPorPulsoTip: Tip {
     /// Lo fija `RestEditorScreen` al aparecer, desde `AppModel.watchPaired`.
     @Parameter static var relojEmparejado: Bool = false
 
-    var id: String { Registro.tipID(.entrenarDescanso, sufijo: "por-fc") }
+    var id: String { EnsenanzaGeneracion.tipID(.entrenarDescanso, sufijo: "por-fc") }
     var title: Text { Text(String(localized: "tip.entrenar.descanso-fc.titulo", defaultValue: "Rest by pulse")) }
     var message: Text? {
         Text(String(localized: "tip.entrenar.descanso-fc.mensaje",

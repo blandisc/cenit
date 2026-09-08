@@ -1004,6 +1004,16 @@ ni fecha, cubierta por
 los vacíos (L6) pintan `CenitDesign.LiquidVacio`, que recibe `Text` — el sistema de diseño no
 importa el registro. Palanca DEBUG `-noop.tips <all|none|reset>` antes de `Tips.configure()`.
 
+**Volver a ver y Novedades (L2, FER-435).** «Cómo funciona Cénit» (`Cenit/Screens/Ayuda/`) itera
+`Registro.por(pestana)`; el `id` de cada tip (y de sus `Tips.Event`) pasa por
+`Cenit/System/Ensenanza/EnsenanzaGeneracion.swift`: generación 0 = el id del registro tal cual,
+después `<id>#n` — un id nuevo es un tip nuevo para TipKit, sin `Tips.resetDatastore()` (global,
+se llevaría los hitos). Los hitos y la tarjeta de novedad mayor no llevan generación. Novedades
+es puro en el paquete (`Novedades.pendientes(en:ultimaVista:)`, orden `.numeric`); la app pone
+la versión (`CFBundleShortVersionString`) y las últimas vistas (`novedades.ultimaVersionVista`,
+`novedades.ultimaVistaTarjeta`, fijadas al terminar el onboarding). Palanca DEBUG
+`-noop.novedades <version>` inyecta una novedad `mayor` sintética sin tocar el registro.
+
 **Gate.** `Tools/check-ensenanza.py` (design-lint + `verify.sh quick`): todo archivo nuevo en
 `Cenit/Screens/**` respecto a `Tools/ensenanza-baseline.txt` lleva `// ensenanza: <id>` con un id
 grepeado de `FuncionalidadID.swift`; el baseline solo baja (job `baseline-monotony`). Los tests del
