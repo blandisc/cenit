@@ -20,6 +20,16 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
 
 ## Unreleased
 
+### Las frases de «la espera enseña» entran en cuanto su grupo termina / The "wait teaches" sentences land as soon as their group finishes (FER-475)
+- **ES** — Durante la primera lectura de Salud, una frase podía aparecer hasta una etapa después de que
+  su grupo terminara: el conteo de filas viajaba en dos copias y la pantalla leía la atrasada. Ahora hay
+  una sola fuente y la frase entra en cuanto su grupo termina. Nada más cambia: ni el guion, ni los
+  tiempos, ni los anuncios de VoiceOver.
+- **EN** — During the first Health read, a sentence could show up one stage after its group finished:
+  the row count travelled in two copies and the screen read the stale one. Now there is a single
+  source and the sentence lands as soon as its group finishes. Nothing else changes: not the script,
+  the timing, or the VoiceOver announcements.
+
 ### La base de datos, reescrita por dentro sin tocar tus datos (FER-393)
 - La capa que guarda tu historial en el teléfono se reescribió desde cero. Para ti no cambia nada:
   tu base abre igual, con las mismas filas, y al abrirla no se ejecuta ni una sola instrucción que

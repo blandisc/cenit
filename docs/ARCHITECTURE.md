@@ -993,8 +993,9 @@ Cada funcionalidad declara **una vez**, en `Packages/CenitEnsenanza`, cómo se e
 catálogo de la app) y rutas (la pestaña); nunca lógica ni estado. Un id nunca se renombra.
 **Excepción documentada (L8/FER-437):** la única lógica del paquete es `EstrofasSync.ganadas(terminadas:)`,
 la regla pura de las estrofas de «la espera enseña» (qué grupos de etapas de `HealthKitBridge.sync`
-terminaron y cuya etapa ancla trajo filas, leídas de `HealthKitBridge.syncRowsByStage`, que sobrevive al
-sync — `SyncProgress.rowsByStage` es su espejo durante la corrida); sin estado ni fecha, cubierta por
+terminaron y cuya etapa ancla trajo filas, leídas de `HealthKitBridge.syncRowsByStage`, la única fuente
+del conteo, que sobrevive al sync — FER-475 retiró el espejo que viajaba en `SyncProgress`); sin estado
+ni fecha, cubierta por
 `swift test`, vive aquí y no en el acto para correr sin simulador.
 
 **Consumidores.** Ayuda/Novedades (L2) iteran `Registro.por(pestana)`; los hitos (L3) y los tips
