@@ -6,7 +6,6 @@ import StrandAnalytics
 import CenitStore
 
 // MARK: - Explore (Metric Explorer + Detail) — en vidrio «Liquid Glass» (FER-104 · TND-31)
-//
 // The catalog-driven "Explore" surface, migrated from the light «Instrumento» paper to the Liquid
 // Glass language, sibling to Compare (TND-30) and the vital detail (TND-19/20). The root is a
 // categorized picker — one section per `MetricCatalog.category`, its rows `LiquidListRow`s on a
@@ -14,7 +13,6 @@ import CenitStore
 // the ~35 catalog metrics: a tinted Liquid hero (`LiquidCampoMetrica`), a raw-line history
 // (`LiquidGraficaNiveles` + `LiquidResumenVentana`), the cross-catalog Pearson «What correlates»
 // as protagonist #2, and a method+provenance foot.
-//
 // A17 (architecture, co-decided): the Explorer migrates its OWN `MetricDetailView` IN PLACE to a
 // generic Liquid detail — it does NOT route to `MetricDetailScreen`. The 7 rich metrics keep
 // opening `MetricDetailScreen` from Hoy/Cuerpo; from the Explorer, ALL 35 open this generic
@@ -39,16 +37,16 @@ import CenitStore
 // coining `LiquidFilaCorrelacion` for one call site violates DS §7. So the zero-axis r bar is a
 // handful of shapes here, honest for r∈[−1,1] (magnitude = |r|, side = sign, hue = identity).
 
-/// "9 Jun 2026" — long date for the hero "as of" line, in the user's language (days are UTC-keyed,
-/// so the zone stays pinned).
+/// «9 jun 2026» — la fecha larga de la cláusula del héroe, en el idioma del usuario. Los días vienen
+/// con clave UTC, así que la zona se clava ahí y el rótulo no se corre de día.
 private let longDateFmt: DateFormatter = {
-    let f = DateFormatter()
-    f.locale = .autoupdatingCurrent
-    f.timeZone = TimeZone(identifier: "UTC")
-    f.setLocalizedDateFormatFromTemplate("d MMM y")
-    return f
+    let formateador = DateFormatter()
+    formateador.locale = .autoupdatingCurrent
+    formateador.timeZone = TimeZone(identifier: "UTC")
+    formateador.setLocalizedDateFormatFromTemplate("d MMM y")
+    return formateador
 }()
-private func longDate(_ d: Date) -> String { longDateFmt.string(from: d) }
+private func longDate(_ fecha: Date) -> String { longDateFmt.string(from: fecha) }
 
 // `originVocabulary(_:)` + `metricIsCalculated(_:)` now live in CompareView.swift (unguarded, shared
 // by both instruments): the origin label speaks the Hoy sheet's CLOSED vocabulary — «Apple Health» /
@@ -68,38 +66,45 @@ private func longDate(_ d: Date) -> String { longDateFmt.string(from: d) }
 /// solid card, each pushing the generic `MetricDetailView`. A metric with no series at all is flagged
 /// in the a11y hint only ("No data"), never as a visible trailing word (TND31-3).
 struct MetricExplorerView: View {
-    @EnvironmentObject var repo: Repository
-    /// metric.id → whether its series is empty (loaded once, lazily).
-    @State private var emptyByID: [String: Bool] = [:]
+    @EnvironmentObject private var repo: Repository
+    /// id de métrica → si su serie está vacía. Se resuelve una sola vez, al abrir.
+    @State private var sinSerie: [String: Bool] = [:]
 
-    // No NavigationStack here: Explore is pushed inside the sheet's own stack (CuerpoView). A nested
-    // NavigationStack crossing this view's MetricDescriptor values crashed SwiftUI — FER-171. The
-    // catalog list + its `.navigationDestination(for: MetricDescriptor.self)` hang off that stack.
+    // Sin `NavigationStack` aquí: Explorar se empuja dentro de la pila de la hoja que la monta. Una
+    // pila anidada cruzando estos valores `MetricDescriptor` reventaba SwiftUI. La lista y su
+    // `.navigationDestination(for: MetricDescriptor.self)` cuelgan de esa pila de afuera.
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: LiquidSpace.s550) {
                 header
-                ForEach(MetricCatalog.categories, id: \.self) { category in
-                    let metrics = MetricCatalog.inCategory(category)
-                    if !metrics.isEmpty {
-                        categorySection(category, metrics: metrics)
-                    }
-                }
+                secciones
             }
             .padding(.horizontal, LiquidSpace.s550)
             .padding(.top, LiquidSpace.s550)
             .padding(.bottom, LiquidSpace.s800)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: .infinity,
+                   alignment: .leading)
         }
         .scrollIndicators(.hidden)
         .background { LiquidSheetFondo().ignoresSafeArea() }
-        // The Explorer has no single subject to tint — a neutral warm-paper backdrop, like Compare's
-        // neutral picker. Set on the sheet so its gutters match the scroll ground.
+        // El Explorador no tiene un sujeto único que teñir: papel cálido neutro, como el selector de
+        // Comparar. Se pone también en la hoja para que sus márgenes empaten con el suelo del scroll.
         .presentationBackground { LiquidSheetFondo() }
         .navigationDestination(for: MetricDescriptor.self) { metric in
             MetricDetailView(metric: metric)
         }
-        .task { await probeEmptiness() }
+        .task { await sondearVacias() }
+    }
+
+    /// Una sección por categoría con métricas; una categoría vacía no se pinta.
+    @ViewBuilder
+    private var secciones: some View {
+        ForEach(MetricCatalog.categories, id: \.self) { categoria in
+            let deLaCategoria = MetricCatalog.inCategory(categoria)
+            if !deLaCategoria.isEmpty {
+                categorySection(categoria, metrics: deLaCategoria)
+            }
+        }
     }
 
     private var header: some View {
@@ -111,7 +116,8 @@ struct MetricExplorerView: View {
                 .font(LiquidType.cuerpo)
                 .foregroundStyle(LiquidColor.tinta500)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity,
+               alignment: .leading)
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(.isHeader)
     }
@@ -121,52 +127,59 @@ struct MetricExplorerView: View {
     /// solid card, hairline-divided by `LiquidListRow`'s own divider.
     private func categorySection(_ category: String, metrics: [MetricDescriptor]) -> some View {
         VStack(alignment: .leading, spacing: LiquidSpace.s300) {
-            HStack(alignment: .firstTextBaseline) {
-                Text(MetricCatalog.localizedCategory(category))
-                    .font(LiquidType.franja).tracking(LiquidType.franjaTracking).textCase(.uppercase)
-                    .foregroundStyle(LiquidColor.tinta500)
-                    .accessibilityAddTraits(.isHeader)
-                Spacer(minLength: LiquidSpace.s200)
-                Text(verbatim: "\(metrics.count)")
-                    .font(LiquidType.filaConteo).foregroundStyle(LiquidColor.tinta500)
-            }
+            encabezadoDeCategoria(category, conteo: metrics.count)
             VStack(spacing: .zero) {
-                ForEach(Array(metrics.enumerated()), id: \.element.id) { idx, metric in
-                    NavigationLink(value: metric) {
-                        LiquidListRow(
-                            title: metric.canonicalTitle,
-                            subtitle: originVocabulary(metric),
-                            // «No data» is a11y-ONLY (TND31-3): the paper flagged an empty metric with a
-                            // quiet dot, never the WORD. `LiquidListRow`'s only trailing slot is a String
-                            // that VoiceOver speaks, and adding a visual-only dot slot is a DS redesign out
-                            // of scope here — so the flag lives in the a11y hint, the trailing stays the
-                            // bare chevron (spec's fallback). Only for a metric with no series (probeEmptiness).
-                            tone: MetricIdentity.hue(for: metric),
-                            a11yHint: (emptyByID[metric.id] ?? false) ? String(localized: "No data") : nil,
-                            divider: idx < metrics.count - 1)
-                    }
-                    .buttonStyle(.plain)
+                ForEach(Array(metrics.enumerated()), id: \.element.id) { posicion, metric in
+                    fila(metric, ultima: posicion == metrics.count - 1)
                 }
             }
             .liquidTarjetaSeccion(padding: LiquidSpace.s300)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity,
+               alignment: .leading)
     }
 
-    /// One lightweight pass to learn which metrics have no series, so rows can flag them. A metric
-    /// has data if the on-device dashboard computes it (BLE users) OR it was imported (FER-281). One
-    /// index-only `DISTINCT key` query per source (FER-27). Uses the SHARED resolver (TND-29).
-    private func probeEmptiness() async {
-        guard emptyByID.isEmpty else { return }
-        let dash = repo.displayDays
-        let keysBySource = await repo.availableKeySets(sources: MetricCatalog.all.map(\.source))
-        var map: [String: Bool] = [:]
-        for metric in MetricCatalog.all {
-            let onDevice = !(MetricSeriesResolver.dashboardSeries(metric.key, from: dash) ?? []).isEmpty
-            let imported = keysBySource[metric.source]?.contains(metric.key) ?? false
-            map[metric.id] = !(onDevice || imported)
+    private func encabezadoDeCategoria(_ category: String, conteo: Int) -> some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text(MetricCatalog.localizedCategory(category))
+                .font(LiquidType.franja).tracking(LiquidType.franjaTracking).textCase(.uppercase)
+                .foregroundStyle(LiquidColor.tinta500)
+                .accessibilityAddTraits(.isHeader)
+            Spacer(minLength: LiquidSpace.s200)
+            Text(verbatim: "\(conteo)")
+                .font(LiquidType.filaConteo).foregroundStyle(LiquidColor.tinta500)
         }
-        emptyByID = map
+    }
+
+    /// Una fila del índice. «Sin datos» vive SOLO en la pista de VoiceOver: el papel marcaba una
+    /// métrica vacía con un punto quieto, nunca con la PALABRA, y la única ranura de cola de
+    /// `LiquidListRow` es un texto que VoiceOver lee. La cola se queda en el galón de siempre.
+    private func fila(_ metric: MetricDescriptor, ultima: Bool) -> some View {
+        NavigationLink(value: metric) {
+            LiquidListRow(
+                title: metric.canonicalTitle,
+                subtitle: originVocabulary(metric),
+                tone: MetricIdentity.hue(for: metric),
+                a11yHint: (sinSerie[metric.id] ?? false) ? String(localized: "No data") : nil,
+                divider: !ultima)
+        }
+        .buttonStyle(.plain)
+    }
+
+    /// Una pasada ligera para saber qué métricas no tienen serie, y que la fila lo pueda decir en
+    /// VoiceOver. Una métrica tiene datos si el tablero la calcula en el teléfono O si se importó.
+    /// Una sola consulta `DISTINCT key` por origen, de puro índice, con el resolvedor COMPARTIDO.
+    private func sondearVacias() async {
+        guard sinSerie.isEmpty else { return }
+        let tablero = repo.displayDays
+        let importadas = await repo.availableKeySets(sources: MetricCatalog.all.map(\.source))
+        var mapa: [String: Bool] = [:]
+        for descriptor in MetricCatalog.all {
+            let calculada = !(MetricSeriesResolver.dashboardSeries(descriptor.key, from: tablero) ?? []).isEmpty
+            let importada = importadas[descriptor.source]?.contains(descriptor.key) ?? false
+            mapa[descriptor.id] = !(calculada || importada)
+        }
+        sinSerie = mapa
     }
 }
 
@@ -179,19 +192,23 @@ struct MetricExplorerView: View {
 /// rest fall to `verdePrimario` with no glyph (TND-29's documented fallback).
 struct MetricDetailView: View {
     let metric: MetricDescriptor
-    @EnvironmentObject var repo: Repository
+    @EnvironmentObject private var repo: Repository
     /// Drives the correlation row's AX-size stacking (TND31-1), the same lever CompareView.pairCard uses.
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     // Imperial/Metric display preference (D#103). Display-only: weight (kg) and skin temp (°C)
     // re-label; everything else is unit-agnostic and renders unchanged.
-    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw = UnitSystem.metric.rawValue
-    @AppStorage(UnitPrefs.temperatureKey) private var temperatureRaw = ""
-    private var unitSystem: UnitSystem { UnitSystem(rawValue: unitSystemRaw) ?? .metric }
-    private var temperatureUnit: TemperatureUnit {
-        UnitPrefs.resolveTemperature(system: unitSystem, override: temperatureRaw)
+    @AppStorage(UnitPrefs.systemKey) private var storedUnitSystem = UnitSystem.metric.rawValue
+    @AppStorage(UnitPrefs.temperatureKey) private var storedTemperature = ""
+    private var unitSystem: UnitSystem {
+        UnitSystem(rawValue: storedUnitSystem) ?? .metric
     }
-    private func fmt(_ v: Double) -> String { metric.format(v, system: unitSystem, temperature: temperatureUnit) }
+    private var temperature: TemperatureUnit {
+        UnitPrefs.resolveTemperature(system: unitSystem, override: storedTemperature)
+    }
+    private func fmt(_ valor: Double) -> String {
+        metric.format(valor, system: unitSystem, temperature: temperature)
+    }
 
     /// The displayed number for `v` WITHOUT its unit (TND31-2). The generic detail's `fmt` folds
     /// number+unit into one string, so the range extremes had to be built from `fmt` and doubled the
@@ -206,7 +223,7 @@ struct MetricDetailView: View {
         case "kg":
             return String(format: "%.1f", unitSystem == .imperial ? UnitFormatter.kgToPounds(v) : v)
         case "°C":
-            let t = temperatureUnit == .fahrenheit ? UnitFormatter.celsiusToFahrenheit(v) : v
+            let t = temperature == .fahrenheit ? UnitFormatter.celsiusToFahrenheit(v) : v
             return metric.decimals == 0 ? String(Int(t.rounded())) : String(format: "%.\(metric.decimals)f", t)
         default:
             return metric.decimals == 0 ? String(Int(v.rounded())) : String(format: "%.\(metric.decimals)f", v)
@@ -214,7 +231,7 @@ struct MetricDetailView: View {
     }
 
     /// The active display-unit label ("%", "min", "kg"/"lb", "°C"/"°F", …); "" for a unitless metric.
-    private var displayUnit: String { metric.displayUnit(system: unitSystem, temperature: temperatureUnit) }
+    private var displayUnit: String { metric.displayUnit(system: unitSystem, temperature: temperature) }
 
     /// «68–76 %» — the window range as bare extremes with the unit exactly ONCE (TND31-2), never the
     /// doubled «68 %–76 %». En-dash between the extremes (no spaces), one leading space before the unit,
@@ -227,35 +244,35 @@ struct MetricDetailView: View {
     // `-cenit.range` (FER-384 · mapa 100%) fija la ventana inicial para la captura; una corrida
     // normal cae al `.month` de siempre (`TendenciasFixtures.debugRange()` es DEBUG-only).
     #if DEBUG
-    @State private var range: ExploreRange = TendenciasFixtures.debugRange() ?? .month
+    @State private var range = TendenciasFixtures.debugRange() ?? ExploreRange.month
     #else
-    @State private var range: ExploreRange = .month
+    @State private var range = ExploreRange.month
     #endif
     /// The field's ⓘ opens the uniform «What we measure» card beneath it (D3/C-17, calco
     /// StrainDetailScreen.infoOpen). ONE card for all 35 metrics — no per-metric essay.
     @State private var infoOpen = false
-    /// Full ascending series for this metric — ALL history.
-    @State private var series: [(day: String, value: Double)] = []
+    /// La serie completa de esta métrica, ascendente por día: TODA la historia.
+    @State private var historia: [(day: String, value: Double)] = []
     /// The series with each `day` string parsed to a `Date` exactly ONCE — the shared window math
-    /// reads `date` straight from here (FER-269). Built in `load()`.
+    /// reads `date` straight from here (FER-269). Se arma en `cargar()`.
     @State private var parsed: MetricWindowMath.Parsed = []
-    /// Every OTHER catalog series, loaded once for the correlation scan.
-    @State private var others: [(metric: MetricDescriptor, series: [(day: String, value: Double)])] = []
-    @State private var loaded = false
+    /// TODA otra serie del catálogo, leída una sola vez para el barrido de correlación.
+    @State private var catalogo: [(metric: MetricDescriptor, series: [(day: String, value: Double)])] = []
+    @State private var yaLeido = false
 
     /// Cached correlation scan, keyed by its inputs (selected range + the metric id), so the full
     /// cross-catalog Pearson sweep runs ONLY when those change — not on every body re-eval.
-    @State private var correlationCache: [CorrRow] = []
-    /// The (metricID, range) the cache was built for; nil means "not yet computed".
-    @State private var correlationKey: String? = nil
+    @State private var correlaciones: [CorrRow] = []
+    /// El (id de métrica, ventana) con que se armó la caché; `nil` = todavía sin calcular.
+    @State private var correlacionesHuella: String?
 
     /// «jun 6» axis/scrub label, UTC-anchored so the local-zone label never slips west of UTC.
     private static let ejeFmt: DateFormatter = {
-        let f = DateFormatter()
-        f.locale = .autoupdatingCurrent
-        f.timeZone = TimeZone(secondsFromGMT: 0)
-        f.setLocalizedDateFormatFromTemplate("dMMM")
-        return f
+        let formateador = DateFormatter()
+        formateador.locale = .autoupdatingCurrent
+        formateador.timeZone = TimeZone(secondsFromGMT: 0)
+        formateador.setLocalizedDateFormatFromTemplate("dMMM")
+        return formateador
     }()
 
     // MARK: Identity (the puente — kills `metricAccent`)
@@ -263,17 +280,17 @@ struct MetricDetailView: View {
     private var hue: Color { MetricIdentity.hue(for: metric) }
     private var glyph: LiquidIcon.Glyph? { MetricIdentity.glyph(for: metric) }
 
-    // MARK: Derived
+    // MARK: Derivados
 
-    private var latest: (day: String, value: Double)? { series.last }
+    private var latest: (day: String, value: Double)? { historia.last }
 
-    /// Padded value range so the line never sits flush against an axis: min..max ± 12% of the span.
-    /// The domain is the WINDOW's, never a fixed MetricLevels band.
-    private func valueRange(_ windowValues: [Double]) -> ClosedRange<Double> {
-        guard let lo = windowValues.min(), let hi = windowValues.max() else { return 0...1 }
-        if hi <= lo { return (lo - 1)...(hi + 1) }
-        let span = hi - lo
-        return (lo - span * 0.12)...(hi + span * 0.12)
+    /// Dominio con aire para que la línea no quede pegada al eje: min…max con 12 % de holgura. Es el
+    /// dominio de la VENTANA, nunca una banda fija de niveles.
+    private func dominioDeVentana(_ windowValues: [Double]) -> ClosedRange<Double> {
+        guard let bajo = windowValues.min(), let alto = windowValues.max() else { return 0...1 }
+        guard alto > bajo else { return (bajo - 1)...(alto + 1) }
+        let aire = (alto - bajo) * 0.12
+        return (bajo - aire)...(alto + aire)
     }
 
     /// A Binding<Int> bridging `LiquidRangeSelector`'s index to `range` (allCases order = W…ALL).
@@ -283,46 +300,53 @@ struct MetricDetailView: View {
             set: { range = ExploreRange.allCases[$0] })
     }
 
-    // MARK: Body
+    // MARK: Cuerpo
 
     var body: some View {
-        // Compute the window ONCE per body eval and hand it to the blocks (the shared math, FER-269).
-        let window = MetricWindowMath.make(parsed, selected: range)
+        // La ventana se resuelve UNA vez por evaluación del body y se le entrega a los bloques.
+        let ventana = MetricWindowMath.make(parsed, selected: range)
         return ScrollView {
             VStack(alignment: .leading, spacing: .zero) {
                 heroField
                 if infoOpen { whatWeMeasureCard }
                 fusionRow
-                if !loaded {
-                    LiquidSheetSkeleton(a11yCargando: String(localized: "Reading your history…"))
-                        .liquidSeccion()
-                } else if series.isEmpty {
-                    // ONLY genuine empty state: no data in the entire history (FER-433: el vacío
-                    // que enseña, con el copy de siempre repartido en sus partes).
-                    LiquidFranjaSeccion(String(localized: "History"), tono: hue)
-                    LiquidVacio(
-                        queEs: Text(String(localized: "vacio.detalle.tendencia.queEs",
-                                           defaultValue: "This period's trend goes here.")),
-                        comoSeLlena: Text(String(localized: "No history yet. Connect Apple Health in Data Sources and it fills every metric you can explore here.")))
-                        .liquidSeccion()
-                } else {
-                    LiquidFranjaSeccion(String(localized: "History"), tono: hue)
-                    trendContent(window: window).liquidSeccion()
-                    LiquidFranjaSeccion(String(localized: "What correlates"), tono: hue)
-                    correlationContent.liquidSeccion()
-                    pieMetodo
-                }
+                dossier(ventana)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: .infinity,
+                   alignment: .leading)
         }
         .scrollIndicators(.hidden)
         .background { LiquidSheetFondo(tone: hue).ignoresSafeArea() }
         .navigationTitle(metric.canonicalTitle)
         .navigationBarTitleDisplayMode(.inline)
-        .task(id: metric.id) { await load() }
-        // Range changes the window, hence the correlation inputs — recompute the cached scan rather
-        // than letting `correlationContent` run it inside body.
-        .onChange(of: range) { recomputeCorrelations() }
+        .task(id: metric.id) { await cargar() }
+        // El rango cambia la ventana, y con ella las entradas de la correlación: la corrida cacheada
+        // se rehace aquí en vez de dejar que `correlationContent` la corra dentro del body.
+        .onChange(of: range) { rehacerCorrelaciones() }
+    }
+
+    /// Lo que va bajo el héroe: la espera, el vacío honesto, o el dossier completo.
+    @ViewBuilder
+    private func dossier(_ ventana: MetricWindow) -> some View {
+        if !yaLeido {
+            LiquidSheetSkeleton(a11yCargando: String(localized: "Reading your history…"))
+                .liquidSeccion()
+        } else if historia.isEmpty {
+            // El ÚNICO vacío genuino: ni un dato en toda la historia. FER-433: en vez del pozo
+            // (una gráfica sin puntos), el vacío que enseña — qué va aquí y cómo se llena.
+            LiquidFranjaSeccion(String(localized: "History"), tono: hue)
+            LiquidVacio(
+                queEs: Text(String(localized: "vacio.detalle.tendencia.queEs",
+                                   defaultValue: "This period's trend goes here.")),
+                comoSeLlena: Text(String(localized: "No history yet. Connect Apple Health in Data Sources and it fills every metric you can explore here.")))
+                .liquidSeccion()
+        } else {
+            LiquidFranjaSeccion(String(localized: "History"), tono: hue)
+            trendContent(window: ventana).liquidSeccion()
+            LiquidFranjaSeccion(String(localized: "What correlates"), tono: hue)
+            correlationContent.liquidSeccion()
+            pieMetodo
+        }
     }
 
     // MARK: - 1. Hero (campo teñido) — identidad por métrica, «as of» como cláusula
@@ -398,7 +422,8 @@ struct MetricDetailView: View {
                 .font(LiquidType.cuerpo)
                 .lineSpacing(LiquidType.cuerpoLineSpacing)
                 .foregroundStyle(LiquidColor.tinta700)
-                .fixedSize(horizontal: false, vertical: true)
+                .fixedSize(horizontal: false,
+                           vertical: true)
         }
         .liquidTarjetaSeccion()
         .liquidSeccion(top: LiquidSpace.s400, bottom: LiquidSpace.s200)
@@ -413,7 +438,8 @@ struct MetricDetailView: View {
             FusionAgreementRow(point: agreement, format: fmt)
                 .padding(.horizontal, LiquidSpace.s550)
                 .padding(.top, LiquidSpace.s300)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(maxWidth: .infinity,
+                       alignment: .leading)
         }
     }
 
@@ -446,7 +472,7 @@ struct MetricDetailView: View {
         return LiquidGraficaNiveles(
             puntos: puntos,
             bandas: [],
-            dominio: valueRange(window.values),
+            dominio: dominioDeVentana(window.values),
             ticksY: [],
             tono: hue,
             formatoScrub: { v, f in "\(fmt(v)) · \(Self.ejeFmt.string(from: f))" },
@@ -465,7 +491,7 @@ struct MetricDetailView: View {
             rotulo: String(localized: "Average"), valor: fmt(stat.mean))
         let rango = LiquidResumenVentana.Celda(
             rotulo: String(localized: "Range"), valor: rangoValor(stat.min, stat.max))
-        guard let pct = window.range.periodComparison(of: series)?.pctChange else {
+        guard let pct = window.range.periodComparison(of: historia)?.pctChange else {
             return [promedio, rango]
         }
         let rounded = Int(pct.rounded())
@@ -489,8 +515,9 @@ struct MetricDetailView: View {
     // MARK: - 3. Qué correlaciona («What correlates»)
 
     private struct CorrRow: Identifiable {
+        /// El id de la OTRA métrica; también identifica la fila.
         let id: String
-        let metric: MetricDescriptor
+        let otra: MetricDescriptor
         let r: Double
         let n: Int
     }
@@ -504,24 +531,27 @@ struct MetricDetailView: View {
     }
 
     private var correlationContent: some View {
-        let rows = correlationCache
+        let filas = correlaciones
         return VStack(alignment: .leading, spacing: LiquidSpace.s300) {
             LiquidNotaLine(String(localized: "Pearson r over the visible window · |r| ≥ 0.30, n ≥ 10"))
-            // Association, not cause. (FER-299) C-05: ONE disclaimer key across both instruments —
-            // the same LiquidNotaLine Compare shows, so the piece never speaks two texts.
+            // Asociación, no causa. UNA sola advertencia en los dos instrumentos: la misma que
+            // enseña Comparar, para que la pieza nunca hable con dos textos.
             LiquidNotaLine(String(localized: "Association, not cause: moving together isn't one driving the other."))
-            if rows.isEmpty {
+            if filas.isEmpty {
                 Text(String(localized: "Nothing in the catalog moves clearly with \(metric.canonicalTitle.lowercased()) over this window. Widen the range to surface relationships."))
                     .font(LiquidType.cuerpo)
                     .foregroundStyle(LiquidColor.tinta500)
-                    .frame(maxWidth: .infinity, minHeight: 56, alignment: .leading)
-                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity,
+                           minHeight: 56,
+                           alignment: .leading)
+                    .fixedSize(horizontal: false,
+                               vertical: true)
                     .liquidTarjetaSeccion()
             } else {
                 VStack(spacing: .zero) {
-                    ForEach(Array(rows.enumerated()), id: \.element.id) { idx, row in
-                        correlationRow(row)
-                        if idx < rows.count - 1 {
+                    ForEach(Array(filas.enumerated()), id: \.element.id) { posicion, fila in
+                        correlationRow(fila)
+                        if posicion < filas.count - 1 {
                             LiquidCapilar(eje: .horizontal)
                         }
                     }
@@ -538,19 +568,19 @@ struct MetricDetailView: View {
     /// STACKS — identity on top, bar + r value below — so «−0.99» never clips and the title never
     /// races the value on one line (TND31-1, the same fix CompareView.pairCard made for TND30-5).
     private func correlationRow(_ row: CorrRow) -> some View {
-        let tono = MetricIdentity.hue(for: row.metric)
+        let tono = MetricIdentity.hue(for: row.otra)
         let valor = (row.r >= 0 ? "+" : "−") + String(format: "%.2f", abs(row.r))
         // The correlate's identity mark — a plain tone dot, the same identity language the catalog
         // rows carry (LiquidListRow's leading dot), minus its glow (a DS-owned value).
         let punto = Circle().fill(tono).frame(width: 8, height: 8).accessibilityHidden(true)
         let identidad = VStack(alignment: .leading, spacing: LiquidSpace.s050) {
-            Text(row.metric.canonicalTitle)
+            Text(row.otra.canonicalTitle)
                 .font(LiquidType.tituloFila).foregroundStyle(LiquidColor.tinta900)
             // C-09: a STABLE key with the house-style «n=%lld» (no spaces, §4.6), not the
             // interpolation-generated «%@ · n = %@» whose count printed as %@ and never grew an `es`.
             Text(String(format: String(localized: "explore.corr.footer",
                                        defaultValue: "%1$@ · n=%2$lld"),
-                        row.metric.localizedCategory, row.n))
+                        row.otra.localizedCategory, row.n))
                 .font(LiquidType.captionLectura).foregroundStyle(LiquidColor.tinta500)
         }
         let valorTexto = Text(verbatim: valor)
@@ -585,7 +615,7 @@ struct MetricDetailView: View {
         .accessibilityElement(children: .combine)
         // C-03: VoiceOver speaks the SAME signed string the screen shows — the leading «−» (U+2212)
         // and «+», not the ASCII hyphen `%.2f` emits — so the spoken value matches `valor`.
-        .accessibilityLabel(Text(String(localized: "\(row.metric.canonicalTitle), correlation \(valor), \(row.n) days")))
+        .accessibilityLabel(Text(String(localized: "\(row.otra.canonicalTitle), correlation \(valor), \(row.n) days")))
     }
 
     /// The zero-axis r bar: a 1 pt tinta axis at centre, a capsule of width `(track/2)·|r|` growing
@@ -636,7 +666,7 @@ struct MetricDetailView: View {
             // the ~7 canonical families, a plain tone dot for the rest (glyph == nil, TND31-4: no
             // invented `.rayo`). Only the LABEL adopts the vocabulary; glyph + hue stay identity. With
             // history only.
-            if !series.isEmpty {
+            if !historia.isEmpty {
                 LiquidOrigenChip(glyph: glyph, badgeTono: hue,
                                  etiqueta: originVocabulary(metric))
             }
@@ -646,49 +676,54 @@ struct MetricDetailView: View {
 
     // MARK: - Load (data path conserved verbatim from the paper screen)
 
-    private func load() async {
-        // Prefer the merged on-device dashboard (`displayDays`) over the imports-only `series()`
-        // table — a strap user's computed scores live there. Falls back to imports for import-only
-        // metrics (weight, body fat, HR zones…). (FER-281) Both via the SHARED resolver (TND-29).
-        let dash = repo.displayDays
+    private func cargar() async {
+        // Manda el tablero ya fusionado (`displayDays`) sobre la tabla de solo-importados: ahí viven
+        // los puntajes que el teléfono calcula. Las métricas que solo llegan importadas (peso, grasa
+        // corporal, zonas de FC…) caen a la tabla. Las dos vías, por el resolvedor COMPARTIDO.
+        let tablero = repo.displayDays
+        let importadas = await repo.availableKeySets(sources: MetricCatalog.all.map(\.source))
 
-        let keysBySource = await repo.availableKeySets(sources: MetricCatalog.all.map(\.source))
-        // Candidates for the correlation scan: every OTHER metric with data — on-device OR imported.
-        let candidates = MetricCatalog.all.filter { other in
-            guard other.id != metric.id else { return false }
-            let onDevice = !(MetricSeriesResolver.dashboardSeries(other.key, from: dash) ?? []).isEmpty
-            let imported = keysBySource[other.source]?.contains(other.key) ?? false
-            return onDevice || imported
+        // Candidatas del barrido: toda OTRA métrica con datos, calculada o importada.
+        let candidatas = MetricCatalog.all.filter { otra in
+            guard otra.id != metric.id else { return false }
+            let calculada = !(MetricSeriesResolver.dashboardSeries(otra.key, from: tablero) ?? []).isEmpty
+            let importada = importadas[otra.source]?.contains(otra.key) ?? false
+            return calculada || importada
         }
 
-        let loadedOthers: [(metric: MetricDescriptor, series: [(day: String, value: Double)])] =
+        let leidas: [(metric: MetricDescriptor, series: [(day: String, value: Double)])] =
             await withTaskGroup(of: (MetricDescriptor, [(day: String, value: Double)]).self) { group in
-                for other in candidates {
-                    let onDevice = MetricSeriesResolver.dashboardSeries(other.key, from: dash) ?? []
-                    if onDevice.isEmpty {
-                        group.addTask { (other, await repo.series(key: other.key, source: other.source)) }
+                for otra in candidatas {
+                    let delTablero = MetricSeriesResolver.dashboardSeries(otra.key, from: tablero) ?? []
+                    if delTablero.isEmpty {
+                        group.addTask { (otra, await repo.series(key: otra.key, source: otra.source)) }
                     } else {
-                        group.addTask { (other, onDevice) }
+                        group.addTask { (otra, delTablero) }
                     }
                 }
-                var out: [(metric: MetricDescriptor, series: [(day: String, value: Double)])] = []
-                for await (m, s) in group where !s.isEmpty { out.append((m, s)) }
-                return out
+                var acumulado: [(metric: MetricDescriptor, series: [(day: String, value: Double)])] = []
+                for await (descriptor, serie) in group where !serie.isEmpty {
+                    acumulado.append((descriptor, serie))
+                }
+                return acumulado
             }
 
-        // Focal series: on-device if the dashboard computes this metric, else the imported series.
-        let focalOnDevice = MetricSeriesResolver.dashboardSeries(metric.key, from: dash) ?? []
-        let focalSeries = focalOnDevice.isEmpty
+        // La serie focal: la del tablero si el teléfono calcula esta métrica, si no la importada.
+        let focalDelTablero = MetricSeriesResolver.dashboardSeries(metric.key, from: tablero) ?? []
+        let focal = focalDelTablero.isEmpty
             ? await repo.series(key: metric.key, source: metric.source)
-            : focalOnDevice
-        series = focalSeries
-        parsed = focalSeries.map { ($0.day, Repository.parseDayKey($0.day), $0.value) }
-        // TaskGroup completion order is nondeterministic — restore catalog order so the correlation
-        // list is stable across loads (recomputeCorrelations re-sorts by |r| for display).
-        let catalogIndex = Dictionary(uniqueKeysWithValues: MetricCatalog.all.enumerated().map { ($1.id, $0) })
-        others = loadedOthers.sorted { (catalogIndex[$0.metric.id] ?? 0) < (catalogIndex[$1.metric.id] ?? 0) }
-        loaded = true
-        recomputeCorrelations()
+            : focalDelTablero
+        historia = focal
+        parsed = focal.map { ($0.day, Repository.parseDayKey($0.day), $0.value) }
+        // El grupo de tareas termina en orden impredecible: se restaura el orden del catálogo para
+        // que la lista sea estable entre cargas (el barrido la reordena por |r| al presentarla).
+        let ordenDelCatalogo = Dictionary(
+            uniqueKeysWithValues: MetricCatalog.all.enumerated().map { ($1.id, $0) })
+        catalogo = leidas.sorted {
+            (ordenDelCatalogo[$0.metric.id] ?? 0) < (ordenDelCatalogo[$1.metric.id] ?? 0)
+        }
+        yaLeido = true
+        rehacerCorrelaciones()
     }
 
     // MARK: - Correlation compute (OFF-MAIN, reattach-by-id — conserved verbatim, FER-976)
@@ -701,74 +736,69 @@ struct MetricDetailView: View {
         windowed: [(day: String, value: Double)],
         others: [(id: String, series: [(day: String, value: Double)])]
     ) -> [CorrScan] {
-        let myDays = Set(windowed.map(\.day))
-        guard !myDays.isEmpty else { return [] }
-        var rows: [CorrScan] = []
-        for entry in others {
-            let otherWindowed = entry.series.filter { myDays.contains($0.day) }
-            let pairs = CorrelationEngine.alignByDay(windowed, otherWindowed)
-            guard pairs.count >= 10, let c = CorrelationEngine.pearson(pairs) else { continue }
-            if abs(c.r) >= 0.3 {
-                rows.append(CorrScan(id: entry.id, r: c.r, n: c.n))
-            }
+        let diasVisibles = Set(windowed.map(\.day))
+        guard !diasVisibles.isEmpty else { return [] }
+        var hallazgos: [CorrScan] = []
+        for entrada in others {
+            let recorte = entrada.series.filter { diasVisibles.contains($0.day) }
+            let comunes = CorrelationEngine.alignByDay(windowed, recorte)
+            guard comunes.count >= 10, let correlacion = CorrelationEngine.pearson(comunes) else { continue }
+            guard abs(correlacion.r) >= 0.3 else { continue }
+            hallazgos.append(CorrScan(id: entrada.id, r: correlacion.r, n: correlacion.n))
         }
-        rows.sort { abs($0.r) > abs($1.r) }
-        return Array(rows.prefix(6))
+        return Array(hallazgos.sorted { abs($0.r) > abs($1.r) }.prefix(6))
     }
 
-    /// Reattaches a Sendable `CorrScan` to the catalog `MetricDescriptor`, by id.
+    /// Re-adjunta cada corrida Sendable a su `MetricDescriptor` del catálogo, por id.
     private func attachCorrelationRows(_ scans: [CorrScan]) -> [CorrRow] {
-        let byId = Dictionary(uniqueKeysWithValues: others.map { ($0.metric.id, $0.metric) })
-        return scans.compactMap { s in byId[s.id].map { CorrRow(id: s.id, metric: $0, r: s.r, n: s.n) } }
+        let porId = Dictionary(uniqueKeysWithValues: catalogo.map { ($0.metric.id, $0.metric) })
+        return scans.compactMap { scan in
+            porId[scan.id].map { CorrRow(id: scan.id, otra: $0, r: scan.r, n: scan.n) }
+        }
     }
 
     /// Rebuild the cached correlation scan for the CURRENT effective window, only when its key
     /// (metric id + selected range) changed. The expensive cross-catalog Pearson sweep runs off the
     /// MainActor via `Task.detached` (FER-976): a Sendable (day,value) snapshot in, a Sendable scan
-    /// out; `correlationCache` is assigned back on MainActor by reattaching the catalog descriptor.
-    private func recomputeCorrelations() {
-        let key = "\(metric.id)|\(range.rawValue)"
-        guard correlationKey != key else { return }
-        correlationKey = key
-        let window = MetricWindowMath.make(parsed, selected: range)
-        let windowed = MetricWindowMath.slice(parsed, for: window.range)
-        let othersSnapshot = others.map { (id: $0.metric.id, series: $0.series) }
+    /// out; `correlaciones` se asigna de vuelta en el hilo principal re-adjuntando el descriptor.
+    private func rehacerCorrelaciones() {
+        let huella = "\(metric.id)|\(range.rawValue)"
+        guard correlacionesHuella != huella else { return }
+        correlacionesHuella = huella
+        let ventana = MetricWindowMath.make(parsed, selected: range)
+        let recorte = MetricWindowMath.slice(parsed, for: ventana.range)
+        let foto = catalogo.map { (id: $0.metric.id, series: $0.series) }
         Task {
             let scans = await Task.detached(priority: .userInitiated) {
-                Self.computeCorrelationScans(windowed: windowed, others: othersSnapshot)
+                Self.computeCorrelationScans(windowed: recorte, others: foto)
             }.value
-            guard correlationKey == key else { return }   // a newer metric/range landed first
-            correlationCache = attachCorrelationRows(scans)
+            guard correlacionesHuella == huella else { return }   // llegó una métrica/ventana más nueva
+            correlaciones = attachCorrelationRows(scans)
         }
     }
 }
 
-// MARK: - Preview
+// MARK: - Canvas
 
 #if DEBUG
+/// El canvas monta la pila que la vista ya no provee: su `.navigationDestination` cuelga de ahí.
 @MainActor
-private func explorerPreviewRepo() -> Repository {
-    let repo = Repository(deviceId: "preview")
-    repo.setDashboard()
-    return repo
+private func explorerCanvas<Contenido: View>(@ViewBuilder _ contenido: () -> Contenido) -> some View {
+    let repositorio = Repository(deviceId: "preview")
+    repositorio.setDashboard()
+    return NavigationStack(root: contenido)
+        .environmentObject(repositorio)
+        .frame(width: 390, height: 820)
 }
 
 #Preview("Explore") {
-    // Wrapped in a NavigationStack: the view itself no longer provides one (FER-171), so the preview
-    // supplies the stack its `.navigationDestination` hangs off.
-    NavigationStack {
-        MetricExplorerView()
-    }
-    .environmentObject(explorerPreviewRepo())
-    .frame(width: 390, height: 820)
+    explorerCanvas { MetricExplorerView() }
 }
 
 #Preview("Metric Detail") {
-    NavigationStack {
+    explorerCanvas {
         MetricDetailView(metric: MetricCatalog.all.first { $0.key == "recovery" }!)
     }
-    .environmentObject(explorerPreviewRepo())
-    .frame(width: 390, height: 820)
 }
 #endif
 #endif
