@@ -664,8 +664,8 @@ private struct AjustesLanding: View {
     private func section<Rows: View>(_ title: String, @ViewBuilder rows: () -> Rows) -> some View {
         VStack(alignment: .leading, spacing: LiquidSpace.s300) {
             Text(verbatim: title)
-                .font(LiquidType.franja).tracking(LiquidType.franjaTracking).textCase(.uppercase)
-                .foregroundStyle(LiquidColor.tinta500)
+                .liquidKicker()   // FER-471: estilo canónico de sección (= LiquidSectionHeader)
+                .foregroundStyle(LiquidColor.tinta700)
                 .accessibilityAddTraits(.isHeader)
             rows()
         }
@@ -768,8 +768,8 @@ private struct ProfileWheelSheet: View {
 
             VStack(alignment: .leading, spacing: LiquidSpace.s100) {
                 Text(String(localized: "Profile"))
-                    .font(LiquidType.franja).tracking(LiquidType.franjaTracking).textCase(.uppercase)
-                    .foregroundStyle(LiquidColor.tinta500)
+                    .liquidKicker()   // FER-471: estilo canónico de sección (= LiquidSectionHeader)
+                    .foregroundStyle(LiquidColor.tinta700)
                 Text(verbatim: title)
                     .font(LiquidType.displayS).tracking(LiquidType.displaySTracking)
                     .foregroundStyle(LiquidColor.tinta900)
@@ -887,8 +887,8 @@ private struct MaxHRSheet: View {
 
             VStack(alignment: .leading, spacing: LiquidSpace.s100) {
                 Text(String(localized: "Profile"))
-                    .font(LiquidType.franja).tracking(LiquidType.franjaTracking).textCase(.uppercase)
-                    .foregroundStyle(LiquidColor.tinta500)
+                    .liquidKicker()   // FER-471: estilo canónico de sección (= LiquidSectionHeader)
+                    .foregroundStyle(LiquidColor.tinta700)
                 Text(String(localized: "Max heart rate"))
                     .font(LiquidType.displayS).tracking(LiquidType.displaySTracking)
                     .foregroundStyle(LiquidColor.tinta900)
@@ -950,8 +950,8 @@ private struct UnidadesSheet: View {
 
             VStack(alignment: .leading, spacing: LiquidSpace.s100) {
                 Text(String(localized: "Display"))
-                    .font(LiquidType.franja).tracking(LiquidType.franjaTracking).textCase(.uppercase)
-                    .foregroundStyle(LiquidColor.tinta500)
+                    .liquidKicker()   // FER-471: estilo canónico de sección (= LiquidSectionHeader)
+                    .foregroundStyle(LiquidColor.tinta700)
                 Text(String(localized: "Units & format"))
                     .font(LiquidType.displayS).tracking(LiquidType.displaySTracking)
                     .foregroundStyle(LiquidColor.tinta900)
