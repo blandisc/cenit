@@ -894,7 +894,7 @@ usable one of 4, because at four nights the spread is itself mostly noise.
 | Kredlow et al. 2015; Atoui et al. 2021; Lambiase et al. 2013; Mead et al. 2019 | The exercise-sleep and sleep-activity relationships behind «Tu patrón», and the day-of-week confound |
 | Borbély 1982; Borbély 2022 | Process S, behind the night-to-night pair |
 | Dettoni et al. 2012; Faust et al. 2020; Stanley et al. 2013 | Short nights and hard effort against the next day's resting pulse, and (Stanley) the same for `hrv.priorStrain`'s dense-night RMSSD |
-| Zhang 2025 | Why `hrv.sleepDuration`/`hrv.priorStrain` read the dense nocturnal-RMSSD partition, not the all-day SDNN construct |
+| Zhang 2025 (Front Neurol 16:1556784, doi:10.3389/fneur.2025.1556784) | Why `hrv.sleepDuration`/`hrv.priorStrain` read the dense nocturnal-RMSSD partition, not the all-day SDNN construct |
 | Zourdos et al. 2016; Helms et al. 2016 | Effort-anchored progression, and reducing load only when reps were missed |
 | Steele et al. 2017 | Why a habitual high effort-rater must not be frozen out of progression |
 | Epley 1985; Brzycki 1993 | The two one-repetition-maximum estimates |
