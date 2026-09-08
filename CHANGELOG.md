@@ -1200,17 +1200,23 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
   tu corazón en reposo (lo que decide tu palabra; vive en Hoy), tus noches (con eso construye tu
   rango; vive en Tendencias), tus entrenamientos (cuenta lo que cargaste; vive en Entrenar) y el
   guardado en tu iPhone (nada salió). Cada frase aparece solo cuando su grupo terminó de leerse y
-  trajo datos; si no trajo nada, no se enseña. La lectura no dura ni un segundo más: el contador,
-  los titulares, el piso, el techo y los anuncios de VoiceOver siguen igual.
+  su señal principal trajo datos —reposo, sueño, entrenamientos, guardado—: el HRV de día no cuenta
+  como noche ni la energía activa como entrenamiento; si no trajo nada, no se enseña. La frase del
+  guardado ya no se pierde cuando la lectura termina justo antes de que la pantalla la vea. La
+  lectura no dura ni un segundo más: el contador, los titulares, el piso, el techo y los anuncios
+  de VoiceOver siguen igual.
 
 ### EN
 - While Cénit reads your last 180 days of Health, the "Reading: … · n of 15" line steps aside as
   soon as the first group of signals finishes, and up to four sentences take its place, one at a
   time: your resting heart (what decides your word; lives in Today), your nights (what your range is
   built from; lives in Trends), your workouts (it counts what you loaded; lives in Train) and the
-  save to your iPhone (nothing left). Each one appears only once its group finished reading and
-  brought data; if it brought nothing, it isn't taught. The wait doesn't get a second longer: the
-  counter, the headings, the floor, the ceiling and the VoiceOver announcements are unchanged.
+  save to your iPhone (nothing left). Each one appears only once its group finished reading and its
+  main signal brought data — resting HR, sleep, workouts, the save —: daytime HRV doesn't count as a
+  night, nor active energy as a workout; if it brought nothing, it isn't taught. The save sentence
+  is no longer lost when the read finishes right before the screen looks. The wait doesn't get a
+  second longer: the counter, the headings, the floor, the ceiling and the VoiceOver announcements
+  are unchanged.
 
 
 ## Unreleased

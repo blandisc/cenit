@@ -31,6 +31,7 @@ final class HealthKitBridge: ObservableObject {
         /// "the stage that just finished": the onboarding samples this value every 100 ms, and a
         /// stage that finishes faster than that would otherwise drop off the wire — with the
         /// "every stage of the group finished" rule, one lost stage would mute its strophe forever.
+        /// A snapshot (mirror) of `syncRowsByStage`, which is the copy that outlives the run.
         var rowsByStage: [String: Int] = [:]
     }
 
@@ -43,6 +44,13 @@ final class HealthKitBridge: ObservableObject {
     /// Live stage of the running import (nil when idle), so the card shows real progress instead of a
     /// context-free spinner. (FER-70)
     @Published private(set) var syncProgress: SyncProgress?
+    /// FER-437 (qa r1 · D2): the rows each finished stage of the current — or the LAST — run brought,
+    /// keyed by `stageKey`. Same map `SyncProgress.rowsByStage` mirrors, but this one OUTLIVES the run:
+    /// `syncProgress` goes nil in `sync()`'s `defer` in the same main-actor turn that records
+    /// `saving`, so a 100 ms sampler could never see the last stage's count and «Guardando en tu
+    /// iPhone» was a coin toss. Emptied when a run starts, filled by `finished(_:rows:)`, never
+    /// touched by the `defer`. The onboarding reads it once the run is over.
+    @Published private(set) var syncRowsByStage: [String: Int] = [:]
     /// What actually landed in the store under the apple-health source: days per metric + overall
     /// span. Reloaded after every `sync` and on demand via `refreshStatus`. Powers the coverage
     /// summary and the per-metric status list. (FER-70)
@@ -233,6 +241,7 @@ final class HealthKitBridge: ObservableObject {
     func sync(days: Int = 30, trigger: SyncTrigger = .manual) async -> Set<String> {
         guard auth == .authorized, !syncing else { return [] }
         syncing = true
+        syncRowsByStage = [:]   // FER-437: a fresh run starts with fresh counts (the `defer` leaves them be)
         defer { syncing = false; syncProgress = nil }
         guard let store = await repo.storeHandle() else { return [] }
 
@@ -260,13 +269,13 @@ final class HealthKitBridge: ObservableObject {
         // pipeline stages. Publishing the stage *before* running it turns the silent background pull
         // into "Importing HRV… (4/15)" in the UI; `done` counts stages already finished. (FER-70)
         let total = 15
-        var rowsByStage: [String: Int] = [:]
         func stage(_ done: Int, _ key: String) {
-            syncProgress = SyncProgress(stageKey: key, done: done, total: total, rowsByStage: rowsByStage)
+            syncProgress = SyncProgress(stageKey: key, done: done, total: total, rowsByStage: syncRowsByStage)
         }
-        // FER-437: how many rows stage `key` brought. Travels with every progress value published from
-        // here on (see `SyncProgress.rowsByStage`), so the onboarding can print «la espera enseña».
-        func finished(_ key: String, rows: Int) { rowsByStage[key] = rows }
+        // FER-437: how many rows stage `key` brought. Lands in `syncRowsByStage` (which outlives the run)
+        // and travels, mirrored, with every progress value published from here on (see
+        // `SyncProgress.rowsByStage`), so the onboarding can print «la espera enseña».
+        func finished(_ key: String, rows: Int) { syncRowsByStage[key] = rows }
 
         // Quantity aggregates per day.
         stage(0, "resting_hr")
