@@ -1,306 +1,331 @@
-# Privacy & Security
+# Privacy and security
 
-This document describes Cénit's privacy posture, security model, and the hardening
-applied to the parts of the codebase that touch untrusted input. It is written
-against the actual source tree; file paths and identifiers below are real and can
-be checked.
+Cénit's privacy claim is unusually simple: **the app has no network path.** Not "no telemetry", not
+"no tracking" — no reachable code that opens a connection. There is no server, no account, no sync
+and no analytics, so there is no data flow to audit, only an absence to verify.
 
-> **Not a medical device.** Cénit is an independent, local-first health app built
-> on Apple Health: it reads **your own** biometric data from **your own** iPhone,
-> on-device, with your HealthKit permission. It is not affiliated with, endorsed
-> by, or connected to Apple Inc. All computed outputs (HRV, sleep, strain, SpO₂,
-> skin temperature, respiratory rate) are approximations and are not clinically
-> validated. See `DISCLAIMER.md` and `ATTRIBUTION.md` at the repo root.
+This document sets out the evidence for that claim, then describes everything the app *does* do with
+the user's data: what it reads from Apple Health, what it writes back, where it stores things, what
+crosses a process boundary, and what it deliberately does not have.
+
+Every claim here is checkable against the tree. Where something could not be verified, it says so.
 
 ---
 
-## 1. Design principle: offline by default
+## 1. The network claim, and how to check it
 
-Cénit is **offline by construction**. It is Apple Health-only: metrics are computed
-on-device from HealthKit data plus optional file imports, and stored in a single local
-SQLite file. There is no server, no account, no login, no cloud sync, and no telemetry
-anywhere in the app.
+Sweep the entire source tree — the app, the widgets, the watch app and all eight packages — for
+every way iOS can open a connection:
 
-As of FER-398 there is **no** network exception at all: the app makes zero network
-connections, with nothing to turn on. The one that used to exist — **exercise media
-download** (§1.1b) — is dormant, and its code cannot fire. Your raw biometric data has
-never touched the network. (The former BYO-key external AI Coach was removed.)
-
-Data enters Cénit two ways:
-
-| Path | Transport | Direction |
-|------|-----------|-----------|
-| Apple Health | HealthKit, on-device | Read-only from Health |
-| File import | User-selected files on disk | Read-only from disk |
-
-Earlier versions of Cénit could collect data from a fitness band over Bluetooth. That path
-has been fully retired and removed: Cénit no longer pairs with, connects to, or reads from
-any band, and the former protocol package no longer exists in the repo. Any band-sourced
-rows collected by earlier versions remain in the local database as historical data — nothing
-re-reads, re-validates, or adds to them, and, like everything else in the database, they
-never leave the device.
-
-The only outbound path is the opt-in exception above; the rest of the app,
-including the entire biometric pipeline, produces no network traffic of any kind.
-
-### 1.1 Network code: only the one opt-in feature
-
-The biometric pipeline and the shipping packages
-(`BiometricStreams`, `CenitStore`, `StrandAnalytics`, `StrandTraining`, `StrandImport`,
-`CenitDesign`) contain **no** use of `URLSession`, `URLRequest`, `NWConnection`,
-`dataTask`, or any other networking API. The only networking code left anywhere in the app
-is exercise media download (`Cenit/Media/MediaDownloadCoordinator.swift`, §1.1b), and it is
-dormant — no call site can reach it. The package
-manifests reference dependency *download* URLs that Swift Package Manager resolves at build
-time, never at runtime:
-
-```
-Packages/CenitStore/Package.swift   → https://github.com/groue/GRDB.swift.git
-Packages/StrandImport/Package.swift → https://github.com/weichsel/ZIPFoundation.git
+```bash
+grep -rn 'NWConnection\|NWPathMonitor\|import Network\|CFNetwork\|WebSocket\|dataTask\|downloadTask\|uploadTask\|URLRequest\|WKWebView\|AsyncImage' \
+  Cenit CenitApp CenitShared CenitWidgets CenitWatch Packages --include='*.swift'
 ```
 
-GRDB.swift is the SQLite layer; ZIPFoundation is the archive reader used by the
-importers. Neither opens a socket.
+That returns **nothing**. No `Network` framework, no low-level sockets, no web view, no
+`AsyncImage`, not even a `URLRequest` type.
 
-### 1.1b Exercise media download (dormant since FER-398)
+`URLSession` appears in exactly one file — `Cenit/Media/MediaDownloadCoordinator.swift` — as a
+stored property and an injectable initializer parameter, with two call sites that could issue a GET.
+Both sit behind a single gate:
 
-The exercise catalog can show an instructional image/GIF per exercise, downloaded from a
-third-party CDN. **That feature is turned off at the source and there is no way to turn it
-on.** The CDN it pointed at (`static.exercisedb.dev`) stopped serving the catalog the app
-was built against, so shipping a control for it would have advertised a network capability
-the app does not exercise. Three independent barriers, all in this release:
-
-- **No control.** The Settings card was removed, so there is nothing to enable.
-- **No preference.** `exerciseMediaEnabled` is no longer persisted or migrated — an install
-  that had it ON has the key deleted at launch rather than carried forward, precisely so it
-  cannot leave networking on with no switch to reach.
-- **No code path.** `MediaDownloadCoordinator.isEnabled` returns `false` unconditionally, and
-  both entry points guard on it before touching `URLSession`; the launch-time bulk download
-  was removed outright.
-
-Media an earlier version cached on-device is no longer displayed (the same `isEnabled` gate feeds the
-exercise-detail hero and the rest card's thumbnail) but it is not deleted either — it stays on disk.
-FER-919 revives the feature with first-party artwork and will restore both the art and the control.
-
-**Cénit makes zero network connections.**
-
-### 1.2 The iOS app's entitlements
-
-The iOS app ships with a deliberately minimal entitlement set
-(`CenitApp/Resources/Cenit.entitlements`):
-
-```xml
-<key>com.apple.developer.healthkit</key>                       <true/>
-<key>com.apple.security.application-groups</key>               <array>group.com.feriracheta.cenit</array>
+```swift
+var isEnabled: Bool { false }
 ```
 
-- **`healthkit`** — read your own Apple Health data on-device (steps, heart rate, sleep)
-  to compute metrics, and write back the metrics Cénit computes, only when you allow it.
-  The Clinical/Verifiable Health Records key is intentionally **omitted** — Cénit never
-  reads clinical records.
-- **`application-groups`** — a shared container so the app and its widgets read the same
-  tiny snapshot.
+That is a computed property returning a literal. It reads no preference, consults no build flag and
+has no setter. Both call paths return early before touching the session.
 
-Notably **absent**: any **networking entitlement or code**. iOS does not gate outbound
-network behind a sandbox entitlement the way the macOS App Sandbox did, so the offline
-guarantee here is **structural in the code, not the OS**: the biometric pipeline and
-shipping packages contain no networking API at all (§1.1), and the only code that could
-ever open a socket — the exercise media downloader — is dormant and unreachable (§1.1b). The app also has no
-broad-filesystem access: it reads only the import files you explicitly pick, plus its own
-container.
+The gate is belt and braces. The preference key that once controlled this feature is deliberately
+excluded from the app's key registry, and the launch-time preference migration **deletes** both
+spellings of it rather than carrying them forward. A restored backup that has the flag set to true
+cannot switch networking on. Beyond that, the bulk download path has no production caller at all —
+its only invocation in the tree is from a unit test, which asserts that the feature stays off even
+when the preference is explicitly set true, that a bulk run leaves the state idle, and that an
+on-demand fetch resolves to nothing.
 
-This is the structural guarantee behind "offline by design": the privacy property holds
-because there is no network code to begin with, not merely by convention.
+The images the exercise screens show come from files bundled inside the app instead.
 
----
+### URLs that exist but are not requests
 
-## 2. Data at rest
+Several literal URLs appear in the source. None of them is fetched by the app.
 
-### 2.1 Where the data lives
+| Where | What it is |
+| --- | --- |
+| Terms, privacy and support links | SwiftUI `Link` destinations. Tapping one hands the URL to Safari; the app issues no request. |
+| A search URL on the exercise detail screen | Passed to `openURL` as a fallback when no local media exists. Same hand-off. |
+| A media CDN URL built in the training package | A string synthesized into a model field, consumed only by the dormant coordinator above. |
+| `x-apple-health://`, the iOS settings URL, and the app's own `cenit://` scheme | Local schemes. They open the Health app, the Settings app, or Cénit itself. |
+| Package repository URLs | Build-time only, read by SwiftPM. |
 
-All durable data is stored in a single GRDB/SQLite database, at
-`<Application Support>/Cenit/cenit.sqlite` (`Cenit/Data/StorePaths.swift`). An install created
-before FER-398 carries the previous folder and filename; a one-time migration at launch moves it
-onto these names (see `docs/ARCHITECTURE.md` §2).
-
-On iOS every app is sandboxed by the OS, so `<Application Support>` resolves **inside
-the app's private data container** (under the app's home directory), not in any
-shared or user-global location. No other app can reach it through the filesystem.
-
-The schema is defined by a `DatabaseMigrator` in
-`Packages/CenitStore/Sources/CenitStore/Schema.swift`, with one migration that installs
-all 29 tables. It holds exactly the kinds of data you would expect from the features:
-
-- **Beat streams** (durable): `hrSample` and `rrInterval`.
-- **Derived/cached metrics**: `sleepSession`, `dailyMetric`, `workout`, `journal`,
-  `appleDaily`, and the generic long-format `metricSeries`.
-- **The strength tracker**: routines, sessions, sets, personal records, the program.
-- **Experiments and diet**: `experiment`, `dietPlan`, `dietAdherence`.
-- **Bookkeeping**: `cursors` (one-shot flags and watermarks) and `deviceIdMap` (the
-  per-source partition label and its integer surrogate).
-
-The database is opened in WAL journal mode with `synchronous = NORMAL` and a busy
-timeout, tuned for bulk import/backfill writes
-(`Packages/CenitStore/Sources/CenitStore/Store.swift`). WAL means you will also
-see `-wal` and `-shm` sidecar files alongside the main database file — they live in the
-same container.
-
-### 2.2 Encryption
-
-The SQLite file is **not encrypted at rest by Cénit itself.** Confidentiality of the
-data on disk relies on the platform:
-
-- **iOS Data Protection** — iOS encrypts every file with hardware-backed keys tied to
-  the device passcode. Cénit's database inherits the default protection class
-  (`NSFileProtectionCompleteUntilFirstUserAuthentication`): the file is encrypted and
-  unreadable until you first unlock the device after a reboot, after which the key
-  stays available so the app can keep recording in the background. Setting a device
-  passcode is what activates this — without one, the at-rest key isn't bound to a secret.
-- The **app sandbox** keeps other apps from reading the file directly.
-
-What this does **not** protect against: someone with your unlocked phone in hand (the
-data is plaintext to the running app once the device is unlocked), or an unencrypted
-backup of the container. Turn on **Encrypt iPhone Backup** (or rely on encrypted iCloud
-backups) so the database isn't readable inside a backup.
-
-> **Option: SQLCipher.** GRDB supports SQLCipher (an encrypted SQLite build) as a
-> drop-in. Wiring Cénit's `DatabaseQueue` to a SQLCipher build with a
-> Keychain-derived key would give at-rest encryption independent of the OS Data
-> Protection class. This is not enabled in the current build, but the persistence
-> layer is small and centralized (one `CenitStore.init(path:)`), so it is a
-> contained change.
-
-### 2.3 Data minimization & pruning
-
-Cénit keeps only what a feature reads back. The raw-frame outbox of the retired band
-era, the per-row upload flag of a retired server feature, and the stream tables nothing
-writes any more were all dropped from the schema and are not recreated on a fresh
-install — so a new database starts with 29 tables and no scaffolding for capabilities
-the app doesn't have.
-
-What is still stored is bounded by what the user syncs: `auto_vacuum = INCREMENTAL`
-keeps deleted pages reclaimable, and `vacuum()` (a maintenance step, off the launch
-path) returns them to the OS. Deleting a day of metrics is a `DELETE`, not a flag.
-
-### 2.4 Diagnostics
-
-There is no live wearable connection log in the shipping app (external band pairing was
-retired, FER-1003). Diagnostics for HealthKit sync and imports stay on-device; nothing is
-uploaded by Cénit.
-
-### 2.5 Backups
-
-Cénit's database can be backed up two ways, both entirely local to devices and storage
-you already control — Cénit's own code never uploads a backup anywhere itself:
-
-- **Manual export / import** (`Cenit/Data/DataBackup.swift`). Export checkpoints the WAL
-  and copies the single database file to a location you pick through the system
-  document picker (Files, iCloud Drive, AirDrop, etc.). Import validates the chosen file
-  (checks the SQLite magic header), snapshots your current database to a rollback
-  sidecar first, then swaps the new file in atomically — a failure mid-import leaves the
-  original database, including its WAL, fully intact.
-- **Automatic backup** (`Cenit/Data/DataBackup.swift`, `AutoBackup`). Optional and off
-  until you pick a destination folder (typically in your own iCloud Drive). Cénit
-  remembers that folder via a **security-scoped bookmark** — the standard iOS mechanism
-  for retaining permission to a user-picked location without a broader filesystem
-  entitlement — and drops a fresh copy there roughly once a day, right after a sync.
-  Turning it off stops future copies; it does not delete what's already there.
-
-In both cases the destination is a folder the OS lets you pick; whether that folder
-itself syncs off-device (e.g. because it's in iCloud Drive) is between you and Apple's
-iCloud, outside anything Cénit does.
+App Transport Security is **not configured** — there is no exceptions dictionary anywhere. The iOS
+defaults therefore apply in full. That is the correct posture for an app that issues no requests:
+there is nothing to grant an exception to.
 
 ---
 
-## 3. Threat model
+## 2. What the app is permitted to do
 
-Cénit parses **untrusted input** from files chosen for import (and HealthKit samples
-from the OS). Imports are treated as hostile and validated before anything reaches the
-database. Apple Health export files in particular can be very large (multi-hundred-MB to
-multi-GB), so resource exhaustion is part of the model.
+### Entitlements
 
-What is explicitly **out of scope**: Cénit cannot defend the data against an attacker
-who already controls your unlocked user session (see §2.2).
+Four entitlement entries exist across three targets. That is the complete list.
 
-### 3.1 Threat A: a malicious import file (zip bombs, XML bombs, huge exports)
+| Target | Entitlement | Value |
+| --- | --- | --- |
+| App | `com.apple.developer.healthkit` | true |
+| App | `com.apple.security.application-groups` | one group |
+| Widget extension | `com.apple.security.application-groups` | the same group |
+| Watch app | `com.apple.developer.healthkit` | true |
 
-The Apple Health importer lives in `Packages/StrandImport/` and assumes the file is hostile.
+Absent, and worth naming because their absence is the security property:
 
-**Apple Health (`AppleHealthImporter.swift`).** Apple Health exports routinely exceed
-1 GB, and a malicious one could be far worse.
+- **Clinical health records access.** Deliberately not requested. The app never reads clinical
+  records.
+- **Push notifications.** No push entitlement, no remote-notification registration, no push token.
+- **iCloud containers.** None. The automatic backup writes to a folder the user picked, which iCloud
+  Drive may then sync on its own; the app has no iCloud capability of its own.
+- **Keychain access groups.** None — the app stores no credentials at all.
 
-- **Streaming SAX parse, never DOM.** The importer parses with `XMLParser` /
-  `XMLParserDelegate` over an `InputStream` opened directly on the file. It explicitly
-  does **not** use `XMLParser(contentsOf:)`, which would load the whole multi-hundred-
-  MB document into memory first. Element handling runs inside a per-element
-  `autoreleasepool` so temporaries from tens of millions of elements drain instead of
-  accumulating — peak memory stays bounded regardless of file size.
-- **Zip-bomb cap on decompression.** When the input is a `.zip`, `export.xml` is
-  extracted to a temp file in fixed-size chunks with a running budget; the moment the
-  decompressed total crosses the ceiling, extraction aborts:
+The iOS app declares **no background modes**. It computes only while open: there is no background
+task scheduler, no HealthKit background delivery, and no silent push. The watch app declares
+workout processing, which is mandatory for any live workout session.
 
-  ```swift
-  var written = 0
-  let cap = 8 << 30   // 8 GB decompressed ceiling — zip-bomb guard
-  _ = try archive.extract(entry, bufferSize: 1 << 20) { chunk in
-      written += chunk.count
-      if written > cap { throw ImportError.xmlParseFailed("export.xml too large") }
-      try handle.write(contentsOf: chunk)
-  }
-  ```
+### Privacy manifests
 
-  Chunks go straight to disk, so a bomb cannot inflate RAM. This deliberately replaced
-  an earlier pipe-fed parser that could deadlock or crash on a malformed export.
-- **Robust error handling.** Parse failures are surfaced as typed `ImportError`s; the
-  delegate distinguishes a genuinely malformed document from a benign empty/EOF
-  condition rather than crashing.
-- **Temp files are cleaned up** via `defer { try? FileManager.default.removeItem(at: tmp) }`.
+Three manifests ship, one per binary. All three declare `NSPrivacyTracking` false, and none declares
+tracking domains — the key is absent entirely, not present and empty.
 
----
+The **app** manifest declares one collected data type: health and fitness, marked linked to the user,
+not used for tracking, and used only for app functionality. It declares two accessed API categories:
+user defaults, and disk space. The widget and watch manifests declare no collected data at all, and
+only the user-defaults category.
 
-## 4. What Cénit does *not* collect or transmit
+Each declared reason is substantiated by real code. The user-defaults declaration covers the
+app-group-scoped preferences the three processes share. The disk-space declaration covers exactly one
+call: the Apple Health importer checks available capacity before decompressing an export, so it can
+refuse a job that will not fit rather than filling the device.
 
-- **No accounts, no login.** Nothing to sign into; no credentials
-  stored.
-- **No telemetry / analytics / crash reporting.** No third-party SDKs of that kind.
-- **No cloud, no sync, no remote backup.** Your data never leaves the machine via
-  Cénit.
-- **No advertising identifiers, no tracking.**
-- **No third-party wearable account or API credentials, and no live Bluetooth connection
-  to any external device.** Cénit is Apple Health-only; it does not authenticate against,
-  or pull from, any third-party server, and does not open a Bluetooth connection at all.
+> The app manifest's inline comment cites a file and line for the disk-space check that no longer
+> matches where the call lives. The declaration itself is correct; only the pointer is stale.
 
 ---
 
-## 5. Hardening summary
+## 3. Health data
 
-| Surface | Risk | Mitigation | Where |
-|---------|------|------------|-------|
-| Process | Data exfiltration / network egress | No feature networks at all: the one that could (exercise media download) is dormant behind a hard-`false` gate, with no control, no persisted preference and no launch call — §1.1b | `Cenit/Media/MediaDownloadCoordinator.swift` |
-| Filesystem | Broad disk access | iOS app sandbox; imports read only the files you pick via the document picker; data stays in the app's private container | `CenitApp/Resources/Cenit.entitlements`, `Cenit/Data/StorePaths.swift` |
-| App state | Implausible-but-valid values | Range gates (e.g. HR 30–220) at HealthKit / import boundaries | `HealthKitBridge`, import glue |
-| Health import | XML bomb / multi-GB DOM blowup | Streaming SAX over `InputStream`; per-element autorelease pool | `StrandImport/AppleHealthImporter.swift` |
-| Health import | Zip bomb | 8 GB decompressed ceiling, chunked to disk, hard abort | `StrandImport/AppleHealthImporter.swift` |
-| Data at rest | Device theft / offline access | Relies on iOS Data Protection (passcode-tied) + app sandbox; SQLCipher available as an option | `CenitStore/Store.swift` |
+### What is read
+
+The app requests read access to sixteen HealthKit types: heart rate, resting heart rate, heart-rate
+variability, oxygen saturation, respiratory rate, step count, active and basal energy, VO₂ max,
+wrist temperature during sleep, sleep analysis, workouts, the beat-to-beat heartbeat series, biological
+sex, date of birth, body mass and height.
+
+The heartbeat series deserves a note. It is what makes on-device nocturnal variability possible from
+raw intervals rather than from a vendor's summary, and HealthKit requires it be requested alongside
+the variability type. Installs that predate it get a one-time supplementary request for those two
+types only.
+
+The authorization call passes an **empty share set**: connecting Apple Health asks for read access
+and nothing else.
+
+### What is written
+
+Two types, requested separately and only when the user turns on the corresponding setting: workouts,
+and active energy.
+
+The write is gated twice — by a preference that defaults to off, and by a live authorization check
+immediately before saving. What it writes is one strength-training workout carrying one active-energy
+sample and an external identifier. That energy figure is a **MET-based estimate**, not a measurement;
+the heart rate collected during a session feeds the estimate and is explicitly never written back to
+Apple Health as heart-rate samples.
+
+Deletion is scoped by a compound predicate to objects this app itself wrote for that specific session.
+It exists so re-saving is idempotent, not so the app can clean up anything it did not create.
+
+The watch app requests read access to heart rate, active energy and workouts, and share access to
+workouts and active energy, so it can run a real workout session and mirror it to the phone.
 
 ---
 
-## 6. Reporting a security issue
+## 4. Data at rest
 
-Cénit is a hobbyist, non-commercial interoperability and research project provided
-**as-is, with no warranty**, for personal and educational use only (see
-`DISCLAIMER.md`). If you find a security or privacy issue, please open a GitHub issue
-describing the problem and a reproduction; sensitive reports can be coordinated
-privately via the contact on the project's GitHub profile. Issues will be reviewed in
-good faith.
+### Where it lives
+
+One SQLite file inside the app's sandbox, at `Application Support/Cenit/cenit.sqlite`, with the usual
+write-ahead-log sidecars beside it and the media cache in the same container. Installs created before
+the rename carry the previous folder and filename; a one-time migration at launch moves them, and that
+migration renames sidecars first and the main file last, so the main file's name is the mark of
+completion and an interrupted run simply resumes.
+
+### Encryption
+
+**The app applies none of its own.** There is no SQLCipher, no passphrase, no application-layer
+cipher, and no explicit Data Protection class set on the file. The one CryptoKit import in the tree
+computes a SHA-256 string used as a sync fingerprint — a hash, not encryption.
+
+What protects the file is therefore the platform default for its container, applied by iOS rather
+than by this code: it is readable only after the device has been unlocked once since boot, and it is
+covered by the device passcode. The declaration that the app uses no non-exempt encryption is
+consistent with this: it ships no cryptography of its own.
+
+### Backup
+
+The database is **not** excluded from device backups — there is no exclusion flag anywhere in the
+tree. It is therefore included in iCloud and encrypted local backups, which is the intended
+behavior: it is the user's only copy of years of history.
 
 ---
 
-## 7. Credits
+## 5. Export and backup features
 
-- **`groue/GRDB.swift`** — the SQLite persistence layer.
-- **`weichsel/ZIPFoundation`** — the archive reader used by the importers.
+Three mechanisms let data leave the sandbox, all user-initiated, none encrypted by the app.
 
-See `ATTRIBUTION.md` and `DISCLAIMER.md` for the full attribution and good-faith
-notice. Cénit contains no third-party proprietary code, firmware, binaries, logos, or
-assets, and performs no DRM circumvention.
+**Manual export.** Produces a dated copy of the live SQLite file. It stages into the temporary
+directory and hands the file to the system document picker, so the user chooses where it lands. It
+requires a successful write-ahead-log checkpoint first and fails loudly rather than producing a
+partial file. Import validates the SQLite magic header, snapshots the current database before
+replacing it, removes stale sidecars before the atomic swap, and requires a relaunch.
+
+**Automatic backup.** Copies the database to a folder the user picks once, rotating the previous copy
+aside, at most once per day. Access to that folder persists as a security-scoped bookmark and the
+write goes through a file coordinator. This is not an iCloud feature — the app writes to a local path,
+and any off-device sync happens because the user chose a folder that iCloud Drive itself syncs.
+
+**Text and image exports.** Comma-separated exports and a rendered session card, written to the
+temporary directory and presented through the system share sheet, with the temporary file cleaned up
+afterwards. The image path is the sole reason the app declares add-only photo-library access.
+
+All three produce plaintext. A backup file is exactly as sensitive as the database it copies, and
+protecting it is the user's choice of destination.
+
+Reading an archive uses ZIPFoundation in read mode only, in the Apple Health importer. Nothing in the
+codebase writes a zip.
+
+---
+
+## 6. What crosses a process boundary
+
+The app, the widget extension and the watch app are three processes. The app group is the only
+channel between the first two, and everything on it is small and structured.
+
+| Channel | Carries |
+| --- | --- |
+| Live Activity action inbox | Queued button presses from the lock screen: add or remove thirty seconds, skip, complete a set, finish, resume. Written by the extension, drained by the app, woken by a payload-free Darwin notification. |
+| Widget snapshot | What the widget renders: today's routine name, whether a session is live, the verdict's tone and word, and the week's day states. |
+| Shortcuts inbox | Pending intents fired while the app was closed. |
+| Rest thumbnail | A single already-cached image file, copied so the widget process can render it. Never fetched. |
+
+The Live Activity's content state does carry two health values — the current pulse and a target — 
+alongside session and exercise names. The Activity is requested with **no push type**, so no push
+token is minted and nothing is transmitted to Apple's push servers. It is a local-only Live Activity.
+
+Note what this means for the widget extension: it holds only the app-group entitlement, not HealthKit.
+It cannot read health data directly. It sees exactly the snapshot the app chose to write.
+
+---
+
+## 7. What the app does not have
+
+Verified absent by sweeping the tree. Each of these is a category of risk that simply does not exist
+here.
+
+| Absent | Consequence |
+| --- | --- |
+| Keychain use of any kind | No credentials, tokens or keys are stored. There are none to store. |
+| Analytics, crash reporting or telemetry SDKs | No third-party code observes the user. |
+| Location, camera, microphone, contacts | No such API is used and no usage string is declared. |
+| Photo-library **read** | Only add-only write, for saving a session card. |
+| Bluetooth | Removed with the external-device support it served. |
+| Remote notifications | No token, no registration, no server to send one. |
+| Web views | No embedded browser surface. |
+
+### Logging
+
+Five loggers exist. The file that reads every health sample contains **no logging at all** — no
+logger, no `os_log`, no `print`.
+
+Nineteen log sites mark their interpolation public. Every one was inspected: each interpolates either
+a file or folder name, or an error description. No health measurement is interpolated into any log
+statement. A handful of plain `print` calls elsewhere emit counts, elapsed milliseconds, a database
+path and identifiers — never a heart rate, a variability figure or a sleep value.
+
+### Preferences
+
+The app's keys live under a single `cenit.` namespace in a central registry: onboarding and terms
+state, appearance, three session preferences, the backup bookmark and its metadata, selected calendar
+identifiers, a mirroring toggle, and the app-group intent inbox. A few keys live outside that registry
+in the HealthKit bridge — the connection flag, the write opt-in, a sync fingerprint hash and a
+one-time request flag.
+
+**No health measurement is stored in preferences.** They hold flags, names, dates, a bookmark, a hash
+and UI state. A migration copies then deletes every key from the previous naming scheme.
+
+### Calendar
+
+The app can read the phone's calendars, to relate stress patterns to what was on the schedule. Two
+usage strings declare it, the user grants it explicitly, and the selected calendar identifiers are
+the only thing persisted. Nothing leaves the device.
+
+---
+
+## 8. Dependencies
+
+Two third-party libraries ship in the app. Both are local-only.
+
+| Library | Version | Purpose | Network |
+| --- | --- | --- | --- |
+| GRDB.swift | 6.29.3 | SQLite persistence and migrations | None — a SQLite wrapper over local file I/O |
+| ZIPFoundation | 0.9.20 | Reading the user's own Health export | None — local archive reading |
+
+A third, swift-syntax, exists only under a developer tool and is never linked into a shipped target.
+
+> The generated Xcode project's resolved-package file still pins a retired hot-reload dependency.
+> That file is build output and is not in version control; no target lists the package, and the
+> remaining call sites resolve to a local debug-only shim whose release branch is a no-op.
+
+---
+
+## 9. Threat model
+
+Given no network and no account, the realistic threats narrow to three.
+
+**A hostile import file.** The Apple Health importer accepts a file the user supplies, which may be
+arbitrarily large or malformed. It is streamed rather than loaded whole, runs behind a UTF-8 scrubber
+because real exports contain invalid sequences, and checks available disk capacity before
+decompressing so a decompression bomb fails a precondition instead of filling the device. The archive
+library is used in read mode only.
+
+**A stolen or unlocked device.** This is the dominant threat, and the app's answer is the platform's:
+the database is protected by the device passcode through iOS Data Protection, and the app adds no
+second factor. There is no in-app lock, no biometric gate, and no separate database passphrase. A
+person with an unlocked device has the data.
+
+**A careless export.** The export features write plaintext copies wherever the user directs them. A
+backup placed in a shared folder is as readable as the database. The app cannot mitigate this beyond
+requiring the user to choose the destination explicitly, which it does.
+
+Not in the model, because the surface does not exist: server compromise, credential theft, session
+hijacking, man-in-the-middle interception, and third-party data sharing.
+
+---
+
+## 10. Two discrepancies found while verifying this document
+
+Both are comments that no longer match the code. Neither changes behavior, and both are recorded here
+so a future reader does not cite them as evidence.
+
+1. A comment in the backup code asserts reliance on a user-selected-files entitlement that no
+   entitlements file or project configuration declares. That entitlement is a macOS sandbox key; the
+   iOS document-picker flow used here does not require it.
+2. The app's privacy manifest cites a file and line for its disk-space justification that no longer
+   matches where the call lives. The reason code is substantively correct.
+
+---
+
+## 11. Reporting a security issue
+
+Report a suspected vulnerability privately rather than by opening a public issue. See
+[SECURITY.md](../SECURITY.md) for the current contact and expectations.
+
+The most valuable report against this codebase would be evidence that the network claim in section 1
+is false — a reachable code path that opens a connection, or a way to flip the media gate at runtime.
+The verification commands in that section are the place to start.
