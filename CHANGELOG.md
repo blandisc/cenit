@@ -45,6 +45,20 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
   app, and dragging coexists with the sheet's scroll. Same behavior and same values; only the finish
   changes.
 
+### «Tu patrón» de sueño ya no confunde el calendario de entrenos con un rebote / Sleep's "your pattern" no longer mistakes the training calendar for a rebound (FER-480)
+- **ES** — La hoja de Sueño podía decir «se mueve con tu noche anterior» cuando lo único real era tu
+  calendario de entrenos: una noche larga porque entrenaste, seguida de una noche corta porque al
+  día siguiente rara vez entrenas dos veces seguidas. Ahora esa relación descuenta el esfuerzo de
+  AMBAS noches antes de afirmar algo, igual que ya hacían las otras relaciones de «Tu patrón» desde
+  FER-438. Si tu patrón de sueño es real (un rebote genuino o un hábito de horario), lo sigue
+  mostrando; si era solo el calendario, ahora dice «todavía».
+- **EN** — The Sleep sheet could say "moves with last night" when the only real thing was your
+  training calendar: a long night because you trained, followed by a short one because the next day
+  rarely trains twice in a row either. That relationship now discounts BOTH nights' effort before
+  asserting anything, the way the other "your pattern" relationships already did since FER-438. If
+  your sleep pattern is real (a genuine rebound or a schedule habit), it still shows it; if it was
+  only the calendar, it now says "not yet".
+
 ### Interno · adiós al prefijo «Strand» / Internal · goodbye to the "Strand" prefix (FER-478)
 - **ES** — Cambio interno, sin efecto para quien usa la app. Los paquetes y tokens que todavía
   llevaban el nombre heredado `Strand` (de cuando la app se llamaba NOOP) pasaron a `Cenit*`:
