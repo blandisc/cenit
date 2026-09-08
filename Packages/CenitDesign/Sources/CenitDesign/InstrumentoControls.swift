@@ -89,11 +89,11 @@ private struct InstrumentoToggleBody: View {
         @State private var off = false
         var body: some View {
             VStack(spacing: 18) {
-                Toggle(isOn: $on) { Text("Guardar en Salud").font(StrandFont.body) }
+                Toggle(isOn: $on) { Text("Guardar en Salud").font(CenitFont.body) }
                     .toggleStyle(.instrumento)
-                Toggle(isOn: $off) { Text("Sondas 5/MG").font(StrandFont.body) }
+                Toggle(isOn: $off) { Text("Sondas 5/MG").font(CenitFont.body) }
                     .toggleStyle(.instrumento)
-                Toggle(isOn: .constant(false)) { Text("Opción no disponible").font(StrandFont.body) }
+                Toggle(isOn: .constant(false)) { Text("Opción no disponible").font(CenitFont.body) }
                     .toggleStyle(.instrumento)
                     .disabled(true)
             }

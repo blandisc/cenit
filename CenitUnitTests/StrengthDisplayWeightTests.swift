@@ -1,6 +1,6 @@
 import XCTest
 @testable import Cenit
-import StrandTraining
+import CenitTraining
 
 /// Fija la regla de formato de peso en UN solo lugar.
 ///

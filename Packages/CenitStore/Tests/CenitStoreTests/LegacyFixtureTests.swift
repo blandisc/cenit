@@ -1,6 +1,6 @@
 import XCTest
 import GRDB
-import StrandTraining
+import CenitTraining
 @testable import CenitStore
 
 /// FER-393 · la red de la migración única.

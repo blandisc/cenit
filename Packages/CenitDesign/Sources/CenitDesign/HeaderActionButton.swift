@@ -23,7 +23,7 @@ public struct HeaderActionButton: View {
     public var body: some View {
         Button(action: action) {
             label
-                .font(StrandFont.subhead.weight(.medium))
+                .font(CenitFont.subhead.weight(.medium))
                 .foregroundStyle(enabled ? LiquidColor.tinta900 : LiquidColor.tinta500)
                 .headerCapsule()
                 // El marco táctil lo pone el BOTÓN, no el cromo: la sesión activa mete sus cápsulas
@@ -66,7 +66,7 @@ public extension View {
         HStack {
             BackButton(role: .close, action: {})
             Spacer()
-            Text(verbatim: "Nueva rutina").font(StrandFont.body).foregroundStyle(LiquidColor.tinta900)
+            Text(verbatim: "Nueva rutina").font(CenitFont.body).foregroundStyle(LiquidColor.tinta900)
             Spacer()
             HeaderActionButton(Text(verbatim: "Guardar"), action: {})
         }

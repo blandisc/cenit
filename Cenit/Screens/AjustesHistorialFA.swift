@@ -1,7 +1,7 @@
 #if os(iOS)
 import SwiftUI
 import CenitDesign
-import StrandAnalytics
+import CenitAnalytics
 import CenitStore
 
 // MARK: - «Historial de FA»: la puerta INFORMADA, en Ajustes (FER-115)

@@ -52,7 +52,7 @@ jobs:
         run: python3 Tools/check-design-drift.py --rules no-unsafe-int-cast --baseline Tools/design-drift-baseline.json Cenit/Screens Cenit/Data
       - name: Design-drift linter — no em-dash in copy (FER-879, app-wide)
         run: python3 Tools/check-design-drift.py --rules no-emdash-string Cenit/Screens Cenit/Onboarding
-      - name: Design-drift linter — no raw shadow, use StrandElevation (migrated screens)
+      - name: Design-drift linter — no raw shadow, use CenitElevation (migrated screens)
         run: python3 Tools/check-design-drift.py --rules no-raw-shadow Cenit/Screens
       - name: Linter self-tests (FER-263/264/265)
         run: python3 -m unittest discover -s Tools/tests -p 'test_*.py'

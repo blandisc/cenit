@@ -148,7 +148,7 @@ final class CensusVisitor: SyntaxVisitor {
             record(.radiusElevation, rule: "literal-shadow", node: node)
         }
 
-        // Color.white / Color.black / Color.gray — literal de sistema fuera de StrandPalette.
+        // Color.white / Color.black / Color.gray — literal de sistema fuera de CenitPalette.
         if callee == "Color" {
             let text = node.arguments.map { $0.expression.trimmedDescription }.joined(separator: ",")
             if text.contains("red:") || text.contains("uiColor:") {
@@ -206,7 +206,7 @@ final class CensusVisitor: SyntaxVisitor {
 
     override func visit(_ node: MemberAccessExprSyntax) -> SyntaxVisitorContinueKind {
         let name = node.declName.baseName.text
-        // Color.white/.black/.gray — sistema, fuera de StrandPalette.
+        // Color.white/.black/.gray — sistema, fuera de CenitPalette.
         if node.base?.trimmedDescription == "Color", ["white", "black", "gray", "clear"].contains(name) {
             record(.color, rule: "evasion:Color.\(name)", node: node)
         }

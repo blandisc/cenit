@@ -21,7 +21,7 @@ import json, os, re, zlib, unicodedata
 HERE = os.path.dirname(os.path.abspath(__file__))
 OLD = os.path.join(HERE, "cache", "old-exercises.json")           # catálogo ExerciseDB (de git)
 NEW = os.path.abspath(os.path.join(
-    HERE, "..", "..", "Packages", "StrandTraining", "Sources", "StrandTraining", "Resources",
+    HERE, "..", "..", "Packages", "CenitTraining", "Sources", "CenitTraining", "Resources",
     "exercises.json"))
 CENITSTORE_RES = os.path.abspath(os.path.join(
     HERE, "..", "..", "Packages", "CenitStore", "Sources", "CenitStore", "Resources"))

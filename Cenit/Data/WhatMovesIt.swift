@@ -1,6 +1,6 @@
 import Foundation
 import SwiftUI
-import StrandAnalytics
+import CenitAnalytics
 import CenitStore
 
 // WhatMovesIt.swift — FER-209. App-layer orchestration for the "Qué la mueve" block.
@@ -8,7 +8,7 @@ import CenitStore
 // Picks the relevant metric pairs for a vital, computes each over the user's OWN daily
 // history with `CorrelationEngine`, and degrades the result to a gated DIRECTION (never
 // a coefficient, never causation — see `MetricTrend`). The math + the sufficiency gate
-// live in StrandAnalytics (pure, `swift test`); this layer only chooses which pairs to
+// live in CenitAnalytics (pure, `swift test`); this layer only chooses which pairs to
 // ask about and reads them off `repo.displayDays`.
 //
 // Pairs (for HRV and resting HR — the two recovery vitals; FER-185 left the other detail

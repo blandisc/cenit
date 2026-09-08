@@ -1,7 +1,7 @@
 import XCTest
 @testable import Cenit
-import StrandTraining
-import StrandAnalytics
+import CenitTraining
+import CenitAnalytics
 
 /// FER-87 · «El acta de la sesión»: the three pieces of pure logic the redesigned `summaryPhase`
 /// leans on — which datum fills `receiptStats`' third slot, what «Guardado en Salud» says, and what

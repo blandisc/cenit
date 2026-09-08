@@ -7,7 +7,7 @@ import SwiftUI
 //     diales, marcas de una gráfica— donde reflowear con Dynamic Type rompería la geometría.
 //
 // Todo valor vivo se pinta con dígitos monoespaciados, para que el número no baile al cambiar.
-public enum StrandFont { // fichas de tipo: nadie escribe `.font(.system(size:))` a mano
+public enum CenitFont { // fichas de tipo: nadie escribe `.font(.system(size:))` a mano
     // MARK: Escala de lectura — crece con Dynamic Type
     /// Relative to `.title`, 28pt bold at the default size.
     public static let title1 = Font.system(.title, weight: .bold)
@@ -70,7 +70,7 @@ public enum StrandFont { // fichas de tipo: nadie escribe `.font(.system(size:))
 private struct VozDeSobrelinea: ViewModifier {
     func body(content: Content) -> some View {
         content.textCase(.uppercase)
-            .font(StrandFont.overline).tracking(StrandFont.overlineTracking)
+            .font(CenitFont.overline).tracking(CenitFont.overlineTracking)
             .foregroundStyle(InstrumentoTheme.base.inkSecondary)
     }
 }
@@ -95,13 +95,13 @@ private struct MuestraDeVoz: Identifiable {
 }
 
 private let muestrario: [MuestraDeVoz] = [
-    .init(rotulo: "Title1", voz: StrandFont.title1, atenuada: false),
-    .init(rotulo: "Headline", voz: StrandFont.headline, atenuada: false),
-    .init(rotulo: "Body", voz: StrandFont.body, atenuada: false),
-    .init(rotulo: "Subhead", voz: StrandFont.subhead, atenuada: true),
-    .init(rotulo: "Caption", voz: StrandFont.caption, atenuada: true),
-    .init(rotulo: "Footnote", voz: StrandFont.footnote, atenuada: true),
-    .init(rotulo: "Mono 0x1F 0x0A crc=91b2", voz: StrandFont.mono, atenuada: true),
+    .init(rotulo: "Title1", voz: CenitFont.title1, atenuada: false),
+    .init(rotulo: "Headline", voz: CenitFont.headline, atenuada: false),
+    .init(rotulo: "Body", voz: CenitFont.body, atenuada: false),
+    .init(rotulo: "Subhead", voz: CenitFont.subhead, atenuada: true),
+    .init(rotulo: "Caption", voz: CenitFont.caption, atenuada: true),
+    .init(rotulo: "Footnote", voz: CenitFont.footnote, atenuada: true),
+    .init(rotulo: "Mono 0x1F 0x0A crc=91b2", voz: CenitFont.mono, atenuada: true),
 ]
 
 /// Un dato con su unidad: rótulo, numeral y unidad, cada uno con su ficha, para verlas juntas.
@@ -110,9 +110,9 @@ private struct MuestraDeDato: View {
     private let aireEntrePiezas: CGFloat = 4
 
     private var piezas: [(String, Font, Color)] {
-        [("HRV", StrandFont.caption, InstrumentoTheme.base.inkSecondary),
-         ("62", StrandFont.captionNumber, InstrumentoTheme.base.ink),
-         ("ms", StrandFont.unit, InstrumentoTheme.base.inkTertiary)]
+        [("HRV", CenitFont.caption, InstrumentoTheme.base.inkSecondary),
+         ("62", CenitFont.captionNumber, InstrumentoTheme.base.ink),
+         ("ms", CenitFont.unit, InstrumentoTheme.base.inkTertiary)]
     }
 
     var body: some View {

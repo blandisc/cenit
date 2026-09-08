@@ -1,6 +1,6 @@
 import XCTest
 import CenitStore
-import StrandTraining
+import CenitTraining
 @testable import Cenit
 
 /// L3-F1: custom exercises are decoded once per memo fill, and resolution stays consistent

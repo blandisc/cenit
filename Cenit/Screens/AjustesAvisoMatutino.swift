@@ -3,7 +3,7 @@ import SwiftUI
 import UIKit       // UIApplication.openSettingsURLString (abrir Ajustes de iOS cuando lo negaron ahí)
 import UserNotifications
 import CenitDesign
-import StrandAnalytics
+import CenitAnalytics
 
 // MARK: - Aviso matutino (FER-114) — la sección de Ajustes — Liquid Glass (FER-177)
 //

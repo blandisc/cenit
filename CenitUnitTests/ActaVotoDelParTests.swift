@@ -1,5 +1,5 @@
 import XCTest
-import StrandAnalytics
+import CenitAnalytics
 @testable import Cenit
 
 // MARK: - El acta y el voto del par (FER-81 · adversarial H3)

@@ -74,7 +74,7 @@ Lee el campo **`Carril`** del issue (lo fija `/pm`); el mismo concepto que
 | Decides tú (UI) | NO decides |
 |---|---|
 | Jerarquía visual, layout, agrupación, composición | El flujo y los estados → vienen de `/ux` |
-| Tipografía (`StrandFont`/Instrumento), color (`InstrumentoTheme`/`StrandPalette`), spacing (`NoopMetrics`) | El copy → viene de `/ux` |
+| Tipografía (`CenitFont`/Instrumento), color (`InstrumentoTheme`/`CenitPalette`), spacing (`NoopMetrics`) | El copy → viene de `/ux` |
 | Qué componente (`NoopCard`, `StatTile`, `RecoveryRing`, charts) y cómo se compone | El scope → `/pm` |
 | Movimiento (idioms SwiftUI), micro-interacciones | El código de la pantalla → `/implement` |
 | Qué token/componente **falta** y hay que agregar a CenitDesign | |
@@ -142,7 +142,7 @@ vidrio teñido sobre lienzo blanco, **un número dominante** (régimen sobrio), 
 espacio (no por cajas)**, overline moderada — y el componente firma `RecoveryRing`.
 El sistema oscuro (§1–§7) es **legacy**: se mantiene, no se diseña nuevo ahí.
 Después abre `Packages/CenitDesign`: inventario real de `InstrumentoTheme`,
-`StrandFont`, `NoopMetrics`, componentes. Diseña **con lo que existe**. Si algo de
+`CenitFont`, `NoopMetrics`, componentes. Diseña **con lo que existe**. Si algo de
 verdad falta, **propón un token/componente nuevo en CenitDesign** (con su
 `#Preview`) — nunca un hex/font/spacing inline. Un token de color nuevo se deriva
 con el script de paleta de design-for-ai (OKLCH, contraste comprobado), no a ojo.
@@ -187,7 +187,7 @@ Nombra qué distingue a cada una y por qué una gana.
 
 ### 7. Arma el preview HTML por estado (el gate del usuario)
 Construye un **preview HTML por estado relevante** con `show_widget`, **fiel a los
-tokens de Instrumento/StrandPalette**: usa los valores reales de color, los tamaños
+tokens de Instrumento/CenitPalette**: usa los valores reales de color, los tamaños
 y pesos de tipo y el spacing que leíste en el paso 2 — el preview debe verse como la
 pantalla SwiftUI real, no como un mockup web genérico. **Es lo que el usuario
 revisa**; iteras sobre el HTML, no sobre el iPhone ni sobre un PNG que no ve.

@@ -29,7 +29,7 @@ off-device. The app is **Apple-only** (FER-1003): it no longer pairs with or rea
                           │   nocturnal RMSSD (FER-1008)   │                          │
                           │                                ▼                          │
    files                  │                     ┌──────────────────────┐              │
-   export.xml / .zip ─────┼─▶ StrandImport ────▶│  CenitStore (actor)  │              │
+   export.xml / .zip ─────┼─▶ CenitImport ────▶│  CenitStore (actor)  │              │
                           │   (Apple Health     │  GRDB / SQLite       │              │
                           │    parse)           │  decoded streams +   │              │
                           │                     │  metric caches +     │              │
@@ -42,7 +42,7 @@ off-device. The app is **Apple-only** (FER-1003): it no longer pairs with or rea
                           │                      │ DataSourcePolicy│                   │
                           │                      └───────┬────────┘                   │
                           │                              ▼                            │
-                          │               StrandAnalytics ──▶ SwiftUI screens         │
+                          │               CenitAnalytics ──▶ SwiftUI screens         │
                           │               (HRV/recovery/      (CenitDesign)          │
                           │                strain/sleep)                              │
                           └─────────────────────────────────────────────────────────┘
@@ -78,12 +78,12 @@ Cenit/                         App-layer (Data/Screens/System/…) compiled by t
 
 Packages/                       Cross-platform Swift packages (base `.iOS(.v16)` / `.macOS(.v13)`;
 │                               CenitDesign is `.iOS(.v17)` / `.macOS(.v14)` + `.watchOS(.v10)`)
-├── BiometricStreams/           neutral vocabulary of decoded rows (`Streams`, `ParsedValue`) — no deps; still linked into the app (CenitStore/StrandAnalytics depend on it)
+├── BiometricStreams/           neutral vocabulary of decoded rows (`Streams`, `ParsedValue`) — no deps; still linked into the app (CenitStore/CenitAnalytics depend on it)
 ├── CenitStore/                 GRDB/SQLite persistence (actor)
-├── StrandTraining/             strength domain types + bundled exercise catalog (free-exercise-db, FER-923; pure, no DB)
+├── CenitTraining/             strength domain types + bundled exercise catalog (free-exercise-db, FER-923; pure, no DB)
 ├── CenitEnsenanza/             registro tipado de funcionalidades (qué se enseña, dónde, con qué pieza); pure, no deps (FER-430)
-├── StrandAnalytics/            HRV/recovery/strain/sleep/correlation math
-├── StrandImport/               Apple Health importer (export.xml, streaming) + StrengthCSVImporter (Strong/Hevy/Cénit CSV)
+├── CenitAnalytics/            HRV/recovery/strain/sleep/correlation math
+├── CenitImport/               Apple Health importer (export.xml, streaming) + StrengthCSVImporter (Strong/Hevy/Cénit CSV)
 └── CenitDesign/               SwiftUI design system (palette, components, charts)
 
 CenitApp/                       iOS SwiftUI app shell (App/Health/System/Widgets/Resources)
@@ -98,19 +98,20 @@ CenitWatch/                     watchOS 10 companion app (single target, FER-740
 The app target is **`Cenit`** (Swift module `Cenit`, product `Cenit.app`): its shell (scene, HealthKit,
 widgets, intents) lives in **`CenitApp/`**, and it compiles the app-layer under **`Cenit/`** (screens,
 data, media). Its linked packages (`project.yml`) are `BiometricStreams`, `CenitStore`,
-`StrandAnalytics`, `StrandImport`, `CenitDesign`, `StrandTraining` and `CenitEnsenanza` (FER-398 dropped `Inject`: the
+`CenitAnalytics`, `CenitImport`, `CenitDesign`, `CenitTraining` and `CenitEnsenanza` (FER-398 dropped `Inject`: the
 hot-reload shim now lives in-repo at `Cenit/System/HotReload.swift`, so no dev-only third-party code
 ships in the store binary). The user-visible name
 stays **Cénit** (`CFBundleDisplayName`); the visible rebrand to "Cénit" is tracked separately. The macOS
-app and its `Strand`/`StrandTests` targets were retired (FER-143) and the dead `#if os(macOS)`/`AppKit`
-branches removed (FER-144); the app-layer unit tests run as **`CenitUnitTests`** in the simulator. The
-packages keep their `Strand*` names. The core/data/analytics packages declare `.iOS(.v16)`/`.macOS(.v13)`,
-guarding UI-framework calls behind `#if canImport(UIKit)` / `#if canImport(AppKit)`. **`StrandTraining`**
+app and its `Cenit`/`CenitTests` targets were retired (FER-143) and the dead `#if os(macOS)`/`AppKit`
+branches removed (FER-144); the app-layer unit tests run as **`CenitUnitTests`** in the simulator. Every package now carries the
+`Cenit*` prefix — the legacy `Strand*` names (from the pre-rebrand NOOP era) were retired in FER-478
+(2026-09-07); see `docs/DECISIONS.md`. The core/data/analytics packages declare `.iOS(.v16)`/`.macOS(.v13)`,
+guarding UI-framework calls behind `#if canImport(UIKit)` / `#if canImport(AppKit)`. **`CenitTraining`**
 keeps that base (`.iOS(.v16)`/`.macOS(.v13)`) and also declares **`.watchOS(.v10)`** (FER-740).
 **`CenitDesign` is higher:** `.iOS(.v17)` / `.macOS(.v14)` / `.watchOS(.v10)` so the watch app can paint
 with the design tokens — both are pure (Foundation-only / SwiftUI behind `#if canImport(UIKit|AppKit)`,
-with `#if os(iOS)` guards on the two haptic/hover-scrub spots). `CenitStore`/`StrandAnalytics`/
-`StrandImport` are **not** watchOS-bound: no DB or analytics runs on the wrist.
+with `#if os(iOS)` guards on the two haptic/hover-scrub spots). `CenitStore`/`CenitAnalytics`/
+`CenitImport` are **not** watchOS-bound: no DB or analytics runs on the wrist.
 
 **Legacy identifiers migrated once at launch (FER-398).** The on-disk container and the
 `UserDefaults` keys used to be frozen under the NOOP names, because renaming either one silently
@@ -138,7 +139,7 @@ resets a live install. They are unfrozen now, each behind its own one-time migra
   `exerciseMediaMissedIds` are NOT in the enum and are *deleted* rather than migrated — the exercise
   media card left Settings in the same change, so carrying a `true` forward would leave an install
   networking with no control to stop it (see the Exercise media bullet in §9).
-- **Not migrated here:** the interchange formats' schema tags are wire contracts of `StrandImport` and
+- **Not migrated here:** the interchange formats' schema tags are wire contracts of `CenitImport` and
   move with that package, not with this file. Each format now emits a `cenit.*` tag and keeps the
   previous `noop.*` one as a `legacySchema` constant it still accepts on read, so a document written
   by an older build keeps importing.
@@ -172,38 +173,38 @@ of them build and test on Linux:
 
 ```
 CenitDesign        (no deps — pure SwiftUI)
-StrandTraining      (no deps — pure domain types + bundled exercise catalog)
-StrandModels        (no deps — shared daily-metric value types: DailyMetric, CachedSleepSession, DietMealStatus)
+CenitTraining      (no deps — pure domain types + bundled exercise catalog)
+CenitModels        (no deps — shared daily-metric value types: DailyMetric, CachedSleepSession, DietMealStatus)
 CenitEnsenanza      (no deps — the typed teaching registry: 68 features × {pestaña, requiere, piezas}; linked to the app only)
 
 BiometricStreams    (no deps — the ROOT: the neutral vocabulary of decoded biometric rows)
 
-CenitStore ─────────▶ BiometricStreams + StrandModels + StrandTraining + GRDB.swift
-StrandAnalytics ────▶ BiometricStreams + StrandModels  (NO CenitStore/GRDB: pure math over value types —
-                                                       L3-C1b. NO StrandTraining dep: the strength engines —
+CenitStore ─────────▶ BiometricStreams + CenitModels + CenitTraining + GRDB.swift
+CenitAnalytics ────▶ BiometricStreams + CenitModels  (NO CenitStore/GRDB: pure math over value types —
+                                                       L3-C1b. NO CenitTraining dep: the strength engines —
                                                        MuscleFatigueMap FER-350, the 1RM estimator FER-346,
                                                        WeeklySplit FER-531 — take plain primitives the app
-                                                       projects from StrandTraining types, keeping
-                                                       StrandAnalytics decoupled)
-StrandImport ───────▶ CenitStore + StrandTraining + ZIPFoundation
+                                                       projects from CenitTraining types, keeping
+                                                       CenitAnalytics decoupled)
+CenitImport ───────▶ CenitStore + CenitTraining + ZIPFoundation
 ```
 
 > **`BiometricStreams` is the root of the graph (FER-993 · D2).** It owns the *vocabulary of decoded
 > data* — `HRSample`, `RRInterval`, `StreamEvent`, `BatterySample`, the type-47 biometric samples,
 > `Streams`, and `ParsedValue`. It is Foundation-only and depends on nothing, so persistence
-> (`CenitStore`) and math (`StrandAnalytics`) speak it directly. It stays source-agnostic: nothing here
+> (`CenitStore`) and math (`CenitAnalytics`) speak it directly. It stays source-agnostic: nothing here
 > names a frame, a byte, or a specific device, and there is **no `@_exported import`** — the boundary has to be
 > verifiable by the compiler, which a re-export would erase.
 
 | Package | What it owns | Headline types | The line it may not cross |
 |---|---|---|---|
-| **StrandModels** | Shared daily-metric value types used by both persistence and analytics — the durable shapes of cached scores, sleep sessions, and diet adherence status. | `DailyMetric` (+ `FieldUpdate`/`with(...)`), `CachedSleepSession`, `DietMealStatus` | **Leaf — zero dependencies, Foundation only.** No GRDB/UIKit. `CenitStore` depends on it and re-exports the names via `public typealias` (L3-C1a); `StrandAnalytics` depends on it directly (L3-C1b) so math never links GRDB. |
-| **BiometricStreams** | The neutral vocabulary of decoded biometric rows — the durable shapes everything downstream stores, computes over and serializes. Source-agnostic: nothing here names a frame, a byte, or a specific device. | `HRSample`, `RRInterval`, `StreamEvent`, `BatterySample`, `SpO2Sample`, `SkinTempSample`, `RespSample`, `GravitySample`, `StepSample`, `Streams` (+ `.empty`), `ParsedValue` | **Root of the graph — zero dependencies, Foundation only.** No CoreBluetooth/UIKit/AppKit/GRDB, and no CRC/UUID/CLIENT_HELLO/schema. (FER-993 · D2). **Still linked into the app binary** — `CenitStore` and `StrandAnalytics` depend on it (`project.yml` lists `BiometricStreams` under the `Cenit` target). |
+| **CenitModels** | Shared daily-metric value types used by both persistence and analytics — the durable shapes of cached scores, sleep sessions, and diet adherence status. | `DailyMetric` (+ `FieldUpdate`/`with(...)`), `CachedSleepSession`, `DietMealStatus` | **Leaf — zero dependencies, Foundation only.** No GRDB/UIKit. `CenitStore` depends on it and re-exports the names via `public typealias` (L3-C1a); `CenitAnalytics` depends on it directly (L3-C1b) so math never links GRDB. |
+| **BiometricStreams** | The neutral vocabulary of decoded biometric rows — the durable shapes everything downstream stores, computes over and serializes. Source-agnostic: nothing here names a frame, a byte, or a specific device. | `HRSample`, `RRInterval`, `StreamEvent`, `BatterySample`, `SpO2Sample`, `SkinTempSample`, `RespSample`, `GravitySample`, `StepSample`, `Streams` (+ `.empty`), `ParsedValue` | **Root of the graph — zero dependencies, Foundation only.** No CoreBluetooth/UIKit/AppKit/GRDB, and no CRC/UUID/CLIENT_HELLO/schema. (FER-993 · D2). **Still linked into the app binary** — `CenitStore` and `CenitAnalytics` depend on it (`project.yml` lists `BiometricStreams` under the `Cenit` target). |
 | **CenitStore** | Durable on-device persistence built on GRDB/SQLite. Migrations, decoded streams, metric caches, generic metric series, raw outbox, cursors. | `actor CenitStore`, `makeMigrator()`, `insert(_:deviceId:)`, `dailyMetrics`, `sleepSessions`, `metricSeries`, `pruneRaw`, `ClockRef`, `RawBatchMeta` | An **`actor`** — all writes/reads run off the main thread on its serial executor. |
-| **StrandAnalytics** | All physiological math, as pure functions over inputs. HRV, recovery, strain, sleep staging, workout detection, baselines, HR zones, correlation/comparison. | `AnalyticsEngine.analyzeDay(...)` → `DayResult`, `HRVAnalyzer`, `RecoveryScorer`, `StrainScorer`, `SleepStager`, `WorkoutDetector`, `Baselines`, `CorrelationEngine`, `Preparedness` (the «Preparación» morning verdict by axis-consensus over the user's Apple baselines — composed in `Repository.performRefresh`, published as `DashboardData.preparedness`, read by the Today hero; FER-1030), `WeeklySplit` (split → today's routine / day states / consistency streak, FER-531) | **Pure — never touches the database (literal):** depends on `BiometricStreams` + `StrandModels` only; no GRDB/CenitStore link (L3-C1b). Produces `DailyMetric`/`CachedSleepSession` shapes for the store. |
-| **StrandImport** | Parse Apple Health exports the user already owns (`export.xml`, streaming). | `ImportCoordinator.detectAndImport`, `AppleHealthImporter`, `AppleHealthAggregator`, `SleepHKEncoder`/`SleepHKDecoder` | **Parsing only** — returns normalized model arrays; the app maps them into the store. |
-| **CenitDesign** | The SwiftUI design system: palette, typography, motion, charts, components. | `StrandPalette`, `liquidGlass(_:)`, `RecoveryZoneGauge`, `Hypnogram`, `TrendChart`, `Sparkline`, `YearHeatStrip` (full index: [CATALOGO.md](design-system/CATALOGO.md)) | No data or protocol deps — pure presentation. |
-| **StrandTraining** | Strength-tracker domain types + the bundled, read-only exercise catalog (**free-exercise-db**, 873 exercises with native slug ids; FER-923, was ExerciseDB OSS in FER-779). The value models CenitStore persists and StrandAnalytics computes over. | `Exercise`, `ExerciseType`, `ExerciseCatalog`, `Routine`, `RoutineExercise` (with `supersetGroup` FER-346; optional fixed note seeded into each session and never copied to the session's acta, FER-166, v39), `RoutineSet` (per-set prescription, FER-492; optional per-set `RestConfig` override with exercise fallback, FER-715; optional `repsRangeTop` for a "floor-top" rep range, FER-94, migration v38), `RoutineSchedule` (the weekly split, FER-531), `StrengthSession` (with persisted `energyKcal`/`EnergySource`, FER-715), `SetEntry` (with `rpe` v34; `restTakenS` — the real rest that FOLLOWED the set, pause-excluded, captured by the live session, FER-167, v40), `PersonalRecord`; **the program engines** (ola 1 · FER-329): `Program` + `ProgramCalendar` (the ONE oracle of «which week am I in?» — derived from `startTs` + the weeks actually trained, never stored), `ProgramDeload` (the light-week rule; returns RAW kg, like `SetVariants`, because the plate rounding lives in `PlateMath`) and `ProgramTemplate` (the four engines, as data over `StarterTemplates`); `StarterGroupSchedule` + `WeeklySchedulePlanner` (FER-377 — the per-`StarterTemplate.Group` weekly frequency/spacing recipe and the pure, `taken`-aware placement of a group's routines across the week, best-effort; the app-layer `applyTemplateGroup` composes them) | **Pure** — Foundation only (no GRDB/UIKit). GRDB conformance lives in CenitStore by extension. (FER-345) |
+| **CenitAnalytics** | All physiological math, as pure functions over inputs. HRV, recovery, strain, sleep staging, workout detection, baselines, HR zones, correlation/comparison. | `AnalyticsEngine.analyzeDay(...)` → `DayResult`, `HRVAnalyzer`, `RecoveryScorer`, `StrainScorer`, `SleepStager`, `WorkoutDetector`, `Baselines`, `CorrelationEngine`, `Preparedness` (the «Preparación» morning verdict by axis-consensus over the user's Apple baselines — composed in `Repository.performRefresh`, published as `DashboardData.preparedness`, read by the Today hero; FER-1030), `WeeklySplit` (split → today's routine / day states / consistency streak, FER-531) | **Pure — never touches the database (literal):** depends on `BiometricStreams` + `CenitModels` only; no GRDB/CenitStore link (L3-C1b). Produces `DailyMetric`/`CachedSleepSession` shapes for the store. |
+| **CenitImport** | Parse Apple Health exports the user already owns (`export.xml`, streaming). | `ImportCoordinator.detectAndImport`, `AppleHealthImporter`, `AppleHealthAggregator`, `SleepHKEncoder`/`SleepHKDecoder` | **Parsing only** — returns normalized model arrays; the app maps them into the store. |
+| **CenitDesign** | The SwiftUI design system: palette, typography, motion, charts, components. | `CenitPalette`, `liquidGlass(_:)`, `RecoveryZoneGauge`, `Hypnogram`, `TrendChart`, `Sparkline`, `YearHeatStrip` (full index: [CATALOGO.md](design-system/CATALOGO.md)) | No data or protocol deps — pure presentation. |
+| **CenitTraining** | Strength-tracker domain types + the bundled, read-only exercise catalog (**free-exercise-db**, 873 exercises with native slug ids; FER-923, was ExerciseDB OSS in FER-779). The value models CenitStore persists and CenitAnalytics computes over. | `Exercise`, `ExerciseType`, `ExerciseCatalog`, `Routine`, `RoutineExercise` (with `supersetGroup` FER-346; optional fixed note seeded into each session and never copied to the session's acta, FER-166, v39), `RoutineSet` (per-set prescription, FER-492; optional per-set `RestConfig` override with exercise fallback, FER-715; optional `repsRangeTop` for a "floor-top" rep range, FER-94, migration v38), `RoutineSchedule` (the weekly split, FER-531), `StrengthSession` (with persisted `energyKcal`/`EnergySource`, FER-715), `SetEntry` (with `rpe` v34; `restTakenS` — the real rest that FOLLOWED the set, pause-excluded, captured by the live session, FER-167, v40), `PersonalRecord`; **the program engines** (ola 1 · FER-329): `Program` + `ProgramCalendar` (the ONE oracle of «which week am I in?» — derived from `startTs` + the weeks actually trained, never stored), `ProgramDeload` (the light-week rule; returns RAW kg, like `SetVariants`, because the plate rounding lives in `PlateMath`) and `ProgramTemplate` (the four engines, as data over `StarterTemplates`); `StarterGroupSchedule` + `WeeklySchedulePlanner` (FER-377 — the per-`StarterTemplate.Group` weekly frequency/spacing recipe and the pure, `taken`-aware placement of a group's routines across the week, best-effort; the app-layer `applyTemplateGroup` composes them) | **Pure** — Foundation only (no GRDB/UIKit). GRDB conformance lives in CenitStore by extension. (FER-345) |
 | **CenitEnsenanza** | The single declaration of how each feature is taught: `FuncionalidadID` (stable id = TipKit id), `Pestana`, `Requisito`, `Pieza` (`.vacio/.tip/.hito/.ayuda/.novedad/.gestoConBoton`), `Registro` (per-tab seed). Text and routes only — never state, save the documented pure rules: `HitoPuerta`/`HitoHoy` (the «crossed after install» gate + the Read→milestone-eligibility map for the engine milestones, FER-436) and `EstrofasSync` (the tested rule of the onboarding sync strophes, FER-437). | `Registro.todas`, `Registro.por(_:)`, `Funcionalidad.nombreKey/paraQueKey/dondeViveKey` | **Leaf — Foundation only**, runs on Linux CI. Copy lives in the app catalog (keys `ensenanza.<id>.*`); `CenitDesign` never imports it (`LiquidVacio` takes `Text`). |
 
 > **Exercise type override (FER-541).** The user can override an exercise's `ExerciseType` — including a catalog entry's (e.g. mark a "Plank" as time-based). The override is *user data*, so it lives in CenitStore (`exerciseTypeOverride`, migration v24), **not** in the read-only bundled catalog. Precedence (user override > custom > catalog) is decided by the pure `ExerciseTypeResolver` and applied at a single resolver in `Cenit/Data/Repository+Strength.swift` (`resolvedExercise` / `allExercises`), which materializes the effective type into `Exercise.type`. Every downstream reader (guided session, builder, detail) sees the resolved type without bespoke logic; the catalog JSON is never mutated, so reverting is a plain delete.
@@ -250,12 +251,12 @@ back-margin (`deltaBackMarginDays`), and skip a redundant dashboard rebuild when
 fingerprint unchanged. Manual / onboarding / re-bucket callers keep `.manual` (full window).
 
 **Nocturnal beat-to-beat RMSSD (FER-1008).** During sync, `HealthKitBridge.ingestNocturnalHRV` reads
-Apple heartbeat series for recent nights, runs pure `NocturnalHRV` (`StrandAnalytics`), and writes
+Apple heartbeat series for recent nights, runs pure `NocturnalHRV` (`CenitAnalytics`), and writes
 `apple_rmssd_night` / density counts under a dedicated Apple-computed partition (`metricSeries`).
 `Repository.autonomicTrend` reads those points for the categorical `AutonomicTrend` on Today. See §7
 "Generic metric series" for the partition invariants.
 
-**File imports.** `StrandImport` remains parse-only; the app's `AppleHealthImport` writes results into
+**File imports.** `CenitImport` remains parse-only; the app's `AppleHealthImport` writes results into
 the same store (see §8). Under the pinned `.appleHealthOnly` mode, `DataSourcePolicy` filters reads so
 dormant legacy device partitions (raw + computed) never enter the dashboard merge.
 
@@ -287,7 +288,7 @@ memory that dies with the process. Folding more Watch physiology into the recove
 remains open product work.
 
 The in-progress session is **durable across a crash/kill of the iPhone** (FER-798): a Codable
-`StrengthSessionSnapshot` (defined in `StrandTraining`) is written to `CenitStore`'s singleton
+`StrengthSessionSnapshot` (defined in `CenitTraining`) is written to `CenitStore`'s singleton
 `inProgressStrengthSession` table on start and on each durable edit (debounced; immediate on rest
 start/end), and restored in the launch `analysisTask` — so the Apple Watch's queued `.end` finds a live
 session and saves the receipt instead of dropping the workout. The snapshot is deleted on save/discard.
@@ -386,7 +387,7 @@ in v37**; the Apple-sourced equivalents live as daily columns instead.
   and per-meal daily adherence keyed `(deviceId, day, mealId)` with a tri-state `status`
   (cumpli/sustitui/salte) plus a nullable `optionIndex` (v16, FER-401) recording WHICH equivalent
   `opciones` index was eaten — registro only, it does not change the apego %. CenitStore never decodes
-  the plan (that's `StrandImport.DietPlan`); the apego % (FER-372) is computed from `dietAdherence`
+  the plan (that's `CenitImport.DietPlan`); the apego % (FER-372) is computed from `dietAdherence`
   against the active plan's meal count. Mirrors `journal`.
 - `inProgressStrengthSession` (v28, FER-798) — a singleton control table (0 or 1 row, PK `id`) holding a
   Codable `StrengthSessionSnapshot` as an opaque JSON blob: the guided strength session in progress, so a
@@ -408,13 +409,13 @@ in v37**; the Apple-sourced equivalents live as daily columns instead.
   pause-excluded: captured by `StrengthSessionModel` (the rest phase's actual run for its owner set —
   closed by skip/auto-skip, the next check-off, or an inline done; navigation jumps and session end
   DISCARD an open rest), persisted through `saveSession`, read back by
-  `realRestSeconds(routineId:sessionLimit:)` and averaged by the pure `StrandTraining.RestStats`
+  `realRestSeconds(routineId:sessionLimit:)` and averaged by the pure `CenitTraining.RestStats`
   (interruption cap 900 s) for the hub's «DESCANSO REAL» tile. NULL = no measured rest (last set,
   intra-round superset jump, «sin descanso», pre-v40 rows) — never a default 0.
 - `strengthHrSample` (v41, FER-226) — one row per `(sessionId, ts)`: raw watch-pulse samples captured
   during a live guided strength session, reviving the capturer F7 ("la banda nunca existió") had
   accidentally amputated with the band. `AppModel.ingestWatchPulse` admits each pulse through the pure
-  `StrandTraining.StrengthHRIntake` gate (drops it while paused, outside 25…240 bpm, or repeating the
+  `CenitTraining.StrengthHRIntake` gate (drops it while paused, outside 25…240 bpm, or repeating the
   last accepted timestamp) and flushes to `CenitStore.appendStrengthHR` every 30 samples plus once more
   at save (`attemptStrengthSave`) — the natural `(sessionId, ts)` PK makes a retried flush a no-op for
   whatever already landed, never a duplicate. `AppModel.restoreInProgressStrengthSessionIfNeeded`
@@ -448,7 +449,7 @@ Apple-computed nocturnal-HRV source, holding the nightly nocturnal-HRV scalars: 
 only when the night is dense), plus `apple_rr_clean_night` and `apple_rr_pairs_night` (the density counts,
 written for every processed night). `HealthKitBridge.ingestNocturnalHRV` writes them from the Apple
 heartbeat series; `Repository.autonomicTrend` reads `apple_rmssd_night` back to compute the categorical
-`AutonomicTrend` (`NocturnalHRV` → `AutonomicTrend`, both pure in `StrandAnalytics`). This partition is
+`AutonomicTrend` (`NocturnalHRV` → `AutonomicTrend`, both pure in `CenitAnalytics`). This partition is
 **deliberately distinct** from both the legacy wearable's computed source and raw `apple-health`: the Apple RMSSD-per-night
 baseline is a construct of its own and must never be pooled with the legacy wearable's RMSSD or with Apple's SDNN
 (three separate baselines — the "own baseline per construct" invariant, FER-629).
@@ -456,7 +457,7 @@ baseline is a construct of its own and must never be pooled with the legacy wear
 **Retired: the body-clock phase table.** `circadianPhase` held one cosinor phase estimate per civil
 day for an experimental surface. Its input signal was an accelerometer rest-activity rhythm that no
 longer has a producer, and the table was **dropped in v37** along with the surface it fed. The store
-keeps no dependency on `StrandAnalytics`, which is why its confidence column had held a raw string
+keeps no dependency on `CenitAnalytics`, which is why its confidence column had held a raw string
 rather than an enum.
 
 **Retired: the raw frame outbox.** `rawBatch` was a compressed, prunable record of original frames,
@@ -515,7 +516,7 @@ URL (export.xml / export.zip / folder)
         └─ AppleHealthImporter   → streamed export.xml (aggregated) → AppleHealthImport  → store rows
 ```
 
-`StrandImport` is **parse-only**; the app's `AppleHealthImport` glue maps the normalized results into
+`CenitImport` is **parse-only**; the app's `AppleHealthImport` glue maps the normalized results into
 `dailyMetric`, `sleepSession`, `workout`, `appleDaily`, and `metricSeries` rows, then calls
 `Repository.refresh()`. Apple Health's `export.xml` is parsed with a streaming reader so
 multi-hundred-MB files don't blow up memory.
@@ -526,7 +527,7 @@ or manual entry — into a `DietPlan`, which the app maps to a `dietPlan` row (F
 brings the JSON in, so Cénit still makes no network call.
 
 Apple-Health sleep STAGES are the live-sync counterpart of the import path (FER-486): `HealthKitBridge`
-reads `sleepAnalysis` category samples, and the pure `SleepHKDecoder` (`StrandImport`, the inverse of
+reads `sleepAnalysis` category samples, and the pure `SleepHKDecoder` (`CenitImport`, the inverse of
 `SleepHKEncoder`) groups them into one `CachedSleepSession` per night — gap-based, 1 h threshold —
 mapping Apple's deep/REM/core/awake onto the `[{start,end,stage}]` `stagesJSON` the hypnogram already
 reads, stored under `deviceId="apple-health"`. So a night that came from Apple (Combined-without-band,
@@ -541,8 +542,8 @@ band win per night by interval overlap. No migration — the `sleepSession` tabl
 workouts a user logged in *another* app (Strong, Hevy, Apple's own Fitness) — surfacing those honestly
 under Cénit's «Fuerza» dialect risks two failure modes: double-counting a workout the user *also*
 tracked live in Cénit (the same session read twice), and two third-party apps each writing their own
-overlapping `HKWorkout` for one real session. `StrandImport.WorkoutHealthKitDedup` (pure,
-Foundation-only, no `CenitStore`/`StrandTraining` import) resolves both, in order: **echo** drops an
+overlapping `HKWorkout` for one real session. `CenitImport.WorkoutHealthKitDedup` (pure,
+Foundation-only, no `CenitStore`/`CenitTraining` import) resolves both, in order: **echo** drops an
 Apple-sourced loose-strength row (sport contains strength/weight/lift/functional) that time-overlaps a
 rich `RichInterval` (a completed `StrengthSession`, Cénit-logged or CSV-imported) — the rich session
 always wins, since it has the actual sets; **collapse** then keeps only the longest of any cluster of
@@ -765,7 +766,7 @@ off-main** (FER-868). Each pass takes ONE `CenitStore.streamDayCounts` snapshot 
 civil day per raw stream; sound because the stream writers only `INSERT … ON CONFLICT DO NOTHING`,
 never UPDATE — a backfill that fills a gap moves the COUNT even when it doesn't move MAX(ts), and a
 safe-trim lowers it) and compares each night's window signature (`AnalysisScheduler`, pure, in
-`StrandAnalytics`) against an **in-memory** cache: clean nights replay their cached pass-1
+`CenitAnalytics`) against an **in-memory** cache: clean nights replay their cached pass-1
 `NightResult` with zero store reads; only dirty nights (plus today, always) pay the 8 stream reads +
 `analyzeDay`. Pass 2 — the baseline seed + `recomputeRecovery` — still runs over ALL nights
 unchanged, so the published scores are identical to a full pass; the upserts also still write the
@@ -779,7 +780,7 @@ derivatives it persists (`motion_intensity`, `act_hNN`) are described in §7 "Ge
 
 Screens render with `CenitDesign` components — `RecoveryZoneGauge`, `Hypnogram`,
 `TrendChart`, `TrajectoryChart` (the goal simulator's two-path + confidence-band plot), `Sparkline`,
-`YearHeatStrip` — over the `StrandPalette` tokens. `AppModel` also hosts
+`YearHeatStrip` — over the `CenitPalette` tokens. `AppModel` also hosts
 the opt-in on-device behaviors: pulse smoothing, illness and load early warnings, stress nudges,
 zone-based haptic coaching, gesture actions, wear automation and the smart alarm. Every one of them
 defaults to off, and every one computes locally.
@@ -829,7 +830,7 @@ tint), and the pure **OKLab** colour math (Ottosson 2020) backs the paper gradie
 (`paperHi`/`paperLo`/`inkDim`), `DiurnalDial.dayGold`, `ReferenceRange`, and the AA-repairing
 `positiveText`/`negativeText` (the base anchor's hues clear WCAG AA on its paper; pinned in
 `InstrumentoThemeEngineTests` / `FitnessAgeContrastTests`). **Package purity:** sunrise/sunset
-(`StrandAnalytics.SolarClock`, FER-133) is consumed by **injection** of a plain `SolarWindow` value,
+(`CenitAnalytics.SolarClock`, FER-133) is consumed by **injection** of a plain `SolarWindow` value,
 never imported — `CenitDesign` remains the dependency-free leaf of the package graph, 100% offline
 (`Date`/`Calendar` only).
 
@@ -1041,7 +1042,7 @@ solo baja; `test_semillaCoincideConRegistro` mantiene la semilla igual al regist
 2. **Derived values are cheap; the rows underneath are not.** A score can always be recomputed from
    the samples and the day rows, so those are what the store protects. Anything derived that gets
    persisted is a cache, and its upsert never blanks a good value with a partial one.
-3. **Pure cores, thin shell.** `CenitStore`, `StrandAnalytics`, and `StrandImport` are platform-pure
+3. **Pure cores, thin shell.** `CenitStore`, `CenitAnalytics`, and `CenitImport` are platform-pure
    and testable in isolation; the app target is the only SwiftUI surface.
 4. **Interoperability, not impersonation.** Cénit reads your Apple Health data and your exports for your
    own use. It is not a medical device.

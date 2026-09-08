@@ -1,6 +1,6 @@
 # Assets
 
-Brand and icon assets for the Strand / Cénit design system. Copied from the app's
+Brand and icon assets for the Cenit / Cénit design system. Copied from the app's
 asset catalogs and `docs/assets/`.
 
 ## `brand/`

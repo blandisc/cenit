@@ -2,7 +2,7 @@
 import Foundation
 import BiometricStreams
 import CenitStore
-import StrandModels
+import CenitModels
 
 /// Estados de fixture de la familia **Tendencias** para el mapa 100 % (FER-381 · Ola 2B FER-384).
 ///

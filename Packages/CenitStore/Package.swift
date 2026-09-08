@@ -5,7 +5,7 @@ import PackageDescription
 // (sólo se agregan, nunca se editan) y los repositorios que la app consulta.
 //
 // Es el único paquete que toca disco. Habla el vocabulario de BiometricStreams y las formas de
-// StrandModels, y conoce el dominio de fuerza de StrandTraining para poder guardarlo.
+// CenitModels, y conoce el dominio de fuerza de CenitTraining para poder guardarlo.
 
 /// Concurrencia estricta en el objetivo y en sus pruebas, escrita una sola vez.
 private let concurrenciaEstricta: [SwiftSetting] = [.enableExperimentalFeature("StrictConcurrency")]
@@ -17,7 +17,7 @@ private let grdb = Target.Dependency.product(name: "GRDB", package: "GRDB.swift"
 /// migración v33 del catálogo de ejercicios (DEFLATE crudo, FER-923); viajan comprimidos porque
 /// se leen una sola vez, al migrar.
 private let almacen = Target.target(name: "CenitStore",
-                                    dependencies: ["BiometricStreams", "StrandModels", "StrandTraining", grdb],
+                                    dependencies: ["BiometricStreams", "CenitModels", "CenitTraining", grdb],
                                     resources: [
                                         .copy("Resources/exercise-id-remap.json.zlib"),
                                         .copy("Resources/legacy-exercise-data.json.zlib"),
@@ -39,8 +39,8 @@ let package = Package(name: "CenitStore",
                       products: [.library(name: "CenitStore", type: .static, targets: ["CenitStore"])],
                       dependencies: [
                           .package(path: "../BiometricStreams"),
-                          .package(path: "../StrandModels"),
-                          .package(path: "../StrandTraining"),
+                          .package(path: "../CenitModels"),
+                          .package(path: "../CenitTraining"),
                           .package(url: "https://github.com/groue/GRDB.swift.git", from: "6.0.0"),
                       ],
                       targets: [almacen, pruebas])

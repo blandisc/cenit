@@ -1,6 +1,6 @@
 import Foundation
 import SwiftUI
-import StrandAnalytics
+import CenitAnalytics
 import CenitDesign
 
 // MARK: - LiquidHoyBuilder (FER-1045)

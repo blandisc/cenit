@@ -6,7 +6,7 @@ import PackageDescription
 // `ParsedValue`.
 //
 // Es la RAÍZ del grafo de paquetes y por eso no depende de nada: sólo Foundation. Así la
-// persistencia (CenitStore) y la matemática (StrandAnalytics) hablan el mismo idioma sin que
+// persistencia (CenitStore) y la matemática (CenitAnalytics) hablan el mismo idioma sin que
 // ninguna de las dos tenga que depender de la otra (FER-993 · D2).
 
 /// Concurrencia estricta en el objetivo y en sus pruebas, escrita una sola vez.

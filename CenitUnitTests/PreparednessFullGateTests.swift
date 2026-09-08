@@ -1,5 +1,5 @@
 import XCTest
-import StrandModels
+import CenitModels
 @testable import Cenit
 
 /// Fija la compuerta que decide CUÁNDO se publica el veredicto de «Preparación».

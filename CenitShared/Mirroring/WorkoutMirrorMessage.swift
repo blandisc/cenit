@@ -1,5 +1,5 @@
 import Foundation
-import StrandTraining   // C1 (FER-361): the wire carries the real snapshot/set types (Decision A)
+import CenitTraining   // C1 (FER-361): the wire carries the real snapshot/set types (Decision A)
 
 /// The single contract for the strength-session **workout mirroring** channel between the iPhone and
 /// the Apple Watch (FER-740, F1.1 of the Apple Watch epic FER-391). Both processes share this one

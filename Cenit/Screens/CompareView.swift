@@ -1,7 +1,7 @@
 import SwiftUI
 import Foundation
 import CenitDesign
-import StrandAnalytics
+import CenitAnalytics
 import CenitStore
 
 // MARK: - Comparar · superponer señales y sacar conclusiones (Liquid Glass · El Eje)

@@ -2,8 +2,8 @@
 import SwiftUI
 import TipKit
 import CenitDesign
-import StrandTraining
-import StrandAnalytics
+import CenitTraining
+import CenitAnalytics
 
 // MARK: - «La Hoja» — F1, la hoja en frío (FER-166)
 //

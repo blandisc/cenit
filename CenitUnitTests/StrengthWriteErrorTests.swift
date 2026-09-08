@@ -1,6 +1,6 @@
 import XCTest
 import CenitStore
-import StrandTraining
+import CenitTraining
 
 /// Pins the happy path of the strength write contract that now throws (L2-A1c):
 /// `setExerciseTypeOverride` + re-read round-trips on a real store in tmp.

@@ -1,6 +1,6 @@
 import SwiftUI
 import CenitDesign
-import StrandTraining
+import CenitTraining
 
 /// ↗ +2,5 kg cada 2 — active progression plan chip under an exercise name (RoutineEditor / Builder).
 struct ProgressionChip: View {

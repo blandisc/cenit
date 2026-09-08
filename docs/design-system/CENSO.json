@@ -305,12 +305,12 @@
     {
       "file" : "Cenit\/Screens\/ExerciseDetailScreen.swift",
       "line" : 589,
-      "snippet" : "Button { variant = ex } label: {             Text(StrengthDisplay.name(ex))                 .font(StrandFont.subhead)..."
+      "snippet" : "Button { variant = ex } label: {             Text(StrengthDisplay.name(ex))                 .font(CenitFont.subhead)..."
     },
     {
       "file" : "Cenit\/Screens\/ExerciseDetailScreen.swift",
       "line" : 590,
-      "snippet" : "Text(StrengthDisplay.name(ex))                 .font(StrandFont.subhead).foregroundStyle(theme.ink)                 ...."
+      "snippet" : "Text(StrengthDisplay.name(ex))                 .font(CenitFont.subhead).foregroundStyle(theme.ink)                 ...."
     },
     {
       "file" : "Cenit\/Screens\/ExerciseDetailScreen.swift",
@@ -365,7 +365,7 @@
     {
       "file" : "Cenit\/Screens\/ExerciseLibraryScreen.swift",
       "line" : 388,
-      "snippet" : "HStack(spacing: CenitMetrics.space2) {                     CenitIcon.add.image.font(StrandFont.glyph(.inline, weight..."
+      "snippet" : "HStack(spacing: CenitMetrics.space2) {                     CenitIcon.add.image.font(CenitFont.glyph(.inline, weight..."
     },
     {
       "file" : "Cenit\/Screens\/ExerciseLibraryScreen.swift",
@@ -385,7 +385,7 @@
     {
       "file" : "Cenit\/Screens\/ExerciseLibraryScreen.swift",
       "line" : 566,
-      "snippet" : "TextField(\"e.g. Svend press\", text: $name)                         .font(StrandFont.body).foregroundStyle(theme.ink) ..."
+      "snippet" : "TextField(\"e.g. Svend press\", text: $name)                         .font(CenitFont.body).foregroundStyle(theme.ink) ..."
     },
     {
       "file" : "Cenit\/Screens\/ExerciseLibraryScreen.swift",
@@ -405,7 +405,7 @@
     {
       "file" : "Cenit\/Screens\/ExerciseLibraryScreen.swift",
       "line" : 640,
-      "snippet" : "HStack(spacing: CenitMetrics.gap) {                 Image(systemName: StrengthDisplay.typeIcon(t)).font(StrandFont.gl..."
+      "snippet" : "HStack(spacing: CenitMetrics.gap) {                 Image(systemName: StrengthDisplay.typeIcon(t)).font(CenitFont.gl..."
     },
     {
       "file" : "Cenit\/Screens\/Hoja\/HojaPlegada.swift",
@@ -470,12 +470,12 @@
     {
       "file" : "Cenit\/Screens\/Hoja\/RoutineSheetLive.swift",
       "line" : 467,
-      "snippet" : "Button { archivarZombie() } label: {                     Text(\"Archive\").font(StrandFont.subhead.weight(.semibold)).f..."
+      "snippet" : "Button { archivarZombie() } label: {                     Text(\"Archive\").font(CenitFont.subhead.weight(.semibold)).f..."
     },
     {
       "file" : "Cenit\/Screens\/Hoja\/RoutineSheetLive.swift",
       "line" : 468,
-      "snippet" : "Text(\"Archive\").font(StrandFont.subhead.weight(.semibold)).foregroundStyle(sheet.theme.ink)                         ...."
+      "snippet" : "Text(\"Archive\").font(CenitFont.subhead.weight(.semibold)).foregroundStyle(sheet.theme.ink)                         ...."
     },
     {
       "file" : "Cenit\/Screens\/Hoja\/RoutineSheetLive.swift",
@@ -485,7 +485,7 @@
     {
       "file" : "Cenit\/Screens\/Hoja\/RoutineSheetLive.swift",
       "line" : 474,
-      "snippet" : "(Text(\"Keep training\") + Text(verbatim: \" ›\"))                         .font(StrandFont.subhead.weight(.bold)).foregr..."
+      "snippet" : "(Text(\"Keep training\") + Text(verbatim: \" ›\"))                         .font(CenitFont.subhead.weight(.bold)).foregr..."
     },
     {
       "file" : "Cenit\/Screens\/Hoja\/RoutineSheetLiveCabecera.swift",
@@ -530,7 +530,7 @@
     {
       "file" : "Cenit\/Screens\/Hoja\/RoutineSheetLiveFoco.swift",
       "line" : 240,
-      "snippet" : "Text(running ? String(localized: \"Stop and save\") : String(localized: \"Start\"))                     .font(StrandFont...."
+      "snippet" : "Text(running ? String(localized: \"Stop and save\") : String(localized: \"Start\"))                     .font(CenitFont...."
     },
     {
       "file" : "Cenit\/Screens\/Hoja\/RoutineSheetLiveFoco.swift",
@@ -540,7 +540,7 @@
     {
       "file" : "Cenit\/Screens\/Hoja\/RoutineSheetLiveFoco.swift",
       "line" : 284,
-      "snippet" : "Text(running ? String(localized: \"Stop and save\") : String(localized: \"Start\"))                     .font(StrandFont...."
+      "snippet" : "Text(running ? String(localized: \"Stop and save\") : String(localized: \"Start\"))                     .font(CenitFont...."
     },
     {
       "file" : "Cenit\/Screens\/Hoja\/RoutineSheetLiveFoco.swift",
@@ -580,7 +580,7 @@
     {
       "file" : "Cenit\/Screens\/Hoja\/RoutineSheetLiveFoco.swift",
       "line" : 498,
-      "snippet" : "Text(\"ZONE \\(zone) · \\(bpm)\")             .font(StrandFont.caption.weight(.bold)).foregroundStyle(LiquidColor.tinta50..."
+      "snippet" : "Text(\"ZONE \\(zone) · \\(bpm)\")             .font(CenitFont.caption.weight(.bold)).foregroundStyle(LiquidColor.tinta50..."
     },
     {
       "file" : "Cenit\/Screens\/Hoja\/RoutineSheetLiveLogic.swift",
@@ -595,7 +595,7 @@
     {
       "file" : "Cenit\/Screens\/Hoja\/RoutineSheetLiveLogic.swift",
       "line" : 702,
-      "snippet" : "Label(\"Change rest\", systemImage: \"pencil\").font(StrandFont.caption).foregroundStyle(sheet.theme.ink)                ..."
+      "snippet" : "Label(\"Change rest\", systemImage: \"pencil\").font(CenitFont.caption).foregroundStyle(sheet.theme.ink)                ..."
     },
     {
       "file" : "Cenit\/Screens\/Hoja\/RoutineSheetLiveTarjeta.swift",
@@ -610,12 +610,12 @@
     {
       "file" : "Cenit\/Screens\/Hoja\/RoutineSheetLiveTarjeta.swift",
       "line" : 342,
-      "snippet" : "Text(\"ZONE \\(zone) · \\(bpm)\")             .font(StrandFont.caption.weight(.bold)).foregroundStyle(vivo.sheet.theme.in..."
+      "snippet" : "Text(\"ZONE \\(zone) · \\(bpm)\")             .font(CenitFont.caption.weight(.bold)).foregroundStyle(vivo.sheet.theme.in..."
     },
     {
       "file" : "Cenit\/Screens\/Hoja\/RoutineSheetLiveTarjeta.swift",
       "line" : 353,
-      "snippet" : "HStack(spacing: LiquidSpace.s150) {             Text(\"RECORD\").font(StrandFont.caption.weight(.bold)).foregroundStyle..."
+      "snippet" : "HStack(spacing: LiquidSpace.s150) {             Text(\"RECORD\").font(CenitFont.caption.weight(.bold)).foregroundStyle..."
     },
     {
       "file" : "Cenit\/Screens\/Hoja\/RoutineSheetLiveTarjeta.swift",
@@ -790,12 +790,12 @@
     {
       "file" : "Cenit\/Screens\/LiveStrengthSheet.swift",
       "line" : 1438,
-      "snippet" : "Label(\"Print receipt\", systemImage: \"printer\")                     .font(StrandFont.subhead).fontWeight(.medium)     ..."
+      "snippet" : "Label(\"Print receipt\", systemImage: \"printer\")                     .font(CenitFont.subhead).fontWeight(.medium)     ..."
     },
     {
       "file" : "Cenit\/Screens\/LiveStrengthSheet.swift",
       "line" : 1728,
-      "snippet" : "HStack(spacing: 10) {             Text(label).font(StrandFont.caption).foregroundStyle(theme.inkSecondary)           ..."
+      "snippet" : "HStack(spacing: 10) {             Text(label).font(CenitFont.caption).foregroundStyle(theme.inkSecondary)           ..."
     },
     {
       "file" : "Cenit\/Screens\/LiveStrengthSheet.swift",
@@ -835,17 +835,17 @@
     {
       "file" : "Cenit\/Screens\/LiveStrengthSheets.swift",
       "line" : 415,
-      "snippet" : "HStack(spacing: 9) {             CenitIcon.search.image.font(StrandFont.glyph(.inline)).foregroundStyle(theme.inkTer..."
+      "snippet" : "HStack(spacing: 9) {             CenitIcon.search.image.font(CenitFont.glyph(.inline)).foregroundStyle(theme.inkTer..."
     },
     {
       "file" : "Cenit\/Screens\/LiveStrengthSheets.swift",
       "line" : 457,
-      "snippet" : "Button { onUse(ex) } label: {             Text(\"Use\").font(StrandFont.caption).foregroundStyle(theme.ink)            ..."
+      "snippet" : "Button { onUse(ex) } label: {             Text(\"Use\").font(CenitFont.caption).foregroundStyle(theme.ink)            ..."
     },
     {
       "file" : "Cenit\/Screens\/LiveStrengthSheets.swift",
       "line" : 458,
-      "snippet" : "Text(\"Use\").font(StrandFont.caption).foregroundStyle(theme.ink)                 .padding(.horizontal, CenitMetrics.ga..."
+      "snippet" : "Text(\"Use\").font(CenitFont.caption).foregroundStyle(theme.ink)                 .padding(.horizontal, CenitMetrics.ga..."
     },
     {
       "file" : "Cenit\/Screens\/ManualWorkoutSheet.swift",
@@ -860,7 +860,7 @@
     {
       "file" : "Cenit\/Screens\/ManualWorkoutSheet.swift",
       "line" : 149,
-      "snippet" : "Text(editing == nil ? \"Add\" : \"Save\")                         .font(StrandFont.headline)                         .for..."
+      "snippet" : "Text(editing == nil ? \"Add\" : \"Save\")                         .font(CenitFont.headline)                         .for..."
     },
     {
       "file" : "Cenit\/Screens\/MetricExplorerView.swift",
@@ -885,7 +885,7 @@
     {
       "file" : "Cenit\/Screens\/PlanAppliedToast.swift",
       "line" : 20,
-      "snippet" : "Text(\"Template applied · your week is set, edit it whenever\")                         .font(StrandFont.caption).fontW..."
+      "snippet" : "Text(\"Template applied · your week is set, edit it whenever\")                         .font(CenitFont.caption).fontW..."
     },
     {
       "file" : "Cenit\/Screens\/PlatesScreen.swift",
@@ -900,7 +900,7 @@
     {
       "file" : "Cenit\/Screens\/ProgressionSetupScreen.swift",
       "line" : 220,
-      "snippet" : "text.font(StrandFont.caption).foregroundStyle(accented ? theme.ink : theme.inkSecondary)             .fixedSize(horiz..."
+      "snippet" : "text.font(CenitFont.caption).foregroundStyle(accented ? theme.ink : theme.inkSecondary)             .fixedSize(horiz..."
     },
     {
       "file" : "Cenit\/Screens\/ProgressionSetupScreen.swift",
@@ -915,12 +915,12 @@
     {
       "file" : "Cenit\/Screens\/RoutineSetEditing.swift",
       "line" : 258,
-      "snippet" : "Button(action: action) {             HStack(spacing: 5) {                 Image(systemName: \"trash\").font(StrandFont...."
+      "snippet" : "Button(action: action) {             HStack(spacing: 5) {                 Image(systemName: \"trash\").font(CenitFont...."
     },
     {
       "file" : "Cenit\/Screens\/RoutineSetEditing.swift",
       "line" : 259,
-      "snippet" : "HStack(spacing: 5) {                 Image(systemName: \"trash\").font(StrandFont.glyph(.chevron))                 Text..."
+      "snippet" : "HStack(spacing: 5) {                 Image(systemName: \"trash\").font(CenitFont.glyph(.chevron))                 Text..."
     },
     {
       "file" : "Cenit\/Screens\/SessionKeypad.swift",
@@ -935,12 +935,12 @@
     {
       "file" : "Cenit\/Screens\/SessionKeypad.swift",
       "line" : 212,
-      "snippet" : "Button(action: { if enabled { action() } }) {             Text(text).font(StrandFont.caption)                 .foregr..."
+      "snippet" : "Button(action: { if enabled { action() } }) {             Text(text).font(CenitFont.caption)                 .foregr..."
     },
     {
       "file" : "Cenit\/Screens\/SessionKeypad.swift",
       "line" : 213,
-      "snippet" : "Text(text).font(StrandFont.caption)                 .foregroundStyle(enabled ? theme.ink : theme.inkMuted)           ..."
+      "snippet" : "Text(text).font(CenitFont.caption)                 .foregroundStyle(enabled ? theme.ink : theme.inkMuted)           ..."
     },
     {
       "file" : "Cenit\/Screens\/SessionKeypad.swift",
@@ -965,12 +965,12 @@
     {
       "file" : "Cenit\/Screens\/SessionKeypad.swift",
       "line" : 301,
-      "snippet" : "Button(action: { if enabled { action() } }) {             Text(label)                 .font(StrandFont.subhead.weight..."
+      "snippet" : "Button(action: { if enabled { action() } }) {             Text(label)                 .font(CenitFont.subhead.weight..."
     },
     {
       "file" : "Cenit\/Screens\/SessionKeypad.swift",
       "line" : 302,
-      "snippet" : "Text(label)                 .font(StrandFont.subhead.weight(.semibold)).foregroundStyle(theme.paper)                 ..."
+      "snippet" : "Text(label)                 .font(CenitFont.subhead.weight(.semibold)).foregroundStyle(theme.paper)                 ..."
     },
     {
       "file" : "Cenit\/Screens\/SessionKeypad.swift",
@@ -995,12 +995,12 @@
     {
       "file" : "Cenit\/Screens\/StarterTemplatesSheet.swift",
       "line" : 232,
-      "snippet" : "HStack(spacing: 10) {             Text(name).font(StrandFont.body).foregroundStyle(theme.ink)                 .fixedS..."
+      "snippet" : "HStack(spacing: 10) {             Text(name).font(CenitFont.body).foregroundStyle(theme.ink)                 .fixedS..."
     },
     {
       "file" : "Cenit\/Screens\/StarterTemplatesSheet.swift",
       "line" : 237,
-      "snippet" : "Text(restChipText(slot.restSeconds))                 .font(StrandFont.caption).monospacedDigit().foregroundStyle(them..."
+      "snippet" : "Text(restChipText(slot.restSeconds))                 .font(CenitFont.caption).monospacedDigit().foregroundStyle(them..."
     },
     {
       "file" : "Cenit\/Screens\/TrainingBodyScreen.swift",
@@ -1020,12 +1020,12 @@
     {
       "file" : "Cenit\/Screens\/TrainingBodyScreen.swift",
       "line" : 391,
-      "snippet" : "HStack(spacing: 6) {                 Image(systemName: \"arrow.counterclockwise\").font(StrandFont.glyph(.chevron, weig..."
+      "snippet" : "HStack(spacing: 6) {                 Image(systemName: \"arrow.counterclockwise\").font(CenitFont.glyph(.chevron, weig..."
     },
     {
       "file" : "Cenit\/Screens\/TrainingBodyScreen.swift",
       "line" : 695,
-      "snippet" : "HStack(spacing: CenitMetrics.gap) {             Text(MuscleAtlas.name(v.muscle))                 .font(StrandFont.bod..."
+      "snippet" : "HStack(spacing: CenitMetrics.gap) {             Text(MuscleAtlas.name(v.muscle))                 .font(CenitFont.bod..."
     },
     {
       "file" : "Cenit\/Screens\/TrainingBodyScreen.swift",
@@ -1110,7 +1110,7 @@
     {
       "file" : "Cenit\/Screens\/WeekEditorSheet.swift",
       "line" : 71,
-      "snippet" : "Text(\"Days already trained can't be edited\")                     .font(StrandFont.caption).fontWeight(.medium)       ..."
+      "snippet" : "Text(\"Days already trained can't be edited\")                     .font(CenitFont.caption).fontWeight(.medium)       ..."
     },
     {
       "file" : "Cenit\/Screens\/WeeklyPlanEditorView.swift",
@@ -1305,7 +1305,7 @@
     {
       "file" : "Cenit\/Screens\/WorkoutHistoryScreen.swift",
       "line" : 1297,
-      "snippet" : "HStack(spacing: CenitMetrics.gap) {             Text(\"Workout deleted\").font(StrandFont.subhead).foregroundStyle(them..."
+      "snippet" : "HStack(spacing: CenitMetrics.gap) {             Text(\"Workout deleted\").font(CenitFont.subhead).foregroundStyle(them..."
     },
     {
       "file" : "Cenit\/Screens\/WorkoutHistoryScreen.swift",
@@ -1330,7 +1330,7 @@
     {
       "file" : "Cenit\/Screens\/WorkoutHistoryScreen.swift",
       "line" : 1923,
-      "snippet" : "Text(note).font(StrandFont.subhead).foregroundStyle(theme.ink)                 .fixedSize(horizontal: false, vertical..."
+      "snippet" : "Text(note).font(CenitFont.subhead).foregroundStyle(theme.ink)                 .fixedSize(horizontal: false, vertical..."
     },
     {
       "file" : "Cenit\/Screens\/WorkoutHistoryScreen.swift",
@@ -1345,7 +1345,7 @@
     {
       "file" : "Cenit\/Screens\/WorkoutHistoryScreen.swift",
       "line" : 1946,
-      "snippet" : "Text(\"Estimated\")                     .font(StrandFont.caption).foregroundStyle(theme.inkSecondary)                  ..."
+      "snippet" : "Text(\"Estimated\")                     .font(CenitFont.caption).foregroundStyle(theme.inkSecondary)                  ..."
     },
     {
       "file" : "Cenit\/Screens\/WorkoutHistoryScreen.swift",
@@ -1365,17 +1365,17 @@
     {
       "file" : "Cenit\/Screens\/WorkoutHistoryScreen.swift",
       "line" : 1984,
-      "snippet" : "Text(\"PR\").font(StrandFont.captionNumber).foregroundStyle(theme.dataStrain)                             .padding(.hor..."
+      "snippet" : "Text(\"PR\").font(CenitFont.captionNumber).foregroundStyle(theme.dataStrain)                             .padding(.hor..."
     },
     {
       "file" : "Cenit\/Screens\/WorkoutImportView.swift",
       "line" : 211,
-      "snippet" : "TextEditor(text: $pasteText)             .font(StrandFont.mono)             .foregroundStyle(theme.ink)             ...."
+      "snippet" : "TextEditor(text: $pasteText)             .font(CenitFont.mono)             .foregroundStyle(theme.ink)             ...."
     },
     {
       "file" : "Cenit\/Screens\/WorkoutImportView.swift",
       "line" : 291,
-      "snippet" : "VStack(alignment: .leading, spacing: CenitMetrics.space2) {             Text(verbatim: name).font(StrandFont.body)   ..."
+      "snippet" : "VStack(alignment: .leading, spacing: CenitMetrics.space2) {             Text(verbatim: name).font(CenitFont.body)   ..."
     },
     {
       "file" : "Cenit\/Screens\/WorkoutImportView.swift",
@@ -1400,7 +1400,7 @@
     {
       "file" : "Cenit\/Screens\/WorkoutImportView.swift",
       "line" : 337,
-      "snippet" : "HStack(spacing: CenitMetrics.space2) {                                 Image(systemName: \"sparkles\").font(StrandFont...."
+      "snippet" : "HStack(spacing: CenitMetrics.space2) {                                 Image(systemName: \"sparkles\").font(CenitFont...."
     },
     {
       "file" : "Cenit\/Screens\/WorkoutImportView.swift",
@@ -1425,7 +1425,7 @@
     {
       "file" : "Cenit\/Screens\/WorkoutImportView.swift",
       "line" : 488,
-      "snippet" : "Text(mapped == 1 ? \"1 mapped\" : \"\\(mapped) mapped\")                     .font(StrandFont.caption.weight(.semibold)).f..."
+      "snippet" : "Text(mapped == 1 ? \"1 mapped\" : \"\\(mapped) mapped\")                     .font(CenitFont.caption.weight(.semibold)).f..."
     },
     {
       "file" : "Cenit\/Screens\/WorkoutImportView.swift",
@@ -1455,7 +1455,7 @@
     {
       "file" : "Cenit\/Screens\/WorkshopTricksScreen.swift",
       "line" : 85,
-      "snippet" : "Image(systemName: t.systemImage)                 .font(StrandFont.glyph(.inline))                 .foregroundStyle(th..."
+      "snippet" : "Image(systemName: t.systemImage)                 .font(CenitFont.glyph(.inline))                 .foregroundStyle(th..."
     },
     {
       "file" : "Cenit\/System\/RoutineDragAndDrop.swift",
@@ -1470,7 +1470,7 @@
     {
       "file" : "CenitWatch\/Screens\/WatchLiveFaceView.swift",
       "line" : 252,
-      "snippet" : "Text(verbatim: \"Z\\(z)\")                 .font(StrandFont.footnote)                 .foregroundStyle(t.inkSecondary)  ..."
+      "snippet" : "Text(verbatim: \"Z\\(z)\")                 .font(CenitFont.footnote)                 .foregroundStyle(t.inkSecondary)  ..."
     },
     {
       "file" : "CenitWidgets\/RestLiveActivity.swift",
@@ -3953,14 +3953,14 @@
       "file" : "Cenit\/App\/ContentView.swift",
       "line" : 153,
       "rule" : "literal-transition",
-      "snippet" : "Text(restoreMessage)                     .font(StrandFont.subhead)                     .foregroundStyle(theme.ink)   ..."
+      "snippet" : "Text(restoreMessage)                     .font(CenitFont.subhead)                     .foregroundStyle(theme.ink)   ..."
     },
     {
       "dimension" : "spacing",
       "file" : "Cenit\/App\/ContentView.swift",
       "line" : 153,
       "rule" : "literal-padding",
-      "snippet" : "Text(restoreMessage)                     .font(StrandFont.subhead)                     .foregroundStyle(theme.ink)   ...",
+      "snippet" : "Text(restoreMessage)                     .font(CenitFont.subhead)                     .foregroundStyle(theme.ink)   ...",
       "value" : 16
     },
     {
@@ -5363,7 +5363,7 @@
       "file" : "Cenit\/Screens\/ExerciseDetailScreen.swift",
       "line" : 227,
       "rule" : "evasion:.foregroundStyle(.white)-fuera-de-token",
-      "snippet" : "Image(systemName: isLoopPlaying ? \"pause.fill\" : \"play.fill\")                         .font(StrandFont.glyph(.chevron, weight: .semibold)).foregroundStyle(.white)"
+      "snippet" : "Image(systemName: isLoopPlaying ? \"pause.fill\" : \"play.fill\")                         .font(CenitFont.glyph(.chevron, weight: .semibold)).foregroundStyle(.white)"
     },
     {
       "dimension" : "radio_elevacion",
@@ -6309,7 +6309,7 @@
       "file" : "Cenit\/Screens\/Hoja\/RoutineSheetLiveLogic.swift",
       "line" : 702,
       "rule" : "literal-padding",
-      "snippet" : "Label(\"Change rest\", systemImage: \"pencil\").font(StrandFont.caption).foregroundStyle(sheet.theme.ink)                ...",
+      "snippet" : "Label(\"Change rest\", systemImage: \"pencil\").font(CenitFont.caption).foregroundStyle(sheet.theme.ink)                ...",
       "value" : 13
     },
     {
@@ -6405,7 +6405,7 @@
       "file" : "Cenit\/Screens\/Hoja\/RoutineSheetLiveTarjeta.swift",
       "line" : 353,
       "rule" : "literal-transition",
-      "snippet" : "HStack(spacing: LiquidSpace.s150) {             Text(\"RECORD\").font(StrandFont.caption.weight(.bold)).foregroundStyle..."
+      "snippet" : "HStack(spacing: LiquidSpace.s150) {             Text(\"RECORD\").font(CenitFont.caption.weight(.bold)).foregroundStyle..."
     },
     {
       "dimension" : "radio_elevacion",
@@ -6782,7 +6782,7 @@
       "file" : "Cenit\/Screens\/LiveStrengthSheet.swift",
       "line" : 961,
       "rule" : "literal-padding",
-      "snippet" : "Button { model.retryWatchMirroring() } label: {                     Text(\"Retry\").font(StrandFont.caption).fontWeight...",
+      "snippet" : "Button { model.retryWatchMirroring() } label: {                     Text(\"Retry\").font(CenitFont.caption).fontWeight...",
       "value" : 2
     },
     {
@@ -7135,7 +7135,7 @@
       "file" : "Cenit\/Screens\/LiveStrengthSheet.swift",
       "line" : 1872,
       "rule" : "literal-padding",
-      "snippet" : "Text(\"Estimate, you decide\").font(StrandFont.footnote).foregroundStyle(theme.inkTertiary)                 .padding(.t...",
+      "snippet" : "Text(\"Estimate, you decide\").font(CenitFont.footnote).foregroundStyle(theme.inkTertiary)                 .padding(.t...",
       "value" : 2
     },
     {
@@ -7230,7 +7230,7 @@
       "file" : "Cenit\/Screens\/LiveStrengthSheets.swift",
       "line" : 415,
       "rule" : "literal-padding",
-      "snippet" : "HStack(spacing: 9) {             CenitIcon.search.image.font(StrandFont.glyph(.inline)).foregroundStyle(theme.inkTer...",
+      "snippet" : "HStack(spacing: 9) {             CenitIcon.search.image.font(CenitFont.glyph(.inline)).foregroundStyle(theme.inkTer...",
       "value" : 13
     },
     {
@@ -7302,7 +7302,7 @@
       "file" : "Cenit\/Screens\/ManualWorkoutSheet.swift",
       "line" : 149,
       "rule" : "literal-padding",
-      "snippet" : "Text(editing == nil ? \"Add\" : \"Save\")                         .font(StrandFont.headline)                         .for...",
+      "snippet" : "Text(editing == nil ? \"Add\" : \"Save\")                         .font(CenitFont.headline)                         .for...",
       "value" : 9
     },
     {
@@ -7310,7 +7310,7 @@
       "file" : "Cenit\/Screens\/ManualWorkoutSheet.swift",
       "line" : 159,
       "rule" : "literal-padding",
-      "snippet" : "Text(editing == nil ? \"Add\" : \"Save\")                         .font(StrandFont.headline)                         .for...",
+      "snippet" : "Text(editing == nil ? \"Add\" : \"Save\")                         .font(CenitFont.headline)                         .for...",
       "value" : 9
     },
     {
@@ -7610,7 +7610,7 @@
       "file" : "Cenit\/Screens\/PlanAppliedToast.swift",
       "line" : 20,
       "rule" : "literal-transition",
-      "snippet" : "Text(\"Template applied · your week is set, edit it whenever\")                         .font(StrandFont.caption).fontW..."
+      "snippet" : "Text(\"Template applied · your week is set, edit it whenever\")                         .font(CenitFont.caption).fontW..."
     },
     {
       "dimension" : "spacing",
@@ -7687,7 +7687,7 @@
       "file" : "Cenit\/Screens\/PlatesScreen.swift",
       "line" : 174,
       "rule" : "literal-padding",
-      "snippet" : "HStack(spacing: 12) {             Text(\"\\(plate(kg)) kg\")                 .font(StrandFont.subhead)                 ....",
+      "snippet" : "HStack(spacing: 12) {             Text(\"\\(plate(kg)) kg\")                 .font(CenitFont.subhead)                 ....",
       "value" : 10
     },
     {
@@ -7703,7 +7703,7 @@
       "file" : "Cenit\/Screens\/PlatesScreen.swift",
       "line" : 207,
       "rule" : "literal-padding",
-      "snippet" : "HStack(spacing: 12) {             Text(\"Bar\").font(StrandFont.subhead).foregroundStyle(theme.inkSecondary)           ...",
+      "snippet" : "HStack(spacing: 12) {             Text(\"Bar\").font(CenitFont.subhead).foregroundStyle(theme.inkSecondary)           ...",
       "value" : 10
     },
     {
@@ -7734,7 +7734,7 @@
       "file" : "Cenit\/Screens\/PlatesScreen.swift",
       "line" : 230,
       "rule" : "literal-padding",
-      "snippet" : "HStack {                             Text(warmupLabel(set)).font(StrandFont.subhead).foregroundStyle(theme.inkSeconda...",
+      "snippet" : "HStack {                             Text(warmupLabel(set)).font(CenitFont.subhead).foregroundStyle(theme.inkSeconda...",
       "value" : 10
     },
     {
@@ -7813,7 +7813,7 @@
       "file" : "Cenit\/Screens\/ProgressionSetupScreen.swift",
       "line" : 99,
       "rule" : "literal-padding",
-      "snippet" : "Toggle(isOn: $enabled) {                     Text(\"Automatic progression\").font(StrandFont.body).foregroundStyle(them...",
+      "snippet" : "Toggle(isOn: $enabled) {                     Text(\"Automatic progression\").font(CenitFont.body).foregroundStyle(them...",
       "value" : 16
     },
     {
@@ -7821,7 +7821,7 @@
       "file" : "Cenit\/Screens\/ProgressionSetupScreen.swift",
       "line" : 99,
       "rule" : "literal-padding",
-      "snippet" : "Toggle(isOn: $enabled) {                     Text(\"Automatic progression\").font(StrandFont.body).foregroundStyle(them...",
+      "snippet" : "Toggle(isOn: $enabled) {                     Text(\"Automatic progression\").font(CenitFont.body).foregroundStyle(them...",
       "value" : 9
     },
     {
@@ -8256,14 +8256,14 @@
       "file" : "Cenit\/Screens\/RoutineSetEditing.swift",
       "line" : 258,
       "rule" : "literal-transition",
-      "snippet" : "Button(action: action) {             HStack(spacing: 5) {                 Image(systemName: \"trash\").font(StrandFont...."
+      "snippet" : "Button(action: action) {             HStack(spacing: 5) {                 Image(systemName: \"trash\").font(CenitFont...."
     },
     {
       "dimension" : "spacing",
       "file" : "Cenit\/Screens\/RoutineSetEditing.swift",
       "line" : 259,
       "rule" : "literal-padding",
-      "snippet" : "HStack(spacing: 5) {                 Image(systemName: \"trash\").font(StrandFont.glyph(.chevron))                 Text...",
+      "snippet" : "HStack(spacing: 5) {                 Image(systemName: \"trash\").font(CenitFont.glyph(.chevron))                 Text...",
       "value" : 5
     },
     {
@@ -8271,7 +8271,7 @@
       "file" : "Cenit\/Screens\/RoutineSetEditing.swift",
       "line" : 259,
       "rule" : "literal-padding",
-      "snippet" : "HStack(spacing: 5) {                 Image(systemName: \"trash\").font(StrandFont.glyph(.chevron))                 Text...",
+      "snippet" : "HStack(spacing: 5) {                 Image(systemName: \"trash\").font(CenitFont.glyph(.chevron))                 Text...",
       "value" : 9
     },
     {
@@ -8434,7 +8434,7 @@
       "file" : "Cenit\/Screens\/SessionKeypad.swift",
       "line" : 197,
       "rule" : "literal-padding",
-      "snippet" : "Text(\"Next\").font(StrandFont.subhead).fontWeight(.semibold)                         .foregroundStyle(theme.dataRecove...",
+      "snippet" : "Text(\"Next\").font(CenitFont.subhead).fontWeight(.semibold)                         .foregroundStyle(theme.dataRecove...",
       "value" : 12
     },
     {
@@ -8449,7 +8449,7 @@
       "file" : "Cenit\/Screens\/SessionKeypad.swift",
       "line" : 213,
       "rule" : "literal-padding",
-      "snippet" : "Text(text).font(StrandFont.caption)                 .foregroundStyle(enabled ? theme.ink : theme.inkMuted)           ...",
+      "snippet" : "Text(text).font(CenitFont.caption)                 .foregroundStyle(enabled ? theme.ink : theme.inkMuted)           ...",
       "value" : 11
     },
     {
@@ -8558,7 +8558,7 @@
       "file" : "Cenit\/Screens\/ShareCardView.swift",
       "line" : 29,
       "rule" : "literal-padding",
-      "snippet" : "Text(dateString).font(StrandFont.caption).foregroundStyle(theme.inkTertiary).padding(.top, 3)",
+      "snippet" : "Text(dateString).font(CenitFont.caption).foregroundStyle(theme.inkTertiary).padding(.top, 3)",
       "value" : 3
     },
     {
@@ -8605,7 +8605,7 @@
       "file" : "Cenit\/Screens\/ShareCardView.swift",
       "line" : 49,
       "rule" : "literal-padding",
-      "snippet" : "Text(\"★ \\(String(localized: \"Record\")): \\(prText(pr))\")                     .font(StrandFont.subhead).fontWeight(.med...",
+      "snippet" : "Text(\"★ \\(String(localized: \"Record\")): \\(prText(pr))\")                     .font(CenitFont.subhead).fontWeight(.med...",
       "value" : 14
     },
     {
@@ -8674,7 +8674,7 @@
       "file" : "Cenit\/Screens\/StarterTemplatesSheet.swift",
       "line" : 96,
       "rule" : "literal-padding",
-      "snippet" : "Text(\"Begin with a proven base and edit it to taste. Everything works offline.\")                         .font(Strand...",
+      "snippet" : "Text(\"Begin with a proven base and edit it to taste. Everything works offline.\")                         .font(Cenit...",
       "value" : 2
     },
     {
@@ -8690,7 +8690,7 @@
       "file" : "Cenit\/Screens\/StarterTemplatesSheet.swift",
       "line" : 108,
       "rule" : "literal-padding",
-      "snippet" : "Text(routineCountText(StarterTemplates.inGroup(grupo).count))                         .font(StrandFont.subhead).foreg...",
+      "snippet" : "Text(routineCountText(StarterTemplates.inGroup(grupo).count))                         .font(CenitFont.subhead).foreg...",
       "value" : 2
     },
     {
@@ -8794,7 +8794,7 @@
       "file" : "Cenit\/Screens\/StarterTemplatesSheet.swift",
       "line" : 237,
       "rule" : "literal-padding",
-      "snippet" : "Text(restChipText(slot.restSeconds))                 .font(StrandFont.caption).monospacedDigit().foregroundStyle(them...",
+      "snippet" : "Text(restChipText(slot.restSeconds))                 .font(CenitFont.caption).monospacedDigit().foregroundStyle(them...",
       "value" : 2
     },
     {
@@ -8802,7 +8802,7 @@
       "file" : "Cenit\/Screens\/StarterTemplatesSheet.swift",
       "line" : 237,
       "rule" : "literal-padding",
-      "snippet" : "Text(restChipText(slot.restSeconds))                 .font(StrandFont.caption).monospacedDigit().foregroundStyle(them...",
+      "snippet" : "Text(restChipText(slot.restSeconds))                 .font(CenitFont.caption).monospacedDigit().foregroundStyle(them...",
       "value" : 7
     },
     {
@@ -8980,7 +8980,7 @@
       "file" : "Cenit\/Screens\/TrainingBodyScreen.swift",
       "line" : 291,
       "rule" : "literal-padding",
-      "snippet" : "Text(\"Tap a muscle to see its load\")                     .font(StrandFont.caption).foregroundStyle(theme.inkTertiary)...",
+      "snippet" : "Text(\"Tap a muscle to see its load\")                     .font(CenitFont.caption).foregroundStyle(theme.inkTertiary)...",
       "value" : 10
     },
     {
@@ -9435,7 +9435,7 @@
       "file" : "Cenit\/Screens\/TrainingBodyScreen.swift",
       "line" : 1042,
       "rule" : "literal-padding",
-      "snippet" : "HStack {                     Text(hit.name).font(StrandFont.body).foregroundStyle(theme.ink)                     Spac...",
+      "snippet" : "HStack {                     Text(hit.name).font(CenitFont.body).foregroundStyle(theme.ink)                     Spac...",
       "value" : 7
     },
     {
@@ -9625,7 +9625,7 @@
       "file" : "Cenit\/Screens\/WeekEditorSheet.swift",
       "line" : 71,
       "rule" : "literal-transition",
-      "snippet" : "Text(\"Days already trained can't be edited\")                     .font(StrandFont.caption).fontWeight(.medium)       ..."
+      "snippet" : "Text(\"Days already trained can't be edited\")                     .font(CenitFont.caption).fontWeight(.medium)       ..."
     },
     {
       "dimension" : "spacing",
@@ -9845,7 +9845,7 @@
       "file" : "Cenit\/Screens\/WeeklyPlanEditorView.swift",
       "line" : 437,
       "rule" : "literal-padding",
-      "snippet" : "Text(\"No routines yet. Create one, start from a template, or import a plan.\")                         .font(StrandFon...",
+      "snippet" : "Text(\"No routines yet. Create one, start from a template, or import a plan.\")                         .font(CenitFon...",
       "value" : 10
     },
     {
@@ -10293,7 +10293,7 @@
       "file" : "Cenit\/Screens\/WorkoutEditSheet.swift",
       "line" : 292,
       "rule" : "literal-padding",
-      "snippet" : "HStack(spacing: 6) {                 CenitIcon.add.image.font(StrandFont.glyph(.chevron, weight: .semibold))        ...",
+      "snippet" : "HStack(spacing: 6) {                 CenitIcon.add.image.font(CenitFont.glyph(.chevron, weight: .semibold))        ...",
       "value" : 6
     },
     {
@@ -10309,7 +10309,7 @@
       "file" : "Cenit\/Screens\/WorkoutEditSheet.swift",
       "line" : 305,
       "rule" : "literal-padding",
-      "snippet" : "HStack(spacing: 10) {             Text(\"Set \\(si + 1)\").font(StrandFont.subhead).foregroundStyle(theme.inkTertiary)  ...",
+      "snippet" : "HStack(spacing: 10) {             Text(\"Set \\(si + 1)\").font(CenitFont.subhead).foregroundStyle(theme.inkTertiary)  ...",
       "value" : 5
     },
     {
@@ -10612,7 +10612,7 @@
       "file" : "Cenit\/Screens\/WorkoutHistoryScreen.swift",
       "line" : 1168,
       "rule" : "literal-padding",
-      "snippet" : "VStack(spacing: 11) {             Image(systemName: \"clock.arrow.circlepath\")                 .font(StrandFont.glyph(...",
+      "snippet" : "VStack(spacing: 11) {             Image(systemName: \"clock.arrow.circlepath\")                 .font(CenitFont.glyph(...",
       "value" : 34
     },
     {
@@ -10643,14 +10643,14 @@
       "file" : "Cenit\/Screens\/WorkoutHistoryScreen.swift",
       "line" : 1297,
       "rule" : "literal-transition",
-      "snippet" : "HStack(spacing: CenitMetrics.gap) {             Text(\"Workout deleted\").font(StrandFont.subhead).foregroundStyle(them..."
+      "snippet" : "HStack(spacing: CenitMetrics.gap) {             Text(\"Workout deleted\").font(CenitFont.subhead).foregroundStyle(them..."
     },
     {
       "dimension" : "spacing",
       "file" : "Cenit\/Screens\/WorkoutHistoryScreen.swift",
       "line" : 1297,
       "rule" : "literal-padding",
-      "snippet" : "HStack(spacing: CenitMetrics.gap) {             Text(\"Workout deleted\").font(StrandFont.subhead).foregroundStyle(them...",
+      "snippet" : "HStack(spacing: CenitMetrics.gap) {             Text(\"Workout deleted\").font(CenitFont.subhead).foregroundStyle(them...",
       "value" : 18
     },
     {
@@ -10789,7 +10789,7 @@
       "file" : "Cenit\/Screens\/WorkoutHistoryScreen.swift",
       "line" : 1946,
       "rule" : "literal-padding",
-      "snippet" : "Text(\"Estimated\")                     .font(StrandFont.caption).foregroundStyle(theme.inkSecondary)                  ...",
+      "snippet" : "Text(\"Estimated\")                     .font(CenitFont.caption).foregroundStyle(theme.inkSecondary)                  ...",
       "value" : 3
     },
     {
@@ -10797,7 +10797,7 @@
       "file" : "Cenit\/Screens\/WorkoutHistoryScreen.swift",
       "line" : 1946,
       "rule" : "literal-padding",
-      "snippet" : "Text(\"Estimated\")                     .font(StrandFont.caption).foregroundStyle(theme.inkSecondary)                  ...",
+      "snippet" : "Text(\"Estimated\")                     .font(CenitFont.caption).foregroundStyle(theme.inkSecondary)                  ...",
       "value" : 9
     },
     {
@@ -10891,7 +10891,7 @@
       "file" : "Cenit\/Screens\/WorkoutImportView.swift",
       "line" : 337,
       "rule" : "literal-padding",
-      "snippet" : "HStack(spacing: CenitMetrics.space2) {                                 Image(systemName: \"sparkles\").font(StrandFont....",
+      "snippet" : "HStack(spacing: CenitMetrics.space2) {                                 Image(systemName: \"sparkles\").font(CenitFont....",
       "value" : 10
     },
     {
@@ -10977,7 +10977,7 @@
       "file" : "Cenit\/Screens\/WorkoutImportView.swift",
       "line" : 488,
       "rule" : "literal-padding",
-      "snippet" : "Text(mapped == 1 ? \"1 mapped\" : \"\\(mapped) mapped\")                     .font(StrandFont.caption.weight(.semibold)).f...",
+      "snippet" : "Text(mapped == 1 ? \"1 mapped\" : \"\\(mapped) mapped\")                     .font(CenitFont.caption.weight(.semibold)).f...",
       "value" : 3
     },
     {
@@ -10985,7 +10985,7 @@
       "file" : "Cenit\/Screens\/WorkoutImportView.swift",
       "line" : 488,
       "rule" : "literal-padding",
-      "snippet" : "Text(mapped == 1 ? \"1 mapped\" : \"\\(mapped) mapped\")                     .font(StrandFont.caption.weight(.semibold)).f...",
+      "snippet" : "Text(mapped == 1 ? \"1 mapped\" : \"\\(mapped) mapped\")                     .font(CenitFont.caption.weight(.semibold)).f...",
       "value" : 9
     },
     {

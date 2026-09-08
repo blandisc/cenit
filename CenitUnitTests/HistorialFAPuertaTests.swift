@@ -1,6 +1,6 @@
 import XCTest
 import CenitStore
-import StrandAnalytics
+import CenitAnalytics
 @testable import Cenit
 
 // FER-115 — la puerta del «Historial de FA» solo se abre cuando NO hay evidencia de que las series

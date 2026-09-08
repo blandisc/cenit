@@ -90,7 +90,7 @@ public struct EntrenarStepper: View {
         let pad = max(0, (LiquidControl.hitTarget - lado) / 2)
         return Button(action: action) {
             Image(systemName: system)
-                .font(StrandFont.glyph(.inline, weight: .semibold))
+                .font(CenitFont.glyph(.inline, weight: .semibold))
                 .foregroundStyle(habilitado ? LiquidColor.tinta900 : LiquidColor.tinta500)
                 .frame(width: lado, height: lado)
                 .liquidGlass(.pastillaSolida)

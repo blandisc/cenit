@@ -1,6 +1,6 @@
 import XCTest
 import GRDB
-import StrandTraining
+import CenitTraining
 import BiometricStreams
 @testable import CenitStore
 

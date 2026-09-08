@@ -3,9 +3,9 @@ import CenitDesign
 import CenitStore
 import Combine
 import Observation
-import StrandAnalytics
-import StrandImport
-import StrandTraining
+import CenitAnalytics
+import CenitImport
+import CenitTraining
 import SwiftUI
 
 /// De qué fuente viene la importación que está corriendo desde «Datos y fuentes».

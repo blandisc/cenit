@@ -9,7 +9,7 @@ import SwiftUI
 //
 // The design package stays pure: these views take design-level value types (`ThermalReceipt`,
 // `MiniTicket`) — the app maps its own `StrengthSummary` onto them. Fonts are SF Mono (via
-// `StrandFont.mono`), the owner-approved stand-in for Space Mono (no bundled face).
+// `CenitFont.mono`), the owner-approved stand-in for Space Mono (no bundled face).
 
 // MARK: - Tokens
 
@@ -273,9 +273,9 @@ public struct ThermalTicketView: View {
     private var ticketHeader: some View {
         VStack(spacing: 0) {
             ThermalDialGlyph(diameter: 22).padding(.bottom, 8)
-            Text(receipt.title).font(StrandFont.mono(14, weight: .bold)).tracking(0.5)
-            Text(receipt.kind).font(StrandFont.mono(9)).foregroundStyle(ThermalPalette.faint).padding(.top, 3)
-            Text(receipt.orderLine).font(StrandFont.mono(9)).foregroundStyle(ThermalPalette.faint).padding(.top, 1)
+            Text(receipt.title).font(CenitFont.mono(14, weight: .bold)).tracking(0.5)
+            Text(receipt.kind).font(CenitFont.mono(9)).foregroundStyle(ThermalPalette.faint).padding(.top, 3)
+            Text(receipt.orderLine).font(CenitFont.mono(9)).foregroundStyle(ThermalPalette.faint).padding(.top, 1)
         }
     }
 
@@ -289,9 +289,9 @@ public struct ThermalTicketView: View {
 
     private var ticketTotal: some View {
         HStack(alignment: .firstTextBaseline) {
-            Text(receipt.totalCaption).font(StrandFont.mono(10))
+            Text(receipt.totalCaption).font(CenitFont.mono(10))
             Spacer(minLength: 8)
-            Text(receipt.total).font(StrandFont.mono(14, weight: .bold))
+            Text(receipt.total).font(CenitFont.mono(14, weight: .bold))
         }
     }
 
@@ -309,9 +309,9 @@ public struct ThermalTicketView: View {
             VStack(spacing: 4) {
                 ForEach(Array(receipt.summary.enumerated()), id: \.offset) { (_: Int, row: ThermalReceipt.SummaryRow) in
                     HStack {
-                        Text(row.key).font(StrandFont.mono(9)).foregroundStyle(ThermalPalette.faint)
+                        Text(row.key).font(CenitFont.mono(9)).foregroundStyle(ThermalPalette.faint)
                         Spacer(minLength: 8)
-                        Text(row.value).font(StrandFont.mono(9, weight: .bold))
+                        Text(row.value).font(CenitFont.mono(9, weight: .bold))
                             .foregroundStyle(row.pink ? ThermalPalette.recordPink : ThermalPalette.ink)
                     }
                 }
@@ -322,11 +322,11 @@ public struct ThermalTicketView: View {
 
     private var ticketFooter: some View {
         VStack(spacing: 0) {
-            Text("*** COPIA PARA TI ***").font(StrandFont.mono(9, weight: .bold)).tracking(1.5)
+            Text("*** COPIA PARA TI ***").font(CenitFont.mono(9, weight: .bold)).tracking(1.5)
                 .padding(.top, 12)
             BarcodeGlyph(seed: receipt.barcodeSeed).frame(height: 34).padding(.top, 8)
-            Text(receipt.footerCode).font(StrandFont.mono(8)).foregroundStyle(ThermalPalette.faint).padding(.top, 4)
-            Text(receipt.footerTag).font(StrandFont.mono(8)).foregroundStyle(ThermalPalette.faint).padding(.top, 2)
+            Text(receipt.footerCode).font(CenitFont.mono(8)).foregroundStyle(ThermalPalette.faint).padding(.top, 4)
+            Text(receipt.footerTag).font(CenitFont.mono(8)).foregroundStyle(ThermalPalette.faint).padding(.top, 2)
         }
     }
 
@@ -371,18 +371,18 @@ public struct ThermalTicketView: View {
                 .frame(width: 6, height: 6).padding(.top, 3)
             VStack(alignment: .leading, spacing: 1) {
                 HStack(spacing: 4) {
-                    Text(item.name).font(StrandFont.mono(10.5, weight: .bold))
+                    Text(item.name).font(CenitFont.mono(10.5, weight: .bold))
                     if item.isRecord {
-                        Text(receipt.recordBadge).font(StrandFont.mono(7, weight: .bold)).tracking(0.5)
+                        Text(receipt.recordBadge).font(CenitFont.mono(7, weight: .bold)).tracking(0.5)
                             .foregroundStyle(.white)
                             .padding(.horizontal, 4).padding(.vertical, 1)
                             .background(ThermalPalette.recordPink, in: RoundedRectangle(cornerRadius: 3))
                     }
                 }
-                Text(item.detail).font(StrandFont.mono(8.5)).foregroundStyle(ThermalPalette.faint)
+                Text(item.detail).font(CenitFont.mono(8.5)).foregroundStyle(ThermalPalette.faint)
             }
             Spacer(minLength: 6)
-            Text(item.price).font(StrandFont.mono(10, weight: .bold))
+            Text(item.price).font(CenitFont.mono(10, weight: .bold))
         }
         .multilineTextAlignment(.leading)
     }
@@ -392,7 +392,7 @@ public struct ThermalTicketView: View {
             ForEach(Array(receipt.zones.enumerated()), id: \.offset) { _, s in
                 HStack(spacing: 3) {
                     Circle().fill(ThermalPalette.zoneColor(s.zone)).frame(width: 6, height: 6)
-                    Text(s.label).font(StrandFont.mono(8)).foregroundStyle(ThermalPalette.faint)
+                    Text(s.label).font(CenitFont.mono(8)).foregroundStyle(ThermalPalette.faint)
                 }
             }
             Spacer(minLength: 0)
@@ -401,7 +401,7 @@ public struct ThermalTicketView: View {
 
     private func sectionLabel(_ t: String) -> some View {
         HStack {
-            Text(t).font(StrandFont.mono(8, weight: .bold)).tracking(1).foregroundStyle(ThermalPalette.faint)
+            Text(t).font(CenitFont.mono(8, weight: .bold)).tracking(1).foregroundStyle(ThermalPalette.faint)
             Spacer(minLength: 0)
         }
     }
@@ -440,25 +440,25 @@ public struct MiniTicketView: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                Text(ticket.orderText).font(StrandFont.mono(7.5)).foregroundStyle(ThermalPalette.faint)
+                Text(ticket.orderText).font(CenitFont.mono(7.5)).foregroundStyle(ThermalPalette.faint)
                 Spacer(minLength: 4)
                 if ticket.isToday {
-                    Text(ticket.todayBadge).font(StrandFont.mono(7, weight: .bold))
+                    Text(ticket.todayBadge).font(CenitFont.mono(7, weight: .bold))
                         .foregroundStyle(.white)
                         .padding(.horizontal, 5).padding(.vertical, 1)
                         .background(ThermalPalette.zone4, in: RoundedRectangle(cornerRadius: 3))
                 } else {
-                    Text(ticket.dateText).font(StrandFont.mono(7.5)).foregroundStyle(ThermalPalette.faint)
+                    Text(ticket.dateText).font(CenitFont.mono(7.5)).foregroundStyle(ThermalPalette.faint)
                 }
             }
             HStack(spacing: 4) {
                 if ticket.isRecord { Circle().fill(ThermalPalette.recordPink).frame(width: 5, height: 5) }
-                Text(ticket.type).font(StrandFont.mono(9, weight: .bold)).tracking(0.5)
+                Text(ticket.type).font(CenitFont.mono(9, weight: .bold)).tracking(0.5)
             }
             .padding(.top, 8)
             HStack(alignment: .firstTextBaseline, spacing: 2) {
-                Text(ticket.value).font(StrandFont.mono(20, weight: .bold))
-                Text(ticket.unit).font(StrandFont.mono(9)).foregroundStyle(ThermalPalette.faint)
+                Text(ticket.value).font(CenitFont.mono(20, weight: .bold))
+                Text(ticket.unit).font(CenitFont.mono(9)).foregroundStyle(ThermalPalette.faint)
             }
             .padding(.top, 5)
             HStack(alignment: .bottom, spacing: 2) {
@@ -539,9 +539,9 @@ public struct ReceiptSavedSeal: View {
                 .shadow(color: .white.opacity(0.9), radius: 0, x: 0, y: 1)
                 .shadow(color: .black.opacity(0.14), radius: 1, x: 0, y: -1)
             Text(subtitle)
-                .font(StrandFont.caption).foregroundStyle(LiquidColor.tinta500).padding(.top, 6)
+                .font(CenitFont.caption).foregroundStyle(LiquidColor.tinta500).padding(.top, 6)
             Text(chip)
-                .font(StrandFont.mono(8, weight: .bold)).tracking(0.8)
+                .font(CenitFont.mono(8, weight: .bold)).tracking(0.8)
                 .foregroundStyle(LiquidColor.tinta500)
                 .padding(.horizontal, 10).padding(.vertical, 5)
                 .background(LiquidColor.fondoAlto, in: RoundedRectangle(cornerRadius: 7))

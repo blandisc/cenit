@@ -13,7 +13,7 @@ import json, glob, os, sys, zlib
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 RES = os.path.abspath(os.path.join(
-    HERE, "..", "..", "Packages", "StrandTraining", "Sources", "StrandTraining", "Resources"))
+    HERE, "..", "..", "Packages", "CenitTraining", "Sources", "CenitTraining", "Resources"))
 PENDING = os.path.join(HERE, "cache", "pending-es.json")
 OUT = os.path.join(RES, "exercises.es.json")
 OUT_ZLIB = os.path.join(RES, "exercises.es.json.zlib")

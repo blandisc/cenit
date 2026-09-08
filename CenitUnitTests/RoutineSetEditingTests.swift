@@ -1,5 +1,5 @@
 import XCTest
-import StrandTraining
+import CenitTraining
 @testable import Cenit
 
 /// FER-88 — el detector puro «series iguales» (`RoutineSetEditing.workSetsAreEqual`): decide si
@@ -152,7 +152,7 @@ final class RoutineSetEditingTests: XCTestCase {
     }
 
     // MARK: - editorRepsLabel (N16 · ola 1 · E7): la palabra de INTERFAZ del editor, distinta del
-    // dato crudo `RoutineSet.repsRangeLabel` («8+») que StrandTraining deja a propósito sin la
+    // dato crudo `RoutineSet.repsRangeLabel` («8+») que CenitTraining deja a propósito sin la
     // palabra «máx» (ver su doc). Truena si alguien vuelve a leer `repsRangeLabel` directo en la
     // celda del editor.
 

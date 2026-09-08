@@ -1,11 +1,11 @@
 import Foundation
-import StrandTraining
-import StrandAnalytics
+import CenitTraining
+import CenitAnalytics
 import CenitStore
 
 // ProgressionPlanner.swift — the app-layer bridge for load progression (FER-E).
 //
-// `ProgressionMath.classify` (StrandAnalytics) is pure and database-free; this is the ONE place that
+// `ProgressionMath.classify` (CenitAnalytics) is pure and database-free; this is the ONE place that
 // feeds it real app data: raw `workSetHistory` rows grouped into per-session facts, the plan's rep goal,
 // the increment (manual override or derived from the plate inventory, FER-C), and today's recovery via
 // `TrainingRegulation`. Output is the seed the session uses (`Raise`) plus the arithmetic phrase — every

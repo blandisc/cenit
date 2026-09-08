@@ -47,12 +47,12 @@ public extension LiquidSectionHeader where Trailing == EmptyView {
             Text("El contenido de la sección vive aquí, sin banda de papel.")
                 .font(LiquidType.cuerpo).foregroundStyle(LiquidColor.tinta900)
             LiquidSectionHeader("Tu plan") {
-                Text("Editar semana").font(StrandFont.subhead).foregroundStyle(LiquidColor.tinta700)
+                Text("Editar semana").font(CenitFont.subhead).foregroundStyle(LiquidColor.tinta700)
             }
             Text("Otra sección, con acción a la derecha.")
                 .font(LiquidType.cuerpo).foregroundStyle(LiquidColor.tinta900)
             LiquidSectionHeader("Mis rutinas") {
-                Text(verbatim: "＋ Nueva").font(StrandFont.subhead).foregroundStyle(LiquidColor.tinta700)
+                Text(verbatim: "＋ Nueva").font(CenitFont.subhead).foregroundStyle(LiquidColor.tinta700)
             }
         }
         .padding(.horizontal, LiquidSpace.s550)

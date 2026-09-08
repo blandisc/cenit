@@ -1,5 +1,5 @@
 import XCTest
-import StrandTraining
+import CenitTraining
 @testable import Cenit
 
 /// FER-90 · E9 — el calendario del historial y la Constancia migrada resuelven cada día por

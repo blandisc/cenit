@@ -75,7 +75,7 @@ public struct TrainWidgetSnapshot: Codable, Equatable, Sendable {
         }
     }
 
-    /// Mirrors `WeeklySplit.DayState` (StrandAnalytics), without the family tint: E14's widgets don't
+    /// Mirrors `WeeklySplit.DayState` (CenitAnalytics), without the family tint: E14's widgets don't
     /// show routine-by-family color (out of scope — decisión #13 del épico, ya resuelta en otra rama).
     public enum WeekDayState: String, Codable, Equatable, Sendable {
         case done, today, upcoming, rest

@@ -50,12 +50,12 @@ public struct EntrenarNivel: View {
             Spacer(minLength: LiquidSpace.s200)
             if let value {
                 Text(value)
-                    .font(StrandFont.caption).foregroundStyle(LiquidColor.tinta700)
+                    .font(CenitFont.caption).foregroundStyle(LiquidColor.tinta700)
                     .fixedSize(horizontal: false, vertical: true)
             }
             if action != nil {
                 CenitIcon.disclosure.image
-                    .font(StrandFont.glyph(.chevron, weight: .semibold))
+                    .font(CenitFont.glyph(.chevron, weight: .semibold))
                     .foregroundStyle(LiquidColor.tinta500)
                     .accessibilityHidden(true)
             }
@@ -143,15 +143,15 @@ public struct EntrenarChip: View {
     private var chip: some View {
         HStack(spacing: LiquidSpace.s100 + 2) {
             Image(systemName: iconOverride ?? kind.symbol)
-                .font(StrandFont.glyph(.lead))
+                .font(CenitFont.glyph(.lead))
                 .foregroundStyle(toneOverride ?? kind.tone())
             text
-                .font(StrandFont.caption)
+                .font(CenitFont.caption)
                 .foregroundStyle(toneOverride ?? kind.tone())
                 .fixedSize(horizontal: false, vertical: true)
             if showsDisclosure {
                 CenitIcon.disclosure.image
-                    .font(StrandFont.glyph(.chevron, weight: .semibold))
+                    .font(CenitFont.glyph(.chevron, weight: .semibold))
                     .foregroundStyle(LiquidColor.tinta500)
                     .accessibilityHidden(true)
             }

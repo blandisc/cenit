@@ -1,10 +1,10 @@
 import SwiftUI
 import CenitDesign
-import StrandTraining
+import CenitTraining
 
 extension RoutineRegion {
     /// La familia de diseño que corresponde a esta región. El paquete de diseño no puede importar
-    /// StrandTraining, así que el puente vive aquí, del lado de la app.
+    /// CenitTraining, así que el puente vive aquí, del lado de la app.
     var family: EntrenarFamily {
         switch self {
         case .push:     return .push

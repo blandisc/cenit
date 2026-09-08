@@ -10,7 +10,7 @@ import SwiftUI
 //
 // Patrón copiado de `MatrizHoyFace.swift`/`RecoveryZoneGauge.swift`/`BreathingView.swift`:
 // `.monospacedDigit()` + `.contentTransition(reduceMotion ? .identity : .numericText())` +
-// `StrandMotion.countUp` (el mismo `easeOut(0.75)` que ya usa el recibo de la sesión). El gate de
+// `CenitMotion.countUp` (el mismo `easeOut(0.75)` que ya usa el recibo de la sesión). El gate de
 // Reduce Motion vive AQUÍ, no en cada call site (`strandAnimation` ya lo hace para la animación; la
 // transición de contenido se gatea igual, en el `body` de este modificador).
 
@@ -22,7 +22,7 @@ private struct NumeroVivoModifier<V: Equatable>: ViewModifier {
         content
             .monospacedDigit()
             .contentTransition(reduceMotion ? .identity : .numericText())
-            .strandAnimation(StrandMotion.countUp, value: value)
+            .strandAnimation(CenitMotion.countUp, value: value)
     }
 }
 

@@ -1,6 +1,6 @@
 import Foundation
 import GRDB
-import StrandTraining
+import CenitTraining
 
 // DashboardSnapshot.swift — FER-970 (R-03). Everything `Repository.performRefresh` used to read in
 // ~13 sequential actor round-trips (each with its own hop + read transaction + WAL snapshot) is

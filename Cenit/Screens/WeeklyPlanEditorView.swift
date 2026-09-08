@@ -1,7 +1,7 @@
 #if os(iOS)
 import SwiftUI
 import CenitDesign
-import StrandTraining
+import CenitTraining
 import TipKit
 
 // MARK: - «Tu Plan» — the single home for the week + the routines (FER-890, was FER-533 + FER-534)

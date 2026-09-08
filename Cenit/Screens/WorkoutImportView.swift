@@ -2,8 +2,8 @@
 import SwiftUI
 import UniformTypeIdentifiers
 import CenitDesign
-import StrandImport
-import StrandTraining
+import CenitImport
+import CenitTraining
 
 /// Import an LLM-generated workout program (FER-496) — the «trae-tu-propio-LLM» path, mirroring Diet
 /// capture (FER-371). Cénit hands out a prompt, the user runs it in their own AI with their plan, and

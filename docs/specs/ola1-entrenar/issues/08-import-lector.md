@@ -7,7 +7,7 @@ Lector puro de tres dialectos (strong, hevy, cenit) con fixtures reales, reconci
 **Carril:** pesado (datos on-device). Lo teclea Grok con este spec; Claude revisa el diff. **Depende de E1 y E2 mergeados** (usa `SessionRPE.prefill` y `SessionRPELoad`).
 
 ## Reglas y lógica
-- `StrengthCSVImporter` (StrandImport, Foundation-only): `Dialect { strong, hevy, cenit }`; `detectDialect(header:)` por CONJUNTO de nombres de columna (nunca posición; normaliza BOM/UTF-16/`;`); `parse(text:dialect:weightUnit:) throws -> ImportedStrengthHistory { sessions, skipped: [RowIssue] }`.
+- `StrengthCSVImporter` (CenitImport, Foundation-only): `Dialect { strong, hevy, cenit }`; `detectDialect(header:)` por CONJUNTO de nombres de columna (nunca posición; normaliza BOM/UTF-16/`;`); `parse(text:dialect:weightUnit:) throws -> ImportedStrengthHistory { sessions, skipped: [RowIssue] }`.
 - Unidades: Hevy por cabecera; Strong por cabecera si existe, si no `weightUnit` obligatorio (`throw .unitRequired`; la UI pregunta con pista «peso más alto del archivo: 315 → 143 kg»). lb→kg ×0.45359237 redondeado a 0.01 (reusa `WorkoutWeightUnit`).
 - Fechas: Strong `TimeZone.current`; Hevy tabla propia de meses en/es/pt/fr/de, `en_US_POSIX` primero. Fecha ilegible → `RowIssue`, nunca inventada. Duración Strong → `endTs`; Hevy `end_time`.
 - Tipos: Hevy warmup→`.warmup`; normal→`.work`; failure→`.work` + `rpe = 10`; dropset→`.work` + `mode = .drop`. Strong «W»→`.warmup`, número→`.work`; valores desconocidos → serie omitida con conteo. RPE < 6 o > 10 → `rpe = nil` (nunca clampear).
@@ -18,7 +18,7 @@ Lector puro de tres dialectos (strong, hevy, cenit) con fixtures reales, reconci
 - Concurrencia: parse en `Task.detached`; un hop al actor; un refresh.
 
 ## Alcance técnico
-Nuevo `Packages/StrandImport/.../StrengthCSVImport.swift` + `Tests/Resources/{hevy_kg,hevy_lb,strong_current,strong_legacy,cenit_roundtrip}.csv` (archivos reales, anonimizados); `StrengthStore.saveSessions`/`existingSessionIds`; `Tools/bake-exercisedb/build_aliases.py` → `exercise-aliases.json`.
+Nuevo `Packages/CenitImport/.../StrengthCSVImport.swift` + `Tests/Resources/{hevy_kg,hevy_lb,strong_current,strong_legacy,cenit_roundtrip}.csv` (archivos reales, anonimizados); `StrengthStore.saveSessions`/`existingSessionIds`; `Tools/bake-exercisedb/build_aliases.py` → `exercise-aliases.json`.
 
 ## Fuera de alcance
 Pantallas (E9). Crear rutinas desde nombres (D-Q9).
@@ -30,4 +30,4 @@ Pantallas (E9). Crear rutinas desde nombres (D-Q9).
 - [ ] Los 5 fixtures existen en el repo antes del merge (bloqueante).
 
 ## Definition of Done
-- [ ] `swift test` StrandImport + CenitStore verde; `Tools/verify.sh` verde; /qa PASS.
+- [ ] `swift test` CenitImport + CenitStore verde; `Tools/verify.sh` verde; /qa PASS.

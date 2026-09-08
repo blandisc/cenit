@@ -1,7 +1,7 @@
 import XCTest
 import CenitStore
-import StrandTraining
-import StrandAnalytics
+import CenitTraining
+import CenitAnalytics
 @testable import Cenit
 
 /// FER-124 — `repo.seedTodaySlots` es el ÚNICO sitio donde el teléfono y el reloj siembran la

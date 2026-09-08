@@ -131,7 +131,7 @@ public struct EntrenarHilo: View {
             Spacer(minLength: 8)
             if action != nil {
                 CenitIcon.disclosure.image
-                    .font(StrandFont.glyph(.chevron, weight: .semibold))
+                    .font(CenitFont.glyph(.chevron, weight: .semibold))
                     .foregroundStyle(sobreOLED ? LiquidOLED.tintaTerciaria : LiquidColor.tinta500)
                     .accessibilityHidden(true)
             }
@@ -142,7 +142,7 @@ public struct EntrenarHilo: View {
 
     private var palabra: some View {
         Text(word)
-            .font(StrandFont.subhead.weight(.semibold))
+            .font(CenitFont.subhead.weight(.semibold))
             .foregroundStyle(tone.word(sobreOLED: sobreOLED))
             .fixedSize(horizontal: false, vertical: true)
     }
@@ -150,7 +150,7 @@ public struct EntrenarHilo: View {
     @ViewBuilder private var consejo: some View {
         if let advice {
             Text(advice)
-                .font(StrandFont.subhead)
+                .font(CenitFont.subhead)
                 .foregroundStyle(sobreOLED ? LiquidOLED.tintaSecundaria : LiquidColor.tinta700)
                 .fixedSize(horizontal: false, vertical: true)
         }

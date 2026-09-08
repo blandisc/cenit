@@ -1,11 +1,11 @@
 import XCTest
 import CenitStore
-import StrandAnalytics
+import CenitAnalytics
 @testable import Cenit
 
 // GoalMetricBindingTests.swift — the Bucle goal's outcome join can't break silently (FER-353).
 //
-// End-to-end half of the FER-353 contract (the engine half is StrandAnalytics' OutcomeTests): for every
+// End-to-end half of the FER-353 contract (the engine half is CenitAnalytics' OutcomeTests): for every
 // `GoalMetric`, the label it exposes resolves to a non-empty outcome series given a day that carries
 // only that metric's field. `GoalMetric.outcome` is compile-checked against `InsightEngine.Outcome`, so
 // this guards the data half — that each goal maps to the field the engine actually reads, and that the

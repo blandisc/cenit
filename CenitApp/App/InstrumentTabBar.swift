@@ -142,7 +142,7 @@ private struct NowDot: View {
             .frame(width: 5, height: 5)
             .scaleEffect(active ? (breathing ? 1.15 : 0.9) : 0.2)
             .opacity(active ? 1 : 0)
-            .animation(animates && active ? StrandMotion.breathe : nil, value: breathing)
+            .animation(animates && active ? CenitMotion.breathe : nil, value: breathing)
             .animation(LiquidMotion.toque, value: active)
             .onAppear { breathing = animates }
             .onChange(of: active) { _, now in if now { breathing = animates } }

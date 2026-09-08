@@ -4,9 +4,9 @@ import Combine
 import Observation
 import BiometricStreams
 import CenitStore
-import StrandImport
-import StrandAnalytics
-import StrandTraining
+import CenitImport
+import CenitAnalytics
+import CenitTraining
 
 extension AppModel {
 

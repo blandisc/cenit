@@ -90,7 +90,7 @@
     <div class="eyebrow">Cénit · Entrenar · ola 1 de la paridad</div>
     <h1>Ola 1 a fondo: cinco piezas, un solo círculo</h1>
     <p class="tesis">Todo lo de esta ola vive en los paquetes de matemática y modelo, con pruebas, sin tocar todavía la pantalla más que en lo mínimo. Aquí va cada pieza en tres capas: cómo la vives en la app, cómo funciona por dentro en palabras llanas, y qué toca del código. Al final, el orden, las dependencias y las cuatro decisiones que son tuyas.</p>
-    <div class="meta"><span class="chip v">Paquetes: StrandAnalytics · StrandTraining · StrandImport · CenitStore</span><span class="chip a">Carril pesado</span><span class="chip z">Pasa por /arquitecto (dos migraciones)</span></div>
+    <div class="meta"><span class="chip v">Paquetes: CenitAnalytics · CenitTraining · CenitImport · CenitStore</span><span class="chip a">Carril pesado</span><span class="chip z">Pasa por /arquitecto (dos migraciones)</span></div>
   </header>
 
   <div class="diagrama" aria-label="Cómo se conectan las cinco piezas">
@@ -147,7 +147,7 @@
   <!-- ================= 1 ================= -->
   <h2><span class="n">①</span>La sesión cuenta aunque no traigas reloj</h2>
   <p class="enuna">Una sesión de fuerza sin Apple Watch entra a la carga de entrenamiento con un número estimado a partir de cuánto duró y qué tan duro estuvo.</p>
-  <div class="meta"><span class="chip a">Esfuerzo medio</span><span class="chip v">StrandAnalytics + una columna nueva</span><span class="chip g">Método: session-RPE, Foster 2001</span><span class="chip z">Gate: /estadistico y /cso</span></div>
+  <div class="meta"><span class="chip a">Esfuerzo medio</span><span class="chip v">CenitAnalytics + una columna nueva</span><span class="chip g">Método: session-RPE, Foster 2001</span><span class="chip z">Gate: /estadistico y /cso</span></div>
 
   <h3>Cómo lo vives</h3>
   <div class="telefonos">
@@ -188,7 +188,7 @@
 
   <h3>Qué toca</h3>
   <ul class="lista">
-    <li>Un motor nuevo en StrandAnalytics (duración × esfuerzo → escala 0–21), con test de ida y vuelta y test de «con reloj no se duplica».</li>
+    <li>Un motor nuevo en CenitAnalytics (duración × esfuerzo → escala 0–21), con test de ida y vuelta y test de «con reloj no se duplica».</li>
     <li>La sesión de fuerza guarda de dónde salió su carga: medida o estimada. Es una columna nueva, migración append-only con addColumnIfMissing.</li>
     <li>La pregunta del recibo y la etiqueta «estimada» en tres pantallas. Copy es-MX pasa por el gate de ciencia.</li>
   </ul>
@@ -200,7 +200,7 @@
   <!-- ================= 2 ================= -->
   <h2><span class="n">②</span>El esfuerzo decide si subes, no solo las reps</h2>
   <p class="enuna">Llegar a las reps cómodo y llegar al fallo dejan de valer lo mismo: el RPE que ya capturas entra a la regla de progresión.</p>
-  <div class="meta"><span class="chip a">Esfuerzo medio</span><span class="chip v">StrandAnalytics, sin migración</span><span class="chip g">Método: Helms 2016 · Zourdos 2016</span><span class="chip z">Gate: /biomecanico</span></div>
+  <div class="meta"><span class="chip a">Esfuerzo medio</span><span class="chip v">CenitAnalytics, sin migración</span><span class="chip g">Método: Helms 2016 · Zourdos 2016</span><span class="chip z">Gate: /biomecanico</span></div>
 
   <h3>Cómo lo vives</h3>
   <div class="telefonos">
@@ -249,7 +249,7 @@
   <!-- ================= 3 ================= -->
   <h2><span class="n">③</span>Series AMRAP, drop y al fallo</h2>
   <p class="enuna">Dos tipos de serie nuevos y un atajo: AMRAP (las que puedas), drop (bajas peso sin descansar) y «al fallo» como esfuerzo 10 de un toque.</p>
-  <div class="meta"><span class="chip v">Esfuerzo bajo</span><span class="chip v">StrandTraining + enum en la base</span><span class="chip g">Convención de programación, sin claim</span><span class="chip z">Necesaria para ⑤</span></div>
+  <div class="meta"><span class="chip v">Esfuerzo bajo</span><span class="chip v">CenitTraining + enum en la base</span><span class="chip g">Convención de programación, sin claim</span><span class="chip z">Necesaria para ⑤</span></div>
 
   <h3>Cómo lo vives</h3>
   <div class="telefonos">
@@ -297,7 +297,7 @@
   <!-- ================= 4 ================= -->
   <h2><span class="n">④</span>Importar tu historial de Strong o Hevy</h2>
   <p class="enuna">Traes el CSV que exportan esas apps y Cénit lo convierte en sesiones tuyas: récords, 1RM y mapa muscular arrancan con tu historia, no en cero.</p>
-  <div class="meta"><span class="chip v">Esfuerzo bajo a medio</span><span class="chip v">StrandImport, sin migración</span><span class="chip g">Offline: un archivo, cero red</span><span class="chip z">Se apoya en ① si el CSV trae RPE</span></div>
+  <div class="meta"><span class="chip v">Esfuerzo bajo a medio</span><span class="chip v">CenitImport, sin migración</span><span class="chip g">Offline: un archivo, cero red</span><span class="chip z">Se apoya en ① si el CSV trae RPE</span></div>
 
   <h3>Cómo lo vives</h3>
   <div class="telefonos">
@@ -331,7 +331,7 @@
 
   <h3>Qué toca</h3>
   <ul class="lista">
-    <li>Lector de CSV con dos dialectos en StrandImport, puro y con pruebas por archivo real (un Hevy en kg, un Hevy en lb, un Strong).</li>
+    <li>Lector de CSV con dos dialectos en CenitImport, puro y con pruebas por archivo real (un Hevy en kg, un Hevy en lb, un Strong).</li>
     <li>Casador de nombres sobre la tabla de alias existente; prueba con la lista de los 100 ejercicios más comunes de cada app.</li>
     <li>Tres pantallas ligeras en Datos y fuentes: entrada, vista previa, resolver.</li>
   </ul>
@@ -343,7 +343,7 @@
   <!-- ================= 5 ================= -->
   <h2><span class="n">⑤</span>Programas de varias semanas con descarga programada</h2>
   <p class="enuna">Tu plan deja de ser una semana que se repite: es un ciclo de 4 a 6 semanas que sabe en qué semana vas y baja el volumen en la última, a propósito.</p>
-  <div class="meta"><span class="chip r">Esfuerzo alto</span><span class="chip v">StrandTraining + tabla nueva</span><span class="chip g">Convención: Helms 2019 · revisión Bell 2023 (a verificar)</span><span class="chip z">/arquitecto obligatorio</span></div>
+  <div class="meta"><span class="chip r">Esfuerzo alto</span><span class="chip v">CenitTraining + tabla nueva</span><span class="chip g">Convención: Helms 2019 · revisión Bell 2023 (a verificar)</span><span class="chip z">/arquitecto obligatorio</span></div>
 
   <h3>Cómo lo vives</h3>
   <div class="telefonos">
@@ -379,7 +379,7 @@
   <h3>Qué toca</h3>
   <ul class="lista">
     <li>Una tabla nueva (programa: nombre, semanas, semana actual, fecha de inicio) y una relación con el calendario que ya existe. Migración append-only con su prueba. Por eso pasa por /arquitecto.</li>
-    <li>La regla de descarga vive en StrandTraining, pura, con pruebas: 4 series → 2, 1 → 1, peso al 90 % cae en un peso construible.</li>
+    <li>La regla de descarga vive en CenitTraining, pura, con pruebas: 4 series → 2, 1 → 1, peso al 90 % cae en un peso construible.</li>
     <li>El import desde tu IA gana un campo opcional «semanas» y «descarga».</li>
     <li>Pantallas: la tira de semanas en Tu Plan, el héroe de descarga en el hub, la fila «Programas» en Crear plan. Lo demás es lo que ya hay.</li>
   </ul>
@@ -393,9 +393,9 @@
   <div class="marco"><table>
     <thead><tr><th>Carril</th><th>Piezas</th><th>Dónde</th><th>Depende de</th><th>Esfuerzo</th></tr></thead>
     <tbody>
-      <tr><td><b>A · matemática</b></td><td>① carga sin FC · ② RPE en la progresión</td><td>StrandAnalytics + 1 columna</td><td>Nada</td><td>medio + medio</td></tr>
-      <tr><td><b>B · modelo</b></td><td>③ tipos de serie · ⑤ programas con descarga</td><td>StrandTraining + CenitStore</td><td>③ antes que ⑤ (los programas usan AMRAP)</td><td>bajo + alto</td></tr>
-      <tr><td><b>C · datos</b></td><td>④ import CSV</td><td>StrandImport</td><td>Nada; mejora con ① si el CSV trae RPE</td><td>bajo a medio</td></tr>
+      <tr><td><b>A · matemática</b></td><td>① carga sin FC · ② RPE en la progresión</td><td>CenitAnalytics + 1 columna</td><td>Nada</td><td>medio + medio</td></tr>
+      <tr><td><b>B · modelo</b></td><td>③ tipos de serie · ⑤ programas con descarga</td><td>CenitTraining + CenitStore</td><td>③ antes que ⑤ (los programas usan AMRAP)</td><td>bajo + alto</td></tr>
+      <tr><td><b>C · datos</b></td><td>④ import CSV</td><td>CenitImport</td><td>Nada; mejora con ① si el CSV trae RPE</td><td>bajo a medio</td></tr>
       <tr><td><b>D · pantallas</b></td><td>La capa mínima de UI de las cinco</td><td>Cenit/Screens</td><td>A, B y C mergeados</td><td>medio</td></tr>
     </tbody>
   </table></div>

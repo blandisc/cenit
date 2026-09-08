@@ -1,5 +1,5 @@
 import SwiftUI
-import StrandAnalytics
+import CenitAnalytics
 import CenitDesign
 
 /// FER-670 / FER-254: the quiet source-agreement read under a fused single-construct metric

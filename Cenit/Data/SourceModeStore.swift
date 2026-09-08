@@ -1,6 +1,6 @@
 import Foundation
 import Combine
-import StrandAnalytics
+import CenitAnalytics
 
 /// The data-source mode. Historically a user preference (combined / legacy-only / Apple-Health-only)
 /// that filtered what the dashboard and baseline READ, never what got written (FER-484). Since the band

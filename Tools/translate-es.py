@@ -975,7 +975,7 @@ ES: dict[str, str] = {
     "PRIMED": "A PUNTO",
     "PEAK": "PICO",
 
-    # Readiness card (StrandAnalytics ReadinessEngine).
+    # Readiness card (CenitAnalytics ReadinessEngine).
     "above your baseline — well recovered": "por arriba de tu línea base, bien recuperado",
     "in your normal range": "en tu rango normal",
     "suppressed — a sign of autonomic fatigue": "suprimida, señal de fatiga autonómica",
@@ -1107,7 +1107,7 @@ ES: dict[str, str] = {
     "RHR": "FC reposo",
     "Sleep performance": "Rendimiento de sueño",
 
-    # Behaviour insights (StrandAnalytics package — keys created manually).
+    # Behaviour insights (CenitAnalytics package — keys created manually).
     "higher": "mayor",
     "lower": "menor",
     "unchanged": "sin cambio",
@@ -1265,7 +1265,7 @@ ES: dict[str, str] = {
     "14-day": "14 días",
     "Live heart rate": "Frecuencia cardiaca en vivo",
     "Heart rate": "Frecuencia cardiaca",
-    # ReadinessEngine (StrandAnalytics package — key created here, no .stringsdata extraction).
+    # ReadinessEngine (CenitAnalytics package — key created here, no .stringsdata extraction).
     "Based on a short night — confidence low.": "Basado en una noche corta, confianza baja.",
 
     # FER-74 — automatic iCloud Drive backup + one-tap restore (iOS, #if-gated branch).

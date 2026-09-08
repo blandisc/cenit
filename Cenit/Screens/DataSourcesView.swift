@@ -2,12 +2,12 @@ import SwiftUI
 import UniformTypeIdentifiers
 import CenitDesign
 import CenitStore
-import StrandAnalytics
-import StrandTraining
+import CenitAnalytics
+import CenitTraining
 #if os(iOS)
 import HealthKit   // HKAuthorizationStatus, for the write-back permission tally
 import UIKit       // UIApplication.openSettingsURLString
-import StrandImport
+import CenitImport
 #endif
 
 // MARK: - Fuentes de datos — Liquid Glass · El Eje (FER-108)

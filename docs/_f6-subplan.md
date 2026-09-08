@@ -4,7 +4,7 @@
 > F6 es UNA fase compile-válida (un commit verde). Este doc es el contrato que `/implement` ejecuta.
 > **Diseñado contra el estado POST-F5** (los bloques `RecoveryImpact`/`RecoveryChange`/`ImpactRows`/`FiveRules`
 > y sus secciones de UI ya NO existen; F6 no los menciona).
-> Baseline verificado 2026-07-21 (esta sesión): `StrandAnalytics` compila; `SourceLensTests` (12) y
+> Baseline verificado 2026-07-21 (esta sesión): `CenitAnalytics` compila; `SourceLensTests` (12) y
 > `VitalitySourceInvarianceTests` (3) → **verde**. `Repository.swift:366-367` confirma `imported = []` y
 > `computed = []` → **el invariante `appleHealthDays == Set(days.map(\.day))` se cumple por construcción**.
 
@@ -91,7 +91,7 @@ retirado** (F5/FER-1030), no al lente. F6 **no lo toca**.
 
 ## 2. Qué MUERE vs qué VIVE del read-model
 
-### `SourceLens.swift` (StrandAnalytics)
+### `SourceLens.swift` (CenitAnalytics)
 | Símbolo | Acción | Nota |
 |---|---|---|
 | `enum Source { case band, apple }` | **MUERE** | Con una sola fuente no hay qué seleccionar. |
@@ -110,7 +110,7 @@ selección de fuente murió. **Recomiendo renombrar** `maskForBaseline`→`clear
 sino «clear the band-domain columns»). Es borderline-F7 (naming) pero justificado porque **el significado
 cambió**, no solo el nombre.
 
-### `SourceFusion.swift` (StrandAnalytics) — **F6 NO TOCA NADA AQUÍ**
+### `SourceFusion.swift` (CenitAnalytics) — **F6 NO TOCA NADA AQUÍ**
 `autonomicTrend` (**el RMSSD real de Apple, el héroe**), `mergeDaily`, `strainEstimateEligibleDays`,
 `appleStrainEstimates`, `fusionByDay`, `mergeSleep*`, `appleSleepsNotCoveredByBanda`, `fillingNils`: **VIVEN**.
 El colapso de sus firmas multi-fuente (imported/computed vacíos) es **F7**.
@@ -149,7 +149,7 @@ introduce `apple_rmssd_night` en un consumidor que hoy no lo lee. Eso es lo que 
 > Leaf-first: primero el paquete (helpers nuevos), luego los consumidores, al final los tests. El helper nuevo
 > se añade **antes** de borrar el viejo para que el paquete compile en cada paso.
 
-**A. StrandAnalytics — introducir los helpers colapsados (aditivo):**
+**A. CenitAnalytics — introducir los helpers colapsados (aditivo):**
 1. `SourceLens.swift`: añadir `public static func clearBandColumns(_ days:) = days.map { $0.crossSourceMasked() }`
    y `clearBandHrv(_ days:) = days.map { $0.hrvMasked() }`. Reescribir el comentario del enum a la realidad
    greenfield (single-source; el limpiado impide ingerir SDNN/offsets de Apple; cita FER-519). `swift build`.
@@ -172,13 +172,13 @@ introduce `apple_rmssd_night` en un consumidor que hoy no lo lee. Eso es lo que 
    - `resp` ya lee `days` (`:133`) — sin cambio.
    - Actualizar el comentario `:71-84` a Apple-only (conservar la cita SDNN within-source deliberada).
 
-**D. StrandAnalytics — retirar la maquinaria de selección de fuente (ya sin consumidor tras B+C):**
+**D. CenitAnalytics — retirar la maquinaria de selección de fuente (ya sin consumidor tras B+C):**
 9. `SourceLens.swift`: borrar `maskHrv`, `maskForBaseline`, `bandaOnlyHistory`, `mask`, `keeps`, `enum Source`.
    Conservar `clearBandColumns`/`clearBandHrv` + las ext privadas `crossSourceMasked`/`hrvMasked`.
 
 **E. Tests (§5).**
 
-**F. Verificar:** `cd Packages/StrandAnalytics && swift build && swift test` → verde. El compile iOS completo
+**F. Verificar:** `cd Packages/CenitAnalytics && swift build && swift test` → verde. El compile iOS completo
 (pasos B/C tocan `Cenit/**`) va **uno a la vez, máquina idle**
 (`while pgrep -x xcodebuild XCBBuildService; do sleep 30; done`), nunca en paralelo (regla anti-OOM de CLAUDE.md).
 
@@ -188,16 +188,16 @@ introduce `apple_rmssd_night` en un consumidor que hoy no lo lee. Eso es lo que 
 
 | Test | Acción | Motivo |
 |---|---|---|
-| `StrandAnalytics/.../SourceLensTests.swift` | **ACTUALIZAR** | Reescribir los casos `keep:.band`/`keep:.apple`/`appleDays` a `clearBandColumns`/`clearBandHrv`. El invariante columna≡fila (`testBaselineMaskEqualsBandaOnlyRowDrop`) pierde su lado `bandaOnlyHistory` (muere) → conservar la aserción de columnas. Los tests de `keep:.apple` complemento/identidad se retiran (fuente única). |
-| `StrandAnalytics/.../VitalitySourceInvarianceTests.swift` | **ACTUALIZAR** | `maskForBaseline(keep:.band)` → `clearBandColumns`. **Conservar las aserciones** (Apple-only → factor HRV/RHR ausente, `rmssd/rmssdNorm` nil): son el pin de que Body Age no cambia. |
+| `CenitAnalytics/.../SourceLensTests.swift` | **ACTUALIZAR** | Reescribir los casos `keep:.band`/`keep:.apple`/`appleDays` a `clearBandColumns`/`clearBandHrv`. El invariante columna≡fila (`testBaselineMaskEqualsBandaOnlyRowDrop`) pierde su lado `bandaOnlyHistory` (muere) → conservar la aserción de columnas. Los tests de `keep:.apple` complemento/identidad se retiran (fuente única). |
+| `CenitAnalytics/.../VitalitySourceInvarianceTests.swift` | **ACTUALIZAR** | `maskForBaseline(keep:.band)` → `clearBandColumns`. **Conservar las aserciones** (Apple-only → factor HRV/RHR ausente, `rmssd/rmssdNorm` nil): son el pin de que Body Age no cambia. |
 | `CenitUnitTests/InsightsProviderSourceInvarianceTests.swift` | **ACTUALIZAR** | Re-apuntar al helper; conservar aserciones. |
 | `CenitUnitTests/IntelligenceBaselinePriorTests.swift` | **PARTIR/BORRAR** | Los casos `bandaOnlyHistory` (`:24,29,45`) mueren con la función. Si no queda nada vivo, borrar el archivo. |
 | `CenitUnitTests/IllnessWatchSourceTests.swift` | **REESCRIBIR** | Los 3 usos de `bandaOnlyHistory` (`:53,72,99`) + el caso FER-884 («Apple-only ⇒ bandaOnlyHistory EMPTY») se sustituyen por: «illness Apple-only lee `days` directo, z within-source Apple SDNN/RHR». La semántica NO cambia (era ya el comportamiento efectivo); cambia el símbolo. |
-| **NUEVO: `StrandAnalytics/.../SourceLensCollapseTests.swift`** | **CREAR** | El test de no-regresión SDNN↔RMSSD (abajo). |
+| **NUEVO: `CenitAnalytics/.../SourceLensCollapseTests.swift`** | **CREAR** | El test de no-regresión SDNN↔RMSSD (abajo). |
 
 ### El test de no-regresión SDNN↔RMSSD (qué FIJA, concreto)
 
-Vive en StrandAnalytics (puro, sin app/HealthKit). Fija **tres** cosas — que el refactor es transparente,
+Vive en CenitAnalytics (puro, sin app/HealthKit). Fija **tres** cosas — que el refactor es transparente,
 que el limpiado es load-bearing, y que Body Age no cambia:
 
 ```swift
@@ -295,7 +295,7 @@ futuro (p.ej. si alguien reañade una fila `computed`); el limpiado incondiciona
       no aparece en ningún consumidor nuevo.
 - [ ] `RecoveryDetailScreen.swift:662-686` sin cambios de lógica (`series`/`recovery`/`buildHeat`/`forecast`);
       `CuerpoView` Fitness Age (`last7`/`displayDays`) sin cambios.
-- [ ] `cd Packages/StrandAnalytics && swift build && swift test` → **verde**, incluido el nuevo
+- [ ] `cd Packages/CenitAnalytics && swift build && swift test` → **verde**, incluido el nuevo
       `SourceLensCollapseTests` con `test_rawAppleSDNNwouldContaminateReadiness_FER519` y
       `test_vitalityInputsUnchanged`.
 - [ ] `VitalitySourceInvarianceTests` + `InsightsProviderSourceInvarianceTests` (re-apuntados) → **verde**,

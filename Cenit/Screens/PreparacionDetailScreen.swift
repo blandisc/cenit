@@ -1,6 +1,6 @@
 import SwiftUI
 import CenitDesign
-import StrandAnalytics
+import CenitAnalytics
 #if canImport(UIKit)
 import UIKit
 #endif
@@ -289,7 +289,7 @@ struct PreparacionDetailScreen: View {
 // La capa de datos, fuera de la vista. La pantalla es presentación pura sobre esto; el call site
 // lo construye desde el tablero en memoria, así que no toca la base de datos.
 //
-// CONSUME `StrandAnalytics` tal cual: el veredicto y su historia salen de `Preparedness.Read`,
+// CONSUME `CenitAnalytics` tal cual: el veredicto y su historia salen de `Preparedness.Read`,
 // las palabras de `LiquidHoyBuilder` (las MISMAS que pinta Hoy). Cero matemática nueva.
 
 struct PreparacionDetalleModelo {

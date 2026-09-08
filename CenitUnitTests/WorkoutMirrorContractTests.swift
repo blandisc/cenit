@@ -1,5 +1,5 @@
 import XCTest
-import StrandTraining   // C1 (FER-361): the wire now carries StrengthSessionSnapshot / SetSnapshot
+import CenitTraining   // C1 (FER-361): the wire now carries StrengthSessionSnapshot / SetSnapshot
 @testable import Cenit
 
 /// Pins the FER-740 Apple Watch mirroring contract: the wire messages round-trip through JSON, the

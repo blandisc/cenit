@@ -1,6 +1,6 @@
 import XCTest
-import StrandTraining
-import StrandAnalytics
+import CenitTraining
+import CenitAnalytics
 import BiometricStreams
 @testable import Cenit
 

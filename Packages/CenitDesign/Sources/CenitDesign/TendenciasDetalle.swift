@@ -51,7 +51,7 @@ public struct BarraAncla: View {
         // La barra (rect 2pt) abarca TODA la altura del texto — no una raya de 10pt: en captions de dos
         // renglones cubría solo el primero. Overlay a la izquierda del texto: su alto lo fija el texto.
         Text(texto)
-            .font(StrandFont.scaled(11))
+            .font(CenitFont.scaled(11))
             .lineSpacing(2.5)
             .foregroundStyle(LiquidColor.tinta500)
             .fixedSize(horizontal: false, vertical: true)
@@ -118,7 +118,7 @@ public struct Metodo<Content: View>: View {
                    color: LiquidColor.verdePrimario)
         Metodo(title: "Cómo se calcula") {
             Text("Cada señal se compara con tu propia base de 30 días.")
-                .font(StrandFont.scaled(13))
+                .font(CenitFont.scaled(13))
                 .foregroundStyle(LiquidColor.tinta700)
         }
     }

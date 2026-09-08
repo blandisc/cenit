@@ -1,8 +1,8 @@
 #if os(iOS)
 import SwiftUI
 import CenitDesign
-import StrandTraining
-import StrandAnalytics
+import CenitTraining
+import CenitAnalytics
 
 // MARK: - HojaTarjetaEjercicio — la tarjeta ABIERTA de un ejercicio SOLO (FER-166)
 //

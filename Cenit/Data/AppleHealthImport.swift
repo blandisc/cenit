@@ -1,8 +1,8 @@
 import CenitStore
 import Foundation
-import StrandAnalytics
-import StrandImport
-import StrandModels
+import CenitAnalytics
+import CenitImport
+import CenitModels
 
 /// Deja una exportación de Apple Salud guardada en la base local, bajo su propio identificador de
 /// fuente, para que conviva al lado de las demás fuentes en las páginas por fuente y en el consenso.

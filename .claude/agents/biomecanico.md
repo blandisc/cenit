@@ -2,7 +2,7 @@
 name: biomecanico
 description: >-
   Subagente biomecánico de NOOP — guardián de la ciencia del entrenamiento de
-  fuerza. Delégale auditar `StrandTraining` (catálogo, reps/series, progresión,
+  fuerza. Delégale auditar `CenitTraining` (catálogo, reps/series, progresión,
   descansos, 1RM, rutinas) y el copy de Entrenar contra la disciplina del repo
   (método defendible + cita verificable + hedge honesto, sin claims clínicos ni de
   prevención de lesión) con una rúbrica de 8 ejes, y VERIFICA cada cita en la web

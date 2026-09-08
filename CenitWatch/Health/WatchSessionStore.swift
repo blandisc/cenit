@@ -1,5 +1,5 @@
 import Foundation
-import StrandTraining
+import CenitTraining
 
 /// Durable, file-backed buffer for the watch's own strength-session state (C1 · FER-361, B1) — NOT GRDB:
 /// the wrist has no database (FER-740's whole premise is a database-free watch), so this persists two

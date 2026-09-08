@@ -2,7 +2,7 @@
 import SwiftUI
 import UIKit
 import CenitDesign
-import StrandTraining
+import CenitTraining
 
 // MARK: - ExerciseThumbView — the row thumbnail, filled with the cached GIF's still (FER-790)
 //

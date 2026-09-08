@@ -58,7 +58,7 @@ public struct ChartWell {
                 .font(.system(size: 22))
                 .foregroundStyle(LiquidColor.tinta500)
             Text(text)
-                .font(StrandFont.subhead)
+                .font(CenitFont.subhead)
                 .foregroundStyle(LiquidColor.tinta700)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
@@ -78,7 +78,7 @@ public struct ChartWell {
     /// "no readings in this range").
     public func note(text: LocalizedStringKey) -> some View {
         Text(text)
-            .font(StrandFont.footnote)
+            .font(CenitFont.footnote)
             .foregroundStyle(LiquidColor.tinta500)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(16)

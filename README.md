@@ -104,11 +104,11 @@ CenitShared/           code shared between the app and the widgets
 Packages/
   BiometricStreams/     neutral vocabulary of biometric rows (pure, zero deps)
   CenitStore/           GRDB/SQLite persistence (versioned migrations)
-  StrandAnalytics/      HRV / preparedness / strain / sleep math (pure, DB-free)
-  StrandTraining/       strength domain (catalog, sets/reps, routines)
-  StrandImport/         Apple Health importers
+  CenitAnalytics/      HRV / preparedness / strain / sleep math (pure, DB-free)
+  CenitTraining/       strength domain (catalog, sets/reps, routines)
+  CenitImport/         Apple Health importers
   CenitDesign/          SwiftUI design system
-  StrandModels/         shared models
+  CenitModels/         shared models
 Tools/                  developer scripts (localization, screen captures, design lint)
 ```
 
@@ -141,7 +141,7 @@ source is how you run it.
 To explore without an Xcode project, the packages build on their own:
 
 ```bash
-cd Packages/StrandAnalytics && swift build && swift test
+cd Packages/CenitAnalytics && swift build && swift test
 ```
 
 ---

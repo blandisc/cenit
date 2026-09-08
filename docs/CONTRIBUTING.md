@@ -50,11 +50,11 @@ test that needs no app and no device.**
 | The change is about | It belongs in | Proven by |
 | --- | --- | --- |
 | The shape of a decoded sample | `BiometricStreams` | A package test |
-| A row type both storage and math must name | `StrandModels` | A package test |
+| A row type both storage and math must name | `CenitModels` | A package test |
 | A table, a column, a query | `CenitStore` | A migration test against an in-memory store |
-| A physiological computation | `StrandAnalytics` | A package test with a hand-computed reference |
-| Sets, reps, progression, routines | `StrandTraining` | A package test |
-| Parsing a file the user supplies | `StrandImport` | A package test over a fixture |
+| A physiological computation | `CenitAnalytics` | A package test with a hand-computed reference |
+| Sets, reps, progression, routines | `CenitTraining` | A package test |
+| Parsing a file the user supplies | `CenitImport` | A package test over a fixture |
 | A token, a component, a chart | `CenitDesign` | A package test plus a preview |
 | A screen, navigation, a HealthKit call | `Cenit/` and `CenitApp/` | The app's unit tests |
 
@@ -80,7 +80,7 @@ import AppKit
 ```
 
 Today every such guard in the layer lives in `CenitDesign`, plus one localization shim in
-`StrandAnalytics`. Adding a guard anywhere else deserves a sentence in the pull request explaining
+`CenitAnalytics`. Adding a guard anywhere else deserves a sentence in the pull request explaining
 why.
 
 Do not use `@_exported import`. There is not one in the repository, and a file should say which
@@ -182,7 +182,7 @@ instead of blinding the check.
 
 ### A metric
 
-1. **Compute it in `StrandAnalytics`**, as a pure function. Cite the published method in the file
+1. **Compute it in `CenitAnalytics`**, as a pure function. Cite the published method in the file
    header and write a test with a hand-computed reference value.
 2. **Persist it** if it is a per-day scalar: either a nullable column on the day-grain table with a
    new migration, or a row in the long-format metric series if it needs no schema. Prefer the latter

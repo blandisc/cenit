@@ -47,7 +47,7 @@ final class MetricDetailVisualSnapshotTests: XCTestCase {
                 gridLineColor: theme.hairline
             )
             Text("7-day moving average · last month.")
-                .font(StrandFont.footnote)
+                .font(CenitFont.footnote)
                 .foregroundStyle(theme.inkTertiary)
         }
         .padding(20)
@@ -78,7 +78,7 @@ final class MetricDetailVisualSnapshotTests: XCTestCase {
                 gridLineColor: theme.hairline
             )
             Text("7-day moving average · last year.")
-                .font(StrandFont.footnote)
+                .font(CenitFont.footnote)
                 .foregroundStyle(theme.inkTertiary)
         }
         .padding(20)
@@ -98,7 +98,7 @@ final class MetricDetailVisualSnapshotTests: XCTestCase {
         let pad = (hi - lo) * 0.15
         func chart(_ tight: Bool, _ caption: String) -> some View {
             VStack(alignment: .leading, spacing: 6) {
-                Text(caption).font(StrandFont.footnote).foregroundStyle(theme.inkSecondary)
+                Text(caption).font(CenitFont.footnote).foregroundStyle(theme.inkSecondary)
                 TrendChart(
                     points: points,
                     gradient: Gradient(colors: [hue.opacity(0.5), hue]),

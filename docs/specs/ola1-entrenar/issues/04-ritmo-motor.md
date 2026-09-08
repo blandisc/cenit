@@ -15,7 +15,7 @@ La regla de doble progresión gana un «ritmo»: Constante (2 sesiones), Rápido
 - Plantillas: las banderas `progressionUseRPE` por slot las escribe **E10** (única dueña de `StarterTemplates.swift`/`ProgramTemplate`); este issue solo consume `progressionUseRPE` ya persistido.
 
 ## Alcance técnico
-`Packages/StrandAnalytics/.../ProgressionState.swift` (símbolos `ProgressionMath.PastSession` :52-59 y `classify` :105-153), `Cenit/Data/ProgressionPlanner.swift` (`pastSessions`, `evaluate`).
+`Packages/CenitAnalytics/.../ProgressionState.swift` (símbolos `ProgressionMath.PastSession` :52-59 y `classify` :105-153), `Cenit/Data/ProgressionPlanner.swift` (`pastSessions`, `evaluate`).
 
 ## Fuera de alcance
 La pantalla de progresión y el copy del hub (E5).
@@ -25,4 +25,4 @@ La pantalla de progresión y el copy del hub (E5).
 - [ ] `ProgressionPlannerTests` (app): `pastSessions` lleva RPE; `evaluate` con `progressionUseRPE` false no cambia resultado.
 
 ## Definition of Done
-- [ ] `swift test` StrandAnalytics + StrandTraining verde; `Tools/verify.sh` verde; reporte /biomecanico PASS en el PR.
+- [ ] `swift test` CenitAnalytics + CenitTraining verde; `Tools/verify.sh` verde; reporte /biomecanico PASS en el PR.
