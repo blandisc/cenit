@@ -77,7 +77,7 @@ final class Repository: ObservableObject {
         /// can badge the source without `DailyMetric` carrying a source column. (FER-62)
         var appleHealthDays: Set<String> = []
         /// Days with a stored row per source, UNFILTERED by the data-source mode (FER-485): the diagnostic
-        /// coverage reads these so it shows what's stored even in `whoopOnly`/`appleHealthOnly` — the proof
+        /// coverage reads these so it shows what's stored even in `.legacyOnly`/`appleHealthOnly` — the proof
         /// of the «nothing is deleted» invariant. `storedAppleOnlyDays` excludes strap days, mirroring the
         /// merge precedence, so these are the always-Combined coverage counts.
         var storedStrapDays: Set<String> = []
@@ -98,7 +98,7 @@ final class Repository: ObservableObject {
         var fusion: [String: [String: FusedMetricPoint]] = [:]
         /// R3 (FER-1008): the nocturnal autonomic trend (below/inBase/above vs the user's OWN settled
         /// baseline), computed ONLY from Apple's `apple-health-noop` RMSSD-per-night partition — never
-        /// from the band, never folded into `days`/any baseline. nil in whoopOnly or before enough dense
+        /// from the band, never folded into `days`/any baseline. nil en `.legacyOnly` or before enough dense
         /// nights. Composed off-main in `assembleDashboard` (FER-1040). Surfaced via
         /// `todayAutonomicTrend`; the screen (R4) reads it.
         var autonomicTrend: AutonomicTrend.Read? = nil
@@ -186,7 +186,7 @@ final class Repository: ObservableObject {
         return days.last(where: { $0.day == key })
     }
 
-    /// R3 (FER-1008): today's autonomic trend read (or nil while calibrating / in whoopOnly). Pure
+    /// R3 (FER-1008): today's autonomic trend read (or nil while calibrating / en `.legacyOnly`). Pure
     /// pass-through of the value `performRefresh` computed off the `apple-health-noop` nightly RMSSD.
     var todayAutonomicTrend: AutonomicTrend.Read? { dashboard.autonomicTrend }
     /// FER-1030: today's «Preparación» verdict (nil until enough of the user's own nights). The hero reads this.
@@ -582,7 +582,7 @@ final class Repository: ObservableObject {
         var impSleepRaw: [CachedSleepSession]; var compSleepRaw: [CachedSleepSession]
         var impSleep: [CachedSleepSession]; var compSleep: [CachedSleepSession]
         var appleSleepRaw: [CachedSleepSession]
-        /// FER-883: Apple workout-HR samples (deviceId `apple-health`), empty when whoopOnly.
+        /// FER-883: Apple workout-HR samples (deviceId `apple-health`), empty when `.legacyOnly`.
         var appleHrRaw: [HRSample] = []
         var appleAggRaw: [AppleDaily]; var stepsEstRaw: [MetricPoint]
         var perf: [MetricPoint]; var cons: [MetricPoint]; var need: [MetricPoint]; var debt: [MetricPoint]
@@ -1510,7 +1510,7 @@ final class Repository: ObservableObject {
     }
 
     /// Los agregados diarios de Apple Salud: pasos, energía, VO₂ máx. y pulso.
-    /// `respectingMode`: dashboard callers (Today/Cuerpo) leave it `true` so Apple is hidden in `whoopOnly`;
+    /// `respectingMode`: dashboard callers (Today/Cuerpo) leave it `true` so Apple is hidden in `.legacyOnly`;
     /// the Apple Health diagnostic screen passes `false` to show what's STORED regardless of mode (FER-485).
     func appleDailyRows(days: Int = 4000, respectingMode: Bool = true) async -> [AppleDaily] {
         // FER-1003: Apple is always included under the product pin (`usesAppleHealth` is constant true).
