@@ -1,48 +1,71 @@
 import Foundation
 import CenitStore
 
-// MARK: - Imported per-workout HR zones
+// MARK: - Zonas de FC guardadas por entrenamiento
 //
-// `zonesJSON` is the verbatim HR-zone-percentage object from the WHOOP CSV import
-// (the retired WHOOP CSV import wrote "z1"…"z5"; the Android importer writes "zone1"…"zone5" for the
-// same data — tolerate both so a cache moved between platforms still renders). Values
-// are 0–100 percent of the workout's duration and may sum to less than 100 (time below
-// zone 1 is not exported).
+// `zonesJSON` es el objeto de porcentajes de zona que quedó guardado en filas de entrenamientos
+// importados. Del mismo dato existen DOS formas de llave — «z1»…«z5» y «zone1»…«zone5» — según qué
+// importador lo escribió; se toleran las dos para que una copia movida entre plataformas siga
+// pintando. Los valores son porcentaje (0–100) de la duración del entrenamiento y pueden sumar menos
+// de 100: el tiempo por debajo de la zona 1 nunca se exportó.
 enum WorkoutZones {
 
-    /// Z1…Z5 percentages (0–100) for one workout, or nil when the row carries no usable zone data.
+    /// Cuántas zonas maneja el modelo. Fijo: la tarjeta pinta exactamente cinco barras.
+    private static let zoneCount = 5
+
+    /// Los porcentajes Z1…Z5 (0–100) de un entrenamiento, o `nil` cuando la fila no trae nada usable.
+    ///
+    /// «Nada usable» incluye el caso de que las cinco zonas den cero: pintar cinco ceros diría que el
+    /// entrenamiento se pasó fuera de toda zona, y lo que en realidad pasó es que no hay dato.
     static func percents(_ zonesJSON: String?) -> [Double]? {
         guard let zonesJSON,
-              let data = zonesJSON.data(using: .utf8),
-              let obj = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
+              let bytes = zonesJSON.data(using: .utf8),
+              let object = (try? JSONSerialization.jsonObject(with: bytes)) as? [String: Any]
         else { return nil }
-        let p = (1...5).map { i -> Double in
-            let v = (obj["z\(i)"] ?? obj["zone\(i)"]) as? NSNumber
-            return min(max(v?.doubleValue ?? 0, 0), 100)
+
+        let values = (1...zoneCount).map { zone -> Double in
+            let raw = object["z\(zone)"] ?? object["zone\(zone)"]
+            let percent = (raw as? NSNumber)?.doubleValue ?? 0
+            return percent.clampedToPercent
         }
-        return p.contains(where: { $0 > 0 }) ? p : nil
+        return values.contains { $0 > 0 } ? values : nil
     }
 
-    /// Duration-weighted zone minutes across rows. Mirrors the daily-metric derivation in
-    /// the retired WHOOP CSV import (duration-minutes × pct ÷ 100). APPROXIMATE: an on-device aggregate of
-    /// the imported per-workout percentages, not a WHOOP-computed figure.
+    /// Minutos por zona sumados sobre varios entrenamientos, pesados por su duración.
+    ///
+    /// APROXIMACIÓN declarada: es un agregado hecho en el teléfono a partir de porcentajes ya
+    /// importados (minutos × pct ÷ 100), no una cifra que haya calculado la fuente original.
     struct Summary {
-        let minutes: [Double]          // index 0 = Z1 … 4 = Z5
+        /// Índice 0 = Z1 … 4 = Z5. Siempre trae `zoneCount` posiciones.
+        let minutes: [Double]
+        /// Cuántas filas aportaron zonas (las demás se saltan, no cuentan como cero).
         let sessionsWithZones: Int
+
         var totalMinutes: Double { minutes.reduce(0, +) }
     }
 
     static func summary(from rows: [WorkoutRow]) -> Summary? {
-        var mins = [Double](repeating: 0, count: 5)
-        var n = 0
-        for r in rows {
-            guard let p = percents(r.zonesJSON) else { continue }
-            let durMin = (r.durationS ?? Double(r.endTs - r.startTs)) / 60.0
-            guard durMin > 0 else { continue }
-            for i in 0..<5 { mins[i] += durMin * p[i] / 100.0 }
-            n += 1
+        var minutes = [Double](repeating: 0, count: zoneCount)
+        var contributing = 0
+
+        for row in rows {
+            guard let percents = percents(row.zonesJSON) else { continue }
+            // Una fila vieja puede no traer duración explícita; ahí manda el lapso de reloj.
+            let durationMinutes = (row.durationS ?? Double(row.endTs - row.startTs)) / 60.0
+            guard durationMinutes > 0 else { continue }
+
+            for zone in minutes.indices {
+                minutes[zone] += durationMinutes * percents[zone] / 100.0
+            }
+            contributing += 1
         }
-        guard n > 0, mins.reduce(0, +) > 0 else { return nil }
-        return Summary(minutes: mins, sessionsWithZones: n)
+
+        guard contributing > 0, minutes.reduce(0, +) > 0 else { return nil }
+        return Summary(minutes: minutes, sessionsWithZones: contributing)
     }
+}
+
+private extension Double {
+    /// Un porcentaje guardado fuera de rango se recorta en vez de deformar la barra.
+    var clampedToPercent: Double { Swift.min(Swift.max(self, 0), 100) }
 }

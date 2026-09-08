@@ -319,11 +319,11 @@ final class HealthKitBridge: ObservableObject {
         let wkRows = Self.mapWorkouts(hkWorkouts)
 
         // FER-883: per-workout heart-rate samples (raw only — strain is scored at read time).
-        // Skipped in whoopOnly so we never pull Apple HR into the store when the mode excludes Apple;
+        // Skipped in legacyOnly so we never pull Apple HR into the store when the mode excludes Apple;
         // the stage is still published so the progress bar stays 15-step consistent.
         stage(13, "hr_apple_workouts")
         let workoutHrSamples: [HRSample]
-        if repo.dataSourceMode == .whoopOnly {
+        if repo.dataSourceMode == .legacyOnly {
             workoutHrSamples = []
         } else {
             workoutHrSamples = await collectWorkoutHeartRate(workouts: hkWorkouts)
@@ -488,9 +488,9 @@ final class HealthKitBridge: ObservableObject {
             // R2/D1: ingerir el RMSSD nocturno ANTES del refresh, para que la tendencia lo lea recién
             // escrito. Si se ingiere después (o el refresh se salta por `!changed`), el primer sync computa
             // la tendencia sobre la partición VACÍA → «0 de 21 noches» + un banner falso de «pocas muestras»
-            // hasta el siguiente refresh o relaunch. Aditivo, partición propia; se salta en whoopOnly.
+            // hasta el siguiente refresh o relaunch. Aditivo, partición propia; se salta en legacyOnly.
             var ingestedNocturnal = false
-            if repo.dataSourceMode != .whoopOnly {
+            if repo.dataSourceMode != .legacyOnly {
                 ingestedNocturnal = await ingestNocturnalHRV()
             }
             if changed || ingestedNocturnal {

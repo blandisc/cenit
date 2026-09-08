@@ -217,7 +217,7 @@ final class RepositoryMergeTests: XCTestCase {
         XCTAssertTrue(r.displayDays.allSatisfy { $0.strain == nil })
     }
 
-    /// Empty hrByDay → empty map (whoopOnly / no workout HR).
+    /// Empty hrByDay → empty map (legacyOnly / no workout HR).
     func testAppleStrainEstimatesEmptyHR() {
         XCTAssertTrue(SourceFusion.appleStrainEstimates(hrByDay: [:], eligibleDays: ["2026-06-01"]).isEmpty)
     }

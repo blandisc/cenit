@@ -51,11 +51,11 @@ final class DashboardSnapshotTests: XCTestCase {
     private func request(includeApple: Bool = true, includeWhoop: Bool = true,
                          fromDay: String = "2026-05-30", toDay: String = "2026-06-03",
                          fromTs: Int? = nil, toTs: Int? = nil) -> DashboardReadRequest {
-        DashboardReadRequest(strapDeviceId: imported, computedDeviceId: comp, appleDeviceId: apple,
+        DashboardReadRequest(legacyDeviceId: imported, computedDeviceId: comp, appleDeviceId: apple,
                              fromDay: fromDay, toDay: toDay,
                              fromTs: fromTs ?? (t0 - 86_400), toTs: toTs ?? (t0 + 3 * 86_400),
                              sleepLimit: 4000, includeApple: includeApple,
-                             includeWhoopSeries: includeWhoop)
+                             includeLegacySeries: includeWhoop)
     }
 
     func testSnapshotMatchesIndividualAccessorsFieldByField() async throws {

@@ -1,73 +1,137 @@
-import Foundation
 import Combine
+import Foundation
 
-/// User profile (age/sex/body metrics/HR-max) persisted in UserDefaults.
-/// Powers HR zones, calories and recovery baselines.
-@MainActor
-final class ProfileStore: ObservableObject {
-    @Published var age: Int { didSet { d.set(age, forKey: K.age) } }
-    @Published var sex: String { didSet { d.set(sex, forKey: K.sex) } }          // "male" | "female" | "nonbinary"
-    @Published var weightKg: Double { didSet { d.set(weightKg, forKey: K.weight) } }
-    @Published var heightCm: Double { didSet { d.set(heightCm, forKey: K.height) } }
-    /// 0 = auto-estimate from age.
-    @Published var hrMaxOverride: Int { didSet { d.set(hrMaxOverride, forKey: K.hrMax) } }
+/// Quién es el usuario, en los números que el app necesita: edad, sexo, cuerpo y pulso máximo.
+/// De aquí salen las zonas de pulso, las calorías y las líneas base de recuperación.
+///
+/// Todo vive en `UserDefaults`, en el aparato, para un solo usuario. Cada propiedad se guarda en el
+/// momento en que cambia, así que no hay un «guardar» que alguien pueda olvidar.
+@MainActor final class ProfileStore: ObservableObject {
 
-    /// Calibration divisor for the WHOOP 5/MG NATIVE step counter (`step_motion_counter@57`, FER-665).
-    /// The counter over-counts, so the daily total is divided by this before display. 1.0 = raw
-    /// pass-through (default, no change). Clamped 0.5–30.0 (observed 5/MG overcount reaches ~24×, so the
-    /// ceiling is high). Distinct from the retired WHOOP 4.0 ESTIMATE fields — this scales a REAL counter.
-    @Published var stepTicksPerStep: Double { didSet { d.set(min(max(stepTicksPerStep, 0.5), 30.0), forKey: K.stepScale) } }
-
-    // ── Baseline re-anchoring («Recalibrar recuperación», FER-677) ──────────────────────────────
-    // A local day-key ("YYYY-MM-DD") cut point: every nightly baseline fold ignores nights before it,
-    // so recovery re-anchors from `baselineEpoch` onward. "" = no cut (default). `previousBaselineEpoch`
-    // holds the one value we can restore, so "Deshacer" is exactly one step (not a stack).
-    /// Baseline cut day-key; "" = use all history.
-    @Published var baselineEpoch: String { didSet { d.set(baselineEpoch, forKey: K.baselineEpoch) } }
-    /// The `baselineEpoch` in effect before the last recalibration, for one-level undo; "" = none.
-    @Published var previousBaselineEpoch: String { didSet { d.set(previousBaselineEpoch, forKey: K.prevBaselineEpoch) } }
-
-    private let d = UserDefaults.standard
-    private enum K {
-        static let age = "profile.age", sex = "profile.sex", weight = "profile.weightKg"
-        static let height = "profile.heightCm", hrMax = "profile.hrMaxOverride"
-        static let stepScale = "profile.stepTicksPerStep"
+    /// Llaves de `UserDefaults`. Son valores persistidos: renombrar una perdería el dato que ya está
+    /// en el teléfono de quien usa el app.
+    private enum StoredKey {
+        static let age = "profile.age"
+        static let sex = "profile.sex"
+        static let weightKg = "profile.weightKg"
+        static let heightCm = "profile.heightCm"
+        static let hrMaxOverride = "profile.hrMaxOverride"
+        static let stepTicksPerStep = "profile.stepTicksPerStep"
         static let baselineEpoch = "profile.baselineEpoch"
-        static let prevBaselineEpoch = "profile.previousBaselineEpoch"
+        static let previousBaselineEpoch = "profile.previousBaselineEpoch"
     }
+
+    /// Rango en el que se acota el divisor de pasos, arriba y abajo.
+    private static let stepTickRange: ClosedRange<Double> = 0.5...30.0
+
+    private let defaults: UserDefaults
+
+    // MARK: - Cuerpo
+
+    @Published var age: Int {
+        didSet { defaults.set(age, forKey: StoredKey.age) }
+    }
+
+    /// Uno de tres valores que entiende la capa de análisis: `"male"`, `"female"` o `"nonbinary"`.
+    @Published var sex: String {
+        didSet { defaults.set(sex, forKey: StoredKey.sex) }
+    }
+
+    @Published var weightKg: Double {
+        didSet { defaults.set(weightKg, forKey: StoredKey.weightKg) }
+    }
+
+    @Published var heightCm: Double {
+        didSet { defaults.set(heightCm, forKey: StoredKey.heightCm) }
+    }
+
+    /// Pulso máximo dictado a mano. `0` significa «estímalo por la edad».
+    @Published var hrMaxOverride: Int {
+        didSet { defaults.set(hrMaxOverride, forKey: StoredKey.hrMaxOverride) }
+    }
+
+    /// Divisor de calibración del contador de pasos **nativo** del aparato externo heredado
+    /// (FER-665). Ese contador cuenta de más, así que el total del día se divide entre esta cifra
+    /// antes de enseñarlo. `1.0` deja pasar el dato crudo.
+    ///
+    /// Se acota entre 0.5 y 30 — el sobreconteo observado llega a unas 24 veces, de ahí el techo tan
+    /// alto. No confundir con los campos de *estimación* ya retirados: esto escala un conteo real.
+    @Published var stepTicksPerStep: Double {
+        didSet {
+            defaults.set(Self.clampedStepTicks(stepTicksPerStep), forKey: StoredKey.stepTicksPerStep)
+        }
+    }
+
+    // MARK: - Re-anclaje de la línea base (FER-677)
+
+    /// Llave de día local (`"YYYY-MM-DD"`) desde la que cuenta la línea base. Cada plegado nocturno
+    /// ignora las noches anteriores a este corte, así que la recuperación se re-ancla a partir de
+    /// ahí. Vacío significa «usa todo el historial».
+    @Published var baselineEpoch: String {
+        didSet { defaults.set(baselineEpoch, forKey: StoredKey.baselineEpoch) }
+    }
+
+    /// El corte que estaba puesto antes de la última recalibración. Guarda exactamente un valor:
+    /// «Deshacer» es un paso, no una pila. Vacío significa que no hay nada que restaurar.
+    @Published var previousBaselineEpoch: String {
+        didSet { defaults.set(previousBaselineEpoch, forKey: StoredKey.previousBaselineEpoch) }
+    }
+
+    // MARK: - Construcción
 
     init() {
-        age = d.object(forKey: K.age) as? Int ?? 30
-        sex = d.string(forKey: K.sex) ?? "male"
-        weightKg = d.object(forKey: K.weight) as? Double ?? 75
-        heightCm = d.object(forKey: K.height) as? Double ?? 178
-        hrMaxOverride = d.object(forKey: K.hrMax) as? Int ?? 0
-        stepTicksPerStep = min(max(d.object(forKey: K.stepScale) as? Double ?? 1.0, 0.5), 30.0)
-        baselineEpoch = d.string(forKey: K.baselineEpoch) ?? ""
-        previousBaselineEpoch = d.string(forKey: K.prevBaselineEpoch) ?? ""
+        let store = UserDefaults.standard
+        defaults = store
+
+        // `object(forKey:)` distingue «nunca se guardó» de un cero legítimo; `string(forKey:)` ya
+        // devuelve nil cuando falta.
+        age = (store.object(forKey: StoredKey.age) as? Int) ?? 30
+        sex = store.string(forKey: StoredKey.sex) ?? "male"
+        weightKg = (store.object(forKey: StoredKey.weightKg) as? Double) ?? 75
+        heightCm = (store.object(forKey: StoredKey.heightCm) as? Double) ?? 178
+        hrMaxOverride = (store.object(forKey: StoredKey.hrMaxOverride) as? Int) ?? 0
+        stepTicksPerStep = Self.clampedStepTicks(
+            (store.object(forKey: StoredKey.stepTicksPerStep) as? Double) ?? 1.0
+        )
+        baselineEpoch = store.string(forKey: StoredKey.baselineEpoch) ?? ""
+        previousBaselineEpoch = store.string(forKey: StoredKey.previousBaselineEpoch) ?? ""
     }
 
-    /// Tanaka estimate unless overridden.
-    var hrMax: Int { hrMaxOverride > 0 ? hrMaxOverride : Int((208 - 0.7 * Double(age)).rounded()) }
+    private static func clampedStepTicks(_ raw: Double) -> Double {
+        min(max(raw, stepTickRange.lowerBound), stepTickRange.upperBound)
+    }
 
-    // MARK: - Baseline re-anchoring (FER-677)
+    // MARK: - Derivados
 
-    /// `baselineEpoch` as the analytics layer wants it: nil when there is no cut.
-    var baselineEpochOrNil: String? { baselineEpoch.isEmpty ? nil : baselineEpoch }
+    /// El pulso máximo que usa el resto del app: el dictado a mano si lo hay, si no la estimación de
+    /// Tanaka (`208 − 0.7 × edad`).
+    var hrMax: Int {
+        guard hrMaxOverride <= 0 else { return hrMaxOverride }
+        return Int((208 - 0.7 * Double(age)).rounded())
+    }
 
-    /// Re-anchor the baseline from `day` (a "YYYY-MM-DD" local day-key). Stashes the current epoch
-    /// so `undoRecalibration()` can restore it (one level).
+    /// El corte como lo quiere la capa de análisis: nada en vez de una cadena vacía.
+    var baselineEpochOrNil: String? {
+        baselineEpoch.isEmpty ? nil : baselineEpoch
+    }
+
+    /// Hay algo que deshacer mientras un corte esté puesto.
+    var canUndoRecalibration: Bool {
+        !baselineEpoch.isEmpty
+    }
+
+    // MARK: - Acciones
+
+    /// Mueve el corte de la línea base a `day`, guardando el anterior para poder volver una vez.
     func recalibrate(to day: String) {
         previousBaselineEpoch = baselineEpoch
         baselineEpoch = day
     }
 
-    /// Restore the epoch in effect before the last recalibration (one level of undo).
+    /// Regresa al corte que estaba antes de la última recalibración, y se queda sin nada más que
+    /// deshacer.
     func undoRecalibration() {
         baselineEpoch = previousBaselineEpoch
         previousBaselineEpoch = ""
     }
-
-    /// True while there is a recalibration to undo (an epoch is set).
-    var canUndoRecalibration: Bool { !baselineEpoch.isEmpty }
 }

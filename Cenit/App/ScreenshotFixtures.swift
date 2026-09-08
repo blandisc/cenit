@@ -248,7 +248,7 @@ enum ScreenshotFixtures {
 
         // FER-1030: the Liquid Hoy hero/axes read `repo.todayPreparedness`, not `days` directly — compute
         // it with the real engine over the same synthetic history so the fixture states drive the hero
-        // (no `trend`/`strainByDay`: the autonomic axis reads `days` alone, matching a whoopOnly user).
+        // (no `trend`/`strainByDay`: the autonomic axis reads `days` alone, matching a legacyOnly user).
         let preparedness = Preparedness.evaluate(.init(
             days: days, strainByDay: [:], trend: nil, asOf: Repository.localDayKey(today)))
 

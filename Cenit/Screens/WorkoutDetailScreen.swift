@@ -292,7 +292,7 @@ struct WorkoutDetailScreen: View {
                     stat("Volume", StrengthHistoryFormat.volume(volumeKg, system: unitSystem), unit: nil, color: LiquidColor.tinta900)
                 }
             }
-            if WorkoutSource.classify(row.source) != .whoop {
+            if WorkoutSource.classify(row.source) != .legacyWearable {
                 Text("Estimated by the source.")
                     .font(LiquidType.captionLectura).foregroundStyle(LiquidColor.tinta500)
             }
@@ -402,7 +402,7 @@ struct WorkoutDetailScreen: View {
                     mutate { try await repo.deleteWorkout(row) }
                 }
             ]
-        case .whoop, .apple:
+        case .legacyWearable, .apple:
             return [
                 .init(String(localized: "Duplicate as manual…"), systemImage: "plus.square.on.square") {
                     editTarget = EditTarget(row: asManualCopy(row))
@@ -610,7 +610,7 @@ struct WorkoutDetailScreen: View {
 @ViewBuilder
 func workoutOrigenBadge(for source: String) -> some View {
     switch WorkoutSource.classify(source) {
-    case .whoop:
+    case .legacyWearable:
         LiquidOrigenBadge(String(localized: "Measured on device"), tono: LiquidColor.verdePrimario)
             .accessibilityLabel(Text("Source: measured on device"))
     case .apple:

@@ -562,10 +562,10 @@ struct WorkoutHistoryScreen: View {
     }
 
     /// Un `WorkoutRow` de actividad como `EntrenarFilaCardio` (SF Symbol neutro + origen + FC/duración).
-    /// `detected`/`whoop` (raros en la práctica) caen a `.apple` — el componente solo tiene Apple/Manual;
+    /// `detected`/`legacyWearable` (raros en la práctica) caen a `.apple` — el componente solo tiene Apple/Manual;
     /// extender su `Origen` es refinamiento de v2. FER-362 · C4: el badge Apple lleva el nombre real de
     /// la app que escribió el `HKWorkout` (Strong, Hevy, Apple Fitness, un run de Strava, …) —
-    /// `appleAppName` regresa `nil` para `detected`/`whoop` igual que antes (sin nombre "apple-health:"),
+    /// `appleAppName` regresa `nil` para `detected`/`legacyWearable` igual que antes (sin nombre "apple-health:"),
     /// así que esas filas caen al «Otra app» honesto del componente en vez del «Apple» genérico previo.
     private func cardioRow(_ r: WorkoutRow) -> some View {
         let origen: EntrenarFilaCardio.Origen = WorkoutSource.classify(r.source) == .manual
