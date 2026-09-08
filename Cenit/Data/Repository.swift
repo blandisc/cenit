@@ -4,14 +4,21 @@ import CenitStore
 import BiometricStreams
 import StrandAnalytics
 
-/// Per-day sleep figures the WHOOP export carried verbatim (metricSeries rows written by
-/// the retired WHOOP CSV import under the imported deviceId). The Detalle de Sueño prefers these over its on-device
-/// APPROXIMATE recomputations.
+/// Las cifras de sueño por día que la exportación heredada traía ya calculadas: filas de
+/// `metricSeries` que escribió el importador de CSV ya retirado, bajo el identificador de la fuente
+/// importada.
+///
+/// El Detalle de Sueño las prefiere sobre sus propios recálculos, porque estos son APROXIMADOS: una
+/// cifra que el aparato original publicó vale más que una que nosotros estimamos después.
 struct ImportedSleepFigures: Equatable {
-    var performancePct: Double?   // "sleep_performance", 0–100
-    var consistencyPct: Double?   // "sleep_consistency", 0–100
-    var needMin: Double?          // "sleep_need_min", minutes
-    var debtMin: Double?          // "sleep_debt_min", minutes
+    /// Llave de serie `"sleep_performance"`, de 0 a 100.
+    var performancePct: Double?
+    /// Llave de serie `"sleep_consistency"`, de 0 a 100.
+    var consistencyPct: Double?
+    /// Llave de serie `"sleep_need_min"`, en minutos.
+    var needMin: Double?
+    /// Llave de serie `"sleep_debt_min"`, en minutos.
+    var debtMin: Double?
 }
 
 /// Read model over the on-device CenitStore. Opens its own handle (WAL + busy-timeout makes the
@@ -32,9 +39,13 @@ final class Repository: ObservableObject {
     /// HRmax as the strap's live strain path — no band↔Apple discontinuity. nil ⇒ StrainScorer default.
     var strainHRmax: Double? = nil
     var strainSex: String = "male"
-    /// Source id for on-device computed scores (recovery/strain/sleep derived from the raw strap
-    /// streams by the retired on-device analysis). Merged UNDER the imported `deviceId` rows at read time, so a
-    /// real WHOOP import always wins and the strap-only user still gets a populated dashboard.
+    /// Identificador de fuente para las cifras que el propio aparato calculó a partir de las series
+    /// crudas del dispositivo heredado (recuperación, esfuerzo, sueño), con el análisis ya retirado.
+    ///
+    /// Al leer, estas filas se funden DEBAJO de las importadas: una importación de verdad siempre
+    /// gana, y aun así quien nunca importó nada ve un tablero con datos.
+    ///
+    /// El sufijo es un valor persistido: así están marcadas las filas que ya viven en el teléfono.
     private var computedDeviceId: String { deviceId + "-noop" }
     /// The Apple-derived nocturnal-HRV partition (R2/R3, FER-1008): a SEPARATE metricSeries deviceId from
     /// the strap's `computedDeviceId` and from raw `apple-health`, so the Apple RMSSD-per-night base is
@@ -125,14 +136,17 @@ final class Repository: ObservableObject {
     /// Apple Health sleep sessions carrying a real per-epoch stage timeline (FER-486), for nights the
     /// band didn't cover — the Detalle de Sueño draws a full hypnogram from these.
     var appleSleeps: [CachedSleepSession] { dashboard.appleSleeps }
-    /// Imported (export-verbatim) sleep figures by day. Empty until a WHOOP import lands.
+    /// Las cifras de sueño que llegaron ya hechas en una exportación, por día. Vacío mientras no
+    /// aterrice una importación.
     var importedSleep: [String: ImportedSleepFigures] { dashboard.importedSleep }
     var loaded: Bool { dashboard.loaded }
     /// True once the FULL history is published (see `DashboardData.fullyLoaded` for the rule).
     var fullyLoaded: Bool { dashboard.fullyLoaded }
-    /// Monotonic counter bumped on every successful `refresh()`. Intraday-updating views key their
-    /// data load on this so they reload when fresh strap data lands — `today?.day` alone is a stable
-    /// date string within a day and would freeze e.g. the Today HR trend until the date rolls over.
+    /// Contador que solo sube, una vez por cada `refresh()` que sale bien.
+    ///
+    /// Las pantallas que se actualizan varias veces al día cuelgan de aquí su recarga: si colgaran de
+    /// `today?.day`, esa cadena no cambia en toda la jornada y la vista se quedaría congelada —el
+    /// pulso de Hoy, por ejemplo— hasta que cambiara la fecha.
     var refreshSeq: Int { dashboard.seq }
     /// Days surfaced from Apple Health (strap-uncovered) — Trends/Sleep badge these as "Apple Health". (FER-62)
     var appleHealthDays: Set<String> { dashboard.appleHealthDays }
@@ -162,9 +176,11 @@ final class Repository: ObservableObject {
 
     init(deviceId: String) { self.deviceId = deviceId }
 
-    /// Today's row, by the device's ACTUAL local calendar date — NOT just the newest stored row, which
-    /// after a historical import was months-old data shown as today's hero (issue #23). nil if no row
-    /// for today yet (the dashboard then shows its empty/pending state).
+    /// La fila de hoy, buscada por la fecha local REAL del aparato.
+    ///
+    /// No es «la fila más nueva que haya»: después de importar historia vieja, esa fila tenía meses y
+    /// se pintaba como el héroe de hoy. Nada si todavía no hay fila de hoy — el tablero enseña
+    /// entonces su estado vacío.
     var today: DailyMetric? {
         let key = Repository.localDayKey(Date())
         return days.last(where: { $0.day == key })
@@ -184,14 +200,15 @@ final class Repository: ObservableObject {
                                            asOf: String, recentCutoff: String) -> AutonomicTrend.Read {
         SourceFusion.autonomicTrend(nights: nights, asOf: asOf, recentCutoff: recentCutoff)
     }
-    /// The trailing 7 CALENDAR days ending today (for the week strip), oldest→newest — not the last 7
-    /// stored rows, which on a stale import were old data. ISO yyyy-MM-dd compares chronologically.
+    /// Los 7 días de CALENDARIO que terminan hoy, del más viejo al más nuevo, para la tira de la
+    /// semana. No son «las últimas 7 filas guardadas»: con una importación vieja, esas eran datos
+    /// añejos. La llave `yyyy-MM-dd` se compara como texto y sale en orden cronológico.
     var week: [DailyMetric] {
         let cutoff = Repository.localDayKey(Calendar.current.date(byAdding: .day, value: -6, to: Date()) ?? Date())
         return days.filter { $0.day >= cutoff }
     }
 
-    /// `yyyy-MM-dd` in the device's local zone, matching how `DailyMetric.day` is stored.
+    /// `yyyy-MM-dd` en la zona horaria del aparato, que es como se guarda `DailyMetric.day`.
     /// Canonical instance lives in `CenitStore.DayKey` (FER-754); this is the same object.
     private static let dayKeyFormatter = DayKey.localFormatter
     static func localDayKey(_ date: Date) -> String { dayKeyFormatter.string(from: date) }
@@ -288,7 +305,7 @@ final class Repository: ObservableObject {
         return s
     }
 
-    /// Expose the shared store handle (used by the importer to persist mapped rows).
+    /// La misma base, prestada. El importador la pide para guardar las filas que ya mapeó.
     func storeHandle() async -> CenitStore? { await ensureStore() }
 
     /// "Verify my data": run the store's integrity check. false on any failure (incl. no store yet),
@@ -298,9 +315,9 @@ final class Repository: ObservableObject {
         return (try? await store.integrityCheck()) ?? false
     }
 
-    /// Checkpoint the WAL into the main DB file if the store is already open, so a file-level
-    /// backup captures everything. No-op (returns false) if no handle exists yet — the caller
-    /// then copies the on-disk files as-is, which still includes the -wal sidecar.
+    /// Pliega el WAL dentro del archivo principal si la base ya está abierta, para que un respaldo a
+    /// nivel de archivo se lleve todo. Si todavía no hay base abierta no hace nada y responde `false`;
+    /// el llamador copia entonces los archivos tal como están en disco, incluido el `-wal`.
     func checkpointForBackup() async -> Bool {
         guard let store else { return false }
         do { try await store.checkpointWAL(); return true } catch { return false }
@@ -814,13 +831,13 @@ final class Repository: ObservableObject {
                                  appleAgg: appleAgg, stepsEst: stepsEst)
     }
 
-    /// Same precedence for sleep sessions, keyed by the day the night ends on.
+    /// La misma precedencia, ahora para las noches, con la llave del día en que la noche termina.
     /// Forwards to `SourceFusion` (single policy copy; plan 2026-07-20).
     nonisolated private static func mergeSleep(imported: [CachedSleepSession], computed: [CachedSleepSession]) -> [CachedSleepSession] {
         SourceFusion.mergeSleep(imported: imported, computed: computed)
     }
 
-    // MARK: - Detail passthroughs
+    // MARK: - Lecturas de detalle (pasan derecho a la base)
 
     func dailyMetrics(fromDay: String, toDay: String) async -> [DailyMetric] {
         // FER-484 / FER-1003: appleHealthOnly excludes the strap — method kept for callers, always empty.
@@ -863,8 +880,8 @@ final class Repository: ObservableObject {
         return (try? await store.latestCircadianPhase(deviceId: computedDeviceId)) ?? nil
     }
 
-    /// Downsampled HR (mean bpm per `bucketSeconds`) for the strap, for a Today/24h trend chart.
-    /// Aggregated in SQL so a full day never loads the raw ~1 Hz rows.
+    /// El pulso del aparato heredado, promediado en cubos de `bucketSeconds`, para la gráfica de las
+    /// últimas 24 horas. La suma se hace en SQL: un día entero nunca carga las filas crudas de ~1 Hz.
     func hrBuckets(from: Int, to: Int, bucketSeconds: Int = 300) async -> [HRBucket] {
         guard let store = await ensureStore() else { return [] }
         return (try? await store.hrBuckets(deviceId: deviceId, from: from, to: to, bucketSeconds: bucketSeconds)) ?? []
@@ -902,9 +919,9 @@ final class Repository: ObservableObject {
         SourceFusion.appleSleepsNotCoveredOnDevice(apple: apple, onDevice: onDevice)
     }
 
-    // MARK: - Metric explorer reads (generic substrate)
+    // MARK: - Lecturas del explorador de métricas (el sustrato genérico)
 
-    /// Daily series for any metric key from a given source ("strap" / "apple-health").
+    /// La serie diaria de cualquier métrica, de la fuente que se pida.
     func series(key: String, source: String, days: Int = 4000) async -> [(day: String, value: Double)] {
         guard let store = await ensureStore() else { return [] }
         let (from, to) = Self.dayWindow(days: days)
@@ -1010,6 +1027,7 @@ final class Repository: ObservableObject {
         if !rows.isEmpty { _ = try? await store.upsertMetricSeries(rows, deviceId: computedDeviceId) }
     }
 
+    /// Qué métricas tiene guardadas una fuente.
     func availableKeys(source: String) async -> [String] {
         guard let store = await ensureStore() else { return [] }
         return (try? await store.metricKeys(deviceId: source)) ?? []
@@ -1027,13 +1045,18 @@ final class Repository: ObservableObject {
         return out
     }
 
-    /// Native journal answers live under this dedicated source id. The journal table has no
-    /// `source` column (PK is (deviceId, day, question)), so writing native answers under the
-    /// imported `deviceId` would let a CSV re-import silently overwrite them — and clears could
-    /// then delete imported rows. A separate device id keeps the two streams independent.
+    /// Las respuestas que el usuario escribe dentro del app viven bajo esta fuente propia.
+    ///
+    /// La tabla de bitácora no tiene columna de origen —su llave es (fuente, día, pregunta)—, así que
+    /// guardarlas bajo la fuente importada dejaría que una reimportación de CSV las pisara en
+    /// silencio, y un borrado se llevaría de paso filas importadas. Con una fuente aparte, las dos
+    /// corrientes no se tocan.
+    ///
+    /// El texto es un valor persistido: así están marcadas las filas que ya existen.
     static let journalDeviceId = "noop-journal"
 
-    /// Logged behaviours (imported WHOOP journal ∪ native noop-journal) for correlation insights.
+    /// Todas las conductas registradas —las importadas más las escritas aquí— para cruzar con las
+    /// métricas y sacar ideas.
     func journalEntries(days: Int = 4000) async -> [JournalEntry] {
         guard let store = await ensureStore() else { return [] }
         let (from, to) = Self.dayWindow(days: days)
@@ -1043,16 +1066,18 @@ final class Repository: ObservableObject {
         return Self.mergeJournal(imported: imported, native: native)
     }
 
-    /// Imported journal rows only (used by the logging card to adopt the export's exact question
-    /// strings into the catalog, so logged and imported days group under one behaviour).
+    /// Solo las filas importadas. La tarjeta de registro las lee para adoptar en el catálogo las
+    /// preguntas con la grafía exacta de la exportación: así un día registrado aquí y uno importado
+    /// caen en la misma conducta.
     func importedJournalEntries(days: Int = 4000) async -> [JournalEntry] {
         guard let store = await ensureStore() else { return [] }
         let (from, to) = Self.dayWindow(days: days)
         return (try? await store.journalEntries(deviceId: deviceId, from: from, to: to)) ?? []
     }
 
-    /// One day's native answers (question → answeredYes) for the logging card's chip state. A
-    /// targeted read — the merged list carries no deviceId, so it can't distinguish native rows.
+    /// Las respuestas de un solo día escritas aquí dentro, para pintar las fichas de la tarjeta de
+    /// registro. Es una lectura dirigida: la lista ya fusionada no carga la fuente, así que no puede
+    /// distinguir cuáles son propias.
     func nativeJournalAnswers(day: String) async -> [String: Bool] {
         guard let store = await ensureStore() else { return [:] }
         let rows = (try? await store.journalEntries(deviceId: Self.journalDeviceId,
@@ -1061,16 +1086,22 @@ final class Repository: ObservableObject {
                           uniquingKeysWith: { _, last in last })
     }
 
-    /// Union; the NATIVE row wins per (day, question) — the in-app answer is the user's most recent
-    /// explicit action and stays editable, unlike the immutable imported history.
+    /// Une las dos corrientes. Por cada (día, pregunta) gana la respuesta escrita DENTRO del app: es
+    /// lo último que el usuario hizo a propósito y sigue siendo editable, a diferencia del historial
+    /// importado, que ya no se toca.
     static func mergeJournal(imported: [JournalEntry], native: [JournalEntry]) -> [JournalEntry] {
-        var byKey: [String: JournalEntry] = [:]
-        for e in imported { byKey[e.day + "\u{1F}" + e.question] = e }
-        for e in native { byKey[e.day + "\u{1F}" + e.question] = e }
-        return byKey.values.sorted { ($0.day, $0.question) < ($1.day, $1.question) }
+        // El separador de unidad no aparece en un día ni en una pregunta, así que la llave compuesta
+        // no puede colisionar por accidente.
+        func llave(_ entry: JournalEntry) -> String { entry.day + "\u{1F}" + entry.question }
+
+        var porLlave: [String: JournalEntry] = [:]
+        for entry in imported { porLlave[llave(entry)] = entry }
+        for entry in native { porLlave[llave(entry)] = entry }
+        return porLlave.values.sorted { ($0.day, $0.question) < ($1.day, $1.question) }
     }
 
-    /// Write one native answer (day per the importer's wake-day convention).
+    /// Escribe una respuesta propia. El día sigue la convención del importador: la jornada en que se
+    /// despertó.
     func saveJournalAnswer(day: String, question: String, answeredYes: Bool, notes: String? = nil) async throws {
         guard let store = await ensureStore() else { return }
         _ = try await store.upsertJournal(
@@ -1078,7 +1109,8 @@ final class Repository: ObservableObject {
             deviceId: Self.journalDeviceId)
     }
 
-    /// Clear one native answer (never touches imported rows — scoped to the dedicated source id).
+    /// Borra una respuesta propia. Nunca toca lo importado: la operación va acotada a la fuente
+    /// propia.
     func clearJournalAnswer(day: String, question: String) async throws {
         guard let store = await ensureStore() else { return }
         _ = try await store.deleteJournal(deviceId: Self.journalDeviceId, day: day, question: question)
@@ -1306,13 +1338,14 @@ final class Repository: ObservableObject {
                       nWith: r.nWith, nWithout: r.nWithout, createdAt: r.createdAt, decidedAt: decidedAt)
     }
 
-    /// All workouts (Whoop + Apple Health + on-device detected bouts), newest first.
+    /// Todos los entrenamientos —importados, de Apple Salud y los ratos que el aparato detectó solo—,
+    /// del más nuevo al más viejo.
     ///
-    /// Detected bouts are surfaced with an honest "Detected" badge so the user can see — and
-    /// dismiss or re-label — a duplicate the auto-detector created (#107). Dismissed detected spans
-    /// are filtered HERE so every consumer (Workouts screen, Today, Coach context) agrees: the engine
-    /// re-derives the detected rows each run, so a plain delete would resurrect them; the dismissed
-    /// span list is the durable "not a workout" record.
+    /// Lo detectado se enseña con su sello honesto de «Detectado», para que el usuario vea, y pueda
+    /// descartar o renombrar, el duplicado que creó el detector automático (#107). El filtro de lo
+    /// descartado se aplica AQUÍ, para que todas las pantallas coincidan: el motor vuelve a derivar
+    /// esas filas en cada corrida, así que un borrado simple las resucitaría; la lista de tramos
+    /// descartados es el registro durable de «esto no fue un entrenamiento».
     /// `respectingMode`: dashboard callers (Today/Cuerpo/Workouts/Coach) leave it `true` so the list
     /// honors the data-source mode; the diagnostic screens (Datos y fuentes / Apple Health coverage) pass
     /// `false` to show everything STORED regardless of mode (FER-485).
@@ -1320,12 +1353,13 @@ final class Repository: ObservableObject {
         guard let store = await ensureStore() else { return [] }
         let now = Int(Date().timeIntervalSince1970)
         let lo = now - days * 86_400, hi = now + 86_400
-        // FER-1003: Apple-only pin — `usesWhoop` is always false, `usesAppleHealth` always true.
-        // Diagnostic (`respectingMode == false`) still surfaces stored strap rows.
-        let useWhoop = !respectingMode
+        // FER-1003: el producto quedó anclado a Apple Salud — la fuente heredada nunca alimenta al
+        // tablero, Apple siempre sí. El modo diagnóstico (`respectingMode == false`) sigue enseñando
+        // las filas heredadas que están guardadas.
+        let useLegacy = !respectingMode
         let useApple = true
         var rows: [WorkoutRow] = []
-        if useWhoop {
+        if useLegacy {
             rows += (try? await store.workouts(deviceId: deviceId, from: lo, to: hi, limit: 5000)) ?? []
             rows += (try? await store.workouts(deviceId: computedDeviceId, from: lo, to: hi, limit: 5000)) ?? []
         }
@@ -1363,31 +1397,36 @@ final class Repository: ObservableObject {
                                            recoveryByDay: recoveryByDay)
     }
 
-    // MARK: - Workout editing (manual add/edit · relabel · dismiss · delete)
+    // MARK: - Editar entrenamientos (agregar y editar a mano · renombrar · descartar · borrar)
     //
-    // Manual workouts live under the strap source (deviceId == `deviceId`, source "manual") — the same
-    // place v1.67's live-tracked sessions already land (AppModel.endWorkout). Detected bouts live under
-    // the computed `computedDeviceId` with sport "detected" and are wiped + re-derived each engine run,
-    // so the only durable way to keep one hidden after a re-detect is the dismissed-span list below.
+    // Un entrenamiento escrito a mano vive bajo la fuente heredada (`deviceId`, origen "manual"), en el
+    // mismo lugar donde ya caen las sesiones que el app cronometra en vivo. Lo detectado vive bajo la
+    // fuente calculada con el deporte "detected", y el motor lo borra y lo vuelve a derivar en cada
+    // corrida: por eso la única forma durable de mantener uno oculto es la lista de tramos de abajo.
 
-    /// The persisted dismissed detected spans ("startTs:endTs"). Read straight off UserDefaults so the
-    /// read path and the write path share one source of truth (the engine never sees this — it always
-    /// re-derives; only the read filter and these mutators consult it).
+    /// Los tramos descartados que quedan guardados, como `"inicio:fin"`.
+    ///
+    /// Se leen y se escriben directo en `UserDefaults`, para que el camino de lectura y el de escritura
+    /// compartan una sola fuente de verdad. El motor nunca los ve —siempre vuelve a derivar—; solo los
+    /// consultan el filtro de lectura y estos métodos.
     private var dismissedDetectedSpans: [String] {
         get { UserDefaults.standard.stringArray(forKey: WorkoutSource.dismissedDefaultsKey) ?? [] }
         set { UserDefaults.standard.set(newValue, forKey: WorkoutSource.dismissedDefaultsKey) }
     }
 
-    /// Persist a retroactive / edited manual workout under the strap source. `replacing` is the row the
-    /// edit started from:
-    ///  - editing a DETECTED bout ("Edit details…") replaces it with this manual row — the detected
-    ///    original is dismissed durably so the re-detector doesn't bring it back (else both would show);
-    ///  - editing a MANUAL row whose natural key (startTs/sport) changed deletes the stale strap row
-    ///    after the upsert (insert-first: never delete the only copy before the new one lands);
-    ///  - an IMPORTED row is never passed here as `replacing` (duplicating one is a pure add), so its
-    ///    history is never touched.
-    /// Order is upsert → delete. If the delete fails after a successful upsert, the error is logged
-    /// (a visible duplicate is safer than losing the session).
+    /// Guarda un entrenamiento escrito a mano —nuevo o editado— bajo la fuente heredada. `replacing`
+    /// es la fila desde la que empezó la edición:
+    ///  - editar un rato DETECTADO lo reemplaza con esta fila a mano, y el detectado original queda
+    ///    descartado de forma durable para que el detector no lo traiga de vuelta (si no, se verían
+    ///    los dos);
+    ///  - editar una fila A MANO cuya llave natural (inicio o deporte) cambió borra la fila vieja
+    ///    después de guardar la nueva;
+    ///  - una fila IMPORTADA nunca llega aquí como `replacing` —duplicarla es solo agregar—, así que
+    ///    su historial no se toca.
+    ///
+    /// El orden es guardar y luego borrar, nunca al revés: no se borra la única copia antes de que
+    /// aterrice la nueva. Si el borrado falla después de guardar bien, se anota en la bitácora del
+    /// sistema; un duplicado visible es mejor que perder la sesión.
     func saveManualWorkout(_ row: WorkoutRow, replacing old: WorkoutRow? = nil) async throws {
         guard let store = await ensureStore() else { return }
         _ = try await store.upsertWorkouts([row], deviceId: deviceId)
@@ -1412,11 +1451,16 @@ final class Repository: ObservableObject {
         }
     }
 
-    /// Re-label a detected bout: copy it to a manual strap row with the chosen sport, then delete the
-    /// detected original. This survives analyzeRecent — the engine wipes + re-derives only sport
-    /// "detected" rows under the computed id AND skips any re-derived bout overlapping a real strap
-    /// workout, which this copy now is — so the same session is never re-created as a duplicate. (#107)
-    /// Upsert first; if the detected delete fails after a successful upsert, log (duplicate > loss).
+    /// Renombra un rato detectado: lo copia a una fila a mano con el deporte elegido y luego borra el
+    /// detectado original.
+    ///
+    /// Sobrevive a la siguiente corrida del motor por dos razones: el motor solo borra y vuelve a
+    /// derivar las filas con deporte "detected" bajo la fuente calculada, y además se salta cualquier
+    /// rato que se traslape con un entrenamiento de verdad — que es justo en lo que esta copia acaba
+    /// de convertirse. Así la misma sesión nunca reaparece duplicada (#107).
+    ///
+    /// Primero guardar, luego borrar. Si el borrado falla, se anota: un duplicado pesa menos que una
+    /// pérdida.
     func relabelDetected(_ row: WorkoutRow, sport: String) async throws {
         guard let store = await ensureStore() else { return }
         let trimmed = sport.trimmingCharacters(in: .whitespaces)
@@ -1434,9 +1478,10 @@ final class Repository: ObservableObject {
         }
     }
 
-    /// Dismiss a DETECTED bout the user says isn't a workout. Records its span in the durable dismissed
-    /// list (so a re-detect that recreates the same span stays hidden) AND deletes the current row so it
-    /// disappears immediately. Idempotent: a span already present isn't duplicated. (#107)
+    /// Descarta un rato DETECTADO que el usuario dice que no fue un entrenamiento. Anota su tramo en
+    /// la lista durable —para que una nueva detección del mismo tramo siga oculta— y además borra la
+    /// fila actual, para que desaparezca de inmediato. Repetirlo no hace daño: un tramo que ya está
+    /// no se duplica (#107).
     func dismissDetected(_ row: WorkoutRow) async throws {
         guard WorkoutSource.classify(row.source) == .detected else { return }
         let token = WorkoutSource.dismissedToken(for: row)
@@ -1447,9 +1492,10 @@ final class Repository: ObservableObject {
                                            from: row.startTs, to: row.startTs)
     }
 
-    /// Delete ONE workout by natural key. The read model has no deviceId, so reconstruct it from the
-    /// source: detected rows live under the computed id (and also get their span dismissed so they don't
-    /// come back); everything else the screen can delete (manual) lives under the strap id.
+    /// Borra UN entrenamiento por su llave natural. El modelo que lee la pantalla no carga la fuente,
+    /// así que hay que reconstruirla del origen: lo detectado vive bajo la fuente calculada —y de paso
+    /// se descarta su tramo, para que no regrese—; todo lo demás que la pantalla puede borrar, que es
+    /// lo escrito a mano, vive bajo la fuente heredada.
     func deleteWorkout(_ row: WorkoutRow) async throws {
         if WorkoutSource.classify(row.source) == .detected { try await dismissDetected(row); return }
         guard let store = await ensureStore() else { return }
@@ -1463,7 +1509,7 @@ final class Repository: ObservableObject {
         self.store = store
     }
 
-    /// Apple Health daily aggregates (steps/energy/vo2/hr).
+    /// Los agregados diarios de Apple Salud: pasos, energía, VO₂ máx. y pulso.
     /// `respectingMode`: dashboard callers (Today/Cuerpo) leave it `true` so Apple is hidden in `whoopOnly`;
     /// the Apple Health diagnostic screen passes `false` to show what's STORED regardless of mode (FER-485).
     func appleDailyRows(days: Int = 4000, respectingMode: Bool = true) async -> [AppleDaily] {
