@@ -47,6 +47,12 @@ struct MetricInfo: Identifiable {
     /// sheet builds the band from the loaded series via `Baselines`. (FER-619 · Plews 2013)
     var levelsRelative: Bool = false
 
+    /// FER-438 · The one-line method of the «Tu patrón» block (statistic, lag, n floor, family control,
+    /// source) for the metrics that carry it. Rendered inside «Cómo se calcula» next to `method`, only
+    /// while the block is on screen. nil → no block, no line. Declared LAST so the memberwise init keeps
+    /// every factory's argument order.
+    var patternMethod: LocalizedStringResource? = nil
+
     /// Whether this metric shows the F6 levels instrument at all — a fixed table (`levelsMetric`) or a
     /// personal band (`levelsRelative`). Gates the body, header, foot link and detent. (FER-619)
     var usesLevels: Bool { levelsMetric != nil || levelsRelative }
@@ -127,7 +133,8 @@ extension MetricInfo {
             bands: bands,
             note: nil,
             levelsMetric: .strain,
-            levelsTodayValue: value
+            levelsTodayValue: value,
+            patternMethod: "Your pattern: Spearman correlation of last night's efficiency with the day's strain (lag 0, at least 56 paired days), with family control (Benjamini-Hochberg). Sources: Atoui 2021; Lambiase 2013."
         )
     }
 
@@ -153,7 +160,8 @@ extension MetricInfo {
             bands: bands,
             note: nil,
             levelsMetric: .sleep,
-            levelsTodayValue: totalMinutes.map(Double.init)
+            levelsTodayValue: totalMinutes.map(Double.init),
+            patternMethod: "Your pattern: Spearman correlation of the previous day's strain with that night's duration (lag +1, at least 42 paired days; partial, adjusted for the same day's strain) and Pearson correlation of one night with the next (lag +1, at least 42 pairs), with family control (Benjamini-Hochberg). Sources: Kredlow 2015; Atoui 2021; Borbély 1982/2022."
         )
     }
 
@@ -202,7 +210,8 @@ extension MetricInfo {
             note: "Measured overnight from your Apple Watch's heart rate; when it isn't worn to sleep, Cénit uses Apple Health's resting heart rate instead.",
             levelsMetric: .restingHR,
             bandsCaption: "Population reference, not your verdict. These ranges are a rough fitness guide and shift with age and sex; your daily read compares you against your own baseline, not against these bands.",
-            levelsTodayValue: value.map(Double.init)
+            levelsTodayValue: value.map(Double.init),
+            patternMethod: "Your pattern: Pearson correlation of the night's duration with the resting heart rate Apple Health records for that day (lag 0, at least 42 paired days) and Spearman correlation of the previous day's strain with it (lag +1, at least 42 pairs; partial, adjusted for the same day's strain), with family control (Benjamini-Hochberg). Sources: Dettoni 2012; Faust 2020; Stanley 2013."
         )
     }
 
@@ -296,7 +305,8 @@ extension MetricInfo {
             unit: nil,
             headerTint: pct == nil ? .neutral : .metric,
             bands: bands,
-            note: nil
+            note: nil,
+            patternMethod: "Your pattern: Spearman correlation of the previous day's strain with that night's efficiency (lag +1, at least 56 paired days; partial, adjusted for the same day's strain), with family control (Benjamini-Hochberg). Source: Kredlow 2015."
         )
     }
 
@@ -459,7 +469,8 @@ extension MetricInfo {
                 prose: "Steps come from Apple Health. The detail reads each day's total and smooths it into a 7-day trend, so weekday/weekend swings don't drown out the direction you're heading. Research links roughly 7,000–9,000 steps a day with lower mortality, with the benefit leveling off beyond that: there is nothing magic about exactly 10,000.",
                 citation: "Paluch et al. 2022, Lancet Public Health."),
             levelsMetric: .steps,
-            levelsTodayValue: value.map(Double.init)
+            levelsTodayValue: value.map(Double.init),
+            patternMethod: "Your pattern: Spearman correlation of last night's efficiency with the day's steps (lag 0, at least 56 completed days; today's count excluded), with family control (Benjamini-Hochberg). Sources: Atoui 2021; Lambiase 2013; Mead 2019."
         )
     }
 

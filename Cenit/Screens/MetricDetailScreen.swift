@@ -929,7 +929,7 @@ struct MetricDetailScreen: View {
                     LiquidTendenciaCard(
                         overline: String(localized: "What we see in your history"),
                         chip: String(localized: "trend, not cause"),
-                        lineas: whatMovesItFindings.map { plainLocalizedLabel($0.phrase) })
+                        lineas: whatMovesItFindings.map(\.phrase))
                 }
             }
             if visibleBlocks.contains(.nightVitals),
@@ -1309,14 +1309,22 @@ struct MetricDetailScreen: View {
     private var liquidPieMetodo: some View {
         VStack(alignment: .leading, spacing: LiquidSpace.s300) {
             LiquidCapilar(eje: .horizontal)
-            if visibleBlocks.contains(.method), let method = spec.info.method {
+            // FER-438 · El método de «Tu patrón» (estadístico, lag, n mínimo, control de familia y
+            // fuente) se suma al pie SOLO cuando la pantalla pintó un hallazgo: no se explica lo que
+            // no se ve (misma regla de dato que `LiquidMetricSheetView.pie`).
+            let patronMetodo: String? = whatMovesItFindings.isEmpty
+                ? nil : spec.info.patternMethod.map { String(localized: $0) }
+            if visibleBlocks.contains(.method), spec.info.method != nil || patronMetodo != nil {
                 LiquidMetodo(title: String(localized: "How it's calculated"),
                              mostrar: String(localized: "Show explanation"),
                              ocultar: String(localized: "Hide explanation")) {
-                    LiquidNotaLine(String(localized: method.prose), tono: LiquidColor.tinta700)
-                    if let citation = method.citation {
-                        LiquidNotaLine(String(localized: citation))
+                    if let method = spec.info.method {
+                        LiquidNotaLine(String(localized: method.prose), tono: LiquidColor.tinta700)
+                        if let citation = method.citation {
+                            LiquidNotaLine(String(localized: citation))
+                        }
                     }
+                    if let patronMetodo { LiquidNotaLine(patronMetodo) }
                 }
             }
             // VIT-10: el chip de origen es la marca de PROCEDENCIA de la hoja de Hoy
@@ -1385,7 +1393,7 @@ struct MetricDetailScreen: View {
                 if liquidIndiceAncla != nil {
                     seccionLiquid(String(localized: "Levels")) { liquidLevelsContent }
                 }
-                if stepsMovers != nil {
+                if stepsMovers != nil || !whatMovesItFindings.isEmpty {
                     // VIT-09: la franja conserva la voz propia de Pasos («Qué mueve tus pasos»).
                     seccionLiquid(String(localized: "What moves your steps")) { liquidStepsPatronContent }
                 }
@@ -1496,16 +1504,26 @@ struct MetricDetailScreen: View {
     /// MISMO gate (`stepsMovers != nil`) que el patrón de pasos tenía en papel.
     /// T7: el overline es el de la FAMILIA («Lo que vemos en tu historial») — el título-franja
     /// («Qué mueve tus pasos») ya vive en la costura de sección y no se repite aquí.
+    /// FER-438: la lectura fin de semana/entre semana y el hallazgo gateado de la familia («eficiencia
+    /// de anoche → pasos», `WhatMovesItFinding.phrase`) comparten la MISMA tarjeta; cualquiera de los
+    /// dos la enciende.
     @ViewBuilder private var liquidStepsPatronContent: some View {
-        if let m = stepsMovers {
-            let pctStr = "\(m.pct)%"
+        let lineas: [String] = (stepsWeekendLine.map { [$0] } ?? []) + whatMovesItFindings.map(\.phrase)
+        if !lineas.isEmpty {
             LiquidTendenciaCard(
                 overline: String(localized: "What we see in your history"),
                 chip: String(localized: "trend, not cause"),
-                lineas: [m.weekendHigher
-                    ? String(localized: "Your weekends average about \(fmt(m.weekendAvg)) steps: roughly \(pctStr) more than your weekdays.")
-                    : String(localized: "Your weekends average about \(fmt(m.weekendAvg)) steps: roughly \(pctStr) fewer than your weekdays.")])
+                lineas: lineas)
         }
+    }
+
+    /// La frase fin de semana vs entre semana (FER-824), intacta; nil bajo su mismo gate.
+    private var stepsWeekendLine: String? {
+        guard let m = stepsMovers else { return nil }
+        let pctStr = "\(m.pct)%"
+        return m.weekendHigher
+            ? String(localized: "Your weekends average about \(fmt(m.weekendAvg)) steps: roughly \(pctStr) more than your weekdays.")
+            : String(localized: "Your weekends average about \(fmt(m.weekendAvg)) steps: roughly \(pctStr) fewer than your weekdays.")
     }
 
     // MARK: TND-21 · 3. Historial — días completos, escalera del motor, sin joya de «hoy»

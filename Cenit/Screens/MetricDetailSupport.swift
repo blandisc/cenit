@@ -167,11 +167,6 @@ extension MetricDetailScreen {
 
     func clampFrac(_ v: Double) -> CGFloat { CGFloat(min(max(v, 0.02), 0.98)) }
 
-    static func whatMovesArrow(_ f: WhatMovesItFinding) -> String { f.trend == .rises ? "↑" : "↓" }
-    func whatMovesColor(_ f: WhatMovesItFinding) -> Color {
-        f.relationship == .sleepDuration ? LiquidColor.verdePrimario : LiquidColor.ambar
-    }
-
     // MARK: - Colour + format
 
     var metricHue: Color {

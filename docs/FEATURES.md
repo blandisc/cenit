@@ -74,7 +74,8 @@ The verdict home — today's readiness word (El Ecosistema) and La Matriz of sig
 - **Each signal's sheet** — What it is, how it's computed (with its citation), and where the data
   comes from. _(Today: tap a cell of the Matrix.)_
 - **Your pattern: what moves a signal** — A documented tendency, no cause and no coefficient, for
-  HRV and resting HR. _(Inside the HRV or resting HR sheet.)_ · Needs Apple Watch
+  sleep, strain, efficiency, steps and resting HR. _(Inside the sleep, strain, efficiency, steps or
+  resting HR sheet.)_ · Needs Apple Watch
 - **A signal's full detail** — Hypnogram, zones, the 90-day calendar and the method. _(Signal sheet
   → «See more».)_
 - **The illness notice** — When your body looks strained, a banner names the signals. Optional.

@@ -434,10 +434,17 @@ struct LiquidMetricSheetView: View {
             LiquidReadingLine(frase, highlightTone: tinteTexto(datoInfo.headerTint))
         }
         levelsBlock
+        patronBlock
+    }
+
+    /// «Tu patrón» — los hallazgos direccionales que ya pasaron el gate del motor (FER-438: sueño,
+    /// esfuerzo, eficiencia, pasos y FC en reposo, en una sola familia). Vacío ⇒ no se pinta: la hoja
+    /// nunca inventa una dirección. La frase es `WhatMovesItFinding.phrase`, el único hogar del copy.
+    @ViewBuilder private var patronBlock: some View {
         if !whatMovesIt.isEmpty {
             LiquidPatternBlock(
                 overline: String(localized: "Your pattern"),
-                lineas: whatMovesIt.map(Self.fraseHallazgo),
+                lineas: whatMovesIt.map(\.phrase),
                 tono: tono)
         }
     }
@@ -482,21 +489,6 @@ struct LiquidMetricSheetView: View {
         return String(localized: String.LocalizationValue(phraseKey))
     }
 
-    /// Paridad `WhatMovesItFinding.phrase` — mismas claves (el modelo entrega
-    /// `LocalizedStringKey`; el DS pide String).
-    private static func fraseHallazgo(_ f: WhatMovesItFinding) -> String {
-        switch (f.relationship, f.trend) {
-        case (.sleepDuration, .rises):
-            return String(localized: "Tends to run higher on nights you sleep more.")
-        case (.sleepDuration, .falls):
-            return String(localized: "Tends to run lower on nights you sleep more.")
-        case (.priorStrain, .rises):
-            return String(localized: "Tends to rise the day after a hard effort.")
-        case (.priorStrain, .falls):
-            return String(localized: "Tends to dip the day after a hard effort.")
-        }
-    }
-
     // MARK: Strain (§1.4 — lectura + niveles)
 
     @ViewBuilder private var strainContent: some View {
@@ -504,6 +496,7 @@ struct LiquidMetricSheetView: View {
             LiquidReadingLine(frase, highlightTone: tinteTexto(datoInfo.headerTint))
         }
         levelsBlock
+        patronBlock
     }
 
     // MARK: Sueño rica (§1.3 — lectura + niveles + etapas + regularidad)
@@ -558,6 +551,7 @@ struct LiquidMetricSheetView: View {
                     infoMostrar: String(localized: "Show explanation"),
                     infoOcultar: String(localized: "Hide explanation"))
             }
+            patronBlock
         }
     }
 
@@ -682,6 +676,8 @@ struct LiquidMetricSheetView: View {
             if datoInfo.id == "heart_rate" { heartRateBlock }
             if !datoInfo.bands.isEmpty { bandsTableBlock }
         }
+        // FER-438 · Eficiencia (submétrica de sueño, sin escalera) trae «Tu patrón» por aquí.
+        patronBlock
         // La calibración cabalga junto a ambos layouts — solo recovery la trae (:234-236).
         if let cal = datoInfo.calibration {
             LiquidCalibracionCard(
@@ -1613,7 +1609,11 @@ struct LiquidMetricSheetView: View {
         // replicaba `LiquidSheetCopy.metodo`, borrado.
         let metodo = datoInfo.method.map { (prosa: String(localized: $0.prose),
                                             cita: $0.citation.map { String(localized: $0) }) }
-        if metodo != nil || comoSeObtuvoProsa != nil {
+        // FER-438 · El método de «Tu patrón» (estadístico, lag, n mínimo, control de familia y
+        // fuente) acompaña al bloque SOLO cuando la hoja lo pintó: no se explica lo que no se ve.
+        let patronMetodo: String? = whatMovesIt.isEmpty
+            ? nil : datoInfo.patternMethod.map { String(localized: $0) }
+        if metodo != nil || comoSeObtuvoProsa != nil || patronMetodo != nil {
             LiquidMetodo(title: String(localized: "How it's calculated"),
                          // D11 (B6) · Etiquetas propias de VoiceOver: antes leía «Cómo se
                          // calcula, uno». Distintas de las del ⓘ de la cabecera a propósito
@@ -1629,6 +1629,7 @@ struct LiquidMetricSheetView: View {
                 } else if let prosa = comoSeObtuvoProsa {
                     LiquidNotaLine(prosa)
                 }
+                if let patronMetodo { LiquidNotaLine(patronMetodo) }
                 origenChipVista
             }
         }

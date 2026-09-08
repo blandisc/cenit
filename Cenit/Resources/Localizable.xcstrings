@@ -40822,57 +40822,6 @@
         }
       }
     },
-    "Tends to dip the day after a hard effort." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tends to dip the day after a hard effort."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Suele bajar el día después de un esfuerzo alto."
-          }
-        }
-      }
-    },
-    "Tends to ease off the day after a hard effort." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tends to ease off the day after a hard effort."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Suele bajar el día después de un esfuerzo alto."
-          }
-        }
-      }
-    },
-    "Tends to rise the day after a hard effort." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tends to rise the day after a hard effort."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Suele subir el día después de un esfuerzo alto."
-          }
-        }
-      }
-    },
     "Tends to rise with alcohol, fever, and ambient heat." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -40886,91 +40835,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Suele subir con alcohol, fiebre y calor ambiental."
-          }
-        }
-      }
-    },
-    "Tends to run higher on days you start more recovered." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tends to run higher on days you start more recovered."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Suele ser más alto los días que empiezas más recuperado."
-          }
-        }
-      }
-    },
-    "Tends to run higher on nights you sleep more." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tends to run higher on nights you sleep more."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Suele ser más alta las noches que duermes más."
-          }
-        }
-      }
-    },
-    "Tends to run higher the day after a hard effort." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tends to run higher the day after a hard effort."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Suele ser más alto el día después de un esfuerzo alto."
-          }
-        }
-      }
-    },
-    "Tends to run lower on days you start more recovered." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tends to run lower on days you start more recovered."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Suele ser más bajo los días que empiezas más recuperado."
-          }
-        }
-      }
-    },
-    "Tends to run lower on nights you sleep more." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tends to run lower on nights you sleep more."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Suele ser más baja las noches que duermes más."
           }
         }
       }
@@ -73600,13 +73464,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Inside the HRV or resting HR sheet."
+            "value" : "Inside the sleep, strain, efficiency, steps or resting HR sheet."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dentro de la hoja de VFC o de FC en reposo."
+            "value" : "Dentro de la hoja de sueño, esfuerzo, eficiencia, pasos o FC en reposo."
           }
         }
       }
@@ -73634,13 +73498,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A documented tendency, no cause and no coefficient, for HRV and resting HR."
+            "value" : "A documented tendency, no cause and no coefficient, for sleep, strain, efficiency, steps and resting HR."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Una tendencia documentada, sin causa ni coeficiente, para VFC y FC en reposo."
+            "value" : "Una tendencia documentada, sin causa ni coeficiente, para sueño, esfuerzo, eficiencia, pasos y FC en reposo."
           }
         }
       }
@@ -77483,6 +77347,329 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ya hay tendencia"
+          }
+        }
+      }
+    },
+    "patron.sleep.priorStrain.rises" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tends to run longer the night after a hard effort. That is what your nights show, not a rule."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suele ser más largo la noche después de un esfuerzo alto. Es lo que tus noches muestran, no una regla."
+          }
+        }
+      }
+    },
+    "patron.sleep.priorStrain.falls" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tends to run shorter the night after a hard effort. That is what your nights show, not a rule."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suele ser más corto la noche después de un esfuerzo alto. Es lo que tus noches muestran, no una regla."
+          }
+        }
+      }
+    },
+    "patron.sleep.priorNight.rises" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tends to run longer after a long night. Your nights tend to resemble each other."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suele ser más largo después de una noche larga. Tus noches tienden a parecerse entre sí."
+          }
+        }
+      }
+    },
+    "patron.sleep.priorNight.falls" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tends to run longer after a short night. That is how your nights look; it is not a rule."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suele ser más largo después de una noche corta. Así se ve en tus noches; no es una regla."
+          }
+        }
+      }
+    },
+    "patron.strain.efficiency.rises" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tends to run higher on days after you slept straight through. That is what your days show, not an instruction."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suele ser mayor los días que dormiste de corrido. Es lo que tus días muestran, no una instrucción."
+          }
+        }
+      }
+    },
+    "patron.strain.efficiency.falls" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tends to run lower on days after you slept straight through. That is what your days show, not an instruction."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suele ser menor los días que dormiste de corrido. Es lo que tus días muestran, no una instrucción."
+          }
+        }
+      }
+    },
+    "patron.efficiency.priorStrain.rises" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tends to run higher the night after a hard effort. That is how your nights look; it is not a rule."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suele ser más alta la noche después de un esfuerzo alto. Así se ve en tus noches; no es una regla."
+          }
+        }
+      }
+    },
+    "patron.efficiency.priorStrain.falls" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tends to run lower the night after a hard effort. That is how your nights look; it is not a rule."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suele ser más baja la noche después de un esfuerzo alto. Así se ve en tus noches; no es una regla."
+          }
+        }
+      }
+    },
+    "patron.steps.efficiency.rises" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tend to be more on days after you slept straight through. That is what your days show; the calendar weighs in too."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suelen ser más los días que dormiste de corrido. Es lo que tus días muestran; el calendario también pesa."
+          }
+        }
+      }
+    },
+    "patron.steps.efficiency.falls" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tend to be fewer on days after you slept straight through. That is what your days show; the calendar weighs in too."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suelen ser menos los días que dormiste de corrido. Es lo que tus días muestran; el calendario también pesa."
+          }
+        }
+      }
+    },
+    "patron.rhr.sleepDuration.rises" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tends to run higher on nights you sleep more."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suele ser más alta las noches que duermes más."
+          }
+        }
+      }
+    },
+    "patron.rhr.sleepDuration.falls" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tends to run lower on nights you sleep more."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suele ser más baja las noches que duermes más."
+          }
+        }
+      }
+    },
+    "patron.rhr.priorStrain.rises" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tends to rise the day after a hard effort."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suele subir el día después de un esfuerzo alto."
+          }
+        }
+      }
+    },
+    "patron.rhr.priorStrain.falls" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tends to dip the day after a hard effort."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suele bajar el día después de un esfuerzo alto."
+          }
+        }
+      }
+    },
+    "Your pattern: Spearman correlation of last night's efficiency with the day's strain (lag 0, at least 56 paired days), with family control (Benjamini-Hochberg). Sources: Atoui 2021; Lambiase 2013." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your pattern: Spearman correlation of last night's efficiency with the day's strain (lag 0, at least 56 paired days), with family control (Benjamini-Hochberg). Sources: Atoui 2021; Lambiase 2013."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu patrón: correlación de Spearman de la eficiencia de anoche con el esfuerzo del día (lag 0, mínimo 56 pares), con control de familia (Benjamini-Hochberg). Fuentes: Atoui 2021; Lambiase 2013."
+          }
+        }
+      }
+    },
+    "Your pattern: Spearman correlation of the previous day's strain with that night's duration (lag +1, at least 42 paired days; partial, adjusted for the same day's strain) and Pearson correlation of one night with the next (lag +1, at least 42 pairs), with family control (Benjamini-Hochberg). Sources: Kredlow 2015; Atoui 2021; Borbély 1982/2022." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your pattern: Spearman correlation of the previous day's strain with that night's duration (lag +1, at least 42 paired days; partial, adjusted for the same day's strain) and Pearson correlation of one night with the next (lag +1, at least 42 pairs), with family control (Benjamini-Hochberg). Sources: Kredlow 2015; Atoui 2021; Borbély 1982/2022."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu patrón: correlación de Spearman del esfuerzo del día anterior con la duración de esa noche (lag +1, mínimo 42 pares; parcial, ajustada por el esfuerzo del mismo día) y de Pearson de una noche con la siguiente (lag +1, mínimo 42 pares), con control de familia (Benjamini-Hochberg). Fuentes: Kredlow 2015; Atoui 2021; Borbély 1982/2022."
+          }
+        }
+      }
+    },
+    "Your pattern: Pearson correlation of the night's duration with the resting heart rate Apple Health records for that day (lag 0, at least 42 paired days) and Spearman correlation of the previous day's strain with it (lag +1, at least 42 pairs; partial, adjusted for the same day's strain), with family control (Benjamini-Hochberg). Sources: Dettoni 2012; Faust 2020; Stanley 2013." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your pattern: Pearson correlation of the night's duration with the resting heart rate Apple Health records for that day (lag 0, at least 42 paired days) and Spearman correlation of the previous day's strain with it (lag +1, at least 42 pairs; partial, adjusted for the same day's strain), with family control (Benjamini-Hochberg). Sources: Dettoni 2012; Faust 2020; Stanley 2013."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu patrón: correlación de Pearson de la duración de la noche con la FC en reposo que registra Apple Salud ese día (lag 0, mínimo 42 pares) y de Spearman del esfuerzo del día anterior con ella (lag +1, mínimo 42 pares; parcial, ajustada por el esfuerzo del mismo día), con control de familia (Benjamini-Hochberg). Fuentes: Dettoni 2012; Faust 2020; Stanley 2013."
+          }
+        }
+      }
+    },
+    "Your pattern: Spearman correlation of the previous day's strain with that night's efficiency (lag +1, at least 56 paired days; partial, adjusted for the same day's strain), with family control (Benjamini-Hochberg). Source: Kredlow 2015." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your pattern: Spearman correlation of the previous day's strain with that night's efficiency (lag +1, at least 56 paired days; partial, adjusted for the same day's strain), with family control (Benjamini-Hochberg). Source: Kredlow 2015."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu patrón: correlación de Spearman del esfuerzo del día anterior con la eficiencia de esa noche (lag +1, mínimo 56 pares; parcial, ajustada por el esfuerzo del mismo día), con control de familia (Benjamini-Hochberg). Fuente: Kredlow 2015."
+          }
+        }
+      }
+    },
+    "Your pattern: Spearman correlation of last night's efficiency with the day's steps (lag 0, at least 56 completed days; today's count excluded), with family control (Benjamini-Hochberg). Sources: Atoui 2021; Lambiase 2013; Mead 2019." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your pattern: Spearman correlation of last night's efficiency with the day's steps (lag 0, at least 56 completed days; today's count excluded), with family control (Benjamini-Hochberg). Sources: Atoui 2021; Lambiase 2013; Mead 2019."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu patrón: correlación de Spearman de la eficiencia de anoche con los pasos del día (lag 0, mínimo 56 días completos; el día en curso no entra), con control de familia (Benjamini-Hochberg). Fuentes: Atoui 2021; Lambiase 2013; Mead 2019."
           }
         }
       }
