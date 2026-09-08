@@ -365,9 +365,9 @@ The in-memory batch type still carries fields for streams whose tables are gone.
 persists only the two that exist, deliberately, so a write cannot throw and abort the transaction that
 also carries live beats.
 
-> **Known inconsistency.** `CircadianPhaseStore.swift` is still compiled, but `circadianPhase` is not
-> in the schema. Its reads and writes would throw at runtime. It has no live caller; removing it is
-> tracked separately.
+The body-clock phase store used to be the counter-example: a file that still compiled and queried a
+table the schema no longer creates. It was deleted along with the read wrapper above it, so the
+package no longer names a table it does not build.
 
 ---
 
