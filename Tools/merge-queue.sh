@@ -13,6 +13,13 @@ s=re.sub(r'<<<<<<< [^\n]*\n(.*?)=======\n(.*?)>>>>>>> [^\n]*\n', lambda m: m.gro
 open(p,'w').write(s)
 PY
 }
+close_issue() { # $1 PR — cierra el issue en Multica SOLO tras confirmar state==MERGED (nunca incondicional).
+  # Dueño del cierre: evita que un script de fondo aparte corra `multica done` a ciegas tras un merge que falló (retro FER-428).
+  local N=$1 ID
+  ID=$(gh pr view $N --json body -q .body | grep -ioE 'Closes FER-[0-9]+' | grep -oiE 'FER-[0-9]+' | head -1)
+  [ -n "$ID" ] || { echo "PR $N: sin 'Closes FER-NN' en el cuerpo; no cierro issue"; return 0; }
+  if multica issue status "$ID" done >/dev/null 2>&1; then echo "issue $ID -> done"; else echo "PR $N: no pude cerrar $ID en Multica"; fi
+}
 rebase_pr() { # $1 branch
   local B=$1 W=$ROOT/.claude/worktrees/dir-$1
   git -C $ROOT worktree add -q "$W" "$B" 2>/dev/null || git -C $ROOT worktree add -q --detach "$W" "origin/$B" 2>/dev/null || true
@@ -33,10 +40,10 @@ for N in "$@"; do
     if [ "$(gh pr checks $N --json bucket -q '[.[]|select(.bucket=="fail" or .bucket=="cancel")]|length')" != "0" ]; then echo "PR $N CI ROJA:"; gh pr checks $N --json name,bucket -q '.[]|select(.bucket!="pass")|.name+" "+.bucket'; break; fi
     M=$(gh pr view $N --json mergeable -q .mergeable)
     if [ "$M" = "CONFLICTING" ]; then rebase_pr "$B" || break; continue; fi
-    if gh pr merge $N --squash --delete-branch >/dev/null 2>&1; then sleep 5; echo "PR $N $(gh pr view $N --json state -q .state)"; break; fi
+    if gh pr merge $N --squash --delete-branch >/dev/null 2>&1; then sleep 5; S=$(gh pr view $N --json state -q .state); echo "PR $N $S"; [ "$S" = "MERGED" ] && close_issue $N; break; fi
     # La política de la base puede exigir que un check «reporte» aunque todo esté verde: --auto lo mergea solo al cumplirse.
     gh pr merge $N --squash --delete-branch --auto >/dev/null 2>&1 && echo "auto-merge armado para $N"
-    until [ "$(gh pr view $N --json state -q .state)" = "MERGED" ]; do sleep 60; done; echo "PR $N MERGED"; break
+    until [ "$(gh pr view $N --json state -q .state)" = "MERGED" ]; do sleep 60; done; echo "PR $N MERGED"; close_issue $N; break
   done
   git -C $ROOT worktree remove --force $ROOT/.claude/worktrees/dir-$B 2>/dev/null || true
 done
