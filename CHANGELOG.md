@@ -20,6 +20,16 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
 
 ## Unreleased
 
+### Deslizadores de descanso al sistema de diseño / Rest sliders adopt the design system (FER-482)
+- **ES** — Los deslizadores del editor de descanso (margen sobre tu reposo, reserva, caída desde el
+  pico, pulso fijo) ahora usan el deslizador de vidrio de Cénit en vez del control genérico de iOS:
+  se ven como el resto de la app y el arrastre convive con el scroll de la hoja. Mismo comportamiento
+  y mismos valores; solo cambia el acabado.
+- **EN** — The rest-editor sliders (margin over your resting rate, reserve, drop from peak, fixed
+  pulse) now use Cénit's glass slider instead of the generic iOS control: they match the rest of the
+  app, and dragging coexists with the sheet's scroll. Same behavior and same values; only the finish
+  changes.
+
 ### Interno · adiós al prefijo «Strand» / Internal · goodbye to the "Strand" prefix (FER-478)
 - **ES** — Cambio interno, sin efecto para quien usa la app. Los paquetes y tokens que todavía
   llevaban el nombre heredado `Strand` (de cuando la app se llamaba NOOP) pasaron a `Cenit*`:
