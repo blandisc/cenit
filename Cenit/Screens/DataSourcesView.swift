@@ -42,7 +42,7 @@ struct DataSourcesView: View {
     @AppStorage(WorkoutSource.showThirdPartyStrengthKey) private var showThirdPartyStrengthWorkouts = true
     #if DEBUG
     /// FER-1008 spike (dev-only, never in a store build): export Apple's nocturnal beat-to-beat R-R so a
-    /// nocturnal Apple RMSSD can be validated against the strap on paired nights.
+    /// nocturnal Apple RMSSD can be validated against the legacy device on paired nights.
     @State private var exportingHeartbeats = false
     @State private var heartbeatSummary: String?
     #endif
@@ -652,7 +652,7 @@ struct DataSourcesView: View {
     #if os(iOS)
     @ViewBuilder
     private var coverageSection: some View {
-        // Hide the whole section when there's nothing to show: no strap days, and Apple Health is
+        // Hide the whole section when there's nothing to show: no legacy days, and Apple Health is
         // denied/unavailable or has imported nothing (mirrors the dark screen's guards).
         let healthAccessible = health.auth != .denied && health.auth != .unavailable
         // FER-485: coverage is diagnostic — it reads the STORED day sets (unfiltered by the mode), so it
@@ -674,8 +674,8 @@ struct DataSourcesView: View {
     /// Summary line + 6×5 grid + legend (the leading section overline already names the block, so this
     /// body opens straight on the summary line).
     ///
-    /// FER-192: Cénit is Apple-only (AXIOMA cero-banda — no real user ever had the strap). Coverage
-    /// used to split into "on-device" (strap) vs "Apple Health only" swatches/legend/summary — band
+    /// FER-192: Cénit is Apple-only (AXIOMA cero-banda — no real user ever had the wearable). Coverage
+    /// used to split into "on-device" (legacy) vs "Apple Health only" swatches/legend/summary — band
     /// vocabulary nobody on a real device can trigger, and a false choice ("only" compared to what?).
     /// It now reads as ONE source, Apple Health: days WITH data vs days WITHOUT. `storedStrapDays`
     /// keeps existing as harmless historical plumbing (empty for every real user, proof of the
@@ -757,7 +757,7 @@ struct DataSourcesView: View {
 
     /// The compact "Sources" rollup. FER-192: Cénit is Apple-only, so this is ONE row — Apple Health ·
     /// N days — not a per-source split, and the day count is the SAME unit the coverage card above
-    /// uses (days), never sleeps-vs-workouts (an old defect: the strap row counted sleep SESSIONS
+    /// uses (days), never sleeps-vs-workouts (an old defect: the legacy row counted sleep SESSIONS
     /// while its Apple sibling counted WORKOUT sessions, two incomparable units dressed as parallel
     /// rows). `storedStrapDays` is folded into the same day count instead of getting its own row —
     /// it's empty for every real user (AXIOMA cero-banda), and this way an empty case just shows 0

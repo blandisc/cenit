@@ -8,13 +8,13 @@ import CenitStore
 // explicit acknowledgement activates it. Once active, the same sheet shows the current-phase STATE card.
 //
 // All the math is in `CyclePhaseEngine` (pure, StrandAnalytics). This file only maps the daily metrics
-// NOOP already stores into the engine's input and renders the localized, hedged copy — never a date,
+// Cénit already stores into the engine's input and renders the localized, hedged copy — never a date,
 // never fertility/ovulation/contraception/diagnosis (the hard claim frame lives in the copy below and
 // is guarded by CyclePhaseCopyGuardTests).
 //
 // FER-184: two changes on top of FER-672's math (untouched — the index stays a user-relative z-score).
 // (1) Input: the sheet used to read through `SourceLens.clearBandColumns`, which nils `skinTempDevC` —
-// a leftover from when this screen needed a strap that Cénit never ships with anymore. It now reads the
+// a leftover from when this screen needed a wearable that Cénit never ships with anymore. It now reads the
 // real Apple Watch wrist-temperature deviation straight off `repo.days`. (2) Skin: Liquid Glass · El Eje
 // (familia FER-174: Fuentes, Soporte, AFib) — solo piel; el gate de consentimiento y los hedges
 // honestos abajo no cambian de fondo, solo el copy dejó la banda inexistente por el Apple Watch real.
@@ -61,7 +61,7 @@ struct CyclePhaseSheet: View {
             ScrollView {
                 Group {
                     if enabled {
-                        // FER-184: real Apple wrist temperature, straight off repo.days — no strap-domain
+                        // FER-184: real Apple wrist temperature, straight off repo.days — no legacy-domain
                         // clearing to undo (Cénit is Apple-only; there's no cross-source mix left to guard).
                         CyclePhaseStateBody(days: repo.days, onDeactivate: {
                             enabled = false

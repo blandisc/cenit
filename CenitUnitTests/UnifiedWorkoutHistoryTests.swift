@@ -6,9 +6,13 @@ import StrandTraining
 /// FER-202 (épico «Entrenar en vidrio») — la proyección `UnifiedWorkoutHistory` funde el historial de
 /// fuerza de Cénit con la actividad de Apple Health en UNA línea de tiempo filtrable. Estas pruebas
 /// candan los invariantes que la revisión adversarial marcó como delicados: el DEDUP del eco solo
-/// aplica a origen Apple (nunca borra datos manuales/detectados/whoop), la sesión en curso se excluye,
+/// aplica a origen Apple (nunca borra datos manuales, detectados ni del dispositivo anterior), la sesión en curso se excluye,
 /// y el orden/filtro son correctos. Llaman el MISMO código de producción, no una copia de la regla.
 final class UnifiedWorkoutHistoryTests: XCTestCase {
+
+    // Datos en disco: los `source` heredados que la fusion tiene que seguir distinguiendo.
+    private static let legacySource = "whoop"
+    private static let computedSource = "apple-noop"
 
     // MARK: helpers
     private func row(_ start: Int, _ end: Int, sport: String, source: String) -> WorkoutRow {
@@ -64,10 +68,12 @@ final class UnifiedWorkoutHistoryTests: XCTestCase {
 
     func testDetectadoYWhoopSolapadosSOBREVIVEN() {
         let s = session("A", now, now + 3000)
-        let detected = row(now + 100, now + 2900, sport: "Functional Strength Training", source: "apple-noop")
-        let whoop    = row(now + 200, now + 2800, sport: "Strength", source: "whoop")
-        let out = UnifiedWorkoutHistory.merge(sessions: [s], rows: [detected, whoop])
-        XCTAssertEqual(out.filter { !$0.isStrength }.count, 2, "detected y whoop nunca son eco")
+        let detected = row(now + 100, now + 2900, sport: "Functional Strength Training",
+                           source: Self.computedSource)
+        let heredada = row(now + 200, now + 2800, sport: "Strength", source: Self.legacySource)
+        let out = UnifiedWorkoutHistory.merge(sessions: [s], rows: [detected, heredada])
+        XCTAssertEqual(out.filter { !$0.isStrength }.count, 2,
+                       "ni la detectada ni la heredada son eco")
     }
 
     /// Una sesión de fuerza REAL de Apple/Watch en otro momento (sin solape) NO es eco → se ve.

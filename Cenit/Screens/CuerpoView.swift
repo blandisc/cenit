@@ -21,7 +21,7 @@ import Foundation
 // ventana. Stress lee su serie diaria; el resto corta `displayDays`.
 //
 // Detalle: hojas Liquid (`MetricDetailScreen` FER-185 u hojas propias). Valores y sparklines desde
-// `repo.displayDays` (no `series("strap")` — FER-149).
+// `repo.displayDays` (no la serie cruda de la fuente heredada — FER-149).
 
 /// Landing de Tendencias. (FER-398 retired the by-the-hour tint; the app no longer changes colour with the clock.)
 struct CuerpoView: View {
@@ -649,7 +649,7 @@ private struct CuerpoLanding: View {
 
     /// The stress sparkline over the selected period. Reads the model's DERIVED daily trend (`fullTrend`) —
     /// the same source the Stress value uses (stored "stress" series where present, else derived from
-    /// resting-HR / HRV), so the spark isn't blank for users with no persisted WHOOP stress rows (e.g.
+    /// resting-HR / HRV), so the spark isn't blank for users with no persisted legacy stress rows (e.g.
     /// Apple-Health-only) even though the value shows. Falls back to the raw series only if the model isn't
     /// built yet. `.all` uses the whole trend; otherwise the trailing window. (FER · sparkline de estrés)
     private var stressSpark: [Double] {
@@ -1419,7 +1419,7 @@ private struct CuerpoLanding: View {
         async let amRows     = repo.appleDailyMetricRows()
         async let wkRows     = repo.workoutRows()
         // Stored daily "stress" series (0–3) — the model prefers it, else derives from RHR/HRV.
-        async let stressRows = repo.series(key: "stress", source: "strap")
+        async let stressRows = repo.series(key: "stress", source: Repository.legacyDeviceId)
         let dayStart = Int(Calendar.current.startOfDay(for: Date()).timeIntervalSince1970)
         let rightNow = Int(Date().timeIntervalSince1970)
         async let hrRows = repo.hrBuckets(from: dayStart, to: rightNow, bucketSeconds: 300)
@@ -1459,7 +1459,7 @@ private struct CuerpoLanding: View {
             return p.verdict != .lowSignal && p.isNightAnchored
         }()
         let sleeps = repo.sleeps
-        let appleSleeps = repo.appleSleeps   // FER-1026: real Apple sleep sessions feed regularity too (no strap)
+        let appleSleeps = repo.appleSleeps   // FER-1026: las sesiones reales de Apple también alimentan la regularidad
         let age: Int = model.profile.age
         let sex = model.profile.sex
         let todayKey: String = Repository.localDayKey(Date())
@@ -1526,12 +1526,12 @@ private struct CuerpoLanding: View {
             // norm — so both nocturnal inputs stay single-source. Single-source columns (steps) and cross-source-
             // comparable ones (sleep duration) are untouched. If the user is Apple-only, band RMSSD is empty →
             // `VitalityInputsBuilder`'s coverage gate drops the HRV factor rather than comparing SDNN to the
-            // band norm. A strap-only user is the identity — `recentBand == recent`.
+            // band norm. A legacy-only user is the identity — `recentBand == recent`.
             let recent: [DailyMetric] = trailing(28)
             let recentBand: [DailyMetric] = SourceLens.clearBandColumns(recent)
             // Sleep Regularity Index (FER-214) over a trailing ~35d of sessions, as 0–1 for the engine (SRI/100).
             // nil → the builder's duration proxy. Was `computeSleepRegularity()`; inlined for the hop (FER-955).
-            // FER-1026: feed from Apple + strap sessions (union, no overlap) so Apple-only users keep the SRI
+            // FER-1026: feed from Apple + legacy sessions (union, no overlap) so Apple-only users keep the SRI
             // instead of silently dropping to the duration proxy.
             let recentSleeps = (appleSleeps + sleeps).filter { (s: CachedSleepSession) -> Bool in s.startTs >= regularityCutoff }
             let sleepRegularity: Double? = SleepRegularityIndex.fromSessions(recentSleeps).map { (sri: Double) -> Double in sri / 100.0 }
@@ -1641,7 +1641,7 @@ private struct CuerpoLanding: View {
     }
 
     /// Last night's frequency-domain HRV breakdown (LF/HF/total, ms²) + a per-band «your normal» label,
-    /// read from the `-noop` computed `metricSeries` the pipeline persisted (FER-702). Returns nil when
+    /// read from the computed `metricSeries` partition the pipeline persisted (FER-702). Returns nil when
     /// there is no band-night spectrum, so the section stays hidden (an Apple-only night has none).
     private func loadSpectralHRV() async -> MetricDetailScreen.SpectralHRV? {
         let hf = (await repo.computedSeries(key: "hrv_hf")).sorted { $0.day < $1.day }

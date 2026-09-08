@@ -621,7 +621,7 @@ struct ExerciseDetailScreen: View {
     }
 
     // MARK: - Watch on YouTube (opt-in external hand-off · FER-387)
-    // Offline rule: NOOP itself makes NO network call — this only hands off to the system browser /
+    // Offline rule: Cénit itself makes NO network call — this only hands off to the system browser /
     // YouTube app on an explicit user tap, and is clearly marked as leaving the app. Chrome, so it
     // carries no saturated color (ink/surface only).
 

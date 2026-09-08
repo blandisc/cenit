@@ -36,7 +36,7 @@ final class Repository: ObservableObject {
     var baselineEpoch: String? = nil
     /// FER-883: the user's effective HRmax + sex for the estimated «Carga del día», set by `AppModel`
     /// from `Profile` (`hrMaxOverride ?? Tanaka(age)`) so the Apple workout-HR estimate uses the SAME
-    /// HRmax as the strap's live strain path — no band↔Apple discontinuity. nil ⇒ StrainScorer default.
+    /// HRmax as the legacy live-strain path used — no discontinuity against Apple. nil ⇒ StrainScorer default.
     var strainHRmax: Double? = nil
     var strainSex: String = "male"
     /// Identificador de fuente para las cifras que el propio aparato calculó a partir de las series
@@ -46,9 +46,11 @@ final class Repository: ObservableObject {
     /// gana, y aun así quien nunca importó nada ve un tablero con datos.
     ///
     /// El sufijo es un valor persistido: así están marcadas las filas que ya viven en el teléfono.
-    private var computedDeviceId: String { deviceId + "-noop" }
+    /// Dato en disco: el sufijo con el que se escribió la partición computada on-device.
+    private static let computedSuffix = "-noop"
+    private var computedDeviceId: String { deviceId + Self.computedSuffix }
     /// The Apple-derived nocturnal-HRV partition (R2/R3, FER-1008): a SEPARATE metricSeries deviceId from
-    /// the strap's `computedDeviceId` and from raw `apple-health`, so the Apple RMSSD-per-night base is
+    /// the legacy `computedDeviceId` and from raw `apple-health`, so the Apple RMSSD-per-night base is
     /// never mixed with the band's or with SDNN. Fixed string (not derived from `deviceId`).
     static let appleComputedDeviceId = "apple-health-noop"
     private var store: CenitStore?
@@ -65,7 +67,7 @@ final class Repository: ObservableObject {
     /// it, so every existing `repo.days` / `repo.sleeps` / … call site is unchanged.
     struct DashboardData {
         var days: [DailyMetric] = []
-        /// Display-only twin of `days`: strap-covered days whose measured fields are nil back-fill from
+        /// Display-only twin of `days`: legacy-covered days whose measured fields are nil back-fill from
         /// the Apple Health row the merge overwrote (FER-149). The dashboard sparklines/trends read
         /// these so a partial-connection day shows Apple's HRV instead of a gap; the recovery baseline
         /// reads `days` (excluding `appleHealthDays`, FER-519), not `displayDays`.
@@ -73,16 +75,16 @@ final class Repository: ObservableObject {
         var sleeps: [CachedSleepSession] = []
         var appleSleeps: [CachedSleepSession] = []   // FER-486: Apple Health sleep sessions with a real stage timeline (band-uncovered nights), for the Detalle de Sueño hypnogram
         var importedSleep: [String: ImportedSleepFigures] = [:]
-        /// Days whose surfaced daily row came from Apple Health (no strap coverage), so Trends/Sleep
+        /// Days whose surfaced daily row came from Apple Health (no legacy coverage), so Trends/Sleep
         /// can badge the source without `DailyMetric` carrying a source column. (FER-62)
         var appleHealthDays: Set<String> = []
         /// Days with a stored row per source, UNFILTERED by the data-source mode (FER-485): the diagnostic
         /// coverage reads these so it shows what's stored even in `.legacyOnly`/`appleHealthOnly` — the proof
-        /// of the «nothing is deleted» invariant. `storedAppleOnlyDays` excludes strap days, mirroring the
+        /// of the «nothing is deleted» invariant. `storedAppleOnlyDays` excludes legacy days, mirroring the
         /// merge precedence, so these are the always-Combined coverage counts.
         var storedStrapDays: Set<String> = []
         var storedAppleOnlyDays: Set<String> = []
-        /// Count of stored strap sleep sessions, UNFILTERED by the mode (FER-485) — the import block's
+        /// Count of stored legacy sleep sessions, UNFILTERED by the mode (FER-485) — the import block's
         /// «… sleeps stored» line reads this so it stays honest in «Solo Apple Salud».
         var storedSleepsCount: Int = 0
         /// FER-883: Apple workout-HR strain estimate per band-less day, keyed by day.
@@ -97,7 +99,7 @@ final class Repository: ObservableObject {
         /// governs those, FER-629).
         var fusion: [String: [String: FusedMetricPoint]] = [:]
         /// R3 (FER-1008): the nocturnal autonomic trend (below/inBase/above vs the user's OWN settled
-        /// baseline), computed ONLY from Apple's `apple-health-noop` RMSSD-per-night partition — never
+        /// baseline), computed ONLY from Apple's own RMSSD-per-night partition (`appleComputedDeviceId`) — never
         /// from the band, never folded into `days`/any baseline. nil en `.legacyOnly` or before enough dense
         /// nights. Composed off-main in `assembleDashboard` (FER-1040). Surfaced via
         /// `todayAutonomicTrend`; the screen (R4) reads it.
@@ -128,7 +130,7 @@ final class Repository: ObservableObject {
     /// the band's RMSSD baseline; only the capped `foldApplePrior` seeds resp (breaths/min during sleep —
     /// same metric; RHR is band sleep-nadir vs Apple awake, so it's no longer seeded either, FER-634).
     var days: [DailyMetric] { dashboard.days }
-    /// Display-only daily rows: `days`, but strap-covered days with nil measured fields back-fill from
+    /// Display-only daily rows: `days`, but legacy-covered days with nil measured fields back-fill from
     /// Apple Health (FER-149). The dashboard sparklines/trends read these; analytics read `days`.
     var displayDays: [DailyMetric] { dashboard.displayDays }
     /// Cached sleep sessions, oldest→newest.
@@ -148,7 +150,7 @@ final class Repository: ObservableObject {
     /// `today?.day`, esa cadena no cambia en toda la jornada y la vista se quedaría congelada —el
     /// pulso de Hoy, por ejemplo— hasta que cambiara la fecha.
     var refreshSeq: Int { dashboard.seq }
-    /// Days surfaced from Apple Health (strap-uncovered) — Trends/Sleep badge these as "Apple Health". (FER-62)
+    /// Days surfaced from Apple Health (legacy-uncovered) — Trends/Sleep badge these as "Apple Health". (FER-62)
     var appleHealthDays: Set<String> { dashboard.appleHealthDays }
     /// FER-670: the fused single-construct point for a `(day, metric)` — nil unless ≥2 sources reported
     /// that metric on that day. The detail screens read this to show "coinciden / en conflicto" for the
@@ -187,7 +189,7 @@ final class Repository: ObservableObject {
     }
 
     /// R3 (FER-1008): today's autonomic trend read (or nil while calibrating / en `.legacyOnly`). Pure
-    /// pass-through of the value `performRefresh` computed off the `apple-health-noop` nightly RMSSD.
+    /// pass-through of the value `performRefresh` computed off Apple's nightly-RMSSD partition.
     var todayAutonomicTrend: AutonomicTrend.Read? { dashboard.autonomicTrend }
     /// FER-1030: today's «Preparación» verdict (nil until enough of the user's own nights). The hero reads this.
     var todayPreparedness: Preparedness.Read? { dashboard.preparedness }
@@ -334,7 +336,7 @@ final class Repository: ObservableObject {
     }
 
     /// Reload the dashboard caches over the full stored history, merging imported history with the
-    /// on-device computed scores so a strap-only user still gets a populated dashboard. Publishes
+    /// on-device computed scores so a legacy-only user still gets a populated dashboard. Publishes
     /// `fullyLoaded == true`; the heavy merge work runs OFF the main actor (`assembleDashboard`).
     func refresh() async {
         await performRefresh(windowDays: 4000, full: true)
@@ -423,20 +425,20 @@ final class Repository: ObservableObject {
         let importedRaw = snap.importedDays
         let computedRaw = snap.computedDays
         // FER-62: Apple Health daily rows — the lowest-precedence fallback layer for the dashboard,
-        // so a strap-uncovered user still sees HRV / resting HR / sleep-stage trends. Read UNGATED
+        // so a legacy-uncovered user still sees HRV / resting HR / sleep-stage trends. Read UNGATED
         // (they feed the FER-485 coverage diagnostic even when the mode hides the source).
         let appleRaw = snap.appleDays
-        // FER-484 / FER-1003: Apple-only pin — strap arrays stay empty; Apple passes through.
+        // FER-484 / FER-1003: Apple-only pin — the legacy arrays stay empty; Apple passes through.
         let imported: [DailyMetric] = []
         let computed: [DailyMetric] = []
         let apple = appleRaw
-        // FER-485: strap sleeps arrive UNFILTERED for the diagnostic stored-count, then gate for the dashboard.
+        // FER-485: legacy sleeps arrive UNFILTERED for the diagnostic stored-count, then gate for the dashboard.
         let impSleepRaw = snap.importedSleeps
         let compSleepRaw = snap.computedSleeps
         let impSleep: [CachedSleepSession] = []
         let compSleep: [CachedSleepSession] = []
         // FER-486: Apple Health sleep sessions (real per-epoch stage timeline). The band
-        // wins per night, so the appleSleeps surfaced to the Detalle drop any overlapping a strap session.
+        // wins per night, so the appleSleeps surfaced to the Detalle drop any overlapping a legacy session.
         let appleSleepRaw = snap.appleSleeps
         // FER-883: Apple workout-HR samples under apple-health (persisted by HealthKitBridge during
         // HKWorkouts only).
@@ -462,10 +464,10 @@ final class Repository: ObservableObject {
             appleHrRaw = []
         }
 
-        // Export-verbatim sleep figures (long-format metricSeries rows from the retired WHOOP CSV import).
+        // Export-verbatim sleep figures (long-format metricSeries rows from the retired CSV import).
         // The Detalle de Sueño prefers these per day over its APPROXIMATE recomputations.
         // FER-670: single-construct fusion inputs the daily rows above don't carry — Apple's step/energy
-        // aggregates (appleDaily) and the WHOOP 4.0 on-device step estimate (steps_est). Gated on the
+        // aggregates (appleDaily) and the retired on-device step estimate (steps_est). Gated on the
         // mode like every other read (in the snapshot request), so an excluded source can never appear
         // in a compare row.
         let appleAggRaw = snap.appleAgg
@@ -476,7 +478,7 @@ final class Repository: ObservableObject {
         let need = snap.sleepNeed
         let debt = snap.sleepDebt
 
-        // R3 (FER-1008): the nocturnal autonomic trend rides ONLY on Apple's `apple-health-noop`
+        // R3 (FER-1008): the nocturnal autonomic trend rides ONLY on Apple's own computed
         // RMSSD-per-night partition. Read here (needs the store) but COMPOSED off-main inside
         // `assembleDashboard` — the DB read is I/O on the store's executor, cheap on this actor; the
         // CPU-bound trend + verdict math is what must not run here.
@@ -763,8 +765,8 @@ final class Repository: ObservableObject {
     }
 
     /// Layered precedence (FER-62): Apple Health rows are the base, on-device computed rows fill the
-    /// days they don't cover, and imported strap rows win over everything — so the strap always beats
-    /// Apple Health. Also returns the days whose surfaced row stayed Apple Health (strap-uncovered),
+    /// days they don't cover, and imported legacy rows win over everything — so the legacy row always beats
+    /// Apple Health. Also returns the days whose surfaced row stayed Apple Health (legacy-uncovered),
     /// for source badging.
     ///
     /// `days` includes Apple-only rows (the base layer below): a band-less night surfaces Apple's
@@ -773,9 +775,9 @@ final class Repository: ObservableObject {
     /// so Apple's SDNN never enters the band's RMSSD baseline — only the capped `foldApplePrior` seeds
     /// resp (breaths/min during sleep — same metric; RHR is band sleep-nadir vs Apple awake, no longer
     /// seeded, FER-634). `displayDays` (FER-149) is a display-only twin of `days`: a
-    /// strap-covered day whose measured fields are nil (a partial-connection day) back-fills those nils
+    /// legacy-covered day whose measured fields are nil (a partial-connection day) back-fills those nils
     /// from the Apple Health row this merge overwrote, so the HRV sparkline/trend shows Apple's value
-    /// instead of a gap. The strap value always wins when present — only genuine gaps fill.
+    /// instead of a gap. The legacy value always wins when present — only genuine gaps fill.
     /// FER-970 (R-01): the days whose MERGED strain is nil — the only days Apple workout-HR can
     /// serve (the estimated-strain path). A pure pre-pass over rows performRefresh has already
     /// read, so the HR read can be skipped outright when this comes back empty. Reuses the very
@@ -840,7 +842,7 @@ final class Repository: ObservableObject {
     // MARK: - Lecturas de detalle (pasan derecho a la base)
 
     func dailyMetrics(fromDay: String, toDay: String) async -> [DailyMetric] {
-        // FER-484 / FER-1003: appleHealthOnly excludes the strap — method kept for callers, always empty.
+        // FER-484 / FER-1003: appleHealthOnly excludes the legacy device — method kept for callers, always empty.
         return []
     }
 
@@ -849,7 +851,7 @@ final class Repository: ObservableObject {
         return (try? await store.hrSamples(deviceId: deviceId, from: from, to: to, limit: limit)) ?? []
     }
 
-    /// Beat-to-beat R-R intervals for the strap in `[from, to]`. Feeds the intraday stress engine
+    /// Beat-to-beat R-R intervals for the legacy device in `[from, to]`. Feeds the intraday stress engine
     /// (`StressEngine`), which derives RMSSD per window. Recomputed on the fly like `hrSamples`; the
     /// `rrInterval` table is index-covered by `(deviceId, ts)` so a multi-day read is a range scan. (FER-377)
     func rrIntervals(from: Int, to: Int, limit: Int = 200_000) async -> [RRInterval] {
@@ -863,18 +865,18 @@ final class Repository: ObservableObject {
     private var nocturnalScalarAttempted: Set<String> = []
 
     /// Per-night distal warming magnitudes (°C, sleep-onset → nocturnal plateau) over the last `nights`
-    /// strap nights, oldest → newest, for the thermal-stability read (FER-850). `nil` for a night with too
+    /// legacy nights, oldest → newest, for the thermal-stability read (FER-850). `nil` for a night with too
     /// little temp. FER-972 (P-05): reads the `night_warming_c` scalar the nightly pass persists next to
     /// `hrv_lf`; only nights the engine window didn't cover are computed here once (write-through), so a
     /// sheet open stops re-reading ~28 nights × raw samples. The math lives in
     /// `ThermalStabilityEngine.warmingMagnitudeC` (same body, moved to the package with its test).
     func nocturnalWarmingMagnitudes(nights: Int = 28) async -> [Double?] {
-        // FER-1003: strap thermal-stability path is dormant under Apple-only.
+        // FER-1003: the legacy thermal-stability path is dormant under Apple-only.
         return []
     }
 
     /// The latest persisted body-clock phase (computed source), for the «Tu reloj corporal» surface
-    /// (FER-712). nil until a nightly strap phase pass has written one (dormant under Apple-only).
+    /// (FER-712). nil until a nightly legacy phase pass has written one (dormant under Apple-only).
     func latestCircadianPhase() async -> CircadianPhaseRow? {
         guard let store = await ensureStore() else { return nil }
         return (try? await store.latestCircadianPhase(deviceId: computedDeviceId)) ?? nil
@@ -888,22 +890,23 @@ final class Repository: ObservableObject {
     }
 
     /// Sleep sessions overlapping `[from, to]`, MERGED across the imported (raw `deviceId`) and on-device
-    /// COMPUTED (`computedDeviceId`, "-noop") sources — a live strap user's nightly sleep was written by the
-    /// retired on-device strap pass under "-noop", an import user's under the raw id. Reading only the raw id missed a
+    /// COMPUTED (`computedDeviceId`) sources — a live legacy user's nightly sleep was written by the
+    /// retired on-device pass under the computed suffix, an import user's under the raw id. Reading only
+    /// the raw id missed a
     /// BLE user's sleep entirely, so the intraday-stress exclusion never fired and the night read as waking
     /// (FER-451). Mirrors the dashboard's own sleep merge. Deduped by startTs (imported/export wins on a
     /// collision), oldest first.
     func sleepSessions(from: Int, to: Int, limit: Int = 100) async -> [CachedSleepSession] {
         guard let store = await ensureStore() else { return [] }
-        // FER-484/486 / FER-1003: Apple-only — strap partitions stay empty; Apple Health sessions only.
+        // FER-484/486 / FER-1003: Apple-only — the legacy partitions stay empty; Apple Health sessions only.
         let imported: [CachedSleepSession] = []
         let computed: [CachedSleepSession] = []
         let apple = (try? await store.sleepSessions(deviceId: "apple-health", from: from, to: to, limit: limit)) ?? []
         return Self.mergeSleepSessions(imported: imported, computed: computed, apple: apple)
     }
 
-    /// Merge sleep sessions across sources. Strap is the base — imported (real export) wins over the
-    /// on-device computed row on the same `startTs`. An Apple Health session is added ONLY if no strap
+    /// Merge sleep sessions across sources. The legacy device is the base — imported (real export) wins
+    /// over the on-device computed row on the same `startTs`. An Apple Health session is added ONLY if no legacy
     /// session overlaps its `[startTs, endTs]` span: the band wins PER NIGHT (FER-486).
     /// Forwards to `SourceFusion` (single policy copy; plan 2026-07-20).
     static func mergeSleepSessions(imported: [CachedSleepSession], computed: [CachedSleepSession],
@@ -929,9 +932,9 @@ final class Repository: ObservableObject {
         return pts.map { ($0.day, $0.value) }
     }
 
-    /// Daily series for a metric written under the ON-DEVICE COMPUTED source (`-noop`, the
-    /// retired on-device strap outputs like `steps_est`). Derives `computedDeviceId` here so callers never
-    /// reconstruct the `-noop` suffix by hand (FER-663).
+    /// Daily series for a metric written under the ON-DEVICE COMPUTED source (the retired on-device
+    /// outputs like `steps_est`). Derives `computedDeviceId` here so callers never reconstruct the
+    /// suffix by hand (FER-663).
     func computedSeries(key: String, days: Int = 4000) async -> [(day: String, value: Double)] {
         await series(key: key, source: computedDeviceId, days: days)
     }
@@ -1055,6 +1058,10 @@ final class Repository: ObservableObject {
     /// El texto es un valor persistido: así están marcadas las filas que ya existen.
     static let journalDeviceId = "noop-journal"
 
+    /// Dato en disco: el id de fuente con el que quedaron escritas las filas del dispositivo
+    /// anterior (el mismo valor que `AppModel.legacyDeviceId`).
+    static let legacyDeviceId = "strap"
+
     /// Todas las conductas registradas —las importadas más las escritas aquí— para cruzar con las
     /// métricas y sacar ideas.
     func journalEntries(days: Int = 4000) async -> [JournalEntry] {
@@ -1148,7 +1155,7 @@ final class Repository: ObservableObject {
 
     /// «Empezar de cero» (Patrones): wipe everything the user CONTRIBUTED — the native in-app journal,
     /// every experiment (with its verdicts, so the derived proven levers clear too), diet adherence marks,
-    /// and the derived `diet-adherence` metric series. It never touches the imported WHOOP journal (a
+    /// and the derived `diet-adherence` metric series. It never touches the imported legacy journal (a
     /// different source id) nor the biometric history the detected findings are recomputed from — those
     /// aren't stored records, so they regenerate on their own. Irreversible.
     func resetContributedPatrones() async throws {
@@ -1378,11 +1385,11 @@ final class Repository: ObservableObject {
     /// Takes the already-loaded workout `rows` (the caller has them in hand — Cuerpo loads them once
     /// per refresh — so this never re-queries the store), builds the two engine inputs and runs
     /// `ActivityCostEngine`:
-    ///  - Sessions: WHOOP + Apple Health + manual workouts. Auto-DETECTED bouts are excluded — they
+    ///  - Sessions: legacy + Apple Health + manual workouts. Auto-DETECTED bouts are excluded — they
     ///    carry no real sport, so they'd pool into one meaningless "Activity" bucket (FER-139 scope).
     ///  - Day-keying: each session's start maps to a day-key in the device's LOCAL zone — the same
     ///    calendar `DailyMetric.day` uses — so the engine's UTC D→D+1 string arithmetic stays aligned.
-    ///  - Recovery: `days` (strap-derived on-device scores), NOT `displayDays`, so the rest-day
+    ///  - Recovery: `days` (the legacy on-device scores), NOT `displayDays`, so the rest-day
     ///    baseline never mixes in Apple-Health back-fill (house rule, matches the recovery baseline).
     ///    `days` is band-measured only — the FER-153 Apple estimate lives on `repo.today`, never in `days`.
     func activityCosts(from rows: [WorkoutRow]) -> [ActivityCost] {
@@ -1522,7 +1529,7 @@ final class Repository: ObservableObject {
 
     /// Apple-Health `dailyMetric` rows (sleep / HRV / resting HR / SpO₂ / resp rate) read straight from
     /// the apple-health source — NOT the merged dashboard. `mergeDaily` replaces a day's Apple row
-    /// wholesale when the strap also has that day, so a strap day with nil fields (e.g. a WHOOP 4.0 that
+    /// wholesale when the legacy source also has that day, so a legacy day with nil fields (e.g. a device that
     /// didn't decode HRV/sleep) hides the value Apple Health does have; Today's Key Metrics falls back
     /// to these to fill that gap without disturbing the dashboard merge or the recovery baseline. (FER-98)
     func appleDailyMetricRows(days: Int = 4000) async -> [DailyMetric] {

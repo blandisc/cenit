@@ -13,9 +13,9 @@ import Foundation
 // + aire (`seccionAire`). Se PUSHEA dentro del único `NavigationStack` de la sheet de Entrenamientos
 // (`WorkoutsView`) — NO crea un `NavigationStack` anidado (FER-171).
 //
-// El héroe DEGRADA con honestidad: esfuerzo (strain, strap-only) → FC media → duración. Nunca pinta un 0
+// El héroe DEGRADA con honestidad: esfuerzo (strain, solo del dispositivo anterior) → FC media → duración. Nunca pinta un 0
 // ni un «—» como protagonista falso. Las zonas de FC solo aparecen si la sesión las trae (`zonesJSON`);
-// distancia/energía solo si existen, con un disclaimer cuando la fuente no es WHOOP (son estimaciones).
+// distancia/energía solo si existen, con un aviso cuando la fuente no es la heredada (son estimaciones).
 // El CRUD (editar/re-etiquetar/descartar/borrar/duplicar) vive en el menú ••• de la barra, según la
 // fuente, y reusa el `Repository` tal cual — no toca la lógica de merge/persistencia.
 
@@ -162,7 +162,7 @@ struct WorkoutDetailScreen: View {
     private var sessionDuration: Double { row.durationS ?? Double(max(0, row.endTs - row.startTs)) }
 
     /// The protagonist datum, picked by what the session actually carries — never a fabricated 0/«—». A
-    /// stored `strain` of 0 isn't a real effort reading (WHOOP strain is logarithmic and > 0; a manual row
+    /// stored `strain` of 0 isn't a real effort reading (that scale is logarithmic and > 0; a manual row
     /// leaves it nil), so it degrades like a missing value rather than showing "0.0 / 21".
     private var heroKind: Hero {
         if let s = row.strain, s > 0 { return .strain(s) }
@@ -230,7 +230,7 @@ struct WorkoutDetailScreen: View {
 
     /// Zonas HR vía `LiquidRampas.hrZone`. 1 de 3 superficies de zonas HR distintas (intensidad/%-tiempo/minutos) — NO se unifican, solo comparten la paleta (FER-908).
     private func zonesBlock(_ percents: [Double]) -> some View {
-        // Normalize the bar to the recorded zone time so it fills the width (WHOOP omits sub-Z1 time, so
+        // Normalize the bar to the recorded zone time so it fills the width (the legacy export omits sub-Z1 time, so
         // the raw percents can sum to < 100); the % labels below show the raw share. Same shape as the
         // sleep-stage bar / the old aggregate zones bar, but with the shared HR-zone ramp.
         let total = max(percents.reduce(0, +), 0.001)
@@ -276,7 +276,7 @@ struct WorkoutDetailScreen: View {
         }
     }
 
-    // MARK: - Distancia / energía / volumen (apoyos en tinta900, con disclaimer si no es WHOOP)
+    // MARK: - Distancia / energía / volumen (apoyos en tinta900, con aviso si no es la fuente heredada)
 
     private var supportsBlock: some View {
         VStack(alignment: .leading, spacing: LiquidSpace.s200) {
@@ -332,7 +332,7 @@ struct WorkoutDetailScreen: View {
     }
 
     /// The method note depends on whether there's a strain hero: with strain, explain the 0–21 scale; when
-    /// degraded, explain WHY there's no effort number (strap-only), so the honest degradation reads as a
+    /// degraded, explain WHY there's no effort number (legacy-only), so the honest degradation reads as a
     /// fact, not a gap.
     private var methodNote: some View {
         Text(strainMethodNote)

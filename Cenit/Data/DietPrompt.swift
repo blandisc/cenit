@@ -6,7 +6,7 @@ import Foundation
 /// LLM returns a `cenit.diet.v1` file the user then imports. Bundled here as the single source — not
 /// scattered string literals. Two languages: the device language picks one, but **each prompt accepts
 /// a plan written in Spanish OR English** (the model detects it and never translates the food names).
-/// NOOP itself never makes a network call — the user runs the LLM step.
+/// Cénit itself never makes a network call — the user runs the LLM step.
 enum DietPrompt {
 
     /// The prompt for the current device language (Spanish device → `es`, otherwise `en`).

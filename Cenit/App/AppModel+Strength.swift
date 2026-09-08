@@ -59,7 +59,7 @@ extension AppModel {
         // presentación así desmonta a quien presenta.
         SessionComfort.applyKeepAwake(active: true)
         // Arm the realtime HR stream for the duration of the session (FER-498) — without this, on a
-        // WHOOP 4.0 the session sees no HR unless Live was opened first, and the receipt reads "no HR".
+        // el dispositivo anterior la sesión no veía pulso salvo que Live se hubiera abierto antes, y el recibo decía «sin FC».
         acquireRealtimeHR("strength")
         // FER-740: wake the Apple Watch to record the real HKWorkoutSession, if available. Fire-and-forget
         // — the session above has already started; the watch just joins.
@@ -217,7 +217,7 @@ extension AppModel {
         let built = session.buildForSave(deviceId: legacyDeviceId, endTs: endTs)
         let sets = built.1
         var record = built.0
-        // FER-399: if the strap streamed HR during the session, derive avgHr + strain (same model as the
+        // FER-399: if the wearable streamed HR during the session, derive avgHr + strain (same model as the
         // live workout) and persist them — this lights up the summary's Effort hero + recovery-cost block.
         let hrSamples = session.hrSamples
         if hrSamples.count >= 2 {

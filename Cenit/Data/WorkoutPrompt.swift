@@ -6,7 +6,7 @@ import Foundation
 /// photo / PDF); the LLM returns a `cenit.workout.v1` file the user then imports. Bundled here as the
 /// single source — not scattered string literals. Two languages: the device language picks one, but
 /// **each prompt accepts a plan written in Spanish OR English** (the model detects it and keeps the
-/// exercise names as written). NOOP itself never makes a network call — the user runs the LLM step.
+/// exercise names as written). Cénit itself never makes a network call — the user runs the LLM step.
 ///
 /// Two hard-won rules for any future edit (FER-825/827):
 /// - **Short enough to stay a MESSAGE.** The prompt once carried the 1500-line exercise catalog

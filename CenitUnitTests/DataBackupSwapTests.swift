@@ -18,6 +18,9 @@ final class DataBackupSwapTests: XCTestCase {
         try? FileManager.default.removeItem(at: dir)
     }
 
+    /// Dato en disco: el nombre heredado del archivo, en un solo lugar en vez de repetido.
+    private let dbName = "whoop.sqlite"
+
     private func write(_ name: String, _ contents: String) throws -> URL {
         let url = dir.appendingPathComponent(name)
         try contents.data(using: .utf8)!.write(to: url)
@@ -25,9 +28,9 @@ final class DataBackupSwapTests: XCTestCase {
     }
 
     func testHappyPathSwapsAndLeavesRollbackSidecar() throws {
-        let db = try write("whoop.sqlite", "OLD")
-        _ = try write("whoop.sqlite-wal", "OLD-WAL")
-        _ = try write("whoop.sqlite-shm", "OLD-SHM")
+        let db = try write(dbName, "OLD")
+        _ = try write("\(dbName)-wal", "OLD-WAL")
+        _ = try write("\(dbName)-shm", "OLD-SHM")
         let source = try write("backup.sqlite", "NEW")
 
         let sidecar = try DataBackup.swapIn(source: source, dbPath: db.path)
@@ -44,7 +47,7 @@ final class DataBackupSwapTests: XCTestCase {
 
     func testFreshInstallMovesBackupIntoPlace() throws {
         let source = try write("backup.sqlite", "NEW")
-        let dbPath = dir.appendingPathComponent("whoop.sqlite").path
+        let dbPath = dir.appendingPathComponent(dbName).path
 
         let sidecar = try DataBackup.swapIn(source: source, dbPath: dbPath)
 
@@ -53,8 +56,8 @@ final class DataBackupSwapTests: XCTestCase {
     }
 
     func testFailureMidImportLeavesOriginalAndItsWALIntact() throws {
-        let db = try write("whoop.sqlite", "OLD")
-        _ = try write("whoop.sqlite-wal", "OLD-WAL")
+        let db = try write(dbName, "OLD")
+        _ = try write("\(dbName)-wal", "OLD-WAL")
         // A source that cannot be copied (doesn't exist) fails the import BEFORE any removal.
         let ghost = dir.appendingPathComponent("no-such-backup.sqlite")
 

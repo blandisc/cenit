@@ -1308,7 +1308,7 @@ struct SleepDetailModel {
         }()
     }
 
-    /// The latest night (strap session preferred, else Apple Health fallback). `nil` → empty state.
+    /// The latest night (a legacy session preferred, else Apple Health fallback). `nil` → empty state.
     let night: Night?
     /// Stage intervals for the hypnogram (empty for Apple-only → proportional bar).
     let intervals: [SleepInterval]
@@ -1327,7 +1327,7 @@ struct SleepDetailModel {
     let regularity: SleepRegularity.Result?
     /// How many timing nights fed (or would feed) the regularity read — for the "N to go" calibration.
     let regularityNights: Int
-    /// Strap naps (shorter than a main night) excluded from the regularity window, so the UI can
+    /// Legacy naps (shorter than a main night) excluded from the regularity window, so the UI can
     /// disclose that they didn't count (FER-310). 0 when none.
     let excludedNapCount: Int
     /// Duration (minutes) of the single excluded nap when `excludedNapCount == 1`, for the "your 2 h
@@ -1340,7 +1340,7 @@ struct SleepDetailModel {
     let typicalLightPct: Double?
 
     // Night metrics
-    /// Sleep performance %: imported WHOOP figure when present, else asleep / personal need (capped 100).
+    /// Sleep performance %: the imported figure when present, else asleep / personal need (capped 100).
     let performancePct: Double?
     /// Need − asleep for last night, in minutes (the "performance" shortfall), floored at 0.
     let shortfallMinutes: Double?
@@ -1407,22 +1407,23 @@ struct SleepDetailModel {
         // and a `.last` read would surface that empty row as "last night". Anchor to the device's
         // local day, mirroring StressModel (FER-224) / ReadinessEngine.
         let days = days.filter { $0.day <= todayKey }
-        // --- Latest night: strap session wins, else Apple Health stage minutes (FER-62). ---
-        // Respiration for the strap night comes from the latest daily metric (the session doesn't
+        // --- Latest night: a legacy session wins, else Apple Health stage minutes (FER-62). ---
+        // Respiration for that night comes from the latest daily metric (the session doesn't
         // carry it), so the Respiration tile shows anoche's value instead of "—". (FER-234)
-        let strap = latestStrapNight(sleeps, respRate: days.last?.respRateBpm)
+        let legacyNight = latestStrapNight(sleeps, respRate: days.last?.respRateBpm)
         // FER-486: an Apple Health session with a real per-epoch stage timeline (watchOS 9+) draws the SAME
-        // hypnogram as a strap night. `appleSleeps` only holds nights the band didn't cover (band wins
-        // upstream), so pick the most recent night across both — Apple wins only when it's newer / strap is nil.
+        // hypnogram as a legacy night. `appleSleeps` only holds nights the band didn't cover (band wins
+        // upstream), so pick the most recent night across both — Apple wins only when it's newer, or the
+        // legacy night is nil.
         let appleNight = latestAppleSessionNight(appleSleeps)
         let useAppleSession: Bool = {
             guard let a = appleNight else { return false }
-            guard let s = strap else { return true }
+            guard let s = legacyNight else { return true }
             return a.startTs > s.startTs
         }()
         let night: Night? = useAppleSession ? appleNight
-                          : (strap ?? appleHealthNight(days: days, appleHealthDays: appleHealthDays))
-        let isApple = useAppleSession || (strap == nil && night != nil)
+                          : (legacyNight ?? appleHealthNight(days: days, appleHealthDays: appleHealthDays))
+        let isApple = useAppleSession || (legacyNight == nil && night != nil)
         let intervals: [SleepInterval] = {
             if useAppleSession, let a = appleSleeps.last {
                 return decodeSegments(a.stagesJSON, sessionStart: a.startTs)?.intervals ?? []
@@ -1431,7 +1432,7 @@ struct SleepDetailModel {
             return decodeSegments(s.stagesJSON, sessionStart: s.startTs)?.intervals ?? []
         }()
 
-        // --- Regularity: onset/wake from real sessions, Apple + strap (FER-1026). `appleSleeps` carry
+        // --- Regularity: onset/wake from real sessions, Apple + legacy (FER-1026). `appleSleeps` carry
         // real startTs/endTs (FER-486) and never overlap on-device nights (`appleSleepsNotCoveredOnDevice`),
         // so the union is every real night; the engine drops naps itself via `SleepMainNight`. Without
         // this, Apple-only users had an empty `timing` → "calibrating" forever. `realSessions` (the union
@@ -1612,7 +1613,7 @@ struct SleepDetailModel {
 
     // MARK: - Night resolution (ported from the old sleep screen)
 
-    /// The most recent strap sleep, decoded into stage durations + (when on-device) its real timeline.
+    /// The most recent legacy sleep, decoded into stage durations + (when on-device) its real timeline.
     /// `respRate` is the night's mean respiration, taken from the matching daily metric — the cached
     /// sleep session itself doesn't carry it, so without this the "Respiration" tile read "—" even
     /// though the 14-day trend (sourced from `repo.days`) had data. (FER-234)

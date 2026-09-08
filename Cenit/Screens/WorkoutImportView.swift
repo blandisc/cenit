@@ -6,9 +6,9 @@ import StrandImport
 import StrandTraining
 
 /// Import an LLM-generated workout program (FER-496) — the «trae-tu-propio-LLM» path, mirroring Diet
-/// capture (FER-371). NOOP hands out a prompt, the user runs it in their own AI with their plan, and
+/// capture (FER-371). Cénit hands out a prompt, the user runs it in their own AI with their plan, and
 /// brings back a `cenit.workout.v1` file; importing it creates the real routines of the strength tracker.
-/// NOOP never calls the network — the user runs the LLM step.
+/// Cénit never calls the network — the user runs the LLM step.
 ///
 /// «Liquid Glass · El Eje»: there's no measured datum here, so the screen is all-ink on glass; the
 /// Confirm step accents each routine with its type's hue (owner decision, Jul 2026), and the rest of
