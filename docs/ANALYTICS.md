@@ -670,11 +670,30 @@ Every pair is computed in one pass, so the multiplicity control can see all of t
 | `steps.efficiency` | sleep efficiency[D] → steps[D] | Spearman | 0 | 56 | today's partial count excluded |
 | `rhr.sleepDuration` | sleep duration[D] → resting HR[D] | Pearson | 0 | 42 | — |
 | `rhr.priorStrain` | strain[D] → resting HR[D+1] | Spearman, **partial** on strain[D+1] | +1 | 42 | minority floor |
+| `hrv.sleepDuration` | sleep duration[D] → dense-night ln(RMSSD)[D] | Pearson | 0 | 42 | — |
+| `hrv.priorStrain` | strain[D] → dense-night ln(RMSSD)[D+1] | Spearman, **partial** on strain[D+1] | +1 | 42 | minority floor |
 
 Day keys are the storage keys — sleep and efficiency by the **waking** day; strain, steps and the
 resting pulse by the calendar day — so «strain[D] → sleep[D+1]» is today's load against the night
 that follows. Rows after the device's local today are ignored (a UTC «tomorrow» row), and the steps
 series also drops today itself, a partial running total.
+
+**`hrv.*` (FER-472).** The two HRV pairs mirror `rhr.sleepDuration`/`rhr.priorStrain` exactly — same
+statistic, same lag, same partial — but read a DIFFERENT series: the dense-night RMSSD partition
+(`apple_rmssd_night`, produced by `HealthKitBridge.ingestNocturnalHRV` only for nights that clear
+`NocturnalHRV`'s density floor — ≥ 60 clean beats and ≥ 30 successive pairs — and keyed by the
+**waking** day, the same attribution `AutonomicTrend` uses), NEVER `DailyMetric.avgHrv` (Apple's
+all-day SDNN) and never through `SourceLens`, which only ever clears `avgHrv`. RMSSD is right-skewed
+(approximately lognormal), so the engine reads it in the natural-log domain — the same transform
+`AutonomicTrend` already takes for its geometric-mean baseline — before either Pearson or the
+Spearman rank pass, which is unaffected by a monotonic transform either way. Both pairs use the
+plain 42-pair floor, not the 56-pair efficiency one: a dense night's own bar (60/30 above) is
+already stricter than the wrist's sleep/wake reliability that motivates the higher floor elsewhere.
+This is why the FER-438 retirement note below now reads "revived", not "excluded": the block was
+never wrong about SDNN being the wrong construct, only about there being no alternative series —
+`WhatMovesItTests.testHrvSleepDurationRisesOnLongerNights`/`testHrvPriorStrainFallsAfterHardDays`
+pin the revived pairs; most users will not clear the 42-dense-night floor, and the sheet says
+«todavía» honestly rather than inventing a direction.
 
 **The gate.** Every value in it is a labeled product knob, not a derived constant:
 
@@ -716,11 +735,15 @@ Below the gate the metric has nothing to assert, so the sheet hides the block an
 «todavía»; it never invents a direction. Power is deliberately low (r = 0.30 at n = 42 is about
 49%): the gate protects against the false positive, not the false negative.
 
+**Revived, not excluded — `hrv` (FER-472).** The FER-209 block read the daily variability figure
+(`avgHrv`) through the source lens that nils it on every Apple row, so it never painted, and Apple's
+all-day SDNN is the wrong construct to test sleep/effort against (Zhang 2025: sleep loss moves
+RMSSD, not SDNN) — FER-438 retired it rather than test the wrong construct. `hrv.sleepDuration` and
+`hrv.priorStrain` (above) revive it on the RIGHT construct instead: the dense nocturnal-RMSSD
+partition, never `avgHrv`.
+
 **Excluded, and why.** The science and statistics gates that ran before implementing settled each
-of these. **Variability** — the earlier block read the daily variability figure through the source
-lens that nils it on every Apple row, so it never painted, and Apple's all-day SDNN is the wrong
-construct to revive it on (Zhang 2025: sleep loss moves RMSSD, not SDNN); a dense nocturnal-RMSSD
-series is a separate issue. **Prior-day strain → strain** — for a strain that is 0 on rest days its
+of these. **Prior-day strain → strain** — for a strain that is 0 on rest days its
 lag-1 autocorrelation is −π/(1 − π) by construction: it described the calendar. **Same-day recovery
 → strain** — the recovery column is nil on every Apple row. **Steps or energy ↔ strain** — circular,
 since the load estimator classifies rest by steps and energy. **Stress, the acute-to-chronic ratio,
@@ -735,7 +758,9 @@ efficiency, wake after onset, slow-wave sleep); Atoui 2021 (efficiency and wake 
 next-day activity; activity → shorter total sleep, small); Lambiase 2013; Mead 2019 (day of week
 confounds activity — hence «el calendario también pesa»); Borbély 1982 and 2022 (process S);
 Dettoni 2012 and Faust 2020 (short or late nights → resting pulse up); Stanley 2013 (parasympathetic
-reactivation 24–48 h after hard effort); Zar 1972; Bartlett 1935; Fisher 1924 (both the first- and
+reactivation 24–48 h after hard effort, cited for both `rhr.priorStrain` and `hrv.priorStrain`);
+Zhang 2025 (sleep loss moves RMSSD, not the all-day SDNN construct — why `hrv.sleepDuration` reads
+the dense nocturnal-RMSSD partition); Zar 1972; Bartlett 1935; Fisher 1924 (both the first- and
 the second-order partial, FER-438 / FER-480); Benjamini and Hochberg 1995. Tests: `WhatMovesItTests`
 (a positive and a negative fixture per relationship, one fixture per gate piece, and the
 calendar-artefact fixtures — pure and with a real rebound superposed — the two partial orders exist
@@ -868,8 +893,8 @@ usable one of 4, because at four nights the spread is itself mostly noise.
 | Fisher 1924 | The partial correlation and the degree of freedom it costs |
 | Kredlow et al. 2015; Atoui et al. 2021; Lambiase et al. 2013; Mead et al. 2019 | The exercise-sleep and sleep-activity relationships behind «Tu patrón», and the day-of-week confound |
 | Borbély 1982; Borbély 2022 | Process S, behind the night-to-night pair |
-| Dettoni et al. 2012; Faust et al. 2020; Stanley et al. 2013 | Short nights and hard effort against the next day's resting pulse |
-| Zhang 2025 | Why the variability block is not revived on the all-day construct |
+| Dettoni et al. 2012; Faust et al. 2020; Stanley et al. 2013 | Short nights and hard effort against the next day's resting pulse, and (Stanley) the same for `hrv.priorStrain`'s dense-night RMSSD |
+| Zhang 2025 | Why `hrv.sleepDuration`/`hrv.priorStrain` read the dense nocturnal-RMSSD partition, not the all-day SDNN construct |
 | Zourdos et al. 2016; Helms et al. 2016 | Effort-anchored progression, and reducing load only when reps were missed |
 | Steele et al. 2017 | Why a habitual high effort-rater must not be frozen out of progression |
 | Epley 1985; Brzycki 1993 | The two one-repetition-maximum estimates |

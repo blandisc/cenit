@@ -121,15 +121,15 @@ struct MetricDetailSpec: Identifiable {
     // MARK: - Factories (wrap + reuse the MetricInfo factories — no copy duplicated here)
 
     /// HRV detail. Full block set (it's the protagonist vital): selector, chart+band, normal range,
-    /// consistency, trend, night vitals, method. Hero = 7-day moving average.
-    /// FER-438: sin `.whatMovesIt` — el bloque de FER-209 leía `avgHrv` a través de la lente que lo
-    /// anula en toda fila Apple, así que nunca pintó; revivirlo pide RMSSD nocturno denso (issue aparte).
+    /// consistency, trend, night vitals, «Qué mueve tu VFC», method. Hero = 7-day moving average.
+    /// FER-472: `.whatMovesIt` is back — on the dense-night lnRMSSD series (`repo.nightlyRmssd`), never
+    /// `avgHrv` (the FER-438 retirement stands; only the series changed).
     static func hrv(_ value: Double?) -> MetricDetailSpec {
         MetricDetailSpec(
             descriptor: Self.catalog("hrv"),
             info: .hrv(value),
             blocks: [.periodSelector, .seriesChartBand, .normalRange, .consistency,
-                     .trend, .nightVitals, .method],
+                     .trend, .nightVitals, .whatMovesIt, .method],
             hero: .movingAverage7,
             baselineCfg: Baselines.hrvCfg,
             populationRange: 20...120

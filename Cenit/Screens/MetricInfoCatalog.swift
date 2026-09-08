@@ -186,7 +186,8 @@ extension MetricInfo {
                 citation: "SDNN and RMSSD (Task Force, 1996); RMSSD is the vagal recovery measure (Shaffer & Ginsberg, 2017)."
             ),
             levelsTodayValue: value,
-            levelsRelative: true
+            levelsRelative: true,
+            patternMethod: "Your pattern: Pearson correlation of your nightly RMSSD (natural-log domain, from your densest tracked nights) with that same night's sleep duration (lag 0, at least 42 paired nights) and Spearman correlation of the previous day's strain with it (lag +1, at least 42 pairs; partial, adjusted for the same day's strain), with family control (Benjamini-Hochberg). This reads your recomputed nocturnal RMSSD, never the SDNN number shown above. Sources: Stanley 2013; Zhang 2025."
         )
     }
 

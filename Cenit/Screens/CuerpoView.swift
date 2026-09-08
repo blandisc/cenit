@@ -1652,9 +1652,11 @@ private struct CuerpoLanding: View {
     }
 
     /// The gated, directional "Qué la mueve" findings (FER-209) for a vital, computed from the user's
-    /// own history (`repo.displayDays`). Empty → the detail screen hides the block.
+    /// own history (`repo.displayDays`). `hrvNights: repo.nightlyRmssd` feeds `hrv`'s two relationships
+    /// (FER-472) — a no-op for every other key. Empty → the detail screen hides the block.
     private func whatMovesItFindings(for key: String) -> [WhatMovesItFinding] {
-        WhatMovesItEngine.findings(forMetricKey: key, days: repo.displayDays, today: Repository.localDayKey(Date()))
+        WhatMovesItEngine.findings(forMetricKey: key, days: repo.displayDays,
+                                   today: Repository.localDayKey(Date()), hrvNights: repo.nightlyRmssd)
     }
 
     /// Last night's companion vitals (respiration + resting HR) for the detail's "Vitales de la noche"

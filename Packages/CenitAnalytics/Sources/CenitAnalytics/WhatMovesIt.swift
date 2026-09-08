@@ -51,10 +51,22 @@ import CenitModels
 // • Direction only: a finding is the sign of the coefficient (`MetricTrend`), never the number, and
 //   never a cause — it is «se mueve con», nothing more.
 //
+// HRV — REVIVED here on the dense nocturnal RMSSD series (FER-472, gates /cso + /estadistico):
+// • The FER-209 block read `avgHrv` (Apple's SDNN) through `SourceLens.clearBandHrv`, which nils it on
+//   every Apple row — the series was always empty and the block never painted; FER-438 retired it. The
+//   two `hrv.*` relationships below read a DIFFERENT series instead: the dense-night lnRMSSD the app
+//   already recomputes from beat-to-beat intervals (`apple_rmssd_night`, `HealthKitBridge.ingestNocturnalHRV`,
+//   day-keyed by the WAKING day), never `avgHrv`, never through `SourceLens`. RMSSD is right-skewed
+//   (approximately lognormal), so the Pearson pair reads it in the natural-log domain — the same
+//   transform `AutonomicTrend` already takes for its geometric-mean baseline; the Spearman pair is
+//   rank-based and unaffected by the transform either way.
+// • `hrv.sleepDuration` mirrors `rhr.sleepDuration` exactly: Pearson, lag 0, no partial. `hrv.priorStrain`
+//   mirrors `rhr.priorStrain` exactly: Spearman, lag +1, first-order partial on the SAME day's strain —
+//   the FER-438 fix, not FER-480's second-order one (that one is specific to the sleep auto-lag's
+//   confound on BOTH ends of its own pair; this is an ordinary cross pair with the ordinary calendar
+//   artefact on one end, y's day).
+//
 // RETIRED here (FER-438, gates /cso + /estadistico):
-// • HRV: no relationship. The FER-209 block read `avgHrv` through `SourceLens.clearBandHrv`, which nils it
-//   on every Apple row — the series was always empty and the block never painted. Reviving it takes a
-//   dense nocturnal RMSSD series (separate issue); Apple's SDNN is the wrong construct (Zhang 2025).
 // • Prior-day strain → strain (FER-239 auto-lag): for a strain that is 0 on rest days its lag-1
 //   autocorrelation is −π/(1−π) by construction — «lighter the day after» for everyone who does not
 //   train two days running. It described the calendar, not the body.
@@ -64,7 +76,10 @@ import CenitModels
 // paired days (a calendar floor, not an n_eff); `minPairsWithEfficiency` 56 because the wrist's
 // sleep/wake reliability ≈ 0.5 attenuates any true r by ~√0.5, so a visible pattern needs more nights
 // and the block flickers less; `minorityFloor` 10 (at n₁ = 10 of 42 a finding still needs d ≥ 0.71);
-// `minAbsR` 0.20 is COSMETIC — below n ≈ 97 the p is the binding bar (|r| ≥ 0.30 at n = 42).
+// `minAbsR` 0.20 is COSMETIC — below n ≈ 97 the p is the binding bar (|r| ≥ 0.30 at n = 42). The `hrv.*`
+// pairs use the plain `minPairs` floor (42), not `minPairsWithEfficiency` — dense nights, not efficiency,
+// gate their density, and a dense night already demands ≥ 60 clean beats / ≥ 30 successive pairs
+// (`NocturnalHRV`), a stricter per-night bar than the wrist's sleep/wake call.
 //
 // SOURCES (verified by the /cso gate): Kredlow 2015, J Behav Med 38(3):427 (acute exercise → TST,
 // efficiency, WASO); Atoui 2021, Sleep Med Rev 57:101426 (efficiency → next-day activity; activity →
@@ -72,7 +87,9 @@ import CenitModels
 // 26(5):562 (day-of-week confounds activity); Borbély 1982 / 2022, J Sleep Res 31(4):e13598 (process
 // S — the night-to-night rebound); Dettoni 2012, J Appl Physiol 113(2):232 and Faust 2020, npj Digit
 // Med 3:39 (short / late nights → resting HR up); Stanley 2013, Sports Med 43(12):1259 (parasympathetic
-// reactivation 24–48 h after hard effort).
+// reactivation 24–48 h after hard effort, cited for both `rhr.priorStrain` and `hrv.priorStrain`);
+// Zhang 2025 (sleep loss moves RMSSD, not the all-day SDNN construct — why `hrv.sleepDuration` reads
+// the dense-night RMSSD series and not `avgHrv`).
 
 /// One relationship the block may assert: x moves, and the metric (y) tends to move with it.
 public enum WhatMovesItRelationship: String, CaseIterable, Sendable {
@@ -91,9 +108,15 @@ public enum WhatMovesItRelationship: String, CaseIterable, Sendable {
     case rhrSleepDuration = "rhr.sleepDuration"
     /// Yesterday's strain → resting HR (lag +1, Spearman partial on today's strain).
     case rhrPriorStrain = "rhr.priorStrain"
+    /// That same night's duration → its dense-night lnRMSSD (lag 0, Pearson) — the `rhr.sleepDuration`
+    /// mirror, on the dense nocturnal RMSSD series, never `avgHrv` (FER-472).
+    case hrvSleepDuration = "hrv.sleepDuration"
+    /// Yesterday's strain → tonight's dense-night lnRMSSD (lag +1, Spearman partial on today's strain)
+    /// — the `rhr.priorStrain` mirror (FER-472).
+    case hrvPriorStrain = "hrv.priorStrain"
 
     /// The metric whose sheet renders the finding — the `y` side. Every key here is a
-    /// `MetricInfo.id` / `MetricDetailSpec` key; no relationship targets `hrv`.
+    /// `MetricInfo.id` / `MetricDetailSpec` key.
     public var metricKey: String {
         switch self {
         case .sleepPriorStrain, .sleepPriorNight: return "sleep"
@@ -101,6 +124,7 @@ public enum WhatMovesItRelationship: String, CaseIterable, Sendable {
         case .efficiencyPriorStrain:              return "sleep_efficiency"
         case .stepsEfficiency:                    return "steps"
         case .rhrSleepDuration, .rhrPriorStrain:  return "rhr"
+        case .hrvSleepDuration, .hrvPriorStrain:  return "hrv"
         }
     }
 
@@ -108,14 +132,17 @@ public enum WhatMovesItRelationship: String, CaseIterable, Sendable {
     /// strain pairs (see the file note). `spearmanPartial2` holds `controlColumn` fixed on BOTH x's
     /// and y's day at once — `sleepPriorNight` today (FER-480).
     enum Statistic { case pearson, spearman, spearmanPartial, spearmanPartial2 }
-    enum Column { case sleepDuration, efficiency, strain, steps, restingHR }
+    /// `hrv` is the dense-night lnRMSSD series (`apple_rmssd_night`, waking-day keyed), read in the
+    /// natural-log domain — NEVER `DailyMetric.avgHrv` (Apple's all-day SDNN, the wrong construct;
+    /// FER-438/FER-472) and never through `SourceLens`, which only ever touches `avgHrv`.
+    enum Column { case sleepDuration, efficiency, strain, steps, restingHR, hrv }
     enum Side { case x, y }
 
     var x: Column {
         switch self {
-        case .sleepPriorStrain, .efficiencyPriorStrain, .rhrPriorStrain: return .strain
-        case .sleepPriorNight, .rhrSleepDuration:                        return .sleepDuration
-        case .strainEfficiency, .stepsEfficiency:                        return .efficiency
+        case .sleepPriorStrain, .efficiencyPriorStrain, .rhrPriorStrain, .hrvPriorStrain: return .strain
+        case .sleepPriorNight, .rhrSleepDuration, .hrvSleepDuration:                      return .sleepDuration
+        case .strainEfficiency, .stepsEfficiency:                                         return .efficiency
         }
     }
 
@@ -126,22 +153,24 @@ public enum WhatMovesItRelationship: String, CaseIterable, Sendable {
         case .efficiencyPriorStrain:               return .efficiency
         case .stepsEfficiency:                     return .steps
         case .rhrSleepDuration, .rhrPriorStrain:   return .restingHR
+        case .hrvSleepDuration, .hrvPriorStrain:   return .hrv
         }
     }
 
     var lagDays: Int {
         switch self {
-        case .sleepPriorStrain, .sleepPriorNight, .efficiencyPriorStrain, .rhrPriorStrain: return 1
-        case .strainEfficiency, .stepsEfficiency, .rhrSleepDuration:                       return 0
+        case .sleepPriorStrain, .sleepPriorNight, .efficiencyPriorStrain, .rhrPriorStrain, .hrvPriorStrain: return 1
+        case .strainEfficiency, .stepsEfficiency, .rhrSleepDuration, .hrvSleepDuration:                     return 0
         }
     }
 
     var statistic: Statistic {
         switch self {
         case .sleepPriorNight:                                           return .spearmanPartial2
-        case .rhrSleepDuration:                                          return .pearson
+        case .rhrSleepDuration, .hrvSleepDuration:                       return .pearson
         case .strainEfficiency, .stepsEfficiency:                        return .spearman
-        case .sleepPriorStrain, .efficiencyPriorStrain, .rhrPriorStrain: return .spearmanPartial
+        case .sleepPriorStrain, .efficiencyPriorStrain, .rhrPriorStrain,
+             .hrvPriorStrain:                                            return .spearmanPartial
         }
     }
 
@@ -236,22 +265,27 @@ public enum WhatMovesItEngine {
 
     /// Every testable relationship over `days`, computed in one pass with its BH q. `today` is the
     /// device's local day key: rows after it are ignored (a UTC «tomorrow» row), and today's own
-    /// steps — a running total, not a finished day — are dropped from the steps pair.
+    /// steps — a running total, not a finished day — are dropped from the steps pair. `hrvNights` is
+    /// the dense-night RMSSD-per-night partition (`apple_rmssd_night`, waking-day keyed, raw
+    /// milliseconds), read here in the natural-log domain for the two `hrv.*` pairs — NEVER
+    /// `DailyMetric.avgHrv`; `[]` (the default) simply leaves both `hrv.*` relationships untestable,
+    /// same as any other column with no data.
     public static func candidates(days: [DailyMetric], today: String,
+                                  hrvNights: [(day: String, rmssdMs: Double)] = [],
                                   gate: WhatMovesItGate = .default) -> [WhatMovesItCandidate] {
         struct Tested { let relationship: WhatMovesItRelationship; let r: Double; let n: Int; let nEff: Double; let p: Double }
         var tested: [Tested] = []
 
         for relationship in WhatMovesItRelationship.allCases {
-            let xs = series(days, relationship.x, today: today)
-            let ys = series(days, relationship.y, today: today)
+            let xs = series(days, relationship.x, today: today, hrvNights: hrvNights)
+            let ys = series(days, relationship.y, today: today, hrvNights: hrvNights)
             let lag = relationship.lagDays
             // The partial pairs also need one (triples) or two (quadruples) controls read on the
             // same days the coefficient will use, so every floor below sees exactly those rows.
             let isPartial1 = relationship.statistic == .spearmanPartial
             let isPartial2 = relationship.statistic == .spearmanPartial2
             let triples = isPartial1 ? CorrelationEngine.triples(x: xs, y: ys, z: xs, lagDays: lag) : []
-            let controls = relationship.controlColumn.map { series(days, $0, today: today) }
+            let controls = relationship.controlColumn.map { series(days, $0, today: today, hrvNights: hrvNights) }
             let quads = isPartial2 ? CorrelationEngine.quadruples(
                 x: xs, y: ys, z1: controls ?? [], z2: controls ?? [], lagDays: lag) : []
             let pairs: [(Double, Double)]
@@ -297,12 +331,14 @@ public enum WhatMovesItEngine {
     }
 
     /// The findings that clear `gate`, by metric key (`sleep`, `strain`, `sleep_efficiency`, `steps`,
-    /// `rhr`), each list in `WhatMovesItRelationship` order. A metric absent from the result — or with an
-    /// empty list — has nothing to assert → the caller hides the block; it never invents a direction.
+    /// `rhr`, `hrv`), each list in `WhatMovesItRelationship` order. A metric absent from the result — or
+    /// with an empty list — has nothing to assert → the caller hides the block; it never invents a
+    /// direction. `hrvNights` — see `candidates`.
     public static func family(days: [DailyMetric], today: String,
+                              hrvNights: [(day: String, rmssdMs: Double)] = [],
                               gate: WhatMovesItGate = .default) -> [String: [WhatMovesItFinding]] {
         var out: [String: [WhatMovesItFinding]] = [:]
-        for candidate in candidates(days: days, today: today, gate: gate)
+        for candidate in candidates(days: days, today: today, hrvNights: hrvNights, gate: gate)
         where candidate.q < gate.maxQ && abs(candidate.r) >= gate.minAbsR {
             out[candidate.relationship.metricKey, default: []]
                 .append(WhatMovesItFinding(relationship: candidate.relationship, trend: candidate.trend))
@@ -313,10 +349,20 @@ public enum WhatMovesItEngine {
     // MARK: - Internals
 
     /// One column's daily series, oldest → newest, rows after `today` dropped; the steps column also
-    /// drops `today` itself (a partial running total).
+    /// drops `today` itself (a partial running total). `.hrv` reads `hrvNights` instead of `days` —
+    /// `ln(rmssdMs)`, never `DailyMetric.avgHrv` (see the file note) — so a `nil`/empty `days` row on a
+    /// night that still emitted a dense RMSSD reading is not lost.
     private static func series(_ days: [DailyMetric], _ column: WhatMovesItRelationship.Column,
-                               today: String) -> [(day: String, value: Double)] {
-        days.compactMap { d -> (day: String, value: Double)? in
+                               today: String,
+                               hrvNights: [(day: String, rmssdMs: Double)]) -> [(day: String, value: Double)] {
+        if column == .hrv {
+            return hrvNights.compactMap { night -> (day: String, value: Double)? in
+                guard night.day <= today, night.rmssdMs > 0 else { return nil }
+                return (day: night.day, value: Foundation.log(night.rmssdMs))
+            }
+            .sorted { $0.day < $1.day }
+        }
+        return days.compactMap { d -> (day: String, value: Double)? in
             guard d.day <= today else { return nil }
             let value: Double?
             switch column {
@@ -325,6 +371,7 @@ public enum WhatMovesItEngine {
             case .strain:        value = d.strain
             case .steps:         value = d.day < today ? d.steps.map(Double.init) : nil
             case .restingHR:     value = d.restingHr.map(Double.init)
+            case .hrv:           value = nil  // unreachable — handled above
             }
             return value.map { (day: d.day, value: $0) }
         }

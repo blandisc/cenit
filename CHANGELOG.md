@@ -20,6 +20,20 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
 
 ## Unreleased
 
+### «Tu patrón» vuelve a VFC, sobre tu RMSSD nocturno / «Your pattern» returns to HRV, over your nightly RMSSD (FER-472)
+- **ES** — El detalle de VFC vuelve a mostrar «Tu patrón»: si duermes más esa misma noche, y si un
+  esfuerzo alto ayer se nota al día siguiente. Se había retirado porque leía el número de VFC que ves
+  en pantalla (SDNN, de todo el día) y ese número casi nunca varía con el sueño; ahora lee tu RMSSD
+  nocturno recalculado de tus noches con más datos del Apple Watch — la señal correcta para esta
+  pregunta — así que la mayoría de las personas todavía no juntará suficientes noches y el bloque
+  seguirá diciendo «todavía», honestamente.
+- **EN** — The HRV detail shows «Your pattern» again: whether you sleep more that same night, and
+  whether a hard effort yesterday shows up the next day. It had been retired because it read the HRV
+  number you see on screen (SDNN, an all-day figure) that barely ever moves with sleep; it now reads
+  your nightly RMSSD, recomputed from your Apple Watch's densest nights — the right signal for this
+  question — so most people still won't gather enough nights, and the block will honestly keep
+  saying «not yet».
+
 ### Interno · las particiones de datos pierden la marca heredada / Internal · data partitions lose the legacy brand (FER-479)
 - **ES** — Cambio interno, sin efecto para quien usa la app. Los identificadores con los que Cénit
   marca de qué fuente viene cada fila en su base local (y que un vistazo al binario dejaba ver:

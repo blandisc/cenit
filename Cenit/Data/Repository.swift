@@ -104,6 +104,11 @@ final class Repository: ObservableObject {
         /// from the band, never folded into `days`/any baseline. nil en `.legacyOnly` or before enough dense
         /// nights. Composed off-main in `assembleDashboard` (FER-1040). Surfaced via
         /// `todayAutonomicTrend`; the screen (R4) reads it.
+        /// FER-472: the SAME dense `apple_rmssd_night` rows behind `autonomicTrend`, kept verbatim (raw
+        /// milliseconds, waking-day keyed) for `WhatMovesItEngine`'s two `hrv.*` relationships — the
+        /// «Tu patrón» block reads its OWN gate over these, distinct from the trend's z-score read.
+        /// Never `avgHrv`, never through `SourceLens`.
+        var nightlyRmssd: [(day: String, rmssdMs: Double)] = []
         var autonomicTrend: AutonomicTrend.Read? = nil
         /// FER-1030: the morning «Preparación» verdict (4 states, no number) by axis-consensus over
         /// the user's OWN Apple baselines. Derived (never persisted), composed alongside
@@ -134,6 +139,10 @@ final class Repository: ObservableObject {
     /// Display-only daily rows: `days`, but legacy-covered days with nil measured fields back-fill from
     /// Apple Health (FER-149). The dashboard sparklines/trends read these; analytics read `days`.
     var displayDays: [DailyMetric] { dashboard.displayDays }
+    /// FER-472: the dense `apple_rmssd_night` rows (oldest→newest not guaranteed — callers sort), for
+    /// `WhatMovesItEngine`'s `hrv.*` relationships. The SAME rows `todayAutonomicTrend` was computed
+    /// from; never `avgHrv`.
+    var nightlyRmssd: [(day: String, rmssdMs: Double)] { dashboard.nightlyRmssd }
     /// Cached sleep sessions, oldest→newest.
     var sleeps: [CachedSleepSession] { dashboard.sleeps }
     /// Apple Health sleep sessions carrying a real per-epoch stage timeline (FER-486), for nights the
@@ -745,6 +754,7 @@ final class Repository: ObservableObject {
             storedSleepsCount: storedSleeps,
             strainEstimates: strainEstimates,
             fusion: fusion,
+            nightlyRmssd: inputs.nightRows,
             autonomicTrend: autonomicTrend,
             preparedness: preparedness,
             strengthEstimatedDays: overlaid.estimatedDays
