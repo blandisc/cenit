@@ -1161,6 +1161,8 @@ struct TodayView: View {
             }
             // FER-432 · tip 3 + botón alterno DEBAJO del héroe (nunca sobre el orbe).
             hoyEcosistemaTipYBoton
+            // FER-436 · hitos 1–2 (una vez) ENTRE el héroe y la Matriz; nunca sobre la palabra/orbe.
+            hitosHoy
             // FER-51 · La Matriz (estados T1–T5 + instrumento). Debajo del héroe.
             // El modo Cosmos se apagó (decisión del dueño 2026-08-06).
             HoyMatrizHost(
@@ -1249,7 +1251,21 @@ struct TodayView: View {
         HoyTips.donarMananaConVeredictoSiAplica(
             hayVeredicto: hayVeredicto,
             dayKey: Repository.localDayKey(Date()))
+        // FER-436 · hitos 1–2: los umbrales (4/14 noches) salen del motor vía `prep`.
+        Hitos.evaluarHoy(prep: repo.todayPreparedness, listo: repo.fullyLoaded)
         _ = output
+    }
+
+    /// FER-436 · «Primera lectura» (noche 4) y «Base firme» (noche 14): tarjetas de una vez en la
+    /// columna de módulos (margen 16), sobrias. `Hitos.evaluarHoy` garantiza que solo una aplica
+    /// (base firme invalida primera lectura); `antes:` lo refuerza. La puerta abre el Acta.
+    @ViewBuilder
+    private var hitosHoy: some View {
+        HitoTarjeta(tip: BaseFirmeHitoTip(), arriba: LiquidSpace.s150) { showVeredictoActa = true }
+            .padding(.horizontal, LiquidSpace.s400)
+        HitoTarjeta(tip: PrimerVeredictoHitoTip(), antes: [BaseFirmeHitoTip()],
+                    arriba: LiquidSpace.s150) { showVeredictoActa = true }
+            .padding(.horizontal, LiquidSpace.s400)
     }
 
     /// Inputs de Matriz/Cosmos: mismos orígenes que `liquidInputs()` (displayDays, prep, carga…).

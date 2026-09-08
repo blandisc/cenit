@@ -285,10 +285,18 @@ private struct CuerpoLanding: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 recoveryHero
+                // FER-436 · hito 3 «Ya hay tendencia» DEBAJO del héroe (nunca encima de la palabra).
+                HitoTarjeta(tip: PrimeraTendenciaHitoTip())
                 // FER-432 · tip 7 DEBAJO del héroe (nunca encima de la palabra).
                 TipView(TendenciasPreparacionTip(), arrowEdge: .top)
                 restLoadCard
-                trainingLoadCard
+                // FER-436 · hito 4 «Carga leída» PEGADO al módulo de carga (s300), fuera de él.
+                VStack(alignment: .leading, spacing: LiquidSpace.s300) {
+                    trainingLoadCard
+                    HitoTarjeta(tip: CargaLeidaHitoTip(), antes: [PrimeraTendenciaHitoTip()], tono: .verde) {
+                        trainingLoadItem = TrainingLoadItem(model: trainingLoad ?? TrainingLoadModel(acwr: nil, series: []))
+                    }
+                }
                 vitalsCard
                 activityCard
                 longevityCard
@@ -328,7 +336,11 @@ private struct CuerpoLanding: View {
         }
         .animation(LiquidMotion.toque, value: detailPresented)
         .task(id: repo.refreshSeq) { await loadAll(); alimentarTendenciasTips() }
-        .onAppear { activarTendenciasTipGroupSiCabe(); alimentarTendenciasTips() }
+        .onAppear {
+            activarTendenciasTipGroupSiCabe()
+            Hitos.retenerGrupoOrdenado(.tendencias)   // FER-436: hitos 3 y 4 nunca juntos (iOS 18)
+            alimentarTendenciasTips()
+        }
         .onChange(of: selectedPeriod) { _, _ in
             TendenciasPeriodoTip().invalidate(reason: .actionPerformed)
             alimentarTendenciasTips()
@@ -425,6 +437,11 @@ private struct CuerpoLanding: View {
             diasConDosMetricas: diasConDosMetricas,
             hayVeredicto: hayVeredicto,
             permisoCalendario: permiso)
+        // FER-436 · hitos 3–4: el mismo conteo de días con dato (nil hasta el pase completo del
+        // repo) y la calibración real del ACWR (`trainingLoad == nil` = sin cálculo todavía).
+        Hitos.evaluarTendencias(
+            diasConDato: repo.fullyLoaded ? diasConDato : nil,
+            cargaLeida: trainingLoad.map { $0.acwr != nil })
     }
 
     #if os(iOS) && DEBUG

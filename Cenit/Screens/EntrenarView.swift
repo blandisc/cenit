@@ -262,11 +262,13 @@ private struct EntrenarLanding: View {
                         // (spec §«Estados no-rutina» — reemplaza a `muscleSectionModulo`+`bitacoraSection`).
                         heroSectionDescanso
                             .padding(.top, EntrenarMetrics.heroKickerTop)
+                        hitosEntrenar        // FER-436 · bajo el héroe, arriba del mosaico
                         v18Mosaico.padding(.top, LiquidSpace.s300)
                     } else if let r = todayRoutine {
                         // ① en rango / ② recupera — el héroe v18 (FER-171 · Parte B) + el mismo mosaico.
                         heroeV18(r)
                             .padding(.top, EntrenarMetrics.heroKickerTop)
+                        hitosEntrenar        // FER-436 · bajo el héroe, arriba del mosaico
                         v18Mosaico.padding(.top, LiquidSpace.s300)
                     }
                 }
@@ -358,6 +360,7 @@ private struct EntrenarLanding: View {
         // reusing the slots this view prefetched on load (FER-613). Consumed once; if we're not loaded yet,
         // defer until `load()` finishes.
         .onAppear {
+            Hitos.retenerGrupoOrdenado(.entrenar)   // FER-436: hitos 5 y 6 nunca juntos (iOS 18)
             if tabRouter.startTodaySession { consumeBriefStart() }
             // Refresh the plan when returning (e.g. from «Editar» / the weekly plan editor): the initial
             // `.task` doesn't re-run on a NavigationStack pop, so edits wouldn't reflect otherwise (FER-787).
@@ -389,6 +392,17 @@ private struct EntrenarLanding: View {
     private func consumeBriefStart() {
         tabRouter.startTodaySession = false
         if loaded { startToday() } else { startWhenLoaded = true }
+    }
+
+    /// FER-436 · «Primera sesión» y «Primera marca»: tarjetas de una vez en el hub, DEBAJO del
+    /// módulo héroe y arriba del mosaico (teselas verdes, mosaico), nunca en la sesión viva ni en
+    /// el primer uso (su copy habla de los músculos y la bitácora que van abajo). Uno a la vez:
+    /// `antes:` en iOS 17, `TipGroup(.ordered)` en iOS 18. Puertas: Historial y «Tus marcas».
+    @ViewBuilder private var hitosEntrenar: some View {
+        HitoTarjeta(tip: PrimeraSesionHitoTip(), tono: .verde, regimen: .mosaico,
+                    arriba: LiquidSpace.s300, puerta: openHistory)
+        HitoTarjeta(tip: PrimerRecordHitoTip(), antes: [PrimeraSesionHitoTip()], tono: .verde,
+                    regimen: .mosaico, arriba: LiquidSpace.s300, puerta: openMarcas)
     }
 
     // MARK: - ① Open hero + «Empezar» + discs (handoff v4b, FER-939)
@@ -1711,6 +1725,9 @@ private struct EntrenarLanding: View {
         // After sessions + routines (→ routinesById): bucket once for Constancia + week strip (FER-948).
         constancyMonthsCache = computeConstancyMonths()
         loaded = true
+        // FER-436 · hitos 5–6: una sesión CERRADA guardada (`endTs != nil`, mismo filtro que el
+        // Historial) y la marca más reciente del repo; `nil` nunca llega aquí (la lectura ya pasó).
+        Hitos.evaluarEntrenar(sesionGuardada: recent.contains { $0.endTs != nil }, hayMarca: latest != nil)
         // A «Empezar» from the Daily Brief that arrived before the prefetch finished now has its slots (FER-613).
         if startWhenLoaded { startWhenLoaded = false; startToday() }
         return true
