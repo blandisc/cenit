@@ -50,7 +50,8 @@ enum EntrenarTips {
         default: break
         }
         // FER-436: `-noop.hitos reset` borra el registro inicial de los seis hitos del motor.
-        Hitos.aplicarPalancaDebug()
+        // `Hitos` es @MainActor y `configure()` corre en el arranque de la app (hilo principal).
+        MainActor.assumeIsolated { Hitos.aplicarPalancaDebug() }
         #endif
         do {
             // .daily (D8): como máximo un tip DISTINTO por día; los de primera sesión se saltan el
