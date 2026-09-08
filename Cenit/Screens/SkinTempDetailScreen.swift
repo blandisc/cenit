@@ -632,13 +632,13 @@ struct SkinTempDetailItem: Identifiable {
 
 #if DEBUG
 private func sampleSkinTempSeries(days: Int = 60) -> [(day: String, value: Double)] {
-    let cal = Calendar(identifier: .gregorian)
-    let today = cal.startOfDay(for: Date())
-    let f = SkinTempDetailScreen.dayParser
-    return (0..<days).map { i in
-        let date = cal.date(byAdding: .day, value: -(days - 1 - i), to: today)!
-        let v = 0.25 * sin(Double(i) / 4.0) + Double((i * 7) % 3 - 1) * 0.08
-        return (f.string(from: date), v)
+    let gregoriano = Calendar(identifier: .gregorian)
+    let hoy = gregoriano.startOfDay(for: Date())
+    let formateador = SkinTempDetailScreen.dayParser
+    return (0..<days).map { paso in
+        let fecha = gregoriano.date(byAdding: .day, value: -(days - 1 - paso), to: hoy)!
+        let valor = 0.25 * sin(Double(paso) / 4.0) + Double((paso * 7) % 3 - 1) * 0.08
+        return (formateador.string(from: fecha), valor)
     }
 }
 

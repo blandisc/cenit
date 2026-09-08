@@ -38,12 +38,18 @@ extension View {
 }
 
 enum EntrenarTips {
+    #if DEBUG
+    /// Dato en disco: la clave de UserDefaults que la palanca de depuración lee, con el prefijo
+    /// heredado que ya está escrito en los dispositivos de prueba.
+    private static let debugTipsKey = "noop.tips"
+    #endif
+
     static func configure() {
         #if DEBUG
-        // Palanca de depuración para el Mapa 100 % (FER-359/FER-379): `-noop.tips <all|none|reset>`
+        // Palanca de depuración para el Mapa 100 % (FER-359/FER-379): el argumento de lanzamiento
         // fuerza el estado de TipKit antes de `configure()`, para poder capturar/probar cada tip
         // sin esperar su cadencia real ni recorrer la app entera.
-        switch UserDefaults.standard.string(forKey: "noop.tips")?.lowercased() {
+        switch UserDefaults.standard.string(forKey: Self.debugTipsKey)?.lowercased() {
         case "all":   Tips.showAllTipsForTesting()
         case "none":  Tips.hideAllTipsForTesting()
         case "reset": try? Tips.resetDatastore()

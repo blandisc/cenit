@@ -129,10 +129,12 @@ public enum FusionResolver {
 /// Where a fused number came from — the three sources this app actually writes. A future extra
 /// source (another band, another importer) is a new case + policy table entries, not a redesign.
 public enum FusionSource: String, Equatable, Sendable, CaseIterable, Codable {
-    /// A record imported from a third-party export, under that source's own raw deviceId.
-    case whoopImport
-    /// A row computed on the device from the raw streams (the sibling deviceId the store derives).
-    case noopComputed
+    /// A record imported from a third-party export, under that source's own raw deviceId. Nothing
+    /// writes these today — they are the older rows an existing device may still hold.
+    case legacyImport
+    /// A row computed on the device from the raw streams (the sibling deviceId the store derives),
+    /// from the same older era as `legacyImport`.
+    case legacyComputed
     /// Apple Health aggregate ("apple-health").
     case appleHealth
 }
@@ -153,7 +155,7 @@ public enum AgreementState: String, Equatable, Sendable, CaseIterable, Codable {
 
 /// One source's value for a `(metric, day)`, with the trust tier the policy assigned it. The winner
 /// is the lowest `tier` (most trusted), ties broken by `sourcePriority` (stable). `reason` is the
-/// published, plain-English justification ("counts directly", "band sleep timeline") — the honesty
+/// published, plain-English justification ("counts directly", "legacy sleep timeline") — the honesty
 /// contract: never "accurate"/"correct"/"clinical".
 public struct ContributingSource: Equatable, Sendable {
     public let source: FusionSource

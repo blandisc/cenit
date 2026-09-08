@@ -31,7 +31,7 @@ enum HistorialFAPuerta {
     }
 
     /// Las TRES claves que `HealthKitBridge.ingestNocturnalHRV()` escribe en la partición
-    /// `apple-health-noop`: `apple_rmssd_night` (SOLO si la noche salió densa),
+    /// En la partición computada de Apple: `apple_rmssd_night` (SOLO si la noche salió densa),
     /// `apple_rr_clean_night` (los latidos limpios de esa noche, densa o no) y
     /// `apple_rr_pairs_night` (los pares sucesivos de esa misma noche).
     static let claveRmssd = "apple_rmssd_night"

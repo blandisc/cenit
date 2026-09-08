@@ -38,11 +38,14 @@ public enum SourceFusion {
         for d in computed { rowByDay[d.day] = d; appleDays.remove(d.day) }   // the on-device row overwrites Apple
         for d in imported { rowByDay[d.day] = d; appleDays.remove(d.day) }   // an imported row wins over all
         let days = rowByDay.values.sorted { $0.day < $1.day }
+        // La capa de display no cambia quién ganó la fila: sólo rellena sus huecos con lo que Apple
+        // sí traía ese día.
         let displayDays = days.map { row in
             appleByDay[row.day].map { row.fillingNils(from: $0) } ?? row
         }
-        return (days, appleDays, displayDays)
+        return (days: days, appleDays: appleDays, displayDays: displayDays)
     }
+    // MARK: - Esfuerzo estimado desde Apple
 
     /// FER-883: per-day cardiovascular-load estimate from Apple workout HR, for days whose MEASURED
     /// strain is nil (band-less day in Apple/Combined mode). Pure + static (RepositoryMergeTests pins it),
@@ -227,18 +230,18 @@ public enum SourceFusion {
             var steps: [FusionInput] = []
             if let s = aggByDay[day]?.steps { steps.append(FusionInput(source: .appleHealth, value: Double(s))) }
             if let s = compByDay[day]?.steps.map(Double.init) ?? stepsEst[day] {
-                steps.append(FusionInput(source: .noopComputed, value: s))
+                steps.append(FusionInput(source: .legacyComputed, value: s))
             }
 
             var sleep: [FusionInput] = []
-            if let m = impByDay[day]?.totalSleepMin  { sleep.append(FusionInput(source: .whoopImport, value: m)) }
-            if let m = compByDay[day]?.totalSleepMin { sleep.append(FusionInput(source: .noopComputed, value: m)) }
+            if let m = impByDay[day]?.totalSleepMin  { sleep.append(FusionInput(source: .legacyImport, value: m)) }
+            if let m = compByDay[day]?.totalSleepMin { sleep.append(FusionInput(source: .legacyComputed, value: m)) }
             if let m = appByDay[day]?.totalSleepMin  { sleep.append(FusionInput(source: .appleHealth, value: m)) }
 
             var kcal: [FusionInput] = []
             if let k = aggByDay[day]?.activeKcal          { kcal.append(FusionInput(source: .appleHealth, value: k)) }
-            if let k = impByDay[day]?.activeKcalEst       { kcal.append(FusionInput(source: .whoopImport, value: k)) }
-            if let k = compByDay[day]?.activeKcalEst      { kcal.append(FusionInput(source: .noopComputed, value: k)) }
+            if let k = impByDay[day]?.activeKcalEst       { kcal.append(FusionInput(source: .legacyImport, value: k)) }
+            if let k = compByDay[day]?.activeKcalEst      { kcal.append(FusionInput(source: .legacyComputed, value: k)) }
 
             for (key, inputs) in [("steps", steps), ("sleep_total_min", sleep), ("active_kcal", kcal)]
             where inputs.count >= 2 {

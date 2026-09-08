@@ -83,8 +83,8 @@ struct WorkoutHistoryScreen: View {
 
     @EnvironmentObject private var repo: Repository
     @EnvironmentObject private var health: HealthKitBridge
-    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw = UnitSystem.metric.rawValue
-    private var system: UnitSystem { UnitSystem(rawValue: unitSystemRaw) ?? .metric }
+    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw: String = UnitSystem.metric.rawValue
+    private var system: UnitSystem { .init(rawValue: unitSystemRaw) ?? .metric }
     /// FER-362 · C4: shows/hides the third-party strength Apple Health already has (Strong/Hevy/Apple
     /// Fitness) inside the «Fuerza» dialect — set in `DataSourcesView`, on by default.
     @AppStorage(WorkoutSource.showThirdPartyStrengthKey) private var showThirdPartyStrengthWorkouts = true
@@ -562,10 +562,10 @@ struct WorkoutHistoryScreen: View {
     }
 
     /// Un `WorkoutRow` de actividad como `EntrenarFilaCardio` (SF Symbol neutro + origen + FC/duración).
-    /// `detected`/`whoop` (raros en la práctica) caen a `.apple` — el componente solo tiene Apple/Manual;
+    /// `detected`/`legacyWearable` (raros en la práctica) caen a `.apple` — el componente solo tiene Apple/Manual;
     /// extender su `Origen` es refinamiento de v2. FER-362 · C4: el badge Apple lleva el nombre real de
     /// la app que escribió el `HKWorkout` (Strong, Hevy, Apple Fitness, un run de Strava, …) —
-    /// `appleAppName` regresa `nil` para `detected`/`whoop` igual que antes (sin nombre "apple-health:"),
+    /// `appleAppName` regresa `nil` para `detected`/`legacyWearable` igual que antes (sin nombre "apple-health:"),
     /// así que esas filas caen al «Otra app» honesto del componente en vez del «Apple» genérico previo.
     private func cardioRow(_ r: WorkoutRow) -> some View {
         let origen: EntrenarFilaCardio.Origen = WorkoutSource.classify(r.source) == .manual
@@ -1485,8 +1485,8 @@ struct WorkoutSessionDetailScreen: View {
     @EnvironmentObject private var repo: Repository
     @Environment(AppModel.self) private var model
     @EnvironmentObject private var coordinator: WorkoutHistoryCoordinator
-    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw = UnitSystem.metric.rawValue
-    private var system: UnitSystem { UnitSystem(rawValue: unitSystemRaw) ?? .metric }
+    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw: String = UnitSystem.metric.rawValue
+    private var system: UnitSystem { .init(rawValue: unitSystemRaw) ?? .metric }
 
     /// Drives «Duplicar como rutina» — a routine builder pre-filled with this session's exercises (2A).
     /// 2026-07-19: se retiró `RoutineBuilderScreen` — «Duplicar» ahora persiste la rutina y abre el
@@ -2257,10 +2257,10 @@ enum StrengthHistoryFormat {
     /// and `volume(_:system:)` is called once per visible row in the history `LazyVStack` (was allocating
     /// a fresh formatter each time → scroll jank). Same `static let` pattern as `dateTimeFormatter` above.
     private static let volumeFormatter: NumberFormatter = {
-        let f = NumberFormatter()
-        f.numberStyle = .decimal
-        f.maximumFractionDigits = 0
-        return f
+        let formateador = NumberFormatter()
+        formateador.numberStyle = .decimal
+        formateador.maximumFractionDigits = 0
+        return formateador
     }()
 
     /// Total volume in the user's unit, with thousands grouping: "3,325 kg" / "7,330 lb".

@@ -1,20 +1,30 @@
-import Foundation
 import Combine
+import Foundation
 
-/// On-device behavior prefs (UserDefaults-backed, single-user).
-@MainActor
-final class BehaviorStore: ObservableObject {
+/// Conductas que el usuario enciende o apaga a mano. Vive en `UserDefaults`, en el aparato, para un
+/// solo usuario: no hay cuenta ni sincronización.
+///
+/// Historia: la automatización de la era del aparato externo se retiró en FER-1003. Sus llaves
+/// quedaron huérfanas en `UserDefaults` a propósito — borrarlas no gana nada y arriesga tocar datos
+/// de una instalación vieja.
+@MainActor final class BehaviorStore: ObservableObject {
+    /// Llaves de `UserDefaults`. Son valores persistidos: renombrarlas perdería la preferencia
+    /// guardada en el teléfono de quien ya usa el app.
+    private enum StoredKey {
+        static let illnessWatch = "behavior.illnessWatch"
+    }
 
-    // MARK: Illness early-warning
-    @Published var illnessWatch: Bool { didSet { d.set(illnessWatch, forKey: K.illness) } }
+    private let defaults: UserDefaults
 
-    private let d = UserDefaults.standard
-    private enum K {
-        // Band-era automation keys retired with FER-1003; orphaned UserDefaults values left on purpose.
-        static let illness = "behavior.illnessWatch"
+    /// Aviso temprano de enfermedad. Apagado mientras nadie lo haya encendido.
+    @Published var illnessWatch: Bool {
+        didSet { defaults.set(illnessWatch, forKey: StoredKey.illnessWatch) }
     }
 
     init() {
-        illnessWatch = d.object(forKey: K.illness) as? Bool ?? false
+        let store = UserDefaults.standard
+        defaults = store
+        // `object(forKey:)` distingue «nunca se guardó» de «se guardó false»; `bool(forKey:)` no.
+        illnessWatch = (store.object(forKey: StoredKey.illnessWatch) as? Bool) ?? false
     }
 }

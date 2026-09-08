@@ -2,30 +2,28 @@ import SwiftUI
 import CenitDesign
 import CenitStore
 
-// MARK: - Manual workout sheet — Liquid Glass · El Eje (FER-266 · FER-304)
+// MARK: - Hoja de entreno manual — Liquid Glass · El Eje
 //
-// Add a workout you tracked elsewhere, or edit one you already logged. Five inputs — sport,
-// start, duration, average HR, calories — validated by WorkoutSource.buildManualRow (the same
-// honest-row rules the engine uses). On save the caller persists it under the strap source via
-// Repository.saveManualWorkout. Captured-but-unexposed fields (maxHr / strain / zones) on an edited
-// row are carried over by WorkoutSource.preservingCaptured so editing a live-tracked session's
-// sport/duration never silently wipes its real strain.
+// Registra un entrenamiento que se midió en otro lado, o corrige uno ya guardado. Cinco
+// entradas — deporte, inicio, duración, FC media y calorías — validadas por
+// `WorkoutSource.buildManualRow`, las mismas reglas de fila honesta que usa el motor. Quien
+// llama es quien persiste (`Repository.saveManualWorkout`); esta vista no toca la base.
 //
-// `editing` is non-nil when editing an existing row (its values pre-fill the form and it is passed
-// as `replacing:` so a changed natural key deletes the old row). nil = a fresh add.
+// Al editar, los campos que la hoja NO expone (maxHr / esfuerzo / zonas) se arrastran con
+// `WorkoutSource.preservingCaptured`, para que cambiarle el deporte o la duración a una
+// sesión medida en vivo nunca le borre su esfuerzo real.
 //
-// Liquid Glass · El Eje tokens. The old fixed `frame(width: 420)` (a macOS-era width) is gone —
-// the form fills the sheet's width on iPhone.
+// `editing` no nulo = edición: sus valores pre-llenan el formulario y la fila vieja vuelve
+// como `replacing:`, de modo que un cambio de clave natural la retira. Nulo = alta nueva.
 //
-// FER-202 (anillo 3, épico FER-195): el papel plano cede al cristal El Eje
-// (`.entrenarHojaFondo(tono: .neutro)` + `EntrenarHojaCabecera(.cancelar)`). Las DOS salidas se
-// conservan — Cancelar sube a la cabecera, Guardar/Añadir sigue siendo el CTA del footer (mismo
-// patrón que `RestEditorScreen` Ola 2). Cero cambio de comportamiento.
+// Dos salidas, ambas conservadas: «Cancel» vive en la cabecera y Guardar/Añadir es el CTA
+// del pie. El lienzo lo pinta `.entrenarHojaFondo` — nada de papel opaco encima del vidrio —
+// y el formulario ocupa el ancho de la hoja (sin el ancho fijo de la era macOS).
 
 struct ManualWorkoutSheet: View {
-    /// The row being edited, or nil for a new manual workout.
+    /// La fila que se está editando, o nil para un alta nueva.
     let editing: WorkoutRow?
-    /// Called with the validated row (and the original, when editing) once the user taps Save.
+    /// Recibe la fila ya validada (y la original, si se editaba) cuando el usuario guarda.
     let onSave: (_ row: WorkoutRow, _ replacing: WorkoutRow?) -> Void
 
     @Environment(\.dismiss) private var dismiss
@@ -40,82 +38,44 @@ struct ManualWorkoutSheet: View {
          onSave: @escaping (_ row: WorkoutRow, _ replacing: WorkoutRow?) -> Void) {
         self.editing = editing
         self.onSave = onSave
-        // Pre-fill from the edited row (display "detected" as "Activity" so a re-label starts clean).
-        let e = editing
-        _sport = State(initialValue: e.map { WorkoutSource.displaySport($0.sport) } ?? "")
-        _start = State(initialValue: e.map { Date(timeIntervalSince1970: TimeInterval($0.startTs)) } ?? Date())
-        _durationMin = State(initialValue: e.map { max(1, Int((($0.durationS ?? Double($0.endTs - $0.startTs)) / 60).rounded())) } ?? 45)
-        _avgHrText = State(initialValue: e?.avgHr.map(String.init) ?? "")
-        _kcalText = State(initialValue: e?.energyKcal.map { String(Int($0.rounded())) } ?? "")
+        // Pre-llenado desde la fila editada. El deporte se muestra ya legible («detected»
+        // sale como «Activity») para que re-etiquetarlo empiece en limpio.
+        _sport = State(initialValue: editing.map { WorkoutSource.displaySport($0.sport) } ?? "")
+        _start = State(initialValue: editing.map {
+            Date(timeIntervalSince1970: TimeInterval($0.startTs))
+        } ?? Date())
+        _durationMin = State(initialValue: editing.map { row in
+            let seconds = row.durationS ?? Double(row.endTs - row.startTs)
+            return max(1, Int((seconds / 60).rounded()))
+        } ?? 45)
+        _avgHrText = State(initialValue: editing?.avgHr.map(String.init) ?? "")
+        _kcalText = State(initialValue: editing?.energyKcal.map { String(Int($0.rounded())) } ?? "")
     }
 
     /// Inject: los hooks van en la vista NO privada más externa del archivo (ver `EntrenarView`).
     @ObserveInjection private var inject
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: LiquidSpace.s300) {
                 header
-                VStack(alignment: .leading, spacing: LiquidSpace.bloqueAjuste) {
-                    LiquidCampoTexto(
-                        String(localized: "Sport"),
-                        texto: $sport,
-                        placeholder: String(localized: "e.g. Running"),
-                        a11y: String(localized: "Sport"),
-                        tipografia: LiquidType.tituloGemela)
-                    field("Start") {
-                        DatePicker("", selection: $start, in: ...Date(),
-                                   displayedComponents: [.date, .hourAndMinute])
-                            .labelsHidden()
-                            .tint(LiquidColor.tinta900)
-                            .accessibilityLabel("Start date and time")
-                    }
-                    field("Duration") {
-                        EntrenarStepper(
-                            valor: durationLabel,
-                            tono: .neutro,
-                            talla: .fila,
-                            puedeBajar: durationMin > 1,
-                            puedeSubir: durationMin < 24 * 60,
-                            onBajar: { durationMin = max(1, durationMin - 5) },
-                            onSubir: { durationMin = min(24 * 60, durationMin + 5) }
-                        )
-                        .accessibilityLabel("Duration in minutes")
-                    }
-                    HStack(alignment: .top, spacing: LiquidSpace.bloqueAjuste) {
-                        field("Avg HR") {
-                            numberInput(
-                                String(localized: "optional"),
-                                text: $avgHrText,
-                                unit: String(localized: "bpm"),
-                                a11y: String(localized: "Average heart rate in beats per minute, optional"))
-                        }
-                        field("Calories") {
-                            numberInput(
-                                String(localized: "optional"),
-                                text: $kcalText,
-                                unit: "kcal",
-                                a11y: String(localized: "Calories in kilocalories, optional"))
-                        }
-                    }
-                }
+                formFields
                 if let validationNote { noteRow(validationNote) }
                 footer
             }
             .padding(LiquidSpace.s600)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        // FER-202: cristal El Eje. Se retira `.sheetPaper` (papel opaco de presentación) — taparía
-        // el vidrio; el fondo lo pinta `.entrenarHojaFondo`. ScrollView intacto (no-sheet-glass).
         .entrenarHojaFondo(tono: .neutro)
         .presentationDragIndicator(.visible)
         .enableInjection()   // Inject: recarga en caliente (no-op en Release)
     }
 
-    // MARK: - Sections
+    // MARK: - Secciones
 
-    /// FER-202: `EntrenarHojaCabecera(.cancelar)` absorbe el título+subtítulo a mano Y el «Cancel»
-    /// del footer — mismas cadenas ya localizadas, misma acción (`dismiss()`). El CTA de
-    /// Guardar/Añadir sigue abajo (no cabe en la Salida única de la cabecera junto a Cancelar).
+    /// `EntrenarHojaCabecera(.cancelar)` absorbe título, subtítulo y la salida de «Cancel»
+    /// (misma cadena, misma acción). El CTA de Guardar/Añadir se queda abajo: no cabe en la
+    /// salida única de la cabecera junto a Cancelar.
     private var header: some View {
         EntrenarHojaCabecera(
             titulo: editing == nil
@@ -130,6 +90,55 @@ struct ManualWorkoutSheet: View {
         )
     }
 
+    private var formFields: some View {
+        VStack(alignment: .leading, spacing: LiquidSpace.bloqueAjuste) {
+            LiquidCampoTexto(
+                String(localized: "Sport"),
+                texto: $sport,
+                placeholder: String(localized: "e.g. Running"),
+                a11y: String(localized: "Sport"),
+                tipografia: LiquidType.tituloGemela)
+
+            field("Start") {
+                DatePicker("", selection: $start, in: ...Date(),
+                           displayedComponents: [.date, .hourAndMinute])
+                    .labelsHidden()
+                    .tint(LiquidColor.tinta900)
+                    .accessibilityLabel("Start date and time")
+            }
+
+            field("Duration") {
+                EntrenarStepper(
+                    valor: durationLabel,
+                    tono: .neutro,
+                    talla: .fila,
+                    puedeBajar: durationMin > 1,
+                    puedeSubir: durationMin < maxDurationMin,
+                    onBajar: { durationMin = max(1, durationMin - 5) },
+                    onSubir: { durationMin = min(maxDurationMin, durationMin + 5) }
+                )
+                .accessibilityLabel("Duration in minutes")
+            }
+
+            HStack(alignment: .top, spacing: LiquidSpace.bloqueAjuste) {
+                field("Avg HR") {
+                    numberInput(
+                        String(localized: "optional"),
+                        text: $avgHrText,
+                        unit: String(localized: "bpm"),
+                        a11y: String(localized: "Average heart rate in beats per minute, optional"))
+                }
+                field("Calories") {
+                    numberInput(
+                        String(localized: "optional"),
+                        text: $kcalText,
+                        unit: "kcal",
+                        a11y: String(localized: "Calories in kilocalories, optional"))
+                }
+            }
+        }
+    }
+
     private var footer: some View {
         HStack {
             Spacer()
@@ -138,17 +147,20 @@ struct ManualWorkoutSheet: View {
         .padding(.top, LiquidSpace.s100)
     }
 
-    /// Prominent primary — verdict-green capsule when the inputs make an honest row, a quiet disabled
-    /// surface otherwise (mirrors the disabled Save the form has always had, in the light language).
+    /// Primario prominente: cápsula verde de veredicto cuando las entradas hacen una fila
+    /// honesta, superficie callada cuando no (el mismo Guardar deshabilitado de siempre,
+    /// dicho en el lenguaje claro). El verde del CTA activo es color semántico; la cápsula
+    /// apagada usa el recorte opaco compartido `.pastillaSolida`.
     private var saveButton: some View {
-        let enabled = builtRow != nil
         let title: LocalizedStringKey = editing == nil ? "Add" : "Save"
         return Group {
-            if enabled {
+            if builtRow != nil {
                 OutlineCapsule(
                     size: .aMedida(
-                        insets: EdgeInsets(top: LiquidSpace.s225, leading: LiquidSpace.pastillaHorizontal,
-                                           bottom: LiquidSpace.s225, trailing: LiquidSpace.pastillaHorizontal),
+                        insets: EdgeInsets(top: LiquidSpace.s225,
+                                           leading: LiquidSpace.pastillaHorizontal,
+                                           bottom: LiquidSpace.s225,
+                                           trailing: LiquidSpace.pastillaHorizontal),
                         minHeight: nil,
                         touchInset: .zero),
                     filled: true,
@@ -160,13 +172,12 @@ struct ManualWorkoutSheet: View {
                         .foregroundStyle(LiquidColor.papelTarjeta)
                 }
             } else {
-                // FER-220: la cápsula deshabilitada usa `.liquidGlass(.pastillaSolida)`
-                // (recorte opaco compartido); el verde del CTA activo es color semántico.
                 Button { save() } label: {
                     Text(title)
                         .font(LiquidType.boton)
                         .foregroundStyle(LiquidColor.tinta500)
-                        .padding(.horizontal, LiquidSpace.pastillaHorizontal).padding(.vertical, LiquidSpace.s225)
+                        .padding(.horizontal, LiquidSpace.pastillaHorizontal)
+                        .padding(.vertical, LiquidSpace.s225)
                         .liquidGlass(.pastillaSolida)
                 }
                 .buttonStyle(.plain)
@@ -176,7 +187,8 @@ struct ManualWorkoutSheet: View {
         .accessibilityLabel(editing == nil ? "Add workout" : "Save workout")
     }
 
-    private func field<Content: View>(_ label: LocalizedStringKey, @ViewBuilder _ content: () -> Content) -> some View {
+    private func field<Content: View>(_ label: LocalizedStringKey,
+                                      @ViewBuilder _ content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: LiquidSpace.s150) {
             Text(label).liquidKicker().foregroundStyle(LiquidColor.tinta500)
             content()
@@ -203,31 +215,41 @@ struct ManualWorkoutSheet: View {
             .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    // MARK: - Validation / build
+    // MARK: - Validación y armado
+
+    /// Tope de la duración: un día entero.
+    private var maxDurationMin: Int { 24 * 60 }
 
     private var durationLabel: String {
-        let h = durationMin / 60, m = durationMin % 60
-        if h > 0 && m > 0 { return "\(h)h \(m)m" }
-        if h > 0 { return "\(h)h" }
-        return "\(m)m"
+        let hours = durationMin / 60
+        let minutes = durationMin % 60
+        if hours > 0 && minutes > 0 { return "\(hours)h \(minutes)m" }
+        if hours > 0 { return "\(hours)h" }
+        return "\(minutes)m"
     }
 
-    /// Parsed avg-HR — nil for blank, an out-of-band sentinel handled by buildManualRow otherwise.
-    private var avgHr: Int? { Int(avgHrText.trimmingCharacters(in: .whitespaces)) }
+    private var trimmedHrText: String { avgHrText.trimmingCharacters(in: .whitespaces) }
+    private var trimmedKcalText: String { kcalText.trimmingCharacters(in: .whitespaces) }
+
+    /// FC media escrita: nil si el campo está en blanco; fuera de rango lo atrapa `buildManualRow`.
+    private var avgHr: Int? { Int(trimmedHrText) }
+
     // FER-428: `Double("nan"/"1e999")` da NaN/±∞, y toda comparación con NaN es false, así que «nan»
     // se colaba por la validación 0–20,000. Filtra a finito: un valor no finito cuenta como inválido.
-    private var kcal: Double? { Double(kcalText.trimmingCharacters(in: .whitespaces)).flatMap { $0.isFinite ? $0 : nil } }
+    private var kcal: Double? {
+        Double(trimmedKcalText).flatMap { $0.isFinite ? $0 : nil }
+    }
 
-    /// The validated row, or nil when the inputs can't make an honest one (drives the disabled Save +
-    /// the inline note). Built through the same WorkoutSource.buildManualRow the engine trusts.
+    /// La fila ya validada, o nil cuando las entradas no dan una honesta (es lo que apaga
+    /// Guardar y enciende la nota). Pasa por el mismo `WorkoutSource.buildManualRow` del motor.
     private var builtRow: WorkoutRow? {
-        // A typed-but-unparseable number is invalid (e.g. "abc" in Avg HR) — guard before building.
-        if !avgHrText.trimmingCharacters(in: .whitespaces).isEmpty && avgHr == nil { return nil }
-        if !kcalText.trimmingCharacters(in: .whitespaces).isEmpty && kcal == nil { return nil }
+        // Un número escrito pero ilegible («abc» en FC media) es inválido: se corta antes de armar.
+        guard trimmedHrText.isEmpty || avgHr != nil else { return nil }
+        guard trimmedKcalText.isEmpty || kcal != nil else { return nil }
         guard let base = WorkoutSource.buildManualRow(start: start, durationMin: durationMin,
                                                       sport: sport, avgHr: avgHr, energyKcal: kcal)
         else { return nil }
-        // Carry over captured-but-unexposed fields when editing an existing strap session.
+        // Al editar, se arrastra lo capturado que la hoja no expone.
         return WorkoutSource.preservingCaptured(base, from: editing)
     }
 
@@ -235,10 +257,10 @@ struct ManualWorkoutSheet: View {
         guard builtRow == nil else { return nil }
         if sport.trimmingCharacters(in: .whitespaces).isEmpty { return "Enter a sport." }
         if start > Date() { return "Start can't be in the future." }
-        if !avgHrText.trimmingCharacters(in: .whitespaces).isEmpty, avgHr == nil || !(25...250).contains(avgHr ?? -1) {
+        if !trimmedHrText.isEmpty, !(25...250).contains(avgHr ?? -1) {
             return "Average HR must be 25–250 bpm."
         }
-        if !kcalText.trimmingCharacters(in: .whitespaces).isEmpty, kcal == nil || (kcal ?? -1) < 0 || (kcal ?? 0) > 20_000 {
+        if !trimmedKcalText.isEmpty, !(0...20_000).contains(kcal ?? -1) {
             return "Calories must be 0–20,000."
         }
         return "Check the values and try again."

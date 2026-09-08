@@ -14,7 +14,8 @@ import CenitTraining
 /// Parameters of the one-pass dashboard read. The two flags reproduce the source-mode gating
 /// Repository does at query time — an excluded source is not read at all.
 public struct DashboardReadRequest: Sendable {
-    public var strapDeviceId: String        // "strap"
+    // Los tres ids de partición son valores PERSISTIDOS: así están escritos en las filas del disco.
+    public var legacyDeviceId: String        // "strap"
     public var computedDeviceId: String     // "strap-noop"
     public var appleDeviceId: String        // "apple-health"
     public var fromDay: String              // YYYY-MM-DD window (dailyMetrics / appleDaily / metricSeries)
@@ -23,12 +24,12 @@ public struct DashboardReadRequest: Sendable {
     public var toTs: Int
     public var sleepLimit: Int
     public var includeApple: Bool           // dataSourceMode.usesAppleHealth
-    public var includeWhoopSeries: Bool     // dataSourceMode.usesWhoop
+    public var includeLegacySeries: Bool     // series de la partición heredada
 
-    public init(strapDeviceId: String, computedDeviceId: String, appleDeviceId: String,
+    public init(legacyDeviceId: String, computedDeviceId: String, appleDeviceId: String,
                 fromDay: String, toDay: String, fromTs: Int, toTs: Int,
-                sleepLimit: Int = 4000, includeApple: Bool, includeWhoopSeries: Bool) {
-        self.strapDeviceId = strapDeviceId
+                sleepLimit: Int = 4000, includeApple: Bool, includeLegacySeries: Bool) {
+        self.legacyDeviceId = legacyDeviceId
         self.computedDeviceId = computedDeviceId
         self.appleDeviceId = appleDeviceId
         self.fromDay = fromDay
@@ -37,7 +38,7 @@ public struct DashboardReadRequest: Sendable {
         self.toTs = toTs
         self.sleepLimit = sleepLimit
         self.includeApple = includeApple
-        self.includeWhoopSeries = includeWhoopSeries
+        self.includeLegacySeries = includeLegacySeries
     }
 }
 
@@ -103,13 +104,13 @@ extension CenitStore {
     public nonisolated func dashboardSnapshot(_ req: DashboardReadRequest) async throws -> DashboardSnapshot {
         try await dbWriter.read { db in
             var snap = DashboardSnapshot()
-            snap.importedDays = try Self.fetchDailyMetrics(db, deviceId: req.strapDeviceId,
+            snap.importedDays = try Self.fetchDailyMetrics(db, deviceId: req.legacyDeviceId,
                                                            from: req.fromDay, to: req.toDay)
             snap.computedDays = try Self.fetchDailyMetrics(db, deviceId: req.computedDeviceId,
                                                            from: req.fromDay, to: req.toDay)
             snap.appleDays = try Self.fetchDailyMetrics(db, deviceId: req.appleDeviceId,
                                                         from: req.fromDay, to: req.toDay)
-            snap.importedSleeps = try Self.fetchSleepSessions(db, deviceId: req.strapDeviceId,
+            snap.importedSleeps = try Self.fetchSleepSessions(db, deviceId: req.legacyDeviceId,
                                                               from: req.fromTs, to: req.toTs,
                                                               limit: req.sleepLimit)
             snap.computedSleeps = try Self.fetchSleepSessions(db, deviceId: req.computedDeviceId,
@@ -122,19 +123,19 @@ extension CenitStore {
                 snap.appleAgg = try Self.fetchAppleDaily(db, deviceId: req.appleDeviceId,
                                                          from: req.fromDay, to: req.toDay)
             }
-            if req.includeWhoopSeries {
+            if req.includeLegacySeries {
                 snap.stepsEst = try Self.fetchMetricSeries(db, deviceId: req.computedDeviceId,
                                                            key: "steps_est", from: req.fromDay, to: req.toDay)
-                snap.sleepPerformance = try Self.fetchMetricSeries(db, deviceId: req.strapDeviceId,
+                snap.sleepPerformance = try Self.fetchMetricSeries(db, deviceId: req.legacyDeviceId,
                                                                    key: "sleep_performance",
                                                                    from: req.fromDay, to: req.toDay)
-                snap.sleepConsistency = try Self.fetchMetricSeries(db, deviceId: req.strapDeviceId,
+                snap.sleepConsistency = try Self.fetchMetricSeries(db, deviceId: req.legacyDeviceId,
                                                                    key: "sleep_consistency",
                                                                    from: req.fromDay, to: req.toDay)
-                snap.sleepNeed = try Self.fetchMetricSeries(db, deviceId: req.strapDeviceId,
+                snap.sleepNeed = try Self.fetchMetricSeries(db, deviceId: req.legacyDeviceId,
                                                             key: "sleep_need_min",
                                                             from: req.fromDay, to: req.toDay)
-                snap.sleepDebt = try Self.fetchMetricSeries(db, deviceId: req.strapDeviceId,
+                snap.sleepDebt = try Self.fetchMetricSeries(db, deviceId: req.legacyDeviceId,
                                                             key: "sleep_debt_min",
                                                             from: req.fromDay, to: req.toDay)
             }

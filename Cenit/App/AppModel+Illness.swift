@@ -125,17 +125,18 @@ extension AppModel {
         healthAlert = result.level == .raised
             ? String(localized: "Your body looks strained: \(result.firedSignals.joined(separator: ", ")). Consider taking it easy.")
             : nil
-        // Banner transition (clear → raised): surface it as a system notification so the
-        // early-warning reaches the user when the window is closed. IllnessNotifier rate-limits to
-        // once per local day; the not-a-diagnosis hedge lives in its subtitle.
+        // El aviso acaba de aparecer donde no había ninguno. Se manda además como notificación del
+        // sistema, para que el usuario se entere con el app cerrado. `IllnessNotifier` la limita a
+        // una por día local, y el matiz de «esto no es un diagnóstico» va en su subtítulo.
         if let alert = healthAlert, previous == nil {
             IllnessNotifier.post(alert)
         }
     }
 
-    /// Re-run the illness watch over the cached history. Called when the Automations toggle
-    /// flips — the repo.$days sink only fires on data changes, so a flip would otherwise wait
-    /// for the next refresh.
+    /// Vuelve a correr el aviso temprano sobre el historial que ya está en memoria.
+    ///
+    /// Hace falta cuando el usuario mueve el interruptor: la suscripción a los días solo dispara
+    /// cuando cambian los datos, así que sin esto el cambio esperaría al siguiente refresco.
     func reevaluateIllness() {
         evaluateIllness(repo.days)
     }

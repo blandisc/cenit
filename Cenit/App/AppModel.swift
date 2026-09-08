@@ -8,34 +8,36 @@ import CenitImport
 import CenitAnalytics
 import CenitTraining
 /// Root app state: owns the on-device repository, profile, strength session, and Watch mirror.
-/// Strap BLE ownership was amputated in Ola 2 (Apple-only).
+/// La dueñez del enlace BLE del dispositivo anterior se amputó en la Ola 2 (Apple-only).
 @MainActor
 // FER-984: `@Observable` (no `ObservableObject`) → SwiftUI rastrea lecturas por-propiedad.
 // Sin `$` publishers: los pocos bindings (`$…strengthSheetPresented`) van por `@Bindable` en el consumidor.
 @Observable final class AppModel {
-    /// The live instance for App Intents (Shortcuts). Set in init(); `weak` so an intent fired while
-    /// Cénit is closed sees nil and asks the user to open it. (#42)
+    /// La instancia viva, para los App Intents de Atajos. Se publica en `init()`. Es `weak` a
+    /// propósito: un atajo disparado con Cénit cerrado no encuentra nada y le pide al usuario que
+    /// abra el app, en vez de sostener el modelo de por vida (#42).
     static weak var shared: AppModel?
 
     /// Partición histórica de filas; se conserva el valor porque está escrito en la DB (FER-398).
     let legacyDeviceId = "strap"
-    /// Source id for imported Apple Health data (stored beside legacy strap rows for per-source pages + consensus).
+    /// Identificador de la fuente de Apple Salud. Se guarda al lado de las filas heredadas para que
+    /// las páginas por fuente y el consenso puedan compararlas. Valor persistido.
     let appleDeviceId = "apple-health"
     /// Owns the rest Live Activity (FER-721): started/updated/ended from the guided session's rest state,
     /// and the bridge for its «+30 s»/«Saltar» lock-screen actions.
     let restActivity = RestActivityController()
-    /// Read model over the on-device store (dashboard + detail screens).
+    /// La lectura de la base local, que alimenta el tablero y las pantallas de detalle.
     let repo: Repository
-    /// User profile (age/sex/body/HR-max) for zones, calories, baselines.
+    /// Quién es el usuario —edad, sexo, cuerpo, pulso máximo— para zonas, calorías y líneas base.
     let profile = ProfileStore()
-    /// Behaviour settings: double-tap action, wear automation, zone coaching, smart alarm, illness watch.
+    /// Las conductas que el usuario enciende o apaga, hoy el aviso temprano de enfermedad.
     let behavior = BehaviorStore()
     /// Inactivity reminder settings + its restart-safe de-dup state (FER-664).
     /// The Bucle's goal (metric + optional date) — a single user preference, UserDefaults-backed (FER-311).
     let goal = GoalStore()
     /// The user's barbell + owned plate denominations, for the session's «⛓ discos» calculator (FER-720).
     let plates = PlatesStore()
-    /// Which data sources feed the dashboard + baseline (combined / WHOOP-only / Apple-Health-only) —
+    /// Which data sources feed the dashboard + baseline (combined / legacy-only / Apple-Health-only) —
     /// a user preference; capture stays active in every mode (FER-484).
     let sources = SourceModeStore()
 
@@ -57,7 +59,7 @@ import CenitTraining
     var watchPaired = false
     var watchAppInstalled = false
     /// FER-1003: the Apple Watch's own live heart rate during a mirrored strength session — replaces the
-    /// band-sourced `bpm` now that there's no strap. nil with no watch mirroring / no reading yet.
+    /// band-sourced `bpm` now that the wearable is gone. nil with no watch mirroring / no reading yet.
     var watchBpm: Int?
     /// FER-226: HR samples admitted into the live strength session but not yet flushed to
     /// `CenitStore.appendStrengthHR` — drained every 30 samples by `ingestWatchPulse`, and once more (the
@@ -86,7 +88,7 @@ import CenitTraining
     // AppModel-internal (split D1)
     var watchDeclinedSessionIds: Set<String> = []
 
-    /// Timestamps of moments marked via a double-tap (persisted).
+    /// Los instantes que el usuario marcó con un doble toque. Se guardan.
     var moments: [Date] = []
 
     /// The guided strength session in progress (FER-347), or nil. Lives here (global) so closing its sheet
@@ -122,17 +124,19 @@ import CenitTraining
     /// Whether the guided-session sheet is currently shown. False while a session runs but the sheet is
     /// dismissed (the hub then offers «Resume»). Set true on start/resume, false on swipe-dismiss/finish.
     var strengthSheetPresented = false
-    /// Illness/strain early-warning (recent RHR up + HRV down + skin-temp up vs baseline). nil = clear.
+    /// El aviso temprano de que algo se está incubando: pulso en reposo arriba, variabilidad abajo y
+    /// temperatura de la piel arriba, todo contra la línea base del propio usuario. Nada = sin aviso.
     var healthAlert: String?
 
-    /// Import source currently writing to the local store, if any.
+    /// La fuente que está escribiendo ahora mismo en la base local, si hay alguna.
     // AppModel-internal (split D1)
     var activeImportSource: DataSourceImportKind?
-    /// Last Apple Health import result surfaced in the Apple Health card.
+    /// El resultado de la última importación de Apple Salud, tal como lo enseña su tarjeta.
     var appleHealthImportSummary: String?
-    /// Typed failure flags per source — the summary's warning styling reads these instead of
-    /// substring-matching the human-readable message (which misses errors like "Couldn't open
-    /// the local store."). Surfaced on both the Data Sources cards and the onboarding import step.
+    /// Un indicador de falla por fuente, con tipo. El estilo de advertencia del resumen lee esto en
+    /// vez de buscar palabras dentro del mensaje para humanos —que se le escapaban fallas como «no se
+    /// pudo abrir la base local»—. Lo leen las tarjetas de «Datos y fuentes» y el paso de importación
+    /// del primer arranque.
     var appleHealthImportFailed = false
     /// Live element count during an Apple Health import, so the card shows real
     /// progress instead of a frozen-looking spinner on a multi-minute parse.
@@ -159,7 +163,7 @@ import CenitTraining
     // AppModel-internal (split D1)
     var analysisTask: Task<Void, Never>?
 
-    /// True while any data-source import is writing to the local store.
+    /// Cierto mientras cualquier importación esté escribiendo en la base local.
     var hasActiveImport: Bool { activeImportSource != nil }
 
     private var hrCancellables = Set<AnyCancellable>()
@@ -168,7 +172,7 @@ import CenitTraining
         #if os(iOS) && DEBUG
         FreshStore.applyIfRequested()   // FER-381: -cenit.freshStore borra la base antes de abrir (captura hermética del mapa)
         #endif
-        self.repo = Repository(deviceId: "strap")   // = `legacyDeviceId`; literal porque los stored props aún no existen
+        self.repo = Repository(deviceId: Repository.legacyDeviceId)   // = `legacyDeviceId`; los stored props aún no existen
         self.repo.dataSourceMode = sources.mode      // FER-484: honor the persisted mode from launch
         self.repo.baselineEpoch = profile.baselineEpochOrNil   // FER-677: honor a persisted recalibration
         // FER-883: same HRmax as the live path. Inlined (not `effectiveHRmax`) — a computed property
@@ -242,7 +246,7 @@ import CenitTraining
         moments = (UserDefaults.standard.array(forKey: "moments") as? [Double] ?? [])
             .map { Date(timeIntervalSince1970: $0) }
 
-        AppModel.shared = self   // publish for App Intents (Shortcuts) — see the static above (#42)
+        AppModel.shared = self   // ya se puede resolver desde un atajo; ver la propiedad estática (#42)
 
         #if DEBUG
         // Screenshot fixtures (UI test): seed a synthetic readiness state and skip the production
@@ -337,7 +341,7 @@ import CenitTraining
         _ = realtimeConsumers.remove(consumer)
     }
 
-    /// Phone haptics for timer / rest / moment cues (replaces the retired strap motor, FER-1003).
+    /// Phone haptics for timer / rest / moment cues (replaces the retired wearable's motor, FER-1003).
     /// `loops` ≥ 3 use a heavier impact; ≥ 5 also fire a success notification for the long completion cue.
     /// Generators live in `LiquidHaptica` (FER-269b); this method only orchestrates the loop.
     func buzz(loops: UInt8 = 2) {
@@ -358,7 +362,7 @@ import CenitTraining
         }
     }
 
-    /// Pattern was a strap motor id; on phone, loops alone drive the haptic.
+    /// Pattern was the wearable motor's id; on phone, loops alone drive the haptic.
     func buzz(pattern: UInt8, loops: UInt8 = 1) {
         _ = pattern
         buzz(loops: loops)

@@ -328,7 +328,7 @@ final class StrengthSessionModelTests: XCTestCase {
         ])
         s.registerCurrentSet()          // bench set 0 done
         // leave the rest pending
-        let (record, sets, _, _) = s.buildForSave(deviceId: "strap", endTs: 9000)
+        let (record, sets, _, _) = s.buildForSave(deviceId: Repository.legacyDeviceId, endTs: 9000)
         XCTAssertEqual(record.id, s.id)
         XCTAssertEqual(record.routineId, "rt")
         XCTAssertEqual(record.endTs, 9000)

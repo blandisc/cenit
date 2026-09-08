@@ -72,7 +72,7 @@ struct BodyAgeSheet: View {
     @ViewBuilder private func withData(_ r: VitalityEngine.Result) -> some View {
         campoConDato(r)
         if infoOpen { whatWeMeasureCard }
-        // B1: «Tu rango» — «banda» es el strap en el glosario y esta app RETIRÓ la banda.
+        // B1: «Tu rango» — «banda» es el dispositivo anterior en el glosario, y esta app lo RETIRÓ.
         // T2: «What moves it», la MISMA clave que Edad física (no «What's moving it»).
         seccion(String(localized: "Your range")) { bandContent(r) }
         seccion(String(localized: "What moves it")) { movesContent(r) }

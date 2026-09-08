@@ -29,7 +29,7 @@ final class LiveStrengthSheetSummaryFER87Tests: XCTestCase {
     }
 
     /// FER-498's original guarantee, preserved: no strain but a captured avg HR still proves the
-    /// strap was read — would fail against a naive FER-87 port that made `receiptStats` only ever
+    /// the wearable was read — would fail against a naive FER-87 port that made `receiptStats` only ever
     /// show `.sets` (dropping the avg-HR fallback the «sin dato cardiaco» state depends on).
     func testThirdSlotFallsBackToAvgHrWithoutStrain() {
         XCTAssertEqual(LiveStrengthSheet.receiptStatsThirdSlot(strain: nil, setCount: 4, avgHr: 132),
@@ -56,7 +56,7 @@ final class LiveStrengthSheetSummaryFER87Tests: XCTestCase {
     }
 
     /// Would fail against a version that always appended "estimated" regardless of source (or never
-    /// appended it at all) — `.bandCalculated` (real strap HR via Keytel) must read plain.
+    /// appended it at all) — `.bandCalculated` (real HR from the wearable, via Keytel) must read plain.
     func testHealthSavedTextOmitsQualifierForBandCalculatedEnergy() {
         let s = summary(energyKcal: 412, energySource: .bandCalculated)
         XCTAssertEqual(LiveStrengthSheet.healthSavedText(s),

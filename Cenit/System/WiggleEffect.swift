@@ -21,6 +21,9 @@ import Combine
 private final class WiggleTimerHold: ObservableObject {
     static let shared = WiggleTimerHold()
 
+    /// Cuánto tarda el guiño en volver al reposo, en segundos.
+    fileprivate static let settleDelay: TimeInterval = 0.5
+
     @Published var angle: Double = 0
     private var fireCount = 0
     private var cancellable: AnyCancellable?
@@ -38,7 +41,7 @@ private final class WiggleTimerHold: ObservableObject {
                 guard self.fireCount < maxFires else { return self.stop() }
                 self.fireCount += 1
                 withAnimation(.spring(response: 0.16, dampingFraction: 0.22)) { self.angle = 16 }  // token-exempt(unico): nudge de atención del botón Soporte — fase de subida (burst)
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + Self.settleDelay) {
                     withAnimation(.spring(response: 0.22, dampingFraction: 0.55)) { self.angle = 0 }  // token-exempt(unico): nudge de atención del botón Soporte — fase de asiento
                 }
                 if self.fireCount >= maxFires { self.stop() }
@@ -51,19 +54,23 @@ private final class WiggleTimerHold: ObservableObject {
     }
 }
 
-/// A periodic attention "wiggle" — a small rotation burst every `period` seconds that settles back
-/// to rest. Used on the home Support button as a gentle nudge that people can donate.
-/// Fires a fixed number of times (3) per app launch, then cancels the timer so it does not run forever.
+/// Un guiño periódico que pide la mirada: cada `period` segundos la vista gira un poco y
+/// vuelve al reposo. Vive en el botón de Soporte del inicio, como recordatorio amable de que
+/// se puede donar. Se repite un número fijo de veces por lanzamiento de la app y luego cancela
+/// su propio timer, para no quedarse girando para siempre.
 struct WiggleEffect: ViewModifier {
-    var period: Double = 4
+    /// Segundos entre un guiño y el siguiente.
+    var period: Double = WiggleEffect.defaultPeriod
     private let maxFires = 3
+
+    /// El ritmo de fábrica del guiño, compartido con `attentionWiggle(period:)`.
+    static let defaultPeriod: Double = 4
 
     @ObservedObject private var hold = WiggleTimerHold.shared
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     func body(content: Content) -> some View {
-        content
-            .rotationEffect(.degrees(hold.angle))
+        content.rotationEffect(.degrees(hold.angle))
             // No `.onDisappear` teardown: the holder is shared and self-cancelling, and tearing it down
             // on one view's disappearance would let the next `onAppear` arm a second timer — the very
             // accumulation this fix removes.
@@ -77,6 +84,8 @@ struct WiggleEffect: ViewModifier {
 }
 
 extension View {
-    /// Gentle recurring wiggle to draw the eye (e.g. the Support/donate button).
-    func attentionWiggle(period: Double = 4) -> some View { modifier(WiggleEffect(period: period)) }
+    /// Guiño suave y recurrente para llevar la vista a un control (el botón de Soporte).
+    func attentionWiggle(period: Double = WiggleEffect.defaultPeriod) -> some View {
+        modifier(WiggleEffect(period: period))
+    }
 }

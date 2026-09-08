@@ -35,7 +35,7 @@ extension AppModel {
         // Apple Health: only when already connected (auth restored from the persisted "connected"
         // flag on launch). New Apple rows are written local from now on, so a user who connects HK
         // LATER has no UTC rows to migrate — the normal sync already lands them on the local day.
-        // (The on-device band `-noop` re-group/prune is gone; only the Apple path is migrated now.)
+        // (The on-device re-group/prune of the computed partition is gone; only the Apple path is migrated now.)
         if let health = healthBridge, health.auth == .authorized {
             let writtenApple = await health.sync(days: window)
             await Self.pruneFutureLocalDays(store: store, deviceId: appleDeviceId, written: writtenApple)

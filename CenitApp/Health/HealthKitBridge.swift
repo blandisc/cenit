@@ -7,16 +7,22 @@ import CenitImport
 import BiometricStreams
 import CenitStore
 
-/// Two-way Apple Health bridge for the iOS app.
+/// La puerta entre Apple Health y el almacén local, del lado iOS.
 ///
-/// iOS has HealthKit (macOS does not), so the iOS target can do far more than parse a static export:
-/// it reads the user's own Health data live and maps it onto the **same** `CenitStore` rows the
-/// macOS importer produces (under the `apple-health` source id), and it writes Cénit-computed metrics
-/// back into Apple Health. Everything stays on-device and strictly opt-in.
+/// HealthKit solo existe en iOS, así que aquí la app no depende de un archivo de exportación: lee en
+/// vivo lo que el usuario ya tiene en Salud y lo deja en las MISMAS filas de `CenitStore` que produce
+/// el importador de macOS, bajo la fuente `apple-health`. La única escritura de vuelta es el
+/// `HKWorkout` de fuerza, y solo si el usuario lo enciende. Nada sale del dispositivo.
 @MainActor
 final class HealthKitBridge: ObservableObject {
 
-    enum AuthState: Equatable { case unknown, unavailable, denied, authorized }
+    /// Cómo está la conexión con Salud. `unavailable` = el dispositivo no tiene HealthKit.
+    enum AuthState: Equatable {
+        case unknown
+        case unavailable
+        case denied
+        case authorized
+    }
 
     /// Live progress of the running `sync`. `done/total` counts pipeline stages; `stageKey` names the
     /// current one ("hrv", "sleep", "saving", …) so the UI maps it to a localized "Importing HRV…"
@@ -30,8 +36,9 @@ final class HealthKitBridge: ObservableObject {
     @Published private(set) var auth: AuthState = .unknown
     @Published private(set) var lastSync: Date?
     @Published private(set) var syncing = false
-    /// The most recent failure surfaced by `sync`. Cleared on a successful run. UI binds
-    /// here so an Apple Health auth revoke, quota hit, or invalid sample is visible instead of silent.
+    /// El último fallo de `sync`, o `nil` tras una corrida buena. La UI se ata aquí para que un
+    /// permiso revocado, una cuota de HealthKit o una muestra inválida se vean, en vez de perderse
+    /// en silencio.
     @Published private(set) var lastError: String?
     /// Live stage of the running import (nil when idle), so the card shows real progress instead of a
     /// context-free spinner. (FER-70)
@@ -55,7 +62,8 @@ final class HealthKitBridge: ObservableObject {
 
     private let store = HKHealthStore()
     private let repo: Repository
-    /// Source id imported HealthKit data lands under (matches `AppModel.appleDeviceId`).
+    /// Id de fuente bajo el que aterriza todo lo importado de HealthKit (el mismo que
+    /// `AppModel.appleDeviceId`), para que nunca se mezcle con otras particiones del almacén.
     private let appleDeviceId: String
 
     /// Persists "the user already connected Apple Health" across launches. HealthKit keeps the grant
@@ -110,22 +118,32 @@ final class HealthKitBridge: ObservableObject {
 
     // MARK: - Types
 
+    /// Todo lo que el diálogo de permisos de Salud va a pedir al conectar, en cuatro grupos con una
+    /// razón cada uno. Se arma por grupos —no en una lista plana— porque la pregunta que importa al
+    /// revisar este archivo es «¿por qué pedimos esto?», y así la respuesta está junto al tipo.
     private var readTypes: Set<HKObjectType> {
-        var s = Set<HKObjectType>()
-        for id in HealthKitBridge.quantityReadIds { if let t = HKObjectType.quantityType(forIdentifier: id) { s.insert(t) } }
-        if let sleep = HKObjectType.categoryType(forIdentifier: .sleepAnalysis) { s.insert(sleep) }
-        s.insert(HKObjectType.workoutType())
-        // R2 (FER-1008): serie de latidos nocturnos para el RMSSD on-device. HealthKit exige pedir
-        // heartRateVariabilitySDNN junto con HeartbeatSeries — ya está en quantityReadIds arriba.
-        s.insert(HKSeriesType.heartbeat())
-        // Características del perfil para el auto-fill del onboarding (FER-361): sexo, fecha de
-        // nacimiento (→ edad), peso y estatura. Se consumen en `readProfileCharacteristics()`.
-        if let sex = HKObjectType.characteristicType(forIdentifier: .biologicalSex) { s.insert(sex) }
-        if let dob = HKObjectType.characteristicType(forIdentifier: .dateOfBirth) { s.insert(dob) }
-        for id in [HKQuantityTypeIdentifier.bodyMass, .height] {
-            if let t = HKObjectType.quantityType(forIdentifier: id) { s.insert(t) }
+        var scopes = Set<HKObjectType>()
+
+        // 1) Las cantidades diarias que `sync` agrega en `DailyBucket`.
+        for pull in Self.dailyQuantityPulls {
+            if let type = HKObjectType.quantityType(forIdentifier: pull.identifier) { scopes.insert(type) }
         }
-        return s
+        // 2) Sueño y entrenamientos: las dos series no numéricas del pipeline.
+        if let sleep = HKObjectType.categoryType(forIdentifier: .sleepAnalysis) { scopes.insert(sleep) }
+        scopes.insert(HKObjectType.workoutType())
+        // 3) Latido a latido de la noche, para el RMSSD nocturno on-device (R2 · FER-1008). HealthKit
+        //    exige que la serie de latidos venga acompañada de heartRateVariabilitySDNN, y esa ya
+        //    entró en el grupo 1.
+        scopes.insert(HKSeriesType.heartbeat())
+        // 4) Perfil, solo para prellenar el onboarding (FER-361) desde `readProfileCharacteristics()`:
+        //    sexo, fecha de nacimiento (de ahí la edad), peso y estatura.
+        for id in [HKCharacteristicTypeIdentifier.biologicalSex, .dateOfBirth] {
+            if let type = HKObjectType.characteristicType(forIdentifier: id) { scopes.insert(type) }
+        }
+        for id in [HKQuantityTypeIdentifier.bodyMass, .height] {
+            if let type = HKObjectType.quantityType(forIdentifier: id) { scopes.insert(type) }
+        }
+        return scopes
     }
 
     /// The ONLY share (write) types Cénit ever asks for, and only when the user opts into saving
@@ -139,15 +157,59 @@ final class HealthKitBridge: ObservableObject {
         return s
     }
 
-    // Every id here ends up in the HealthKit permission dialog. Only request what `sync` actually
-    // aggregates into `DayAgg`; adding read scopes the app never consumes makes the consent prompt
-    // noisier and surfaces a privacy ask we don't honour.
-    private static let quantityReadIds: [HKQuantityTypeIdentifier] = [
-        .heartRate, .restingHeartRate, .heartRateVariabilitySDNN, .oxygenSaturation,
-        .respiratoryRate, .stepCount, .activeEnergyBurned,
-        .basalEnergyBurned, .vo2Max,
-        .appleSleepingWristTemperature
-    ]
+    /// Una cantidad diaria de Salud descrita entera: de dónde sale, en qué unidad se lee, cómo se
+    /// resume el día y dónde aterriza.
+    ///
+    /// `stageKey` es contrato con la UI (`DataSourcesView.stageLabel` y `OnbEtapa`): es la clave que
+    /// se traduce a «Importando HRV…». Cambiarla deja la barra de progreso sin nombre.
+    private struct QuantityPull {
+        let stageKey: String
+        let identifier: HKQuantityTypeIdentifier
+        let unit: HKUnit
+        let statistic: HKStatisticsOptions
+        /// Factor sobre el valor crudo de HealthKit. Solo la saturación lo usa: Apple la entrega
+        /// en 0…1 y el almacén la guarda en por ciento.
+        var scale: Double = 1
+        let apply: (Double, inout DailyBucket) -> Void
+    }
+
+    /// Las once cantidades diarias en UNA tabla, en vez de once llamadas calcadas.
+    ///
+    /// De aquí salen tres cosas a la vez: el permiso que se pide (`readTypes`), la etapa de progreso
+    /// que ve el usuario y el volcado a `DailyBucket`. Agregar una métrica es agregar un renglón, y
+    /// su unidad vive en un solo lugar en vez de repetirse en el sitio de llamada.
+    ///
+    /// El orden **es** el orden de las etapas, así que mover un renglón mueve la barra de progreso.
+    private static let dailyQuantityPulls: [QuantityPull] = {
+        let perMinute = HKUnit.count().unitDivided(by: .minute())
+        return [
+            QuantityPull(stageKey: "resting_hr", identifier: .restingHeartRate,
+                         unit: perMinute, statistic: .discreteAverage) { $1.restingHr = $0 },
+            QuantityPull(stageKey: "avg_hr", identifier: .heartRate,
+                         unit: perMinute, statistic: .discreteAverage) { $1.avgHr = $0 },
+            QuantityPull(stageKey: "max_hr", identifier: .heartRate,
+                         unit: perMinute, statistic: .discreteMax) { $1.maxHr = $0 },
+            QuantityPull(stageKey: "hrv", identifier: .heartRateVariabilitySDNN,
+                         unit: .secondUnit(with: .milli), statistic: .discreteAverage) { $1.hrv = $0 },
+            QuantityPull(stageKey: "spo2", identifier: .oxygenSaturation,
+                         unit: .percent(), statistic: .discreteAverage, scale: 100) { $1.spo2 = $0 },
+            QuantityPull(stageKey: "resp_rate", identifier: .respiratoryRate,
+                         unit: perMinute, statistic: .discreteAverage) { $1.respRate = $0 },
+            QuantityPull(stageKey: "steps", identifier: .stepCount,
+                         unit: .count(), statistic: .cumulativeSum) { $1.steps = $0 },
+            QuantityPull(stageKey: "active_kcal", identifier: .activeEnergyBurned,
+                         unit: .kilocalorie(), statistic: .cumulativeSum) { $1.activeKcal = $0 },
+            QuantityPull(stageKey: "basal_kcal", identifier: .basalEnergyBurned,
+                         unit: .kilocalorie(), statistic: .cumulativeSum) { $1.basalKcal = $0 },
+            QuantityPull(stageKey: "vo2max", identifier: .vo2Max,
+                         unit: HKUnit(from: "ml/kg*min"), statistic: .discreteAverage) { $1.vo2max = $0 },
+            // FER-882: temperatura de muñeca dormido, absoluta en °C. La desviación contra la
+            // baseline PROPIA de Apple se calcula más abajo, justo antes de armar `DailyMetric`.
+            QuantityPull(stageKey: "skin_temp", identifier: .appleSleepingWristTemperature,
+                         unit: .degreeCelsius(), statistic: .discreteAverage) { $1.skinTempC = $0 }
+        ]
+    }()
+
     // MARK: - Authorization
 
     /// Request READ permission only (FER-398). HealthKit never reveals whether *read* was granted, so
@@ -155,15 +217,21 @@ final class HealthKitBridge: ObservableObject {
     /// Nothing is shared here: the one write Cénit does (the strength `HKWorkout`) asks separately, in
     /// `requestWorkoutShareAuthorization`, the moment the user turns that toggle on.
     func requestAuthorization() async {
-        guard HKHealthStore.isHealthDataAvailable() else { auth = .unavailable; return }
+        guard HKHealthStore.isHealthDataAvailable() else {
+            auth = .unavailable
+            return
+        }
         do {
             try await store.requestAuthorization(toShare: [], read: readTypes)
-            auth = .authorized
-            UserDefaults.standard.set(true, forKey: Self.connectedDefaultsKey)   // persist so the next launch's auto-sync runs (FER-94)
-            await refreshStatus()   // surface any prior coverage immediately
         } catch {
             auth = .denied
+            return
         }
+        auth = .authorized
+        // FER-94: se recuerda la conexión, porque HealthKit no permite preguntarla en el siguiente
+        // arranque; sin esta bandera el auto-sync de lanzamiento no correría.
+        UserDefaults.standard.set(true, forKey: Self.connectedDefaultsKey)
+        await refreshStatus()   // que la cobertura que ya existía se vea de inmediato
     }
 
     /// Request share (write) permission for workouts + active energy — asked ONLY when the user turns
@@ -224,25 +292,28 @@ final class HealthKitBridge: ObservableObject {
     /// Call from the card's `.task` so opening it shows "X days imported" and the per-metric list
     /// right away. (FER-70)
     func refreshStatus() async {
-        guard let store = await repo.storeHandle() else { return }
-        coverage = try? await store.appleHealthCoverage(deviceId: appleDeviceId)
+        guard let db = await repo.storeHandle() else { return }
+        coverage = try? await db.appleHealthCoverage(deviceId: appleDeviceId)
     }
 
-    // MARK: - Read → store
+    // MARK: - Lectura → almacén
 
-    /// Pull the last `days` of Apple Health into the on-device store under the `apple-health` source,
-    /// then write NOOP's own computed metrics back into Health. Safe to call repeatedly (idempotent
-    /// upserts keyed by day). Returns the set of local `day` keys written this run — the FER-226
-    /// re-bucket uses it to prune UTC orphans; empty on an early-out or a failed store write.
+    /// Trae los últimos `days` días de Apple Health al almacén local bajo la fuente `apple-health`.
+    /// Se puede llamar cuantas veces sea: los upserts van llaveados por día, así que repetir no
+    /// duplica. Devuelve las claves de día LOCAL escritas en esta corrida — el re-bucket de FER-226
+    /// las usa para podar los huérfanos en UTC. Vacío si salió temprano o si falló la escritura.
     @discardableResult
     func sync(days: Int = 30, trigger: SyncTrigger = .manual) async -> Set<String> {
         guard auth == .authorized, !syncing else { return [] }
         syncing = true
-        syncRowsByStage = [:]   // FER-437: a fresh run starts with fresh counts (the `defer` leaves them be)
-        defer { syncing = false; syncProgress = nil }
-        guard let store = await repo.storeHandle() else { return [] }
+        syncRowsByStage = [:]   // FER-437: una corrida nueva empieza con conteos nuevos (el `defer` no los toca)
+        defer {
+            syncing = false
+            syncProgress = nil
+        }
+        guard let db = await repo.storeHandle() else { return [] }
 
-        let cal = Calendar.current
+        let calendar = Calendar.current
         let end = Date()
         // FER-872: the scenePhase foreground trigger fires on every launch/return; re-pulling the full
         // 30-day window each time (13 HK stages + upserts + a dashboard rebuild) is wasted work when
@@ -257,92 +328,57 @@ final class HealthKitBridge: ObservableObject {
             guard sinceLast > 0, sinceLast < Double(days) * 86_400 else { return days }
             return min(days, Int(sinceLast / 86_400) + Self.deltaBackMarginDays)
         }()
-        guard let start = cal.date(byAdding: .day, value: -effectiveDays, to: cal.startOfDay(for: end)) else { return [] }
+        guard let start = calendar.date(byAdding: .day, value: -effectiveDays,
+                                        to: calendar.startOfDay(for: end)) else { return [] }
 
-        var byDay: [String: DayAgg] = [:]
-        func agg(_ day: String) -> DayAgg { byDay[day] ?? DayAgg() }
+        var byDay: [String: DailyBucket] = [:]
 
-        // 11 quantity collectors + sleep + workouts + workout HR (FER-883) + the store write = 15
-        // pipeline stages. Publishing the stage *before* running it turns the silent background pull
-        // into "Importing HRV… (4/15)" in the UI; `done` counts stages already finished. (FER-70)
-        let total = 15
-        func stage(_ done: Int, _ key: String) {
-            syncProgress = SyncProgress(stageKey: key, done: done, total: total)
-        }
-        // FER-437: how many rows stage `key` brought. Lands in `syncRowsByStage` (which outlives the
-        // run), so the onboarding can print «la espera enseña».
+        // El pipeline son las once cantidades de `dailyQuantityPulls` más cuatro etapas propias:
+        // sueño, entrenamientos, pulso de entrenamiento (FER-883) y el guardado. La etapa se publica
+        // ANTES de correrla, así el jalón silencioso se vuelve «Importando HRV… (4/15)» en pantalla;
+        // `done` cuenta las que ya terminaron. (FER-70)
+        let quantityStages = Self.dailyQuantityPulls.count
+        let total = quantityStages + 4
+        func stage(_ done: Int, _ key: String) { syncProgress = SyncProgress(stageKey: key, done: done, total: total) }
+        // FER-437: cuántas filas trajo la etapa `key`. Va a `syncRowsByStage` (que sobrevive a la
+        // corrida), para que el onboarding pueda mostrar «la espera enseña».
         func finished(_ key: String, rows: Int) { syncRowsByStage[key] = rows }
 
-        // Quantity aggregates per day.
-        stage(0, "resting_hr")
-        finished("resting_hr", rows: await collect(.restingHeartRate, unit: HKUnit.count().unitDivided(by: .minute()), start: start, end: end, op: .discreteAverage) { day, v in
-            var a = agg(day); a.restingHr = v; byDay[day] = a
-        })
-        stage(1, "avg_hr")
-        finished("avg_hr", rows: await collect(.heartRate, unit: HKUnit.count().unitDivided(by: .minute()), start: start, end: end, op: .discreteAverage) { day, v in
-            var a = agg(day); a.avgHr = v; byDay[day] = a
-        })
-        stage(2, "max_hr")
-        finished("max_hr", rows: await collect(.heartRate, unit: HKUnit.count().unitDivided(by: .minute()), start: start, end: end, op: .discreteMax) { day, v in
-            var a = agg(day); a.maxHr = v; byDay[day] = a
-        })
-        stage(3, "hrv")
-        finished("hrv", rows: await collect(.heartRateVariabilitySDNN, unit: .secondUnit(with: .milli), start: start, end: end, op: .discreteAverage) { day, v in
-            var a = agg(day); a.hrv = v; byDay[day] = a
-        })
-        stage(4, "spo2")
-        finished("spo2", rows: await collect(.oxygenSaturation, unit: .percent(), start: start, end: end, op: .discreteAverage) { day, v in
-            var a = agg(day); a.spo2 = v * 100; byDay[day] = a   // 0…1 → percent
-        })
-        stage(5, "resp_rate")
-        finished("resp_rate", rows: await collect(.respiratoryRate, unit: HKUnit.count().unitDivided(by: .minute()), start: start, end: end, op: .discreteAverage) { day, v in
-            var a = agg(day); a.respRate = v; byDay[day] = a
-        })
-        stage(6, "steps")
-        finished("steps", rows: await collect(.stepCount, unit: .count(), start: start, end: end, op: .cumulativeSum) { day, v in
-            var a = agg(day); a.steps = v; byDay[day] = a
-        })
-        stage(7, "active_kcal")
-        finished("active_kcal", rows: await collect(.activeEnergyBurned, unit: .kilocalorie(), start: start, end: end, op: .cumulativeSum) { day, v in
-            var a = agg(day); a.activeKcal = v; byDay[day] = a
-        })
-        stage(8, "basal_kcal")
-        finished("basal_kcal", rows: await collect(.basalEnergyBurned, unit: .kilocalorie(), start: start, end: end, op: .cumulativeSum) { day, v in
-            var a = agg(day); a.basalKcal = v; byDay[day] = a
-        })
-        stage(9, "vo2max")
-        finished("vo2max", rows: await collect(.vo2Max, unit: HKUnit(from: "ml/kg*min"), start: start, end: end, op: .discreteAverage) { day, v in
-            var a = agg(day); a.vo2max = v; byDay[day] = a
-        })
-        // FER-882: Apple's sleeping wrist temperature (absolute °C) → nightly mean; deviation vs
-        // Apple's OWN rolling baseline is computed just before DailyMetric construction below.
-        stage(10, "skin_temp")
-        finished("skin_temp", rows: await collect(.appleSleepingWristTemperature, unit: .degreeCelsius(), start: start, end: end,
-                      op: .discreteAverage) { day, v in
-            var a = agg(day); a.skinTempC = v; byDay[day] = a
+        // Cantidades diarias: una pasada por la tabla. Cada renglón trae su unidad, su forma de
+        // resumir el día y a qué campo del cubo va, así que aquí no se repite ninguna de las tres.
+        for (position, pull) in Self.dailyQuantityPulls.enumerated() {
+            stage(position, pull.stageKey)
+            finished(pull.stageKey, rows: await pullDailyQuantity(pull, start: start, end: end) { day, value in
+                var bucket = byDay[day] ?? DailyBucket()
+                pull.apply(value * pull.scale, &bucket)
+                byDay[day] = bucket
+            })
+        }
+
+        // Minutos de sueño por día (las etapas dormido se suman y se atribuyen al día de despertar).
+        stage(quantityStages, "sleep")
+        finished("sleep", rows: await pullNightlySleep(start: start, end: end) { night in
+            var bucket = byDay[night.day] ?? DailyBucket()
+            bucket.asleepMin = night.asleep
+            bucket.deepMin = night.deep
+            bucket.remMin = night.rem
+            bucket.coreMin = night.core
+            bucket.inBedMin = night.inBed
+            byDay[night.day] = bucket
         })
 
-        // Sleep minutes per day (asleep stages summed; attributed to wake day).
-        stage(11, "sleep")
-        finished("sleep", rows: await collectSleep(start: start, end: end) { day, asleepMin, deepMin, remMin, coreMin, inBedMin in
-            var a = agg(day)
-            a.asleepMin = asleepMin; a.deepMin = deepMin; a.remMin = remMin; a.coreMin = coreMin
-            a.inBedMin = inBedMin
-            byDay[day] = a
-        })
-
-        // Workouts: fetched directly from HealthKit and stored alongside WHOOP sessions.
-        stage(12, "workouts")
+        // Entrenamientos: se leen directo de HealthKit y se guardan junto a los de la app.
+        stage(quantityStages + 1, "workouts")
         let hkWorkouts = await collectHKWorkouts(start: start, end: end)
         finished("workouts", rows: hkWorkouts.count)
         let wkRows = Self.mapWorkouts(hkWorkouts)
 
         // FER-883: per-workout heart-rate samples (raw only — strain is scored at read time).
-        // Skipped in whoopOnly so we never pull Apple HR into the store when the mode excludes Apple;
+        // Skipped in legacyOnly so we never pull Apple HR into the store when the mode excludes Apple;
         // the stage is still published so the progress bar stays 15-step consistent.
-        stage(13, "hr_apple_workouts")
+        stage(quantityStages + 2, "hr_apple_workouts")
         let workoutHrSamples: [HRSample]
-        if repo.dataSourceMode == .whoopOnly {
+        if repo.dataSourceMode == .legacyOnly {
             workoutHrSamples = []
         } else {
             workoutHrSamples = await collectWorkoutHeartRate(workouts: hkWorkouts)
@@ -350,17 +386,17 @@ final class HealthKitBridge: ObservableObject {
         finished("hr_apple_workouts", rows: workoutHrSamples.count)
 
         // FER-486: per-night Apple sleep SESSIONS with a stage timeline (for the Detalle de Sueño
-        // hypnogram), ALONGSIDE the daily totals from collectSleep above — F3 is additive. Pure decode
+        // hypnogram), ALONGSIDE the daily totals from pullNightlySleep above — F3 is additive. Pure decode
         // (SleepHKDecoder, CenitImport); the idempotent upsert below keeps a re-sync from duplicating.
         let appleSleepSessions = SleepHKDecoder.sessions(from: await collectSleepSamples(start: start, end: end))
 
         // FER-1006: the daily row's `efficiency` is READ OFF the decoded sessions rather than
-        // recomputed from `DayAgg`'s per-day minute sums. Two computations meant two denominators —
+        // recomputed from `DailyBucket`'s per-day minute sums. Two computations meant two denominators —
         // the decoder divides by the session span, a minute-sum version divides by summed `inBed`
         // spans — and they diverge whenever a night has more than one in-bed block. Both surface on
         // the SAME screen (the per-night tile reads `CachedSleepSession.efficiency`, the trend reads
         // `DailyMetric.efficiency`), so the user would have seen two different numbers for one night.
-        // One source, keyed by the same wake-day attribution `collectSleep` uses.
+        // One source, keyed by the same wake-day attribution `pullNightlySleep` uses.
         // Longest session wins a day that has several (a nap plus the night): the main night is the
         // one whose efficiency the score should reflect, and a 20-minute nap at 96% must not
         // outrank it just by landing first in the array.
@@ -386,14 +422,20 @@ final class HealthKitBridge: ObservableObject {
         }
         let workoutDays: Set<String> = Set(hkWorkouts.map { Self.dayString($0.startDate) })
 
-        stage(14, "saving")
+        stage(quantityStages + 3, "saving")
 
-        // Build + upsert the store rows under the apple-health source.
-        let appleRows = byDay.map { (day, a) in
-            AppleDaily(day: day, steps: a.steps.map { Int($0) },
-                       activeKcal: a.activeKcal, basalKcal: a.basalKcal, vo2max: a.vo2max,
-                       avgHr: a.avgHr.map { Int($0.rounded()) }, maxHr: a.maxHr.map { Int($0.rounded()) },
-                       walkingHr: nil, weightKg: nil)
+        // Filas del almacén bajo la fuente apple-health.
+        // `walkingHr` y `weightKg` van en nil a propósito: este camino no los lee.
+        let appleRows = byDay.map { day, bucket in
+            AppleDaily(day: day,
+                       steps: bucket.steps.map { Int($0) },
+                       activeKcal: bucket.activeKcal,
+                       basalKcal: bucket.basalKcal,
+                       vo2max: bucket.vo2max,
+                       avgHr: bucket.avgHr.map { Int($0.rounded()) },
+                       maxHr: bucket.maxHr.map { Int($0.rounded()) },
+                       walkingHr: nil,
+                       weightKg: nil)
         }
         // FER-882: Apple's OWN rolling skin-temp baseline over the sync window, then the same final
         // state's deviation applied to every night (one fold over the window, not a per-day
@@ -408,28 +450,42 @@ final class HealthKitBridge: ObservableObject {
         // Persist DailyMetric.strain only for completed days. Writing today's (partial) strain freezes
         // the "Esfuerzo del día" tile and blocks the live estimatedStrain fallback (AppModel / Repository).
         let todayKey = Self.dayString(Date())
-        let dmRows = byDay.map { (day, a) in
+        let dmRows = byDay.map { day, bucket -> DailyMetric in
             let activity = AppleLoadEstimator.DayActivity(
                 workoutHR: workoutHRByDay[day] ?? [],
-                steps: a.steps.map { Int($0) },
-                activeKcal: a.activeKcal,
+                steps: bucket.steps.map { Int($0) },
+                activeKcal: bucket.activeKcal,
                 hasWorkout: workoutDays.contains(day))
-            let dayLoad = AppleLoadEstimator.classify(activity, maxHR: repo.strainHRmax,
-                restingHR: a.restingHr ?? StrainScorer.defaultRestingHR, sex: repo.strainSex)
-            let strainValue: Double? = {
-                guard AppleLoadEstimator.isCompletedDay(day, today: todayKey) else { return nil }
+            let dayLoad = AppleLoadEstimator.classify(activity,
+                                                      maxHR: repo.strainHRmax,
+                                                      restingHR: bucket.restingHr ?? StrainScorer.defaultRestingHR,
+                                                      sex: repo.strainSex)
+            var strainValue: Double?
+            if AppleLoadEstimator.isCompletedDay(day, today: todayKey) {
                 switch dayLoad {
-                case .rest:          return 0
-                case .load(let s):   return s
-                case .missing:       return nil
+                case .rest:              strainValue = 0
+                case .load(let scored):  strainValue = scored
+                case .missing:           strainValue = nil
                 }
-            }()
-            return DailyMetric(day: day, totalSleepMin: a.asleepMin, efficiency: effByDay[day],
-                        deepMin: a.deepMin, remMin: a.remMin, lightMin: a.coreMin, disturbances: nil,
-                        restingHr: a.restingHr.map { Int($0.rounded()) }, avgHrv: a.hrv,
-                        recovery: nil, strain: strainValue, exerciseCount: nil,
-                        spo2Pct: a.spo2, skinTempDevC: appleSkinDev(a.skinTempC), respRateBpm: a.respRate,
-                        steps: a.steps.map { Int($0) })
+            }
+            // `disturbances`, `recovery` y `exerciseCount` quedan en nil: son señales que este
+            // camino no observa, y fingirlas con un cero mentiría en la pantalla.
+            return DailyMetric(day: day,
+                               totalSleepMin: bucket.asleepMin,
+                               efficiency: effByDay[day],
+                               deepMin: bucket.deepMin,
+                               remMin: bucket.remMin,
+                               lightMin: bucket.coreMin,
+                               disturbances: nil,
+                               restingHr: bucket.restingHr.map { Int($0.rounded()) },
+                               avgHrv: bucket.hrv,
+                               recovery: nil,
+                               strain: strainValue,
+                               exerciseCount: nil,
+                               spo2Pct: bucket.spo2,
+                               skinTempDevC: appleSkinDev(bucket.skinTempC),
+                               respRateBpm: bucket.respRate,
+                               steps: bucket.steps.map { Int($0) })
         }
         // Generic metricSeries points. The per-source pages (Apple Health, Explore, Compare) and the
         // Today sparklines read from metricSeries, which the structured appleDaily/dailyMetric upserts
@@ -450,7 +506,7 @@ final class HealthKitBridge: ObservableObject {
             add("basal_kcal", a.basalKcal)
             add("vo2max", a.vo2max)
             add("asleep_min", a.asleepMin)
-            // FER-1006: now that `inBed` survives `collectSleep`, emit the series key the XML
+            // FER-1006: now that `inBed` survives `pullNightlySleep`, emit the series key the XML
             // importer already writes (`AppleHealthAggregator`) so the live-sync path stops being
             // the only one missing it — the gap FER-1002 catalogued for `in_bed_min`.
             add("in_bed_min", a.inBedMin)
@@ -459,36 +515,39 @@ final class HealthKitBridge: ObservableObject {
             add("core_min", a.coreMin)
             return pts
         }
-        // The read→store upsert and the NOOP→Health write-back are one unit. If the store write
-        // fails, do NOT advance lastSync (the next delta sync must re-attempt this window) and surface
-        // the error instead of swallowing it with `try?` — a failed upsert used to be silent while
-        // lastSync still moved forward, skipping the window and losing the data permanently.
-        // FER-872/881: a stable fingerprint of the Apple rows this run would surface (every written array
-        // derives from `byDay`, plus workouts + sleep sessions). A foreground re-pull of identical data
-        // must not bump `refreshSeq` — which re-runs TodayView.loadAll + insights + live strain for nothing.
+        // Las seis escrituras de abajo son UNA sola unidad. Si alguna falla, `lastSync` NO avanza —el
+        // siguiente sync delta tiene que volver a intentar esta misma ventana— y el error se muestra en
+        // vez de tragárselo con `try?`: un upsert fallido en silencio movía `lastSync` de todos modos,
+        // la ventana se saltaba y ese dato se perdía para siempre.
+        //
+        // FER-872/881: la huella estable de lo que esta corrida dejaría a la vista (todo lo escrito sale
+        // de `byDay`, más entrenamientos y sesiones de sueño). Un re-jalón en primer plano con datos
+        // idénticos no debe mover `refreshSeq`, que rehace TodayView.loadAll + insights + esfuerzo vivo
+        // para nada.
         let signature = Self.stableAppleSignature(byDay: byDay, workouts: wkRows, sleeps: appleSleepSessions)
         let isFullSync = (effectiveDays == days)
         do {
-            try await store.upsertAppleDaily(appleRows, deviceId: appleDeviceId)
-            try await store.upsertDailyMetrics(dmRows, deviceId: appleDeviceId)
-            try await store.upsertMetricSeries(seriesRows, deviceId: appleDeviceId)
-            try await store.upsertWorkouts(wkRows, deviceId: appleDeviceId)
-            // FER-883: raw workout HR under apple-health — never fused into baselines; strain is
-            // scored at read time via `Repository.appleStrainEstimates`. Empty is a no-op (idempotent).
+            try await db.upsertAppleDaily(appleRows, deviceId: appleDeviceId)
+            try await db.upsertDailyMetrics(dmRows, deviceId: appleDeviceId)
+            try await db.upsertMetricSeries(seriesRows, deviceId: appleDeviceId)
+            try await db.upsertWorkouts(wkRows, deviceId: appleDeviceId)
+            // FER-883: pulso crudo de entrenamiento bajo apple-health — nunca se funde en las
+            // baselines; el esfuerzo se puntúa al leer, en `Repository.appleStrainEstimates`. Vacío
+            // es un no-op (idempotente).
             if !workoutHrSamples.isEmpty {
-                try await store.insert(Streams(hr: workoutHrSamples), deviceId: appleDeviceId)
+                try await db.insert(Streams(hr: workoutHrSamples), deviceId: appleDeviceId)
             }
-            try await store.upsertSleepSessions(appleSleepSessions, deviceId: appleDeviceId)   // FER-486 (F3): per-night stage timeline
-            // FER-437: the store write is the last stage and nothing follows it; `syncRowsByStage["saving"]`
-            // is how the onboarding tells «saving finished with N rows» apart from «saving is running».
-            // Not recorded when the write threw.
+            try await db.upsertSleepSessions(appleSleepSessions, deviceId: appleDeviceId)   // FER-486 (F3): línea de etapas por noche
+            // FER-437: el guardado es la última etapa y no le sigue nada; `syncRowsByStage["saving"]`
+            // es como el onboarding distingue «guardado terminó con N filas» de «guardando». No se
+            // registra si la escritura lanzó.
             finished("saving", rows: appleRows.count + dmRows.count + seriesRows.count + wkRows.count
                      + workoutHrSamples.count + appleSleepSessions.count)
-            // B (FER-1003): el write-back a Apple Health de métricas DERIVADAS de la banda (RHR/HRV/SpO2/
-            // resp/sueño de la partición -noop) se APAGA. Apple-only, esas filas son viejas y stale, y
-            // escribirlas contaminaría Salud (mezcla el RMSSD de banda bajo el SDNN de Apple). El HKWorkout
-            // de fuerza (saveStrengthWorkoutIfEnabled) es independiente y se CONSERVA. FER-398 borró
-            // la función `writeBack` (muerta desde entonces) y con ella el permiso de escritura que pedía.
+            // B (FER-1003): el write-back a Apple Health de métricas DERIVADAS del dispositivo anterior
+            // (RHR/HRV/SpO2/resp/sueño de esa partición) está APAGADO. Esas filas son viejas y
+            // escribirlas contaminaría Salud: metería un RMSSD ajeno bajo el SDNN de Apple. El
+            // `HKWorkout` de fuerza (`saveStrengthWorkoutIfEnabled`) es otra cosa y SÍ se conserva.
+            // FER-398 borró la función `writeBack`, ya muerta, y con ella el permiso que pedía.
             lastSync = Date()
             lastError = nil
             if trigger == .foreground { didFullForegroundSyncThisSession = true }
@@ -513,19 +572,20 @@ final class HealthKitBridge: ObservableObject {
             // R2/D1: ingerir el RMSSD nocturno ANTES del refresh, para que la tendencia lo lea recién
             // escrito. Si se ingiere después (o el refresh se salta por `!changed`), el primer sync computa
             // la tendencia sobre la partición VACÍA → «0 de 21 noches» + un banner falso de «pocas muestras»
-            // hasta el siguiente refresh o relaunch. Aditivo, partición propia; se salta en whoopOnly.
+            // hasta el siguiente refresh o relaunch. Aditivo, partición propia; se salta en legacyOnly.
             var ingestedNocturnal = false
-            if repo.dataSourceMode != .whoopOnly {
+            if repo.dataSourceMode != .legacyOnly {
                 ingestedNocturnal = await ingestNocturnalHRV()
             }
             if changed || ingestedNocturnal {
                 await repo.refresh()   // surface the freshly-synced Apple Health days + la tendencia al día
             }
-            coverage = try? await store.appleHealthCoverage(deviceId: appleDeviceId)
-            return Set(byDay.keys)   // FER-226: the local days written this run (for the re-bucket prune)
+            coverage = try? await db.appleHealthCoverage(deviceId: appleDeviceId)
+            return Set(byDay.keys)   // FER-226: los días locales escritos aquí, para la poda del re-bucket
         } catch {
             lastError = "Apple Health sync failed: \(error.localizedDescription)"
-            return []   // nothing durably written → the re-bucket must NOT prune apple rows this run
+            // Nada quedó guardado, así que el re-bucket NO debe podar filas de Apple en esta corrida.
+            return []
         }
     }
 
@@ -549,8 +609,8 @@ final class HealthKitBridge: ObservableObject {
             return
         }
 
-        // Keytel when the session carried strap HR (FER-399), MET otherwise. Camino B: the HR only feeds
-        // the estimate — it is NOT written to Apple Health as heart-rate samples.
+        // Keytel si la sesión trajo pulso del dispositivo anterior (FER-399); si no, MET. Camino B: ese
+        // pulso solo alimenta la estimación — NO se escribe en Apple Health como muestras de frecuencia.
         let kcal = Calories.estimateStrengthEnergy(hrSamples: hrSamples, durationSeconds: end.timeIntervalSince(start),
                                                    profile: profile, hrMax: hrMax.map(Double.init))
         // FER-398: one source of truth for the key, shared with the watch (`WorkoutMirrorKey`), instead
@@ -560,15 +620,17 @@ final class HealthKitBridge: ObservableObject {
         config.activityType = .traditionalStrengthTraining
 
         do {
-            // Idempotency: delete our own prior workout for this session, then write a fresh one.
-            // Scoped to this app's samples + this session's external UUID — BOTH spellings of it
-            // (FER-398): a session first saved under `noop:strength:` has to be REPLACED, not
-            // duplicated, the day it is re-saved under the new prefix.
-            let bySource = HKQuery.predicateForObjects(from: HKSource.default())
-            let byKey = HKQuery.predicateForObjects(withMetadataKey: HKMetadataKeyExternalUUID,
-                                                    allowedValues: WorkoutMirrorKey.dedupeUUIDs(for: sessionId))
-            let pred = NSCompoundPredicate(andPredicateWithSubpredicates: [bySource, byKey])
-            _ = try? await store.deleteObjects(of: HKObjectType.workoutType(), predicate: pred)
+            // Idempotencia: se borra el entrenamiento previo de ESTA sesión y se escribe uno nuevo.
+            // Acotado a las muestras de esta app y al UUID externo de la sesión, en sus DOS
+            // escrituras (FER-398): la clave vieja sigue viva en Salud de usuarios antiguos, así que
+            // una sesión guardada con ella se REEMPLAZA —no se duplica— al volverse a guardar con el
+            // prefijo nuevo. `WorkoutMirrorKey.dedupeUUIDs` es quien conoce ambas cadenas.
+            let fromThisApp = HKQuery.predicateForObjects(from: HKSource.default())
+            let withSessionKey = HKQuery.predicateForObjects(
+                withMetadataKey: HKMetadataKeyExternalUUID,
+                allowedValues: WorkoutMirrorKey.dedupeUUIDs(for: sessionId))
+            let ours = NSCompoundPredicate(andPredicateWithSubpredicates: [fromThisApp, withSessionKey])
+            _ = try? await store.deleteObjects(of: HKObjectType.workoutType(), predicate: ours)
 
             let builder = HKWorkoutBuilder(healthStore: store, configuration: config, device: .local())
             try await builder.beginCollection(at: start)
@@ -592,17 +654,30 @@ final class HealthKitBridge: ObservableObject {
         }
     }
 
-    private struct DayAgg {
-        var restingHr: Double?; var avgHr: Double?; var maxHr: Double?; var hrv: Double?
-        var spo2: Double?; var respRate: Double?; var steps: Double?
-        var activeKcal: Double?; var basalKcal: Double?; var vo2max: Double?
-        var asleepMin: Double?; var deepMin: Double?; var remMin: Double?; var coreMin: Double?
-        /// FER-1006: time in bed, kept for the `in_bed_min` series key and the sync fingerprint.
-        /// NOT a stage and never folded into `asleepMin`. It is deliberately NOT the efficiency
-        /// denominator — see `dmRows`, which reads efficiency off the decoded sessions so there is
-        /// exactly one computation.
+    /// Lo que un día civil acumula mientras corre el sync, antes de convertirse en filas. Un campo
+    /// por línea con su unidad: es la única tabla donde se puede comprobar de un vistazo que lo leído
+    /// y lo guardado están en la misma escala.
+    private struct DailyBucket {
+        var restingHr: Double?      // lpm
+        var avgHr: Double?          // lpm
+        var maxHr: Double?          // lpm
+        var hrv: Double?            // SDNN, ms
+        var spo2: Double?           // por ciento (0…100)
+        var respRate: Double?       // respiraciones por minuto
+        var steps: Double?          // conteo
+        var activeKcal: Double?     // kcal
+        var basalKcal: Double?      // kcal
+        var vo2max: Double?         // ml/kg·min
+        var asleepMin: Double?      // minutos dormido (suma de etapas)
+        var deepMin: Double?        // minutos
+        var remMin: Double?         // minutos
+        var coreMin: Double?        // minutos
+        /// FER-1006: minutos en cama. Vive aquí por la clave de serie `in_bed_min` y por la huella
+        /// del sync. NO es una etapa y nunca se suma a `asleepMin`. Tampoco es el denominador de la
+        /// eficiencia: esa se lee de las sesiones decodificadas (ver `dmRows`), para que exista un
+        /// solo cálculo.
         var inBedMin: Double?
-        var skinTempC: Double?   // FER-882: nightly mean absolute wrist temp (°C)
+        var skinTempC: Double?      // FER-882: temperatura de muñeca dormido, absoluta en °C
     }
 
     /// FER-872/881: a STABLE, order-independent fingerprint of the Apple rows a sync run would surface.
@@ -611,7 +686,7 @@ final class HealthKitBridge: ObservableObject {
     /// per-process `Hasher`, whose seed varies per launch) so it can be PERSISTED across launches and
     /// compared on the next session's first foreground sync (FER-881). Values are formatted at fixed
     /// precision so an exact re-pull hashes identically.
-    private static func stableAppleSignature(byDay: [String: DayAgg],
+    private static func stableAppleSignature(byDay: [String: DailyBucket],
                                              workouts: [WorkoutRow],
                                              sleeps: [CachedSleepSession]) -> String {
         func f(_ d: Double?) -> String { d.map { String(format: "%.4f", $0) } ?? "-" }
@@ -661,132 +736,195 @@ final class HealthKitBridge: ObservableObject {
         return NSCompoundPredicate(andPredicateWithSubpredicates: [byDate, notOurs])
     }
 
-    /// Returns the number of per-day rows handed to `sink` (FER-437).
-    private func collect(_ id: HKQuantityTypeIdentifier, unit: HKUnit, start: Date, end: Date,
-                         op: HKStatisticsOptions, sink: @escaping (String, Double) -> Void) async -> Int {
-        guard let type = HKQuantityType.quantityType(forIdentifier: id) else { return 0 }
-        let cal = Calendar.current
-        let anchor = cal.startOfDay(for: start)
-        let predicate = Self.readPredicate(start: start, end: end, options: .strictStartDate)
-        // FER-978: the HealthKit result handler runs on HK's OWN background queue, so calling the
-        // caller's `sink` (which mutates main-actor state) from inside it was a real cross-actor
-        // race `targeted` correctly flags. Collect into a Sendable `[(day, value)]` inside the
-        // handler, resume WITH it, and apply `sink` back on this @MainActor after the await.
-        let pairs: [(String, Double)] = await withCheckedContinuation { cont in
-            let q = HKStatisticsCollectionQuery(quantityType: type, quantitySamplePredicate: predicate,
-                                                options: op, anchorDate: anchor,
-                                                intervalComponents: DateComponents(day: 1))
-            q.initialResultsHandler = { _, results, _ in
-                var out: [(String, Double)] = []
-                results?.enumerateStatistics(from: start, to: end) { stats, _ in
-                    let q: HKQuantity?
-                    switch op {
-                    case .cumulativeSum:    q = stats.sumQuantity()
-                    case .discreteAverage:  q = stats.averageQuantity()
-                    case .discreteMax:      q = stats.maximumQuantity()
-                    default:                q = stats.averageQuantity()
-                    }
-                    if let q { out.append((HealthKitBridge.dayString(stats.startDate), q.doubleValue(for: unit))) }
-                }
-                cont.resume(returning: out)
-            }
-            store.execute(q)
+    /// El resumen que corresponde a una estadística según cómo se pidió agregar el día. Puro y
+    /// aparte de la consulta, para que la regla se lea entera en cinco líneas.
+    ///
+    /// El caso por omisión es el promedio: una opción que no sea suma ni máximo describe una serie
+    /// discreta, y el promedio es su resumen honesto.
+    private nonisolated static func quantity(from stats: HKStatistics,
+                                             for statistic: HKStatisticsOptions) -> HKQuantity? {
+        switch statistic {
+        case .cumulativeSum:   return stats.sumQuantity()
+        case .discreteMax:     return stats.maximumQuantity()
+        default:               return stats.averageQuantity()
         }
-        for (day, v) in pairs { sink(day, v) }
-        return pairs.count
     }
 
-    /// Returns the number of nights handed to `sink` (FER-437).
-    private func collectSleep(start: Date, end: Date,
-                              sink: @escaping (String, Double?, Double?, Double?, Double?, Double?) -> Void) async -> Int {
+    /// Corre UN renglón de `dailyQuantityPulls`: una `HKStatisticsCollectionQuery` cubetada en días
+    /// civiles locales, anclada al inicio del primer día de la ventana.
+    ///
+    /// FER-978: el handler de HealthKit corre en la cola de HealthKit, no en este actor. Llamar al
+    /// `sink` desde ahí (que toca estado de `@MainActor`) era una carrera de verdad. Por eso el
+    /// handler solo junta pares `(día, valor)` —que sí son Sendable—, reanuda con ellos, y el `sink`
+    /// se aplica de regreso en el actor principal, después del `await`.
+    private func pullDailyQuantity(_ pull: QuantityPull, start: Date, end: Date,
+                                   sink: @escaping (String, Double) -> Void) async -> Int {
+        guard let type = HKQuantityType.quantityType(forIdentifier: pull.identifier) else { return 0 }
+        let anchor = Calendar.current.startOfDay(for: start)
+        let predicate = Self.readPredicate(start: start, end: end, options: .strictStartDate)
+        // Se sacan del renglón ANTES de la consulta: el handler no debe capturar el `QuantityPull`
+        // entero, que lleva dentro un cierre atado a este actor.
+        let unit = pull.unit
+        let statistic = pull.statistic
+
+        let daily: [(day: String, value: Double)] = await withCheckedContinuation { cont in
+            let query = HKStatisticsCollectionQuery(quantityType: type,
+                                                    quantitySamplePredicate: predicate,
+                                                    options: statistic,
+                                                    anchorDate: anchor,
+                                                    intervalComponents: DateComponents(day: 1))
+            query.initialResultsHandler = { _, results, _ in
+                var collected: [(day: String, value: Double)] = []
+                results?.enumerateStatistics(from: start, to: end) { stats, _ in
+                    guard let quantity = HealthKitBridge.quantity(from: stats, for: statistic) else { return }
+                    collected.append((day: HealthKitBridge.dayString(stats.startDate),
+                                      value: quantity.doubleValue(for: unit)))
+                }
+                cont.resume(returning: collected)
+            }
+            store.execute(query)
+        }
+        for entry in daily { sink(entry.day, entry.value) }
+        return daily.count   // FER-437: cuántas filas por día se entregaron
+    }
+
+    /// Una muestra de sueño reducida a lo único que el plegado necesita: qué noche, qué app la
+    /// escribió, qué etapa y cuántos minutos dura. Cruzar la continuación con esto —y no con
+    /// `HKCategorySample`— es lo que permite que el plegado sea puro y viva fuera de la cola de
+    /// HealthKit.
+    private struct StagedSleepSample: Sendable {
+        let day: String
+        let source: String
+        let stage: Int
+        let minutes: Double
+    }
+
+    /// Una noche ya resuelta: los minutos de la fuente ganadora, atribuidos a su día de despertar.
+    private struct NightlySleep: Sendable {
+        let day: String
+        let asleep: Double?
+        let deep: Double?
+        let rem: Double?
+        let core: Double?
+        let inBed: Double?
+    }
+
+    /// De muestras sueltas a noches. Función pura, sin HealthKit y sin actor: toda la regla de
+    /// negocio del sueño diario cabe aquí y se puede razonar leyéndola sola.
+    ///
+    /// **Una sola fuente por noche** (H1, auditoría de estrés). Antes se sumaban las etapas de TODAS
+    /// las fuentes de Salud; con Apple Watch más otra app de sueño (o el Sleep Schedule del iPhone)
+    /// la misma noche, el total y el profundo/REM se DOBLE-CONTABAN y la eficiencia se iba a un falso
+    /// 100 %. Ahora las etapas se agrupan por (noche, fuente) y por noche gana una sola
+    /// —`SleepSourceSelection`: primero Apple/Watch, luego la de más minutos—; las demás se
+    /// descartan. Sumar entre fuentes no tendría ni sentido físico: ¿de qué etapa sería ese minuto?
+    ///
+    /// **`inBed` va por el máximo, no por la suma** (FER-1006, D2 del gate de /qa). Es el envolvente
+    /// de la eficiencia; ahora que `asleep` viene de una sola fuente, sumar el `inBed` de dos
+    /// fuentes traslaparía el denominador y subestimaría la eficiencia. El máximo es el envolvente
+    /// más grande sin doble-contar — y como el Apple Watch no escribe `inBed`, casi siempre sale del
+    /// iPhone. Dentro de UNA fuente sus bloques sí se suman: ese es su propio envolvente.
+    private nonisolated static func foldNightlySleep(_ samples: [StagedSleepSample]) -> [NightlySleep] {
+        struct StageMinutes {
+            var asleep = 0.0
+            var deep = 0.0
+            var rem = 0.0
+            var core = 0.0
+        }
+        var stagesByNight: [String: [String: StageMinutes]] = [:]
+        var inBedByNight: [String: [String: Double]] = [:]
+
+        for sample in samples {
+            if sample.stage == HKCategoryValueSleepAnalysis.inBed.rawValue {
+                inBedByNight[sample.day, default: [:]][sample.source, default: 0] += sample.minutes
+                continue
+            }
+            var minutes = stagesByNight[sample.day]?[sample.source] ?? StageMinutes()
+            switch sample.stage {
+            case HKCategoryValueSleepAnalysis.asleepDeep.rawValue:
+                minutes.deep += sample.minutes
+                minutes.asleep += sample.minutes
+            case HKCategoryValueSleepAnalysis.asleepREM.rawValue:
+                minutes.rem += sample.minutes
+                minutes.asleep += sample.minutes
+            case HKCategoryValueSleepAnalysis.asleepCore.rawValue,
+                 HKCategoryValueSleepAnalysis.asleepUnspecified.rawValue:
+                minutes.core += sample.minutes
+                minutes.asleep += sample.minutes
+            default:
+                break   // despierto, o un valor que Apple agregue después: no suma minutos…
+            }
+            // …pero la fuente SÍ queda registrada aunque solo haya escrito «despierto». Es la
+            // conducta previa y `SleepSourceSelection` cuenta con verla entre las candidatas.
+            stagesByNight[sample.day, default: [:]][sample.source] = minutes
+        }
+
+        var nights: [NightlySleep] = []
+        for (day, bySource) in stagesByNight {
+            guard let winner = SleepSourceSelection.pick(asleepMinutesBySource: bySource.mapValues(\.asleep)),
+                  let minutes = bySource[winner], minutes.asleep > 0 else { continue }
+            nights.append(NightlySleep(day: day,
+                                       asleep: minutes.asleep,
+                                       deep: minutes.deep > 0 ? minutes.deep : nil,
+                                       rem: minutes.rem > 0 ? minutes.rem : nil,
+                                       core: minutes.core > 0 ? minutes.core : nil,
+                                       inBed: inBedByNight[day]?.values.max()))
+        }
+        return nights
+    }
+
+    /// Trae el sueño de la ventana y lo entrega ya plegado, una noche a la vez.
+    ///
+    /// La consulta es la cáscara delgada; la regla vive en `foldNightlySleep`. La muestra se atribuye
+    /// al día en que TERMINA, así una noche que cruza la medianoche cuenta para el día en que la
+    /// persona despertó. FER-978: el plegado corre de regreso en este actor, nunca en la cola de
+    /// HealthKit.
+    private func pullNightlySleep(start: Date, end: Date,
+                                  sink: @escaping (NightlySleep) -> Void) async -> Int {
         guard let type = HKObjectType.categoryType(forIdentifier: .sleepAnalysis) else { return 0 }
         let predicate = Self.readPredicate(start: start, end: end)
-        // FER-978: same fix as `collect` — accumulate inside the HK handler, resume with a Sendable
-        // per-day array, apply `sink` back on this @MainActor (no sink call from HK's queue).
-        typealias SleepDay = (day: String, asleep: Double?, deep: Double?, rem: Double?, core: Double?,
-                              inBed: Double?)
-        let days: [SleepDay] = await withCheckedContinuation { cont in
-            let q = HKSampleQuery(sampleType: type, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, _ in
-                // H1 (auditoría de estrés): antes se sumaban las etapas de TODAS las fuentes de Apple
-                // Health. Con Apple Watch + otra app de sueño (o el Sleep Schedule del iPhone) la misma
-                // noche, el total y el profundo/REM se DOBLE-CONTABAN y la eficiencia se iba a un falso
-                // 100 %. Ahora las etapas se agrupan por (noche, fuente) y por noche nos quedamos con UNA
-                // sola fuente (prioridad Apple/Watch, luego la de más minutos → `SleepSourceSelection`);
-                // nunca se suma entre fuentes (mezclar etapas de dos fuentes no tiene sentido: ¿qué etapa
-                // sería ese minuto?).
-                //
-                // `inBed` (el denominador/envolvente de la eficiencia, FER-1006) se agrupa por fuente y por
-                // noche se toma el MÁXIMO entre fuentes, NO la suma (D2 del gate /qa): ahora que `asleep`
-                // es de una sola fuente, sumar el inBed de dos fuentes solaparía el denominador y
-                // subestimaría la eficiencia. El máximo es el envolvente más grande sin doble-contar — y
-                // el Apple Watch no escribe `inBed`, así que sale del iPhone. Dentro de UNA fuente sus
-                // bloques sí se suman (ese es su envolvente).
-                var byDaySource: [String: [String: (asleep: Double, deep: Double, rem: Double, core: Double)]] = [:]
-                var inBedBySource: [String: [String: Double]] = [:]
-                for case let s as HKCategorySample in samples ?? [] {
-                    let mins = s.endDate.timeIntervalSince(s.startDate) / 60
-                    let day = HealthKitBridge.dayString(s.endDate)
-                    let src = s.sourceRevision.source.bundleIdentifier
-                    if s.value == HKCategoryValueSleepAnalysis.inBed.rawValue {
-                        inBedBySource[day, default: [:]][src, default: 0] += mins
-                        continue
-                    }
-                    var acc = byDaySource[day]?[src] ?? (asleep: 0, deep: 0, rem: 0, core: 0)
-                    switch s.value {
-                    case HKCategoryValueSleepAnalysis.asleepDeep.rawValue:
-                        acc.deep += mins; acc.asleep += mins
-                    case HKCategoryValueSleepAnalysis.asleepREM.rawValue:
-                        acc.rem += mins; acc.asleep += mins
-                    case HKCategoryValueSleepAnalysis.asleepCore.rawValue, HKCategoryValueSleepAnalysis.asleepUnspecified.rawValue:
-                        acc.core += mins; acc.asleep += mins
-                    default:
-                        break
-                    }
-                    byDaySource[day, default: [:]][src] = acc
+
+        let staged: [StagedSleepSample] = await withCheckedContinuation { cont in
+            let query = HKSampleQuery(sampleType: type, predicate: predicate,
+                                      limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, _ in
+                let staged = (samples ?? []).compactMap { sample -> StagedSleepSample? in
+                    guard let category = sample as? HKCategorySample else { return nil }
+                    return StagedSleepSample(
+                        day: HealthKitBridge.dayString(category.endDate),
+                        source: category.sourceRevision.source.bundleIdentifier,
+                        stage: category.value,
+                        minutes: category.endDate.timeIntervalSince(category.startDate) / 60)
                 }
-                // inBed por noche = el mayor envolvente entre fuentes (no la suma; ver la nota de arriba).
-                var inBed: [String: Double] = [:]
-                for (day, srcs) in inBedBySource { inBed[day] = srcs.values.max() }
-                // Una sola fuente por noche para las etapas — la ganadora; las demás se descartan.
-                var asleep: [String: Double] = [:], deep: [String: Double] = [:]
-                var rem: [String: Double] = [:], core: [String: Double] = [:]
-                for (day, sources) in byDaySource {
-                    guard let winner = SleepSourceSelection.pick(
-                            asleepMinutesBySource: sources.mapValues { $0.asleep }),
-                          let acc = sources[winner], acc.asleep > 0 else { continue }
-                    asleep[day] = acc.asleep
-                    if acc.deep > 0 { deep[day] = acc.deep }
-                    if acc.rem > 0 { rem[day] = acc.rem }
-                    if acc.core > 0 { core[day] = acc.core }
-                }
-                let out: [SleepDay] = Set(asleep.keys).map {
-                    (day: $0, asleep: asleep[$0], deep: deep[$0], rem: rem[$0], core: core[$0],
-                     inBed: inBed[$0])
-                }
-                cont.resume(returning: out)
+                cont.resume(returning: staged)
             }
-            store.execute(q)
+            store.execute(query)
         }
-        for d in days { sink(d.day, d.asleep, d.deep, d.rem, d.core, d.inBed) }
-        return days.count
+        let nights = Self.foldNightlySleep(staged)
+        for night in nights { sink(night) }
+        return nights.count   // FER-437: cuántas noches se entregaron, para `syncRowsByStage`
     }
 
-    /// FER-486: the raw `sleepAnalysis` samples as platform-agnostic descriptors, so the pure
-    /// `SleepHKDecoder` (CenitImport) can group them into one per-night `CachedSleepSession` with a
-    /// stage timeline for the Detalle de Sueño hypnogram. Runs ALONGSIDE `collectSleep` (which keeps
-    /// producing the daily totals) — F3 is additive. No mapping/grouping here: this is the thin shell.
+    /// FER-486: las mismas muestras de `sleepAnalysis`, pero como descriptores sin HealthKit, para
+    /// que el decodificador puro `SleepHKDecoder` (CenitImport) las agrupe en un
+    /// `CachedSleepSession` por noche con su línea de etapas — el hipnograma del Detalle de Sueño.
+    /// Corre JUNTO a `pullNightlySleep`, que sigue produciendo los totales diarios: F3 es aditivo.
+    /// Aquí no se agrupa ni se mapea nada de negocio; esta función es solo la cáscara de la consulta.
     private func collectSleepSamples(start: Date, end: Date) async -> [SleepHKSample] {
         guard let type = HKObjectType.categoryType(forIdentifier: .sleepAnalysis) else { return [] }
         let predicate = Self.readPredicate(start: start, end: end)
         return await withCheckedContinuation { (cont: CheckedContinuation<[SleepHKSample], Never>) in
-            let q = HKSampleQuery(sampleType: type, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, _ in
-                let out: [SleepHKSample] = (samples ?? []).compactMap { s in
-                    guard let c = s as? HKCategorySample else { return nil }
-                    return SleepHKSample(hkValue: c.value, start: c.startDate, end: c.endDate, dedupeKey: "")
+            let query = HKSampleQuery(sampleType: type, predicate: predicate,
+                                      limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, _ in
+                let descriptors: [SleepHKSample] = (samples ?? []).compactMap { sample in
+                    guard let category = sample as? HKCategorySample else { return nil }
+                    return SleepHKSample(hkValue: category.value,
+                                         start: category.startDate,
+                                         end: category.endDate,
+                                         dedupeKey: "")
                 }
-                cont.resume(returning: out)
+                cont.resume(returning: descriptors)
             }
-            store.execute(q)
+            store.execute(query)
         }
     }
 
@@ -794,11 +932,11 @@ final class HealthKitBridge: ObservableObject {
 
     /// Convierte la serie de latidos nocturnos de Apple en un RMSSD por noche (R2): trae los intervalos
     /// beat-to-beat en una ventana incremental, recorta cada noche a la UNIÓN de sus tramos dormido (la
-    /// misma atribución de wake-day que usa `collectSleep`), y corre el motor puro `NocturnalHRV.night`
-    /// (CenitAnalytics) sobre los latidos ya recortados. Persiste en su PROPIA partición
-    /// (`apple-health-noop`) vía `metricSeries` — aditivo, nunca toca `byDay`/`DailyMetric`/el camino de
-    /// la banda. No-op silencioso (0 filas, sin crash) si falta el permiso de la serie de latidos o si
-    /// Apple simplemente no tiene datos beat-to-beat en la ventana.
+    /// misma atribución de día de despertar que usa `pullNightlySleep`), y corre el motor puro
+    /// `NocturnalHRV.night` (CenitAnalytics) sobre los latidos ya recortados. Persiste en su PROPIA
+    /// partición vía `metricSeries` — aditivo, nunca toca `byDay`/`DailyMetric`/el camino del
+    /// dispositivo anterior. No-op silencioso (0 filas, sin crash) si falta el permiso de la serie de
+    /// latidos o si Apple simplemente no tiene datos beat-to-beat en la ventana.
     /// Devuelve `true` si escribió alguna fila (para que el caller refresque la tendencia). `false` si no
     /// hubo permiso/datos/noches — el caller entonces no necesita re-refrescar por esto.
     @discardableResult
@@ -818,14 +956,18 @@ final class HealthKitBridge: ObservableObject {
         // lo que sea MÁS TARDE — el margen de 2 días re-cubre una noche que Apple terminó de escribir
         // tarde, sin reprocesar los 45 días completos en cada sync.
         guard let dbStore = await repo.storeHandle() else { return false }
+        // Dato en disco: es el id de partición con el que ya se escribieron las filas de usuarios
+        // existentes. Cambiar la cadena dejaría esas noches huérfanas.
         let deviceId = "apple-health-noop"
         let today = Date()
-        let cal = Calendar.current
-        guard let floor45 = cal.date(byAdding: .day, value: -45, to: cal.startOfDay(for: today)) else { return false }
+        let calendar = Calendar.current
+        guard let floor45 = calendar.date(byAdding: .day, value: -45, to: calendar.startOfDay(for: today)) else {
+            return false
+        }
         var windowStartDate = floor45
         let latestDay = try? await dbStore.metricDays(deviceId: deviceId, key: "apple_rr_clean_night")?.latest
         if let latestDay, let latestDate = HealthKitBridge.date(from: latestDay) {
-            let minus2 = cal.date(byAdding: .day, value: -2, to: latestDate) ?? latestDate
+            let minus2 = calendar.date(byAdding: .day, value: -2, to: latestDate) ?? latestDate
             windowStartDate = max(floor45, minus2)
         }
         let predicate = Self.readPredicate(start: windowStartDate, end: today)
@@ -849,7 +991,7 @@ final class HealthKitBridge: ObservableObject {
         }
 
         // E) Ventana por noche = UNIÓN de los tramos realmente dormido de esa noche (misma atribución de
-        // wake-day que collectSleep). Solo etapas de sueño real — inBed/awake quedan fuera a propósito.
+        // día de despertar que pullNightlySleep). Solo etapas de sueño real — inBed/awake quedan fuera.
         let sleepSamples = await collectSleepSamples(start: windowStartDate, end: today)
         let asleepValues: Set<Int> = [
             HKCategoryValueSleepAnalysis.asleepDeep.rawValue,
@@ -916,7 +1058,7 @@ final class HealthKitBridge: ObservableObject {
 
     /// One-shot, on-device validation dump: the beat-to-beat (R-R) intervals Apple stored in HealthKit as
     /// `HKHeartbeatSeriesSample`s over the last `daysBack` days, as CSV rows `ts,rrMs` (epoch seconds,
-    /// milliseconds) — the SAME shape as the strap's `rrInterval` — so a nocturnal Apple RMSSD can be
+    /// milliseconds) — la MISMA forma que la tabla `rrInterval` heredada — so a nocturnal Apple RMSSD can be
     /// measured against the band's on paired nights. Opt-in: requests its own `HKSeriesType.heartbeat()`
     /// read scope on demand and touches neither the store nor the normal sync. Returns the CSV plus a
     /// per-night density summary — the whole open question is whether Apple samples densely enough at night.
@@ -952,7 +1094,7 @@ final class HealthKitBridge: ObservableObject {
         for sample in samples { rows.append(contentsOf: await beatToBeat(of: sample)) }
         rows.sort { $0.ts < $1.ts }
 
-        // 3) CSV (ts,rrMs) — same columns as the strap `rrInterval` table, so the analysis runs unchanged.
+        // 3) CSV (ts,rrMs) — las mismas columnas que la tabla `rrInterval` heredada, para que el análisis corra igual.
         var csv = "ts,rrMs\n"
         csv.reserveCapacity(rows.count * 14 + 8)
         for r in rows { csv += "\(Int(r.ts.rounded())),\(Int(r.rrMs.rounded()))\n" }
@@ -974,7 +1116,7 @@ final class HealthKitBridge: ObservableObject {
     /// Stream one `HKHeartbeatSeriesSample` into absolute-timestamped R-R intervals (ms). A beat flagged
     /// `precededByGap` breaks the chain (its interval spans missing data). Emits every remaining interval
     /// UNFILTERED by range — `NocturnalHRV`/`HRVAnalyzer` apply the [300, 2000] ms gate downstream, at the
-    /// same point that cleans the strap's own RR intervals. Compiles in release: `ingestNocturnalHRV` (R2)
+    /// mismo punto que limpia los intervalos RR heredados. Compiles in release: `ingestNocturnalHRV` (R2)
     /// calls this outside of any dev-only path.
     private func beatToBeat(of sample: HKHeartbeatSeriesSample) async -> [(ts: Double, rrMs: Double)] {
         let base = sample.startDate.timeIntervalSince1970
@@ -1157,18 +1299,20 @@ final class HealthKitBridge: ObservableObject {
         }
     }
 
-    // MARK: - Date helpers
+    // MARK: - La clave del día
 
-    // LOCAL civil day (FER-226): every source now keys `dailyMetric.day` by the device's local civil
-    // day (same convention as Repository.localDayKey), so the evening's data counts for the correct day
-    // in a UTC− zone instead of rolling into tomorrow. This REVERSES FER-32's UTC choice; the
-    // cross-time-zone duplicate it guarded against is now handled by last-writer-wins on the
-    // (deviceId, day) PK plus the one-time re-bucket's future-row prune — at most one defined seam on a
-    // travel day, never silent duplicates. These helpers are `nonisolated` so they can run on
-    // HealthKit's query-callback queue without hopping to the main actor (`HealthKitBridge` is
-    // `@MainActor`); the formatter is an immutable, Sendable constant, safe to read from any context.
-    // Device-local on purpose (HealthKit sample dates are civil-day concepts) — the canonical
-    // WRITE-side formatter, matching how DailyMetric.day keys are minted (FER-754).
+    // Día civil LOCAL (FER-226). Toda fuente llavea `dailyMetric.day` por el día civil del
+    // dispositivo —la misma convención de `Repository.localDayKey`—, así lo de la tarde cuenta para
+    // el día correcto en una zona UTC− en vez de rodar al siguiente. Esto REVIERTE la elección de
+    // UTC de FER-32: el duplicado entre zonas que aquella cuidaba lo resuelve ahora el
+    // último-en-escribir-gana sobre la llave (deviceId, day), más la poda de filas futuras del
+    // re-bucket. En un día de viaje queda a lo más una costura definida, nunca duplicados callados.
+    //
+    // Son `nonisolated` para poder correr en la cola de callbacks de HealthKit sin saltar al actor
+    // principal (la clase entera es `@MainActor`); el formateador es una constante inmutable y
+    // Sendable, segura de leer desde cualquier contexto. Local a propósito: las fechas de las
+    // muestras de HealthKit son conceptos de día civil. Este es el formateador canónico del lado de
+    // ESCRITURA, el mismo con el que se acuñan las claves de `DailyMetric.day` (FER-754).
     nonisolated private static let dayFormatter = DayKey.localFormatter
     nonisolated private static func dayString(_ date: Date) -> String { dayFormatter.string(from: date) }
     nonisolated private static func date(from day: String) -> Date? { dayFormatter.date(from: day) }

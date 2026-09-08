@@ -84,19 +84,17 @@ public struct InsightEvidence: Equatable, Sendable {
 /// shows ("Recuperación 71 sin alcohol vs 63 con"). Only behavior insights carry it; every other
 /// detector leaves it nil. The engine computes these (via `BehaviorInsights`); the UI never recomputes.
 public struct BehaviorBreakdown: Equatable, Sendable {
-    /// Mean outcome on days the behavior WAS logged.
-    public let meanWith: Double
-    /// Mean outcome on days the behavior was NOT logged.
-    public let meanWithout: Double
-    /// Days in each group (with an outcome value).
-    public let nWith: Int
-    public let nWithout: Int
+    /// Promedio del resultado los días en que la conducta SÍ quedó registrada, y los días en que no.
+    public let meanWith: Double, meanWithout: Double
+    /// Cuántos días con resultado entraron en cada uno de los dos grupos.
+    public let nWith: Int, nWithout: Int
 
-    public init(meanWith: Double, meanWithout: Double, nWith: Int, nWithout: Int) {
-        self.meanWith = meanWith
-        self.meanWithout = meanWithout
-        self.nWith = nWith
-        self.nWithout = nWithout
+    public init(meanWith conLaConducta: Double, meanWithout sinElla: Double,
+                nWith diasCon: Int, nWithout diasSin: Int) {
+        self.meanWith = conLaConducta
+        self.meanWithout = sinElla
+        self.nWith = diasCon
+        self.nWithout = diasSin
     }
 }
 

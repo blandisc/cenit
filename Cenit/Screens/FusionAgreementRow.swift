@@ -39,9 +39,9 @@ struct FusionAgreementRow: View {
 
     private func name(_ source: FusionSource) -> String {
         switch source {
-        case .whoopImport:  return String(localized: "Imported")
-        case .noopComputed: return String(localized: "Estimated")
-        case .appleHealth:  return String(localized: "Apple Health")
+        case .legacyImport:   return String(localized: "Imported")
+        case .legacyComputed: return String(localized: "Estimated")
+        case .appleHealth:    return String(localized: "Apple Health")
         }
     }
 }
@@ -54,7 +54,7 @@ struct FusionAgreementRow: View {
                 metric: "steps", value: 8100, winningSource: .appleHealth,
                 contributors: [
                     ContributingSource(source: .appleHealth, value: 8100, tier: 0, sourcePriority: 2, reason: "counts directly"),
-                    ContributingSource(source: .noopComputed, value: 8420, tier: 3, sourcePriority: 1, reason: "motion estimate"),
+                    ContributingSource(source: .legacyComputed, value: 8420, tier: 3, sourcePriority: 1, reason: "motion estimate"),
                 ],
                 agreement: .agree),
             format: { $0.formatted(.number.grouping(.automatic)) })
@@ -63,15 +63,15 @@ struct FusionAgreementRow: View {
                 metric: "active_kcal", value: 612, winningSource: .appleHealth,
                 contributors: [
                     ContributingSource(source: .appleHealth, value: 612, tier: 0, sourcePriority: 2, reason: "active energy"),
-                    ContributingSource(source: .whoopImport, value: 588, tier: 0, sourcePriority: 0, reason: "imported kcal"),
+                    ContributingSource(source: .legacyImport, value: 588, tier: 0, sourcePriority: 0, reason: "imported kcal"),
                 ],
                 agreement: .minorDelta),
             format: { "\(Int($0.rounded()))" })
         FusionAgreementRow(
             point: FusedMetricPoint(
-                metric: "sleep_total_min", value: 432, winningSource: .whoopImport,
+                metric: "sleep_total_min", value: 432, winningSource: .legacyImport,
                 contributors: [
-                    ContributingSource(source: .whoopImport, value: 432, tier: 0, sourcePriority: 0, reason: "band sleep timeline"),
+                    ContributingSource(source: .legacyImport, value: 432, tier: 0, sourcePriority: 0, reason: "band sleep timeline"),
                     ContributingSource(source: .appleHealth, value: 120, tier: 2, sourcePriority: 2, reason: "phone sleep buckets"),
                 ],
                 agreement: .conflict),

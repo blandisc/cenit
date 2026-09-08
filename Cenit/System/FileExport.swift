@@ -2,88 +2,92 @@ import Foundation
 import UIKit
 import UniformTypeIdentifiers
 
-/// "Save / share a file" helper.
+/// «Guardar o compartir un archivo».
 ///
-/// Presents the system share sheet (`UIActivityViewController`) so the user can save the file to
-/// Files, AirDrop it, or send it on — the idiomatic iOS way to get a file out of the sandbox.
+/// Levanta la hoja de compartir del sistema (`UIActivityViewController`) para que la persona
+/// guarde el archivo en Archivos, lo pase por AirDrop o lo mande a otra app: la forma nativa de
+/// sacar algo del recinto de la app.
 enum FileExport {
 
-    /// Write `text` to a file and let the user choose where it goes.
-    /// - Returns: `true` when the file was written and the share sheet was presented; `false` on write
-    ///   failure so the caller can surface an error (FER-969 · X-05b). Previously a bare `return`
-    ///   left the user with no share sheet and no message.
+    /// Escribe `text` en un archivo temporal y deja que la persona elija a dónde va.
+    /// - Returns: `true` cuando el archivo quedó escrito y la hoja se presentó; `false` cuando la
+    ///   escritura falló, para que quien llama pueda avisar (FER-969 · X-05b). Antes un `return`
+    ///   pelón dejaba a la persona sin hoja y sin mensaje.
     @MainActor
     @discardableResult
     static func exportText(_ text: String, suggestedName: String) -> Bool {
-        // Write to a temp file FIRST and only present the share sheet if the file actually exists.
-        // The previous `try?` swallowed write failures, then handed an empty/missing path to the
-        // share sheet — the user saw a broken export with no error. Clean up the temp file after the
-        // share sheet closes so the temporaryDirectory doesn't accumulate dead exports across runs.
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent(suggestedName)
-        do {
-            try text.write(to: url, atomically: true, encoding: .utf8)
-        } catch {
+        // Se escribe PRIMERO y sólo se presenta la hoja si el archivo de verdad quedó en disco:
+        // tragarse el fallo entregaba a la hoja una ruta que no existía, y la persona veía una
+        // exportación rota sin ningún aviso. El temporal se borra al cerrar la hoja, para que
+        // `temporaryDirectory` no acumule exportaciones muertas de una corrida a otra.
+        let destino = FileManager.default.temporaryDirectory.appendingPathComponent(suggestedName)
+        guard (try? text.write(to: destino, atomically: true, encoding: .utf8)) != nil else {
             return false
         }
-        present(activityItems: [url], cleanup: [url])
+        present(activityItems: [destino], cleanup: [destino])
         return true
     }
 
-    /// Let the user save / share an existing file at `src` through the share sheet. `src` is owned by
-    /// the caller (e.g. a Puffin capture inside the app's container) and is NOT deleted by the
-    /// share-sheet completion handler — only files we staged ourselves get cleaned up.
+    /// Deja que la persona guarde o comparta un archivo que ya existe en `src`. Ese archivo es de
+    /// quien llama (por ejemplo una captura dentro del contenedor de la app) y NO se borra al
+    /// cerrar la hoja: sólo se limpia lo que esta clase preparó.
     @MainActor
     static func exportFile(at src: URL, suggestedName: String? = nil) {
         guard FileManager.default.fileExists(atPath: src.path) else { return }
         present(activityItems: [src], cleanup: [])
     }
 
-    /// Share an image (a rendered receipt card, FER-720 · 3c) through the system share sheet — the user
-    /// can save it to Photos, AirDrop it, or send it on. Nothing leaves the app until they pick a target.
+    /// Comparte una imagen (una tarjeta de recibo ya dibujada, FER-720 · 3c) por la hoja del
+    /// sistema: se puede guardar en Fotos, pasar por AirDrop o mandar a otra app. Nada sale de la
+    /// app hasta que la persona elige un destino.
     @MainActor
     static func exportImage(_ image: UIImage) {
         present(activityItems: [image], cleanup: [])
     }
 
-    /// Save an image straight to the user's photo library (FER-720 · 3c «Guardar»). iOS shows its own
-    /// add-only permission prompt on first use; best-effort (a denied prompt just no-ops). Requires the
-    /// `NSPhotoLibraryAddUsageDescription` key.
+    /// Guarda una imagen directo en la fototeca (FER-720 · 3c «Guardar»). iOS pide su propio
+    /// permiso de sólo-agregar la primera vez; es al mejor esfuerzo, así que un permiso negado
+    /// simplemente no hace nada. Necesita la clave `NSPhotoLibraryAddUsageDescription`.
     @MainActor
     static func saveImageToPhotos(_ image: UIImage) {
         UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
     }
 
-    /// Present `UIActivityViewController` and, once it closes, best-effort remove the URLs in
-    /// `cleanup` so staged exports don't accumulate in `temporaryDirectory` across runs.
+    /// Presenta la hoja de compartir y, al cerrarse, borra al mejor esfuerzo las URLs de `cleanup`,
+    /// para que las exportaciones preparadas no se acumulen en `temporaryDirectory`.
     @MainActor
     private static func present(activityItems: [Any], cleanup: [URL]) {
-        guard let scene = UIApplication.shared.connectedScenes
-                .compactMap({ $0 as? UIWindowScene })
-                .first(where: { $0.activationState == .foregroundActive }) ?? UIApplication.shared
-                .connectedScenes.compactMap({ $0 as? UIWindowScene }).first,
-              let root = scene.windows.first(where: { $0.isKeyWindow })?.rootViewController
-                ?? scene.windows.first?.rootViewController else { return }
-        // Present from the TOP-most presented controller, not the window's root. When the caller lives
-        // inside a sheet (e.g. Ajustes → Fuentes de datos), the root is already presenting that SwiftUI
-        // sheet, and presenting the share sheet on it throws "… which is already presenting …" and no
-        // menu appears. Walking the presentation chain presents on whatever is actually on screen.
-        var top: UIViewController = root
-        while let presented = top.presentedViewController { top = presented }
-        let vc = UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+        guard let anfitrion = topViewController() else { return }
+        let hoja = UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
         if !cleanup.isEmpty {
-            vc.completionWithItemsHandler = { _, _, _, _ in
-                let fm = FileManager.default
-                for url in cleanup where fm.fileExists(atPath: url.path) {
-                    try? fm.removeItem(at: url)
-                }
+            // Al mejor esfuerzo: borrar algo que ya no está no es un error que reportar, así que el
+            // `try?` cubre por igual «no existía» y «no se pudo».
+            hoja.completionWithItemsHandler = { _, _, _, _ in
+                cleanup.forEach { try? FileManager.default.removeItem(at: $0) }
             }
         }
-        // iPad: anchor the popover to the screen centre to avoid a crash.
-        if let pop = vc.popoverPresentationController {
-            pop.sourceView = top.view
-            pop.sourceRect = CGRect(x: top.view.bounds.midX, y: top.view.bounds.midY, width: 0, height: 0)
-            pop.permittedArrowDirections = []
+        // En iPad el popover necesita un ancla o revienta: se fija al centro de la pantalla.
+        if let popover = hoja.popoverPresentationController {
+            popover.sourceView = anfitrion.view
+            popover.sourceRect = CGRect(x: anfitrion.view.bounds.midX,
+                                        y: anfitrion.view.bounds.midY,
+                                        width: 0, height: 0)
+            popover.permittedArrowDirections = []
         }
-        top.present(vc, animated: true)
+        anfitrion.present(hoja, animated: true)
+    }
+
+    /// La vista que de verdad está en pantalla, no la raíz de la ventana. Cuando quien llama vive
+    /// dentro de una hoja (Ajustes → Fuentes de datos), la raíz ya está presentando esa hoja de
+    /// SwiftUI, y presentar encima de ella lanza «… which is already presenting …» sin que aparezca
+    /// nada. Subir por la cadena de presentación deja la hoja sobre lo que se ve.
+    @MainActor
+    private static func topViewController() -> UIViewController? {
+        let escenas = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+        let escena = escenas.first { $0.activationState == .foregroundActive } ?? escenas.first
+        guard var cima = escena?.windows.first(where: { $0.isKeyWindow })?.rootViewController
+                ?? escena?.windows.first?.rootViewController else { return nil }
+        while let encima = cima.presentedViewController { cima = encima }
+        return cima
     }
 }

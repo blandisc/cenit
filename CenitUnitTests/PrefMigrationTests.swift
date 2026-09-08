@@ -1,7 +1,7 @@
 import XCTest
 @testable import Cenit
 
-/// FER-398 — the one-time move of every persisted preference off the `noop.` prefix.
+/// FER-398 — the one-time move of every persisted preference off its legacy prefix (`legacyPrefix`).
 ///
 /// The risk this covers is not "the string changed": it is that a botched rename resets a live
 /// install. A new key reads as *never set*, so the user lands back on onboarding, re-accepts the
@@ -11,6 +11,9 @@ import XCTest
 /// Same suite pattern as `SessionComfortTests`: a named `UserDefaults` wiped in `setUp`, so nothing
 /// touches the real defaults.
 final class PrefMigrationTests: XCTestCase {
+
+    /// Dato en disco: el prefijo bajo el que quedaron escritas las preferencias de builds anteriores.
+    private static let legacyPrefix = "noop."
 
     private var standard: UserDefaults!
     private var group: UserDefaults!
@@ -43,8 +46,9 @@ final class PrefMigrationTests: XCTestCase {
     func testEveryKeyIsPrefixedAndUnique() {
         for key in PrefKey.allCases {
             XCTAssertTrue(key.rawValue.hasPrefix("cenit."), "\(key.rawValue) is not under the cenit. prefix")
-            XCTAssertTrue(key.legacyKey.hasPrefix("noop."), "\(key.legacyKey) is not under the noop. prefix")
-            XCTAssertEqual(key.legacyKey.dropFirst("noop.".count), key.rawValue.dropFirst("cenit.".count),
+            XCTAssertTrue(key.legacyKey.hasPrefix(Self.legacyPrefix),
+                          "\(key.legacyKey) no lleva el prefijo heredado")
+            XCTAssertEqual(key.legacyKey.dropFirst(Self.legacyPrefix.count), key.rawValue.dropFirst("cenit.".count),
                            "the two names must differ ONLY in the prefix")
         }
         let raws = Set(PrefKey.allCases.map(\.rawValue))
@@ -153,8 +157,10 @@ final class PrefMigrationTests: XCTestCase {
     /// interruptor. Estas dos claves salieron del enum a propósito y la migración las BORRA — la app
     /// tiene que quedar en cero red, no en "red encendida sin apagador".
     func testRetiredMediaKeysAreDeletedNotMigrated() {
-        standard.set(true, forKey: "noop.exerciseMediaEnabled")
-        standard.set(["bench-press"], forKey: "noop.exerciseMediaMissedIds")
+        let heredadaEncendida = Self.legacyPrefix + "exerciseMediaEnabled"
+        let heredadaFallidos = Self.legacyPrefix + "exerciseMediaMissedIds"
+        standard.set(true, forKey: heredadaEncendida)
+        standard.set(["bench-press"], forKey: heredadaFallidos)
 
         migrate()
 
@@ -162,9 +168,9 @@ final class PrefMigrationTests: XCTestCase {
                      "la preferencia retirada no debe renacer bajo el nombre nuevo")
         XCTAssertNil(standard.object(forKey: "cenit.exerciseMediaMissedIds"),
                      "los ids fallidos tampoco viajan al nombre nuevo")
-        XCTAssertNil(standard.object(forKey: "noop.exerciseMediaEnabled"),
+        XCTAssertNil(standard.object(forKey: heredadaEncendida),
                      "y la clave heredada se borra, no se queda esperando")
-        XCTAssertNil(standard.object(forKey: "noop.exerciseMediaMissedIds"))
+        XCTAssertNil(standard.object(forKey: heredadaFallidos))
 
         XCTAssertFalse(PrefKey.allCases.contains { $0.rawValue.contains("exerciseMedia") },
                        "si una de estas claves vuelve al enum, la migración volvería a copiarla")

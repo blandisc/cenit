@@ -2,96 +2,101 @@
 import UIKit
 import UniformTypeIdentifiers
 
-/// Async wrappers around `UIDocumentPickerViewController` for importing/exporting the database
-/// backup on iOS. Each call presents the system picker from the active window and resumes a
-/// continuation with the chosen URL (or `nil` if cancelled).
+/// Envoltura asíncrona de `UIDocumentPickerViewController` para sacar y meter el respaldo de la
+/// base en iOS. Cada llamada presenta el selector del sistema desde la ventana activa y despierta
+/// a quien esperaba con la URL elegida, o con `nil` si la persona canceló.
 enum DocumentPicker {
 
-    /// Present the picker to export `url` (saves a copy into Files / iCloud Drive). Returns the
-    /// destination URL the user picked, or `nil` if cancelled.
+    /// Selector para EXPORTAR `url`: deja una copia en Archivos / iCloud Drive. Devuelve el destino
+    /// que eligió la persona, o `nil` si canceló.
     @MainActor
     static func export(_ url: URL) async -> URL? {
-        await present { coordinator in
-            let picker = UIDocumentPickerViewController(forExporting: [url], asCopy: true)
-            picker.delegate = coordinator
-            return picker
-        }
+        await present { UIDocumentPickerViewController(forExporting: [url], asCopy: true) }
     }
 
-    /// Present the picker to import a file of one of `types`. `asCopy` is used so we receive a
-    /// readable local copy in our sandbox (no security-scoped bookkeeping needed).
+    /// Selector para ABRIR un archivo de alguno de esos tipos. Va con `asCopy: true` para recibir una
+    /// copia local legible dentro del recinto de la app: así no hay que llevar la contabilidad del
+    /// alcance de seguridad.
     @MainActor
     static func importFile(_ types: [UTType]) async -> URL? {
-        await present { coordinator in
-            let picker = UIDocumentPickerViewController(forOpeningContentTypes: types, asCopy: true)
-            picker.delegate = coordinator
-            picker.allowsMultipleSelection = false
-            return picker
+        await present {
+            let selector = UIDocumentPickerViewController(forOpeningContentTypes: types, asCopy: true)
+            selector.allowsMultipleSelection = false
+            return selector
         }
     }
 
-    /// Present the picker to choose a *folder* — e.g. one inside iCloud Drive — as the destination for
-    /// automatic backups. Unlike import/export this returns the real **security-scoped** folder URL
-    /// (`asCopy: false`), so the caller can persist a bookmark and keep writing into it on later runs
-    /// without re-prompting. This works on a free Apple ID: it touches the user's own iCloud Drive
-    /// through the Files system, which needs no iCloud-container entitlement. Returns `nil` if cancelled.
+    /// Selector para elegir una CARPETA — por ejemplo dentro de iCloud Drive — como destino de los
+    /// respaldos automáticos. A diferencia de los dos de arriba devuelve la URL real **con alcance de
+    /// seguridad** (`asCopy: false`), para que quien llama guarde un marcador y siga escribiendo ahí
+    /// en corridas posteriores sin volver a preguntar. Funciona con un Apple ID gratuito: toca el
+    /// iCloud Drive de la persona a través de Archivos, y eso no necesita el permiso de contenedor de
+    /// iCloud. Devuelve `nil` si canceló.
     @MainActor
     static func pickFolder() async -> URL? {
-        await present { coordinator in
-            let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.folder], asCopy: false)
-            picker.delegate = coordinator
-            picker.allowsMultipleSelection = false
-            return picker
+        await present {
+            let selector = UIDocumentPickerViewController(forOpeningContentTypes: [.folder], asCopy: false)
+            selector.allowsMultipleSelection = false
+            return selector
         }
     }
 
-    // MARK: - Presentation plumbing
+    // MARK: - La fontanería de la presentación
 
+    /// Arma el selector que le pidan, le engancha el coordinador, lo presenta desde la ventana
+    /// activa y espera a que la persona decida.
     @MainActor
-    private static func present(_ make: (Coordinator) -> UIDocumentPickerViewController) async -> URL? {
-        guard let root = topViewController() else { return nil }
-        return await withCheckedContinuation { (continuation: CheckedContinuation<URL?, Never>) in
-            let coordinator = Coordinator(continuation: continuation)
-            let picker = make(coordinator)
-            // Keep the coordinator alive for the lifetime of the picker.
-            objc_setAssociatedObject(picker, &Coordinator.assocKey, coordinator, .OBJC_ASSOCIATION_RETAIN)
-            root.present(picker, animated: true)
+    private static func present(_ build: () -> UIDocumentPickerViewController) async -> URL? {
+        guard let anfitrion = topViewController() else { return nil }
+        return await withCheckedContinuation { (espera: CheckedContinuation<URL?, Never>) in
+            let selector = build()
+            let enlace = Enlace(espera)
+            selector.delegate = enlace
+            // El enlace tiene que seguir vivo mientras el selector esté en pantalla; el selector es
+            // quien lo carga.
+            objc_setAssociatedObject(selector, &Enlace.llave, enlace, .OBJC_ASSOCIATION_RETAIN)
+            anfitrion.present(selector, animated: true)
         }
     }
 
+    /// Lo más arriba que hay en pantalla ahora mismo: la escena al frente (o la primera que haya),
+    /// su ventana principal, y de ahí subiendo por lo que esté presentado encima.
     @MainActor
     private static func topViewController() -> UIViewController? {
-        let scene = UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .first { $0.activationState == .foregroundActive }
-            ?? UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
-        var top = scene?.windows.first { $0.isKeyWindow }?.rootViewController
-            ?? scene?.windows.first?.rootViewController
-        while let presented = top?.presentedViewController { top = presented }
-        return top
+        let escenas = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+        let escena = escenas.first { $0.activationState == .foregroundActive } ?? escenas.first
+        var cima = escena?.windows.first { $0.isKeyWindow }?.rootViewController
+            ?? escena?.windows.first?.rootViewController
+        while let encima = cima?.presentedViewController { cima = encima }
+        return cima
     }
 
-    private final class Coordinator: NSObject, UIDocumentPickerDelegate {
-        static var assocKey = 0
-        private let continuation: CheckedContinuation<URL?, Never>
-        private var resumed = false
+    /// Traduce los dos desenlaces del selector — eligió o canceló — a una sola respuesta.
+    private final class Enlace: NSObject, UIDocumentPickerDelegate {
+        /// Llave del objeto asociado con el que el selector carga a su enlace.
+        static var llave = 0
 
-        init(continuation: CheckedContinuation<URL?, Never>) {
-            self.continuation = continuation
+        /// Se vacía en cuanto se contesta. Ahí está la garantía de contestar UNA sola vez —
+        /// reanudar dos veces una continuación revienta el proceso— sin una bandera aparte que
+        /// alguien pueda olvidar de poner.
+        private var espera: CheckedContinuation<URL?, Never>?
+
+        init(_ espera: CheckedContinuation<URL?, Never>) {
+            self.espera = espera
         }
 
         func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
-            finish(urls.first)
+            responder(urls.first)
         }
 
         func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
-            finish(nil)
+            responder(nil)
         }
 
-        private func finish(_ url: URL?) {
-            guard !resumed else { return }
-            resumed = true
-            continuation.resume(returning: url)
+        private func responder(_ url: URL?) {
+            guard let pendiente = espera else { return }
+            espera = nil
+            pendiente.resume(returning: url)
         }
     }
 }

@@ -4,7 +4,7 @@ import CenitTraining
 
 /// FER-789 — pins the enriched rest Live Activity: the ActivityKit contract stays back-compatible across
 /// an app update, and the model's phase helpers + the Completar≠Saltar distinction behave. Pure model /
-/// codec — verifies headless, no widget, strap or HealthKit needed.
+/// codec — verifies headless: no widget, no wearable and no HealthKit needed.
 @MainActor
 final class RestActivityFER789Tests: XCTestCase {
 

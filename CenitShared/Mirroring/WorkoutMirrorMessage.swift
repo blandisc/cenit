@@ -214,7 +214,9 @@ public enum WorkoutMirrorKey {
     /// The pre-FER-398 prefix. Never written again, but every workout Cénit already saved into Apple
     /// Health carries it, and those samples live in the user's vault for good — so anything that
     /// DEDUPES has to keep recognising it (see `dedupeUUIDs`).
-    public static func legacyExternalUUID(for sessionId: String) -> String { "noop:strength:\(sessionId)" }
+    /// Dato en disco: el prefijo con el que quedaron escritos los `HKWorkout` de builds anteriores.
+    private static let legacyPrefix = "noop:strength:"
+    public static func legacyExternalUUID(for sessionId: String) -> String { legacyPrefix + sessionId }
 
     /// Both spellings of a session's key, for the delete-by-key that precedes a save. Re-saving a
     /// session recorded before FER-398 has to replace the old workout, not add a second one beside it.

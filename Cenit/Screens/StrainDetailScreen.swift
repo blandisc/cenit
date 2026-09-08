@@ -600,7 +600,7 @@ struct StrainDetailItem: Identifiable {
 // FER-101: this contract is UNCHANGED by the Liquid migration — kept verbatim.
 
 struct StrainDetailModel {
-    /// Today's Day Strain (0–21), or nil while there's no score yet (strap-only, no Apple fallback).
+    /// Today's Day Strain (0–21), or nil while there's no score yet (legacy-only, no Apple fallback).
     let today: Double?
     /// The full strain series (oldest → newest), `(day "yyyy-MM-dd", value)`, for the trend + stats.
     let series: [(day: String, value: Double)]
@@ -622,7 +622,7 @@ struct StrainDetailModel {
     /// True when there's a score today or any stored strain history to draw (the rich path); false → empty.
     var hasData: Bool { today != nil || !series.isEmpty }
 
-    /// Build the whole model from the repo's in-memory dashboard. Pure (no DB). `days` is the strap +
+    /// Build the whole model from the repo's in-memory dashboard. Pure (no DB). `days` is the legacy +
     /// on-device dashboard (`repo.days`, the baseline source — FER-149); `patternDays` the rows the
     /// «Tu patrón» family reads (`repo.displayDays` — the SAME rows every surface of the family reads, so
     /// the strain sheet and this screen can never disagree on a finding, FER-438); `today` is `repo.today`;
@@ -681,13 +681,13 @@ struct StrainDetailModel {
 
 #if DEBUG
 private func sampleStrainSeries(days: Int = 60) -> [(day: String, value: Double)] {
-    let cal = Calendar(identifier: .gregorian)
-    let today = cal.startOfDay(for: Date())
-    let f = DayKey.utcFormatter
-    return (0..<days).map { i in
-        let date = cal.date(byAdding: .day, value: -(days - 1 - i), to: today)!
-        let v = 11 + 5 * sin(Double(i) / 5.0) + Double((i * 7) % 5) - 2
-        return (f.string(from: date), Swift.max(1, Swift.min(21, v)))
+    let gregoriano = Calendar(identifier: .gregorian)
+    let hoy = gregoriano.startOfDay(for: Date())
+    let formateador = DayKey.utcFormatter
+    return (0..<days).map { paso in
+        let fecha = gregoriano.date(byAdding: .day, value: -(days - 1 - paso), to: hoy)!
+        let valor = 11 + 5 * sin(Double(paso) / 5.0) + Double((paso * 7) % 5) - 2
+        return (formateador.string(from: fecha), Swift.max(1, Swift.min(21, valor)))
     }
 }
 

@@ -9,7 +9,7 @@ import CenitTraining
 // The jewel of the loop: front/back silhouettes tinted by each muscle's recent training load, CROSSED
 // with the day's VERDICT (FER-82 — the same word Hoy shows, never a recovery score) — what to train
 // today. A tracker without physiology (Fitbod) can't cross in a verdict; a physiology app without set
-// logging (WHOOP) has no per-muscle load. Cénit has both.
+// logging (the legacy wearable) has no per-muscle load. Cénit has both.
 //
 // Liquid Glass · El Eje (color solo en el dato). La math es `MuscleFatigueMap` (CenitAnalytics):
 // load = Σ involvement·decay, half-life 2 días, frescura relativa al músculo más cargado, volumen

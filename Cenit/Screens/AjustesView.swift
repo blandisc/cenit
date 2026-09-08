@@ -87,12 +87,13 @@ private struct AjustesLanding: View {
     /// para que la fila se repinte sin «Nuevo» en cuanto la hoja la marca.
     @AppStorage(NovedadesEstado.claveUltimaVersionVista) private var novedadesUltimaVista = ""
 
-    // Imperial/Metric display preference (D#103). Stored data is always SI; this only changes how
-    // distances/weights/heights/temperatures are SHOWN — and lets the profile fields take imperial entry.
+    // Métrico o imperial, sólo para mostrar (D#103). Lo guardado siempre va en SI: esto cambia
+    // cómo se LEEN distancias, pesos, estaturas y temperaturas, y deja que los campos del perfil
+    // acepten la entrada en imperial.
     @AppStorage(PrefKey.apariencia.rawValue) private var apariencia = "sistema"   // A4/FER-348
-    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw = UnitSystem.metric.rawValue
-    @AppStorage(UnitPrefs.temperatureKey) private var temperatureRaw = ""
-    private var unitSystem: UnitSystem { UnitSystem(rawValue: unitSystemRaw) ?? .metric }
+    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw: String = UnitSystem.metric.rawValue
+    @AppStorage(UnitPrefs.temperatureKey) private var temperatureRaw: String = ""
+    private var unitSystem: UnitSystem { .init(rawValue: unitSystemRaw) ?? .metric }
 
     // Sheet drivers.
     @State private var showUnits = false
@@ -739,8 +740,8 @@ private struct ProfileWheelSheet: View {
     let wheel: ProfileWheel
     let profile: ProfileStore
     @Environment(\.dismiss) private var dismiss
-    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw = UnitSystem.metric.rawValue
-    private var unitSystem: UnitSystem { UnitSystem(rawValue: unitSystemRaw) ?? .metric }
+    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw: String = UnitSystem.metric.rawValue
+    private var unitSystem: UnitSystem { .init(rawValue: unitSystemRaw) ?? .metric }
 
     @State private var age: Int
     @State private var weightKg: Double
@@ -939,8 +940,8 @@ private struct MaxHRSheet: View {
 /// how values are shown.
 private struct UnidadesSheet: View {
     @Environment(\.dismiss) private var dismiss
-    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw = UnitSystem.metric.rawValue
-    @AppStorage(UnitPrefs.temperatureKey) private var temperatureRaw = ""
+    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw: String = UnitSystem.metric.rawValue
+    @AppStorage(UnitPrefs.temperatureKey) private var temperatureRaw: String = ""
 
     // Ronda 3 #1: NO NavigationStack (ver ProfileWheelSheet). Aquí no hubo nunca Cancelar —
     // los bindings son vivos (`$unitSystemRaw`/`$temperatureRaw`), solo hay Listo para cerrar.

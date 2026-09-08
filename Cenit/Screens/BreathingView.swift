@@ -2,105 +2,122 @@ import SwiftUI
 import Foundation
 import CenitDesign
 
-/// Haptic-paced breathing trainer — a timed breath pacer with a felt cue.
+/// Marcapasos de respiración con aviso háptico.
 ///
-/// Pick a pace, hit start, close your eyes, and follow the breath orb: a timer drives
-/// inhale/exhale, one cue on the inhale, two on the exhale. (Live HRV/RMSSD biofeedback
-/// was retired with the band — FER-1003 — since solo breathing has no live R-R source;
-/// the pace readout, driven by the pacer itself, is what remains. Copy no longer
-/// promises HRV response — FER-242 / H-020.)
+/// Se elige un ritmo, se pulsa iniciar y se sigue el orbe: un reloj marca la inhalación y
+/// la exhalación, con un pulso al inhalar y dos al exhalar. No hay biofeedback de HRV —
+/// se retiró junto con el accesorio de pecho (FER-1003): respirar en solitario no tiene R-R
+/// en vivo, así que lo único que se muestra es el ritmo que el propio marcapasos impone
+/// (el copy tampoco promete respuesta de HRV — FER-242 / H-020).
 ///
-/// Liquid Glass · El Eje, régimen sobrio (FER-242): `.entrenarHojaFondo(.neutro)`;
-/// cards/píldoras internas opacas (`.superficieSolida`/`.pastillaSolida`); orbe =
-/// `LiquidColor.azul` (identidad de respiración); CTAs = `LiquidGlassButton`. El pacer
-/// y los haptics se conservan; Reduce Motion congela el orbe.
+/// Régimen sobrio de «Liquid Glass · El Eje»: lienzo `.entrenarHojaFondo(.neutro)`,
+/// tarjetas opacas `.superficieSolida`, `LiquidColor.azul` como identidad de la respiración
+/// y `LiquidGlassButton` en los CTAs. Reduce Motion congela el orbe.
 struct BreathingView: View {
 
     @Environment(AppModel.self) private var model
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.scenePhase) private var scenePhase
 
-    // MARK: Pace presets
+    // MARK: Ritmos
 
+    /// Los tres ritmos que ofrece la pantalla, con sus duraciones en segundos.
     private enum Pace: Hashable, CaseIterable {
-        case relax          // 4s inhale / 6s exhale
-        case coherence      // 5.5s / 5.5s
-        case box            // 4s / 4s
+        /// 4 s dentro / 6 s fuera.
+        case relax
+        /// 5.5 s parejos.
+        case coherence
+        /// 4 s parejos.
+        case box
 
         var label: String {
             switch self {
             case .relax:
-                return String(localized: "breath.pace.relax", defaultValue: "Relax 4-6")
+                String(localized: "breath.pace.relax", defaultValue: "Relax 4-6")
             case .coherence:
-                return String(localized: "breath.pace.coherence", defaultValue: "Coherence 5.5")
+                String(localized: "breath.pace.coherence", defaultValue: "Coherence 5.5")
             case .box:
-                return String(localized: "breath.pace.box", defaultValue: "Box 4-4")
+                String(localized: "breath.pace.box", defaultValue: "Box 4-4")
+            }
+        }
+
+        var tagline: String {
+            switch self {
+            case .relax:
+                String(localized: "breath.tag.relax",
+                       defaultValue: "Long exhale · winds down")
+            case .coherence:
+                String(localized: "breath.tag.coherence",
+                       defaultValue: "Even breathing · ~5.5/min")
+            case .box:
+                String(localized: "breath.tag.box",
+                       defaultValue: "Square · steady focus")
             }
         }
 
         var inhale: Double {
             switch self {
-            case .relax:     return 4.0
-            case .coherence: return 5.5
-            case .box:       return 4.0
+            case .relax:     4.0
+            case .coherence: 5.5
+            case .box:       4.0
             }
         }
 
         var exhale: Double {
             switch self {
-            case .relax:     return 6.0
-            case .coherence: return 5.5
-            case .box:       return 4.0
+            case .relax:     6.0
+            case .coherence: 5.5
+            case .box:       4.0
             }
         }
 
         var cycle: Double { inhale + exhale }
 
-        /// Breaths per minute for this pace.
+        /// Respiraciones por minuto de este ritmo.
         var bpm: Double { 60.0 / cycle }
 
-        var tagline: String {
-            switch self {
-            case .relax:
-                return String(localized: "breath.tag.relax",
-                              defaultValue: "Long exhale · winds down")
-            case .coherence:
-                return String(localized: "breath.tag.coherence",
-                              defaultValue: "Even breathing · ~5.5/min")
-            case .box:
-                return String(localized: "breath.tag.box",
-                              defaultValue: "Square · steady focus")
-            }
+        func duration(of phase: Phase) -> Double {
+            phase == .inhale ? inhale : exhale
         }
     }
 
+    /// Los dos medios tiempos de una respiración.
     private enum Phase {
-        case inhale
-        case exhale
+        case inhale, exhale
+
+        var word: String {
+            switch self {
+            case .inhale: String(localized: "breath.phase.inhale", defaultValue: "Inhale…")
+            case .exhale: String(localized: "breath.phase.exhale", defaultValue: "Exhale…")
+            }
+        }
+
+        /// Un pulso al entrar, dos al salir.
+        var cue: UInt8 { self == .inhale ? 1 : 2 }
     }
 
-    // MARK: State
+    // MARK: Estado
 
     @State private var pace: Pace = .coherence
     @State private var running = false
 
     @State private var phase: Phase = .inhale
-    /// Wall-clock start of the current inhale/exhale; drives orb scale via TimelineView.
+    /// Reloj de pared del medio tiempo en curso; de aquí sale la escala del orbe.
     @State private var phaseStart: Date = .distantPast
     @State private var phaseDeadline: Date = .distantFuture
 
-    @State private var sessionSeconds: Int = 0
-    @State private var breathCount: Int = 0
+    @State private var sessionSeconds = 0
+    @State private var breathCount = 0
 
     /// Inject: recarga en caliente para esta pantalla (dev-only, no-op en Release).
     @ObserveInjection private var inject
 
-    /// Phase driver (fast, smooth) and a once-per-second session tick.
-    /// Paused when the scene is inactive so a backgrounded session does not burn 20 Hz.
+    /// Uno mueve la fase (rápido y suave), el otro cuenta los segundos de la sesión.
+    /// Se detienen con la escena inactiva para no quemar 20 Hz en segundo plano.
     private let phaseTimer = Timer.publish(every: 0.05, on: .main, in: .common).autoconnect()
     private let secondTimer = Timer.publish(every: 1.0, on: .main, in: .common).autoconnect()
 
-    /// Timers only advance while the session is live and the scene is active.
+    /// Los relojes sólo avanzan con la sesión viva y la escena al frente.
     private var timersActive: Bool { running && scenePhase == .active }
 
     var body: some View {
@@ -120,30 +137,32 @@ struct BreathingView: View {
             .padding(.bottom, LiquidSpace.s600)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        // FER-201 / FER-242: fondo El Eje — chrome de título a mano (sin control de salida
-        // propio: el pop lo da el NavigationStack ambiente vía trainChrome).
+        // Lienzo El Eje. La pantalla no dibuja su propia salida: el pop lo aporta el
+        // NavigationStack ambiente (vía trainChrome), así que no hay cabecera propia.
         .entrenarHojaFondo(tono: .neutro)
         .onReceive(phaseTimer) { now in
             guard timersActive else { return }
-            advance(now: now)
+            advanceIfDue(at: now)
         }
         .onReceive(secondTimer) { _ in
             guard timersActive else { return }
             sessionSeconds += 1
         }
         .onChange(of: pace) {
-            if running { armPhase(.inhale, from: Date(), buzz: false) }
+            // Cambiar de ritmo en caliente reinicia la inhalación, en silencio.
+            if running { armPhase(.inhale, at: Date(), cue: false) }
         }
         .onDisappear { stop() }
         .enableInjection()
     }
 
-    // MARK: - Header
+    // MARK: - Encabezado
 
     private var header: some View {
         VStack(alignment: .leading, spacing: LiquidSpace.s050) {
             Text(String(localized: "breath.title", defaultValue: "Breathe"))
-                .font(LiquidType.displayL).tracking(LiquidType.displayLTracking)
+                .font(LiquidType.displayL)
+                .tracking(LiquidType.displayLTracking)
                 .foregroundStyle(LiquidColor.tinta900)
             Text(String(localized: "breath.subtitle",
                         defaultValue: "Haptic-paced rhythm · follow the orb"))
@@ -152,7 +171,7 @@ struct BreathingView: View {
         }
     }
 
-    // MARK: - Status row
+    // MARK: - Fila de estado
 
     private var statusRow: some View {
         HStack(spacing: LiquidSpace.s250) {
@@ -170,24 +189,26 @@ struct BreathingView: View {
                     .foregroundStyle(LiquidColor.tinta900)
                 Text("·").foregroundStyle(LiquidColor.tinta500)
                 Text("\(breathCount) " + String(localized: "breath.breaths",
-                                                 defaultValue: "breaths"))
+                                                defaultValue: "breaths"))
                     .font(LiquidType.caption)
                     .foregroundStyle(LiquidColor.tinta700)
             }
         }
     }
 
-    // MARK: - Pace selector
+    // MARK: - Elegir ritmo
 
     private var paceSelector: some View {
         VStack(alignment: .leading, spacing: LiquidSpace.s300) {
             VStack(alignment: .leading, spacing: LiquidSpace.s050) {
                 Text(String(localized: "breath.kicker", defaultValue: "Breathe"))
-                    .font(LiquidType.regla).tracking(LiquidType.reglaTracking)
+                    .font(LiquidType.regla)
+                    .tracking(LiquidType.reglaTracking)
                     .textCase(.uppercase)
                     .foregroundStyle(LiquidColor.tinta500)
                 Text(String(localized: "breath.choosePace", defaultValue: "Choose a pace"))
-                    .font(LiquidType.displayS).tracking(LiquidType.displaySTracking)
+                    .font(LiquidType.displayS)
+                    .tracking(LiquidType.displaySTracking)
                     .foregroundStyle(LiquidColor.tinta900)
             }
 
@@ -200,7 +221,7 @@ struct BreathingView: View {
     }
 
     private func paceRow(_ option: Pace) -> some View {
-        let selected = pace == option
+        let chosen = option == pace
         let shape = RoundedRectangle(cornerRadius: LiquidRadius.tarjeta, style: .continuous)
         return Button {
             pace = option
@@ -217,33 +238,32 @@ struct BreathingView: View {
                 Spacer(minLength: 0)
                 Text(bpmString(option.bpm))
                     .font(LiquidType.caption)
-                    .foregroundStyle(selected ? LiquidColor.azul : LiquidColor.tinta700)
+                    .foregroundStyle(chosen ? LiquidColor.azul : LiquidColor.tinta700)
             }
             .padding(LiquidSpace.s400)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(
-                selected
-                    ? LiquidColor.tonoCampo(LiquidColor.azul)
-                    : LiquidColor.papelTarjeta,
-                in: shape)
+            .background(chosen ? LiquidColor.tonoCampo(LiquidColor.azul)
+                               : LiquidColor.papelTarjeta,
+                        in: shape)
             .overlay(
                 shape.strokeBorder(
-                    selected
+                    chosen
                         ? LiquidColor.azul.opacity(0.32)  // token-exempt(optico): borde de selección (preview)
                         : LiquidColor.vidrioCanto,
                     lineWidth: 1))
         }
         .buttonStyle(.liquidPress)
-        .accessibilityAddTraits(selected ? [.isSelected] : [])
+        .accessibilityAddTraits(chosen ? [.isSelected] : [])
     }
 
-    // MARK: - The orb
+    // MARK: - El orbe
 
     private var orbCard: some View {
         VStack(spacing: LiquidSpace.s550) {
             HStack {
                 Text(verbatim: pace.label)
-                    .font(LiquidType.regla).tracking(LiquidType.reglaTracking)
+                    .font(LiquidType.regla)
+                    .tracking(LiquidType.reglaTracking)
                     .textCase(.uppercase)
                     .foregroundStyle(LiquidColor.tinta500)
                 Spacer()
@@ -256,10 +276,10 @@ struct BreathingView: View {
                 .frame(height: 300)
                 .frame(maxWidth: .infinity)
 
-            Text(verbatim: running ? phaseWord : pace.tagline)
+            Text(verbatim: running ? phase.word : pace.tagline)
                 .font(LiquidType.cuerpo)
                 .foregroundStyle(running ? LiquidColor.tinta900 : LiquidColor.tinta700)
-                .strandAnimation(LiquidMotion.ambient(LiquidMotion.soft), value: phaseWord)
+                .strandAnimation(LiquidMotion.ambient(LiquidMotion.soft), value: phase.word)
                 .strandAnimation(LiquidMotion.ambient(LiquidMotion.soft), value: running)
         }
         .padding(LiquidSpace.s600)
@@ -268,62 +288,49 @@ struct BreathingView: View {
         .liquidGlass(.superficieSolida)
     }
 
-    private var phaseWord: String {
-        switch phase {
-        case .inhale:
-            return String(localized: "breath.phase.inhale", defaultValue: "Inhale…")
-        case .exhale:
-            return String(localized: "breath.phase.exhale", defaultValue: "Exhale…")
-        }
-    }
-
-    /// Orb only — progress is scoped here via TimelineView so the rest of the screen
-    /// does not re-evaluate each animation frame (FER-876). Paused whenever the breath
-    /// isn't running OR Reduce Motion is on — frozen at rest, never animated (mismo
-    /// patrón que `OrbeVivo`). Hidden from VoiceOver: `phaseWord` already says
-    /// the phase, so the orb is redundant motion, not information.
+    /// Sólo el orbe se re-evalúa por cuadro: el `TimelineView` acota el redibujo para que
+    /// el resto de la pantalla no pague la animación (FER-876). Se pausa cuando la sesión
+    /// no corre O cuando Reduce Motion está activo — congelado en reposo, nunca animado
+    /// (mismo patrón que `OrbeVivo`). Oculto a VoiceOver: la palabra de fase ya dice
+    /// en qué medio tiempo va, así que el orbe es movimiento redundante, no información.
     private var breathingOrb: some View {
         TimelineView(.animation(minimumInterval: 1.0 / 30, paused: !running || reduceMotion)) { timeline in
-            let progress = (running && !reduceMotion) ? easedProgress(at: timeline.date) : 0
-            orbGeometry(progress: progress)
+            orbBody(progress: (running && !reduceMotion) ? easedProgress(at: timeline.date) : 0)
         }
         .accessibilityHidden(true)
     }
 
-    /// easeInOut cubic progress for the current phase at `date`.
-    /// Inhale: 0→1; exhale: 1→0. Same visual feel as SwiftUI's easeInOut.
+    /// Avance suavizado (cúbico, easeInOut — el mismo tacto que `easeInOut` de SwiftUI)
+    /// del medio tiempo en curso: la inhalación va de 0 a 1 y la exhalación de 1 a 0.
     private func easedProgress(at date: Date) -> CGFloat {
         guard running else { return 0 }
-        let duration = (phase == .inhale) ? pace.inhale : pace.exhale
-        let elapsed = date.timeIntervalSince(phaseStart)
-        let t = max(0, min(1, elapsed / duration))
+        let t = max(0, min(1, date.timeIntervalSince(phaseStart) / pace.duration(of: phase)))
         let eased = t < 0.5 ? 2 * t * t : 1 - pow(-2 * t + 2, 2) / 2
-        return phase == .inhale ? CGFloat(eased) : CGFloat(1 - eased)
+        return CGFloat(phase == .inhale ? eased : 1 - eased)
     }
 
-    private func orbGeometry(progress: CGFloat) -> some View {
+    private func orbBody(progress: CGFloat) -> some View {
         GeometryReader { geo in
-            // Orb scales between a calm minimum and the available square.
-            let maxDiameter = min(geo.size.width, geo.size.height)
-            let minScale: CGFloat = 0.42
-            let scale = minScale + (1.0 - minScale) * progress
-            let diameter = maxDiameter * scale
+            // El orbe respira entre un mínimo calmo y el cuadrado disponible.
+            let span = min(geo.size.width, geo.size.height)
+            let floorScale: CGFloat = 0.42
+            let diameter = span * (floorScale + (1 - floorScale) * progress)
             let azul = LiquidColor.azul
 
             ZStack {
-                // Static guide ring at the inhale extent.
+                // Aro guía fijo, en el tope de la inhalación.
                 Circle()
-                    .strokeBorder(LiquidColor.tinta900.opacity(0.14), lineWidth: 1)  // token-exempt(optico): guide ring
-                    .frame(width: maxDiameter, height: maxDiameter)
+                    .strokeBorder(LiquidColor.tinta900.opacity(0.14), lineWidth: 1)  // token-exempt(optico): aro guía
+                    .frame(width: span, height: span)
 
-                // Outer breathing halo — soft physiological glow in breath identity hue.
+                // Halo exterior — resplandor suave en el azul de la respiración.
                 LiquidGlowDisco(
                     color: azul,  // token-exempt(dato): rampa decorativa (halo)
                     diametro: diameter * 1.35,
                     blur: LiquidSpace.s550,
                     opacidadCentro: 0.18)
 
-                // The orb body — azul fill (breath identity), not dataHrv/cyan.
+                // Cuerpo del orbe — azul de identidad, no el cian de HRV.
                 Circle()
                     .fill(
                         RadialGradient(
@@ -331,9 +338,7 @@ struct BreathingView: View {
                                      azul.opacity(0.14)],  // token-exempt(dato): rampa decorativa (orbe)
                             center: .init(x: 0.4, y: 0.35),
                             startRadius: LiquidSpace.s050,
-                            endRadius: diameter * 0.62
-                        )
-                    )
+                            endRadius: diameter * 0.62))
                     .overlay(
                         Circle().strokeBorder(azul.opacity(0.45), lineWidth: 1)  // token-exempt(optico): anillo decorativo (orbe)
                     )
@@ -343,7 +348,7 @@ struct BreathingView: View {
         }
     }
 
-    // MARK: - Controls
+    // MARK: - Controles
 
     private var controlRow: some View {
         HStack(spacing: LiquidSpace.s300) {
@@ -367,11 +372,11 @@ struct BreathingView: View {
         }
     }
 
-    // MARK: - Readouts
+    // MARK: - Lectura
 
-    // FER-1003: the live HRV/RMSSD readout and the coherence-estimate card were retired with the band —
-    // solo breathing has no live R-R source (the Watch mirror is strength-only), so both were permanently
-    // stuck at "—" / "No data". Only the pace readout, driven by the pacer itself, remains.
+    // FER-1003: la lectura de HRV/RMSSD en vivo y la tarjeta de coherencia se retiraron con el
+    // accesorio de pecho. Respirar en solitario no tiene R-R (el espejo del reloj es sólo fuerza),
+    // así que ambas vivían clavadas en «—» / «Sin datos». Queda el ritmo, que sí sale del pacer.
     private var readoutRow: some View {
         readoutTile(
             label: String(localized: "breath.readout.pace", defaultValue: "Pace"),
@@ -385,13 +390,15 @@ struct BreathingView: View {
                              caption: String) -> some View {
         VStack(alignment: .leading, spacing: .zero) {
             Text(verbatim: label)
-                .font(LiquidType.regla).tracking(LiquidType.reglaTracking)
+                .font(LiquidType.regla)
+                .tracking(LiquidType.reglaTracking)
                 .textCase(.uppercase)
                 .foregroundStyle(LiquidColor.tinta500)
             Spacer(minLength: LiquidSpace.s150)
             HStack(alignment: .firstTextBaseline, spacing: LiquidSpace.s100) {
                 Text(value)
-                    .font(LiquidType.valorTileM).tracking(LiquidType.valorTileTracking)
+                    .font(LiquidType.valorTileM)
+                    .tracking(LiquidType.valorTileTracking)
                     .foregroundStyle(LiquidColor.tinta900)
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)
@@ -413,52 +420,40 @@ struct BreathingView: View {
         .liquidGlass(.superficieSolida)
     }
 
-    // MARK: - Session control
+    // MARK: - Sesión
 
     private func start() {
         running = true
         sessionSeconds = 0
         breathCount = 0
-        armPhase(.inhale, from: Date(), buzz: true)
+        armPhase(.inhale, at: Date(), cue: true)
     }
 
     private func stop() {
         running = false
         phaseDeadline = .distantFuture
-        // Orb snaps to contracted rest (progress 0) and pauses: `breathingOrb` gates on `running`.
+        // El orbe cae a reposo (progreso 0) y se pausa: `breathingOrb` mira `running`.
     }
 
-    /// Begin a breath phase: set the target, schedule its end, and (optionally)
-    /// fire the haptic cue. Inhale = 1 pulse, exhale = 2 pulses.
-    private func armPhase(_ newPhase: Phase, from now: Date, buzz: Bool) {
-        phase = newPhase
+    /// Abre un medio tiempo: fija el objetivo, agenda su fin y, si toca, avisa al cuerpo.
+    private func armPhase(_ next: Phase, at now: Date, cue: Bool) {
+        phase = next
         phaseStart = now
-        let duration = (newPhase == .inhale) ? pace.inhale : pace.exhale
-        phaseDeadline = now.addingTimeInterval(duration)
-
-        if buzz {
-            model.buzz(loops: newPhase == .inhale ? 1 : 2)
-        }
+        phaseDeadline = now.addingTimeInterval(pace.duration(of: next))
+        if cue { model.buzz(loops: next.cue) }
     }
 
-    /// Called by the fast timer: when the current phase elapses, flip to the next.
-    private func advance(now: Date) {
+    /// Lo llama el reloj rápido: al vencer el medio tiempo, voltea al siguiente.
+    private func advanceIfDue(at now: Date) {
         guard now >= phaseDeadline else { return }
-        switch phase {
-        case .inhale:
-            armPhase(.exhale, from: now, buzz: true)
-        case .exhale:
-            breathCount += 1
-            armPhase(.inhale, from: now, buzz: true)
-        }
+        if phase == .exhale { breathCount += 1 }
+        armPhase(phase == .inhale ? .exhale : .inhale, at: now, cue: true)
     }
 
-    // MARK: - Formatting
+    // MARK: - Formato
 
     private func timeString(_ total: Int) -> String {
-        let m = total / 60
-        let s = total % 60
-        return String(format: "%02d:%02d", m, s)
+        String(format: "%02d:%02d", total / 60, total % 60)
     }
 
     private func bpmString(_ bpm: Double) -> String {

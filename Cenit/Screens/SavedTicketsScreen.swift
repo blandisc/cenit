@@ -10,8 +10,8 @@ import CenitTraining
 
 struct SavedTicketsScreen: View {
     @EnvironmentObject private var repo: Repository
-    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw = UnitSystem.metric.rawValue
-    private var system: UnitSystem { UnitSystem(rawValue: unitSystemRaw) ?? .metric }
+    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw: String = UnitSystem.metric.rawValue
+    private var system: UnitSystem { .init(rawValue: unitSystemRaw) ?? .metric }
 
     /// Filter chips. `StrengthSession` has no cardio/strength flag — every stored session is strength.
     /// `.cardio` always yields an empty list (honest degradation until a real classifier exists).

@@ -7,7 +7,7 @@ import CenitStore   // store.routineExercises(routineId:) — clasificación de 
 // WorkoutEditSheet.swift — edit a SAVED strength session (FER-556 → Liquid Glass · FER-294 B.2).
 // Opened from `WorkoutSessionDetailScreen`'s «Editar». Corrects the user-authored data: each set's
 // weight/reps, add/remove a set, reassign an exercise, the date/time, the routine, and notes. It NEVER
-// touches the strap's captured truth (`strain`/`avgHr`/`deviceId`) — those ride through unchanged and
+// touches the wearable's captured truth (`strain`/`avgHr`/`deviceId`) — those ride through unchanged and
 // show here as a read-only «Del cuerpo» block. Persists via `repo.updateSession`, which recomputes the
 // affected PRs exactly (a corrected weight can lower a record). Reuses the inline weight/reps
 // vocabulary of `LiveStrengthSheet` so there's no new pattern to learn.
@@ -19,8 +19,8 @@ struct WorkoutEditSheet: View {
 
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var repo: Repository
-    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw = UnitSystem.metric.rawValue
-    private var system: UnitSystem { UnitSystem(rawValue: unitSystemRaw) ?? .metric }
+    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw: String = UnitSystem.metric.rawValue
+    private var system: UnitSystem { .init(rawValue: unitSystemRaw) ?? .metric }
 
     // MARK: Editable working copy
 
@@ -235,7 +235,7 @@ struct WorkoutEditSheet: View {
         }
     }
 
-    /// The strap's captured truth — shown so the user knows it exists and why it isn't editable.
+    /// The wearable's captured truth — shown so the user knows it exists and why it isn't editable.
     @ViewBuilder
     private var capturedSection: some View {
         if session.strain != nil || session.avgHr != nil {

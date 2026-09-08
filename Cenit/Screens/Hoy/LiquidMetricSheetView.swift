@@ -1086,9 +1086,10 @@ struct LiquidMetricSheetView: View {
     /// Rango del eje con respiro (paridad `hrRange` :967-972).
     private static func hrRange(_ v: [Double]) -> ClosedRange<Double> {
         guard let lo = v.min(), let hi = v.max() else { return 40...120 }
-        if hi <= lo { return (lo - 5)...(hi + 5) }
-        let span = hi - lo
-        return (lo - span * 0.12)...(hi + span * 0.12)
+        // Curva plana: margen fijo. Con recorrido, un 12 % arriba y abajo.
+        guard hi > lo else { return (lo - 5)...(hi + 5) }
+        let margen = (hi - lo) * 0.12
+        return (lo - margen)...(hi + margen)
     }
 
     // MARK: Niveles (F3a host + F3b explorador Liquid; paridad `levelsBlock` :716-742)
@@ -1536,10 +1537,10 @@ struct LiquidMetricSheetView: View {
     /// décima, resto entero.
     /// Enteros con separador de miles en el locale del usuario.
     private static let milesFmt: NumberFormatter = {
-        let f = NumberFormatter()
-        f.numberStyle = .decimal
-        f.maximumFractionDigits = 0
-        return f
+        let formateador = NumberFormatter()
+        formateador.numberStyle = .decimal
+        formateador.maximumFractionDigits = 0
+        return formateador
     }()
 
     private func levelsValueFormat(_ v: Double) -> String {

@@ -1,9 +1,9 @@
 import Foundation
 import os
 
-/// Where Cénit keeps its one SQLite file, and the one-time move off the NOOP-era names.
+/// Where Cénit keeps its one SQLite file, and the one-time move off the names it shipped under before.
 ///
-/// **FER-398.** The container used to be `<AppSupport>/OpenWhoop/whoop.sqlite` — frozen since the
+/// **FER-398.** The container used to live under the legacy folder + file name below — frozen since the
 /// rebrand because renaming it would orphan every existing install's data. It is unfrozen here, with
 /// a migration that runs once at launch (`CenitApp.init()`, before `AppModel()` opens the store).
 ///
@@ -11,7 +11,7 @@ import os
 /// sidecars, the rollback sidecars a previous restore left behind and `MediaCache/` in a single
 /// atomic step, with no window where the data lives in two places or half of it in each. The
 /// per-file rename that follows renames the **sidecars first and the main file LAST**, so the main
-/// file's name is the mark of "done": a crash halfway leaves `whoop.sqlite` in place and the next
+/// file's name is the mark of "done": a crash halfway leaves the legacy name in place and the next
 /// launch simply resumes.
 ///
 /// When `Cenit/` already exists but holds no database — an interrupted first run, or a folder a path
@@ -30,9 +30,9 @@ enum StorePaths {
     static let folderName = "Cenit"
     /// The single SQLite file inside it.
     static let databaseFileName = "cenit.sqlite"
-    /// The NOOP-era container this migration moves away from.
+    /// El contenedor heredado del que esta migración se muda. Dato en disco: no lo cambies.
     static let legacyFolderName = "OpenWhoop"
-    /// The NOOP-era database file name inside that container.
+    /// El nombre heredado del archivo dentro de ese contenedor. Dato en disco: no lo cambies.
     static let legacyDatabaseFileName = "whoop.sqlite"
 
     /// SQLite's own sidecars, renamed alongside the main file (order matters — see the type doc).
@@ -78,7 +78,7 @@ enum StorePaths {
         case alreadyMigrated
         /// The legacy folder was renamed whole (DB + sidecars + backups + `MediaCache/`).
         case movedFolder
-        /// The folder was already `Cenit/` but still held `whoop.sqlite` — a previous run was
+        /// The folder was already `Cenit/` but still held the legacy file name — a previous run was
         /// interrupted between the folder rename and the file rename, and this run finished it.
         case resumedRenames
         /// BOTH containers exist and the new one already has its DB. The legacy folder is left
@@ -90,7 +90,7 @@ enum StorePaths {
         case mergedIntoExisting
     }
 
-    /// Move the NOOP-era container onto the Cénit names, once. Idempotent and safe to call on every
+    /// Move the legacy container onto the Cénit names, once. Idempotent and safe to call on every
     /// launch: on an already-migrated install it does two `fileExists` checks and returns.
     ///
     /// Call it BEFORE anything opens the store.
@@ -164,7 +164,7 @@ enum StorePaths {
     /// its sidecars on the way. Returns whether the legacy database actually landed.
     ///
     /// Order is the whole point: the main database goes LAST, after its sidecars and everything else,
-    /// so a crash mid-merge leaves `whoop.sqlite` where it was and the next launch redoes the rest
+    /// so a crash mid-merge leaves the legacy file where it was and the next launch redoes the rest
     /// harmlessly (each already-moved entry is skipped because its destination exists).
     private static func mergeLegacyContents(from legacyContainer: URL, into container: URL,
                                             fm: FileManager) -> Bool {
@@ -181,7 +181,7 @@ enum StorePaths {
         var landedDB = false
         for from in ordered {
             let name = from.lastPathComponent
-            // `whoop.sqlite`, `whoop.sqlite-wal`, `whoop.sqlite-shm` → the Cénit names; anything else
+            // el archivo heredado y sus dos compañeros (`-wal`, `-shm`) → los nombres de Cénit; lo demás
             // (MediaCache/, a restore sidecar) keeps its own name.
             let destName = name.hasPrefix(legacyDatabaseFileName)
                 ? databaseFileName + String(name.dropFirst(legacyDatabaseFileName.count))

@@ -11,7 +11,7 @@ import CenitModels
 //     unit. Compare's normalization is correct.
 //   • active_kcal / energy_kcal — Explore resolved them to the dashboard's `activeKcalEst`; Compare
 //     returned nil on purpose so they load from `repo.series()`. The catalog sources active_kcal from
-//     Apple Health and energy_kcal from the strap import, whereas `activeKcalEst` is a DIFFERENT figure
+//     Apple Health and energy_kcal from the legacy import, whereas `activeKcalEst` is a DIFFERENT figure
 //     (an HR-only whole-day estimate) — resolving it silently swaps the metric's meaning. Compare's
 //     note (FER-275) is the authority: calories are NOT dashboard-resolved.
 //
@@ -46,7 +46,7 @@ enum MetricSeriesResolver {
         case "sleep_efficiency": return { $0.efficiency.map { $0 <= 1.0 ? $0 * 100 : $0 } }
         // Canonical: calories are NOT dashboard-resolved (return nil → caller uses `repo.series()`).
         // `activeKcalEst` is an HR-only whole-day estimate — a DIFFERENT figure than the cataloged
-        // Apple-Health / strap-import calorie value, so resolving it would swap the metric's meaning.
+        // Apple-Health / legacy-import calorie value, so resolving it would swap the metric's meaning.
         // (Authority: CompareView's FER-275 note.)
         case "active_kcal", "energy_kcal": return nil
         default:                 return nil

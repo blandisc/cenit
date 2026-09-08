@@ -38,7 +38,7 @@ struct MetricDetailScreen: View {
     /// scales (FER-629). The screen keeps EVERY night on the today datum + hero (today may be an Apple
     /// night), but folds a SINGLE source into the statistics and the trend line — the band-level equivalent
     /// of `SourceLens.clearBandColumns` (FER-631), kept here as a plain day-key filter so the view stays
-    /// DB-free. Empty (a strap-only user, or a single-source metric) → identity, nothing changes. (FER-635)
+    /// DB-free. Empty (a legacy-only user, or a single-source metric) → identity, nothing changes. (FER-635)
     var appleDays: Set<String> = []
 
     /// Loads the full daily series for this metric (oldest → newest), as `(day "yyyy-MM-dd", value)`.
@@ -249,7 +249,7 @@ struct MetricDetailScreen: View {
     }
 
     /// Does this day belong to the source the statistics fold? Identity (keeps every day) for a single-source
-    /// metric or a strap-only user; otherwise keeps only the chosen source's nights — the same band↔Apple
+    /// metric or a legacy-only user; otherwise keeps only the chosen source's nights — the same band↔Apple
     /// split the cross-source clearing draws on (non-Apple days are the band's). (FER-635)
     private func keepsForStats(_ day: String) -> Bool {
         guard isCrossSource, !appleDays.isEmpty else { return true }
@@ -383,9 +383,10 @@ struct MetricDetailScreen: View {
     private static func hrRange(_ v: [Double], resting: Double?) -> ClosedRange<Double> {
         var lo = v.min() ?? 40, hi = v.max() ?? 120
         if let r = resting { lo = Swift.min(lo, r) }
-        if hi <= lo { return (lo - 5)...(hi + 5) }
-        let span = hi - lo
-        return (lo - span * 0.12)...(hi + span * 0.12)
+        // Curva plana: se abre un margen fijo. Con recorrido, un 12 % arriba y abajo.
+        guard hi > lo else { return (lo - 5)...(hi + 5) }
+        let margen = (hi - lo) * 0.12
+        return (lo - margen)...(hi + margen)
     }
 
 
@@ -2197,13 +2198,13 @@ struct MetricDetailScreen: View {
 
 #if DEBUG
 private func sampleVitalSeries(base: Double, swing: Double, days: Int = 40) -> [(day: String, value: Double)] {
-    let cal = Calendar(identifier: .gregorian)
-    let today = cal.startOfDay(for: Date())
-    let f = MetricDetailScreen.dayParser
-    return (0..<days).map { i in
-        let date = cal.date(byAdding: .day, value: -(days - 1 - i), to: today)!
-        let v = base + swing * sin(Double(i) / 4.0) + Double((i * 13) % 5) - 2
-        return (f.string(from: date), max(1, v))
+    let gregoriano = Calendar(identifier: .gregorian)
+    let hoy = gregoriano.startOfDay(for: Date())
+    let formateador = MetricDetailScreen.dayParser
+    return (0..<days).map { paso in
+        let fecha = gregoriano.date(byAdding: .day, value: -(days - 1 - paso), to: hoy)!
+        let valor = base + swing * sin(Double(paso) / 4.0) + Double((paso * 13) % 5) - 2
+        return (formateador.string(from: fecha), max(1, valor))
     }
 }
 

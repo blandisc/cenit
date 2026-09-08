@@ -75,25 +75,25 @@ public enum MetricArbitrationPolicy {
         case .steps:
             // The device that ACTUALLY COUNTS steps wins; the other figure is motion-derived.
             switch source {
-            case .appleHealth:  return 0   // phone pedometer — counts directly
-            case .whoopImport:  return 3   // an imported step figure — motion-derived
-            case .noopComputed: return 3   // an on-device count or estimate
+            case .appleHealth:    return 0   // phone pedometer — counts directly
+            case .legacyImport:   return 3   // an imported step figure — motion-derived
+            case .legacyComputed: return 3   // an on-device count or estimate
             }
 
         case .sleep:
             // The best sleep TIMELINE wins: an imported timeline > one computed on device > phone buckets.
             switch source {
-            case .whoopImport:  return 0
-            case .noopComputed: return 1
-            case .appleHealth:  return 2
+            case .legacyImport:   return 0
+            case .legacyComputed: return 1
+            case .appleHealth:    return 2
             }
 
         case .calories:
             // Active energy is an estimate everywhere; the phone aggregate edges a pure HR estimate.
             switch source {
-            case .appleHealth:  return 2
-            case .whoopImport:  return 3
-            case .noopComputed: return 3
+            case .appleHealth:    return 2
+            case .legacyImport:   return 3
+            case .legacyComputed: return 3
             }
         }
     }
@@ -103,9 +103,9 @@ public enum MetricArbitrationPolicy {
     /// when two sources land on the SAME tier, so the resolver stays deterministic.
     public static func sourcePriority(_ source: FusionSource) -> Int {
         switch source {
-        case .whoopImport:  return 0
-        case .noopComputed: return 1
-        case .appleHealth:  return 2
+        case .legacyImport:   return 0
+        case .legacyComputed: return 1
+        case .appleHealth:    return 2
         }
     }
 
@@ -115,17 +115,17 @@ public enum MetricArbitrationPolicy {
         switch (metric, source) {
         case (.steps, .appleHealth):
             return "counts directly"
-        case (.steps, .whoopImport), (.steps, .noopComputed):
+        case (.steps, .legacyImport), (.steps, .legacyComputed):
             return "motion estimate"
-        case (.sleep, .whoopImport):
-            return "band sleep timeline"
-        case (.sleep, .noopComputed):
+        case (.sleep, .legacyImport):
+            return "legacy sleep timeline"
+        case (.sleep, .legacyComputed):
             return "computed on device"
         case (.sleep, .appleHealth):
             return "phone sleep buckets"
         case (.calories, .appleHealth):
             return "phone aggregate"
-        case (.calories, .whoopImport), (.calories, .noopComputed):
+        case (.calories, .legacyImport), (.calories, .legacyComputed):
             return "heart-rate estimate"
         }
     }

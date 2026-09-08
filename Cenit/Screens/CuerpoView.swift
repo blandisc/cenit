@@ -21,7 +21,7 @@ import Foundation
 // ventana. Stress lee su serie diaria; el resto corta `displayDays`.
 //
 // Detalle: hojas Liquid (`MetricDetailScreen` FER-185 u hojas propias). Valores y sparklines desde
-// `repo.displayDays` (no `series("strap")` — FER-149).
+// `repo.displayDays` (no la serie cruda de la fuente heredada — FER-149).
 
 /// Landing de Tendencias. (FER-398 retired the by-the-hour tint; the app no longer changes colour with the clock.)
 struct CuerpoView: View {
@@ -674,7 +674,7 @@ private struct CuerpoLanding: View {
 
     /// The stress sparkline over the selected period. Reads the model's DERIVED daily trend (`fullTrend`) —
     /// the same source the Stress value uses (stored "stress" series where present, else derived from
-    /// resting-HR / HRV), so the spark isn't blank for users with no persisted WHOOP stress rows (e.g.
+    /// resting-HR / HRV), so the spark isn't blank for users with no persisted legacy stress rows (e.g.
     /// Apple-Health-only) even though the value shows. Falls back to the raw series only if the model isn't
     /// built yet. `.all` uses the whole trend; otherwise the trailing window. (FER · sparkline de estrés)
     private var stressSpark: [Double] {
@@ -1444,10 +1444,10 @@ private struct CuerpoLanding: View {
         async let amRows     = repo.appleDailyMetricRows()
         async let wkRows     = repo.workoutRows()
         // Stored daily "stress" series (0–3) — the model prefers it, else derives from RHR/HRV.
-        async let stressRows = repo.series(key: "stress", source: "strap")
-        let startOfToday = Int(Calendar.current.startOfDay(for: Date()).timeIntervalSince1970)
-        let nowTs = Int(Date().timeIntervalSince1970)
-        async let hrRows = repo.hrBuckets(from: startOfToday, to: nowTs, bucketSeconds: 300)
+        async let stressRows = repo.series(key: "stress", source: Repository.legacyDeviceId)
+        let dayStart = Int(Calendar.current.startOfDay(for: Date()).timeIntervalSince1970)
+        let rightNow = Int(Date().timeIntervalSince1970)
+        async let hrRows = repo.hrBuckets(from: dayStart, to: rightNow, bucketSeconds: 300)
 
         appleDays = await adRows
         appleMetricDays = (await amRows).sorted { $0.day < $1.day }
@@ -1484,7 +1484,7 @@ private struct CuerpoLanding: View {
             return p.verdict != .lowSignal && p.isNightAnchored
         }()
         let sleeps = repo.sleeps
-        let appleSleeps = repo.appleSleeps   // FER-1026: real Apple sleep sessions feed regularity too (no strap)
+        let appleSleeps = repo.appleSleeps   // FER-1026: las sesiones reales de Apple también alimentan la regularidad
         let age: Int = model.profile.age
         let sex = model.profile.sex
         let todayKey: String = Repository.localDayKey(Date())
@@ -1551,12 +1551,12 @@ private struct CuerpoLanding: View {
             // norm — so both nocturnal inputs stay single-source. Single-source columns (steps) and cross-source-
             // comparable ones (sleep duration) are untouched. If the user is Apple-only, band RMSSD is empty →
             // `VitalityInputsBuilder`'s coverage gate drops the HRV factor rather than comparing SDNN to the
-            // band norm. A strap-only user is the identity — `recentBand == recent`.
+            // band norm. A legacy-only user is the identity — `recentBand == recent`.
             let recent: [DailyMetric] = trailing(28)
             let recentBand: [DailyMetric] = SourceLens.clearBandColumns(recent)
             // Sleep Regularity Index (FER-214) over a trailing ~35d of sessions, as 0–1 for the engine (SRI/100).
             // nil → the builder's duration proxy. Was `computeSleepRegularity()`; inlined for the hop (FER-955).
-            // FER-1026: feed from Apple + strap sessions (union, no overlap) so Apple-only users keep the SRI
+            // FER-1026: feed from Apple + legacy sessions (union, no overlap) so Apple-only users keep the SRI
             // instead of silently dropping to the duration proxy.
             let recentSleeps = (appleSleeps + sleeps).filter { (s: CachedSleepSession) -> Bool in s.startTs >= regularityCutoff }
             let sleepRegularity: Double? = SleepRegularityIndex.fromSessions(recentSleeps).map { (sri: Double) -> Double in sri / 100.0 }
@@ -1666,7 +1666,7 @@ private struct CuerpoLanding: View {
     }
 
     /// Last night's frequency-domain HRV breakdown (LF/HF/total, ms²) + a per-band «your normal» label,
-    /// read from the `-noop` computed `metricSeries` the pipeline persisted (FER-702). Returns nil when
+    /// read from the computed `metricSeries` partition the pipeline persisted (FER-702). Returns nil when
     /// there is no band-night spectrum, so the section stays hidden (an Apple-only night has none).
     private func loadSpectralHRV() async -> MetricDetailScreen.SpectralHRV? {
         let hf = (await repo.computedSeries(key: "hrv_hf")).sorted { $0.day < $1.day }
@@ -1754,8 +1754,8 @@ private struct CuerpoLanding: View {
     /// Today's mean HR from the 5-minute buckets (nil when there are no readings).
     private var hrTodayAvg: Int? {
         guard hrPoints.count > 1 else { return nil }
-        let v = hrPoints.map(\.value)
-        return Int((v.reduce(0, +) / Double(v.count)).rounded())
+        let readings = hrPoints.map(\.value)
+        return Int((readings.reduce(0, +) / Double(readings.count)).rounded())
     }
 
     /// La línea bajo el héroe mientras calibra. FER-119 le quitó el parámetro `score`; FER-433
@@ -1842,23 +1842,23 @@ private struct LiquidLenteTenidaModifier: ViewModifier {
 #if DEBUG
 #Preview("Cuerpo") {
     let repo = Repository(deviceId: "preview")
-    let cal = Calendar(identifier: .gregorian)
-    let today = cal.startOfDay(for: Date())
-    var sample: [DailyMetric] = []
-    for i in stride(from: 27, through: 0, by: -1) {
-        let date = cal.date(byAdding: .day, value: -i, to: today)!
-        let day = Repository.dayString(date)
-        let phase = Double(i)
-        sample.append(DailyMetric(
-            day: day, totalSleepMin: 420 + 60 * sin(phase / 5), efficiency: 88,
+    let gregoriano = Calendar(identifier: .gregorian)
+    let hoy = gregoriano.startOfDay(for: Date())
+    var muestra: [DailyMetric] = []
+    for atras in stride(from: 27, through: 0, by: -1) {
+        let fecha = gregoriano.date(byAdding: .day, value: -atras, to: hoy)!
+        let clave = Repository.dayString(fecha)
+        let onda = Double(atras)
+        muestra.append(DailyMetric(
+            day: clave, totalSleepMin: 420 + 60 * sin(onda / 5), efficiency: 88,
             deepMin: 95, remMin: 110, lightMin: 200, disturbances: 4,
-            restingHr: 52 + (i % 5), avgHrv: 46 + 12 * sin(phase / 4),
-            recovery: min(max(60 + 30 * sin(phase / 6), 10), 99), strain: 9 + 5 * abs(sin(phase / 4)),
-            exerciseCount: i % 2, spo2Pct: 96 + sin(phase / 3),
-            skinTempDevC: 0.2 * sin(phase / 5), respRateBpm: 14 + sin(phase / 4)
+            restingHr: 52 + (atras % 5), avgHrv: 46 + 12 * sin(onda / 4),
+            recovery: min(max(60 + 30 * sin(onda / 6), 10), 99), strain: 9 + 5 * abs(sin(onda / 4)),
+            exerciseCount: atras % 2, spo2Pct: 96 + sin(onda / 3),
+            skinTempDevC: 0.2 * sin(onda / 5), respRateBpm: 14 + sin(onda / 4)
         ))
     }
-    repo.setDashboard(days: sample)
+    repo.setDashboard(days: muestra)
 
     // FER-985 — CASO CERRADO: el hotspot de type-check de este preview (~198 ms) es `AppModel.preview`
     // de abajo, y la causa es la expansión del macro @Observable sobre AppModel (~20 propiedades

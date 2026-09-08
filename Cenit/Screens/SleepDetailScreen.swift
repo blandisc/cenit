@@ -1135,8 +1135,10 @@ struct SleepDetailScreen: View {
 
     // MARK: - Formateo
 
+    /// Qué porcentaje del total ocupan esos minutos; 0 cuando no hay total del cual sacarlo.
     private func pct(_ minutes: Double, _ total: Double) -> Int {
-        total > 0 ? Int((minutes / total * 100).rounded()) : 0
+        guard total > 0 else { return 0 }
+        return Int((minutes / total * 100).rounded())
     }
 
     private func hoursOnly(_ minutes: Double) -> String {
@@ -1182,9 +1184,9 @@ struct SleepDetailScreen: View {
         if let stored = night.efficiency {
             return stored <= 1.0 ? stored * 100 : stored
         }
-        let bed = night.stages.total
-        guard bed > 0 else { return nil }
-        return Swift.min(100, night.stages.asleep / bed * 100)
+        let enCama = night.stages.total
+        guard enCama > 0 else { return nil }
+        return Swift.min(100, night.stages.asleep / enCama * 100)
     }
 }
 
@@ -1288,10 +1290,10 @@ struct SleepDetailModel {
         var light: Double
         var deep: Double
         var rem: Double
-        /// All stages (includes awake) — total time-in-bed minutes.
-        var total: Double { awake + light + deep + rem }
-        /// Asleep time = total minus awake.
+        /// Minutos dormido: las tres etapas de sueño, sin lo despierto.
         var asleep: Double { light + deep + rem }
+        /// Minutos en cama: lo dormido más lo despierto.
+        var total: Double { asleep + awake }
     }
 
     struct Night: Equatable {
@@ -1302,13 +1304,15 @@ struct SleepDetailModel {
         let stages: Stages
 
         var onsetDate: Date { Date(timeIntervalSince1970: TimeInterval(startTs)) }
-        var dateLabel: String { Self.dateFmt.string(from: Date(timeIntervalSince1970: TimeInterval(startTs))) }
-        private static let dateFmt: DateFormatter = {
-            let f = DateFormatter(); f.dateFormat = "EEE d MMM"; return f
+        var dateLabel: String { Self.formatoFecha.string(from: onsetDate) }
+        private static let formatoFecha: DateFormatter = {
+            let formateador = DateFormatter()
+            formateador.dateFormat = "EEE d MMM"
+            return formateador
         }()
     }
 
-    /// The latest night (strap session preferred, else Apple Health fallback). `nil` → empty state.
+    /// The latest night (a legacy session preferred, else Apple Health fallback). `nil` → empty state.
     let night: Night?
     /// Stage intervals for the hypnogram (empty for Apple-only → proportional bar).
     let intervals: [SleepInterval]
@@ -1327,7 +1331,7 @@ struct SleepDetailModel {
     let regularity: SleepRegularity.Result?
     /// How many timing nights fed (or would feed) the regularity read — for the "N to go" calibration.
     let regularityNights: Int
-    /// Strap naps (shorter than a main night) excluded from the regularity window, so the UI can
+    /// Legacy naps (shorter than a main night) excluded from the regularity window, so the UI can
     /// disclose that they didn't count (FER-310). 0 when none.
     let excludedNapCount: Int
     /// Duration (minutes) of the single excluded nap when `excludedNapCount == 1`, for the "your 2 h
@@ -1340,7 +1344,7 @@ struct SleepDetailModel {
     let typicalLightPct: Double?
 
     // Night metrics
-    /// Sleep performance %: imported WHOOP figure when present, else asleep / personal need (capped 100).
+    /// Sleep performance %: the imported figure when present, else asleep / personal need (capped 100).
     let performancePct: Double?
     /// Need − asleep for last night, in minutes (the "performance" shortfall), floored at 0.
     let shortfallMinutes: Double?
@@ -1415,22 +1419,23 @@ struct SleepDetailModel {
         // and a `.last` read would surface that empty row as "last night". Anchor to the device's
         // local day, mirroring StressModel (FER-224) / ReadinessEngine.
         let days = days.filter { $0.day <= todayKey }
-        // --- Latest night: strap session wins, else Apple Health stage minutes (FER-62). ---
-        // Respiration for the strap night comes from the latest daily metric (the session doesn't
+        // --- Latest night: a legacy session wins, else Apple Health stage minutes (FER-62). ---
+        // Respiration for that night comes from the latest daily metric (the session doesn't
         // carry it), so the Respiration tile shows anoche's value instead of "—". (FER-234)
-        let strap = latestStrapNight(sleeps, respRate: days.last?.respRateBpm)
+        let legacyNight = latestStrapNight(sleeps, respRate: days.last?.respRateBpm)
         // FER-486: an Apple Health session with a real per-epoch stage timeline (watchOS 9+) draws the SAME
-        // hypnogram as a strap night. `appleSleeps` only holds nights the band didn't cover (band wins
-        // upstream), so pick the most recent night across both — Apple wins only when it's newer / strap is nil.
+        // hypnogram as a legacy night. `appleSleeps` only holds nights the band didn't cover (band wins
+        // upstream), so pick the most recent night across both — Apple wins only when it's newer, or the
+        // legacy night is nil.
         let appleNight = latestAppleSessionNight(appleSleeps)
         let useAppleSession: Bool = {
             guard let a = appleNight else { return false }
-            guard let s = strap else { return true }
+            guard let s = legacyNight else { return true }
             return a.startTs > s.startTs
         }()
         let night: Night? = useAppleSession ? appleNight
-                          : (strap ?? appleHealthNight(days: days, appleHealthDays: appleHealthDays))
-        let isApple = useAppleSession || (strap == nil && night != nil)
+                          : (legacyNight ?? appleHealthNight(days: days, appleHealthDays: appleHealthDays))
+        let isApple = useAppleSession || (legacyNight == nil && night != nil)
         let intervals: [SleepInterval] = {
             if useAppleSession, let a = appleSleeps.last {
                 return decodeSegments(a.stagesJSON, sessionStart: a.startTs)?.intervals ?? []
@@ -1439,7 +1444,7 @@ struct SleepDetailModel {
             return decodeSegments(s.stagesJSON, sessionStart: s.startTs)?.intervals ?? []
         }()
 
-        // --- Regularity: onset/wake from real sessions, Apple + strap (FER-1026). `appleSleeps` carry
+        // --- Regularity: onset/wake from real sessions, Apple + legacy (FER-1026). `appleSleeps` carry
         // real startTs/endTs (FER-486) and never overlap on-device nights (`appleSleepsNotCoveredOnDevice`),
         // so the union is every real night; the engine drops naps itself via `SleepMainNight`. Without
         // this, Apple-only users had an empty `timing` → "calibrating" forever. `realSessions` (the union
@@ -1514,8 +1519,8 @@ struct SleepDetailModel {
             let last7 = days.suffix(7)
             let debts = last7.compactMap { d -> Double? in
                 if let debt = importedSleep[d.day]?.debtMin { return debt }
-                guard let asleep = d.totalSleepMin, asleep > 0, need > 0 else { return nil }
-                return Swift.max(0, need - asleep)
+                guard let dormido = d.totalSleepMin, dormido > 0, need > 0 else { return nil }
+                return Swift.max(0, need - dormido)
             }
             return debts.isEmpty ? nil : debts.reduce(0, +)
         }()
@@ -1531,8 +1536,8 @@ struct SleepDetailModel {
         // over history; each skips nights missing that value. ---
         let performanceTrend = metricTrend(days) { d in
             if let p = importedSleep[d.day]?.performancePct { return p }
-            guard let asleep = d.totalSleepMin, asleep > 0, need > 0 else { return nil }
-            return Swift.min(100, asleep / need * 100)
+            guard let dormido = d.totalSleepMin, dormido > 0, need > 0 else { return nil }
+            return Swift.min(100, dormido / need * 100)
         }
         let efficiencyTrend = metricTrend(days) { d in
             d.efficiency.map { $0 <= 1.0 ? $0 * 100 : $0 }
@@ -1622,7 +1627,7 @@ struct SleepDetailModel {
 
     // MARK: - Night resolution (ported from the old sleep screen)
 
-    /// The most recent strap sleep, decoded into stage durations + (when on-device) its real timeline.
+    /// The most recent legacy sleep, decoded into stage durations + (when on-device) its real timeline.
     /// `respRate` is the night's mean respiration, taken from the matching daily metric — the cached
     /// sleep session itself doesn't carry it, so without this the "Respiration" tile read "—" even
     /// though the 14-day trend (sourced from `repo.days`) had data. (FER-234)
@@ -1632,11 +1637,11 @@ struct SleepDetailModel {
             return Night(startTs: s.startTs, endTs: s.endTs, efficiency: s.efficiency,
                          respRate: respRate, stages: stages)
         }
-        if let seg = decodeSegments(s.stagesJSON, sessionStart: s.startTs), seg.stages.total > 0 {
-            return Night(startTs: s.startTs, endTs: s.endTs, efficiency: s.efficiency,
-                         respRate: respRate, stages: seg.stages)
-        }
-        return nil
+        // Sin resumen de etapas, se prueba el arreglo de segmentos que calculó el estadificador.
+        guard let segmentos = decodeSegments(s.stagesJSON, sessionStart: s.startTs),
+              segmentos.stages.total > 0 else { return nil }
+        return Night(startTs: s.startTs, endTs: s.endTs, efficiency: s.efficiency,
+                     respRate: respRate, stages: segmentos.stages)
     }
 
     /// Fallback Night from the most recent Apple Health day carrying sleep-stage minutes (FER-62). No
@@ -1672,15 +1677,18 @@ struct SleepDetailModel {
     private static func decodeStages(_ json: String?) -> Stages? {
         guard let json, let data = json.data(using: .utf8),
               let obj = try? JSONSerialization.jsonObject(with: data),
-              let dict = obj as? [String: Any] else { return nil }
-        func val(_ key: String) -> Double {
-            if let n = dict[key] as? NSNumber { return n.doubleValue }
-            if let d = dict[key] as? Double { return d }
-            if let i = dict[key] as? Int { return Double(i) }
+              let campos = obj as? [String: Any] else { return nil }
+        // El JSON importado trae los minutos como NSNumber, Double o Int según quién lo escribió.
+        func minutos(_ clave: String) -> Double {
+            guard let bruto = campos[clave] else { return 0 }
+            if let numero = bruto as? NSNumber { return numero.doubleValue }
+            if let doble = bruto as? Double { return doble }
+            if let entero = bruto as? Int { return Double(entero) }
             return 0
         }
-        let s = Stages(awake: val("awake"), light: val("light"), deep: val("deep"), rem: val("rem"))
-        return s.total > 0 ? s : nil
+        let etapas = Stages(awake: minutos("awake"), light: minutos("light"),
+                            deep: minutos("deep"), rem: minutos("rem"))
+        return etapas.total > 0 ? etapas : nil
     }
 
     /// Decode the COMPUTED stagesJSON segment array [{start,end,stage}] into stage totals + the real
@@ -1689,31 +1697,30 @@ struct SleepDetailModel {
         guard let json, let data = json.data(using: .utf8),
               let arr = (try? JSONSerialization.jsonObject(with: data)) as? [[String: Any]],
               !arr.isEmpty else { return nil }
-        var stages = Stages(awake: 0, light: 0, deep: 0, rem: 0)
-        var intervals: [SleepInterval] = []
+        var totales = Stages(awake: 0, light: 0, deep: 0, rem: 0)
+        var tramos: [SleepInterval] = []
         for seg in arr {
             guard let start = (seg["start"] as? NSNumber)?.intValue,
                   let end = (seg["end"] as? NSNumber)?.intValue, end > start,
                   let name = seg["stage"] as? String else { continue }
             let minutes = Double(end - start) / 60.0
-            let stage: SleepStage
+            let etapa: SleepStage
             switch name {
-            case "wake", "awake": stage = .awake; stages.awake += minutes
-            case "light": stage = .light; stages.light += minutes
-            case "deep": stage = .deep; stages.deep += minutes
-            case "rem": stage = .rem; stages.rem += minutes
+            case "wake", "awake": etapa = .awake; totales.awake += minutes
+            case "light":         etapa = .light; totales.light += minutes
+            case "deep":          etapa = .deep;  totales.deep += minutes
+            case "rem":           etapa = .rem;   totales.rem += minutes
             default: continue
             }
-            intervals.append(SleepInterval(stage: stage,
-                                           start: TimeInterval(start - sessionStart),
-                                           end: TimeInterval(end - sessionStart)))
+            tramos.append(SleepInterval(stage: etapa,
+                                        start: TimeInterval(start - sessionStart),
+                                        end: TimeInterval(end - sessionStart)))
         }
-        return stages.total > 0 ? (stages, intervals) : nil
+        return totales.total > 0 ? (totales, tramos) : nil
     }
 
     private static func mean(_ vals: [Double]) -> Double? {
-        guard !vals.isEmpty else { return nil }
-        return vals.reduce(0, +) / Double(vals.count)
+        vals.isEmpty ? nil : vals.reduce(0, +) / Double(vals.count)
     }
 }
 #endif

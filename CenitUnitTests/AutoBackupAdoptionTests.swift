@@ -1,8 +1,8 @@
 import XCTest
 @testable import Cenit
 
-/// FER-398 · ronda 2 (D7) — el respaldo automático en iCloud Drive cambió de nombre:
-/// `NOOP-backup.sqlite` → `Cenit-backup.sqlite`.
+/// FER-398 · ronda 2 (D7) — el respaldo automático en iCloud Drive cambió de nombre: el heredado
+/// (`legacyName`, abajo) pasó a `Cenit-backup.sqlite`.
 ///
 /// El riesgo no es el nombre: es la **rotación**. Una carpeta configurada antes de FER-398 ya tiene el
 /// archivo viejo dentro. Si el respaldo nuevo se escribiera al lado, esa copia quedaría congelada para
@@ -16,8 +16,11 @@ final class AutoBackupAdoptionTests: XCTestCase {
 
     private var dest: URL { folder.appendingPathComponent("Cenit-backup.sqlite") }
     private var prev: URL { folder.appendingPathComponent("Cenit-backup.sqlite.prev") }
-    private var legacy: URL { folder.appendingPathComponent("NOOP-backup.sqlite") }
-    private var legacyPrev: URL { folder.appendingPathComponent("NOOP-backup.sqlite.prev") }
+    /// Dato en disco: así se llamaba el respaldo antes de FER-398, y así puede seguir estando en la
+    /// carpeta de iCloud de quien configuró el respaldo hace tiempo.
+    private let legacyName = "NOOP-backup.sqlite"
+    private var legacy: URL { folder.appendingPathComponent(legacyName) }
+    private var legacyPrev: URL { folder.appendingPathComponent("\(legacyName).prev") }
 
     override func setUpWithError() throws {
         folder = fm.temporaryDirectory.appendingPathComponent("auto-backup-\(UUID().uuidString)")
@@ -46,7 +49,7 @@ final class AutoBackupAdoptionTests: XCTestCase {
 
     /// El ciclo completo sobre una carpeta que viene del nombre anterior: al terminar existe
     /// `Cenit-backup.sqlite` con los datos de hoy, el archivo viejo NO se perdió (bajó a `.prev`) y no
-    /// queda ningún `NOOP-backup*` suelto que el selector de restaurar pueda confundir.
+    /// queda ningún archivo con el nombre heredado suelto que el selector de restaurar pueda confundir.
     func testAdoptsTheLegacyBackupInsteadOfLeavingItBeside() throws {
         let db = try write(folder.appendingPathComponent("cenit.sqlite"), "HOY")
         try write(legacy, "AYER")
@@ -60,7 +63,7 @@ final class AutoBackupAdoptionTests: XCTestCase {
                        "y no queda un segundo SQLite congelado junto al vivo")
     }
 
-    /// La copia de rollback del nombre viejo también se adopta: si no, `NOOP-backup.sqlite.prev` se
+    /// La copia de rollback del nombre viejo también se adopta: si no, su `.prev` se
     /// quedaría en la carpeta para siempre como un tercer archivo indistinguible.
     func testAdoptsTheLegacyRollbackCopyToo() throws {
         let db = try write(folder.appendingPathComponent("cenit.sqlite"), "HOY")

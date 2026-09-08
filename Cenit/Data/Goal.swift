@@ -8,7 +8,7 @@ import CenitAnalytics
 // is `TrajectorySimulator` (pure, CenitAnalytics); this layer only resolves "which metric / bounds /
 // hue / copy" and feeds the engine.
 
-/// The measurable NOOP projects toward a goal. Each case maps to an `InsightEngine.Outcome` (see
+/// The measurable the app projects toward a goal. Each case maps to an `InsightEngine.Outcome` (see
 /// `outcome`), so a proven lever (whose `outcome` is that metric's label) composes with the projection
 /// with no special case. "Subir tu condición" fans out to two of them (HRV / resting HR).
 enum GoalMetric: String, Codable, CaseIterable {

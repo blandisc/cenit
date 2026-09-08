@@ -637,6 +637,10 @@ public enum InsightEngine {
         return sig + qScore + eScore + Swift.min(1.0, Swift.max(0.0, recency))
     }
 
-    static func round1(_ x: Double) -> Double { (x * 10).rounded() / 10 }
-    static func round2(_ x: Double) -> Double { (x * 100).rounded() / 100 }
+    /// Recorte por cifras. `escala` es 10 para un decimal y 100 para dos: el motor no necesita más.
+    private static func recorta(_ x: Double, escala: Double) -> Double {
+        (x * escala).rounded() / escala
+    }
+    static func round1(_ x: Double) -> Double { recorta(x, escala: 10) }
+    static func round2(_ x: Double) -> Double { recorta(x, escala: 100) }
 }

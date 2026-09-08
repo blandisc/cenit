@@ -11,7 +11,7 @@ import CenitStore
 
 /// The post-session receipt (FER-409): everything `summaryPhase` renders, computed once at finish in
 /// `AppModel`. A plain value type — no live recompute. `strain`/`costBand` stay nil until a session
-/// carries strap HR (FER-399); the view omits those blocks rather than inventing a zero.
+/// carries HR from the wearable (FER-399); the view omits those blocks rather than inventing a zero.
 struct StrengthSummary: Equatable {
     var routineName: String
     /// When the session was saved (drives the receipt's «Sesión guardada · {fecha}» overline).
@@ -34,7 +34,7 @@ struct StrengthSummary: Equatable {
     /// isn't ~2 weeks of recovery base (then the projection line is hidden). (FER-442)
     var costTomorrowPct: Int?
     /// Energy spent this session (kcal) and where it came from (FER-715): `.bandCalculated` (Keytel over
-    /// strap HR) or `.estimated` (MET fallback). `nil` only for a legacy session with no persisted energy.
+    /// HR from the wearable) or `.estimated` (MET fallback). `nil` only for a legacy session with no persisted energy.
     var energyKcal: Double?
     var energySource: EnergySource?
     var prs: [PR]
@@ -326,7 +326,7 @@ final class StrengthSessionModel: ObservableObject {
     /// FER-969 (X-01): the final save failed — the sheet shows an honest banner with retry; the
     /// in-progress snapshot (FER-798) stays on disk until a save actually lands.
     @Published var saveError = false
-    /// Strap HR captured during the session (FER-399), in memory only — fed by `AppModel.ingestHR` on the
+    /// HR del dispositivo anterior capturado durante la sesión (FER-399), solo en memoria — lo alimenta `AppModel.ingestHR` en el
     /// main actor. Drives avgHr/strain + the Keytel calorie estimate at finish; never persisted as a series.
     var hrSamples: [HRSample] = []
     /// La semana del programa en la que se sirvió esta sesión, y si se sirvió LIGERA (ola 1 · E10,
@@ -742,7 +742,7 @@ final class StrengthSessionModel: ObservableObject {
     }
 
     /// Resolve the HR rest target once on entry (FER-495/506), for a set's effective `RestConfig`. The set
-    /// peak is the max strap sample in the ~90 s up to `doneTs` (the just-finished set's effort).
+    /// peak is the max sample in the ~90 s up to `doneTs` (the just-finished set's effort).
     /// `restingMargin`/no-target with a baseline → HR mode using FER-348's default; no honest target and no
     /// baseline → degrade to the fixed timer.
     private func computeRestTarget(rest: RestConfig, doneTs: Int, restingHR: Double?, maxHR: Double?,

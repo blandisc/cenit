@@ -23,7 +23,7 @@ enum ScreenshotFixtures {
 
     /// The requested fixture state, or nil when not in fixture mode. `-cenit.fixture empty` (and an
     /// absent argument) both return nil so the app takes its normal empty/first-launch path.
-    /// FER-711 adds `calibrating` (the `··` numeral — a strap seen, base not yet seeded) so the
+    /// FER-711 adds `calibrating` (the `··` numeral — a device seen, base not yet seeded) so the
     /// «numeral nunca miente» discipline of the states map is deterministically capturable.
     static func activeState() -> String? {
         // SIMULATOR-ONLY, ALWAYS. The fixtures write demo routines/sessions/workouts into the REAL
@@ -63,16 +63,16 @@ enum ScreenshotFixtures {
         let cal = Calendar(identifier: .gregorian)
         let today = cal.startOfDay(for: Date())
 
-        // FER-711 · calibrating (`··`): a strap has been seen but only a couple of nights are banked,
+        // FER-711 · calibrating (`··`): a device has been seen but only a couple of nights are banked,
         // below the recovery seed gate — so Today renders its calibrating / cold-start state (never a
-        // fake number). Seed a short strap history with usable HRV and NO recovery on
-        // any row (recovery stays nil until the baseline seeds), and mark the strap as seen.
+        // fake number). Seed a short legacy history with usable HRV and NO recovery on
+        // any row (recovery stays nil until the baseline seeds), and mark the device as seen.
         // FER-436 · provisional: la MISMA siembra con `minNightsSeed + 2` noches (6): la base ya
         // sembró pero no es firme (4 ≤ noches < 14), así que hay veredicto real y provisional. Es la
         // palanca del qa para el hito «Primera lectura»: primera ejecución con `calibrating`
         // (registra «no cruzado»), relanzar con `provisional` (cruza la noche 4 → dispara una vez).
         if state == "calibrating" || state == "provisional" {
-            // Ola 2: strap-seen fixture no longer applicable (no strap live state); calibrating is driven by night count alone.
+            // Ola 2: el fixture de «dispositivo visto» ya no aplica (no hay estado vivo); calibrando se decide solo por el conteo de noches.
             let nights = state == "provisional" ? Baselines.minNightsSeed + 2 : 2
             var days: [DailyMetric] = []
             for ago in stride(from: nights, through: 0, by: -1) {
@@ -252,7 +252,7 @@ enum ScreenshotFixtures {
 
         // FER-1030: the Liquid Hoy hero/axes read `repo.todayPreparedness`, not `days` directly — compute
         // it with the real engine over the same synthetic history so the fixture states drive the hero
-        // (no `trend`/`strainByDay`: the autonomic axis reads `days` alone, matching a whoopOnly user).
+        // (no `trend`/`strainByDay`: the autonomic axis reads `days` alone, matching a legacyOnly user).
         let preparedness = Preparedness.evaluate(.init(
             days: days, strainByDay: [:], trend: nil, asOf: Repository.localDayKey(today)))
 
@@ -468,10 +468,14 @@ enum ScreenshotFixtures {
     /// plus a dense 8-week bench progression (2 sessions/week, a raise every ~2) so «Detalle · Progreso»
     /// draws real charts — 1RM trend, best-set sparkline, weekly volume bars — and «Historial» shows
     /// day blocks with set chips + the RÉCORD badge on today (FER-951).
+    /// Dato en disco: el valor de `source` con el que quedaron marcadas las filas del dispositivo
+    /// anterior. El fixture lo reproduce para que `WorkoutSource.classify` lo lea igual que en real.
+    private static let legacyWorkoutSource = "whoop"
+
     private static func seedSessions(store: CenitStore, pushId: String, pullId: String, legsId: String) async {
         let cal = Calendar(identifier: .gregorian)
         /// Matches `AppModel.legacyDeviceId`, so `Repository.workoutRows` joins the journal row (zones/max HR).
-        let journalDeviceId = "strap"
+        let journalDeviceId = Repository.legacyDeviceId
 
         /// One completed session — optionally MULTI-exercise (`extras`), with strain/HR/kcal/notes and,
         /// when `zones` is set, a time-overlapping journal `WorkoutRow` so the detail's HR-zones bar
@@ -498,7 +502,7 @@ enum ScreenshotFixtures {
             if zones {
                 let row = WorkoutRow(
                     startTs: start, endTs: end,
-                    sport: "Strength Training", source: "whoop",
+                    sport: "Strength Training", source: Self.legacyWorkoutSource,
                     durationS: Double(end - start), energyKcal: energyKcal,
                     avgHr: avgHr, maxHr: avgHr.map { $0 + 36 }, strain: strain, distanceM: nil,
                     zonesJSON: #"{"z1":8,"z2":22,"z3":40,"z4":25,"z5":5}"#,

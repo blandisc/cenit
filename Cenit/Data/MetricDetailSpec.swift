@@ -193,7 +193,7 @@ struct MetricDetailSpec: Identifiable {
         MetricDetailSpec(
             descriptor: MetricDescriptor(
                 key: "heart_rate", title: String(localized: "Heart Rate"), category: "Heart",
-                unit: String(localized: "bpm"), source: "strap", icon: "waveform.path.ecg",
+                unit: String(localized: "bpm"), source: Repository.legacyDeviceId, icon: "waveform.path.ecg",
                 decimals: 0, higherIsBetter: nil),
             info: .heartRate(avgBpm: avgBpm),
             blocks: [.intradayCurve, .hrZones, .method],
@@ -243,7 +243,7 @@ struct MetricDetailSpec: Identifiable {
         // Every key here is a known catalog entry; the fallback keeps the call non-optional.
         MetricCatalog.all.first { $0.key == key }
             ?? MetricDescriptor(key: key, title: key, category: "Recovery", unit: "",
-                                source: "strap", icon: "waveform.path.ecg", decimals: 0,
+                                source: Repository.legacyDeviceId, icon: "waveform.path.ecg", decimals: 0,
                                 higherIsBetter: nil)
     }
 }

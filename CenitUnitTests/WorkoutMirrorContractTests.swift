@@ -7,6 +7,9 @@ import CenitTraining   // C1 (FER-361): the wire now carries StrengthSessionSnap
 /// behaves across the four scenarios. All pure — verifies headless, no watch or HealthKit needed.
 final class WorkoutMirrorContractTests: XCTestCase {
 
+    /// Dato en disco: el prefijo de la llave con la que quedaron escritos los `HKWorkout` viejos.
+    private static let legacyKeyPrefix = "noop:strength:"
+
     // MARK: INV-1 — every message round-trips through JSON unchanged
 
     func testAllMessagesRoundTrip() throws {
@@ -37,8 +40,9 @@ final class WorkoutMirrorContractTests: XCTestCase {
             .rest(snapshot),
             .restEnded(sessionId: "s1", recovered: false),
             .end(sessionId: "s1", endedAt: Date(timeIntervalSince1970: 2_000), save: true,
-                 externalUUID: "noop:strength:s1"),
-            .watchDidSaveWorkout(sessionId: "s1", externalUUID: "noop:strength:s1"),
+                 externalUUID: WorkoutMirrorKey.legacyExternalUUID(for: "s1")),
+            .watchDidSaveWorkout(sessionId: "s1",
+                                 externalUUID: WorkoutMirrorKey.legacyExternalUUID(for: "s1")),
             .watchWillNotSave(sessionId: "s1", reason: .noPermission),
             // FER-808 — wrist-initiated actions (watch → iPhone).
             .completeSet(sessionId: "s1", ts: Date(timeIntervalSince1970: 1_700_000_000)),
@@ -117,10 +121,10 @@ final class WorkoutMirrorContractTests: XCTestCase {
     // MARK: INV-3 — the shared idempotency key matches HealthKitBridge's format exactly
 
     func testExternalUUIDFormat() {
-        // FER-398 moved the prefix off the NOOP name. Safe only because the delete-by-key that
+        // FER-398 moved the prefix off the name the app shipped under before. Safe only because the delete-by-key that
         // precedes every save accepts BOTH spellings — see `WorkoutExternalUUIDDedupeTests`.
         XCTAssertEqual(WorkoutMirrorKey.externalUUID(for: "42"), "cenit:strength:42")
-        XCTAssertEqual(WorkoutMirrorKey.legacyExternalUUID(for: "42"), "noop:strength:42")
+        XCTAssertEqual(WorkoutMirrorKey.legacyExternalUUID(for: "42"), Self.legacyKeyPrefix + "42")
         // Same session id ⇒ same key on both devices (the whole point of the invariant).
         XCTAssertEqual(WorkoutMirrorKey.externalUUID(for: "xyz"),
                        WorkoutMirrorKey.externalUUID(for: "xyz"))

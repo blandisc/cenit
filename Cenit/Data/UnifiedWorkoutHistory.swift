@@ -14,7 +14,7 @@ import CenitImport     // WorkoutHealthKitDedup (FER-362 · C4)
 // `CenitImport.WorkoutHealthKitDedup` (FER-362 · C4, ola A) — puro, sin dependencia de CenitStore.
 // `merge` solo traduce `WorkoutRow`/`StrengthSession` a las DTOs mínimas del motor y aplica el
 // resultado; ver el docstring de ese tipo para el porqué de cada paso. Solo el eco/colapso de APPLE
-// cuenta: las filas `manual` / `detected` / `whoop` NUNCA se de-duplican (son datos que el usuario
+// cuenta: las filas manuales, detectadas y las del dispositivo anterior NUNCA se de-duplican (son datos que el usuario
 // metió o que otra fuente aportó, no un eco de una sesión rica).
 
 /// Una entrada de la línea de tiempo: una sesión de fuerza rica de Cénit, o una fila de actividad.

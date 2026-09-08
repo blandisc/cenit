@@ -618,10 +618,10 @@ struct StrengthHistoryImportSheet: View {
     }
 
     private func monthYear(_ date: Date) -> String {
-        let f = DateFormatter()
-        f.locale = .autoupdatingCurrent
-        f.setLocalizedDateFormatFromTemplate("MMMyyyy")
-        return f.string(from: date)
+        let formateador = DateFormatter()
+        formateador.locale = .autoupdatingCurrent
+        formateador.setLocalizedDateFormatFromTemplate("MMMyyyy")
+        return formateador.string(from: date)
     }
 
     private func duplicateDetail(_ dup: StrengthCSVImporter.PossibleDuplicate) -> String {
@@ -635,8 +635,9 @@ struct StrengthHistoryImportSheet: View {
 
     private func handleImport(_ result: Result<URL, Error>) {
         guard case .success(let url) = result else { return }
-        let scoped = url.startAccessingSecurityScopedResource()
-        defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+        // El archivo llega del selector del sistema: se abre su alcance y se cierra al salir.
+        let alcanceAbierto = url.startAccessingSecurityScopedResource()
+        defer { if alcanceAbierto { url.stopAccessingSecurityScopedResource() } }
         guard let data = try? Data(contentsOf: url) else {
             parseErrorKey = String(localized: "We couldn’t read that file. Pick the original .csv and try again.")
             return

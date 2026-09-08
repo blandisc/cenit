@@ -49,7 +49,7 @@ final class RepositoryWriteErrorTests: XCTestCase {
     // MARK: - resetContributedPatrones
 
     /// Seeds journal + experiment + diet adherence + diet-adherence metric point, resets, and
-    /// asserts every contributed partition is empty under `noop-journal`.
+    /// asserts every contributed partition is empty under the journal source id.
     func testResetContributedPatronesWipesJournalExperimentAdherenceAndMetricSeries() async throws {
         let jid = Repository.journalDeviceId
 

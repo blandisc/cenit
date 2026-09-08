@@ -6,9 +6,9 @@ import CenitImport
 import CenitTraining
 
 /// Import an LLM-generated workout program (FER-496) — the «trae-tu-propio-LLM» path, mirroring Diet
-/// capture (FER-371). NOOP hands out a prompt, the user runs it in their own AI with their plan, and
+/// capture (FER-371). Cénit hands out a prompt, the user runs it in their own AI with their plan, and
 /// brings back a `cenit.workout.v1` file; importing it creates the real routines of the strength tracker.
-/// NOOP never calls the network — the user runs the LLM step.
+/// Cénit never calls the network — the user runs the LLM step.
 ///
 /// «Liquid Glass · El Eje»: there's no measured datum here, so the screen is all-ink on glass; the
 /// Confirm step accents each routine with its type's hue (owner decision, Jul 2026), and the rest of
@@ -61,11 +61,12 @@ struct WorkoutImportView: View {
     @State private var saveError = false
     private var midWork: Bool { phase == .mapping || phase == .confirm }
 
-    /// The user's weight unit (kg / lb), for the confirm-step preview only — stored weights are kg.
-    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw = UnitSystem.metric.rawValue
+    /// La unidad de peso de la persona (kg / lb), sólo para la vista previa del paso de confirmar:
+    /// lo que se guarda va siempre en kilos.
+    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw: String = UnitSystem.metric.rawValue
     /// Inject: recarga en caliente para esta pantalla (dev-only, no-op en Release).
     @ObserveInjection private var inject
-    private var unitSystem: UnitSystem { UnitSystem(rawValue: unitSystemRaw) ?? .metric }
+    private var unitSystem: UnitSystem { .init(rawValue: unitSystemRaw) ?? .metric }
 
     private let importer = WorkoutProgramImporter()
 
@@ -628,8 +629,9 @@ struct WorkoutImportView: View {
 
     private func handleImport(_ result: Result<URL, Error>) {
         guard case .success(let url) = result else { return }
-        let scoped = url.startAccessingSecurityScopedResource()
-        defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+        // El archivo llega del selector del sistema: se abre su alcance y se cierra al salir.
+        let alcanceAbierto = url.startAccessingSecurityScopedResource()
+        defer { if alcanceAbierto { url.stopAccessingSecurityScopedResource() } }
         guard let data = try? Data(contentsOf: url) else { parseError = .notJSON; return }
         parse(data: data)
     }

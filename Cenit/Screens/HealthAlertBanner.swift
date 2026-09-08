@@ -1,8 +1,8 @@
 import SwiftUI
 import CenitDesign
 
-/// Strain/illness early-warning banner. Observes AppModel in isolation so the ~1 Hz HR stream
-/// re-renders only this small view, not the whole screen. Renders nothing when there's no alert.
+/// Franja de aviso temprano (esfuerzo / posible enfermedad). Observa `AppModel` por su cuenta, así
+/// el pulso de ~1 Hz redibuja solo esta franja y no la pantalla entera. Sin aviso, no pinta nada.
 ///
 /// Liquid Glass · El Eje (FER-245 / FER-280·2c): receta → `LiquidAviso` (ganadora
 /// `LiquidPatternBlock` + `liquidTarjetaSeccion`). Judgment color lives only on the side bar;
@@ -37,13 +37,15 @@ struct HealthAlertBanner: View {
     }
 
     var body: some View {
-        if let alert = model.healthAlert {
-            contenido(alert, severidad: .atencion)
+        if let texto = model.healthAlert {
+            franja(texto, severidad: .atencion)
         }
     }
 
-    private func contenido(_ alert: String, severidad: Severidad) -> some View {
-        LiquidAviso(titulo: severidad.overline, cuerpo: alert, tono: severidad.tono)
+    private func franja(_ texto: String, severidad: Severidad) -> some View {
+        LiquidAviso(titulo: severidad.overline,
+                    cuerpo: texto,
+                    tono: severidad.tono)
     }
 }
 

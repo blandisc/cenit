@@ -22,7 +22,10 @@ let package = Package(
                 "CenitModels",
                 "BiometricStreams",
             ],
-            resources: [.copy("Resources/effort-pulse-oracle.json")],
+            resources: [
+                .copy("Resources/effort-pulse-oracle.json"),
+                .copy("Resources/daily-stress-oracle.json"),
+            ],
             swiftSettings: [.enableExperimentalFeature("StrictConcurrency")]
         ),
     ]

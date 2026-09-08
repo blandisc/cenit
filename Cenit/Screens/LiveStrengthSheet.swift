@@ -39,7 +39,7 @@ struct LiveStrengthSheet: View {
     @Environment(\.scenePhase) private var scenePhase
     @EnvironmentObject private var tabRouter: TabRouter
     @ObservedObject var session: StrengthSessionModel
-    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw = UnitSystem.metric.rawValue
+    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw: String = UnitSystem.metric.rawValue
     /// FER-87 · the acta's «Guardado en Salud» row needs to know whether the iPhone's opt-in Health
     /// mirror is even on (off by default) — the same gate `saveStrengthWorkoutIfEnabled` itself reads
     /// (`HealthKitBridge.swift`), so the row never claims a save the engine wouldn't have attempted.
@@ -214,7 +214,7 @@ struct LiveStrengthSheet: View {
     /// Profile HR-max (Tanaka if no override) — the Karvonen ceiling.
     private var profileMaxHR: Double { Double(model.profile.hrMax) }
 
-    private var units: UnitSystem { UnitSystem(rawValue: unitSystemRaw) ?? .metric }
+    private var units: UnitSystem { .init(rawValue: unitSystemRaw) ?? .metric }
     private var imperial: Bool { units == .imperial }
     /// Plate step: 2.5 kg metric, 5 lb imperial — stored as kg.
     private var weightStepKg: Double { imperial ? 5 * Self.kgPerPound : 2.5 }
@@ -651,8 +651,8 @@ struct LiveStrengthSheet: View {
                 setText: run.sets.first(where: { $0.id == target.setId })?.note ?? "",
                 history: noteHistory,
                 onSave: { scope, text in
-                    let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-                    let value: String? = trimmed.isEmpty ? nil : trimmed
+                    let limpio = text.trimmingCharacters(in: .whitespacesAndNewlines)
+                    let value: String? = limpio.isEmpty ? nil : limpio
                     switch scope {
                     case .exercise: session.setExerciseNote(exercise: target.id, text: value)
                     case .set: session.setSetNote(exercise: target.id, set: target.setId, text: value)
@@ -1446,7 +1446,7 @@ struct LiveStrengthSheet: View {
         session.receiptCountUpPlayed = true
     }
 
-    /// «Sesión guardada · jue 2 jul» + the data-origin dot for the energy figure (strap Keytel vs MET).
+    /// «Sesión guardada · jue 2 jul» + the data-origin dot for the energy figure (Keytel over the wearable's HR vs MET).
     private func receiptHeader(_ s: StrengthSummary) -> some View {
         HStack(spacing: LiquidSpace.s200) {
             Text("\(String(localized: "Session saved")) · \(receiptDate(s.endTs))")
@@ -1478,7 +1478,7 @@ struct LiveStrengthSheet: View {
     /// The data-origin row on the receipt (FER-716): where this session's energy figure came from — the
     /// watch (Keytel, revived FER-226) or an estimate (MET fallback). `.bandCalculated`'s RAW VALUE stays
     /// `"band_calculated"` (persisted, `Training.swift`) — only the human-facing copy changed; the app has
-    /// no strap any more (F7 "la banda nunca existió").
+    /// no wearable any more (F7 «la banda nunca existió»).
     private func originRow(_ src: EnergySource) -> some View {
         HStack(spacing: LiquidSpace.s125) {
             Circle().fill(src == .bandCalculated ? LiquidColor.verdeCarga : LiquidColor.tinta500)
@@ -1775,7 +1775,7 @@ struct LiveStrengthSheet: View {
     }
 
     /// The kcal figure carries the same «estimated» qualifier `receiptStats` used to show (FER-715
-    /// origin: Keytel over strap HR vs. MET fallback) — moved here so it isn't lost, not dropped.
+    /// origin: Keytel over the wearable's HR vs. MET fallback) — moved here so it isn't lost, not dropped.
     /// `static` (not `private`) so `CenitUnitTests` can call it directly, same as `Self.clock` below.
     static func healthSavedText(_ s: StrengthSummary) -> String {
         guard let kcal = s.energyKcal else { return String(localized: "Saved to Health") }

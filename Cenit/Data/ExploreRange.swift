@@ -9,7 +9,8 @@ import CenitAnalytics
 // (`MetricDetailScreen`, FER-185). Extracted from `MetricExplorerView.swift` so the
 // new screen doesn't have to import the Explorer to reuse the window model.
 
-/// The W/M/3M/6M/1Y/ALL window, driving the single SegmentedPillControl.
+/// La ventana de tiempo que el usuario elige —semana, mes, trimestre, medio año, año o todo— y que
+/// gobierna el control de píldoras que aparece arriba de cada gráfica.
 enum ExploreRange: Int, CaseIterable, Identifiable, Hashable {
     case week = 7, month = 30, quarter = 90, half = 180, year = 365, all = 0
     var id: Int { rawValue }
@@ -41,7 +42,7 @@ enum ExploreRange: Int, CaseIterable, Identifiable, Hashable {
         case .all:     return String(localized: "all history")
         }
     }
-    /// Trailing days the window spans (nil = everything).
+    /// Cuántos días hacia atrás abarca la ventana. Nada significa «todo el historial».
     var days: Int? { self == .all ? nil : rawValue }
 
     /// The trend chip's comparison for `series`: this window vs the equally-long window before it. `.all`
@@ -68,8 +69,10 @@ enum ExploreRange: Int, CaseIterable, Identifiable, Hashable {
     /// Ascending order of every range, the basis for the auto-expand search.
     private static let ascending: [ExploreRange] = [.week, .month, .quarter, .half, .year, .all]
 
-    /// This range plus every LARGER range, ascending — the auto-expand search order
-    /// when the selected window holds zero points. ALW always terminates the chain.
+    /// Esta ventana y todas las MÁS GRANDES, de menor a mayor.
+    ///
+    /// Es el orden en que se busca cuando la ventana elegida no tiene ni un punto: la gráfica se
+    /// abre sola hasta encontrar datos. «Todo» cierra la cadena, así que la búsqueda siempre acaba.
     var widening: [ExploreRange] {
         guard let i = Self.ascending.firstIndex(of: self) else { return [.all] }
         return Array(Self.ascending[i...])

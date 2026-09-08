@@ -403,8 +403,8 @@ struct ChangeExerciseSheet: View {
     /// Autocontenido (comentario propio del archivo): la hoja no recibe `system:` — igual que
     /// `ExerciseLibraryScreen`, lee su propia unidad para no forzar un cambio de firma en el call
     /// site de E5 (`LiveStrengthSheet.swift:394`, fuera de esta fase).
-    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw = UnitSystem.metric.rawValue
-    private var units: UnitSystem { UnitSystem(rawValue: unitSystemRaw) ?? .metric }
+    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw: String = UnitSystem.metric.rawValue
+    private var units: UnitSystem { .init(rawValue: unitSystemRaw) ?? .metric }
     @State private var showLibrary = false
 
     /// Same-muscle shortlist when the field is empty; a name search over the whole library otherwise. The

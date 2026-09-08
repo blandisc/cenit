@@ -4,7 +4,7 @@ import CenitTraining
 
 /// FER-806 — pins the full-session Live Activity: the session-phase derivation, the additive contract
 /// (back-compat across an app update + the new resume action), and the snapshot's v2 fields. Pure model /
-/// codec — verifies headless, no widget, strap or HealthKit needed.
+/// codec — verifies headless: no widget, no wearable and no HealthKit needed.
 @MainActor
 final class RestActivityFER806Tests: XCTestCase {
 

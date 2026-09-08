@@ -43,8 +43,8 @@ struct RoutineSheet: View {
     @EnvironmentObject var repo: Repository
     @Environment(AppModel.self) var model
     @EnvironmentObject private var mediaCoordinator: MediaDownloadCoordinator
-    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw = UnitSystem.metric.rawValue
-    var system: UnitSystem { UnitSystem(rawValue: unitSystemRaw) ?? .metric }
+    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw: String = UnitSystem.metric.rawValue
+    var system: UnitSystem { .init(rawValue: unitSystemRaw) ?? .metric }
 
     @State var loaded = false
     @State var routine: Routine?
@@ -494,8 +494,8 @@ struct RoutineSheet: View {
                 exerciseText: items[idx].re.note ?? "", setText: "",
                 history: noteHistory,
                 onSave: { _, text in
-                    let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-                    items[idx].re.note = trimmed.isEmpty ? nil : trimmed
+                    let limpio = text.trimmingCharacters(in: .whitespacesAndNewlines)
+                    items[idx].re.note = limpio.isEmpty ? nil : limpio
                     dirty = true
                     noteTarget = nil
                 },

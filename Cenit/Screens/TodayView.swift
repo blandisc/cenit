@@ -8,9 +8,7 @@ import Foundation
 
 
 // MARK: - Hoy (FER-709 · FER-1045 · FER-41)
-//
 // The home screen. TWO surfaces, both Liquid Glass over the same ambient background:
-//
 //   · WITH SOURCES → `liquidSurface`, the Liquid Glass composition fed by the pure builder
 //     (`LiquidHoyBuilder`): the Ecosistema hero (the particle orb + its moons + the guardian)
 //     and the board below it.
@@ -21,7 +19,6 @@ import Foundation
 //
 // The header (date · live BPM · the 34pt `DialSeal` that is both the 24h signature and the
 // pull-to-refresh spinner) rides above both.
-//
 // Pull-to-refresh: the seal winds up with the pull and spins while syncing; the tile values settle
 // straight to their numbers (no count-up or reveal sequence on completion).
 
@@ -90,10 +87,10 @@ struct TodayView: View {
     // Inject: el hook vive en el struct NO privado más externo del archivo (regla PR#1036);
     // interponer el `body` global arma la copia fresca del archivo completo, privados incluidos.
     @ObserveInjection private var inject
-    @EnvironmentObject var repo: Repository
+    @EnvironmentObject private var repo: Repository
 
     #if os(iOS)
-    // iOS-only: the root app state, so the first-launch empty state's "Scan for strap" CTA can kick
+    // iOS-only: the root app state, so the first-launch empty state's connect CTA can kick
     // off a real BLE scan (`AppModel.scan()`). macOS never renders the iOS body, so it never reads this.
     @Environment(AppModel.self) var model
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -180,19 +177,20 @@ struct TodayView: View {
     private let pullThreshold: CGFloat = 96
     #endif
 
-    @State private var appleDays: [AppleDaily] = []
-    // FER-663: la estimación de pasos on-device por día (key "steps_est", fuente computada "-noop"),
-    // oldest→newest. Solo la escribe el motor para una WHOOP 4.0 calibrada (en 5/MG el contador nativo
+    @State private var appleRows: [AppleDaily] = []
+    // FER-663: la estimación de pasos on-device por día (clave "steps_est", en la partición computada),
+    // del más viejo al más nuevo. Solo la escribía el motor del dispositivo anterior ya calibrado (donde el contador nativo
     // manda y la serie queda vacía). El tile de Pasos cae a ella únicamente cuando el día no tiene
     // conteo real de Apple Salud — y siempre rotulada «est.» para que nunca se lea como conteo medido.
     @State private var stepsEst: [(day: String, value: Double)] = []
     // Apple-Health daily metric rows (sleep/HRV/RHR/SpO₂) read straight from the apple-health source,
-    // so Key Metrics can fall back to them when a strap row clobbered Apple's row for the day in the
-    // dashboard merge (e.g. a WHOOP 4.0 that didn't decode HRV/sleep). (FER-98)
+    // so Key Metrics can fall back to them when a legacy row clobbered Apple's row for the day in the
+    // dashboard merge (e.g. a device that didn't decode HRV/sleep). (FER-98)
     @State private var appleMetricDays: [DailyMetric] = []
 
-    // Today's heart rate as 5-minute bucket means (midnight → now), for the 24h trend chart.
-    @State private var hrPoints: [TrendPoint] = []
+    /// El pulso de hoy en cubos de 5 minutos (medianoche local → ahora): lo que traza la curva
+    /// de 24 h.
+    @State private var hrCurve: [TrendPoint] = []
 
     // Today's stress (0–3 autonomic proxy) for the «Estrés» tile — the same transparent model
     // StressView builds, computed once per load from `repo.displayDays` + the stored "stress" series. (FER-180)
@@ -236,7 +234,7 @@ struct TodayView: View {
     @State private var metricSpec: MetricDetailSpec? = nil
     /// Carga de entrenamiento (FER-705 · handoff «Carga»): el ACWR + la serie band-masked que alimenta la
     /// franja fija bajo las pestañas y su hoja. Se siembra en `recomputeDerived` (misma fuente que la
-    /// tarjeta de Tendencias, `CuerpoView.loadAll`, para que nunca discrepen de la banda).
+    /// tarjeta de Tendencias, `CuerpoView.loadAll`, para que nunca discrepen de la franja).
     @State private var trainingLoad: TrainingLoadModel? = nil
     /// La hoja de carga (montada al tocar la franja).
     @State private var trainingLoadItem: TrainingLoadItem? = nil
@@ -273,7 +271,7 @@ struct TodayView: View {
     }
 
     /// Siembra el veredicto + los conteos UNA vez por refresh. La llama el `.task(id: repo.refreshSeq)`
-    /// (vía `loadAll()`). FER-982: la derivación pesada (3–4× `ReadinessEngine.evaluate`, cada uno ordena
+    /// (vía `leerElDia()`). FER-982: la derivación pesada (3–4× `ReadinessEngine.evaluate`, cada uno ordena
     /// TODO `repo.days`, + máscaras) ya NO corre en el MainActor — se snapshotean los
     /// inputs value-type en main y el cómputo puro hopea a un executor de fondo (mismo patrón que
     /// `PreparacionDetalleModelo.buildDetached`, FER-953/954). Solo los resultados vuelven a main; el body
@@ -324,7 +322,7 @@ struct TodayView: View {
 
     var body: some View {
         iosBody
-            .task(id: repo.refreshSeq) { await loadAll() }
+            .task(id: repo.refreshSeq) { await leerElDia() }
             .task(id: repo.refreshSeq) {
                 // FER-1045: la sesión de sueño de anoche (desde ayer mediodía) para el dial-sello.
                 let calendar = Calendar.current
@@ -334,11 +332,11 @@ struct TodayView: View {
                 liquidNight = Self.nightWindow(sessions: sessions, calendar: calendar)
                 nocheTerminaHoy = Self.hayNocheQueTerminaHoy(sessions: sessions, calendar: calendar)
             }
-            // «Hoy» nunca pedía la carga del strap por su cuenta: dependía del sondeo del keep-alive
+            // «Hoy» nunca pedía la carga del dispositivo anterior por su cuenta: dependía del sondeo del keep-alive
             // (cada ~60 s, y SUSPENDIDO durante el offload), así que tras el sync matutino la batería
             // quedaba en `nil` y el header no la mostraba. Refresca la lectura al aparecer y cuando el
-            // enlace queda libre —recién conectado o terminó el backfill—, respetando no picar al strap
-            // a mitad del offload (la WHOOP 4.0 la trae por GET_BATTERY_LEVEL, el mismo comando que ya
+            // enlace queda libre —recién conectado o terminó el backfill—, respetando no picarlo
+            // a mitad del offload (venía por GET_BATTERY_LEVEL, el mismo comando que ya
             // usan el keep-alive y Live; no se agrega ninguno nuevo al set seguro).
             // FER-73 · INT-05: aquí vivía un `ToolbarItem` con el corazón de «Apoya a Cénit» y
             // su `SupportModalOverlay`. Era un control MUERTO: Hoy no vive dentro de un
@@ -424,7 +422,7 @@ struct TodayView: View {
                     whatMovesItLoader: spec.blocks.contains(.whatMovesIt)
                         ? { whatMovesItFindings(for: spec.descriptor.key) }
                         : nil,
-                    intradayCurveLoader: spec.blocks.contains(.intradayCurve) ? { hrPoints } : nil,
+                    intradayCurveLoader: spec.blocks.contains(.intradayCurve) ? { hrCurve } : nil,
                     // VIT-06 (FER-702): el desglose espectral de VFC, igual que CuerpoView :448
                     // — sin él, el detalle abierto desde Hoy perdía la sección entera.
                     spectralLoader: spec.descriptor.key == "hrv" ? { await loadSpectralHRV() } : nil,
@@ -509,7 +507,7 @@ struct TodayView: View {
 
     /// Builds the metric detail sheet in Liquid Glass · El Eje and decides the "connect Apple Salud"
     /// hint: shown only for Apple-sourceable metrics that aren't connected and have no value yet;
-    /// strap-only metrics (strain, heart rate) never get it. The connect action itself stays in Today.
+    /// legacy-only metrics (strain, heart rate) never get it. The connect action itself stays in Today.
     /// (FER-162 / FER-342)
     /// ¿Los pasos que se muestran hoy vienen de una ESTIMACIÓN en el teléfono y no de un
     /// conteo real de Apple? El tile ya lo rotulaba «est.», pero la hoja del mismo dato
@@ -524,9 +522,9 @@ struct TodayView: View {
         let appleCapable = ["sleep", "hrv", "rhr", "spo2", "steps",
                             "skin_temp", "resp_rate"].contains(info.id)
         let notConnected = health.auth != .authorized && health.auth != .unavailable
-        // ¿El valor que se muestra vino de Apple Salud (no del strap)? MISMA resolución que el tile de Hoy:
+        // ¿El valor que se muestra vino de Apple Salud (no de la fuente heredada)? MISMA resolución que el tile de Hoy:
         // TODAS las vitales se resuelven `resolveMeasured(todayOnly:)` (FER-42: un solo resolutor, solo hoy)
-        // — así el badge coincide con el valor mostrado. Los pasos son Apple-only. Strap-only (esfuerzo,
+        // — así el badge coincide con el valor mostrado. Los pasos son Apple-only. Lo heredado-solo (esfuerzo,
         // FC, recuperación, estrés) → false. Sólo se badgea cuando hay valor.
         let fromApple: Bool = {
             switch info.id {
@@ -537,7 +535,7 @@ struct TodayView: View {
             case "hrv":   return resolveMeasured(todayOnly: true) { $0.avgHrv }?.fromApple == true
             case "rhr":   return resolveMeasured(todayOnly: true) { $0.restingHr.map(Double.init) }?.fromApple == true
             // Sueño es day-scoped (todayOnly, FER-341): la tarjeta muestra SÓLO el valor de hoy, así que el
-            // badge de fuente debe resolverse igual. Sin todayOnly caía al strap de AYER (no-Apple) y el
+            // badge de fuente debe resolverse igual. Sin todayOnly caía a la fila heredada de AYER (no-Apple) y el
             // corazón desaparecía dentro de la tarjeta aunque el número mostrado SÍ venía de Apple Salud.
             case "sleep": return resolveMeasured(todayOnly: true) { $0.totalSleepMin }?.fromApple == true
             case "spo2":  return resolveMeasured(todayOnly: true) { $0.spo2Pct }?.fromApple == true
@@ -562,7 +560,7 @@ struct TodayView: View {
             appleConnectHint: appleCapable && notConnected && info.displayValue == "—",
             appleSource: fromApple && info.displayValue != "—",
             strainEstimated: strainEstimated,
-            heartRateCurveLoader: info.id == "heart_rate" ? { hrPoints } : nil,
+            heartRateCurveLoader: info.id == "heart_rate" ? { hrCurve } : nil,
             trendLoader: trendLoader(for: info.id),
             onSeeMore: seeMoreAction(for: info.id),
             levelsSeriesLoader: levelsSeriesLoader(for: info.id),
@@ -961,8 +959,8 @@ struct TodayView: View {
         }
     }
 
-    /// Pide una lectura de batería del strap SOLO cuando el enlace está libre (conectado y sin offload
-    /// en curso) — nunca a mitad del backfill, igual que el keep-alive evita picar al strap entonces
+    /// Pide una lectura de batería SOLO cuando el enlace está libre (conectado y sin offload
+    /// en curso) — nunca a mitad del backfill, igual que el keep-alive evita picar el dispositivo entonces
     /// (`guard !backfilling`, the BLE engine). `refreshBattery()` es agnóstico al modelo (4.0 → comando
     /// GET_BATTERY_LEVEL; 5/MG → lectura 0x2A19) y no introduce ningún comando nuevo.
 
@@ -1476,7 +1474,7 @@ struct TodayView: View {
     /// on-device (FER-663), rotulada y con origen calculado.
     private func liquidSteps() -> (value: Double?, estimated: Bool, raw: Int?) {
         let cutoff = Repository.localDayKey(Calendar.current.date(byAdding: .day, value: -13, to: Date()) ?? Date())
-        let fresh = appleDays.last(where: { $0.day >= cutoff })?.steps
+        let fresh = appleRows.last(where: { $0.day >= cutoff })?.steps
         let estFresh = fresh == nil
             ? stepsEst.last(where: { $0.day >= cutoff }).map { Int($0.value.rounded()) }
             : nil
@@ -1586,7 +1584,7 @@ struct TodayView: View {
             || showDecideManual || showContextoManual || showAutonomicoHoja
     }
 
-    /// Cero fuentes: ni strap visto, ni datos de Apple Health, ni permiso de Health concedido. (FER-364)
+    /// Cero fuentes: ni dispositivo visto, ni datos de Apple Health, ni permiso de Health concedido. (FER-364)
     /// Decide entre las DOS superficies de Hoy: la Liquid con datos y el orbe dormido sin ellos.
     private var noSources: Bool {
         #if DEBUG
@@ -1637,17 +1635,18 @@ struct TodayView: View {
     /// Today's mean HR (nil when there are no readings) — the value on the "Heart Rate" Key-Metrics
     /// row. The day's average summarizes the day without echoing the live bpm that lives in the hero.
     private var hrTodayAvg: Int? {
-        guard hrPoints.count > 1 else { return nil }
-        let v = hrPoints.map(\.value)
-        return Int((v.reduce(0, +) / Double(v.count)).rounded())
+        guard hrCurve.count > 1 else { return nil }
+        let lecturas = hrCurve.map(\.value)
+        let media = lecturas.reduce(0, +) / Double(lecturas.count)
+        return Int(media.rounded())
     }
 
     /// Compact localized date for the utility row, e.g. "THU 12 JUN" — context without the greeting.
     private static let shortDateFmt: DateFormatter = {
-        let f = DateFormatter()
-        f.locale = .autoupdatingCurrent
-        f.setLocalizedDateFormatFromTemplate("EEEdMMM")
-        return f
+        let formateador = DateFormatter()
+        formateador.locale = .autoupdatingCurrent
+        formateador.setLocalizedDateFormatFromTemplate("EEEdMMM")
+        return formateador
     }()
     private var shortDate: String {
         // Always the real calendar day — never the last data row's day, or the header
@@ -1655,16 +1654,16 @@ struct TodayView: View {
         Self.shortDateFmt.string(from: Date()).uppercased()
     }
 
-    // MARK: - Loading
+    // MARK: - Lectura del día
 
-    private func loadAll() async {
+    private func leerElDia() async {
         // La curva de HR de hoy (buckets de 5 min, medianoche local → ahora) se dispara ANTES de
         // `recomputeDerived()` para que su query corra EN PARALELO al hop de readiness — antes vivía en
         // un `.task` hermano independiente; GRK-08 unificó la doble carga y este orden preserva ese
         // paralelismo (sin él, la curva esperaría detrás del snapshot de readiness en el primer frame).
-        let startOfToday = Int(Calendar.current.startOfDay(for: Date()).timeIntervalSince1970)
-        let nowTs = Int(Date().timeIntervalSince1970)
-        async let hrBucketRows = repo.hrBuckets(from: startOfToday, to: nowTs, bucketSeconds: 300)
+        let arranqueDelDia = Int(Calendar.current.startOfDay(for: Date()).timeIntervalSince1970)
+        let ahora = Int(Date().timeIntervalSince1970)
+        async let cubosDePulso = repo.hrBuckets(from: arranqueDelDia, to: ahora, bucketSeconds: 300)
         // Siembra el veredicto + los conteos derivados de HRV una sola vez por refresh, ANTES de los
         // awaits de abajo, para que el body deje de recalcular `ReadinessEngine.evaluate` en cada frame
         // (FER-172). FER-982: `recomputeDerived()` snapshotea `repo` en main y hopea el cómputo pesado a
@@ -1676,18 +1675,19 @@ struct TodayView: View {
         async let adRows     = repo.appleDailyRows()
         async let amRows     = repo.appleDailyMetricRows()
         // Stored daily "stress" series (0–3) — the model prefers it, else derives from RHR/HRV. (FER-180)
-        async let stressRows = repo.series(key: "stress", source: "strap")
-        // Estimación de pasos WHOOP 4.0 (FER-663) — vacía salvo que el motor la haya calibrado y escrito.
+        async let stressRows = repo.series(key: "stress", source: Repository.legacyDeviceId)
+        // Estimación de pasos heredada (FER-663) — vacía salvo que el motor la haya calibrado y escrito.
         async let stepsEstRows = repo.computedSeries(key: "steps_est", days: 60)
 
-        appleDays = await adRows
+        appleRows = await adRows
         appleMetricDays = (await amRows).sorted { $0.day < $1.day }
         stepsEst = (await stepsEstRows).sorted { $0.day < $1.day }
-        hrPoints  = await hrBucketRows
-            .map { TrendPoint(date: Date(timeIntervalSince1970: TimeInterval($0.ts)), value: $0.bpm) }
+        hrCurve = await cubosDePulso.map { cubo in
+            TrendPoint(date: Date(timeIntervalSince1970: TimeInterval(cubo.ts)), value: cubo.bpm)
+        }
         // Build today's stress model from the day rows + stored series (nil when there's no usable
         // signal yet — the tile then placeholders "—"). Reads `displayDays` (Apple-health fallback,
-        // FER-149) so a strap-partial night still derives, and anchors "today" to the local day so a
+        // FER-149) so a partially-covered legacy night still derives, and anchors "today" to the local day so a
         // UTC-bucketed "tomorrow" row (FER-226) can't blank the tile.
         stress = StressModel(days: repo.displayDays, stored: await stressRows,
                              todayKey: Repository.localDayKey(Date()), appleDays: repo.appleHealthDays)
@@ -1698,11 +1698,11 @@ struct TodayView: View {
 
     /// Builds the trailing 14-day trend from the DISPLAY dashboard rows (`repo.displayDays`) — the same
     /// layered source the Today tiles draw their values from (`resolveMeasured`/`baselineDays`): Apple Health is the base,
-    /// on-device computed scores (`strap-noop`) fill the strap's days, imported strap rows win, and a
-    /// strap-covered day with a nil field back-fills from Apple Health so the line has no gap (FER-149).
-    /// Reading `repo.series(source: "strap")` instead returned EMPTY for a BLE + Apple Health user,
+    /// the on-device computed scores fill the legacy device's days, imported legacy rows win, and a
+    /// legacy-covered day with a nil field back-fills from Apple Health so the line has no gap (FER-149).
+    /// Reading the raw legacy series instead returned EMPTY for a BLE + Apple Health user,
     /// because the computed recovery/HRV/RHR/strain/sleep live in the daily-metrics table under
-    /// `strap-noop`, never in the `metricSeries` table that `series()` queries — that was the
+    /// the computed partition, never in the `metricSeries` table that `series()` queries — that was the
     /// empty-chart bug. Noon UTC anchors each day so points sit at consistent x-positions.
     private func loadTrend(pick: @escaping (DailyMetric) -> Double?, window: Int = 14) async -> [TrendPoint] {
         let cutoff = Repository.localDayKey(Calendar.current.date(byAdding: .day, value: -(window - 1), to: Date()) ?? Date())
@@ -1817,7 +1817,7 @@ struct TodayView: View {
     /// after outdoor workouts), so the latest available reading wins, no freshness gate. Mirror of
     /// CuerpoView (VIT-07).
     private var latestAppleVO2max: Double? {
-        appleDays.last(where: { $0.vo2max != nil })?.vo2max
+        appleRows.last(where: { $0.vo2max != nil })?.vo2max
     }
 
     /// The FULL daily series (oldest → newest) for a vital — the detail carries its own range selector,
@@ -1826,7 +1826,7 @@ struct TodayView: View {
         // VIT-07: VO₂max isn't a nightly dashboard metric — it lives in the Apple daily rows, measured
         // sparsely (FER-257). Every reading is a real measurement. Mirror of CuerpoView.
         if key == "vo2max" {
-            return appleDays
+            return appleRows
                 .compactMap { row in row.vo2max.map { (row.day, $0) } }
                 .sorted { $0.day < $1.day }
         }
@@ -1863,7 +1863,7 @@ struct TodayView: View {
     }
 
     /// Last night's frequency-domain HRV breakdown (LF/HF/total, ms²) + a per-band «your normal» label,
-    /// read from the `-noop` computed `metricSeries` the pipeline persisted (FER-702). Returns nil when
+    /// read from the computed `metricSeries` partition the pipeline persisted (FER-702). Returns nil when
     /// there is no band-night spectrum, so the section stays hidden (an Apple-only night has none).
     /// VIT-06: calco de CuerpoView.loadSpectralHRV — el detalle de VFC abierto desde Hoy perdía la
     /// sección espectral entera porque el loader nunca se cableaba.
@@ -1884,14 +1884,14 @@ struct TodayView: View {
         return .init(hf: hfBand, lf: band(lf), total: totalVal)
     }
 
-    // MARK: - Derived text
+    // MARK: - Texto derivado
 
     /// Resolve a measured signal (HRV / sleep / resting HR / SpO₂) for the Today tiles. Today's row
     /// wins; otherwise the most recent value within the freshness window (today/yesterday) so a fresh
     /// Apple-Health import or sync still reads on the tile — but never older, since a stale value under
     /// a "Today" header would misrepresent it (same spirit as the #23/#49 trailing-window fixes).
     /// `fromApple` flags Apple-sourced values so the row badges them instead of passing them off as a
-    /// live strap reading. Returns nil when nothing fresh exists → the row placeholders. (FER-62 follow-up)
+    /// live legacy reading. Returns nil when nothing fresh exists → the row placeholders. (FER-62 follow-up)
     /// `todayOnly` drops the yesterday fallback: a day-scoped surface shows ONLY today's value, so it
     /// never passes yesterday's off as today's at the midnight boundary (FER-341). FER-42: TODA superficie
     /// de display (tiles, hojas, «Ver más», badges de origen) resuelve `todayOnly: true` — este es el ÚNICO
@@ -1907,10 +1907,10 @@ struct TodayView: View {
             guard day.day >= cutoff else { break }
             if let v = pick(day) { return (v, repo.appleHealthDays.contains(day.day)) }
         }
-        // mergeDaily replaces a day's Apple row wholesale when the strap also has that day, so a strap
-        // day with a nil field (e.g. a WHOOP 4.0 that didn't decode HRV/sleep) hides the value Apple
+        // mergeDaily replaces a day's Apple row wholesale when the legacy source also has that day, so a
+        // legacy day with a nil field (a device that didn't decode HRV/sleep) hides the value Apple
         // Health does have. Fall back to the Apple-only rows within the SAME today/yesterday window,
-        // badged fromApple, so the strap (when it has the value) still wins above but Key Metrics fills
+        // badged fromApple, so the legacy row (when it has the value) still wins above but Key Metrics fills
         // from Apple instead of placeholdering. (FER-98)
         for day in appleMetricDays.reversed() {
             guard day.day >= cutoff else { break }
@@ -1968,74 +1968,67 @@ private struct LiquidGuardianHojaHost: View {
     }
 }
 
-// MARK: - Preview
+// MARK: - Canvas
 
 #if DEBUG
-#Preview("Control Center") {
-    let repo = Repository(deviceId: "preview")
-    let cal = Calendar(identifier: .gregorian)
-    let today = cal.startOfDay(for: Date())
-    var sample: [DailyMetric] = []
-    for i in stride(from: 39, through: 0, by: -1) {
-        let date = cal.date(byAdding: .day, value: -i, to: today)!
-        let day = Repository.dayString(date)
-        let phase = Double(i)
-        let rec = 48 + 34 * sin(phase / 5.0) + Double((i * 7) % 11)
-        let strain = 8 + 7 * abs(sin(phase / 4.0))
-        let total = 380 + 70 * sin(phase / 6.0)
-        sample.append(DailyMetric(
-            day: day, totalSleepMin: total, efficiency: 88 + 6 * sin(phase / 3.0),
-            deepMin: 95, remMin: 110, lightMin: total - 200, disturbances: 4,
-            restingHr: 50 + (i % 6), avgHrv: 58 + 16 * sin(phase / 4.0),
-            recovery: min(max(rec, 8), 99), strain: strain, exerciseCount: i % 3,
-            spo2Pct: 96, skinTempDevC: 33.4, respRateBpm: 14.6
-        ))
+/// Cuarenta días sembrados para el canvas. `vivo` mueve recuperación, esfuerzo y eficiencia como en
+/// un historial de verdad; apagado los deja planos, que es lo que la corrida de texto grande
+/// necesita: ahí el único cambio que se juzga es la tipografía.
+@MainActor
+private func hoyCanvasRepo(vivo: Bool) -> Repository {
+    let repositorio = Repository(deviceId: "preview")
+    let calendario = Calendar(identifier: .gregorian)
+    let hoy = calendario.startOfDay(for: Date())
+    var muestra: [DailyMetric] = []
+    for atras in stride(from: 39, through: 0, by: -1) {
+        guard let fecha = calendario.date(byAdding: .day, value: -atras, to: hoy) else { continue }
+        let t = Double(atras)
+        let sueno = 380 + 70 * sin(t / 6.0)
+        let recuperacion = 48 + 34 * sin(t / 5.0) + Double((atras * 7) % 11)
+        muestra.append(DailyMetric(
+            day: Repository.dayString(fecha),
+            totalSleepMin: sueno,
+            efficiency: vivo ? 88 + 6 * sin(t / 3.0) : 88,
+            deepMin: 95,
+            remMin: 110,
+            lightMin: sueno - 200,
+            disturbances: 4,
+            restingHr: 50 + (atras % 6),
+            avgHrv: 58 + 16 * sin(t / 4.0),
+            recovery: vivo ? min(max(recuperacion, 8), 99) : 60,
+            strain: vivo ? 8 + 7 * abs(sin(t / 4.0)) : 10,
+            exerciseCount: atras % 3,
+            spo2Pct: 96,
+            skinTempDevC: 33.4,
+            respRateBpm: 14.6))
     }
-    repo.setDashboard(days: sample)
-
-    return TodayView()
-        .environmentObject(repo)
-        .environmentObject(TabRouter())
-        #if os(iOS)
-        // iOS TodayView reads AppModel (first-launch "Scan for strap" CTA) and HealthKitBridge (the
-        // Apple Health connect nudge); inject both so the iOS canvas renders instead of trapping on a
-        // missing environment object.
-        .environment(AppModel.preview)
-        .environmentObject(HealthKitBridge(repo: repo, appleDeviceId: "preview-apple"))
-        #endif
-        .frame(width: 920, height: 940)
+    repositorio.setDashboard(days: muestra)
+    return repositorio
 }
 
-// FER-38: la MISMA superficie viva al tamaño de texto más grande (AX5). Ejercita Dynamic Type
-// en el canvas para cazar truncados/aplastamientos antes de que lleguen al iPhone (deuda de
-// ACCESIBILIDAD.md: no había snapshot que estirara la superficie a AX5).
-#Preview("Texto grande · AX5") {
-    let repo = Repository(deviceId: "preview")
-    let cal = Calendar(identifier: .gregorian)
-    let today = cal.startOfDay(for: Date())
-    var sample: [DailyMetric] = []
-    for i in stride(from: 39, through: 0, by: -1) {
-        let date = cal.date(byAdding: .day, value: -i, to: today)!
-        let phase = Double(i)
-        let total = 380 + 70 * sin(phase / 6.0)
-        sample.append(DailyMetric(
-            day: Repository.dayString(date), totalSleepMin: total, efficiency: 88,
-            deepMin: 95, remMin: 110, lightMin: total - 200, disturbances: 4,
-            restingHr: 50 + (i % 6), avgHrv: 58 + 16 * sin(phase / 4.0),
-            recovery: 60, strain: 10, exerciseCount: i % 3,
-            spo2Pct: 96, skinTempDevC: 33.4, respRateBpm: 14.6))
-    }
-    repo.setDashboard(days: sample)
-
-    return TodayView()
-        .environmentObject(repo)
+/// El montaje del canvas. En iOS la pantalla lee además `AppModel` y `HealthKitBridge`; sin ellos el
+/// canvas truena por objeto de entorno faltante en vez de dibujar.
+@MainActor
+private func hoyCanvas(_ repositorio: Repository) -> some View {
+    TodayView()
+        .environmentObject(repositorio)
         .environmentObject(TabRouter())
         #if os(iOS)
         .environment(AppModel.preview)
-        .environmentObject(HealthKitBridge(repo: repo, appleDeviceId: "preview-apple"))
+        .environmentObject(HealthKitBridge(repo: repositorio, appleDeviceId: "preview-apple"))
         #endif
-        .frame(width: 920, height: 940)
+        .frame(width: 920,
+               height: 940)
+}
+
+#Preview("Control Center") {
+    hoyCanvas(hoyCanvasRepo(vivo: true))
+}
+
+// La MISMA superficie viva al tamaño de texto más grande (AX5): ejercita Dynamic Type en el canvas
+// para cazar truncados y aplastamientos antes de que lleguen al iPhone.
+#Preview("Texto grande · AX5") {
+    hoyCanvas(hoyCanvasRepo(vivo: false))
         .dynamicTypeSize(.accessibility5)
 }
 #endif
-
