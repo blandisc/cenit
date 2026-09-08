@@ -196,4 +196,60 @@ final class RegistroTests: XCTestCase {
             XCTAssertTrue(gestos.contains(gesto), "\(gesto) no está registrado como .gestoConBoton (FER-434)")
         }
     }
+
+    // MARK: 9. la semilla (Tools/ensenanza-semilla.json) y el registro Swift no se desfasan (FER-439)
+
+    /// Mata la clase «semilla desfasada»: `Tools/build-features.py` y `Tools/check-ensenanza-mapa.py`
+    /// leen la SEMILLA, la app lee el REGISTRO. Aquí se exige que digan lo mismo en ids, `pestana`,
+    /// `requiere`, `desde` y `mapa`. Las piezas NO se comparan: L5–L7 las enriquecen en Swift
+    /// (`.vacio`, `.tip`, `.gestoConBoton`) sin pasar por la semilla.
+    func test_semillaCoincideConRegistro() throws {
+        let data = try RepoFiles.readData("Tools/ensenanza-semilla.json")
+        guard
+            let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+            let desdeBase = json["desde"] as? String,
+            let entradas = json["entradas"] as? [[String: Any]]
+        else {
+            XCTFail("no pude parsear Tools/ensenanza-semilla.json como {desde, entradas}")
+            return
+        }
+
+        let idsSemilla = Set(entradas.compactMap { $0["id"] as? String })
+        let idsRegistro = Set(FuncionalidadID.allCases.map(\.rawValue))
+        XCTAssertEqual(
+            idsSemilla.subtracting(idsRegistro).sorted(), [],
+            "ids en la semilla que no existen en FuncionalidadID — regenera o quita la entrada"
+        )
+        XCTAssertEqual(
+            idsRegistro.subtracting(idsSemilla).sorted(), [],
+            "ids en FuncionalidadID que faltan en la semilla — agrégalos a Tools/ensenanza-semilla.json"
+        )
+
+        func requisito(_ texto: String) -> Requisito? {
+            if texto == "watch" { return .watch }
+            if texto == "entrenos" { return .entrenos }
+            if texto.hasPrefix("noches:"), let n = Int(texto.dropFirst("noches:".count)) { return .noches(n) }
+            if texto.hasPrefix("permiso:"),
+               let permiso = Requisito.Permiso(rawValue: String(texto.dropFirst("permiso:".count))) {
+                return .permiso(permiso)
+            }
+            return nil
+        }
+
+        for entrada in entradas {
+            guard let raw = entrada["id"] as? String, let id = FuncionalidadID(rawValue: raw) else { continue }
+            let registro = Registro[id]
+            XCTAssertEqual(registro.pestana.rawValue, entrada["pestana"] as? String, "\(raw): pestana distinta")
+            let requiereSemilla = (entrada["requiere"] as? [String] ?? []).map { texto -> Requisito in
+                guard let r = requisito(texto) else {
+                    XCTFail("\(raw): requiere desconocido en la semilla: \(texto)")
+                    return .entrenos
+                }
+                return r
+            }
+            XCTAssertEqual(registro.requiere, requiereSemilla, "\(raw): requiere distinto")
+            XCTAssertEqual(registro.desde, entrada["desde"] as? String ?? desdeBase, "\(raw): desde distinto")
+            XCTAssertEqual(registro.mapa, entrada["mapa"] as? [String] ?? [], "\(raw): mapa distinto")
+        }
+    }
 }

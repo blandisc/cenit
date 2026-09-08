@@ -10,9 +10,18 @@ Genera:
     crudo con la indentación de 2 espacios que ya usa el archivo (NUNCA json.dump: reescribir todo
     el árbol cambia el formato de Xcode y revienta el diff).
 
+Cada entrada puede llevar `mapa` (FER-439): los nodos del Mapa 100 % donde vive la funcionalidad,
+como `<familia>/<nodo-id>` de `docs/appmap/mapa/<familia>.json`. Se emite como `mapa:` en la
+`Funcionalidad` y `--check` valida que cada nodo exista (vía `Tools/check-ensenanza-mapa.py`, la
+misma verdad que corre en CI).
+
+OJO al re-sembrar: desde FER-433 los `Registro+*.swift` llevan piezas `.vacio(clave:)` añadidas a
+mano que la semilla no conoce — regenerar los pisaría. Compara el diff antes de aceptar.
+
 Uso: python3 Tools/gen-ensenanza.py [--check]
-  --check: no escribe nada, solo valida la semilla (ids, formato, conteos).
+  --check: no escribe nada, solo valida la semilla (ids, formato, conteos, `mapa` contra el mapa).
 """
+import importlib.util
 import json
 import os
 import re
@@ -23,6 +32,11 @@ REPO = os.path.dirname(HERE)
 SEMILLA = os.path.join(HERE, "ensenanza-semilla.json")
 SRC = os.path.join(REPO, "Packages/CenitEnsenanza/Sources/CenitEnsenanza")
 CATALOG = os.path.join(REPO, "Cenit/Resources/Localizable.xcstrings")
+GATE_MAPA = os.path.join(HERE, "check-ensenanza-mapa.py")
+
+# Una línea si cabe; si no, un nodo por línea (mismo umbral para el generador y las ediciones a
+# mano, así el diff de una re-siembra solo trae cambios reales).
+MAPA_ANCHO_MAX = 100
 
 ID_RE = re.compile(r"^[a-z]+(?:\.[a-z0-9-]+)+$")
 
@@ -67,6 +81,31 @@ def pieza_swift(p, pestana):
         gesto, boton = p.split(":", 1)[1].split("|", 1)
         return f'.gestoConBoton(gesto: "{gesto}", boton: "{boton}")'
     raise ValueError(f"pieza desconocida: {p!r}")
+
+
+def mapa_swift(mapa, indent="            "):
+    """`mapa: ["hoy/apunto", "hoy/exigido"]` en una línea, o un nodo por línea si no cabe."""
+    items = ", ".join(json.dumps(m) for m in mapa)
+    linea = f"{indent}mapa: [{items}]"
+    if len(linea) <= MAPA_ANCHO_MAX:
+        return [linea]
+    out = [f"{indent}mapa: ["]
+    out.extend(f"{indent}    {json.dumps(m)}," for m in mapa)
+    out.append(f"{indent}]")
+    return out
+
+
+def check_mapa():
+    """Cruza `mapa` con docs/appmap/mapa/*.json usando el gate real (una sola verdad)."""
+    spec = importlib.util.spec_from_file_location("check_ensenanza_mapa", GATE_MAPA)
+    gate = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(gate)
+    try:
+        problemas = gate.check(REPO)
+    except gate.EntradaInvalida as e:
+        raise SystemExit(f"mapa: {e}")
+    if problemas:
+        raise SystemExit("\n".join(problemas))
 
 
 def load_semilla():
@@ -136,7 +175,8 @@ def gen_registro_extension(pestana, entradas_pestana):
         lines.append(f"            pestana: .{pestana},")
         lines.append(f"            requiere: [{req}],")
         lines.append(f"            piezas: [{piezas}],")
-        lines.append(f'            desde: "{e["desde_efectivo"]}"')
+        lines.append(f'            desde: "{e["desde_efectivo"]}",')
+        lines.extend(mapa_swift(e.get("mapa", [])))
         lines.append("        ),")
     lines.append("    ]")
     lines.append("}")
@@ -206,7 +246,8 @@ def main():
     desde, entradas = load_semilla()
     for e in entradas:
         e["desde_efectivo"] = e.get("desde", desde)
-    print(f"semilla OK: {len(entradas)} entradas, desde={desde}")
+    check_mapa()
+    print(f"semilla OK: {len(entradas)} entradas, desde={desde}, mapa cruzado con docs/appmap/mapa")
     if check_only:
         return 0
 
