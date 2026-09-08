@@ -42,7 +42,7 @@ private enum HapticCue: Equatable {
     /// Se acabó todo.
     case sessionEnd
 
-    var loops: Int {
+    var loops: UInt8 {
         switch self {
         case .countdown, .enterRest: 1
         case .enterWork, .sessionStart: 3
