@@ -375,8 +375,9 @@ final class WhatMovesItTests: XCTestCase {
     }
 
     func testRowsAfterTodayAreIgnored() throws {
-        // A UTC «tomorrow» row carrying wild values must not enter any pair.
-        let clean = (0..<60).map { row($0, strain: strain($0), rhr: 58 + 3 * W($0 - 1) + K($0)) }
+        // A UTC «tomorrow» row carrying wild values must not enter any pair. Today (day 60) is present, so
+        // without the `day <= today` guard the phantom day 61 would pair with it (strain[60] → rhr[61]).
+        let clean = (0...60).map { row($0, strain: strain($0), rhr: 58 + 3 * W($0 - 1) + K($0)) }
         let withTomorrow = clean + [row(61, sleep: 900, strain: 21, rhr: 120)]
         let a = try XCTUnwrap(candidate(.rhrPriorStrain, in: clean, today: day(60)))
         let b = try XCTUnwrap(candidate(.rhrPriorStrain, in: withTomorrow, today: day(60)))
