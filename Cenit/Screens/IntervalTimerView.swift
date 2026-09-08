@@ -2,58 +2,163 @@ import SwiftUI
 import Foundation
 import CenitDesign
 
+// MARK: - La máquina, aparte de la pantalla
+
+/// Los tres momentos de una sesión de intervalos.
+private enum IntervalPhase: Equatable {
+    case work, rest, done
+
+    var label: String {
+        switch self {
+        case .work: String(localized: "WORK")
+        case .rest: String(localized: "REST")
+        case .done: String(localized: "DONE")
+        }
+    }
+
+    /// Ámbar para el esfuerzo, cian para la calma, verde para el cierre.
+    var hue: Color {
+        switch self {
+        case .work: LiquidColor.ambar
+        case .rest: LiquidColor.cian
+        case .done: LiquidColor.verdePrimario
+        }
+    }
+}
+
+/// Los cinco avisos que el teléfono da con vibración, cada uno con su número de pulsos.
+///
+/// Están juntos a propósito: la promesa de esta pantalla es entrenar sin mirar el teléfono, así que
+/// el vocabulario háptico es la interfaz de verdad y tiene que poder leerse de un golpe.
+private enum HapticCue: Equatable {
+    /// Los últimos tres segundos de cualquier fase: 3… 2… 1.
+    case countdown
+    /// Entra el descanso: un solo pulso, para no confundirlo con el trabajo.
+    case enterRest
+    /// Abre un bloque de trabajo.
+    case enterWork
+    /// Arranca la sesión desde cero.
+    case sessionStart
+    /// Se acabó todo.
+    case sessionEnd
+
+    var loops: Int {
+        switch self {
+        case .countdown, .enterRest: 1
+        case .enterWork, .sessionStart: 3
+        case .sessionEnd: 5
+        }
+    }
+}
+
+/// Lo que la persona arma antes de empezar.
+private struct IntervalPlan: Equatable {
+    var work = 30
+    var rest = 15
+    var rounds = 8
+
+    /// Segundos de una fase. Nunca cero: un intervalo de duración cero no avanzaría jamás.
+    func seconds(of phase: IntervalPhase) -> Int {
+        switch phase {
+        case .work: max(1, work)
+        case .rest: max(1, rest)
+        case .done: 1
+        }
+    }
+
+    /// Largo planeado: los bloques de trabajo más los descansos que van ENTRE ellos. El último
+    /// bloque cierra la sesión, así que no hay descanso final que contar.
+    var totalSeconds: Int {
+        guard rounds > 0 else { return 0 }
+        return work * rounds + rest * max(0, rounds - 1)
+    }
+}
+
+/// Dónde va la sesión en curso.
+///
+/// Es un valor, no una maraña de `@State` sueltos, y por eso `advance` puede ser una transición
+/// pura: **devuelve** el aviso que toca en vez de vibrar por su cuenta. Quien vibra es la vista.
+private struct IntervalRun {
+    var phase: IntervalPhase = .work
+    var round = 1
+    var remaining = 30
+    var elapsed = 0
+    var running = false
+
+    /// Nadie la ha arrancado ni movido todavía.
+    func isPristine(in plan: IntervalPlan) -> Bool {
+        !running && phase == .work && round == 1
+            && remaining == plan.seconds(of: phase) && elapsed == 0
+    }
+
+    /// Avance 0…1 dentro del intervalo en curso.
+    func intervalProgress(in plan: IntervalPlan) -> Double {
+        let duration = plan.seconds(of: phase)
+        guard duration > 0 else { return 0 }
+        return Self.clamped(Double(duration - remaining) / Double(duration))
+    }
+
+    func sessionProgress(in plan: IntervalPlan) -> Double {
+        let planned = plan.totalSeconds
+        guard planned > 0 else { return 0 }
+        return Self.clamped(Double(elapsed) / Double(planned))
+    }
+
+    /// Vuelve al inicio de la ronda 1 con los ajustes vigentes.
+    mutating func rewind(to plan: IntervalPlan) {
+        phase = .work
+        round = 1
+        remaining = plan.seconds(of: .work)
+        elapsed = 0
+    }
+
+    /// Se acabó el intervalo: pasa al siguiente y dice qué aviso corresponde.
+    /// `nil` significa que ya no había a dónde ir.
+    mutating func advance(in plan: IntervalPlan) -> HapticCue? {
+        switch phase {
+        case .work where round >= plan.rounds:
+            // El último bloque de trabajo cierra la sesión: nunca hay descanso final.
+            phase = .done
+            remaining = 0
+            running = false
+            return .sessionEnd
+        case .work:
+            phase = .rest
+            remaining = plan.seconds(of: .rest)
+            return .enterRest
+        case .rest:
+            round += 1
+            phase = .work
+            remaining = plan.seconds(of: .work)
+            return .enterWork
+        case .done:
+            return nil
+        }
+    }
+
+    private static func clamped(_ value: Double) -> Double { min(1, max(0, value)) }
+}
+
+// MARK: - La pantalla
+
 /// Cronómetro de intervalos con aviso háptico.
 ///
-/// La idea es entrenar sin mirar el teléfono: cada transición se siente. Tres pulsos
-/// abren cada bloque de trabajo, uno solo anuncia el descanso, los últimos tres segundos
-/// de cualquier fase van marcando 3-2-1, y el cierre de la sesión son cinco pulsos largos.
-/// Donde no hay hápticos (macOS) queda como un temporizador grande y legible.
+/// La idea es entrenar sin mirar el teléfono: cada transición se siente. Tres pulsos abren cada
+/// bloque de trabajo, uno solo anuncia el descanso, los últimos tres segundos de cualquier fase van
+/// marcando 3-2-1, y el cierre de la sesión son cinco pulsos largos. Donde no hay hápticos (macOS)
+/// queda como un temporizador grande y legible.
 ///
-/// Régimen sobrio de «Liquid Glass · El Eje»: lienzo `.entrenarHojaFondo(.neutro)`,
-/// tarjetas `.superficieSolida`. La cuenta regresiva manda en tinta; el color de la fase
-/// vive sólo en la etiqueta, el anillo y las barras de ronda — nunca en el relleno de un
-/// botón. La pantalla no dibuja su propia salida: el `NavigationStack` ambiente la aporta.
+/// Régimen sobrio de «Liquid Glass · El Eje»: lienzo `.entrenarHojaFondo(.neutro)`, tarjetas
+/// `.superficieSolida`. La cuenta regresiva manda en tinta; el color de la fase vive sólo en la
+/// etiqueta, el anillo y las barras de ronda — nunca en el relleno de un botón. La pantalla no
+/// dibuja su propia salida: el `NavigationStack` ambiente la aporta.
 struct IntervalTimerView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    // MARK: Ajustes (viven sólo mientras la vista existe)
-
-    @State private var workSeconds = 30
-    @State private var restSeconds = 15
-    @State private var rounds = 8
-
-    // MARK: Estado de la corrida
-
-    /// Los tres momentos por los que pasa una sesión.
-    private enum Phase {
-        case work, rest, done
-
-        var label: String {
-            switch self {
-            case .work: String(localized: "WORK")
-            case .rest: String(localized: "REST")
-            case .done: String(localized: "DONE")
-            }
-        }
-
-        /// Ámbar para el esfuerzo, cian para la calma, verde para el cierre.
-        var hue: Color {
-            switch self {
-            case .work: LiquidColor.ambar
-            case .rest: LiquidColor.cian
-            case .done: LiquidColor.verdePrimario
-            }
-        }
-    }
-
-    @State private var phase: Phase = .work
-    @State private var currentRound = 1
-    /// Segundos que le quedan a la fase en curso.
-    @State private var remaining = 30
-    @State private var running = false
-    /// Segundos acumulados en toda la sesión.
-    @State private var elapsed = 0
+    /// Los ajustes y la corrida, cada uno en un solo valor. Viven mientras la vista existe.
+    @State private var plan = IntervalPlan()
+    @State private var run = IntervalRun()
     /// `true` mientras se arma la sesión; `false` una vez que arrancó.
     @State private var configuring = true
 
@@ -63,49 +168,16 @@ struct IntervalTimerView: View {
     /// Un tic por segundo.
     private let ticker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
-    // MARK: Derivados
+    // MARK: Derivados de lectura
 
-    private var isFinished: Bool { phase == .done }
-
-    private var phaseDuration: Int {
-        switch phase {
-        case .work: max(1, workSeconds)
-        case .rest: max(1, restSeconds)
-        case .done: 1
-        }
-    }
-
-    /// Avance 0…1 dentro del intervalo en curso.
-    private var intervalProgress: Double {
-        let duration = phaseDuration
-        guard duration > 0 else { return 0 }
-        return clamped(Double(duration - remaining) / Double(duration))
-    }
-
-    /// Largo planeado de la sesión: los bloques de trabajo más los descansos intermedios.
-    private var totalPlanned: Int {
-        guard rounds > 0 else { return 0 }
-        return workSeconds * rounds + restSeconds * max(0, rounds - 1)
-    }
-
-    private var sessionProgress: Double {
-        guard totalPlanned > 0 else { return 0 }
-        return clamped(Double(elapsed) / Double(totalPlanned))
-    }
-
-    /// La sesión sigue intacta: nadie la ha arrancado ni movido.
-    private var isPristine: Bool {
-        !running && phase == .work && currentRound == 1
-            && remaining == phaseDuration && elapsed == 0
-    }
+    private var isFinished: Bool { run.phase == .done }
+    private var isPristine: Bool { run.isPristine(in: plan) }
 
     private var primaryControlLabel: String {
-        if running { return String(localized: "Pause") }
+        if run.running { return String(localized: "Pause") }
         if isFinished { return String(localized: "Restart") }
         return String(localized: "Start")
     }
-
-    private func clamped(_ value: Double) -> Double { min(1, max(0, value)) }
 
     // MARK: Cuerpo
 
@@ -113,10 +185,10 @@ struct IntervalTimerView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: LiquidSpace.s700) {
                 if configuring {
-                    setupSection
+                    planForm
                 } else {
-                    header
-                    statusRow
+                    runHeader
+                    stateChip
                     stageCard
                     summaryCard
                 }
@@ -128,19 +200,19 @@ struct IntervalTimerView: View {
         }
         .entrenarHojaFondo(tono: .neutro)
         .onReceive(ticker) { _ in tick() }
-        .onChange(of: workSeconds) { if !running { rewind() } }
-        .onChange(of: restSeconds) { if !running { rewind() } }
-        .onChange(of: rounds) {
-            currentRound = min(currentRound, rounds)
-            if !running { rewind() }
+        .onChange(of: plan.work) { rewindIfIdle() }
+        .onChange(of: plan.rest) { rewindIfIdle() }
+        .onChange(of: plan.rounds) {
+            run.round = min(run.round, plan.rounds)
+            rewindIfIdle()
         }
-        .onAppear { if remaining == 0 { rewind() } }
+        .onAppear { if run.remaining == 0 { run.rewind(to: plan) } }
         .enableInjection()
     }
 
     // MARK: Encabezado
 
-    private var header: some View {
+    private var runHeader: some View {
         VStack(alignment: .leading, spacing: LiquidSpace.s050) {
             Text("Interval Timer")
                 .font(LiquidType.tituloHoja)
@@ -153,7 +225,7 @@ struct IntervalTimerView: View {
 
     // MARK: Armado de la sesión
 
-    private var setupSection: some View {
+    private var planForm: some View {
         VStack(alignment: .leading, spacing: LiquidSpace.s700) {
             VStack(alignment: .leading, spacing: LiquidSpace.s100) {
                 Text("INTERVALS")
@@ -166,13 +238,13 @@ struct IntervalTimerView: View {
             }
 
             VStack(alignment: .leading, spacing: LiquidSpace.s400) {
-                settingRow(title: "Work", unit: "sec", value: $workSeconds,
+                settingRow(title: "Work", unit: "sec", value: $plan.work,
                            range: 5...600, step: 5, tint: LiquidColor.ambar)
                 hairline
-                settingRow(title: "Rest", unit: "sec", value: $restSeconds,
+                settingRow(title: "Rest", unit: "sec", value: $plan.rest,
                            range: 5...600, step: 5, tint: LiquidColor.cian)
                 hairline
-                settingRow(title: "Rounds", unit: nil, value: $rounds,
+                settingRow(title: "Rounds", unit: nil, value: $plan.rounds,
                            range: 1...30, step: 1, tint: LiquidColor.tinta900)
             }
             .padding(LiquidSpace.s400)
@@ -180,7 +252,7 @@ struct IntervalTimerView: View {
             .liquidGlass(.superficieSolida)
 
             HStack {
-                Text("Total \(timeString(totalPlanned))")
+                Text("Total \(timeString(plan.totalSeconds))")
                     .font(LiquidType.valorM)
                     .foregroundStyle(LiquidColor.tinta900)
                 Spacer()
@@ -235,10 +307,10 @@ struct IntervalTimerView: View {
 
     // MARK: Fila de estado
 
-    private var statusRow: some View {
+    private var stateChip: some View {
         HStack(spacing: LiquidSpace.s250) {
             Spacer()
-            if running {
+            if run.running {
                 LiquidStatePill(String(localized: "Running"), dot: LiquidColor.ambar)
             } else if isFinished {
                 LiquidStatePill(String(localized: "Complete"), dot: LiquidColor.verdePrimario)
@@ -259,13 +331,13 @@ struct IntervalTimerView: View {
                 progressRing
                 VStack(spacing: LiquidSpace.s050) {
                     // La cuenta es el dominante sobrio: tabular, en tinta, jamás en el hue de la fase.
-                    Text(isFinished ? "✓" : "\(remaining)")
+                    Text(isFinished ? "✓" : "\(run.remaining)")
                         .font(LiquidType.displayXL)
                         .tracking(LiquidType.displayXLTracking)
                         .monospacedDigit()
                         .foregroundStyle(LiquidColor.tinta900)
                         .contentTransition(reduceMotion ? .identity : .numericText())
-                        .strandAnimation(.snappy, value: remaining)
+                        .strandAnimation(.snappy, value: run.remaining)
                     Text(isFinished ? "SESSION DONE" : "SECONDS")
                         .liquidRegla()
                         .foregroundStyle(LiquidColor.tinta500)
@@ -283,18 +355,18 @@ struct IntervalTimerView: View {
 
     private var phaseLine: some View {
         HStack(alignment: .firstTextBaseline) {
-            Text(phase.label)
+            Text(run.phase.label)
                 .liquidKicker()
-                .foregroundStyle(phase.hue)
+                .foregroundStyle(run.phase.hue)
             Spacer()
             HStack(spacing: LiquidSpace.s150) {
                 Text("ROUND")
                     .liquidRegla()
                     .foregroundStyle(LiquidColor.tinta500)
-                Text("\(min(currentRound, rounds))")
+                Text("\(min(run.round, plan.rounds))")
                     .font(LiquidType.valorL)
                     .foregroundStyle(LiquidColor.tinta900)
-                Text("/ \(rounds)")
+                Text("/ \(plan.rounds)")
                     .font(LiquidType.valorL)
                     .foregroundStyle(LiquidColor.tinta500)
             }
@@ -308,12 +380,12 @@ struct IntervalTimerView: View {
             Circle()
                 .stroke(LiquidColor.tinta10, lineWidth: LiquidSpace.s400)
             Circle()
-                .trim(from: 0, to: isFinished ? 1 : intervalProgress)
-                .stroke(phase.hue,
+                .trim(from: 0, to: isFinished ? 1 : run.intervalProgress(in: plan))
+                .stroke(run.phase.hue,
                         style: StrokeStyle(lineWidth: LiquidSpace.s400, lineCap: .round))
                 .rotationEffect(.degrees(-90))
                 // Con Reduce Motion `strandAnimation` se anula: el anillo salta, no interpola.
-                .strandAnimation(.linear(duration: 0.9), value: intervalProgress)
+                .strandAnimation(.linear(duration: 0.9), value: run.intervalProgress(in: plan))
         }
         .frame(width: 240, height: 240)
         .accessibilityHidden(true)
@@ -322,8 +394,8 @@ struct IntervalTimerView: View {
     /// Una cápsula por ronda planeada, encima del anillo.
     private var roundBars: some View {
         HStack(spacing: LiquidSpace.s100) {
-            ForEach(1...max(1, rounds), id: \.self) { index in
-                let pending = index > currentRound && phase != .done
+            ForEach(1...max(1, plan.rounds), id: \.self) { index in
+                let pending = index > run.round && run.phase != .done
                 LiquidBarraProgreso(
                     fraccion: 1,
                     tono: roundBarTone(index),
@@ -335,19 +407,20 @@ struct IntervalTimerView: View {
             }
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text("Round \(min(currentRound, rounds)) of \(rounds)"))
+        .accessibilityLabel(Text("Round \(min(run.round, plan.rounds)) of \(plan.rounds)"))
     }
 
+    /// Ya vividas y la actual en su hue; las que faltan, en tinta apagada.
     private func roundBarTone(_ index: Int) -> Color {
-        if phase == .done || index < currentRound { return LiquidColor.ambar }
-        if index == currentRound { return phase == .rest ? LiquidColor.cian : LiquidColor.ambar }
+        if run.phase == .done || index < run.round { return LiquidColor.ambar }
+        if index == run.round { return run.phase == .rest ? LiquidColor.cian : LiquidColor.ambar }
         return LiquidColor.tinta10
     }
 
     private var controlRow: some View {
         HStack(spacing: LiquidSpace.s300) {
             LiquidGlassButton(primaryControlLabel, variant: .primary, expands: true) {
-                if isFinished { rewind() }
+                if isFinished { run.rewind(to: plan) }
                 toggleRunning()
             }
 
@@ -367,20 +440,20 @@ struct IntervalTimerView: View {
                     .liquidRegla()
                     .foregroundStyle(LiquidColor.tinta500)
                 Spacer()
-                Text("\(timeString(elapsed)) / \(timeString(totalPlanned))")
+                Text("\(timeString(run.elapsed)) / \(timeString(plan.totalSeconds))")
                     .font(LiquidType.datoMenor)
                     .foregroundStyle(LiquidColor.tinta900)
             }
 
-            LiquidBarraProgreso(fraccion: sessionProgress,
+            LiquidBarraProgreso(fraccion: run.sessionProgress(in: plan),
                                 tono: LiquidColor.ambar,
                                 altura: LiquidSpace.s200)
 
             HStack(spacing: .zero) {
-                summaryStat("Work", "\(workSeconds)s", LiquidColor.ambar)
-                summaryStat("Rest", "\(restSeconds)s", LiquidColor.cian)
-                summaryStat("Rounds", "\(rounds)", LiquidColor.tinta900)
-                summaryStat("Remaining", timeString(max(0, totalPlanned - elapsed)),
+                summaryStat("Work", "\(plan.work)s", LiquidColor.ambar)
+                summaryStat("Rest", "\(plan.rest)s", LiquidColor.cian)
+                summaryStat("Rounds", "\(plan.rounds)", LiquidColor.tinta900)
+                summaryStat("Remaining", timeString(max(0, plan.totalSeconds - run.elapsed)),
                             LiquidColor.tinta700)
             }
         }
@@ -405,80 +478,67 @@ struct IntervalTimerView: View {
     // MARK: El reloj
 
     private func tick() {
-        guard running, !isFinished else { return }
+        guard run.running, !isFinished else { return }
 
         // Marca 3-2-1 en los últimos segundos de la fase.
-        if (1...3).contains(remaining) { model.buzz(loops: 1) }
+        if (1...3).contains(run.remaining) { buzz(.countdown) }
 
-        elapsed += 1
-        if remaining > 1 {
-            remaining -= 1
+        run.elapsed += 1
+        guard run.remaining > 1 else {
+            advancePhase()
+            return
+        }
+        run.remaining -= 1
+    }
+
+    /// El cambio de fase. El cierre necesita ir dentro de una animación —cambia toda la cara de la
+    /// tarjeta a la vez—, los demás no.
+    private func advancePhase() {
+        var next = run
+        let cue = next.advance(in: plan)
+        if cue == .sessionEnd {
+            withAnimation(LiquidMotion.condicionado(.snappy, reduceMotion)) { run = next }
         } else {
-            nextPhase()
+            run = next
         }
+        if let cue { buzz(cue) }
     }
 
-    private func nextPhase() {
-        switch phase {
-        case .work where currentRound >= rounds:
-            // El último bloque de trabajo cierra la sesión: nunca hay descanso final.
-            finish()
-        case .work:
-            phase = .rest
-            remaining = max(1, restSeconds)
-            model.buzz(loops: 1)
-        case .rest:
-            currentRound += 1
-            phase = .work
-            remaining = max(1, workSeconds)
-            model.buzz(loops: 3)
-        case .done:
-            break
-        }
-    }
-
-    private func finish() {
-        withAnimation(LiquidMotion.condicionado(.snappy, reduceMotion)) {
-            phase = .done
-            remaining = 0
-            running = false
-        }
-        model.buzz(loops: 5)
-    }
+    // MARK: Mandos
 
     private func toggleRunning() {
         guard !isFinished else { return }
-        if running {
-            running = false
-        } else {
-            // Sólo el arranque desde cero merece el aviso de apertura.
-            let fromScratch = isPristine
-            running = true
-            if fromScratch { model.buzz(loops: 3) }
+        if run.running {
+            run.running = false
+            return
         }
+        // Sólo el arranque desde cero merece el aviso de apertura; reanudar a la mitad, no.
+        let fromScratch = isPristine
+        run.running = true
+        if fromScratch { buzz(.sessionStart) }
     }
 
     /// Deja el armado atrás y echa a andar una sesión limpia.
     private func launchSession() {
-        rewind()
+        run.rewind(to: plan)
         configuring = false
-        running = true
-        model.buzz(loops: 3)
+        run.running = true
+        buzz(.sessionStart)
     }
 
     private func backToSetup() {
-        running = false
-        rewind()
+        run.running = false
+        run.rewind(to: plan)
         configuring = true
     }
 
-    /// Vuelve al inicio de la ronda 1 con los ajustes vigentes.
-    private func rewind() {
-        phase = .work
-        currentRound = 1
-        remaining = max(1, workSeconds)
-        elapsed = 0
+    /// Un ajuste que se mueve mientras nadie corre rebobina la sesión; a media corrida, no la toca.
+    private func rewindIfIdle() {
+        guard !run.running else { return }
+        run.rewind(to: plan)
     }
+
+    private func buzz(_ cue: HapticCue) { model.buzz(loops: cue.loops) }
 
     // MARK: Formato
 
