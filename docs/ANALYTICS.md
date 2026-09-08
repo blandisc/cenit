@@ -704,11 +704,12 @@ series also drops today itself, a partial running total.
    n − 4. The CDO's pure-calendar fixture (sleep = 420 + 35·W(i), no real rebound term) read
    r = −0.405, p = 0.0015 before the control — a confident «shorter the night after» that was 100%
    the training calendar; the second-order partial reads r ≈ −0.016, p ≈ 0.91: nothing left. A real
-   homeostatic rebound (Borbély 1982 process S) or nightly habit, superposed on the same calendar,
+   homeostatic rebound (Borbély 1982 process S), a weekend catch-up, or another schedule driver,
+   superposed on the same calendar,
    survives the double control (`WhatMovesItTests.testSleepPriorNightSurvivesTheCalendarWithARealReboundUnderneath`).
 6. **Family control** — the p-values of every testable pair go through Benjamini-Hochberg
-   (`MultipleComparisons`); a finding needs **q < 0.05**. Eight tests at α = 0.05 would otherwise
-   yield at least one false finding 34% of the time under the null.
+   (`MultipleComparisons`); a finding needs **q < 0.05**. Seven tests at α = 0.05 would otherwise
+   yield at least one false finding 30% of the time under the null.
 7. `|r| ≥ 0.20` is **cosmetic**: below n ≈ 97 the q is the binding bar (|r| ≥ 0.30 at n = 42).
 
 Below the gate the metric has nothing to assert, so the sheet hides the block and the detail says

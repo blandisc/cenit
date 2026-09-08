@@ -35,7 +35,8 @@ import CenitModels
 //   df = n − 4. The CDO's pure-calendar fixture (sleep = 420 + 35·W(i), no real rebound) read
 //   r = −0.405, p = 0.0015 before the control; the second-order partial reads r ≈ −0.016, p ≈ 0.91 —
 //   effectively 100% of the −0.41 was the training calendar. A real homeostatic rebound (Borbély 1982
-//   or nightly habit, superposed on the same calendar, survives the double control.
+//   process S), a weekend catch-up, or another schedule driver, superposed on the same calendar,
+//   survives the double control.
 // • Effective n: the p of every CROSS pair is read on Bartlett's n_eff (`CorrelationEngine.effectiveN`,
 //   lag-1 autocorrelations truncated at 0), because daily series are autocorrelated and the raw p is
 //   anticonservative. The auto-lag (sleep → next night's sleep) does NOT: under H0 the series is white
