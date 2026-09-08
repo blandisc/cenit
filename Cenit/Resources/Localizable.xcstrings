@@ -6797,57 +6797,6 @@
         }
       }
     },
-    "5/MG probes" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "5/MG probes"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sondas 5/MG"
-          }
-        }
-      }
-    },
-    "5/MG probes, frames" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "5/MG probes, frames"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sondas 5/MG, tramas"
-          }
-        }
-      }
-    },
-    "5/MG protocol probes" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "5/MG protocol probes"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sondas de protocolo 5/MG"
-          }
-        }
-      }
-    },
     "50 = typical" : {
       "localizations" : {
         "en" : {
@@ -9197,23 +9146,6 @@
         }
       }
     },
-    "Aged baseline · 6+ days without band" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aged baseline · 6+ days without band"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Línea base envejecida · 6+ días sin banda"
-          }
-        }
-      }
-    },
     "All" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -10609,23 +10541,6 @@
         }
       }
     },
-    "BAND" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "BAND"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "BANDA"
-          }
-        }
-      }
-    },
     "BMI" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -10926,85 +10841,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Equilibrado"
-          }
-        }
-      }
-    },
-    "Band at %lld%%" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Band at %lld%%"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Banda al %lld%%"
-          }
-        }
-      }
-    },
-    "Band disconnected during the day" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Band disconnected during the day"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Banda desconectada de día"
-          }
-        }
-      }
-    },
-    "Band only" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Solo la banda"
-          }
-        }
-      }
-    },
-    "Band with no signal" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Band with no signal"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Banda sin señal"
-          }
-        }
-      }
-    },
-    "Band · last night" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Band · last night"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Banda · anoche"
           }
         }
       }
@@ -11805,40 +11641,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Peso corporal"
-          }
-        }
-      }
-    },
-    "Bonded · idle" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bonded · idle"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vinculada · inactiva"
-          }
-        }
-      }
-    },
-    "Bonded · streaming" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bonded · streaming"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vinculada · transmitiendo"
           }
         }
       }
@@ -14370,23 +14172,6 @@
         }
       }
     },
-    "Connected. Finishing the secure pairing handshake…" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Connected. Finishing the secure pairing handshake…"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Conectada. Terminando el emparejamiento seguro…"
-          }
-        }
-      }
-    },
     "Connecting…" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -14519,23 +14304,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Continuar de todos modos"
-          }
-        }
-      }
-    },
-    "Continue without pairing" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Continue without pairing"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Continuar sin emparejar"
           }
         }
       }
@@ -21690,12 +21458,12 @@
         }
       }
     },
-    "How many breaths you take per minute while you sleep. It's one of the steadiest signals your body has, so even a small rise from your own normal can point to strain, an unusually demanding day, or a late, heavy meal." : {
+    "How many breaths you take per minute while you sleep. It's one of the steadiest signals your body has, so even a small rise from your own normal can point to strain, an unusually demanding day, a late and heavy meal, or something you might be coming down with." : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cuántas respiraciones das por minuto mientras duermes. Es una de las señales más estables de tu cuerpo, así que hasta un pequeño aumento sobre tu normal puede apuntar a esfuerzo, un día especialmente demandante o una comida tardía y pesada."
+            "value" : "Cuántas respiraciones das por minuto mientras duermes. Es una de las señales más estables de tu cuerpo, así que hasta un pequeño aumento sobre tu normal puede apuntar a esfuerzo, un día especialmente demandante, una comida tardía y pesada, o algo que podrías estar incubando."
           }
         }
       }
@@ -23937,23 +23705,6 @@
         }
       }
     },
-    "Keep your iPhone's Bluetooth on." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Keep your iPhone's Bluetooth on."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mantén el Bluetooth de tu iPhone activado."
-          }
-        }
-      }
-    },
     "Kept" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -24924,23 +24675,6 @@
         }
       }
     },
-    "Live HR (not fully paired)" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Live HR (not fully paired)"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "FC en vivo (sin emparejar del todo)"
-          }
-        }
-      }
-    },
     "Live heart rate" : {
       "comment" : "An accessibility label for the live heart-rate pill when it is live.",
       "extractionState" : "stale",
@@ -24950,23 +24684,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Frecuencia cardiaca en vivo"
-          }
-        }
-      }
-    },
-    "Live heart rate only: finish secure pairing to save the rest" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Live heart rate only: finish secure pairing to save the rest"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Solo frecuencia en vivo, completa el emparejamiento seguro para guardar lo demás"
           }
         }
       }
@@ -28090,17 +27807,6 @@
         }
       }
     },
-    "No band data yet. Connect it in Live or import your history to see anything in this mode." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No hay datos de tu banda todavía. Conéctala en Live o importa tu historial para ver algo en este modo."
-          }
-        }
-      }
-    },
     "No baseline" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -30083,23 +29789,6 @@
         }
       }
     },
-    "On a 5/MG connection Cénit sends a probe after the handshake and logs what comes back. No effect on a 4.0." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "On a 5/MG connection Cénit sends a probe after the handshake and logs what comes back. No effect on a 4.0."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "En una conexión 5/MG, Cénit manda una sonda tras el emparejamiento y registra lo que regresa. No afecta a la 4.0."
-          }
-        }
-      }
-    },
     "On an iPhone: Health app, tap your photo, Export All Health Data, then import the .zip here in Data Sources." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -30186,23 +29875,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Los días que registraste ‘%1$@’, %2$@ fue %3$@ (prom. %4$lld vs %5$lld, n=%6$lld vs %7$lld)."
-          }
-        }
-      }
-    },
-    "On the band:" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "On the band:"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "En la banda:"
           }
         }
       }
@@ -31916,47 +31588,6 @@
         }
       }
     },
-    "Pair in Live" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Parear en Live"
-          }
-        }
-      }
-    },
-    "Paired · idle" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paired · idle"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Emparejada · inactiva"
-          }
-        }
-      }
-    },
-    "Pairing help: %@" : {
-      "comment" : "A banner that shows a warning when the user tries to pair a device that's already paired. The argument is the name of the app.",
-      "extractionState" : "stale",
-      "isCommentAutoGenerated" : true,
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ayuda de emparejamiento: %@"
-          }
-        }
-      }
-    },
     "Paluch et al. 2022, Lancet Public Health." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -32336,7 +31967,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Porcentaje de hemoglobina que transporta oxígeno en tu sangre. Los adultos sanos suelen mantenerse arriba de 95%. Una caída puede reflejar efectos de altitud o cómo quedó el sensor; una caída sostenida vale la pena mencionarla con un médico."
+            "value" : "Porcentaje de hemoglobina que transporta oxígeno en tu sangre. Los adultos sanos suelen mantenerse arriba de 95%. Una caída puede reflejar efectos de altitud o cómo quedó el sensor; una caída sostenida vale la pena comentarla con tu médico."
           }
         }
       }
@@ -32820,23 +32451,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Anterior: %@"
-          }
-        }
-      }
-    },
-    "Previously paired but not currently connected. Re-scan to reconnect." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Previously paired but not currently connected. Re-scan to reconnect."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Se emparejó antes, pero no está conectada. Vuelve a escanear para reconectar."
           }
         }
       }
@@ -34267,23 +33881,6 @@
         }
       }
     },
-    "Record 5/MG frames to a file" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Record 5/MG frames to a file"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Grabar frames 5/MG en un archivo"
-          }
-        }
-      }
-    },
     "Record a timestamped moment in Cénit." : {
       "comment" : "Description of the \"Mark a Moment\" intent.",
       "extractionState" : "stale",
@@ -35603,23 +35200,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reiniciar"
-          }
-        }
-      }
-    },
-    "Restarts your calibration from today if your baseline went wrong (band change, an anomalous stretch)." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Restarts your calibration from today if your baseline went wrong (band change, an anomalous stretch)."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reinicia tu calibración desde hoy si tu base quedó mal (cambio de banda, periodo anómalo)."
           }
         }
       }
@@ -41569,40 +41149,6 @@
         }
       }
     },
-    "The band has nothing new." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The band has nothing new."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La banda no tiene nada nuevo."
-          }
-        }
-      }
-    },
-    "The beat-to-beat tacogram only comes from the band; it isn't available with Apple Health only." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The beat-to-beat tacogram only comes from the band; it isn't available with Apple Health only."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "El tacograma latido a latido solo viene de la banda; no está disponible con solo Apple Health."
-          }
-        }
-      }
-    },
     "The crest: your balance %@ to %@." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -47516,23 +47062,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sí"
-          }
-        }
-      }
-    },
-    "Yes, I have one" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Yes, I have one"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sí, tengo una banda"
           }
         }
       }
@@ -61209,6 +60738,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%d d"
+          }
+        }
+      }
+    },
+    "prep.metodo.cita" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hirshkowitz et al., 2015 (sleep need); Task Force of the European Society of Cardiology, 1996 (HRV); Mishra et al., 2020 (unusual-load sentinel)."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hirshkowitz et al., 2015 (necesidad de sueño); Task Force of the European Society of Cardiology, 1996 (HRV); Mishra et al., 2020 (centinela de carga inusual)."
           }
         }
       }
