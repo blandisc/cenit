@@ -17,7 +17,7 @@ struct ReceiptPrinterScreen: View {
     let onClose: () -> Void
 
     @Environment(AppModel.self) private var model
-    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw = UnitSystem.metric.rawValue
+    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw: String = UnitSystem.metric.rawValue
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     // MARK: - Loaded receipt
@@ -57,7 +57,7 @@ struct ReceiptPrinterScreen: View {
     private let warmUpMs: UInt64 = 650
     private let printDuration: Double = 6.2
 
-    private var units: UnitSystem { UnitSystem(rawValue: unitSystemRaw) ?? .metric }
+    private var units: UnitSystem { .init(rawValue: unitSystemRaw) ?? .metric }
     private var screenHeight: CGFloat { UIScreen.main.bounds.height }
     private var removeThreshold: CGFloat { -(screenHeight * 0.33) }
 

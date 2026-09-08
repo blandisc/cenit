@@ -133,8 +133,8 @@ struct OnbActoPerfil: View {
     @EnvironmentObject private var profile: ProfileStore
     @EnvironmentObject private var health: HealthKitBridge
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw = UnitSystem.metric.rawValue
-    private var unitSystem: UnitSystem { UnitSystem(rawValue: unitSystemRaw) ?? .metric }
+    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw: String = UnitSystem.metric.rawValue
+    private var unitSystem: UnitSystem { .init(rawValue: unitSystemRaw) ?? .metric }
 
     var body: some View {
         // Los `Group` son puramente estructurales (SwiftUI tope los hijos de un builder en 10); son

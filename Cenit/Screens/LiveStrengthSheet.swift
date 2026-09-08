@@ -39,7 +39,7 @@ struct LiveStrengthSheet: View {
     @Environment(\.scenePhase) private var scenePhase
     @EnvironmentObject private var tabRouter: TabRouter
     @ObservedObject var session: StrengthSessionModel
-    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw = UnitSystem.metric.rawValue
+    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw: String = UnitSystem.metric.rawValue
     /// FER-87 · the acta's «Guardado en Salud» row needs to know whether the iPhone's opt-in Health
     /// mirror is even on (off by default) — the same gate `saveStrengthWorkoutIfEnabled` itself reads
     /// (`HealthKitBridge.swift`), so the row never claims a save the engine wouldn't have attempted.
@@ -214,7 +214,7 @@ struct LiveStrengthSheet: View {
     /// Profile HR-max (Tanaka if no override) — the Karvonen ceiling.
     private var profileMaxHR: Double { Double(model.profile.hrMax) }
 
-    private var units: UnitSystem { UnitSystem(rawValue: unitSystemRaw) ?? .metric }
+    private var units: UnitSystem { .init(rawValue: unitSystemRaw) ?? .metric }
     private var imperial: Bool { units == .imperial }
     /// Plate step: 2.5 kg metric, 5 lb imperial — stored as kg.
     private var weightStepKg: Double { imperial ? 5 * Self.kgPerPound : 2.5 }
@@ -651,8 +651,8 @@ struct LiveStrengthSheet: View {
                 setText: run.sets.first(where: { $0.id == target.setId })?.note ?? "",
                 history: noteHistory,
                 onSave: { scope, text in
-                    let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-                    let value: String? = trimmed.isEmpty ? nil : trimmed
+                    let limpio = text.trimmingCharacters(in: .whitespacesAndNewlines)
+                    let value: String? = limpio.isEmpty ? nil : limpio
                     switch scope {
                     case .exercise: session.setExerciseNote(exercise: target.id, text: value)
                     case .set: session.setSetNote(exercise: target.id, set: target.setId, text: value)

@@ -25,8 +25,8 @@ struct ExerciseDetailScreen: View {
     @Environment(\.openURL) private var openURL
     @EnvironmentObject private var repo: Repository
     @EnvironmentObject private var mediaCoordinator: MediaDownloadCoordinator
-    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw = UnitSystem.metric.rawValue
-    private var system: UnitSystem { UnitSystem(rawValue: unitSystemRaw) ?? .metric }
+    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw: String = UnitSystem.metric.rawValue
+    private var system: UnitSystem { .init(rawValue: unitSystemRaw) ?? .metric }
     /// FER-722/778/790: the exercise's cached media — a single animated GIF that the hero shows both
     /// as a still (when paused) and animated (when playing). One asset, not a thumb/loop split.
     @State private var mediaURL: URL?

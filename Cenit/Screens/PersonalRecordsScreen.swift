@@ -16,8 +16,8 @@ struct PersonalRecordsRoute: Hashable {}
 
 struct PersonalRecordsScreen: View {
     @EnvironmentObject private var repo: Repository
-    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw = UnitSystem.metric.rawValue
-    private var system: UnitSystem { UnitSystem(rawValue: unitSystemRaw) ?? .metric }
+    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw: String = UnitSystem.metric.rawValue
+    private var system: UnitSystem { .init(rawValue: unitSystemRaw) ?? .metric }
     @Environment(\.dynamicTypeSize) private var typeSize
 
     /// One row: the exercise, its dominant number already formatted for `type`, when that number was

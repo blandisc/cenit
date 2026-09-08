@@ -83,8 +83,8 @@ struct WorkoutHistoryScreen: View {
 
     @EnvironmentObject private var repo: Repository
     @EnvironmentObject private var health: HealthKitBridge
-    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw = UnitSystem.metric.rawValue
-    private var system: UnitSystem { UnitSystem(rawValue: unitSystemRaw) ?? .metric }
+    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw: String = UnitSystem.metric.rawValue
+    private var system: UnitSystem { .init(rawValue: unitSystemRaw) ?? .metric }
     /// FER-362 · C4: shows/hides the third-party strength Apple Health already has (Strong/Hevy/Apple
     /// Fitness) inside the «Fuerza» dialect — set in `DataSourcesView`, on by default.
     @AppStorage(WorkoutSource.showThirdPartyStrengthKey) private var showThirdPartyStrengthWorkouts = true
@@ -1485,8 +1485,8 @@ struct WorkoutSessionDetailScreen: View {
     @EnvironmentObject private var repo: Repository
     @Environment(AppModel.self) private var model
     @EnvironmentObject private var coordinator: WorkoutHistoryCoordinator
-    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw = UnitSystem.metric.rawValue
-    private var system: UnitSystem { UnitSystem(rawValue: unitSystemRaw) ?? .metric }
+    @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw: String = UnitSystem.metric.rawValue
+    private var system: UnitSystem { .init(rawValue: unitSystemRaw) ?? .metric }
 
     /// Drives «Duplicar como rutina» — a routine builder pre-filled with this session's exercises (2A).
     /// 2026-07-19: se retiró `RoutineBuilderScreen` — «Duplicar» ahora persiste la rutina y abre el
@@ -2257,10 +2257,10 @@ enum StrengthHistoryFormat {
     /// and `volume(_:system:)` is called once per visible row in the history `LazyVStack` (was allocating
     /// a fresh formatter each time → scroll jank). Same `static let` pattern as `dateTimeFormatter` above.
     private static let volumeFormatter: NumberFormatter = {
-        let f = NumberFormatter()
-        f.numberStyle = .decimal
-        f.maximumFractionDigits = 0
-        return f
+        let formateador = NumberFormatter()
+        formateador.numberStyle = .decimal
+        formateador.maximumFractionDigits = 0
+        return formateador
     }()
 
     /// Total volume in the user's unit, with thousands grouping: "3,325 kg" / "7,330 lb".
