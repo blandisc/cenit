@@ -373,7 +373,8 @@ struct StrainDetailScreen: View {
         }
     }
 
-    /// «Qué mueve tu esfuerzo» — drivers direccionales, ya gateados por el motor (FER-239). La
+    /// «Qué mueve tu esfuerzo» — drivers direccionales, ya gateados por la familia «Tu patrón»
+    /// (FER-239 → FER-438). La
     /// tarjeta desaparece entera cuando nada cruza el umbral de suficiencia (sin mensaje vacío).
     /// UX-09: la pieza es `LiquidTendenciaCard` (overline + chip «tendencia, no causa»), la
     /// MISMA que Estrés — el chip punteado ya no se copia a mano por pantalla.
@@ -381,18 +382,9 @@ struct StrainDetailScreen: View {
         LiquidTendenciaCard(
             overline: String(localized: "What we see in your history"),
             chip: String(localized: "trend, not cause"),
-            lineas: model.drivers.map(Self.driverPhrase))
-    }
-
-    /// La frase direccional de un driver — el dato es siempre una DIRECCIÓN, nunca un número.
-    /// Texto SIN CAMBIOS (mismas 4 claves).
-    private static func driverPhrase(_ f: StrainDriverFinding) -> String {
-        switch (f.driver, f.trend) {
-        case (.sameDayRecovery, .rises): return String(localized: "Tends to run higher on days you start more recovered.")
-        case (.sameDayRecovery, .falls): return String(localized: "Tends to run lower on days you start more recovered.")
-        case (.priorDayStrain, .rises):  return String(localized: "Tends to run higher the day after a hard effort.")
-        case (.priorDayStrain, .falls):  return String(localized: "Tends to ease off the day after a hard effort.")
-        }
+            // FER-438 · La frase es `WhatMovesItFinding.phrase`, el único hogar del copy: siempre una
+            // DIRECCIÓN, nunca un número.
+            lineas: model.drivers.map(\.phrase))
     }
 
     // MARK: - Los carriles fijos — UNA sola escalera, compartida por niveles/historial/calendario
@@ -555,6 +547,12 @@ struct StrainDetailScreen: View {
                 if estimated {
                     LiquidNotaLine(String(localized: "Estimated from your Apple Watch workout heart rate. It doesn't include activity outside those workouts, so it can read a little low."))
                 }
+                // FER-438 · El método de «Tu patrón» acompaña al pie SOLO cuando la tarjeta se pintó
+                // (`!model.drivers.isEmpty`, mismo gate que `whatMovesCard`): no se explica lo que no
+                // se ve — la misma regla de dato que las hojas de métrica.
+                if !model.drivers.isEmpty, let patronMetodo = MetricInfo.strain(nil).patternMethod {
+                    LiquidNotaLine(String(localized: patronMetodo))
+                }
             }
             // M1: las MISMAS claves de procedencia que la hoja de Hoy usa por métrica
             // (`LiquidMetricSheetView.origenChipVista`): esfuerzo = calculado en el teléfono;
@@ -609,8 +607,9 @@ struct StrainDetailModel {
     /// Whether the repo finished its first load (drives loading vs empty hero copy).
     let loaded: Bool
     /// The gated, directional drivers of strain ("Qué mueve tu esfuerzo"), computed from the user's own
-    /// history (FER-239). Empty when nothing clears the sufficiency gate → the block stays hidden.
-    let drivers: [StrainDriverFinding]
+    /// history — since FER-438 the `strain` findings of the one «Tu patrón» family (last night's
+    /// efficiency → the day's strain). Empty when nothing clears the gate → the block stays hidden.
+    let drivers: [WhatMovesItFinding]
     /// Today's effort-confidence tier (FER-676), from the persisted `effortConfidence` — how much of the
     /// active day HR actually covered. nil when today has no score (nothing to grade → no sello).
     var confidence: ScoreConfidence? = nil
@@ -624,40 +623,40 @@ struct StrainDetailModel {
     var hasData: Bool { today != nil || !series.isEmpty }
 
     /// Build the whole model from the repo's in-memory dashboard. Pure (no DB). `days` is the strap +
-    /// on-device dashboard (`repo.days`, the baseline source — FER-149); `today` is `repo.today`; `todayKey`
-    /// is the device's local day key (passed by the caller — `Repository.localDayKey` is main-isolated,
-    /// FER-976). The drivers are computed here off the same `days` (which carry recovery) via
-    /// `CenitAnalytics`, keeping the screen DB-free presentation over a ready-made model.
-    static func build(days: [DailyMetric], today: DailyMetric?, loaded: Bool,
+    /// on-device dashboard (`repo.days`, the baseline source — FER-149); `patternDays` the rows the
+    /// «Tu patrón» family reads (`repo.displayDays` — the SAME rows every surface of the family reads, so
+    /// the strain sheet and this screen can never disagree on a finding, FER-438); `today` is `repo.today`;
+    /// `todayKey` is the device's local day key (passed by the caller — `Repository.localDayKey` is
+    /// main-isolated, FER-976). The drivers are computed here via `CenitAnalytics` (`WhatMovesItEngine`),
+    /// keeping the screen DB-free presentation over a ready-made model.
+    static func build(days: [DailyMetric], patternDays: [DailyMetric], today: DailyMetric?, loaded: Bool,
                       todayKey: String) -> StrainDetailModel {
         let series = days
             .compactMap { d in d.strain.map { (day: d.day, value: $0) } }
             .sorted { $0.day < $1.day }
-        let recovery = days
-            .compactMap { d in d.recovery.map { (day: d.day, value: $0) } }
-            .sorted { $0.day < $1.day }
-        let drivers = WhatMovesStrainEngine.drivers(strain: series, recovery: recovery)
+        let drivers = WhatMovesItEngine.findings(forMetricKey: "strain", days: patternDays, today: todayKey)
         return StrainDetailModel(today: today?.strain, series: series, loaded: loaded, drivers: drivers,
                                  confidence: today?.effortConfidence.flatMap(ScoreConfidence.init(rawValue:)),
                                  strainHeat: buildHeat(series: series, todayKey: todayKey))
     }
 
     /// Runs `build` off the MainActor (FER-954, same seam as `SleepDetailModel.buildDetached` /
-    /// FER-953): snapshots `repo.days`/`repo.today`/`repo.loaded` on the MainActor (value-type
-    /// copies) plus `Repository.localDayKey(Date())` (main-isolated, resolved BEFORE the hop), then
-    /// hops the pure derivation to a background executor; only the finished model returns to main.
+    /// FER-953): snapshots `repo.days`/`repo.displayDays`/`repo.today`/`repo.loaded` on the MainActor
+    /// (value-type copies) plus `Repository.localDayKey(Date())` (main-isolated, resolved BEFORE the hop),
+    /// then hops the pure derivation to a background executor; only the finished model returns to main.
     @MainActor
     static func buildDetached(repo: Repository) async -> StrainDetailModel {
-        let days = repo.days, today = repo.today, loaded = repo.loaded
+        let days = repo.days, patternDays = repo.displayDays, today = repo.today, loaded = repo.loaded
         let todayKey = Repository.localDayKey(Date())
         return await Task.detached(priority: .userInitiated) {
-            build(days: days, today: today, loaded: loaded, todayKey: todayKey)
+            build(days: days, patternDays: patternDays, today: today, loaded: loaded, todayKey: todayKey)
         }.value
     }
 
     /// Placeholder while `buildDetached` runs: renders the screen's existing `!model.loaded` loading
     /// state (FER-954).
-    static let loading: StrainDetailModel = build(days: [], today: nil, loaded: false, todayKey: "")
+    static let loading: StrainDetailModel = build(days: [], patternDays: [], today: nil, loaded: false,
+                                                  todayKey: "")
 
     /// The trailing 90 calendar days as `RecoveryDay` (score = strain 0–21, nil where there's no
     /// reading). Moved from the view's per-render `strainHeat` computed property (FER-976) — same
@@ -696,8 +695,7 @@ private func sampleStrainSeries(days: Int = 60) -> [(day: String, value: Double)
     Color.clear.sheet(isPresented: .constant(true)) {
         StrainDetailScreen(
             model: StrainDetailModel(today: 14.2, series: sampleStrainSeries(), loaded: true,
-                                     drivers: [.init(driver: .sameDayRecovery, trend: .rises),
-                                               .init(driver: .priorDayStrain, trend: .falls)]))
+                                     drivers: [.init(relationship: .strainEfficiency, trend: .rises)]))
     }
 }
 
