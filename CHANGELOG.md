@@ -20,6 +20,39 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
 
 ## Unreleased
 
+### La base de datos, reescrita por dentro sin tocar tus datos (FER-393)
+- La capa que guarda tu historial en el teléfono se reescribió desde cero. Para ti no cambia nada:
+  tu base abre igual, con las mismas filas, y al abrirla no se ejecuta ni una sola instrucción que
+  modifique su forma. Hay una prueba que lo comprueba sobre una base real, no sobre un argumento.
+- De paso desaparecieron tres funciones muertas que quedaron de la época del dispositivo anterior
+  y que consultaban tablas que ya no existen: fallaban en silencio en cada llamada y nadie leía su
+  resultado.
+
+### Motores de esfuerzo, pulso y diseño con código propio (FER-387, FER-385, FER-395)
+- Los cálculos de esfuerzo, zonas de pulso, variabilidad nocturna, pulso en reposo y calorías se
+  reescribieron desde el método publicado que ya citaban. Tus números no se mueven: un oráculo de
+  más de dos mil valores generado con el código anterior los compara uno a uno.
+- Se retiraron dos motores que ya no corrían desde que las fases de sueño vienen de Apple Health:
+  el clasificador de sueño propio y el detector de entrenamientos por pulso.
+- Las piezas heredadas del sistema de diseño (paleta, tipografía, movimiento y tres gráficas) se
+  reescribieron con estructura propia sin cambiar un solo píxel.
+
+### Las tres señales se tratan igual, y el método cierra en español (FER-401)
+- **La ficha de respiración vuelve a nombrar la misma posibilidad que las otras dos.** Oxígeno en
+  sangre y temperatura de piel ya decían que una lectura fuera de lo tuyo puede ser «algo que
+  podrías estar incubando»; respiración solo hablaba de esfuerzo, un día pesado o una cena tardía.
+  Ahora también la nombra, al final y como la última posibilidad, no como conclusión.
+- **Oxígeno en sangre suena a persona, no a manual:** una caída sostenida «vale la pena comentarla
+  con tu médico».
+- **El método de Preparación ya no cierra en inglés.** Con el teléfono en español, el plegable
+  explicaba todo en español y terminaba con la lista de estudios sin traducir.
+- **Se fueron del catálogo los textos de cuando el dato venía de una banda.** Ninguno se mostraba ya
+  —«Banda desconectada de día», «Banda sin señal», el paso que preguntaba si tenías una, y todo el
+  emparejamiento por Bluetooth—: eran textos huérfanos que solo pesaban. Las «bandas» de las
+  gráficas, que sí son tuyas, se quedan tal cual.
+- Las pantallas y la capa de datos que aún conservaban código del proyecto anterior se
+  reescribieron con expresión propia; nada cambia a la vista.
+
 ### Preparación para la App Store (FER-398)
 - **Acerca de** ahora reconoce el trabajo de otros que Cénit lleva dentro —GRDB.swift, ZIPFoundation,
   Space Grotesk y free-exercise-db, cada uno con su licencia— y suma los tres enlaces que antes solo
