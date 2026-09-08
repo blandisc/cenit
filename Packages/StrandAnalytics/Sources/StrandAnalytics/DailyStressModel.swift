@@ -28,8 +28,7 @@ public enum StressMath {
 
     /// Promedio simple. `nil` cuando no hay ni una muestra: no se inventa un centro.
     public static func mean(_ xs: [Double]) -> Double? {
-        guard !xs.isEmpty else { return nil }
-        return xs.reduce(0, +) / Double(xs.count)
+        xs.isEmpty ? nil : xs.reduce(0, +) / Double(xs.count)
     }
 
     /// Desviación estándar POBLACIONAL (divide entre n). Cero cuando no hay centro o hay una sola
@@ -47,10 +46,8 @@ public enum StressMath {
     /// Suma de los z-scores autonómicos. Ambos empujan hacia arriba: el pulso al subir, la HRV al
     /// bajar. Un término sin dato, sin centro o con la base plana simplemente no suma — el
     /// resultado se apoya en el que sí llegó, y con ninguno vale 0 (la base misma).
-    public static func rawScore(
-        rhrToday: Double?, meanRHR: Double?, sdRHR: Double,
-        hrvToday: Double?, meanHRV: Double?, sdHRV: Double
-    ) -> Double {
+    public static func rawScore(rhrToday: Double?, meanRHR: Double?, sdRHR: Double,
+                                hrvToday: Double?, meanHRV: Double?, sdHRV: Double) -> Double {
         var acumulado = 0.0
         if let pulso = rhrToday, let centro = meanRHR, sdRHR > dispersionMinima {
             acumulado += (pulso - centro) / sdRHR            // arriba = más carga
