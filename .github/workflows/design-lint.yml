@@ -48,6 +48,8 @@ jobs:
         run: python3 Tools/check-design-drift.py --rules no-adhoc-font,no-radius-literal,no-opacity-literal --baseline Tools/design-drift-baseline.json Cenit/Screens Cenit/Onboarding Cenit/System Cenit/App CenitApp
       - name: Design-drift linter — anti-evasión del colador, ratchet (FER-276)
         run: python3 Tools/check-design-drift.py --rules no-raw-color,no-edgeinsets-literal,no-token-arithmetic --baseline Tools/design-drift-baseline.json Cenit/Screens Cenit/Onboarding Cenit/System Cenit/App Cenit/Data Cenit/LiveActivity Cenit/Media CenitApp CenitWidgets CenitWatch
+      - name: Design-drift linter — no unsafe Int(x.rounded()) en display, ratchet (FER-466)
+        run: python3 Tools/check-design-drift.py --rules no-unsafe-int-cast --baseline Tools/design-drift-baseline.json Cenit/Screens Cenit/Data
       - name: Design-drift linter — no em-dash in copy (FER-879, app-wide)
         run: python3 Tools/check-design-drift.py --rules no-emdash-string Cenit/Screens Cenit/Onboarding
       - name: Design-drift linter — no raw shadow, use StrandElevation (migrated screens)

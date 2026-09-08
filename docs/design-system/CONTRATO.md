@@ -125,6 +125,7 @@ Tabla humana (resumen) — la verdad máquina-legible es el bloque JSON de abajo
 | no-hex | staged (todos) | changed (todos) | árbol (raíces default) |
 | no-adhoc-font / no-radius-literal / no-opacity-literal (trinquete) | árbol 5 raíces | árbol 5 raíces | árbol 5 raíces |
 | no-emdash-string | staged Screens+Onboarding | changed Screens+Onboarding | árbol Screens+Onboarding |
+| no-unsafe-int-cast (`Int(x.rounded())` a la medida en display; ratchet, FER-466) | árbol Screens+Data + baseline | idem | idem |
 | no-raw-shadow | staged Screens | changed Screens | árbol Screens |
 | no-sheet-glass | staged (todos)¹ | changed (todos)¹ | árbol CenitDesign+Cenit+CenitApp+CenitShared+CenitWidgets |
 | no-spacing-literal (trinquete) | árbol 5 raíces | árbol 5 raíces | árbol 5 raíces |
@@ -155,7 +156,8 @@ raíces explícitas donde vive el defecto (incluye el paquete, excluye CenitWatc
     "legacy": ["Cenit/Screens", "Cenit/Onboarding", "Cenit/System", "Cenit/App", "Cenit/Data", "Cenit/LiveActivity", "Cenit/Media", "CenitApp", "CenitWidgets", "CenitWatch"],
     "exempt": ["Cenit/Screens", "Cenit/Onboarding", "Cenit/System", "Cenit/App", "Cenit/Data", "Cenit/LiveActivity", "Cenit/Media", "Packages/CenitDesign/Sources", "CenitApp"],
     "dtcap": ["Cenit/Screens", "Cenit/Onboarding", "Cenit/System", "Cenit/App", "Cenit/Data", "Cenit/LiveActivity", "Cenit/Media", "CenitWidgets", "CenitWatch", "CenitApp"],
-    "sheet_glass_ci": ["Packages/CenitDesign/Sources", "Cenit", "CenitApp", "CenitShared", "CenitWidgets"]
+    "sheet_glass_ci": ["Packages/CenitDesign/Sources", "Cenit", "CenitApp", "CenitShared", "CenitWidgets"],
+    "int_display": ["Cenit/Screens", "Cenit/Data"]
   },
   "rules": {
     "no-hex":             {"pre-commit": "staged", "verify-quick": "changed", "design-lint": "tree-default"},
@@ -182,7 +184,8 @@ raíces explícitas donde vive el defecto (incluye el paquete, excluye CenitWatc
     "no-native-menu":         {"pre-commit": "tree:spacing", "verify-quick": "tree:spacing", "design-lint": "tree:spacing"},
     "no-native-material":     {"pre-commit": "tree:material", "verify-quick": "tree:material", "design-lint": "tree:material"},
     "no-raw-contrast":        {"pre-commit": "tree:material", "verify-quick": "tree:material", "design-lint": "tree:material"},
-    "no-forced-light":        {"pre-commit": "tree:spacing", "verify-quick": "tree:spacing", "design-lint": "tree:spacing"}
+    "no-forced-light":        {"pre-commit": "tree:spacing", "verify-quick": "tree:spacing", "design-lint": "tree:spacing"},
+    "no-unsafe-int-cast":     {"pre-commit": "tree:int_display+baseline", "verify-quick": "tree:int_display+baseline", "design-lint": "tree:int_display+baseline"}
   }
 }
 ```

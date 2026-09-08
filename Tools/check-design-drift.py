@@ -23,6 +23,10 @@ Rules (each activated in the PR that finishes its migration — pass `--rules` t
     no-confirmation-dialog  a native `.confirmationDialog(` — the catalog has `.liquidConfirm` (FER-338; pure)
     no-native-menu          a native `Menu {` / `Menu(` — the catalog has `.liquidMenu` (FER-338; pure)
     no-native-material      a bare SwiftUI `Material` (`.ultraThinMaterial`, …) outside `LiquidGlassRecipes.swift` — glass is a recipe, `liquidGlass(_:)` (FER-340; pure)
+    no-unsafe-int-cast `Int(<x>.rounded())` a la medida en la capa de display — trapea con no-finito o
+                       magnitud enorme; enruta por `CenitFormat.int/groupedInt/decimal` guardados
+                       o marca `// token-exempt(finite): <razón>` si el valor es provablemente finito
+                       (FER-466; ratchet — la clase se congela y se encoge por olas)
     token-exempt       pseudo-rule: counts the escape hatches themselves        (FER-263; ratchet — an exemption
                        is frozen debt too, so a NEW `token-exempt` fails unless its budget allows it)
 
@@ -57,7 +61,7 @@ DEFAULT_ROOTS = [
 DESIGN_PKG = "Packages/CenitDesign"
 EXEMPT = re.compile(r"//\s*token-exempt\b")
 
-ALL_RULES = ["no-hex", "no-adhoc-font", "no-radius-literal", "no-opacity-literal", "no-emdash-string", "no-raw-shadow", "no-sheet-glass", "no-spacing-literal", "no-legacy-api", "token-exempt", "no-raw-color", "no-edgeinsets-literal", "no-token-arithmetic", "no-motion-literal", "no-dt-cap-adhoc", "no-deprecated-metrics", "no-instrumento-theme", "no-weight-on-grotesk", "no-iphone-tone-on-oled", "no-capsule-a-mano", "no-confirmation-dialog", "no-native-menu", "no-native-material", "no-raw-contrast", "no-forced-light"]
+ALL_RULES = ["no-hex", "no-adhoc-font", "no-radius-literal", "no-opacity-literal", "no-emdash-string", "no-raw-shadow", "no-sheet-glass", "no-spacing-literal", "no-legacy-api", "token-exempt", "no-raw-color", "no-edgeinsets-literal", "no-token-arithmetic", "no-motion-literal", "no-dt-cap-adhoc", "no-deprecated-metrics", "no-instrumento-theme", "no-weight-on-grotesk", "no-iphone-tone-on-oled", "no-capsule-a-mano", "no-confirmation-dialog", "no-native-menu", "no-native-material", "no-raw-contrast", "no-forced-light", "no-unsafe-int-cast"]
 
 # Per-rule default roots — mirrors `.github/workflows/design-lint.yml` exactly (FER-282).
 # A bare `python3 Tools/check-design-drift.py --baseline …` (no roots) must not paint red on
@@ -96,6 +100,7 @@ DEFAULT_ROOTS_BY_RULE = {
     "no-raw-contrast": ["Cenit/Screens", "Cenit/Onboarding", "Cenit/System", "Cenit/App", "CenitApp", "Packages/CenitDesign/Sources"],
     "no-forced-light": ["Cenit/Screens", "Cenit/Onboarding", "Cenit/System", "Cenit/App", "CenitApp"],
     "no-native-material": list(_ROOTS_SPACING_MOTION) + ["Packages/CenitDesign/Sources"],
+    "no-unsafe-int-cast": ["Cenit/Screens", "Cenit/Data"],
 }
 # no-emdash-string: an em-dash (—, U+2014) inside a user-facing Swift string literal. ADN copy rule
 # (FER-878): on-screen copy uses «:», «·» or a comma, never an em-dash. Scoped to STRING LITERALS so the
@@ -284,6 +289,14 @@ RE_RAW_CONTRAST = re.compile(r"\bOKLab\.(?:darkened|lightened)\(")
 # claro una pantalla/hoja, des-oscureciéndola. Prohibido salvo el arnés de debug AppMap.
 RE_FORCED_LIGHT = re.compile(r"\.preferredColorScheme\(\.light\)")
 
+# no-unsafe-int-cast (FER-466): `Int(<x>.rounded())` es un TRAP fatal cuando `<x>` es no-finito
+# (NaN/±Inf) o finito pero fuera del rango de `Int` (magnitud > ~9.2e18, p.ej. un número pegado de 19
+# dígitos). Es la clase de crash que la demolición cazó una y otra vez en formateadores a la medida. El
+# camino guardado es `CenitFormat.int/groupedInt/decimal` (viven en el paquete, esta regla no los vigila).
+# Un `Int(...)` de VALOR provablemente finito (geometría de gesto, índice acotado) lleva
+# `// token-exempt(finite): <razón>`. Ratchet: los sitios actuales se congelan y solo se encogen.
+RE_UNSAFE_INT_CAST = re.compile(r"\bInt\(.*\.rounded\(\)\)")
+
 RULE_PATTERNS = {
     "no-hex": RE_HEX,
     "no-adhoc-font": RE_FONT,
@@ -308,6 +321,7 @@ RULE_PATTERNS = {
     "no-confirmation-dialog": RE_CONFIRMATION_DIALOG,
     "no-native-menu": RE_NATIVE_MENU,
     "no-native-material": RE_NATIVE_MATERIAL,
+    "no-unsafe-int-cast": RE_UNSAFE_INT_CAST,
 }
 
 
