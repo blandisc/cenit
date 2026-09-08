@@ -8,17 +8,24 @@ import CenitStore
 /// manual y qué se conserva al editar.
 final class WorkoutSourceTests: XCTestCase {
 
+    // Datos en disco: los valores de `source` con los que quedaron escritas las filas de builds
+    // anteriores. La prueba los reproduce textuales porque eso es justo lo que `classify` debe leer.
+    private static let legacySource = "whoop"
+    private static let computedSource = "strap-noop"
+    private static let otherComputedSource = "my-whoop-noop"
+    private static let appName = "Whoop"
+
     // MARK: - De dónde viene la fila
 
     func testDerivedSuffixWinsOverTheLegacyBrandSubstring() {
-        XCTAssertEqual(WorkoutSource.classify("strap-noop"), .detected)
+        XCTAssertEqual(WorkoutSource.classify(Self.computedSource), .detected)
         // Un id derivado que ADEMÁS contiene el nombre de la marca heredada tiene que seguir siendo
         // derivado: si cayera a la rama de importación, el bout quedaría imposible de descartar.
-        XCTAssertEqual(WorkoutSource.classify("my-whoop-noop"), .detected)
+        XCTAssertEqual(WorkoutSource.classify(Self.otherComputedSource), .detected)
     }
 
     func testClassifiesTheStoredSourceStrings() {
-        XCTAssertEqual(WorkoutSource.classify("whoop"), .legacyWearable)
+        XCTAssertEqual(WorkoutSource.classify(Self.legacySource), .legacyWearable)
         XCTAssertEqual(WorkoutSource.classify("manual"), .manual)
         XCTAssertEqual(WorkoutSource.classify("apple_health"), .apple)
         XCTAssertEqual(WorkoutSource.classify("apple-health"), .apple)
@@ -30,11 +37,11 @@ final class WorkoutSourceTests: XCTestCase {
     /// Ese nombre puede ser justo el de la otra marca; el prefijo de Apple tiene que ganar. Antes de
     /// esa precedencia, una sesión escrita en Apple Health se clasificaba como importación heredada.
     func testApplePrefixWinsOverTheBrandSubstringInsideTheAppName() {
-        XCTAssertEqual(WorkoutSource.classify("apple-health:Whoop"), .apple)
+        XCTAssertEqual(WorkoutSource.classify("apple-health:" + Self.appName), .apple)
         XCTAssertEqual(WorkoutSource.classify("apple-health:Strong"), .apple)
         XCTAssertEqual(WorkoutSource.classify("apple-health:Apple Fitness"), .apple)
         XCTAssertEqual(WorkoutSource.classify("apple-health:"), .apple)      // cualquier sufijo, aun vacío
-        XCTAssertEqual(WorkoutSource.classify("apple_health:Whoop"), .apple) // prefijo viejo con guion bajo
+        XCTAssertEqual(WorkoutSource.classify("apple_health:" + Self.appName), .apple) // prefijo viejo con guion bajo
     }
 
     func testAppleAppNameIsTheSuffixOrNothing() {
@@ -43,7 +50,7 @@ final class WorkoutSourceTests: XCTestCase {
         XCTAssertNil(WorkoutSource.appleAppName("apple-health"))    // sin nombre
         XCTAssertNil(WorkoutSource.appleAppName("apple-health:"))   // nombre vacío = sin nombre
         XCTAssertNil(WorkoutSource.appleAppName("apple_health"))    // el importador viejo nunca trajo nombre
-        XCTAssertNil(WorkoutSource.appleAppName("whoop"))
+        XCTAssertNil(WorkoutSource.appleAppName(Self.legacySource))
         XCTAssertNil(WorkoutSource.appleAppName("manual"))
     }
 
@@ -90,10 +97,10 @@ final class WorkoutSourceTests: XCTestCase {
 
     func testOnlyDerivedRowsAreHiddenAndOnlyWhenTheyOverlap() {
         let spans = WorkoutSource.parseDismissedSpans(["1000:2000"])
-        XCTAssertTrue(WorkoutSource.isDismissed(row(1500, 2500, source: "strap-noop"), spans: spans))
-        XCTAssertFalse(WorkoutSource.isDismissed(row(3000, 4000, source: "strap-noop"), spans: spans))
+        XCTAssertTrue(WorkoutSource.isDismissed(row(1500, 2500, source: Self.computedSource), spans: spans))
+        XCTAssertFalse(WorkoutSource.isDismissed(row(3000, 4000, source: Self.computedSource), spans: spans))
         // Pegar justo al final no es traslapar: el intervalo es medio abierto.
-        XCTAssertFalse(WorkoutSource.isDismissed(row(2000, 3000, source: "strap-noop"), spans: spans))
+        XCTAssertFalse(WorkoutSource.isDismissed(row(2000, 3000, source: Self.computedSource), spans: spans))
         // Una fila manual (o importada) NUNCA se oculta sola; ésa la borra la persona.
         XCTAssertFalse(WorkoutSource.isDismissed(row(1500, 2500, sport: "Running", source: "manual"),
                                                  spans: spans))
@@ -102,11 +109,11 @@ final class WorkoutSourceTests: XCTestCase {
     func testDismissalSurvivesABoundaryThatDrifts() {
         // El motor vuelve a derivar el bout con fronteras un poco distintas; sigue descartado.
         let spans = WorkoutSource.parseDismissedSpans(["1000:2000"])
-        XCTAssertTrue(WorkoutSource.isDismissed(row(1040, 2030, source: "strap-noop"), spans: spans))
+        XCTAssertTrue(WorkoutSource.isDismissed(row(1040, 2030, source: Self.computedSource), spans: spans))
     }
 
     func testDismissedTokenRoundTrips() {
-        let dismissed = row(1_700_000_000, 1_700_003_600, source: "strap-noop")
+        let dismissed = row(1_700_000_000, 1_700_003_600, source: Self.computedSource)
         let token = WorkoutSource.dismissedToken(for: dismissed)
         XCTAssertEqual(token, "1700000000:1700003600")
         XCTAssertTrue(WorkoutSource.isDismissed(dismissed,

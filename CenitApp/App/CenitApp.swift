@@ -27,7 +27,7 @@ struct CenitApp: App {
         // ① las preferencias (el prefijo heredado → `cenit.*`; ver `PrefKey.legacyKey`), porque `AppModel` y los `@AppStorage` de la
         //    primera pantalla leen su valor; si corriera después, el usuario vería el onboarding otra
         //    vez y la app escribiría un default nuevo encima del suyo.
-        // ② el contenedor en disco (`OpenWhoop/whoop.sqlite` → `Cenit/cenit.sqlite`), porque
+        // ② el contenedor en disco (los nombres heredados de `StorePaths` → `Cenit/cenit.sqlite`), porque
         //    `AppModel()` abre el store — mover el archivo bajo una conexión viva es cómo se corrompe.
         // Las dos son idempotentes: en una instalación ya migrada cuestan unos `fileExists`.
         PrefMigration.migrateLegacyKeysIfNeeded()
@@ -152,12 +152,12 @@ struct CenitApp: App {
                 .onAppear { DebugNavWatcher.shared.start() }
                 #endif
         }
-        // HealthKit authorization is intentionally NOT requested on launch. The system permission
-        // dialog without prior in-app rationale violates Apple HIG / App Review guidance — the user
-        // sees the prompt before any context. Authorization should be triggered from an explicit
-        // user action: an "Enable Apple Health" row in Settings, or a dedicated step in
-        // OnboardingWizard. HealthKitBridge.sync below guards on `auth == .authorized`, so the
-        // scenePhase trigger is a safe no-op until the user opts in.
+        // El permiso de Salud NO se pide al arrancar, y es a propósito. Sacar el diálogo del sistema
+        // sin haber explicado nada antes va contra la guía de Apple (HIG y App Review): la persona
+        // ve la pregunta sin contexto. El permiso nace de un acto explícito — la fila «Conectar
+        // Apple Salud» en Ajustes, o el paso dedicado del onboarding. `HealthKitBridge.sync` se
+        // protege con `auth == .authorized`, así que este disparo por escena no hace nada hasta que
+        // la persona lo enciende.
         .onChange(of: scenePhase) { _, phase in
             switch phase {
             case .active:
@@ -176,12 +176,12 @@ struct CenitApp: App {
                     // concurrently with the sync below — and assembled the dashboard twice per activation.
                     await model.resumeForegroundAnalysis()
                     await health.sync(trigger: .foreground)   // FER-872: delta window + no-op refresh guard
-                    // Snapshot the (possibly just-offloaded) strap history to iCloud Drive. Throttled
+                    // Snapshot the (possibly just-offloaded) legacy history to iCloud Drive. Throttled
                     // to ~once a day and a no-op until the user picks a folder, so it's safe here.
                     await autoBackup.backupIfDue(checkpoint: { await model.repo.checkpointForBackup() })
                 }
             case .background:
-                // Stop the analysis sequence while NOOP is off screen, so the band-mode periodic recompute
+                // Stop the analysis sequence while the app is off screen, so the band-mode periodic recompute
                 // doesn't compete with BLE keep-alive / backfill on the main actor (FER-177).
                 model.stopAnalysis()
                 model.scheduleInProgressPersist(immediate: true)

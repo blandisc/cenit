@@ -118,7 +118,7 @@ public enum MetricArbitrationPolicy {
         case (.steps, .legacyImport), (.steps, .legacyComputed):
             return "motion estimate"
         case (.sleep, .legacyImport):
-            return "band sleep timeline"
+            return "legacy sleep timeline"
         case (.sleep, .legacyComputed):
             return "computed on device"
         case (.sleep, .appleHealth):

@@ -5,7 +5,7 @@ import StrandAnalytics
 
 // FER-115 — la puerta del «Historial de FA» solo se abre cuando NO hay evidencia de que las series
 // de latidos ya lleguen. La evidencia son las dos claves que escribe `HealthKitBridge`
-// (`apple_rmssd_night` / `apple_rr_clean_night`) en la partición `apple-health-noop`.
+// (`apple_rmssd_night` / `apple_rr_clean_night`) en la partición computada de Apple.
 final class HistorialFAPuertaTests: XCTestCase {
 
     private func clean(_ n: Double, day: String = "2026-08-16") -> MetricPoint {

@@ -1,8 +1,8 @@
 import XCTest
 @testable import Cenit
 
-/// FER-398 — the one-time move of the store container off the NOOP-era names
-/// (`<AppSupport>/OpenWhoop/whoop.sqlite` → `<AppSupport>/Cenit/cenit.sqlite`).
+/// FER-398 — the one-time move of the store container off the names the app shipped under before
+/// (see `StorePaths.legacyFolderName` / `legacyDatabaseFileName`) onto `<AppSupport>/Cenit/cenit.sqlite`.
 ///
 /// What actually has to hold, and what each test pins:
 ///   · the move carries EVERYTHING in the folder (sidecars, restore backups, `MediaCache/`);
@@ -33,6 +33,20 @@ final class StorePathsMigrationTests: XCTestCase {
 
     private var legacyDir: URL { appSupport.appendingPathComponent(StorePaths.legacyFolderName) }
     private var newDir: URL { appSupport.appendingPathComponent(StorePaths.folderName) }
+
+    /// Los nombres heredados salen de `StorePaths`, nunca de un literal repetido aquí: son dato en
+    /// disco, y la prueba tiene que mover EXACTAMENTE lo que mueve la migración.
+    private var legacyDB: String { StorePaths.legacyDatabaseFileName }
+
+    /// `<carpeta heredada>/<archivo heredado><sufijo>` — la ruta relativa que usan los `write`.
+    private func inLegacyDir(_ suffix: String = "") -> String {
+        "\(StorePaths.legacyFolderName)/\(legacyDB)\(suffix)"
+    }
+
+    /// La misma pareja, pero ya dentro de la carpeta nueva: el estado a medio migrar.
+    private func inNewDir(_ suffix: String = "") -> String {
+        "\(StorePaths.folderName)/\(legacyDB)\(suffix)"
+    }
 
     @discardableResult
     private func write(_ relativePath: String, _ contents: String) throws -> URL {
@@ -79,9 +93,9 @@ final class StorePathsMigrationTests: XCTestCase {
     /// The whole folder moves in one rename: DB, both WAL sidecars, the rollback sidecar a previous
     /// restore left behind, and the downloaded media. Nothing stays behind under the old name.
     func testMovesTheWholeContainerIncludingSidecarsBackupsAndMedia() throws {
-        try write("OpenWhoop/whoop.sqlite", "DB")
-        try write("OpenWhoop/whoop.sqlite-wal", "WAL")
-        try write("OpenWhoop/whoop.sqlite-shm", "SHM")
+        try write(inLegacyDir(), "DB")
+        try write(inLegacyDir("-wal"), "WAL")
+        try write(inLegacyDir("-shm"), "SHM")
         try write("OpenWhoop/cenit-replaced-2026-09-06-101010.sqlite", "ROLLBACK")
         try write("OpenWhoop/MediaCache/media/Barbell_Bench_Press.gif", "GIF")
 
@@ -95,7 +109,7 @@ final class StorePathsMigrationTests: XCTestCase {
         XCTAssertTrue(exists("Cenit/cenit-replaced-2026-09-06-101010.sqlite"),
                       "a restore's rollback sidecar rides along — it is someone's only copy")
         XCTAssertEqual(try read(newDir.appendingPathComponent("MediaCache/media/Barbell_Bench_Press.gif")), "GIF")
-        XCTAssertFalse(exists("Cenit/whoop.sqlite"), "the legacy file name must not survive the move")
+        XCTAssertFalse(exists(inNewDir()), "the legacy file name must not survive the move")
     }
 
     /// Fresh install: neither container exists. The migration must not create one.
@@ -115,13 +129,13 @@ final class StorePathsMigrationTests: XCTestCase {
     /// rescue it by hand; deleting it here would destroy the only copy of a history we failed to move.
     func testBothContainersKeepsBothAndTheNewOneWins() throws {
         try write("Cenit/cenit.sqlite", "NEW")
-        try write("OpenWhoop/whoop.sqlite", "OLD")
+        try write(inLegacyDir(), "OLD")
 
         XCTAssertEqual(StorePaths.migrateLegacyContainerIfNeeded(appSupport: appSupport), .keptBothNewWins)
 
         XCTAssertEqual(try read(newDir.appendingPathComponent("cenit.sqlite")), "NEW",
                        "the live database is never overwritten by the legacy one")
-        XCTAssertEqual(try read(legacyDir.appendingPathComponent("whoop.sqlite")), "OLD",
+        XCTAssertEqual(try read(legacyDir.appendingPathComponent(legacyDB)), "OLD",
                        "the legacy container is left exactly as it was")
     }
 
@@ -131,9 +145,9 @@ final class StorePathsMigrationTests: XCTestCase {
     /// blanco con el historial completo del usuario intacto y invisible a un directorio de distancia.
     func testMergesIntoAnExistingButEmptyContainer() throws {
         try fm.createDirectory(at: newDir, withIntermediateDirectories: true)
-        try write("OpenWhoop/whoop.sqlite", "DB")
-        try write("OpenWhoop/whoop.sqlite-wal", "WAL")
-        try write("OpenWhoop/whoop.sqlite-shm", "SHM")
+        try write(inLegacyDir(), "DB")
+        try write(inLegacyDir("-wal"), "WAL")
+        try write(inLegacyDir("-shm"), "SHM")
         try write("OpenWhoop/cenit-replaced-2026-09-06-101010.sqlite", "ROLLBACK")
         try write("OpenWhoop/MediaCache/media/Barbell_Bench_Press.gif", "GIF")
 
@@ -147,7 +161,7 @@ final class StorePathsMigrationTests: XCTestCase {
         XCTAssertTrue(exists("Cenit/cenit-replaced-2026-09-06-101010.sqlite"),
                       "el sidecar de rollback viaja igual que en el rename de carpeta")
         XCTAssertEqual(try read(newDir.appendingPathComponent("MediaCache/media/Barbell_Bench_Press.gif")), "GIF")
-        XCTAssertFalse(exists("Cenit/whoop.sqlite"), "el nombre viejo no sobrevive")
+        XCTAssertFalse(exists(inNewDir()), "el nombre viejo no sobrevive")
         XCTAssertFalse(fm.fileExists(atPath: legacyDir.path),
                        "la cáscara vacía se retira; si no, cada arranque reportaría keptBothNewWins")
 
@@ -159,7 +173,7 @@ final class StorePathsMigrationTests: XCTestCase {
     /// para rescate a mano. La base sí falta, así que esa sí entra.
     func testMergeNeverOverwritesWhatIsAlreadyThere() throws {
         try write("Cenit/MediaCache/media/Barbell_Bench_Press.gif", "NEW-GIF")
-        try write("OpenWhoop/whoop.sqlite", "DB")
+        try write(inLegacyDir(), "DB")
         try write("OpenWhoop/MediaCache/media/Barbell_Bench_Press.gif", "OLD-GIF")
 
         XCTAssertEqual(StorePaths.migrateLegacyContainerIfNeeded(appSupport: appSupport), .mergedIntoExisting)
@@ -171,26 +185,26 @@ final class StorePathsMigrationTests: XCTestCase {
                        "OLD-GIF", "y lo que no cupo se queda para rescate, no se borra")
     }
 
-    /// El `Cenit/` existente ya trae `whoop.sqlite` (una corrida que murió entre el rename de carpeta y
+    /// El `Cenit/` existente ya trae el archivo con el nombre heredado (una corrida que murió entre el rename de carpeta y
     /// el del archivo) Y además quedó un `OpenWhoop/`. Manda el reanudado: la base que ya está adentro
     /// es la más reciente. La heredada de afuera se conserva intacta.
     func testAnInterruptedRenameWinsOverAStrayLegacyFolder() throws {
-        try write("Cenit/whoop.sqlite", "INSIDE")
-        try write("OpenWhoop/whoop.sqlite", "OUTSIDE")
+        try write(inNewDir(), "INSIDE")
+        try write(inLegacyDir(), "OUTSIDE")
 
         XCTAssertEqual(StorePaths.migrateLegacyContainerIfNeeded(appSupport: appSupport), .resumedRenames)
 
         XCTAssertEqual(try read(newDir.appendingPathComponent("cenit.sqlite")), "INSIDE")
-        XCTAssertEqual(try read(legacyDir.appendingPathComponent("whoop.sqlite")), "OUTSIDE",
+        XCTAssertEqual(try read(legacyDir.appendingPathComponent(legacyDB)), "OUTSIDE",
                        "la carpeta heredada sobrante no se toca")
     }
 
     /// The crash that the sidecar-first / main-file-last order exists for: the process died after the
     /// `-wal` rename and before the main file's. The next launch has to finish the job, not stall.
     func testResumesAfterACrashBetweenTheSidecarAndTheMainFile() throws {
-        try write("Cenit/whoop.sqlite", "DB")            // main file NOT renamed yet
+        try write(inNewDir(), "DB")            // main file NOT renamed yet
         try write("Cenit/cenit.sqlite-wal", "WAL")       // sidecar already renamed
-        try write("Cenit/whoop.sqlite-shm", "SHM")       // this one still pending
+        try write(inNewDir("-shm"), "SHM")       // this one still pending
 
         let outcome = StorePaths.migrateLegacyContainerIfNeeded(appSupport: appSupport)
 
@@ -199,13 +213,13 @@ final class StorePathsMigrationTests: XCTestCase {
         XCTAssertEqual(try read(newDir.appendingPathComponent("cenit.sqlite-wal")), "WAL",
                        "the already-renamed sidecar is left alone, not clobbered")
         XCTAssertEqual(try read(newDir.appendingPathComponent("cenit.sqlite-shm")), "SHM")
-        XCTAssertFalse(exists("Cenit/whoop.sqlite"))
+        XCTAssertFalse(exists(inNewDir()))
     }
 
     /// It runs on EVERY launch, so the second run has to be a no-op with the data untouched.
     func testIsIdempotent() throws {
-        try write("OpenWhoop/whoop.sqlite", "DB")
-        try write("OpenWhoop/whoop.sqlite-wal", "WAL")
+        try write(inLegacyDir(), "DB")
+        try write(inLegacyDir("-wal"), "WAL")
 
         XCTAssertEqual(StorePaths.migrateLegacyContainerIfNeeded(appSupport: appSupport), .movedFolder)
         XCTAssertEqual(StorePaths.migrateLegacyContainerIfNeeded(appSupport: appSupport), .alreadyMigrated)

@@ -155,7 +155,7 @@ public enum AgreementState: String, Equatable, Sendable, CaseIterable, Codable {
 
 /// One source's value for a `(metric, day)`, with the trust tier the policy assigned it. The winner
 /// is the lowest `tier` (most trusted), ties broken by `sourcePriority` (stable). `reason` is the
-/// published, plain-English justification ("counts directly", "band sleep timeline") — the honesty
+/// published, plain-English justification ("counts directly", "legacy sleep timeline") — the honesty
 /// contract: never "accurate"/"correct"/"clinical".
 public struct ContributingSource: Equatable, Sendable {
     public let source: FusionSource

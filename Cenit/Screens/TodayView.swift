@@ -90,7 +90,7 @@ struct TodayView: View {
     @EnvironmentObject private var repo: Repository
 
     #if os(iOS)
-    // iOS-only: the root app state, so the first-launch empty state's "Scan for strap" CTA can kick
+    // iOS-only: the root app state, so the first-launch empty state's connect CTA can kick
     // off a real BLE scan (`AppModel.scan()`). macOS never renders the iOS body, so it never reads this.
     @Environment(AppModel.self) var model
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -178,14 +178,14 @@ struct TodayView: View {
     #endif
 
     @State private var appleRows: [AppleDaily] = []
-    // FER-663: la estimación de pasos on-device por día (key "steps_est", fuente computada "-noop"),
-    // oldest→newest. Solo la escribe el motor para una WHOOP 4.0 calibrada (en 5/MG el contador nativo
+    // FER-663: la estimación de pasos on-device por día (clave "steps_est", en la partición computada),
+    // del más viejo al más nuevo. Solo la escribía el motor del dispositivo anterior ya calibrado (donde el contador nativo
     // manda y la serie queda vacía). El tile de Pasos cae a ella únicamente cuando el día no tiene
     // conteo real de Apple Salud — y siempre rotulada «est.» para que nunca se lea como conteo medido.
     @State private var stepsEst: [(day: String, value: Double)] = []
     // Apple-Health daily metric rows (sleep/HRV/RHR/SpO₂) read straight from the apple-health source,
-    // so Key Metrics can fall back to them when a strap row clobbered Apple's row for the day in the
-    // dashboard merge (e.g. a WHOOP 4.0 that didn't decode HRV/sleep). (FER-98)
+    // so Key Metrics can fall back to them when a legacy row clobbered Apple's row for the day in the
+    // dashboard merge (e.g. a device that didn't decode HRV/sleep). (FER-98)
     @State private var appleMetricDays: [DailyMetric] = []
 
     /// El pulso de hoy en cubos de 5 minutos (medianoche local → ahora): lo que traza la curva
@@ -332,11 +332,11 @@ struct TodayView: View {
                 liquidNight = Self.nightWindow(sessions: sessions, calendar: calendar)
                 nocheTerminaHoy = Self.hayNocheQueTerminaHoy(sessions: sessions, calendar: calendar)
             }
-            // «Hoy» nunca pedía la carga del strap por su cuenta: dependía del sondeo del keep-alive
+            // «Hoy» nunca pedía la carga del dispositivo anterior por su cuenta: dependía del sondeo del keep-alive
             // (cada ~60 s, y SUSPENDIDO durante el offload), así que tras el sync matutino la batería
             // quedaba en `nil` y el header no la mostraba. Refresca la lectura al aparecer y cuando el
-            // enlace queda libre —recién conectado o terminó el backfill—, respetando no picar al strap
-            // a mitad del offload (la WHOOP 4.0 la trae por GET_BATTERY_LEVEL, el mismo comando que ya
+            // enlace queda libre —recién conectado o terminó el backfill—, respetando no picarlo
+            // a mitad del offload (venía por GET_BATTERY_LEVEL, el mismo comando que ya
             // usan el keep-alive y Live; no se agrega ninguno nuevo al set seguro).
             // FER-73 · INT-05: aquí vivía un `ToolbarItem` con el corazón de «Apoya a Cénit» y
             // su `SupportModalOverlay`. Era un control MUERTO: Hoy no vive dentro de un
@@ -507,7 +507,7 @@ struct TodayView: View {
 
     /// Builds the metric detail sheet in Liquid Glass · El Eje and decides the "connect Apple Salud"
     /// hint: shown only for Apple-sourceable metrics that aren't connected and have no value yet;
-    /// strap-only metrics (strain, heart rate) never get it. The connect action itself stays in Today.
+    /// legacy-only metrics (strain, heart rate) never get it. The connect action itself stays in Today.
     /// (FER-162 / FER-342)
     /// ¿Los pasos que se muestran hoy vienen de una ESTIMACIÓN en el teléfono y no de un
     /// conteo real de Apple? El tile ya lo rotulaba «est.», pero la hoja del mismo dato
@@ -522,9 +522,9 @@ struct TodayView: View {
         let appleCapable = ["sleep", "hrv", "rhr", "spo2", "steps",
                             "skin_temp", "resp_rate"].contains(info.id)
         let notConnected = health.auth != .authorized && health.auth != .unavailable
-        // ¿El valor que se muestra vino de Apple Salud (no del strap)? MISMA resolución que el tile de Hoy:
+        // ¿El valor que se muestra vino de Apple Salud (no de la fuente heredada)? MISMA resolución que el tile de Hoy:
         // TODAS las vitales se resuelven `resolveMeasured(todayOnly:)` (FER-42: un solo resolutor, solo hoy)
-        // — así el badge coincide con el valor mostrado. Los pasos son Apple-only. Strap-only (esfuerzo,
+        // — así el badge coincide con el valor mostrado. Los pasos son Apple-only. Lo heredado-solo (esfuerzo,
         // FC, recuperación, estrés) → false. Sólo se badgea cuando hay valor.
         let fromApple: Bool = {
             switch info.id {
@@ -535,7 +535,7 @@ struct TodayView: View {
             case "hrv":   return resolveMeasured(todayOnly: true) { $0.avgHrv }?.fromApple == true
             case "rhr":   return resolveMeasured(todayOnly: true) { $0.restingHr.map(Double.init) }?.fromApple == true
             // Sueño es day-scoped (todayOnly, FER-341): la tarjeta muestra SÓLO el valor de hoy, así que el
-            // badge de fuente debe resolverse igual. Sin todayOnly caía al strap de AYER (no-Apple) y el
+            // badge de fuente debe resolverse igual. Sin todayOnly caía a la fila heredada de AYER (no-Apple) y el
             // corazón desaparecía dentro de la tarjeta aunque el número mostrado SÍ venía de Apple Salud.
             case "sleep": return resolveMeasured(todayOnly: true) { $0.totalSleepMin }?.fromApple == true
             case "spo2":  return resolveMeasured(todayOnly: true) { $0.spo2Pct }?.fromApple == true
@@ -953,8 +953,8 @@ struct TodayView: View {
         }
     }
 
-    /// Pide una lectura de batería del strap SOLO cuando el enlace está libre (conectado y sin offload
-    /// en curso) — nunca a mitad del backfill, igual que el keep-alive evita picar al strap entonces
+    /// Pide una lectura de batería SOLO cuando el enlace está libre (conectado y sin offload
+    /// en curso) — nunca a mitad del backfill, igual que el keep-alive evita picar el dispositivo entonces
     /// (`guard !backfilling`, the BLE engine). `refreshBattery()` es agnóstico al modelo (4.0 → comando
     /// GET_BATTERY_LEVEL; 5/MG → lectura 0x2A19) y no introduce ningún comando nuevo.
 
@@ -1522,7 +1522,7 @@ struct TodayView: View {
             || showDecideManual || showContextoManual || showAutonomicoHoja
     }
 
-    /// Cero fuentes: ni strap visto, ni datos de Apple Health, ni permiso de Health concedido. (FER-364)
+    /// Cero fuentes: ni dispositivo visto, ni datos de Apple Health, ni permiso de Health concedido. (FER-364)
     /// Decide entre las DOS superficies de Hoy: la Liquid con datos y el orbe dormido sin ellos.
     private var noSources: Bool {
         #if DEBUG
@@ -1613,8 +1613,8 @@ struct TodayView: View {
         async let adRows     = repo.appleDailyRows()
         async let amRows     = repo.appleDailyMetricRows()
         // Stored daily "stress" series (0–3) — the model prefers it, else derives from RHR/HRV. (FER-180)
-        async let stressRows = repo.series(key: "stress", source: "strap")
-        // Estimación de pasos WHOOP 4.0 (FER-663) — vacía salvo que el motor la haya calibrado y escrito.
+        async let stressRows = repo.series(key: "stress", source: Repository.legacyDeviceId)
+        // Estimación de pasos heredada (FER-663) — vacía salvo que el motor la haya calibrado y escrito.
         async let stepsEstRows = repo.computedSeries(key: "steps_est", days: 60)
 
         appleRows = await adRows
@@ -1625,7 +1625,7 @@ struct TodayView: View {
         }
         // Build today's stress model from the day rows + stored series (nil when there's no usable
         // signal yet — the tile then placeholders "—"). Reads `displayDays` (Apple-health fallback,
-        // FER-149) so a strap-partial night still derives, and anchors "today" to the local day so a
+        // FER-149) so a partially-covered legacy night still derives, and anchors "today" to the local day so a
         // UTC-bucketed "tomorrow" row (FER-226) can't blank the tile.
         stress = StressModel(days: repo.displayDays, stored: await stressRows,
                              todayKey: Repository.localDayKey(Date()), appleDays: repo.appleHealthDays)
@@ -1636,11 +1636,11 @@ struct TodayView: View {
 
     /// Builds the trailing 14-day trend from the DISPLAY dashboard rows (`repo.displayDays`) — the same
     /// layered source the Today tiles draw their values from (`resolveMeasured`/`baselineDays`): Apple Health is the base,
-    /// on-device computed scores (`strap-noop`) fill the strap's days, imported strap rows win, and a
-    /// strap-covered day with a nil field back-fills from Apple Health so the line has no gap (FER-149).
-    /// Reading `repo.series(source: "strap")` instead returned EMPTY for a BLE + Apple Health user,
+    /// the on-device computed scores fill the legacy device's days, imported legacy rows win, and a
+    /// legacy-covered day with a nil field back-fills from Apple Health so the line has no gap (FER-149).
+    /// Reading the raw legacy series instead returned EMPTY for a BLE + Apple Health user,
     /// because the computed recovery/HRV/RHR/strain/sleep live in the daily-metrics table under
-    /// `strap-noop`, never in the `metricSeries` table that `series()` queries — that was the
+    /// the computed partition, never in the `metricSeries` table that `series()` queries — that was the
     /// empty-chart bug. Noon UTC anchors each day so points sit at consistent x-positions.
     private func loadTrend(pick: @escaping (DailyMetric) -> Double?, window: Int = 14) async -> [TrendPoint] {
         let cutoff = Repository.localDayKey(Calendar.current.date(byAdding: .day, value: -(window - 1), to: Date()) ?? Date())
@@ -1801,7 +1801,7 @@ struct TodayView: View {
     }
 
     /// Last night's frequency-domain HRV breakdown (LF/HF/total, ms²) + a per-band «your normal» label,
-    /// read from the `-noop` computed `metricSeries` the pipeline persisted (FER-702). Returns nil when
+    /// read from the computed `metricSeries` partition the pipeline persisted (FER-702). Returns nil when
     /// there is no band-night spectrum, so the section stays hidden (an Apple-only night has none).
     /// VIT-06: calco de CuerpoView.loadSpectralHRV — el detalle de VFC abierto desde Hoy perdía la
     /// sección espectral entera porque el loader nunca se cableaba.
@@ -1829,7 +1829,7 @@ struct TodayView: View {
     /// Apple-Health import or sync still reads on the tile — but never older, since a stale value under
     /// a "Today" header would misrepresent it (same spirit as the #23/#49 trailing-window fixes).
     /// `fromApple` flags Apple-sourced values so the row badges them instead of passing them off as a
-    /// live strap reading. Returns nil when nothing fresh exists → the row placeholders. (FER-62 follow-up)
+    /// live legacy reading. Returns nil when nothing fresh exists → the row placeholders. (FER-62 follow-up)
     /// `todayOnly` drops the yesterday fallback: a day-scoped surface shows ONLY today's value, so it
     /// never passes yesterday's off as today's at the midnight boundary (FER-341). FER-42: TODA superficie
     /// de display (tiles, hojas, «Ver más», badges de origen) resuelve `todayOnly: true` — este es el ÚNICO
@@ -1845,10 +1845,10 @@ struct TodayView: View {
             guard day.day >= cutoff else { break }
             if let v = pick(day) { return (v, repo.appleHealthDays.contains(day.day)) }
         }
-        // mergeDaily replaces a day's Apple row wholesale when the strap also has that day, so a strap
-        // day with a nil field (e.g. a WHOOP 4.0 that didn't decode HRV/sleep) hides the value Apple
+        // mergeDaily replaces a day's Apple row wholesale when the legacy source also has that day, so a
+        // legacy day with a nil field (a device that didn't decode HRV/sleep) hides the value Apple
         // Health does have. Fall back to the Apple-only rows within the SAME today/yesterday window,
-        // badged fromApple, so the strap (when it has the value) still wins above but Key Metrics fills
+        // badged fromApple, so the legacy row (when it has the value) still wins above but Key Metrics fills
         // from Apple instead of placeholdering. (FER-98)
         for day in appleMetricDays.reversed() {
             guard day.day >= cutoff else { break }

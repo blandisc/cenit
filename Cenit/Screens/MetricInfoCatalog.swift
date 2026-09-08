@@ -392,7 +392,7 @@ extension MetricInfo {
         )
     }
 
-    /// Skin temperature — the nightly deviation (°C) from your own baseline, the way the strap reports it
+    /// Skin temperature — the nightly deviation (°C) from your own baseline, the way the wearable reported it
     /// (not an absolute temperature). Modelled like the other vitals: the F6 levels instrument over the
     /// engine's own cut points (`MetricLevels.skinTemp`, ±0.4 / +0.8 °C, mirroring `ReadinessEngine`), so
     /// the summary reads «where today sits vs your base» with the chart + range selector, never a clinical
@@ -477,7 +477,7 @@ extension MetricInfo {
             Band(label: "High", range: "2 – 3",
                  isActive: score.map { $0 >= 2 } ?? false, lower: 2, upper: nil),
         ]
-        // WHOOP-style band → header tint, matching TodayView's stress tile (low green, medium amber,
+        // Banda de estrés → tinte del encabezado, igual que el tile de Hoy (baja verde, media ámbar,
         // high red). Reserved roles, never the StressView blue→amber ramp (that's its own gauge).
         let tint: Tint = score.map { s in
             switch s {
@@ -504,7 +504,7 @@ extension MetricInfo {
         )
     }
 
-    /// Heart Rate — today's continuous HR off the strap's own ~1Hz history. No bands (a personalized
+    /// Heart Rate — today's continuous HR off the wearable's own ~1Hz history. No bands (a personalized
     /// zone model would need the user's HRmax — out of scope), so the body is just one context line +
     /// the 24h curve. Distinct from Resting HR (the night's low), which keeps its own banded sheet.
     /// (FER-137)

@@ -8,7 +8,7 @@ import StrandImport
 import StrandAnalytics
 import StrandTraining
 /// Root app state: owns the on-device repository, profile, strength session, and Watch mirror.
-/// Strap BLE ownership was amputated in Ola 2 (Apple-only).
+/// La dueñez del enlace BLE del dispositivo anterior se amputó en la Ola 2 (Apple-only).
 @MainActor
 // FER-984: `@Observable` (no `ObservableObject`) → SwiftUI rastrea lecturas por-propiedad.
 // Sin `$` publishers: los pocos bindings (`$…strengthSheetPresented`) van por `@Bindable` en el consumidor.
@@ -37,7 +37,7 @@ import StrandTraining
     let goal = GoalStore()
     /// The user's barbell + owned plate denominations, for the session's «⛓ discos» calculator (FER-720).
     let plates = PlatesStore()
-    /// Which data sources feed the dashboard + baseline (combined / WHOOP-only / Apple-Health-only) —
+    /// Which data sources feed the dashboard + baseline (combined / legacy-only / Apple-Health-only) —
     /// a user preference; capture stays active in every mode (FER-484).
     let sources = SourceModeStore()
 
@@ -59,7 +59,7 @@ import StrandTraining
     var watchPaired = false
     var watchAppInstalled = false
     /// FER-1003: the Apple Watch's own live heart rate during a mirrored strength session — replaces the
-    /// band-sourced `bpm` now that there's no strap. nil with no watch mirroring / no reading yet.
+    /// band-sourced `bpm` now that the wearable is gone. nil with no watch mirroring / no reading yet.
     var watchBpm: Int?
     /// FER-226: HR samples admitted into the live strength session but not yet flushed to
     /// `CenitStore.appendStrengthHR` — drained every 30 samples by `ingestWatchPulse`, and once more (the
@@ -172,7 +172,7 @@ import StrandTraining
         #if os(iOS) && DEBUG
         FreshStore.applyIfRequested()   // FER-381: -cenit.freshStore borra la base antes de abrir (captura hermética del mapa)
         #endif
-        self.repo = Repository(deviceId: "strap")   // = `legacyDeviceId`; literal porque los stored props aún no existen
+        self.repo = Repository(deviceId: Repository.legacyDeviceId)   // = `legacyDeviceId`; los stored props aún no existen
         self.repo.dataSourceMode = sources.mode      // FER-484: honor the persisted mode from launch
         self.repo.baselineEpoch = profile.baselineEpochOrNil   // FER-677: honor a persisted recalibration
         // FER-883: same HRmax as the live path. Inlined (not `effectiveHRmax`) — a computed property
@@ -341,7 +341,7 @@ import StrandTraining
         _ = realtimeConsumers.remove(consumer)
     }
 
-    /// Phone haptics for timer / rest / moment cues (replaces the retired strap motor, FER-1003).
+    /// Phone haptics for timer / rest / moment cues (replaces the retired wearable's motor, FER-1003).
     /// `loops` ≥ 3 use a heavier impact; ≥ 5 also fire a success notification for the long completion cue.
     /// Generators live in `LiquidHaptica` (FER-269b); this method only orchestrates the loop.
     func buzz(loops: UInt8 = 2) {
@@ -362,7 +362,7 @@ import StrandTraining
         }
     }
 
-    /// Pattern was a strap motor id; on phone, loops alone drive the haptic.
+    /// Pattern was the wearable motor's id; on phone, loops alone drive the haptic.
     func buzz(pattern: UInt8, loops: UInt8 = 1) {
         _ = pattern
         buzz(loops: loops)

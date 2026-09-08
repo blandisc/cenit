@@ -602,7 +602,7 @@ struct StrainDetailItem: Identifiable {
 // FER-101: this contract is UNCHANGED by the Liquid migration — kept verbatim.
 
 struct StrainDetailModel {
-    /// Today's Day Strain (0–21), or nil while there's no score yet (strap-only, no Apple fallback).
+    /// Today's Day Strain (0–21), or nil while there's no score yet (legacy-only, no Apple fallback).
     let today: Double?
     /// The full strain series (oldest → newest), `(day "yyyy-MM-dd", value)`, for the trend + stats.
     let series: [(day: String, value: Double)]
@@ -623,7 +623,7 @@ struct StrainDetailModel {
     /// True when there's a score today or any stored strain history to draw (the rich path); false → empty.
     var hasData: Bool { today != nil || !series.isEmpty }
 
-    /// Build the whole model from the repo's in-memory dashboard. Pure (no DB). `days` is the strap +
+    /// Build the whole model from the repo's in-memory dashboard. Pure (no DB). `days` is the legacy +
     /// on-device dashboard (`repo.days`, the baseline source — FER-149); `today` is `repo.today`; `todayKey`
     /// is the device's local day key (passed by the caller — `Repository.localDayKey` is main-isolated,
     /// FER-976). The drivers are computed here off the same `days` (which carry recovery) via

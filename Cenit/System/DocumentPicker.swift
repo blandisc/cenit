@@ -50,10 +50,11 @@ enum DocumentPicker {
         guard let anfitrion = topViewController() else { return nil }
         return await withCheckedContinuation { (espera: CheckedContinuation<URL?, Never>) in
             let selector = build()
-            let enlace = Coordinator(continuation: espera)
+            let enlace = Enlace(espera)
             selector.delegate = enlace
-            // El coordinador tiene que seguir vivo mientras el selector esté en pantalla.
-            objc_setAssociatedObject(selector, &Coordinator.assocKey, enlace, .OBJC_ASSOCIATION_RETAIN)
+            // El enlace tiene que seguir vivo mientras el selector esté en pantalla; el selector es
+            // quien lo carga.
+            objc_setAssociatedObject(selector, &Enlace.llave, enlace, .OBJC_ASSOCIATION_RETAIN)
             anfitrion.present(selector, animated: true)
         }
     }
@@ -70,15 +71,18 @@ enum DocumentPicker {
         return cima
     }
 
-    /// Traduce los dos desenlaces del selector — eligió o canceló — a una sola respuesta, y se
-    /// asegura de contestar UNA vez: reanudar dos veces una continuación revienta el proceso.
-    private final class Coordinator: NSObject, UIDocumentPickerDelegate {
-        static var assocKey = 0
-        private let continuation: CheckedContinuation<URL?, Never>
-        private var yaRespondio = false
+    /// Traduce los dos desenlaces del selector — eligió o canceló — a una sola respuesta.
+    private final class Enlace: NSObject, UIDocumentPickerDelegate {
+        /// Llave del objeto asociado con el que el selector carga a su enlace.
+        static var llave = 0
 
-        init(continuation: CheckedContinuation<URL?, Never>) {
-            self.continuation = continuation
+        /// Se vacía en cuanto se contesta. Ahí está la garantía de contestar UNA sola vez —
+        /// reanudar dos veces una continuación revienta el proceso— sin una bandera aparte que
+        /// alguien pueda olvidar de poner.
+        private var espera: CheckedContinuation<URL?, Never>?
+
+        init(_ espera: CheckedContinuation<URL?, Never>) {
+            self.espera = espera
         }
 
         func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
@@ -90,9 +94,9 @@ enum DocumentPicker {
         }
 
         private func responder(_ url: URL?) {
-            guard !yaRespondio else { return }
-            yaRespondio = true
-            continuation.resume(returning: url)
+            guard let pendiente = espera else { return }
+            espera = nil
+            pendiente.resume(returning: url)
         }
     }
 }
