@@ -1084,16 +1084,6 @@
         }
       }
     },
-    "Exercise library" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Biblioteca de ejercicios"
-          }
-        }
-      }
-    },
     "If you don't touch your phone, iOS locks it mid-set. It only applies while the session is open, and it uses more battery: your iPhone goes back to its normal auto-lock when the session ends." : {
       "localizations" : {
         "es" : {
@@ -69095,23 +69085,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Abre la hoja de importar CSV"
-          }
-        }
-      }
-    },
-    "Estimated from your imported history" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Estimated from your imported history"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Estimado de tu historial importado"
           }
         }
       }

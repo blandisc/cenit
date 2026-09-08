@@ -1,320 +1,281 @@
-# Cénit — On-Device Data Model
+# The on-device database
 
-Cénit is a standalone, fully offline health app on **Apple Health**. It stores HealthKit syncs,
-file imports, and on-device computed metrics in a single local SQLite database. Older installs may
-still carry dormant legacy partitions in the same DB, from a retired third-party wearable
-integration. This document describes that on-device database: the tables, their natural keys,
-indexes, and how the schema is installed.
+Cénit keeps everything it knows in one SQLite file on the phone. There is no server, no account and
+no sync: what the app computes, it computes from rows it wrote itself. This document is the reference
+for that file — the tables that exist, what each column holds, how rows get in and out, and how the
+schema is installed.
 
-> **Scope note.** Cénit is **not a medical device** — none of the stored values are intended for
-> diagnosis or treatment.
+Every claim here is checkable against `Packages/CenitStore/Sources/CenitStore/`.
+
+> Cénit is not a medical device. Nothing stored here is intended for diagnosis or treatment.
 
 ---
 
-## Where the database lives
+## Conventions
 
-The persistence layer is the `CenitStore` Swift package
-(`Packages/CenitStore`), built on [GRDB](https://github.com/groue/GRDB.swift) over SQLite. Like
-every package in the repo, it declares both platforms — `.iOS(.v16)` and `.macOS(.v13)`
-(`Packages/CenitStore/Package.swift`) — and is UI-framework agnostic, so the same schema and
-storage code back the `Cenit` app from a single cross-platform core.
+Four conventions run through the whole schema. They are worth learning once.
 
-The app target opens the database at a fixed, per-user location (`Cenit/Data/StorePaths.swift`):
-`Application Support/Cenit/cenit.sqlite`, inside the app's sandbox. An install created before
-FER-398 carries the previous folder and filename instead; a one-time migration at launch moves it
-onto the `Cenit` names (see `docs/ARCHITECTURE.md` §2), so the legacy path is a transitional state,
-never a second supported location. Tests use an in-memory database via `CenitStore.inMemory()`.
+**Instants are unix seconds.** Every column named `ts`, `startTs`, `endTs`, `createdTs`, `updatedTs`,
+`decidedAt` or `createdAt` is an integer count of seconds since the epoch. There are no date or
+datetime column types anywhere.
 
-### Connection configuration
+**Days are text.** Columns named `day` (and `startDay`) hold `YYYY-MM-DD` and compare
+lexicographically, which for that format is the same as comparing dates. The key is minted in the
+**device's local zone** and parsed back in **UTC** for chart positions. That asymmetry is deliberate
+and is the single contract in `DayKey` (`Packages/StrandModels/Sources/StrandModels/DayKey.swift`).
+Mixing the two directions is what produces phantom rows and off-by-one-day charts.
 
-`CenitStore.init(path:backend:)` (`Packages/CenitStore/Sources/CenitStore/Store.swift`) opens either
-a single `DatabaseQueue` (`.queue`, the default) or a WAL reader pool (`.pool(maxReaders:)`, what the
-app's handle uses so the dashboard read never queues behind a long write), and applies these PRAGMAs
-on **every** connection:
+**Rows are partitioned by origin, not by hardware.** Most tables carry a `deviceId`. It names the
+*source* a row came from, never a piece of equipment.
 
-| PRAGMA | Value | Why |
+**Writes are idempotent by natural key.** Nearly every write is an upsert whose conflict target is
+the table's primary key, so replaying an import or re-running a nightly recompute converges instead
+of duplicating. Where the conflict rule is subtler than "last writer wins", it is called out under
+[Write semantics](#write-semantics).
+
+---
+
+## The store object
+
+The persistence layer is the `CenitStore` package. Its manifest declares `.iOS(.v16)` and
+`.macOS(.v13)`, ships a single static library, and depends on `BiometricStreams`, `StrandModels`,
+`StrandTraining` and [GRDB](https://github.com/groue/GRDB.swift).
+
+`CenitStore` is an **actor** (`Store.swift`). Its public API is `async`, and the GRDB calls it makes
+are the *synchronous* ones, wrapped in helpers that are deliberately **not** `async`: GRDB marks its
+synchronous variants as a disfavoured overload, so an `async` wrapper would silently select the
+asynchronous one and change behavior under the caller. Those blocking calls then run on the actor's
+own serial executor, off the main thread.
+
+### Two connection backends
+
+| Backend | GRDB type | Used by |
 | --- | --- | --- |
-| `auto_vacuum` | `INCREMENTAL` | Freed pages stay reclaimable. Set before any table exists, or a fresh database ignores it. |
-| `journal_mode` | `WAL` | Concurrent readers (pool) and the actor-serialized writer can read/write without deadlocking. |
-| `synchronous` | `NORMAL` | Durable pairing with WAL — only an OS crash or power loss can lose the last transaction. |
-| `cache_size` | `-16000` | ~16 MB page cache for multi-thousand-row import/backfill writes. |
-| `mmap_size` | `268435456` | 256 MB memory-mapped I/O. |
-| `temp_store` | `MEMORY` | In-memory temp tables. |
-| `busyMode` | `.timeout(5)` | 5-second busy timeout under write contention. |
+| `.queue` (default) | `DatabaseQueue`, one connection | The sampling handle, and every in-memory test |
+| `.pool(maxReaders:)` | `DatabasePool`, a WAL reader pool | The app handle that serves the dashboard |
 
-The first three are **write** PRAGMAs and run only when the connection is not read-only. In a pool the
-same preparer also runs on reader connections, where they would throw — and a throwing reader takes
-every dashboard read down with it.
+A single connection serializes reads *behind* writes, so a long nightly pass could stall a screen.
+The pool gives the bulk dashboard read its own reader connections. `inMemory()` is always
+queue-backed, because GRDB's pool has no in-memory mode.
 
-`CenitStore` is an `actor`: all GRDB calls run on the actor's serial executor (off the main
-thread) through the `syncRead` / `syncWrite` helpers. The one deliberate exception is
-`dashboardSnapshot`, which is `nonisolated` and reads through the shared writer directly, so the whole
-dashboard is one transaction and one WAL snapshot.
+Opening **runs the migration before returning**. If it throws, the initializer throws: a half-migrated
+database is never handed out.
+
+### Connection setup
+
+`prepareDatabase` runs on every connection, including a pool's **read-only** ones. Three pragmas only
+work on a writer, so they sit behind a `readonly` guard; without it, opening a reader fails and takes
+the whole dashboard read down, a failure mode the queue never shows.
+
+| Pragma | Value | Writers only | Purpose |
+| --- | --- | --- | --- |
+| `auto_vacuum` | `INCREMENTAL` | yes | Freed pages stay reclaimable. **Order matters**: it only takes effect on a database with no tables yet, so it runs first. |
+| `journal_mode` | `WAL` | yes | Readers and the writer proceed concurrently. |
+| `synchronous` | `NORMAL` | yes | The durable pairing for WAL: only an OS crash or power loss can cost the last transaction. |
+| `cache_size` | `-16000` | no | About 16 MB of page cache. |
+| `mmap_size` | `268435456` | no | 256 MB of memory-mapped I/O. |
+| `temp_store` | `MEMORY` | no | Temporary tables stay in RAM. |
+
+The busy timeout is five seconds, so two handles on the same file wait for each other rather than
+failing.
+
+### Version reporting
+
+`CenitStoreInfo.schemaVersion` counts the migrations the package registers, and `latestMigration`
+returns the last identifier. Both are **derived from the migrator**, never written by hand: a loose
+constant drifts the moment someone adds a migration and forgets to bump it. Today the count is one.
+
+### Maintenance and introspection
+
+| Method | What it does |
+| --- | --- |
+| `checkpointWAL()` | Folds the WAL into the main file and truncates it, so a file copy is complete on its own. Throws on a hard SQLite error, so the caller can fall back to a plain copy rather than save an incomplete backup. |
+| `vacuum()` | Rewrites the file compactly, and is the only way a database created before incremental mode adopts it. |
+| `pageCountForTest()` | Proves a purge plus vacuum actually shrank the file. |
+| `tableNames()`, `primaryKeyColumns(_:)`, `columnNamesForTest(table:)`, `indexNamesForTest(table:)` | Schema introspection for tests. |
+| `queryPlanForTest(_:arguments:)` | `EXPLAIN QUERY PLAN` detail lines, so a test can assert a hot read reaches an index. |
+
+Both maintenance operations run **outside a transaction and behind a barrier**, with no readers alive
+even on a pool. Neither can run inside one.
 
 ---
 
-## Schema at a glance
+## Source partitions
 
-29 user tables, in six groups:
+`deviceId` is a **partition key over origins**. It has never identified hardware, and today no
+hardware writes to the database at all. The exact string values are declared in the app layer; treat
+those declarations as the source of truth rather than transcribing them.
 
-| Group | Tables |
-| --- | --- |
-| **Partition map** | `deviceIdMap` |
-| **Beat streams** (durable, high volume) | `hrSample`, `rrInterval` |
-| **Bookkeeping** | `cursors` |
-| **Metric caches** | `dailyMetric`, `sleepSession`, `journal`, `workout`, `appleDaily`, `metricSeries` |
-| **Experiments and diet** | `experiment`, `dietPlan`, `dietAdherence` |
-| **Strength tracker** | `customExercise`, `learnedExerciseAlias`, `exerciseTypeOverride`, `routineFolder`, `routine`, `routineExercise`, `routineSet`, `routineSchedule`, `program`, `strengthSession`, `setEntry`, `personalRecord`, `progressionOptOut`, `strengthExerciseNote`, `strengthHrSample`, `inProgressStrengthSession` |
+### The integer surrogate
 
-All timestamp columns named `ts`, `startTs`, `endTs`, `createdTs`, etc. are **unix seconds**
-(integers). Day-keyed tables use a `day` text column in `YYYY-MM-DD` form (the device's local civil
-day) and compare it lexicographically.
+The two high-volume tables do not store the partition as text. They store a small integer, resolved
+through `deviceIdMap`:
 
-The **byte-exact** source of truth for the schema is
-`Packages/CenitStore/Tests/CenitStoreTests/Resources/legacy-schema.sql`: a verbatim `sqlite3 .schema`
-dump of a real migrated database. A test compares `sqlite_master` of a fresh install against it
-character by character, so a lost `STRICT`, a dropped `NOT NULL` or a changed `DEFAULT` fails the
-build rather than surfacing months later as a null where the code expected a value.
+| Column | Type | Notes |
+| --- | --- | --- |
+| `deviceId` | TEXT | **Primary key.** The partition label. |
+| `intId` | INTEGER NOT NULL UNIQUE | The surrogate used by `hrSample` and `rrInterval`. |
+
+Without it, a composite key would repeat the same text on every one of millions of 1 Hz rows.
+
+`partitionId(_:creating:)` translates at the boundary and caches the result in actor-isolated state,
+so no lock is needed. The two directions differ on purpose:
+
+- **Reads** pass `creating: false`. An unknown label returns nothing and the read yields an empty
+  result. Asking about a source that does not exist yet is not an error.
+- **Writes** pass `creating: true`, assign the next free integer, and can never return nothing, so no
+  write can fail for a missing mapping.
+
+The assignment inserts with `ON CONFLICT DO NOTHING` and then **re-reads inside the same
+transaction**: if another writer won the race, its integer is the one to use.
 
 ---
 
 ## How the schema is installed
 
-`Packages/CenitStore/Sources/CenitStore/Schema.swift` registers **one** migration, `"v43"`, whose
-body is the whole DDL.
+This is the part most likely to surprise someone who knew the previous shape.
 
-The identifier is load-bearing. A database installed before FER-393 carries the 43 identifiers
-`v1`…`v43` of the previous incremental history in its `grdb_migrations` ledger, and GRDB silently
-ignores applied identifiers a migrator doesn't know about. Registering only `"v43"` means that
-database reads it as already applied, finds nothing pending, and **executes not one schema
-statement**. A fresh install arrives with an empty ledger, runs `"v43"`, and gets the full schema.
+**There is exactly one migration.** It is registered under the identifier `"v43"`, and it installs
+the entire schema by executing the `CREATE` statements in order. The migrator is deliberately boring,
+because the phone's file is the only copy of the user's data that exists.
 
-Two rules follow, and both are enforced by tests:
+The identifier is not arbitrary. A database already on a phone carries `v1` through `v43` in its
+`grdb_migrations` ledger from the previous incremental history, and GRDB silently ignores ledger
+entries a migrator does not know. Registering only `"v43"` means such a database reads it as already
+applied, finds nothing pending, and **executes not one schema statement**. A fresh install arrives
+with an empty ledger, runs it, and gets the complete schema. Both paths converge.
 
-- **The next migration is `"v44"`.** Never reuse `"v1"`…`"v42"`: an installed database already has
-  them in its ledger and would skip them in silence, leaving its schema behind with no visible error.
-- **`eraseDatabaseOnSchemaChange` stays off.** With it on, GRDB sees 43 applied identifiers it does
-  not recognize, concludes the schema changed, and erases the file.
+**The next migration is `"v44"`.** Never reuse `v1` through `v42`: an existing database already has
+them in its ledger and would skip them in silence, leaving its schema behind with no visible error.
 
-Every future `ADD COLUMN` goes through `CenitStore.addColumnIfMissing`, which checks the live schema
-first: iterating a migration locally and reinstalling over the same on-device database must be a
-no-op, not a "duplicate column" throw that wedges startup.
+Two details make this safe to re-run.
 
----
+**The DDL is pasted verbatim** from a reference dump, quotes and line breaks included. That makes the
+shape test an exact string comparison against `sqlite_master`, able to catch a missing `STRICT`, a
+forgotten `WITHOUT ROWID`, or a `DEFAULT` whose value changed.
 
-## The partition key
+**The existence guard lives in Swift, not in the SQL text.** Each object is created only if
+`sqlite_master` does not already list it. Putting `IF NOT EXISTS` into the text would work, but
+`sqlite_master` stores the *literal* statement that was executed, and editing the text to add a
+clause would break the exact comparison precisely where it matters most. With the guard in Swift the
+text stays intact and an unexpected run stays a no-op rather than an exception that would stop the
+database from opening.
 
-`deviceId` is not hardware — it is the **per-source partition key**. The live values are
-`"apple-health"` (imported from Apple Health, the live source), `"apple-health-noop"` (nightly
-scalars computed on top of it), `"strap"` (imported history from the band era, no live writer),
-`"strap-noop"` (derived from it) and `"noop-journal"` (journal answers logged in Cénit rather than
-imported). No public read crosses a partition and no public delete touches more than one.
+`addColumnIfMissing` survives for future migrations that widen a table. Every one of them goes
+through it: a migration gets iterated several times during development and reinstalled over the same
+phone database, and without the guard the second attempt hits "duplicate column" and leaves the app
+unable to open its data.
 
-### `deviceIdMap`
-
-| Column | Type | Notes |
-| --- | --- | --- |
-| `deviceId` | TEXT NOT NULL | **Primary key.** The partition label. |
-| `intId` | INTEGER NOT NULL UNIQUE | Its integer surrogate. |
-
-`hrSample` and `rrInterval` store the surrogate, not the label: a day of pulse at 1 Hz is ~86 000
-rows, and a composite TEXT key kept a second copy of the same repeated string on every one of them.
-The label lives here exactly once. The public API still takes and returns `deviceId: String` — the
-actor translates at the boundary through a cache it owns, so no caller ever sees the integer. Reading
-an unknown partition returns empty rather than throwing; writing one creates its mapping on demand,
-so a write can never fail for a missing surrogate.
+`grdb_migrations` is not in the object list. GRDB creates it itself, idempotently.
 
 ---
 
-## Beat streams
+## The tables
 
-Written by `CenitStore.insert(_:deviceId:)`, which persists **only** heart rate and R-R intervals.
-`Streams` still carries skin-temperature, respiration and accelerometer arrays for dormant engines;
-their tables no longer exist, so writing them would throw «no such table» and take the whole
-transaction — including the beats that do live — down with it.
+Twenty-nine tables and eight indexes. There are **no foreign keys** between them, so the install
+order matters only for reading.
 
-Both tables are `STRICT, WITHOUT ROWID`: the natural key *is* the table, with no `sqlite_autoindex`
-copy of the key on every row. Inserts are idempotent (`ON CONFLICT DO NOTHING`) and `insert` returns
-the rows *actually* written, so replaying an overlapping import returns 0 and changes nothing.
+### Beats
 
-### `hrSample` — heart rate
+Two tables, both `STRICT, WITHOUT ROWID` with the integer partition surrogate. Both properties are
+load-bearing. `WITHOUT ROWID` makes the primary key *be* the table, which removes the second full copy
+of the key that a rowid table's automatic index keeps on every row. `STRICT` makes a downgraded binary
+fail loudly instead of writing text into the integer column.
 
-| Column | Type | Notes |
+| Table | Key | Columns |
 | --- | --- | --- |
-| `deviceId` | INTEGER NOT NULL | The partition surrogate. Part of PK. |
-| `ts` | INTEGER NOT NULL | Wall-clock unix seconds. Part of PK. |
-| `bpm` | INTEGER NOT NULL | Beats per minute. |
+| `hrSample` | `(deviceId, ts)` | `bpm` |
+| `rrInterval` | `(deviceId, ts, rrMs)` | The interval is in the key, because several can share one timestamp. |
 
-**Primary key:** `(deviceId, ts)`. `latestHRSampleTs(deviceId:)` returns `MAX(ts)` here — the proof
-that the source is still delivering. `hrBuckets` averages by time bucket **in SQL**; a day of samples
-is not something to average in memory.
+A fully worn day is roughly 86 000 pulse rows, which is why these two are partitioned by integer and
+the rest by text. Inserts use a cached statement with `ON CONFLICT DO NOTHING` and return how many
+rows actually landed, so re-importing a period returns zero and leaves the file unchanged.
 
-### `rrInterval` — R-R intervals (HRV source)
+Only these two streams are persisted. The other fields the in-memory batch still carries belong to
+tables that no longer exist; writing them would throw and take down the whole transaction, including
+the beats that do live.
 
-| Column | Type | Notes |
+Reads come in two shapes: raw rows, and `HRBucket`, the mean pulse per fixed-width bucket aggregated
+**in SQL**, because a chart needs a few hundred points rather than 86 000.
+
+`strengthHrSample` is a third pulse table, keyed `(sessionId, ts)` rather than by partition, so a
+retried flush during a live session is a no-op instead of a duplicate.
+
+### Day-grain caches
+
+Four tables share one grain, one row per source per civil day, and one access pattern, a
+lexicographic range over `day`.
+
+The name "cache" is misleading, and the source says so: there is no invalidation, no dirty flag and
+no eviction. These are durable values the app rewrites when it recomputes.
+
+**`dailyMetric`** is the widest table and the app's main read model: twenty columns covering the
+scores, the sleep breakdown, the nightly vitals, steps, an energy estimate, and a confidence tier for
+each of the two scores. Everything but the key is nullable. The two confidence columns hold a raw
+tier string rather than an enum, because the type that defines those tiers lives in `StrandAnalytics`,
+which sits *above* this package.
+
+**`appleDaily`** holds the source's own daily aggregates, kept apart from the derived ones so a
+source's numbers stay distinguishable from the app's.
+
+**`metricSeries`** is the tall counterpart to those wide tables: any scalar from any source fits as a
+day, a key and a value, read back by key, without inventing a column or a migration per new metric.
+Its index on `(deviceId, key, day)` exists because the primary key orders `day` before `key` and so
+cannot serve a per-metric range scan.
+
+**`journal`** holds one answered prompt per day.
+
+### Sessions
+
+**`sleepSession`**, keyed `(deviceId, startTs)`, carries efficiency, resting pulse, average
+variability and the stage breakdown as an opaque JSON string. Its range read matches on **overlap**,
+not on start: someone who fell asleep before local midnight has a night that began outside the window
+and that the window still has to return.
+
+**`workout`**, keyed `(deviceId, startTs, sport)`, carries duration, energy, pulse, load, distance,
+zone breakdown and notes. Its `source` column is finer-grained than `deviceId`, carrying the writing
+app's name where one exists.
+
+### The strength domain
+
+Fifteen tables, all user-authored, all keyed by UUID strings rather than by partition and time. That
+difference is the point: this is relational data the user edits, not a sample stream. Array fields are
+JSON text columns, and the seed exercise catalog is a bundled resource in `StrandTraining`, not rows
+here.
+
+| Table | Key | Holds |
 | --- | --- | --- |
-| `deviceId` | INTEGER NOT NULL | The partition surrogate. Part of PK. |
-| `ts` | INTEGER NOT NULL | Wall-clock unix seconds. Part of PK. |
-| `rrMs` | INTEGER NOT NULL | Beat-to-beat interval, milliseconds. Part of PK. |
+| `customExercise` | `id` | User-created exercises, including coarse body parts and an optional media URL. |
+| `exerciseTypeOverride` | `exerciseId` | A user's override of how an exercise is measured, including for a catalog entry. Setting it is an upsert; reverting is a delete. |
+| `learnedExerciseAlias` | `name` | A remembered mapping from a normalized imported name to an exercise id. |
+| `routineFolder` | `id` | Name and sort order. |
+| `routine` | `id` | Name, tag, timestamps, sort order, and a nullable folder. |
+| `routineExercise` | `id` | Position within a routine, legacy per-exercise targets, warm-up percentages, rest configuration, superset group, and the six progression columns. |
+| `routineSet` | `id` | The per-set prescription, plus four nullable rest overrides that inherit from the exercise when null, a rep-range top, and a set mode. |
+| `routineSchedule` | `weekday` | One routine per weekday. The weekday *is* the key, so assigning a day is an idempotent upsert. At most seven rows, so no index. |
+| `program` | `id` | A singleton. The current week is **derived** from the start and the weeks actually trained, never stored, so no column can drift. |
+| `strengthSession` | `id` | The performed session: times, load and its origin, session effort and its origin, energy and its origin, import provenance, program week and light-week flag. |
+| `setEntry` | `id` | One performed set: load, reps, time, distance, done flag, effort rating, the real rest that followed, and a mode. |
+| `strengthExerciseNote` | `id` | A note per exercise, optionally per set. A table rather than a column, because a note is not tied to one set row. |
+| `personalRecord` | `id` | The composite of exercise and metric. |
+| `progressionOptOut` | `(sessionId, exerciseId)` | Presence means a reverted raise, counting as neither a hit nor a miss. |
+| `inProgressStrengthSession` | `id` | A singleton JSON snapshot, so killing the app mid-workout does not lose it. |
 
-**Primary key:** `(deviceId, ts, rrMs)` — several intervals can share one timestamp. Reads order by
-`ts ASC, rrMs ASC` so a read is reproducible.
+### Diet, experiments and bookkeeping
 
-> Neither table has the `synced` column of the retired server-upload feature: it was dropped when they
-> were rebuilt, and nothing recreates it.
+| Table | Key | Holds |
+| --- | --- | --- |
+| `dietPlan` | `id` | Denormalized name, language and cycle so a plan lists without decoding, plus the payload. The payload is **opaque** to the store: the nested meals are never parsed here. |
+| `dietAdherence` | `(deviceId, day, mealId)` | A tri-state status, a note, and which equivalent option was eaten. The option index is a record only and does not move the adherence figure. |
+| `experiment` | `id` | A single-subject experiment and its verdict columns, filled only when a verdict is computed. |
+| `cursors` | `name` | Named marks: how far a process got, and what has already been done once. The smallest table and the most stubborn, since a misread flag makes a one-time compaction repeat on every launch or never run. Accessors namespace keys by prefix, and the prefixes are contract. |
 
 ---
 
-## Bookkeeping
-
-### `cursors`
-
-A key/value table for one-shot flags and incremental-processing watermarks.
-
-| Column | Type | Notes |
-| --- | --- | --- |
-| `name` | TEXT | **Primary key.** |
-| `value` | INTEGER | Stored value (typically a timestamp or a `1` flag). |
-
-Helpers namespace the `name`: `highwater:<stream>` (forward-only upload mark) and `read:<stream>`
-(pull cursor). The distinct prefixes are contract — they keep the two marks of one stream from
-colliding.
-
----
-
-## Metric caches
-
-These hold **derived metrics and imported aggregates**, not raw measurements. The name is a little
-misleading: there is no invalidation, no dirty flag and no notification. They are durable rows of
-already-computed values, rewritten by whoever recomputes them.
-
-### `sleepSession`
-
-One row per sleep session.
-
-| Column | Type | Notes |
-| --- | --- | --- |
-| `deviceId` | TEXT NOT NULL | Part of PK. |
-| `startTs` | INTEGER NOT NULL | Session start, unix seconds. Part of PK. |
-| `endTs` | INTEGER NOT NULL | Session end, unix seconds. |
-| `efficiency` | DOUBLE | Sleep efficiency, nullable. |
-| `restingHr` | INTEGER | Resting HR, nullable. |
-| `avgHrv` | DOUBLE | Average HRV, nullable. |
-| `stagesJSON` | TEXT | Verbatim JSON array of stage segments (`[{start,end,stage}]`), nullable — a string so the cache stays schema-agnostic about staging shape. |
-
-**Primary key:** `(deviceId, startTs)`; a conflict replaces every other column. Reads return the
-sessions that **overlap** the window (`startTs <= to AND endTs >= from`), not the ones that start
-inside it: falling asleep before local midnight puts the night's start outside the window, and it is
-still that night.
-
-### `dailyMetric`
-
-One row per local civil day — the central per-day rollup behind the dashboard. All metric columns are
-nullable: `totalSleepMin`, `efficiency`, `deepMin`, `remMin`, `lightMin`, `disturbances`, `restingHr`,
-`avgHrv`, `recovery`, `strain`, `exerciseCount`, `spo2Pct`, `skinTempDevC`, `respRateBpm`, `steps`,
-`activeKcalEst`, `effortConfidence`, `restConfidence`.
-
-**Primary key:** `(deviceId, day)`. Read by lexicographic `day` range, oldest first.
-
-**The conflict rule is not a replacement** — it is the most delicate thing in the package. The engine
-re-scores every night in its window on each pass, and a night whose sleep session isn't detected yet
-comes back all nulls. So each column merges as `COALESCE(incoming, stored)`: the incoming value wins
-when it carries something, the stored one survives when it doesn't. To **clear** a day you delete it
-(`deleteDailyMetrics`), you never write nulls over it.
-
-`strain` has its own, narrower rule, because a plain `COALESCE` gets one case wrong:
-
-| stored | incoming | result | why |
-| --- | --- | --- | --- |
-| anything | `> 0` | **incoming** | a scored workout always wins |
-| `> 0` | `0` | **stored** | a persisted load does not degrade to rest |
-| `> 0` | `NULL` | **stored** | nor to «no data» |
-| `NULL` | `0` | `0` | |
-| `NULL` | `NULL` | `NULL` | |
-| `0` | `NULL` | **`NULL`** | a stored 0 is usually a false rest from a pass without pulse; going back to «no data» is the honest answer |
-| `0` | `0` | `0` | |
-
-### `journal`
-
-One answered daily prompt.
-
-| Column | Type | Notes |
-| --- | --- | --- |
-| `deviceId` | TEXT NOT NULL | Part of PK. |
-| `day` | TEXT NOT NULL | `YYYY-MM-DD`. Part of PK. |
-| `question` | TEXT NOT NULL | Prompt text. Part of PK. |
-| `answeredYes` | INTEGER NOT NULL | `0`/`1`, mapped to/from `Bool`. |
-| `notes` | TEXT | Free-text note, nullable. |
-
-**Primary key:** `(deviceId, day, question)`. Read by `day` range, ordered `day ASC, question ASC`.
-Deleting one answer is scoped to its partition, so clearing a natively-logged answer can never take
-an identical imported row with it.
-
-### `workout`
-
-One workout. All metric columns nullable: `durationS`, `energyKcal`, `avgHr`, `maxHr`, `strain`,
-`distanceM`, `zonesJSON`, `notes`; `endTs`, `sport` and `source` are `NOT NULL`.
-
-**Primary key:** `(deviceId, startTs, sport)` — two sports starting at the same instant are two rows;
-the same triple in three partitions is three. Read by `startTs` range (filtered by **start**, not
-overlap), oldest first. `deleteWorkouts(deviceId:sport:from:to:)` sweeps a span of one sport, which is
-what makes re-deriving detected workouts idempotent.
-
-### `appleDaily`
-
-Apple-Health daily aggregates. All metric columns nullable: `steps`, `activeKcal`, `basalKcal`,
-`vo2max`, `avgHr`, `maxHr`, `walkingHr`, `weightKg`.
-
-**Primary key:** `(deviceId, day)`; a conflict replaces every metric column. Read by lexicographic
-`day` range, oldest first.
-
-`appleHealthCoverage(deviceId:)` reports what the import managed to bring: the first and last day over
-the **deduplicated union** of `appleDaily` and `dailyMetric` days, plus a per-metric day count under
-ten fixed keys (`steps`, `active_kcal`, `vo2max`, `avg_hr` from `appleDaily`; `asleep_min`, `hrv`,
-`resting_hr`, `spo2`, `resp_rate`, `skin_temp` from `dailyMetric`). A metric with zero days is
-**absent** from the dictionary, never `0` — the UI draws «missing» from the missing key.
-
-### `metricSeries`
-
-A generic **long-format / EAV** metric store. Where the tables above are wide (a column per metric),
-this is the tall counterpart: one row per `(deviceId, day, key)` with a single REAL `value`. Any
-scalar, from any source, can be projected here and read back by key without a schema change.
-
-| Column | Type | Notes |
-| --- | --- | --- |
-| `deviceId` | TEXT NOT NULL | Part of PK. |
-| `day` | TEXT NOT NULL | `YYYY-MM-DD`. Part of PK. |
-| `key` | TEXT NOT NULL | Metric identifier (e.g. `steps_est`, `hrv_lf`, `apple_rmssd_night`). Part of PK. |
-| `value` | DOUBLE NOT NULL | The scalar value. |
-
-**Primary key:** `(deviceId, day, key)`; a conflict takes the incoming value.
-
-**Index** — `idx_metricSeries_device_key_day` on `(deviceId, key, day)`. The primary key orders `day`
-before `key`, so it cannot serve a per-metric range read. The multi-key read orders **in SQL by
-`(key, day)`** to follow this index — asking SQLite for `(day, key)` would build a temp B-tree over
-thousands of rows — and restores the public `(day, key)` order in memory.
-
----
-
-## Strength tracker
-
-Relational, UUID-string PKs; array fields (muscles, cues, warm-up percents) are JSON text columns.
-`routine` → `routineExercise` → `routineSet` is the plan; `strengthSession` → `setEntry` is the log;
-`personalRecord` is derived at save. `strengthHrSample` holds the watch pulse captured during a live
-session (`(sessionId, ts)`), `strengthExerciseNote` the per-session notes, `progressionOptOut` the
-sessions the progression must treat as neither hit nor miss, and `inProgressStrengthSession` a single
-JSON snapshot so a crash mid-workout doesn't lose it. `program` is a singleton (PK `id = 'active'`).
-
-Column-level detail lives with the code in `StrengthStore.swift` and, exactly, in
-`legacy-schema.sql`.
-
----
-
-## Index summary
+## Indexes
 
 | Index | Table | Columns |
 | --- | --- | --- |
-| *(implicit PK)* | every table | (its natural key) |
 | `idx_metricSeries_device_key_day` | `metricSeries` | `deviceId, key, day` |
 | `idx_routineExercise_routine_pos` | `routineExercise` | `routineId, position` |
 | `idx_routineSet_re_pos` | `routineSet` | `routineExerciseId, position` |
@@ -324,15 +285,98 @@ Column-level detail lives with the code in `StrengthStore.swift` and, exactly, i
 | `idx_exNote_ex` | `strengthExerciseNote` | `exerciseId, ts` |
 | `idx_exNote_sess` | `strengthExerciseNote` | `sessionId` |
 
-Every other read is served by a primary key. `QueryPlanTests` pins this: each hot read must reach its
-table through `SEARCH … USING …`, never a bare full-table scan.
+The beat tables carry none: their primary key *is* their storage, and every read is a prefix of it.
+`QueryPlanTests` asserts the hot reads produce a search step rather than a full scan, so an index that
+stops being used fails a test instead of quietly costing a scan.
 
 ---
 
-## Provenance
+## Write semantics
 
-Persistence is `CenitStore`; the local recovery / strain / HRV / sleep math is `StrandAnalytics`;
-and the Apple Health importers are `StrandImport`.
+Most upserts are plain. Three things are not, and each exists to prevent a specific loss.
 
-> **Reminder.** Cénit is not a medical device. All stored data is the user's own, kept entirely on
-> the user's device.
+### Daily metrics never blank a filled column
+
+The conflict rule is **not** a replacement. The engine re-scores every night in its window on each
+pass, and a night whose sleep session is not yet detected comes back with nulls. If a null overwrote
+what was stored, one partial pass would blank a whole day of history. So every column merges as
+`COALESCE(incoming, existing)`: the incoming value wins when it has one, and the stored value survives
+when it does not. To **delete** a day, delete it; do not write nulls over it.
+
+### Load has its own, narrower rule
+
+`strain` does not use that merge. Three cases, in order:
+
+```
+incoming > 0   → incoming    (a scored workout always wins)
+existing > 0   → existing    (a persisted load is never degraded)
+otherwise      → incoming
+```
+
+A persisted load is never walked back to "rest" (zero) or "missing" (null), because erasing it should
+require deleting the day. But a stored zero, which is almost always a false rest from a pass with no
+pulse, *can* return to null, which is the honest truth.
+
+### Bulk writes work around two SQLite limits
+
+`RowBatch` exists because an Apple Health import flattens years into tens of thousands of rows, and
+one statement per row takes minutes and blocks the actor while a multi-row insert takes seconds.
+
+The first limit is 999 bound variables per statement, so the chunk size is that divided by the columns
+per row.
+
+The second is subtler and bites: **a single upsert statement cannot resolve the same conflict key
+twice.** Two utilities handle it, and which one applies depends on the conflict rule.
+
+- Where the rule **replaces** the row, `lastPerKey` keeps the last appearance of each key in the order
+  of the first. That is "row by row, last wins" translated into one statement, resolved in memory
+  beforehand with the same result.
+- Where the rule **merges column by column**, keeping only the last appearance would lose values that
+  only the first carried. So `passes` splits the rows into runs in which no key repeats: first
+  appearances in pass one, second appearances in pass two, and so on. Applied in order, the passes
+  reproduce row-by-row semantics exactly.
+
+---
+
+## Read semantics
+
+**Range reads** follow one template: filter the partition and a closed interval, order ascending,
+limit.
+
+**The dashboard snapshot** is the exception. It returns every series the main screen needs in a single
+pass, and runs `nonisolated` on the pool's reader connections. That is the whole reason the app's
+handle is a pool: the screen's read never waits behind a long write. The writer is a `let` precisely
+so that snapshot can reach it without actor isolation.
+
+The row SQL and mapping are shared between the single-purpose accessors and the bulk snapshot, so the
+two cannot drift apart.
+
+---
+
+## What is not here
+
+The schema is the target state, not a history. Tables that earlier versions created and later dropped
+are simply absent from the object list, and a phone that still has them keeps its rows: nothing in the
+install path deletes anything.
+
+Two artifacts of that are worth knowing.
+
+The in-memory batch type still carries fields for streams whose tables are gone. The insert path
+persists only the two that exist, deliberately, so a write cannot throw and abort the transaction that
+also carries live beats.
+
+> **Known inconsistency.** `CircadianPhaseStore.swift` is still compiled, but `circadianPhase` is not
+> in the schema. Its reads and writes would throw at runtime. It has no live caller; removing it is
+> tracked separately.
+
+---
+
+## Tests
+
+The suite lives in `Packages/CenitStore/Tests/CenitStoreTests/` and runs entirely against in-memory or
+temporary databases, so `swift test` in this package needs no simulator, no HealthKit and no device.
+
+Two of its cases carry unusual weight. A **shape test** compares the installed `sqlite_master` against
+the reference dump character for character, which is what makes the verbatim DDL worth the awkwardness.
+And a **legacy-fixture test** opens a checked-in database built by the previous incremental history
+and asserts that opening it executes no schema statement and loses no row.
