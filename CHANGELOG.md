@@ -56,6 +56,20 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
 - Catálogo de textos completo en español: se tradujeron las claves que faltaban en el catálogo de
   la app y de los widgets, y se podaron las que ya nadie usaba.
 
+### Las tres señales se tratan igual, y el método cierra en español (FER-401)
+- **La ficha de respiración vuelve a nombrar la misma posibilidad que las otras dos.** Oxígeno en
+  sangre y temperatura de piel ya decían que una lectura fuera de lo tuyo puede ser «algo que
+  podrías estar incubando»; respiración solo hablaba de esfuerzo, un día pesado o una cena tardía.
+  Ahora también la nombra, al final y como la última posibilidad, no como conclusión.
+- **Oxígeno en sangre suena a persona, no a manual:** una caída sostenida «vale la pena comentarla
+  con tu médico».
+- **El método de Preparación ya no cierra en inglés.** Con el teléfono en español, el plegable
+  explicaba todo en español y terminaba con la lista de estudios sin traducir.
+- **Se fueron del catálogo los textos de cuando el dato venía de una banda.** Ninguno se mostraba ya
+  —«Banda desconectada de día», «Banda sin señal», el paso que preguntaba si tenías una, y todo el
+  emparejamiento por Bluetooth—: eran textos huérfanos que solo pesaban. Las «bandas» de las
+  gráficas, que sí son tuyas, se quedan tal cual.
+
 ### El onboarding ya no promete un aviso que no puede sonar (FER-429)
 - Mientras Cénit todavía te está conociendo («Noche N de 4»), la última pantalla del primer
   arranque ya no ofrece el recordatorio de la mañana: no hay palabra que recordar hasta que haya

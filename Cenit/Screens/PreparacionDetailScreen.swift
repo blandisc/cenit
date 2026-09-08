@@ -244,7 +244,11 @@ struct PreparacionDetailScreen: View {
                     LiquidNotaLine(String(localized: "prep.metodo.regla",
                                           defaultValue: "Two days in a row move the verdict."),
                                    tono: LiquidColor.tinta700)
-                    LiquidNotaLine("Hirshkowitz et al., 2015 (sleep need); Task Force of the European Society of Cardiology, 1996 (HRV); Mishra et al., 2020 (unusual-load sentinel).")
+                    // FER-401 · gate CSO: la cita era el único `String` crudo del plegable, así que
+                    // en español el método se explicaba en español y cerraba en inglés. Los nombres
+                    // de autor y las revistas no se traducen; lo que sí, es qué mide cada cita.
+                    LiquidNotaLine(String(localized: "prep.metodo.cita",
+                                          defaultValue: "Hirshkowitz et al., 2015 (sleep need); Task Force of the European Society of Cardiology, 1996 (HRV); Mishra et al., 2020 (unusual-load sentinel)."))
                 }
             }
         }

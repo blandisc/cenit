@@ -221,7 +221,12 @@ extension MetricInfo {
             // FER-73 · HJ-08: la Matriz, el guardián y su hoja dicen «Breathing»; el catálogo
             // decía «Respiratory Rate». Un dato, un nombre.
             name: "Breathing",
-            headline: "How many breaths you take per minute while you sleep. It's one of the steadiest signals your body has, so even a small rise from your own normal can point to strain, an unusually demanding day, or a late, heavy meal.",
+            // FER-401 · gate CSO: las tres tarjetas de señal se tratan igual. La temperatura dice
+            // «algo que podrías estar incubando» y SpO₂ dice «un resfriado»; respiración se había
+            // quedado sin la causa hedgeada, y con eso leía como si una subida solo pudiera ser
+            // esfuerzo o cena. Va al final, como en las otras dos: la última posibilidad, no la
+            // primera, para no convertir una señal estable en un susto.
+            headline: "How many breaths you take per minute while you sleep. It's one of the steadiest signals your body has, so even a small rise from your own normal can point to strain, an unusually demanding day, a late and heavy meal, or something you might be coming down with.",
             displayValue: value.map { String(format: "%.1f", $0) } ?? "—",
             unit: String(localized: "rpm"),
             headerTint: value == nil ? .neutral : .metric,
