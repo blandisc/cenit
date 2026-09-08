@@ -632,8 +632,10 @@ patrón» family below:
   `lag1Autocorrelation` reads the paired values in day order and treats consecutive pairs as
   adjacent even when a day is missing between them: the dependence is measured at the sample's own
   spacing (exact for a regular gap — every other night — approximate for an irregular one), and the
-  cross-gap products are kept rather than dropped, so the sample is never read as more independent
-  than its own consecutive products say — the conservative side.
+  cross-gap products are kept rather than dropped. That biases ρ₁ DOWN relative to the true
+  day-adjacent autocorrelation, which inflates n_eff and understates p: mildly ANTICONSERVATIVE
+  within the AR(1) hedge above, not conservative. It is the safer of the two choices only next to
+  the alternative of dropping the cross-gap products outright.
 - **`spearmanPartial`** with `partialPValue` is the first-order partial Spearman,
   `r_xy·z = (r_xy − r_xz·r_yz) / √((1 − r_xz²)(1 − r_yz²))` on the midranks of x, y and z, read
   against the same t tail on **n − 3** degrees of freedom — one paid for the control (Fisher 1924).
