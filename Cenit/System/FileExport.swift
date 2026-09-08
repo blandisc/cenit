@@ -21,9 +21,7 @@ enum FileExport {
         // exportación rota sin ningún aviso. El temporal se borra al cerrar la hoja, para que
         // `temporaryDirectory` no acumule exportaciones muertas de una corrida a otra.
         let destino = FileManager.default.temporaryDirectory.appendingPathComponent(suggestedName)
-        do {
-            try text.write(to: destino, atomically: true, encoding: .utf8)
-        } catch {
+        guard (try? text.write(to: destino, atomically: true, encoding: .utf8)) != nil else {
             return false
         }
         present(activityItems: [destino], cleanup: [destino])
@@ -62,11 +60,10 @@ enum FileExport {
         guard let anfitrion = topViewController() else { return }
         let hoja = UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
         if !cleanup.isEmpty {
+            // Al mejor esfuerzo: borrar algo que ya no está no es un error que reportar, así que el
+            // `try?` cubre por igual «no existía» y «no se pudo».
             hoja.completionWithItemsHandler = { _, _, _, _ in
-                let disco = FileManager.default
-                for temporal in cleanup where disco.fileExists(atPath: temporal.path) {
-                    try? disco.removeItem(at: temporal)
-                }
+                cleanup.forEach { try? FileManager.default.removeItem(at: $0) }
             }
         }
         // En iPad el popover necesita un ancla o revienta: se fija al centro de la pantalla.
