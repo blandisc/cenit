@@ -131,17 +131,13 @@ public enum WhatMovesItRelationship: String, CaseIterable, Sendable {
         }
     }
 
-    /// Cross pairs read p on n_eff; the auto-lag does not (see the file note).
-    var usesEffectiveN: Bool { self != .sleepPriorNight }
+    /// Cross pairs (x and y are different columns) read p on n_eff; the auto-lag (x == y) does not
+    /// (see the file note). Only `sleepPriorNight` is an auto-lag today.
+    var usesEffectiveN: Bool { x != y }
 
-    /// Which side carries the zero-inflated strain series (minority-class floor), if any.
-    var zeroInflatedSide: Side? {
-        switch self {
-        case .sleepPriorStrain, .efficiencyPriorStrain, .rhrPriorStrain: return .x
-        case .strainEfficiency:                                          return .y
-        case .sleepPriorNight, .stepsEfficiency, .rhrSleepDuration:      return nil
-        }
-    }
+    /// Which side carries the zero-inflated strain series (minority-class floor), if any — the side
+    /// whose column is `.strain`.
+    var zeroInflatedSide: Side? { x == .strain ? .x : (y == .strain ? .y : nil) }
 
     /// Pairs with efficiency on either side take the higher floor (its reliability knob).
     var involvesEfficiency: Bool { x == .efficiency || y == .efficiency }

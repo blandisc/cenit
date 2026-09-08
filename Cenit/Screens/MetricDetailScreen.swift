@@ -1309,9 +1309,10 @@ struct MetricDetailScreen: View {
         VStack(alignment: .leading, spacing: LiquidSpace.s300) {
             LiquidCapilar(eje: .horizontal)
             // FER-438 · El método de «Tu patrón» (estadístico, lag, n mínimo, control de familia y
-            // fuente) se suma al pie de las pantallas que llevan el bloque.
-            let patronMetodo: String? = visibleBlocks.contains(.whatMovesIt)
-                ? spec.info.patternMethod.map { String(localized: $0) } : nil
+            // fuente) se suma al pie SOLO cuando la pantalla pintó un hallazgo: no se explica lo que
+            // no se ve (misma regla de dato que `LiquidMetricSheetView.pie`).
+            let patronMetodo: String? = whatMovesItFindings.isEmpty
+                ? nil : spec.info.patternMethod.map { String(localized: $0) }
             if visibleBlocks.contains(.method), spec.info.method != nil || patronMetodo != nil {
                 LiquidMetodo(title: String(localized: "How it's calculated"),
                              mostrar: String(localized: "Show explanation"),

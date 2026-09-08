@@ -123,8 +123,10 @@ struct SleepDetailScreen: View {
         .sheet(item: $metricInfo) { info in
             // Cutover F6 (decisión D1 del revote): las submétricas de sueño abren la hoja Liquid.
             LiquidMetricSheetView(info: info, trendLoader: trendLoader(for: info.id),
-                                  // FER-438 · Solo Eficiencia tiene relación defendible entre las submétricas.
-                                  whatMovesIt: info.id == "sleep_efficiency" ? model.patronEficiencia : [])
+                                  // FER-438 · La familia «Tu patrón» devuelve hallazgos solo para las claves
+                                  // con relación defendible (hoy, entre las submétricas de sueño, Eficiencia);
+                                  // el resto lee `[]`.
+                                  whatMovesIt: model.patron[info.id] ?? [])
         }
         .sheet(isPresented: $showStages) {
             SleepStagesInfoSheet()
@@ -1380,10 +1382,11 @@ struct SleepDetailModel {
     /// The full nightly respiratory-rate series (oldest → newest, `nil` = missing night) for the
     /// respiration-trend watch (FER-851). The engine derives its own baseline + deviation from it.
     let respNightly: [Double?]
-    /// «Tu patrón» of sleep efficiency (yesterday's strain → tonight's efficiency), gated by the one
-    /// `WhatMovesItEngine` family (FER-438); the Efficiency sheet opened from this screen renders it.
+    /// «Tu patrón» findings by metric key — the whole `WhatMovesItEngine` family over the same daily
+    /// history (FER-438). A submetric sheet reads its own key (`patron[info.id] ?? []`); today only
+    /// `sleep_efficiency` carries a defensible relationship among sleep submetrics, the rest read `[]`.
     /// Defaulted so previews that build the model by hand keep compiling.
-    var patronEficiencia: [WhatMovesItFinding] = []
+    var patron: [String: [WhatMovesItFinding]] = [:]
 
     // MARK: - Build
 
@@ -1576,8 +1579,7 @@ struct SleepDetailModel {
             respirationTrend: respirationTrend,
             awakeningsTrend: awakeningsTrend,
             respNightly: respNightly,
-            patronEficiencia: WhatMovesItEngine.findings(forMetricKey: "sleep_efficiency", days: patternDays,
-                                                         today: todayKey))
+            patron: WhatMovesItEngine.family(days: patternDays, today: todayKey))
     }
 
     /// Runs `build` off the MainActor (FER-953): snapshots the inputs from `repo` on the MainActor
