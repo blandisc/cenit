@@ -1,384 +1,359 @@
-# Cénit — Cross-Platform Swift Library Reference
+# The package layer
 
-Cénit is a standalone, fully **offline** health app on **Apple Health**. It syncs
-HealthKit into on-device SQLite, can import Apple Health exports, and computes
-recovery, strain, HRV, and sleep locally — no cloud, no account.
+Almost none of Cénit's real work happens in the app target. The persistence, the physiology math,
+the training domain, the importers and the entire visual language live in eight SwiftPM packages
+under `Packages/`, and the iOS app is a thin shell that wires them to screens.
 
-This document is the reference for the **reusable, cross-platform Swift
-packages** that make that possible. They are designed to be vendored and reused
-independently of the app itself.
+That split is not decoration. It is what makes the fast loop possible: `swift build && swift test`
+inside a package needs no Xcode project, no simulator, no signing and no HealthKit, so the math can
+be changed and proven in seconds. It is also what makes the packages reusable — each is a
+self-contained library with an explicit dependency list.
 
-> Cénit contains no third-party proprietary code, firmware, or assets and works
-> only with the user's own device and data.
-> **Cénit is not a medical device.** Every derived metric (HR, HRV, recovery,
-> strain, sleep, SpO₂, temperature) is an approximation and is not clinically
-> validated.
+This document is the reference for that layer. For the database schema those packages persist, see
+[DATA_MODEL.md](DATA_MODEL.md); for the physiology, [ANALYTICS.md](ANALYTICS.md).
 
-## Credits
-
-- **`groue/GRDB.swift`** — SQLite persistence used by `CenitStore`.
+> Cénit is not a medical device. Every derived value — heart rate, variability, recovery, effort,
+> sleep, temperature — is a documented approximation, not a clinical measurement.
 
 ---
 
-## Package overview
+## What every package has in common
 
-| Package | Purpose | Pure / portable? | UI deps | External deps |
-|---|---|---|---|---|
-| **CenitStore** | GRDB/SQLite persistence: migrations, streams, raw outbox, metric caches | ✅ Pure (server-free) | none | GRDB |
-| **StrandAnalytics** | HRV / recovery / strain / sleep / correlation math | ✅ Pure, deterministic | none | (BiometricStreams, StrandModels types) |
-| **StrandImport** | Apple Health (`export.xml`, streaming) importers | ✅ Pure Foundation/XML | none | ZIPFoundation |
-| **CenitDesign** | SwiftUI design system (palette, components, charts) | SwiftUI only | SwiftUI | none |
+Eight manifests, and they agree on five things. Treat these as invariants: a change that breaks one
+should be deliberate and argued, not incidental.
 
-These packages declare the same platforms — **iOS 16+ and macOS 13+** — and
-build with **swift-tools-version 5.9**. The non-UI packages are platform-pure:
-they never import `CoreBluetooth`, `UIKit`, or `AppKit`, so they run unchanged in
-CLI tools, tests, and on any platform. `CenitDesign` is the only SwiftUI package;
-it builds on both iOS and macOS, bridging through `UIColor`/`NSColor` only where
-unavoidable, guarded with `#if canImport(UIKit)` / `#if canImport(AppKit)`.
+**Every product is a static library with exactly one target.** All eight declare
+`.library(name:, type: .static, targets: [...])`. The static linkage is what lets the app's unit-test
+bundle depend on a package with `link: false` — it compiles against the module while taking the
+symbols from the host app, instead of linking a second copy and failing on duplicate code.
 
-### Dependency graph
+**Every target enables strict concurrency.** Library, executable and test targets alike carry
+`swiftSettings: [.enableExperimentalFeature("StrictConcurrency")]`. There are no other Swift
+settings anywhere in the layer.
 
-```
-BiometricStreams / StrandModels  (root vocabulary + shared models)
-      │
-      ├──────────────► CenitStore        (+ GRDB, StrandTraining)
-      │                     │
-      ▼                     ▼
-StrandAnalytics ◄───────────┘            (depends on BiometricStreams + StrandModels)
+**Every package declares more than one platform.** The minimum pairs differ (see the table below),
+but no package is iOS-only. That is the mechanism that keeps UI frameworks out: a package that
+imported UIKit unconditionally would stop building for macOS, and the macOS build is what CI runs.
 
-StrandImport   ──► CenitStore, StrandTraining   (+ ZIPFoundation)
+**No package re-exports another.** There is not one `@_exported import` in the repository, packages
+or app. A file that needs a type says which module it comes from.
 
-CenitDesign   (standalone — SwiftUI only, no internal deps)
-```
+**Only two third-party dependencies exist in the whole layer**, and both are local-only libraries
+that make no network calls of their own.
 
-The app target (`Cenit/`, built by `Cenit`) is the integration layer: it owns
-HealthKit sync, wraps the pure packages together, and presents the UI. The pure
-packages are platform-agnostic and reusable on their own.
+| Dependency | Requirement | Resolved | Used by | For |
+| --- | --- | --- | --- | --- |
+| GRDB.swift | `from: "6.0.0"` | 6.29.3 | `CenitStore` (and `StrandImport` transitively) | SQLite persistence and migrations |
+| ZIPFoundation | `from: "0.9.0"` | 0.9.20 | `StrandImport` | Reading the user's own Health export archive |
+
+A third dependency, swift-syntax, exists only under `Tools/DesignCensus` — a developer executable
+that is never linked into a shipped target.
 
 ---
 
-## CenitStore
+## The graph
 
-On-device persistence built on **GRDB/SQLite**. The store is an `actor`, so its
-API is `async` and all database work runs off the main thread on the actor's
-serial executor. The one exception is `dashboardSnapshot`, which is `nonisolated`
-so the whole dashboard is read in one transaction.
+```
+BiometricStreams ──┬──────────────────► StrandAnalytics
+StrandModels ──────┘
 
-**Sources:** `Store.swift` (the actor), `Schema.swift` (the single migration),
-`RowBatch.swift`, `BeatStore.swift`, `MarkStore.swift`, `SeriesStore.swift`,
-`DayCacheStore.swift`, `LogStore.swift`, plus the domain stores
-`StrengthStore.swift`, `DietStore.swift`, `ExperimentStore.swift`,
-`InProgressStrengthStore.swift` and `DashboardSnapshot.swift`.
+BiometricStreams ──┐
+StrandModels ──────┤
+StrandTraining ────┼──► CenitStore ──┐
+GRDB ──────────────┘                 ├──► StrandImport
+StrandTraining ──────────────────────┤
+ZIPFoundation ───────────────────────┘
 
-> **Note.** Table inventories in this section may lag the code — see
-> [`DATA_MODEL.md`](DATA_MODEL.md) and, for the byte-exact schema,
-> `Packages/CenitStore/Tests/CenitStoreTests/Resources/legacy-schema.sql`.
+CenitDesign        (no package dependencies)
+CenitEnsenanza     (no package dependencies)
+```
 
-### Depend on it
+Five of the eight have **no inbound package edges at all**: `BiometricStreams`, `StrandModels`,
+`StrandTraining`, `CenitDesign` and `CenitEnsenanza`. Two chains grow out of that floor — the
+analytics chain and the persistence chain — and they meet only in the app.
+
+The direction is the rule. `CenitStore` and `StrandAnalytics` may depend on `BiometricStreams`;
+`BiometricStreams` may never depend on them. Four packages sit at the top and are imported by
+nobody else in the layer: `StrandAnalytics`, `StrandImport`, `CenitDesign` and `CenitEnsenanza` are
+consumed only by the app, the widgets and the watch.
+
+### Platform minimums
+
+| Package | iOS | macOS | watchOS |
+| --- | --- | --- | --- |
+| `BiometricStreams`, `StrandModels`, `CenitEnsenanza`, `CenitStore`, `StrandAnalytics`, `StrandImport` | 16 | 13 | — |
+| `StrandTraining` | 16 | 13 | 10 |
+| `CenitDesign` | 17 | 14 | 10 |
+
+`CenitDesign` carries the highest floor because it uses SwiftUI APIs that only exist there.
+`StrandTraining` gained watchOS so the watch companion can speak the real domain types over the
+wire rather than a parallel set of copies.
+
+---
+
+## The packages
+
+### `BiometricStreams` — the vocabulary
+
+Two files, 224 lines, zero dependencies of any kind. This is the floor of the graph, and its
+manifest says so.
+
+It defines the neutral shapes a decoded biometric sample takes — `HRSample`, `RRInterval`,
+`SkinTempSample`, `RespSample`, `GravitySample`, and the `Streams` batch that carries arrays of
+each. All are `Equatable, Codable, Sendable`, and every `ts` is unix wall-clock seconds.
+
+Only `hr` and `rr` have a live write path today; the other three shapes are documented as dormant,
+with no producer feeding them.
+
+The second file is `ParsedValue`, a small `Codable` enum over `int`, `double`, `string`, `intArray`,
+`bool` and `null`. Its encoder writes the **bare JSON scalar** rather than a tagged union, and its
+decoder tries `Bool` before `Int` — that order is load-bearing, because JSON `true` would otherwise
+decode as an integer.
+
+Two test files cover the codec round-trips, the decode ordering and the struct defaults.
+
+### `StrandModels` — the row shapes
+
+Three files, 209 lines, no dependencies. A leaf, deliberately: it holds the value types that both
+the store and the analytics layer need to name, so neither has to depend on the other.
+
+- `DailyMetric` — the nineteen-field day row, with every metric nullable.
+- `CachedSleepSession` — one night, with its stage breakdown kept as a verbatim JSON string.
+- `AppleDaily` — the Apple-Health daily aggregate row.
+- `DietMealStatus` — the tri-state adherence value.
+- `DayKey` — the day-key contract described in [DATA_MODEL.md](DATA_MODEL.md#conventions).
+
+One design detail is worth calling out. `DailyMetric.with(...)` takes a `FieldUpdate` per field
+rather than an optional, so `.set(nil)` (clear this column) is distinguishable from omission (leave
+it alone). With plain optionals across nineteen fields those two intents collapse into one, and the
+distinction is exactly what the store's monotonic upsert depends on.
+
+Two of its columns hold a raw confidence *string* rather than an enum, because the enum lives in
+`StrandAnalytics` — which sits above this package.
+
+### `StrandTraining` — the strength domain
+
+Twenty-four files, about 3 400 lines, Foundation-only and dependency-free. No GRDB, no UI: GRDB
+conformance for these types is added by extension inside `CenitStore`, which is what keeps the
+domain usable on the watch.
+
+The core file defines the vocabulary of a workout: routines and folders, the weekly schedule, the
+prescribed `RoutineSet` and the performed `SetEntry`, sessions, personal records, rest
+configuration, and `StrengthSessionSnapshot` — the crash-durable picture of a session in progress.
+
+Around it sit small, single-purpose pure modules: one-rep-max estimation, plate math, progression
+state, deload policy, program calendars, week bucketing, rest statistics, RIR-to-RPE conversion,
+muscle inference, routine classification, CSV export, and a reconciler that fuses the sets logged on
+the watch with the ones logged on the phone.
+
+The exercise catalog ships as a bundled resource, not as database rows: two zlib-compressed JSON
+files holding 873 exercises and a matching Spanish overlay, decompressed at load. A third resource
+directory that once held baked thumbnails now ships **empty apart from its README** — the catalog
+moved to a source with no media. That emptiness is load-bearing: the code only derives a remote
+media URL for ids present in the baked-stills set, so an empty set means no URL is ever derived.
+
+Twenty-two test files, about 2 200 lines, covering the snapshot round-trip, the reconciler, CSV
+formats, program calendars, progression and deload boundaries, and catalog integrity.
+
+### `CenitStore` — persistence
+
+Sixteen files, about 3 400 lines. Depends on `BiometricStreams`, `StrandModels`, `StrandTraining`
+and GRDB.
+
+`CenitStore` is an actor wrapping a GRDB writer, with two selectable backends and **one** registered
+migration that installs the whole schema. Its full surface — the schema, how that single migration
+stays safe on a phone that already has years of history, the write and read semantics, the
+source-partition model — is documented in [DATA_MODEL.md](DATA_MODEL.md); this entry covers only its
+shape as a package.
+
+The single largest file by far is the strength store, which alone exposes about sixty public methods:
+routines and folders, the weekly schedule, programs, session save and update and delete and restore,
+per-session pulse capture, notes, and six personal-record accessors. The rest each own one surface:
+the file gate and connection setup, the schema, the raw beats, the day-grain caches, the long-format
+series, the named marks, the day log, diet, experiments, the in-progress session, batch-write
+mechanics, and a one-transaction dashboard read.
+
+Two compressed JSON resources ride along, used by exactly one migration; if they are absent that
+migration is a no-op rather than a failure.
+
+Twenty-one test files, about 5 500 lines, dominated by the migration and strength suites. All run
+against an in-memory store.
+
+### `StrandAnalytics` — the physiology
+
+Ninety-four files, about 15 900 lines. Depends on `BiometricStreams` and `StrandModels` and nothing
+else — **no GRDB, no database, no I/O.** Every engine is a pure function from values to values,
+which is what makes the whole package testable without a device.
+
+The engines group into families: baselines and deviation; the morning readiness verdict; variability
+and autonomic analysis; effort and load; heart-rate zones and recovery; sleep staging and
+regularity; stress; statistical inference; insights and single-subject experiments; source fusion
+and arbitration; fitness age; and the pure strength math the training screens read.
+
+A hundred and twenty-three test files, about 15 300 lines. Several recognizable families are worth
+knowing about: **oracle tests** check an engine against hand-computed references; **boundary tests**
+pin behavior exactly at a threshold; **copy guards** assert that the words shown next to a number
+stay honest; and **invariance tests** assert that a value does not change when it must not.
+
+One guard exists in this package, and it is the only conditional compilation outside the design
+system: a `#if canImport(Darwin)` around localized-string lookup, so the package still builds on
+Linux — where the localization overload does not exist — and its math tests still run there.
+
+### `StrandImport` — bringing data in
+
+Fourteen files, about 4 000 lines. Depends on `CenitStore`, `StrandTraining` and ZIPFoundation.
+
+It handles four import shapes:
+
+- **The Apple Health export**, accepted as a `.zip`, an unpacked folder, or the raw XML, streamed
+  rather than loaded, and folded into civil days by a day aggregator. A UTF-8 scrubber sits in front
+  of the parser because real exports contain malformed sequences.
+- **Strength CSV** from two third-party trackers plus Cénit's own export format.
+- **A prescribed diet plan** and **a workout program**, both parse-only against a versioned schema
+  tag, producing warnings rather than silently dropping fields.
+- **Sleep category samples**, with an encoder and a decoder that are exact inverses of each other.
+
+ZIPFoundation is used in read mode only; nothing here writes an archive. One small module,
+the third-party-workout deduplicator, is pure and imports nothing — it operates on a minimal data
+transfer object so it can be tested in isolation.
+
+Seventeen test files, about 2 800 lines, driven by six bundled fixtures: a sample export XML and
+five CSV files covering both third-party formats and a Cénit round trip.
+
+### `CenitDesign` — the visual system
+
+Two hundred and one files, about 48 000 lines: by a wide margin the largest package, and the only
+one that imports SwiftUI. It has **no package dependencies at all**, including on the domain
+packages whose screens it dresses — its components take primitives, never domain types.
+
+It holds the tokens (color, type, spacing, radius, motion, elevation), the glass recipes and theme
+resolution, the chart vocabulary, the training-screen components, and several screen-scale
+composites that the design system owns outright rather than leaving to the app.
+
+Its resources are four Space Grotesk font faces with their license, and a Metal shader as **source
+text**. Both choices are forced by SwiftPM: a package cannot declare app fonts, so the faces are
+registered with CoreText at runtime; and the toolchain will not compile a target's Metal file, so
+the shader ships as `.msl` and is compiled at run time. That one path then works identically from
+`swift build` and from Xcode.
+
+The package also carries a second, product-less target: an executable that regenerates the design
+tokens and two design documents. Continuous integration re-runs it and fails if the output differs
+from what is committed, which is what keeps the generated documentation from drifting.
+
+Ninety-two test files, about 11 900 lines. The distinctive families here are **contrast and
+accessibility gates**, **snapshot tests**, **theme-resolution tests** across light and dark, and
+**token-drift gates** that assert every catalog entry still points at a file that exists.
+
+### `CenitEnsenanza` — what the app teaches
+
+Nine files, 756 lines, Foundation-only and dependency-free, so it runs in the fast loop and on
+Linux.
+
+It is a declarative registry of the app's teachable features: for each one, which tab it belongs to,
+what it requires before it can be shown, and which teaching pieces exist for it — an empty state, a
+tip, a milestone, a help section, a release note, or a gesture with its button equivalent.
+
+Two deliberate constraints shape it. The tab enumeration is **hand-mirrored** from the design
+system's rather than imported, because this package cannot import SwiftUI and still build on Linux.
+And requirements are declarative only: the registry describes what a feature needs and evaluates
+nothing.
+
+Looking up an unknown identifier traps rather than returning nil. That is intentional — the
+identifier set is closed and checked by a test, so a miss is a programming error, not a runtime
+condition.
+
+---
+
+## Depending on a package
+
+Inside this repository, packages reference each other by relative path:
 
 ```swift
-// Package.swift
 dependencies: [
-    .package(path: "../CenitStore"),
-    .package(url: "https://github.com/groue/GRDB.swift.git", from: "6.0.0"),
-],
-targets: [
-    .target(name: "MyTarget", dependencies: [
-        .product(name: "CenitStore", package: "CenitStore"),
-    ]),
+    .package(path: "../BiometricStreams"),
 ]
 ```
 
-### Schema
+The app does the same through `project.yml`, which declares seven of the eight by local path.
+`StrandModels` is **not** declared there — it arrives transitively through `CenitStore` and
+`StrandAnalytics`, and adding it explicitly would be redundant rather than harmful.
 
-`CenitStore.makeMigrator()` registers ONE migration, `"v43"`, that installs the
-whole schema; the next one is `"v44"` (see [`DATA_MODEL.md`](DATA_MODEL.md) for
-why the name matters). The store enables incremental auto-vacuum, WAL journal
-mode, `synchronous = NORMAL`, a page cache, mmap, and a busy timeout so two
-handles to the same file don't deadlock.
+Which targets link what:
 
-| Table | Purpose | Natural key |
-|---|---|---|
-| `deviceIdMap` | partition label → integer surrogate | `deviceId` |
-| `hrSample`, `rrInterval` | beat streams (`STRICT, WITHOUT ROWID`) | `(deviceId, ts[, rrMs])` |
-| `cursors` | named one-shot flags and watermarks | `name` |
-| `sleepSession`, `dailyMetric` | cached derived metrics | `(deviceId, startTs)` / `(deviceId, day)` |
-| `journal`, `workout`, `appleDaily` | journal + workouts + Apple-Health daily | various |
-| `metricSeries` | generic long-format (EAV) metric store | `(deviceId, day, key)` |
-| `experiment`, `dietPlan`, `dietAdherence` | N-of-1 experiments and diet adherence | `id` / `(deviceId, day, mealId)` |
-| the 16 strength tables | routines, sessions, sets, PRs, program | UUID strings |
+| Target | Packages linked |
+| --- | --- |
+| `Cenit` (app) | All seven declared packages |
+| `CenitWatch` | `CenitDesign`, `StrandTraining` — no GRDB on the wrist |
+| `CenitWidgets` | `CenitDesign` only |
+| `CenitUnitTests` | `BiometricStreams`, `CenitStore`, `StrandAnalytics`, `StrandTraining`, each with `link: false` |
+| `CenitUITests` | None |
 
-### Key public API
-
-**Open / lifecycle**
-
-```swift
-public init(path: String) async throws          // open (creating) + migrate
-public static func inMemory() async throws -> CenitStore   // tests
-public static let schemaVersion: Int             // on CenitStoreInfo
-```
-
-**Write streams** (idempotent upsert by natural key; returns rows actually inserted)
-
-```swift
-@discardableResult
-public func insert(_ streams: Streams, deviceId: String) async throws -> (hr: Int, rr: Int)
-```
-
-**Range reads** (each `(deviceId, from, to, limit)`, oldest-first, both ends inclusive)
-
-```swift
-public func hrSamples(...)   -> [HRSample]
-public func hrBuckets(...)   -> [HRBucket]        // averaged in SQL, not in memory
-public func rrIntervals(...) -> [RRInterval]
-public func latestHRSampleTs(deviceId:) async throws -> Int?
-public func sampleCounts() async throws -> (hr: Int, rr: Int)
-public func integrityCheck() async throws -> Bool
-```
-
-
-**Caches & cursors** — `upsertSleepSessions`, `upsertDailyMetrics`,
-`sleepSessions`, `dailyMetrics` (`DayCacheStore.swift`); `upsertJournal`,
-`upsertWorkouts`, `upsertAppleDaily`, `appleHealthCoverage` (`LogStore.swift`);
-`upsertMetricSeries`, `metricSeries`, `metricKeys`, `metricDays`
-(`SeriesStore.swift`); `setCursor` / `cursor` / `setHighwater` /
-`highwater` (`MarkStore.swift`). The cache row models — `DailyMetric`,
-`CachedSleepSession`, `JournalEntry`, `WorkoutRow`, `AppleDaily`, `MetricPoint`
-— are all public `Codable` structs.
-
-### Minimal usage
-
-```swift
-import CenitStore
-
-let store = try await CenitStore(path: "/path/to/cenit.sqlite")
-
-// Persist stream rows (idempotent — safe to replay). The partition is created on
-// first write; nobody has to register it.
-let counts = try await store.insert(streams, deviceId: "apple-health")
-print("inserted HR:", counts.hr)
-
-// Read a day back out.
-let hr = try await store.hrSamples(deviceId: "apple-health",
-                                   from: dayStart, to: dayEnd, limit: 100_000)
-```
+To vendor a package into another project, copy its directory and depend on it by path or URL. Only
+`CenitStore` and `StrandImport` pull anything external. The analytics and training packages have no
+dependencies beyond the repository's own leaves, so they lift out cleanly.
 
 ---
 
-## StrandAnalytics
+## Cross-platform discipline
 
-Pure, deterministic on-device analytics: HRV, recovery, strain, sleep staging,
-workout detection, baselines, and statistical comparison/correlation. **No
-database access** — every entry point is a pure function over its inputs (it
-consumes `BiometricStreams` / `StrandModels` types and produces `CenitStore` cache
-shapes, but performs no I/O). All derived values are explicitly **approximate**.
+The rule is short: **package code may not import a UI or hardware framework unconditionally.**
+`import CoreBluetooth` appears nowhere in the layer, and neither do HealthKit, WatchKit, ActivityKit
+or WidgetKit — those belong to the app targets.
 
-**Sources:** `HRVAnalyzer.swift`, `RecoveryScorer.swift`, `StrainScorer.swift`,
-`HRZones.swift`, `Baselines.swift`, `SleepStager.swift`, `WorkoutDetector.swift`,
-`AnalyticsEngine.swift` (orchestrator), `CorrelationEngine.swift`,
-`ComparisonEngine.swift`, `BehaviorInsights.swift`.
+SwiftUI is imported by 172 files, every one of them inside `CenitDesign`, and none of them guarded —
+correctly, since SwiftUI exists on all three platforms that package declares.
 
-### Depend on it
+UIKit and AppKit are a different matter. Every one of the eight files that imports UIKit, and both
+files that import AppKit, sits behind a `canImport` guard, and several narrow further to `os(iOS)`
+for genuinely iOS-only behavior — the pan gesture recognizer behind chart scrubbing, haptics, and
+the Metal-backed hero view. Seven other packages contain **zero** conditional compilation of any
+kind.
 
-```swift
-// Package.swift
-dependencies: [
-    .package(path: "../StrandAnalytics"),
-],
-targets: [
-    .target(name: "MyTarget", dependencies: ["StrandAnalytics"]),
-]
-```
+The one exception to "guards live in the design system" is the localization shim in
+`StrandAnalytics` described above.
 
-### Key public API
-
-| Type | Entry points |
-|---|---|
-| `HRVAnalyzer` | `analyze(_:windowStart:windowEnd:)` and `analyze(rawRR:)` → `HRVResult` (RMSSD, SDNN, meanNN, pNN50). Range filter [300, 2000] ms + Malik 20%-local-median ectopic rejection; needs ≥ 20 clean beats. |
-| `RecoveryScorer` | `restingHR(_:start:end:)` → the night's lowest sustained bpm, or `nil`. The 0–100 composite and its band cuts are deleted (FER-387); `Preparedness` answers the morning verdict. |
-| `StrainScorer` | `strain(_:maxHR:restingHR:method:sex:denominator:)` → 0–21 (Edwards/Banister TRIMP, log-mapped); `tanakaHRmax(age:)`, `estimateHRmax(_:age:)`, `trimpToStrain(_:)`. |
-| `HRZones` | `zones(age:maxHROverride:)` → `HRZoneSet`; `timeInZone(_:zoneSet:)` → `TimeInZone`. |
-| `Baselines` | `update(_:value:cfg:)` → `BaselineState` (Winsorized-EWMA personal baselines + `BaselineStatus`); standard `metricCfg` for HRV / resting HR / resp / skin temp. |
-| `SleepStager` | `detectSleep(hr:rr:resp:gravity:)` → `[SleepSession]` (in-bed detection + approximate 4-class staging); `hypnogramMetrics(_:)` → `HypnogramMetrics`. |
-| `WorkoutDetector` | `detect(hr:gravity:restingHR:maxHR:age:profile:)` → `[ExerciseSession]`; `Calories.estimateBoutCalories(...)`. |
-| `AnalyticsEngine` | `analyzeDay(day:hr:rr:resp:gravity:profile:baselines:maxHROverride:)` → `DayResult` — the orchestrator that rolls everything into a `DailyMetric` + sleep/workout sessions. |
-| `CorrelationEngine` | `pearson(_:)`, `alignByDay(_:_:)`, `lagged(x:y:lagDays:)` → `Correlation`. |
-| `ComparisonEngine` | `stat(_:)` → `SeriesStat`; `compare(current:previous:)` / `monthOverMonth(...)` → `PeriodComparison`. |
-| `BehaviorInsights` | `effect(behaviorDays:...)` → `BehaviorEffect`; `rank(...)`, `sentence(_:)`. |
-
-`UserProfile` (`weightKg`, `heightCm`, `age`, `sex`) is the shared profile input.
-
-### Minimal usage
+When you do need a platform-specific implementation, the shape is:
 
 ```swift
-import StrandAnalytics
-
-// HRV over a night's R-R intervals.
-let hrv = HRVAnalyzer.analyze(rrIntervals, windowStart: bedStart, windowEnd: wakeEnd)
-print("RMSSD:", hrv.rmssd ?? .nan, "ms")
-
-// Day strain from the full HR series.
-let strain = StrainScorer.strain(hrSamples, maxHR: 190, restingHR: 50)  // 0…21
-
-// Full-day rollup (sleep + recovery + strain + workouts) in one call.
-let day = AnalyticsEngine.analyzeDay(
-    day: "2026-06-07",
-    hr: hrSamples, rr: rrIntervals, gravity: gravitySamples,
-    profile: UserProfile(weightKg: 78, heightCm: 182, age: 34, sex: "male")
-)
-print("recovery:", day.recovery ?? .nan, "strain:", day.strain ?? .nan)
+#if canImport(UIKit)
+import UIKit
+// iOS/watchOS implementation
+#elseif canImport(AppKit)
+import AppKit
+// macOS implementation
+#endif
 ```
+
+Test code is held to a looser standard: thirteen design-system test files import AppKit unguarded,
+which is fine because those suites are macOS-hosted by construction.
 
 ---
 
-## StrandImport
+## Running the tests
 
-Parser for the Apple Health export format a user can bring offline
-(`export.zip` / `export.xml`, streamed so a multi-hundred-MB file never loads
-fully into memory). This layer is **parsing only** — it produces normalized Swift
-model arrays and an `ImportSummary` and does not touch the database, so the whole
-package is unit-testable.
+Every package is testable on its own, from its own directory:
 
-**Sources:** `ImportCoordinator.swift` (top-level + auto-detection),
-`AppleHealthImporter.swift`, `AppleHealthAggregator.swift`, `ImportModels.swift`.
-
-### Depend on it
-
-```swift
-// Package.swift
-dependencies: [
-    .package(path: "../StrandImport"),
-    .package(url: "https://github.com/weichsel/ZIPFoundation.git", from: "0.9.0"),
-],
-targets: [
-    .target(name: "MyTarget", dependencies: ["StrandImport"]),
-]
+```bash
+cd Packages/StrandAnalytics && swift build && swift test
 ```
 
-### Key public API
+To run one case or one method:
 
-```swift
-public struct ImportCoordinator {
-    public init(appleHealth: AppleHealthImporter = .init())
-
-    public func importAppleHealth(from url: URL) throws -> AppleHealthImportResult
-}
+```bash
+swift test --filter <TestCaseOrMethod>
 ```
 
-- **`AppleHealthImporter`** — `import(from:)` accepts a folder, `export.zip`, or
-  `export.xml`; `importXML(at:)` / `importXML(data:)` stream-parse via
-  `XMLParser`. `relevantTypes` lists the captured HealthKit types (HR, resting
-  HR, HRV SDNN, SpO₂, body/wrist temperature, respiratory rate, energy, VO₂max,
-  steps, sleep analysis, body composition). Returns `AppleHealthImportResult`
-  (`samples`, `workouts`, `sleepIntervals`, `summary`).
-- **`AppleHealthAggregator`** — `daily(samples:)`, `sleepDaily(...)`,
-  `aggregate(_:)` roll samples into per-civil-day `AppleDailyAggregate`s;
-  `metricPoints(_:)` projects them into `(day, key, value)` triples ready for
-  `CenitStore.upsertMetricSeries`.
+Continuous integration builds and tests seven of the eight packages in a matrix, choosing the runner
+by what the package actually needs. `BiometricStreams`, `StrandAnalytics` and `CenitEnsenanza` run
+on Linux, which is the strongest possible proof that they carry no Apple-framework dependency.
+`StrandTraining`, `CenitStore` and `StrandImport` need macOS for compression. `CenitDesign` needs
+the newest macOS image for its SwiftUI APIs, and additionally cross-compiles for watchOS and iOS
+simulators — a compile-only check that catches a token or component that silently stopped building
+for the watch.
 
-Models include `HealthSample`, `HealthWorkout`, `SleepStageInterval`,
-`SleepStage`, `ImportSummary`, and the `ImportError` enum.
+`StrandModels` is not in that matrix; it is exercised transitively.
 
-### Minimal usage
-
-```swift
-import StrandImport
-
-let coordinator = ImportCoordinator()
-let result = try coordinator.importAppleHealth(from: fileURL)
-let daily = AppleHealthAggregator.aggregate(result)
-let points = AppleHealthAggregator.metricPoints(daily)   // → upsertMetricSeries
-print("Apple daily rows:", daily.count)
-```
-
----
-
-## CenitDesign
-
-The SwiftUI design system — the only UI package. Palette, type scale, motion
-presets, and the signature data components (Hypnogram, trend/sparkline charts,
-year heat strip, cards, status pills). Builds on **both iOS and macOS**; it
-imports only `SwiftUI` and bridges to `UIColor`/`NSColor` for color-component
-extraction under `#if canImport(UIKit)` / `#if canImport(AppKit)`.
-
-**Sources:** `Palette.swift`, `Typography.swift`, `Motion.swift`, plus the
-component views `Hypnogram.swift`, `TrendChart.swift`, `Sparkline.swift`,
-`YearHeatStrip.swift`, `StatePill.swift`, `Components.swift` — the full
-rol → símbolo → archivo index is generated into
-[CATALOGO.md](design-system/CATALOGO.md).
-
-### Depend on it
-
-```swift
-// Package.swift  (no internal Cénit deps — standalone)
-dependencies: [
-    .package(path: "../CenitDesign"),
-],
-targets: [
-    .target(name: "MyAppUI", dependencies: ["CenitDesign"]),
-]
-```
-
-### Key public API
-
-**Tokens**
-
-- `StrandPalette` — every semantic color token: surfaces
-  (`surfaceBase`/`surfaceRaised`/`surfaceOverlay`/`surfaceInset`), `hairline`,
-  text (`textPrimary`/`textSecondary`/`textTertiary`), `accent`, the recovery
-  gradient stops (`recoveryStops`), and recovery/strain color sampling. A
-  `Color(hex:)` initializer supports `RRGGBB` / `RRGGBBAA`.
-- `StrandFont` — the full type scale with tabular digits: `display(_:)`,
-  `title1`/`title2`, `headline`, `body`, `subhead`, `caption`, `footnote`,
-  `overline`, `mono(_:weight:)`, `number(_:weight:)`.
-- `StrandMotion` — spring/animation presets: `interactive`, `gentle`, `hero`,
-  `drawIn`, `breathe`, `pulse`, `fade`, and the `durationFast`/`durationStandard`/
-  `durationSlow` constants.
-
-**Components** (all public `View`s)
-
-| View | Role |
-|---|---|
-| `Hypnogram` | sleep-stage timeline |
-| `TrendChart`, `Sparkline` | line/area charts |
-| `YearHeatStrip` | year-at-a-glance heat strip |
-| `liquidGlass(_:)` | card/pill/dock surface (the dark-legacy card primitives were retired in FER-444) — see [CATALOGO.md](design-system/CATALOGO.md) |
-| `StatePill`, `ConnectionDot`, `SourceBadge` | status chips / source labels |
-| `StatTile`, `SegmentedPillControl` | layout primitives |
-
-Full index (rol → símbolo → archivo → cuándo usarlo → cuándo no): see
-[CATALOGO.md](design-system/CATALOGO.md).
-
-### Minimal usage
-
-```swift
-import SwiftUI
-import CenitDesign
-
-struct TodayHeader: View {
-    let score: Double
-    let theme: InstrumentoTheme
-    var body: some View {
-        VStack(spacing: 16) {
-            StatTile(label: "Recuperación", value: "\(Int(score))", unit: "%", theme: theme)
-            Text("Today")
-                .font(StrandFont.overline)
-                .foregroundStyle(StrandPalette.textSecondary)
-        }
-        .padding()
-        .background(StrandPalette.surfaceBase)
-    }
-}
-```
-
----
-
-## Reuse notes
-
-- **Pick only what you need.** `CenitStore` adds GRDB; `StrandImport` adds
-  ZIPFoundation; `StrandAnalytics` is pure over stream/model types and does no I/O.
-  A headless tool can analyze stored samples with no SwiftUI involved at all.
-- **Determinism.** The analytics packages are pure and deterministic — the same
-  inputs always yield byte-identical outputs, which is what makes their
-  golden-fixture tests possible and what makes them safe to run fully offline on
-  the user's own data.
+One practical note: the design system's contrast tests resolve colors explicitly in light mode, but
+a Mac running in dark mode has been known to change what a color resolves to. If those tests fail
+locally and pass in CI, check the appearance setting before the code. Swift Testing reports failures
+as `✘ Suite`, unlike the rest of the suite, which uses XCTest — worth knowing when scraping a log.
