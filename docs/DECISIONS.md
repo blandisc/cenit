@@ -443,6 +443,52 @@ identificado en los pares cruzados, solo que sin corregir en el auto-lag. El cop
 `patron.sleep.priorNight.*` no cambia — la relación sigue existiendo y dispara cuando el rebote es
 real; lo que cambia es cuándo el gate la deja pasar.
 
+## 2026-09-08 · `sleep.priorNight` respaldo simple para quien no entrena (FER-483) · dueño, Opción B, reversible
+
+Efecto secundario de FER-480 detectado por el dueño: el parcial de 2º orden controla esfuerzo[D] Y
+esfuerzo[D+1], pero controlar un esfuerzo requiere poder ESTIMARLO. Quien no registra esfuerzo (o lo
+registra siempre en cero, el estado honesto de quien no entrena) no tiene calendario de entrenos que
+controlar, y FER-480 ocultaba su patrón de sueño junto con el confound que estaba diseñado para
+atrapar: el control se volvía inestimable, no neutral.
+
+**Decisión (Opción B, la del dueño): devolverle el patrón a quien esencialmente no entrena, vía una
+correlación simple, SOLO cuando el control degenera.** `sleep.priorNight` ahora lee el esfuerzo
+sobre su propia ventana (todo el rango que cubre su serie de duración) y decide, por dato, cuál vía
+usar:
+
+- **Esfuerzo presente y variable en la ventana** → el parcial de 2º orden de FER-480, intacto. Esta
+  es la población donde el confound de calendario existe de verdad.
+- **Esfuerzo efectivamente ausente o constante en la ventana** → correlación simple de Pearson entre
+  sueño[D] y sueño[D+1], el método que `sleep.priorNight` usaba antes de FER-480. Ahí el calendario
+  de entrenos no puede confundir nada, porque no existe.
+
+**El corte exacto** (`WhatMovesItEngine.controlDegenerates`, piso configurable
+`WhatMovesItGate.effortPresenceFloor` = 3): degenera si hay menos de 3 días con esfuerzo medible
+(> 0) en la ventana, o si los valores disponibles tienen varianza (numéricamente) cero. 3 es un piso
+sobre el RITMO de entreno que el artefacto de FER-480 necesita para existir (≈ 2 sesiones/semana
+sostenidas seis-plus semanas lee ρ₁ ≈ −0.39 en `strain`); uno o dos días de entreno aislados en esa
+misma ventana no pueden fabricar una alternancia detectable, así que esa población es funcionalmente
+la misma que alguien que no entrena. **El corte NO se activa solo por tener pocas cuádruplas**: quien
+entrena poco pero de forma real (esfuerzo que varía, aunque sea escaso) se queda en la vía del
+parcial y, si no junta las 42 cuádruplas del piso, se oculta por el piso ordinario de siempre, nunca
+cae al respaldo simple, porque para esa persona el confound de calendario SÍ podría existir. Estadístico
+del respaldo: Spearman simple se consideró (consistente con el resto de la familia, rank-based), pero
+el motor YA tenía un Pearson exacto para este mismo par (el que usaba antes de FER-480, sueño[D] vs
+sueño[D+1], ambos continuos): se reusa ese, no se inventa una vía nueva.
+
+El resto de la familia (los tres pares lag +1 con parcial de 1er orden de FER-438, y las demás
+relaciones) queda intacto: mismo gate, mismos knobs. El copy `patron.sleep.priorNight.*` no cambia;
+el pie «Cómo se calcula» de la hoja de Sueño sí se actualizó para nombrar honestamente las dos vías
+(antes describía solo el Pearson simple, que FER-480 había dejado desactualizado sin querer).
+
+Tests: `WhatMovesItTests.testSleepPriorNightFallsBackToSimpleCorrelationWhenEffortIsAbsent` (sin
+esfuerzo alguno, reaparece el rebote de la fixture del CDO en r ≈ −0.9925, el valor plano
+pre-FER-480) y `testSleepPriorNightSparseEffortStaysHiddenNotSimple` (esfuerzo real pero escaso,
+sigue oculto, el caso anti-regresión que prueba que el gris NO cae al respaldo), más los ajustes a
+`testSleepPriorNightIgnoresTheCalendarArtefact` y
+`testSleepPriorNightSurvivesTheCalendarWithARealReboundUnderneath` para confirmar que ninguno de los
+dos usó el respaldo.
+
 ## 2026-09-08 · Cierre de «Cénit rumbo a la App Store» — dos arreglos de proceso (director, retro FER-380)
 
 Al cerrar la corrida del épico FER-380 (código 100 % propio + cero rastro de NOOP/WHOOP/banda),

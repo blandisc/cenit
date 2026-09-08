@@ -20,6 +20,21 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
 
 ## Unreleased
 
+### Quien no entrena vuelve a ver su patrón de sueño / If you don't train, "your pattern" comes back for sleep (FER-483)
+- **ES** — La hoja de Sueño podía dejar de mostrar «Tu patrón» si nunca registrabas esfuerzo, aunque tu
+  noche sí tuviera un patrón real (un rebote, un hábito de horario). Eso pasaba porque el arreglo
+  anterior (FER-480) necesitaba tu calendario de entrenos para descartar una confusión, y sin ese
+  calendario no había nada que descartar ni nada que mostrar. Ahora, si tu esfuerzo está ausente o es
+  prácticamente el mismo día tras día, Cénit usa una correlación simple en su lugar, sin ese requisito.
+  Si sí entrenas de forma variable, nada cambia: sigue aplicando el control que corrige la confusión
+  del calendario.
+- **EN** — The Sleep sheet could stop showing "your pattern" if you never logged any training effort,
+  even when your nights had a real pattern (a rebound, a schedule habit). That happened because the
+  earlier fix (FER-480) needed your training calendar to rule out a confound, and with no calendar
+  there was nothing to rule out and nothing to show. Now, when your effort is absent or essentially
+  the same day after day, Cénit uses a simple correlation instead, with no such requirement. If you do
+  train, with real variation, nothing changes: the calendar-confound control still applies.
+
 ### «Tu patrón» vuelve a VFC, sobre tu RMSSD nocturno / «Your pattern» returns to HRV, over your nightly RMSSD (FER-472)
 - **ES** — El detalle de VFC vuelve a mostrar «Tu patrón»: si duermes más esa misma noche, y si un
   esfuerzo alto ayer se nota al día siguiente. Se había retirado porque leía el número de VFC que ves
