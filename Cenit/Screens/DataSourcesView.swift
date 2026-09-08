@@ -168,8 +168,8 @@ struct DataSourcesView: View {
     private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: LiquidSpace.s300) {
             Text(verbatim: title)
-                .font(LiquidType.franja).tracking(LiquidType.franjaTracking).textCase(.uppercase)
-                .foregroundStyle(LiquidColor.tinta500)
+                .liquidKicker()   // FER-471: estilo canónico de sección (= LiquidSectionHeader)
+                .foregroundStyle(LiquidColor.tinta700)
                 .accessibilityAddTraits(.isHeader)
             content()
         }
