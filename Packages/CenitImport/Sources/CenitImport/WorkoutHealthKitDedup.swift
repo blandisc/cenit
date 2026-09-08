@@ -17,7 +17,7 @@ import Foundation
 ///    entry into the app's «Fuerza» dialect, where a wrong inclusion would be visible.
 ///
 /// The origin gate is `source` beginning with `apple-health` — a narrower, self-contained question than
-/// re-deriving the app's `WorkoutSource.classify` taxonomy (so `manual`/`whoop`/`*-noop` are never
+/// re-deriving the app's `WorkoutSource.classify` taxonomy (so `manual`/`legacy`/`*-computed` are never
 /// touched). The overlap predicate is **half-open interval overlap** `[startTs, endTs)`, never a
 /// start-time window — an echo that begins 40 min into a 90-min session still overlaps and is dropped,
 /// while two short workouts 25 min apart that don't overlap are both kept.

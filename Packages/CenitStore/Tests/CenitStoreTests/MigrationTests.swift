@@ -5,19 +5,22 @@ import BiometricStreams
 @testable import CenitStore
 
 /// Shape of the migrator itself, plus the round-trips through the public API that used to hang off a
-/// per-step migration test. There is one migration now (FER-393), so «does column X appear at step N»
-/// has no meaning: the schema's shape is pinned wholesale by `LegacyFixtureTests` (M4) and the upgrade
-/// path by the real fixture (M1/M2/M3). What survives here is what those two can't say.
+/// per-step migration test. The schema still installs in ONE migration (`v43`, FER-393), so «does
+/// column X appear at step N» has no meaning: the schema's shape is pinned wholesale by
+/// `LegacyFixtureTests` (M4) and the upgrade path by the real fixture (M1/M2/M3). `v44` (FER-479)
+/// renames the branded partitions and is pinned by `PartitionRenameMigrationTests`. What survives here
+/// is what those can't say.
 final class MigrationTests: XCTestCase {
 
-    // MARK: - M5 · identifier, count and the flag that could erase the owner's database
+    // MARK: - M5 · identifiers, count and the flag that could erase the owner's database
 
-    /// Exactly one registered migration, named `v43`. The name is load-bearing: the owner's ledger
-    /// already lists `v1`…`v43`, so `v43` is reported as applied and nothing runs on their file.
-    func testMigratorRegistersTheSingleMigration() {
-        XCTAssertEqual(CenitStore.makeMigrator().migrations, ["v43"])
-        XCTAssertEqual(CenitStoreInfo.schemaVersion, 1)
-        XCTAssertEqual(CenitStoreInfo.latestMigration, "v43")
+    /// Two registered migrations, in order: `v43` installs the schema, `v44` renames the branded
+    /// partitions. The names are load-bearing: the owner's ledger already lists `v1`…`v43`, so `v43`
+    /// is reported as applied and does not re-run, while `v44` is new for every base.
+    func testMigratorRegistersTheExpectedMigrations() {
+        XCTAssertEqual(CenitStore.makeMigrator().migrations, ["v43", "v44"])
+        XCTAssertEqual(CenitStoreInfo.schemaVersion, 2)
+        XCTAssertEqual(CenitStoreInfo.latestMigration, "v44")
     }
 
     /// `eraseDatabaseOnSchemaChange` must stay off. With it on, GRDB sees 43 applied identifiers it
@@ -26,7 +29,7 @@ final class MigrationTests: XCTestCase {
         XCTAssertFalse(CenitStore.makeMigrator().eraseDatabaseOnSchemaChange)
     }
 
-    // MARK: - The house tool for v44 and beyond
+    // MARK: - The house tool for v45 and beyond
 
     /// `addColumnIfMissing` is the guard every future `ADD COLUMN` goes through: it adds an absent
     /// column and stays silent on a second call, instead of throwing «duplicate column» against a
@@ -85,11 +88,11 @@ final class MigrationTests: XCTestCase {
         let store = try await CenitStore.inMemory()
         try await store.upsertDietAdherence(
             DietAdherenceRow(day: "2026-06-01", mealId: "m1", status: .cumpli, optionIndex: 1),
-            deviceId: "noop-journal")
+            deviceId: "journal")
         try await store.upsertDietAdherence(
             DietAdherenceRow(day: "2026-06-01", mealId: "m2", status: .salte),
-            deviceId: "noop-journal")
-        let rows = try await store.dietAdherence(deviceId: "noop-journal", day: "2026-06-01")
+            deviceId: "journal")
+        let rows = try await store.dietAdherence(deviceId: "journal", day: "2026-06-01")
         XCTAssertEqual(rows.first(where: { $0.mealId == "m1" })?.optionIndex, 1)
         XCTAssertNil(rows.first(where: { $0.mealId == "m2" })?.optionIndex)
     }

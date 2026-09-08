@@ -102,9 +102,13 @@ final class LegacyFixtureTests: XCTestCase {
         XCTAssertEqual(after.counts, before.counts, "abrir no puede tocar una sola fila")
     }
 
-    // MARK: - M2 · ni una sentencia de esquema (la prueba que protege los datos)
+    // MARK: - M2 · v43 (el esquema) NO re-corre; sólo v44 (renombre de datos) se aplica
 
-    func testOpeningTheLegacyDatabaseLeavesTheLedgerUntouched() async throws {
+    /// La prueba que protege los datos: en la base del dueño, `v43` está en el ledger y NO vuelve a
+    /// correr (re-instalar el esquema es justo lo que borraría/reconstruiría sus tablas). La única
+    /// migración nueva que se aplica es `v44`, que sólo reescribe datos (FER-479): el ledger gana
+    /// exactamente ese identificador, ni uno más.
+    func testOpeningTheLegacyDatabaseRunsOnlyTheDataRenameMigration() async throws {
         let path = try fixtureCopy("m2")
         defer { removeDatabase(at: path) }
 
@@ -115,8 +119,9 @@ final class LegacyFixtureTests: XCTestCase {
         _ = try await CenitStore(path: path)
 
         let after = try inspect(path) { try self.appliedIdentifiers($0) }
-        XCTAssertEqual(after, before,
-                       "el ledger no gana ni pierde filas: la migración única NO corrió")
+        XCTAssertEqual(Set(after), Set(before).union(["v44"]),
+                       "sobre la base del dueño sólo corre v44: v43 se lee como aplicado y no re-instala")
+        XCTAssertEqual(after.count, 44, "el ledger gana exactamente un identificador nuevo")
     }
 
     // MARK: - M3 · los datos se leen de vuelta
@@ -147,7 +152,9 @@ final class LegacyFixtureTests: XCTestCase {
         XCTAssertEqual(series, [MetricPoint(day: "2026-05-01", key: "steps_est", value: 9000),
                                 MetricPoint(day: "2026-05-02", key: "steps_est", value: 11000)])
 
-        let journal = try await store.journalEntries(deviceId: "noop-journal",
+        // La partición de journal quedó re-etiquetada por v44 (`noop-journal`→`journal`, FER-479):
+        // se lee por el nombre NUEVO, que es lo que la app usa tras la migración.
+        let journal = try await store.journalEntries(deviceId: "journal",
                                                      from: "2026-05-01", to: "2026-05-01")
         XCTAssertEqual(journal, [JournalEntry(day: "2026-05-01", question: "cafe",
                                               answeredYes: true, notes: "nota")])

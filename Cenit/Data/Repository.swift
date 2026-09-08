@@ -46,13 +46,14 @@ final class Repository: ObservableObject {
     /// gana, y aun así quien nunca importó nada ve un tablero con datos.
     ///
     /// El sufijo es un valor persistido: así están marcadas las filas que ya viven en el teléfono.
-    /// Dato en disco: el sufijo con el que se escribió la partición computada on-device.
-    private static let computedSuffix = "-noop"
+    /// Dato en disco: el sufijo con el que se escribió la partición computada on-device (neutro desde
+    /// FER-479; la migración `v44` reescribió `strap-noop`→`primary-computed`).
+    private static let computedSuffix = "-computed"
     private var computedDeviceId: String { deviceId + Self.computedSuffix }
     /// The Apple-derived nocturnal-HRV partition (R2/R3, FER-1008): a SEPARATE metricSeries deviceId from
     /// the legacy `computedDeviceId` and from raw `apple-health`, so the Apple RMSSD-per-night base is
     /// never mixed with the band's or with SDNN. Fixed string (not derived from `deviceId`).
-    static let appleComputedDeviceId = "apple-health-noop"
+    static let appleComputedDeviceId = "apple-health-computed"
     private var store: CenitStore?
     /// In-flight store creation, memoized so concurrent first-callers (the launch refresh and
     /// TodayView's parallel queries) share ONE open+migrate instead of racing `ensureStore`'s
@@ -1048,12 +1049,13 @@ final class Repository: ObservableObject {
     /// silencio, y un borrado se llevaría de paso filas importadas. Con una fuente aparte, las dos
     /// corrientes no se tocan.
     ///
-    /// El texto es un valor persistido: así están marcadas las filas que ya existen.
-    static let journalDeviceId = "noop-journal"
+    /// El texto es un valor persistido (neutro desde FER-479; la migración `v44` reescribió
+    /// `noop-journal`→`journal`): así están marcadas las filas que ya existen.
+    static let journalDeviceId = "journal"
 
-    /// Dato en disco: el id de fuente con el que quedaron escritas las filas del dispositivo
-    /// anterior (el mismo valor que `AppModel.legacyDeviceId`).
-    static let legacyDeviceId = "strap"
+    /// Dato en disco: el id de la partición raíz (el mismo valor que `AppModel.legacyDeviceId`; neutro
+    /// desde FER-479, la migración `v44` reescribió `strap`→`primary`).
+    static let legacyDeviceId = "primary"
 
     /// Todas las conductas registradas —las importadas más las escritas aquí— para cruzar con las
     /// métricas y sacar ideas.

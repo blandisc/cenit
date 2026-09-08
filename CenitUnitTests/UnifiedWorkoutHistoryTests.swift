@@ -10,9 +10,10 @@ import CenitTraining
 /// y el orden/filtro son correctos. Llaman el MISMO código de producción, no una copia de la regla.
 final class UnifiedWorkoutHistoryTests: XCTestCase {
 
-    // Datos en disco: los `source` heredados que la fusion tiene que seguir distinguiendo.
-    private static let legacySource = "whoop"
-    private static let computedSource = "apple-noop"
+    // Datos en disco: los `source` heredados ya migrados (neutros desde FER-479) que la fusion tiene
+    // que seguir distinguiendo.
+    private static let legacySource = "legacy"
+    private static let computedSource = "primary-computed"
 
     // MARK: helpers
     private func row(_ start: Int, _ end: Int, sport: String, source: String) -> WorkoutRow {

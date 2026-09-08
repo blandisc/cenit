@@ -72,11 +72,13 @@ final class WorkoutHealthKitDedupTests: XCTestCase {
         XCTAssertEqual(WorkoutHealthKitDedup.survivingRows([manual], richSessions: rich), [manual])
     }
 
-    func testWhoopStrengthOverlappingRichIsNotDropped() {
-        let whoop = W(startTs: 1000, endTs: 4000, sport: "TraditionalStrengthTraining",
-                      durationS: 3000, source: "whoop")
+    func testLegacyStrengthOverlappingRichIsNotDropped() {
+        // Una fila de fuerza NO-Apple (source heredado, neutro desde FER-479) que solapa una sesión
+        // rica NO se descarta: el gate de eco sólo mira las filas de Apple.
+        let legacy = W(startTs: 1000, endTs: 4000, sport: "TraditionalStrengthTraining",
+                       durationS: 3000, source: "legacy")
         let rich = [R(startTs: 1000, endTs: 4000)]
-        XCTAssertEqual(WorkoutHealthKitDedup.survivingRows([whoop], richSessions: rich), [whoop])
+        XCTAssertEqual(WorkoutHealthKitDedup.survivingRows([legacy], richSessions: rich), [legacy])
     }
 
     // MARK: cardio / non-strength pass through

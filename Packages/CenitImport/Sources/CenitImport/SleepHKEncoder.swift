@@ -1,5 +1,4 @@
 import Foundation
-import CenitStore
 
 /// Descriptor for a single Apple Health sleep sample — platform-agnostic so the
 /// mapping logic is testable on macOS without a HealthKit import.
@@ -16,11 +15,13 @@ public struct SleepHKSample: Equatable {
     }
 }
 
-/// Maps `CachedSleepSession` records from CenitStore into `SleepHKSample` descriptors
-/// that `HealthKitBridge` (iOS-only) writes to `HKHealthStore`.
+/// The stage vocabulary shared with `SleepHKSample` and the pure decoder `SleepHKDecoder`: the raw
+/// `HKCategoryValueSleepAnalysis` values plus the stage-name → value map.
 ///
-/// Keeping this encoder separate from the bridge means the stage-mapping and
-/// key-generation logic can be unit-tested on macOS without `HKHealthStore`.
+/// The sleep write-back path (which turned these into `HKObject`s under a branded dedupe key) was
+/// retired with the band amputation (FER-1003); FER-479 deleted the last of it (`samples(...)`), so
+/// what remains is only the read-side stage vocabulary. Keeping it as one enum lets the mapping be
+/// unit-tested on macOS without `HKHealthStore`.
 ///
 /// HKCategoryValueSleepAnalysis raw values used here are stable since iOS 16 / macOS 13
 /// and documented at developer.apple.com/documentation/healthkit/hkcategoryvaluesleepanalysis.
@@ -33,7 +34,8 @@ public enum SleepHKEncoder {
     public static let asleepDeepValue: Int = 4  // .asleepDeep
     public static let asleepREMValue: Int  = 5  // .asleepREM
 
-    /// Maps a WHOOP stage string to the matching `HKCategoryValueSleepAnalysis` raw value.
+    /// Maps a decoded stage name to the matching `HKCategoryValueSleepAnalysis` raw value — the
+    /// forward companion of `SleepHKDecoder.stage(forHKValue:)`.
     public static func hkValue(forStage stage: String) -> Int {
         switch stage {
         case "deep":  return asleepDeepValue
@@ -42,49 +44,5 @@ public enum SleepHKEncoder {
         case "light": return asleepCoreValue
         default:      return asleepCoreValue
         }
-    }
-
-    /// Converts sleep sessions to HK sample descriptors.
-    ///
-    /// Each session contributes one `.inBed` sample (full span) plus one sample per
-    /// stage segment decoded from `stagesJSON`. Sessions with `end ≤ start` and
-    /// segments with `end ≤ start` are skipped silently.
-    public static func samples(
-        from sessions: [CachedSleepSession], deviceId: String
-    ) -> [SleepHKSample] {
-        var result: [SleepHKSample] = []
-        for session in sessions {
-            let sStart = Date(timeIntervalSince1970: TimeInterval(session.startTs))
-            let sEnd   = Date(timeIntervalSince1970: TimeInterval(session.endTs))
-            guard sEnd > sStart else { continue }
-
-            let inBedKey = "noop:\(deviceId):sleep:inBed:\(session.startTs)"
-            result.append(SleepHKSample(
-                hkValue: inBedValue, start: sStart, end: sEnd, dedupeKey: inBedKey))
-
-            guard let json = session.stagesJSON,
-                  let data = json.data(using: .utf8),
-                  let segs = try? JSONDecoder().decode([SleepSegment].self, from: data)
-            else { continue }
-
-            for seg in segs {
-                let segStart = Date(timeIntervalSince1970: TimeInterval(seg.start))
-                let segEnd   = Date(timeIntervalSince1970: TimeInterval(seg.end))
-                guard segEnd > segStart else { continue }
-                let segKey = "noop:\(deviceId):sleep:\(session.startTs):\(seg.start)"
-                result.append(SleepHKSample(
-                    hkValue: hkValue(forStage: seg.stage),
-                    start: segStart, end: segEnd, dedupeKey: segKey))
-            }
-        }
-        return result
-    }
-
-    // Local mirror of CenitAnalytics.StageSegment — avoids a cross-package dep.
-    // Field names and types match the JSON written by AnalyticsEngine.encodeStages().
-    private struct SleepSegment: Decodable {
-        let start: Int
-        let end: Int
-        let stage: String
     }
 }

@@ -48,10 +48,12 @@ enum WorkoutSource: Equatable {
     /// Alta o edición hecha por la persona.
     case manual
 
-    /// Cadenas heredadas que siguen escritas en la columna `source` de filas viejas: se conservan textuales.
+    /// Cadenas escritas en la columna `source` de filas viejas. Neutras desde FER-479: la migración
+    /// `v44` reescribió `whoop`→`legacy` y el sufijo `-noop`→`-computed`, así que estas dos siguen
+    /// clasificando las mismas filas ya re-etiquetadas.
     private enum Stored {
-        static let legacyWearable = "whoop"
-        static let derivedSuffix = "-noop"
+        static let legacyWearable = "legacy"
+        static let derivedSuffix = "-computed"
         static let manual = "manual"
         static let applePrefixes = ["apple-health", "apple_health"]
         static let namedApplePrefix = "apple-health:"
