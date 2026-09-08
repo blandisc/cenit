@@ -664,7 +664,7 @@ Every pair is computed in one pass, so the multiplicity control can see all of t
 | Relationship | x → y | Statistic | Lag | Floor | Extra |
 | --- | --- | --- | --- | --- | --- |
 | `sleep.priorStrain` | strain[D] → sleep duration[D+1] | Spearman, **partial** on strain[D+1] | +1 | 42 | minority floor |
-| `sleep.priorNight` | sleep duration[D] → sleep duration[D+1] | Spearman, **partial (2nd order)** on strain[D] and strain[D+1] | +1 | 42 | raw n (auto-lag) |
+| `sleep.priorNight` | sleep duration[D] → sleep duration[D+1] | Spearman, **partial (2nd order)** on strain[D] and strain[D+1]; **plain Pearson** (FER-483) when that control is degenerate | +1 | 42 | raw n (auto-lag) |
 | `strain.efficiency` | sleep efficiency[D] → strain[D] | Spearman | 0 | 56 | minority floor |
 | `efficiency.priorStrain` | strain[D] → sleep efficiency[D+1] | Spearman, **partial** on strain[D+1] | +1 | 56 | minority floor |
 | `steps.efficiency` | sleep efficiency[D] → steps[D] | Spearman | 0 | 56 | today's partial count excluded |
@@ -738,6 +738,29 @@ here rather than blurred behind the citation.
    homeostatic rebound (Borbély 1982 process S), a weekend catch-up, or another schedule driver,
    superposed on the same calendar,
    survives the double control (`WhatMovesItTests.testSleepPriorNightSurvivesTheCalendarWithARealReboundUnderneath`).
+5b. **Simple-correlation fallback for a degenerate control** (FER-483, owner decision, reversible):
+   piece 5's partial needs strain[D] and strain[D+1] to be ESTIMABLE; someone who does not train has
+   no training calendar to hold fixed, and the FER-480 fix was silently hiding their (uncontaminated)
+   sleep pattern along with the confound it was built to catch. `sleep.priorNight` now reads strain
+   over its own window (the full range its duration series covers) and falls back to the plain
+   Pearson auto-lag it used **before** FER-480 only when that control is degenerate:
+   `WhatMovesItEngine.controlDegenerates` answers YES when fewer than `WhatMovesItGate.
+   effortPresenceFloor` (**3**) days show ANY measurable (> 0) effort, or when the available values
+   have (numerically) zero variance. 3 is a floor on the on/off RHYTHM the FER-480 artefact needs
+   (≈ 2 sessions/week sustained over six-plus weeks reads ρ₁ ≈ −0.39 in `strain`); one or two isolated
+   training days in that same window cannot manufacture a detectable alternation, so that reader is
+   functionally the same population as someone who does not train at all. Crucially, this does
+   **not** trip on the gray case, someone who trains rarely but on a real, if thin, schedule: a
+   sparse-but-real strain series clears the presence floor and has real variance, so it stays on the
+   partial path and, if there are not enough QUADRUPLES to clear `minPairs`, is hidden by that
+   ordinary floor exactly as before, never silently downgraded to the correlation the calendar could
+   still be confounding. The rest of `sleep.priorNight`'s gate (n floor, raw-n p, family control) is
+   unchanged either way, and the copy (`patron.sleep.priorNight.*`) does not change: the relationship
+   still exists and fires when the pattern is real, on whichever path can see it.
+   `WhatMovesItTests.testSleepPriorNightFallsBackToSimpleCorrelationWhenEffortIsAbsent` (no strain data
+   at all, the CDO's own rebound fixture reappears at r ≈ −0.9925, the plain pre-FER-480 value) and
+   `testSleepPriorNightSparseEffortStaysHiddenNotSimple` (real but sparse effort, still hidden, the
+   anti-regression case) pin both sides.
 6. **Family control** — the p-values of every testable pair go through Benjamini-Hochberg
    (`MultipleComparisons`); a finding needs **q < 0.05**. Seven tests at α = 0.05 would otherwise
    yield at least one false finding 30% of the time under the null.
@@ -774,9 +797,10 @@ reactivation 24–48 h after hard effort, cited for both `rhr.priorStrain` and `
 Zhang 2025 (sleep loss moves RMSSD, not the all-day SDNN construct — why `hrv.sleepDuration` reads
 the dense nocturnal-RMSSD partition); Zar 1972; Bartlett 1935; Fisher 1924 (both the first- and
 the second-order partial, FER-438 / FER-480); Benjamini and Hochberg 1995. Tests: `WhatMovesItTests`
-(a positive and a negative fixture per relationship, one fixture per gate piece, and the
+(a positive and a negative fixture per relationship, one fixture per gate piece, the
 calendar-artefact fixtures — pure and with a real rebound superposed — the two partial orders exist
-for) and `CorrelationEngineOracleTests` (including the second-order partial cross-checked against an
+for, and the FER-483 fallback pair: no effort at all, and sparse-but-real effort that must stay
+hidden) and `CorrelationEngineOracleTests` (including the second-order partial cross-checked against an
 independent least-squares residual regression).
 
 ---

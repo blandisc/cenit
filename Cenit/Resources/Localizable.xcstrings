@@ -77674,19 +77674,19 @@
         }
       }
     },
-    "Your pattern: Spearman correlation of the previous day's strain with that night's duration (lag +1, at least 42 paired days; partial, adjusted for the same day's strain) and Pearson correlation of one night with the next (lag +1, at least 42 pairs), with family control (Benjamini-Hochberg). Sources: Kredlow 2015; Atoui 2021; Borbély 1982/2022." : {
+    "Your pattern: Spearman correlation of the previous day's strain with that night's duration (lag +1, at least 42 paired days; partial, adjusted for the same day's strain). Last night's duration with tonight's (lag +1) uses a second-order Spearman partial holding both nights' training effort fixed (at least 42 quadruples) when your effort varies across the window, or a plain Pearson correlation instead (at least 42 pairs) when effort is absent or essentially constant, since there is no training calendar left to confound. Family control (Benjamini-Hochberg) either way. Sources: Kredlow 2015; Atoui 2021; Borbély 1982/2022." : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your pattern: Spearman correlation of the previous day's strain with that night's duration (lag +1, at least 42 paired days; partial, adjusted for the same day's strain) and Pearson correlation of one night with the next (lag +1, at least 42 pairs), with family control (Benjamini-Hochberg). Sources: Kredlow 2015; Atoui 2021; Borbély 1982/2022."
+            "value" : "Your pattern: Spearman correlation of the previous day's strain with that night's duration (lag +1, at least 42 paired days; partial, adjusted for the same day's strain). Last night's duration with tonight's (lag +1) uses a second-order Spearman partial holding both nights' training effort fixed (at least 42 quadruples) when your effort varies across the window, or a plain Pearson correlation instead (at least 42 pairs) when effort is absent or essentially constant, since there is no training calendar left to confound. Family control (Benjamini-Hochberg) either way. Sources: Kredlow 2015; Atoui 2021; Borbély 1982/2022."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tu patrón: correlación de Spearman del esfuerzo del día anterior con la duración de esa noche (lag +1, mínimo 42 pares; parcial, ajustada por el esfuerzo del mismo día) y de Pearson de una noche con la siguiente (lag +1, mínimo 42 pares), con control de familia (Benjamini-Hochberg). Fuentes: Kredlow 2015; Atoui 2021; Borbély 1982/2022."
+            "value" : "Tu patrón: correlación de Spearman del esfuerzo del día anterior con la duración de esa noche (lag +1, mínimo 42 pares; parcial, ajustada por el esfuerzo del mismo día). La duración de una noche con la siguiente (lag +1) usa un parcial de Spearman de segundo orden que sostiene fijo el esfuerzo de ambas noches (mínimo 42 cuádruplas) cuando tu esfuerzo varía en la ventana, o una correlación simple de Pearson en su lugar (mínimo 42 pares) cuando el esfuerzo está ausente o es prácticamente constante, porque ahí no queda calendario de entrenos que pueda confundir. Control de familia (Benjamini-Hochberg) en ambos casos. Fuentes: Kredlow 2015; Atoui 2021; Borbély 1982/2022."
           }
         }
       }

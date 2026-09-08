@@ -161,7 +161,7 @@ extension MetricInfo {
             note: nil,
             levelsMetric: .sleep,
             levelsTodayValue: totalMinutes.map(Double.init),
-            patternMethod: "Your pattern: Spearman correlation of the previous day's strain with that night's duration (lag +1, at least 42 paired days; partial, adjusted for the same day's strain) and Pearson correlation of one night with the next (lag +1, at least 42 pairs), with family control (Benjamini-Hochberg). Sources: Kredlow 2015; Atoui 2021; Borbély 1982/2022."
+            patternMethod: "Your pattern: Spearman correlation of the previous day's strain with that night's duration (lag +1, at least 42 paired days; partial, adjusted for the same day's strain). Last night's duration with tonight's (lag +1) uses a second-order Spearman partial holding both nights' training effort fixed (at least 42 quadruples) when your effort varies across the window, or a plain Pearson correlation instead (at least 42 pairs) when effort is absent or essentially constant, since there is no training calendar left to confound. Family control (Benjamini-Hochberg) either way. Sources: Kredlow 2015; Atoui 2021; Borbély 1982/2022."
         )
     }
 

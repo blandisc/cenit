@@ -171,6 +171,9 @@ final class WhatMovesItTests: XCTestCase {
         XCTAssertEqual(c.n, 59)
         XCTAssertEqual(c.r, -0.016, accuracy: 0.01)
         XCTAssertGreaterThan(c.p, 0.5)
+        XCTAssertFalse(c.usedSimpleFallback,
+            "FER-483: effort here VARIES (2x/week) — the gray case must stay on the partial path, "
+            + "never fall back to the simple correlation the calendar could still be confounding")
         XCTAssertFalse(WhatMovesItEngine.family(days: days, today: day(60))["sleep"]?
             .contains { $0.relationship == .sleepPriorNight } ?? false,
             "the fixture is 100% calendar; the block must NOT describe it as a body pattern")
@@ -187,8 +190,74 @@ final class WhatMovesItTests: XCTestCase {
         let c = try XCTUnwrap(candidate(.sleepPriorNight, in: days, today: day(60)))
         XCTAssertEqual(c.r, -0.993, accuracy: 0.005)
         XCTAssertLessThan(c.p, 1e-30)
+        XCTAssertFalse(c.usedSimpleFallback, "FER-483/FER-480 intact: real training data, held fixed")
         XCTAssertEqual(WhatMovesItEngine.family(days: days, today: day(60)),
                        ["sleep": [finding(.sleepPriorNight, .falls)]])
+    }
+
+    // MARK: - sleep.priorNight simple-correlation fallback for a degenerate control (FER-483)
+
+    func testSleepPriorNightFallsBackToSimpleCorrelationWhenEffortIsAbsent() throws {
+        // FER-483, owner decision (Opción B): the exact rebound fixture from
+        // `testSleepPriorNightReboundFalls`, but this user never logs effort at all — `strain`
+        // omitted, nil on every row, the honest state for someone who does not train. With no strain
+        // reading anywhere the FER-480 control cannot be estimated (0 measurable days, below
+        // `effortPresenceFloor`), so there is no training calendar left to confound — the engine
+        // falls back to the plain Pearson auto-lag `sleepPriorNight` used before FER-480, and the
+        // real rebound is shown again instead of being hidden for lack of an estimable control.
+        let days = (0..<60).map { row($0, sleep: 420 + Double($0 % 2 == 1 ? -40 : 40) + 6 * J($0)) }
+        let sleepSeries = (0..<60).map {
+            (day: day($0), value: 420 + Double($0 % 2 == 1 ? -40 : 40) + 6 * J($0))
+        }
+        let plain = try XCTUnwrap(CorrelationEngine.pearson(
+            CorrelationEngine.pairs(x: sleepSeries, y: sleepSeries, lagDays: 1)))
+
+        let c = try XCTUnwrap(candidate(.sleepPriorNight, in: days, today: day(60)))
+        XCTAssertTrue(c.usedSimpleFallback)
+        XCTAssertEqual(c.n, 59)
+        XCTAssertEqual(c.r, plain.r, accuracy: 1e-9, "byte-identical to the plain auto-lag pearson")
+        XCTAssertEqual(c.r, -0.9925, accuracy: 0.005,
+            "the value FER-480's own commit message quotes for the plain Pearson before the control")
+        XCTAssertEqual(c.p, plain.pApprox, accuracy: 1e-12)
+        XCTAssertEqual(c.nEffective, 59, accuracy: 1e-9, "the auto-lag reads p on raw n, either path")
+        XCTAssertEqual(WhatMovesItEngine.family(days: days, today: day(60)),
+                       ["sleep": [finding(.sleepPriorNight, .falls)]])
+    }
+
+    func testSleepPriorNightSparseEffortStaysHiddenNotSimple() throws {
+        // FER-483 edge: effort data exists only for the last 20 days — a real, varying 2x/week
+        // pattern when present, comfortably clearing `effortPresenceFloor` — while the sleep series
+        // itself clears the 42-pair calendar floor on its own (all 60 days). The engine must NOT read
+        // "fewer than 42 quadruples" as "no training data" and fall back: the real rebound underneath
+        // (the same formula as `testSleepPriorNightReboundFalls`) would read strongly on a plain
+        // Pearson, so a wrongful fallback would show a finding here. The training calendar could
+        // still be confounding whatever 19-day window IS covered, so this must stay on the partial
+        // path and be hidden by the ordinary `minPairs` floor instead — never silently downgraded.
+        let days = (0..<60).map { i -> DailyMetric in
+            let sleep = 420 + Double(i % 2 == 1 ? -40 : 40) + 6 * J(i)
+            return row(i, sleep: sleep, strain: i >= 40 ? strain(i) : nil)
+        }
+        XCTAssertNil(candidate(.sleepPriorNight, in: days, today: day(60)))
+        XCTAssertEqual(WhatMovesItEngine.family(days: days, today: day(60)), [:])
+    }
+
+    func testControlDegeneratesBelowThePresenceFloorOrAtZeroVariance() {
+        XCTAssertTrue(WhatMovesItEngine.controlDegenerates([], floor: 3), "no strain reading at all")
+        XCTAssertTrue(WhatMovesItEngine.controlDegenerates([0, 0, 0, 0, 0], floor: 3), "always exactly 0")
+        XCTAssertTrue(WhatMovesItEngine.controlDegenerates([5, 5, 0, 0], floor: 3), "only two positive days")
+        XCTAssertFalse(WhatMovesItEngine.controlDegenerates([5, 0, 5, 0, 5, 0], floor: 3),
+                       "three positive days on a real on/off pattern clears the floor")
+        // A contrived series that always logs the SAME nonzero effort: enough "positive" days to
+        // clear the presence floor, but zero variance still means no calendar to hold fixed.
+        XCTAssertTrue(WhatMovesItEngine.controlDegenerates([5, 5, 5, 5, 5], floor: 3),
+                     "constant nonzero effort has no calendar rhythm either")
+    }
+
+    func testValuesOnRestrictsToTheXsWindow() {
+        let xs = [(day: day(0), value: 1.0), (day: day(1), value: 2.0), (day: day(2), value: 3.0)]
+        let strain = [(day: day(0), value: 10.0), (day: day(5), value: 20.0)]
+        XCTAssertEqual(WhatMovesItEngine.valuesOn(strain, within: xs), [10.0],
+                       "day(5) falls outside xs's window and must not enter the degenerate check")
     }
 
     // MARK: - strain.efficiency (efficiency[D] → strain[D], Spearman, lag 0, floor 56)
