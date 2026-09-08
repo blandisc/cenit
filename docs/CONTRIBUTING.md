@@ -27,8 +27,10 @@ add it to `CenitDesign` with a preview; do not inline it. The enforcement contra
 published method. A new one needs the citation, a test, and honest hedging in the copy. No black
 boxes and no clinical claims — Cénit is not a medical device.
 
-**4. Migrations are append-only.** Never edit a shipped migration. Add the next version and a test
-case. Every column addition goes through the idempotent helper, never a raw alter.
+**4. The schema only grows forward.** Never edit the shipped migration, and never reuse an
+identifier the installed ledger already carries: a database on a phone would skip it in silence and
+fall behind with no visible error. Add the next version and a test case, and route every column
+addition through the idempotent helper rather than a raw alter.
 
 **5. One concern per pull request.** Do not commit generated files (the Xcode project, build output),
 and do not fold an unrelated cleanup into a feature.
@@ -205,10 +207,12 @@ instead of blinding the check.
 
 ### A database column or table
 
-1. **Add a new migration.** Never edit a shipped one.
+1. **Add the next migration.** The current schema is installed by a single migration whose
+   identifier is chosen so an existing database reads it as already applied. Do not edit it, and do
+   not reuse an earlier identifier: check [DATA_MODEL.md](DATA_MODEL.md) for which one is next.
 2. **Use the idempotent column helper** for every addition. A plain alter that re-runs against a
-   database which already grew the column throws on every launch and wedges startup — this has
-   happened. Use `ifNotExists` when creating a table for the same reason.
+   database which already grew the column throws on every launch and wedges startup, and this has
+   happened. Guard a new table the same way.
 3. **Choose a default that preserves existing behavior exactly.** The established pattern is that an
    upgrade changes nothing the user can see.
 4. **Make null mean absent, not zero.** A nullable column with no default lets the interface

@@ -114,10 +114,11 @@ refuse a job that will not fit rather than filling the device.
 
 ### What is read
 
-The app requests read access to sixteen HealthKit types: heart rate, resting heart rate, heart-rate
-variability, oxygen saturation, respiratory rate, step count, active and basal energy, VO₂ max,
-wrist temperature during sleep, sleep analysis, workouts, the beat-to-beat heartbeat series, biological
-sex, date of birth, body mass and height.
+The app requests read access to seventeen HealthKit types. Ten are quantities: heart rate, resting
+heart rate, heart-rate variability, oxygen saturation, respiratory rate, step count, active energy,
+basal energy, maximum oxygen uptake, and wrist temperature during sleep. To those it adds sleep
+analysis, workouts, and the beat-to-beat heartbeat series, plus four read only to prefill the profile
+during onboarding: biological sex, date of birth, body mass and height.
 
 The heartbeat series deserves a note. It is what makes on-device nocturnal variability possible from
 raw intervals rather than from a vendor's summary, and HealthKit requires it be requested alongside
