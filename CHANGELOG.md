@@ -1261,6 +1261,25 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
   second longer: the counter, the headings, the floor, the ceiling and the VoiceOver announcements
   are unchanged.
 
+### Hitos del motor: seis tarjetas de una vez / Engine milestones: six one-time cards (FER-436)
+### ES
+- Cuando el motor cumple una promesa, lo dice una vez, con una tarjeta debajo del héroe (nunca
+  encima de la palabra, nunca modal): la primera lectura (noche 4) y la base firme (noche 14) en
+  Hoy, con puerta al acta; la primera tendencia y la carga leída en Tendencias; la primera sesión
+  de fuerza y la primera marca en Entrenar, con puerta al historial y a «Tus marcas». «Entendido»
+  la cierra y no vuelve.
+- Honestidad temporal: cada hito solo aparece si su umbral se cruzó DESPUÉS de instalar esta
+  versión. Quien ya tenía 40 noches nunca recibe «tu primera lectura». Sin reloj no aparece
+  ningún hito de Hoy. Los números 4 y 14 salen del motor, no del texto.
+
+### EN
+- When the engine keeps a promise, it says so once, with a card under the hero (never over the
+  word, never modal): first reading (night 4) and firm baseline (night 14) in Today, opening the
+  ballot; first trend and load read in Trends; first strength session and first record in Train,
+  opening History and "Your marks". "Got it" closes it for good.
+- Temporal honesty: a milestone only shows if its threshold was crossed AFTER installing this
+  version. Someone with 40 nights never gets "your first reading". Without a watch, no Today
+  milestone appears. The 4 and 14 come from the engine, not the copy.
 
 ### Ayuda «Cómo funciona Cénit» y Novedades / Help "How Cénit works" and What's new (FER-435)
 ### ES

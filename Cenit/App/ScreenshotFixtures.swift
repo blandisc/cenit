@@ -41,7 +41,7 @@ enum ScreenshotFixtures {
         let raw = raw0.lowercased()
         // Estados históricos de este archivo (case-insensitive).
         if ["primed", "strained", "balanced", "rundown", "insufficient",
-            "calibrating", "downloading", "train"].contains(raw) { return raw }
+            "calibrating", "provisional", "downloading", "train"].contains(raw) { return raw }
         // FER-381 (mapa 100 %): cualquier estado que una familia registró en `FixtureRegistry` también
         // es válido — SIN esto, esta lista blanca filtraría las claves nuevas ANTES de que `seed()`
         // consulte el registro, y el fixture moriría en silencio (justo el falso verde que el mapa
@@ -67,9 +67,13 @@ enum ScreenshotFixtures {
         // below the recovery seed gate — so Today renders its calibrating / cold-start state (never a
         // fake number). Seed a short strap history with usable HRV and NO recovery on
         // any row (recovery stays nil until the baseline seeds), and mark the strap as seen.
-        if state == "calibrating" {
+        // FER-436 · provisional: la MISMA siembra con `minNightsSeed + 2` noches (6): la base ya
+        // sembró pero no es firme (4 ≤ noches < 14), así que hay veredicto real y provisional. Es la
+        // palanca del qa para el hito «Primera lectura»: primera ejecución con `calibrating`
+        // (registra «no cruzado»), relanzar con `provisional` (cruza la noche 4 → dispara una vez).
+        if state == "calibrating" || state == "provisional" {
             // Ola 2: strap-seen fixture no longer applicable (no strap live state); calibrating is driven by night count alone.
-            let nights = 2
+            let nights = state == "provisional" ? Baselines.minNightsSeed + 2 : 2
             var days: [DailyMetric] = []
             for ago in stride(from: nights, through: 0, by: -1) {
                 let dayKey = Repository.localDayKey(cal.date(byAdding: .day, value: -ago, to: today)!)

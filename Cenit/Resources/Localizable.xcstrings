@@ -77567,6 +77567,380 @@
           }
         }
       }
+    },
+    "hito.entrenar.primer-record.arranque" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your first record is in."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cayó tu primera marca."
+          }
+        }
+      }
+    },
+    "hito.entrenar.primer-record.puerta" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "See Your marks"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ver Tus marcas"
+          }
+        }
+      }
+    },
+    "hito.entrenar.primer-record.resto" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "They're all kept in Your marks."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se guardan todas en Tus marcas."
+          }
+        }
+      }
+    },
+    "hito.entrenar.primer-record.titulo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "First record"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Primera marca"
+          }
+        }
+      }
+    },
+    "hito.entrenar.primera-sesion.arranque" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your first session is on record."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu primera sesión quedó registrada."
+          }
+        }
+      }
+    },
+    "hito.entrenar.primera-sesion.puerta" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "See history"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ver historial"
+          }
+        }
+      }
+    },
+    "hito.entrenar.primera-sesion.resto" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Below go your worked muscles and your log; when you hit your reps, I'll propose a raise."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abajo van tus músculos trabajados y tu bitácora; cuando cumplas tus reps, te propongo subir."
+          }
+        }
+      }
+    },
+    "hito.entrenar.primera-sesion.titulo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "First session"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Primera sesión"
+          }
+        }
+      }
+    },
+    "hito.hoy.base-firme.arranque" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your baseline is firm."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu base quedó firme."
+          }
+        }
+      }
+    },
+    "hito.hoy.base-firme.resto" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "From today I compare you against %lld of your own nights, and the confidence line steps back."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desde hoy te comparo contra %lld noches tuyas, y la línea de confianza se retira."
+          }
+        }
+      }
+    },
+    "hito.hoy.base-firme.titulo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Firm baseline"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Base firme"
+          }
+        }
+      }
+    },
+    "hito.hoy.primer-veredicto.arranque" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I can read you now."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ya te leo."
+          }
+        }
+      }
+    },
+    "hito.hoy.primer-veredicto.resto" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This word came from your %lld nights with the watch. At %lld I'll know your normal and stop flagging confidence."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta palabra salió de tus %lld noches con el reloj. A las %lld conozco tu normal y dejo de avisarte la confianza."
+          }
+        }
+      }
+    },
+    "hito.hoy.primer-veredicto.titulo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "First reading"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Primera lectura"
+          }
+        }
+      }
+    },
+    "hito.hoy.puerta.acta" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Where it came from"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De qué salió"
+          }
+        }
+      }
+    },
+    "hito.tendencias.carga-leida.arranque" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I can read your load now:"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ya leo tu carga:"
+          }
+        }
+      }
+    },
+    "hito.tendencias.carga-leida.puerta" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "See the hill"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ver la colina"
+          }
+        }
+      }
+    },
+    "hito.tendencias.carga-leida.resto" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "about two weeks of effort are enough. Tap the card to see the hill."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "unas dos semanas de esfuerzo bastan. Toca la tarjeta para ver la colina."
+          }
+        }
+      }
+    },
+    "hito.tendencias.carga-leida.titulo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Load read"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carga leída"
+          }
+        }
+      }
+    },
+    "hito.tendencias.primera-tendencia.arranque" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "There's a trend now."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ya hay tendencia."
+          }
+        }
+      }
+    },
+    "hito.tendencias.primera-tendencia.resto" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change the period above and tap any value to see its detail."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cambia el periodo arriba y toca cualquier dato para ver su detalle."
+          }
+        }
+      }
+    },
+    "hito.tendencias.primera-tendencia.titulo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "There's a trend"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ya hay tendencia"
+          }
+        }
+      }
     }
   },
   "version" : "1.1"
