@@ -300,8 +300,18 @@ final class CorrelationEngineOracleTests: XCTestCase {
         XCTAssertEqual(CorrelationEngine.effectiveN(x: zigzag, y: ramp), 5, accuracy: 1e-12)
         XCTAssertEqual(CorrelationEngine.effectiveN(x: zigzag, y: zigzag), 5, accuracy: 1e-12)
         // Two smooth sines: the CDO fixture — n_eff collapses from 42 to ≈ 5.5.
-        let x = (0..<42).map { 10 * sin(2 * .pi * Double($0) / 28) + 1.5 * (Double($0 % 3) - 1) }
-        let y = (0..<42).map { 10 * sin(2 * .pi * Double($0 + 5) / 28) + 1.5 * (Double((7 * $0) % 5) - 2) }
+        // Explícito por pasos: el type-checker de Swift en Linux no resuelve la expresión mixta
+        // Int/Double en tiempo razonable si va en una sola línea (FER-438).
+        let x: [Double] = (0..<42).map { i in
+            let wave: Double = 10 * sin(2 * Double.pi * Double(i) / 28)
+            let jitter: Double = 1.5 * (Double(i % 3) - 1)
+            return wave + jitter
+        }
+        let y: [Double] = (0..<42).map { i in
+            let wave: Double = 10 * sin(2 * Double.pi * Double(i + 5) / 28)
+            let jitter: Double = 1.5 * (Double((7 * i) % 5) - 2)
+            return wave + jitter
+        }
         XCTAssertEqual(CorrelationEngine.lag1Autocorrelation(x), 0.925, accuracy: 0.01)
         XCTAssertEqual(CorrelationEngine.lag1Autocorrelation(y), 0.830, accuracy: 0.01)
         XCTAssertEqual(CorrelationEngine.effectiveN(x: x, y: y), 5.52, accuracy: 0.05)
