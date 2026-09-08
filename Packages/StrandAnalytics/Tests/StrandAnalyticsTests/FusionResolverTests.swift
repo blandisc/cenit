@@ -12,7 +12,7 @@ final class FusionResolverTests: XCTestCase {
     func testStepsPhoneCountBeatsStrapFigure() {
         // The phone pedometer COUNTS steps (tier 0); the other figure is motion-derived (tier 3).
         let point = FusionResolver.resolve(metricKey: "steps", inputs: [
-            FusionInput(source: .noopComputed, value: 6000),   // a motion-derived figure
+            FusionInput(source: .legacyComputed, value: 6000),   // a motion-derived figure
             FusionInput(source: .appleHealth, value: 8420),    // counts directly
         ])
         XCTAssertEqual(point?.winningSource, .appleHealth)
@@ -24,9 +24,9 @@ final class FusionResolverTests: XCTestCase {
         // An imported timeline (tier 0) beats phone sleep buckets (tier 2).
         let point = FusionResolver.resolve(metricKey: "sleep_total_min", inputs: [
             FusionInput(source: .appleHealth, value: 400),
-            FusionInput(source: .whoopImport, value: 432),
+            FusionInput(source: .legacyImport, value: 432),
         ])
-        XCTAssertEqual(point?.winningSource, .whoopImport)
+        XCTAssertEqual(point?.winningSource, .legacyImport)
         XCTAssertEqual(point?.value, 432)
         XCTAssertEqual(point?.contributors.first?.reason, "band sleep timeline")
     }
@@ -35,16 +35,16 @@ final class FusionResolverTests: XCTestCase {
         // Imported (priority 0) and computed (priority 1) never share a tier for sleep, so exercise
         // the tiebreak with two same-tier sources on steps (both tier 3): the imported one wins.
         let point = FusionResolver.resolve(metricKey: "steps", inputs: [
-            FusionInput(source: .noopComputed, value: 6100),
-            FusionInput(source: .whoopImport, value: 6000),
+            FusionInput(source: .legacyComputed, value: 6100),
+            FusionInput(source: .legacyImport, value: 6000),
         ])
-        XCTAssertEqual(point?.winningSource, .whoopImport)
+        XCTAssertEqual(point?.winningSource, .legacyImport)
         XCTAssertEqual(point?.value, 6000)
     }
 
     func testCaloriesPhoneAggregateBeatsHrEstimate() {
         let point = FusionResolver.resolve(metricKey: "active_kcal", inputs: [
-            FusionInput(source: .noopComputed, value: 480),
+            FusionInput(source: .legacyComputed, value: 480),
             FusionInput(source: .appleHealth, value: 520),
         ])
         XCTAssertEqual(point?.winningSource, .appleHealth)
@@ -56,7 +56,7 @@ final class FusionResolverTests: XCTestCase {
     func testSleepAgreeWithinTolerance() {
         // Sleep tolerance: agree <= 20 min. Winner 432, other 445 → delta 13 → agree.
         let point = FusionResolver.resolve(metricKey: "sleep_total_min", inputs: [
-            FusionInput(source: .whoopImport, value: 432),
+            FusionInput(source: .legacyImport, value: 432),
             FusionInput(source: .appleHealth, value: 445),
         ])
         XCTAssertEqual(point?.agreement, .agree)
@@ -65,7 +65,7 @@ final class FusionResolverTests: XCTestCase {
     func testSleepMinorDeltaJustOverAgreeEdge() {
         // Delta 21 (> 20 agree edge, <= 60 minor edge) → minorDelta.
         let point = FusionResolver.resolve(metricKey: "sleep_total_min", inputs: [
-            FusionInput(source: .whoopImport, value: 432),
+            FusionInput(source: .legacyImport, value: 432),
             FusionInput(source: .appleHealth, value: 453),
         ])
         XCTAssertEqual(point?.agreement, .minorDelta)
@@ -74,7 +74,7 @@ final class FusionResolverTests: XCTestCase {
     func testSleepConflictTwoHoursVsSeven() {
         // 432 min vs 120 min — a gross divergence → conflict.
         let point = FusionResolver.resolve(metricKey: "sleep_total_min", inputs: [
-            FusionInput(source: .whoopImport, value: 432),
+            FusionInput(source: .legacyImport, value: 432),
             FusionInput(source: .appleHealth, value: 120),
         ])
         XCTAssertEqual(point?.agreement, .conflict)
@@ -84,7 +84,7 @@ final class FusionResolverTests: XCTestCase {
         // Steps tolerance is ±10% agree / ±30% minor. Winner 8000, other 8500 → 6.25% → agree.
         let point = FusionResolver.resolve(metricKey: "steps", inputs: [
             FusionInput(source: .appleHealth, value: 8000),
-            FusionInput(source: .noopComputed, value: 8500),
+            FusionInput(source: .legacyComputed, value: 8500),
         ])
         XCTAssertEqual(point?.winningSource, .appleHealth)
         XCTAssertEqual(point?.agreement, .agree)
@@ -94,7 +94,7 @@ final class FusionResolverTests: XCTestCase {
         // Winner 8000, other 9700 → 21.25% (> 10%, <= 30%) → minorDelta.
         let point = FusionResolver.resolve(metricKey: "steps", inputs: [
             FusionInput(source: .appleHealth, value: 8000),
-            FusionInput(source: .noopComputed, value: 9700),
+            FusionInput(source: .legacyComputed, value: 9700),
         ])
         XCTAssertEqual(point?.agreement, .minorDelta)
     }
@@ -103,7 +103,7 @@ final class FusionResolverTests: XCTestCase {
         // Winner 8000, other 14000 → 75% over → conflict.
         let point = FusionResolver.resolve(metricKey: "steps", inputs: [
             FusionInput(source: .appleHealth, value: 8000),
-            FusionInput(source: .noopComputed, value: 14000),
+            FusionInput(source: .legacyComputed, value: 14000),
         ])
         XCTAssertEqual(point?.agreement, .conflict)
     }
@@ -113,13 +113,13 @@ final class FusionResolverTests: XCTestCase {
         // nothing happened, the other says something did"). Pinned so the edge case stays deliberate.
         let point = FusionResolver.resolve(metricKey: "steps", inputs: [
             FusionInput(source: .appleHealth, value: 0),
-            FusionInput(source: .noopComputed, value: 500),
+            FusionInput(source: .legacyComputed, value: 500),
         ])
         XCTAssertEqual(point?.agreement, .conflict)
         // And two zeros agree.
         let zeros = FusionResolver.resolve(metricKey: "steps", inputs: [
             FusionInput(source: .appleHealth, value: 0),
-            FusionInput(source: .noopComputed, value: 0),
+            FusionInput(source: .legacyComputed, value: 0),
         ])
         XCTAssertEqual(zeros?.agreement, .agree)
     }
@@ -127,8 +127,8 @@ final class FusionResolverTests: XCTestCase {
     func testWorstCaseAcrossContributorsWins() {
         // Three sources: one agrees, one conflicts → the point is a conflict.
         let point = FusionResolver.resolve(metricKey: "sleep_total_min", inputs: [
-            FusionInput(source: .whoopImport, value: 430),
-            FusionInput(source: .noopComputed, value: 440),  // delta 10 → agree
+            FusionInput(source: .legacyImport, value: 430),
+            FusionInput(source: .legacyComputed, value: 440),  // delta 10 → agree
             FusionInput(source: .appleHealth, value: 300),   // delta 130 → conflict
         ])
         XCTAssertEqual(point?.agreement, .conflict)
@@ -139,15 +139,15 @@ final class FusionResolverTests: XCTestCase {
     func testConflictKeepsBothContributorsWinnerVerbatim() {
         let point = FusionResolver.resolve(metricKey: "sleep_total_min", inputs: [
             FusionInput(source: .appleHealth, value: 120),
-            FusionInput(source: .whoopImport, value: 432),
+            FusionInput(source: .legacyImport, value: 432),
         ])
         // Winner is the higher-trust source, value is verbatim (NOT an average of 120 & 432 = 276).
-        XCTAssertEqual(point?.winningSource, .whoopImport)
+        XCTAssertEqual(point?.winningSource, .legacyImport)
         XCTAssertEqual(point?.value, 432)
         XCTAssertEqual(point?.agreement, .conflict)
         XCTAssertEqual(point?.contributors.count, 2)
         XCTAssertTrue(point?.contributors.contains { $0.source == .appleHealth } ?? false)
-        XCTAssertTrue(point?.contributors.contains { $0.source == .whoopImport } ?? false)
+        XCTAssertTrue(point?.contributors.contains { $0.source == .legacyImport } ?? false)
     }
 
     // MARK: - 4. Single-source degradation
@@ -172,14 +172,14 @@ final class FusionResolverTests: XCTestCase {
         // Three sources; the winner's value must be exactly the value that source supplied.
         let inputs = [
             FusionInput(source: .appleHealth, value: 401),
-            FusionInput(source: .noopComputed, value: 402),
-            FusionInput(source: .whoopImport, value: 403),
+            FusionInput(source: .legacyComputed, value: 402),
+            FusionInput(source: .legacyImport, value: 403),
         ]
         let point = FusionResolver.resolve(metricKey: "sleep_total_min", inputs: inputs)
-        XCTAssertEqual(point?.winningSource, .whoopImport)
+        XCTAssertEqual(point?.winningSource, .legacyImport)
         XCTAssertEqual(point?.value, 403)
         // Contributors are winner-first and preserve every supplied value verbatim.
-        XCTAssertEqual(point?.contributors.first?.source, .whoopImport)
+        XCTAssertEqual(point?.contributors.first?.source, .legacyImport)
         XCTAssertEqual(Set(point?.contributors.map(\.value) ?? []), Set([401, 402, 403]))
     }
 
@@ -194,7 +194,7 @@ final class FusionResolverTests: XCTestCase {
                         "recovery", "strain", "unknown_key"]
         for key in excluded {
             let point = FusionResolver.resolve(metricKey: key, inputs: [
-                FusionInput(source: .whoopImport, value: 50),
+                FusionInput(source: .legacyImport, value: 50),
                 FusionInput(source: .appleHealth, value: 60),
             ])
             XCTAssertNil(point, "\(key) must NOT be arbitrated by FusionResolver")

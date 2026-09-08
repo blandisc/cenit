@@ -129,10 +129,12 @@ public enum FusionResolver {
 /// Where a fused number came from — the three sources this app actually writes. A future extra
 /// source (another band, another importer) is a new case + policy table entries, not a redesign.
 public enum FusionSource: String, Equatable, Sendable, CaseIterable, Codable {
-    /// A record imported from a third-party export, under that source's own raw deviceId.
-    case whoopImport
-    /// A row computed on the device from the raw streams (the sibling deviceId the store derives).
-    case noopComputed
+    /// A record imported from a third-party export, under that source's own raw deviceId. Nothing
+    /// writes these today — they are the older rows an existing device may still hold.
+    case legacyImport
+    /// A row computed on the device from the raw streams (the sibling deviceId the store derives),
+    /// from the same older era as `legacyImport`.
+    case legacyComputed
     /// Apple Health aggregate ("apple-health").
     case appleHealth
 }

@@ -28,7 +28,7 @@ final class RepositoryFusionTests: XCTestCase {
         let p = f["2026-07-04"]?["sleep_total_min"]
         XCTAssertEqual(p?.agreement, .conflict)
         XCTAssertEqual(p?.value, 432)                       // band wins verbatim, never an average
-        XCTAssertEqual(p?.winningSource, .whoopImport)
+        XCTAssertEqual(p?.winningSource, .legacyImport)
     }
 
     func testStepsAppleCountVsStrapCounter() {
