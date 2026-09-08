@@ -82,4 +82,89 @@ final class HitoPuertaTests: XCTestCase {
         XCTAssertEqual(inicial, false)
         XCTAssertEqual(HitoPuerta.decidir(inicial: inicial, cruzadoAhora: true), .disparar)
     }
+
+    // MARK: 3. Mapeo de la lectura de Hoy → elegibilidad (HitoHoy · FER-436 · qa r1)
+
+    /// (a) Sin historia (pase completo sobre store vacío antes del onboarding): ambos `nil` —el
+    /// dato está ausente, no es «umbral no cruzado».
+    func test_hoy_sinHistoria_ambosNil() {
+        let e = HitoHoy.elegibilidad(hayHistoria: false, hayVeredicto: false, sinReloj: false,
+                                     autonomicNights: 0, seed: 4, trust: 14)
+        XCTAssertNil(e.primeraLectura)
+        XCTAssertNil(e.baseFirme)
+    }
+
+    /// (b) Con historia pero 0 noches todavía: ambos `false` (con historia, aún no cruza).
+    func test_hoy_conHistoriaCeroNoches_ambosFalse() {
+        let e = HitoHoy.elegibilidad(hayHistoria: true, hayVeredicto: false, sinReloj: false,
+                                     autonomicNights: 0, seed: 4, trust: 14)
+        XCTAssertEqual(e.primeraLectura, false)
+        XCTAssertEqual(e.baseFirme, false)
+    }
+
+    /// (c) 40 noches, con veredicto y reloj: ambos `true`.
+    func test_hoy_cuarentaNoches_ambosTrue() {
+        let e = HitoHoy.elegibilidad(hayHistoria: true, hayVeredicto: true, sinReloj: false,
+                                     autonomicNights: 40, seed: 4, trust: 14)
+        XCTAssertEqual(e.primeraLectura, true)
+        XCTAssertEqual(e.baseFirme, true)
+    }
+
+    /// (d) 4 noches con veredicto y reloj: primera lectura `true`, base firme aún `false`.
+    func test_hoy_cuatroNoches_primeraSiBaseNo() {
+        let e = HitoHoy.elegibilidad(hayHistoria: true, hayVeredicto: true, sinReloj: false,
+                                     autonomicNights: 4, seed: 4, trust: 14)
+        XCTAssertEqual(e.primeraLectura, true)
+        XCTAssertEqual(e.baseFirme, false)
+    }
+
+    /// D2: base firme exige reloj. 14 noches SIN lectura de anoche (sinReloj) no saca «Base firme».
+    func test_hoy_baseFirmeExigeReloj() {
+        let e = HitoHoy.elegibilidad(hayHistoria: true, hayVeredicto: false, sinReloj: true,
+                                     autonomicNights: 14, seed: 4, trust: 14)
+        XCTAssertEqual(e.primeraLectura, false)
+        XCTAssertEqual(e.baseFirme, false)
+    }
+
+    // MARK: 4. La secuencia exacta del qa: store vacío → primer sync de 180 días
+
+    /// Reproduce el defecto D1: la PRIMERA evaluación corre sobre un store vacío (sin historia,
+    /// `nil` → HitoPuerta espera, NO registra `false`); el primer sync trae 40 noches ya cruzadas
+    /// → `registrarInicial(true)`, que NO dispara. Nadie con 179 noches recibe «Base firme».
+    func test_secuenciaStoreVacioLuego40Noches_noDispara() {
+        var inicialPrimera: Bool?
+        var inicialBase: Bool?
+        var disparosPrimera = 0
+        var disparosBase = 0
+
+        func paso(hayHistoria: Bool, hayVeredicto: Bool, sinReloj: Bool, noches: Int) {
+            let e = HitoHoy.elegibilidad(hayHistoria: hayHistoria, hayVeredicto: hayVeredicto,
+                                         sinReloj: sinReloj, autonomicNights: noches,
+                                         seed: 4, trust: 14)
+            switch HitoPuerta.decidir(inicial: inicialPrimera, cruzadoAhora: e.primeraLectura) {
+            case .registrarInicial(let c): inicialPrimera = c
+            case .disparar: disparosPrimera += 1
+            case .nunca, .esperar: break
+            }
+            switch HitoPuerta.decidir(inicial: inicialBase, cruzadoAhora: e.baseFirme) {
+            case .registrarInicial(let c): inicialBase = c
+            case .disparar: disparosBase += 1
+            case .nunca, .esperar: break
+            }
+        }
+
+        // 1) pase completo sobre store VACÍO (lo que hacía el pase full pre-onboarding)
+        paso(hayHistoria: false, hayVeredicto: false, sinReloj: false, noches: 0)
+        XCTAssertNil(inicialPrimera, "sin historia no se registra nada")
+        XCTAssertNil(inicialBase)
+        // 2) primer sync de 180 días: 179 noches, ya cruzadas
+        paso(hayHistoria: true, hayVeredicto: true, sinReloj: false, noches: 179)
+        XCTAssertEqual(inicialPrimera, true, "se registra «ya cruzado», no dispara")
+        XCTAssertEqual(inicialBase, true)
+        // 3) mañanas siguientes
+        paso(hayHistoria: true, hayVeredicto: true, sinReloj: false, noches: 180)
+        XCTAssertEqual(disparosPrimera, 0)
+        XCTAssertEqual(disparosBase, 0)
+    }
 }
+

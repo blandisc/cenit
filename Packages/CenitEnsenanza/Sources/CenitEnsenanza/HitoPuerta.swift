@@ -46,3 +46,36 @@ public enum HitoPuerta {
         }
     }
 }
+
+/// Elegibilidad de los DOS hitos de Hoy —«Primera lectura» (noche `seed`) y «Base firme»
+/// (noche `trust`)— a partir de la lectura de Preparación, SIN tocar `Preparedness.Read`: el
+/// paquete es Foundation-only, así que la app extrae los campos y los pasa como primitivas.
+///
+/// La clave (FER-436 · qa r1): **dato ausente ≠ umbral no cruzado**. El pase completo corre sobre
+/// un store VACÍO antes de que el onboarding conecte Apple Salud, y publica un `Read` con 0 noches
+/// (`lowSignal`, `drivers: []`, `autonomicNights: 0`). Eso NO es «tu umbral todavía no cruza» —que
+/// se registraría como `false` y luego DISPARARÍA con el primer sync de 180 días, sacándole «Base
+/// firme» a alguien con 179 noches—: es «todavía no sé nada de ti». Cuando `hayHistoria == false`
+/// ambos hitos devuelven `nil`, y `HitoPuerta` espera (no registra) hasta que exista historia real.
+///
+/// `hayHistoria` es la MISMA «no encontré tu día» de `Repository.conservaVeredictoPrevio`:
+/// `!(drivers.isEmpty && autonomicNights == 0)`.
+///
+/// Ambos hitos exigen reloj (`!sinReloj`): sin la señal autonómica de anoche no hay «primera
+/// lectura», y la mañana en que `autonomicNights` llega a `trust` sin lectura no debe sacar «Base
+/// firme» bajo un héroe «Baja señal» (FER-436 · D2).
+public enum HitoHoy {
+    /// `nil` = dato ausente (espera); `false` = con historia pero el umbral aún no cruza;
+    /// `true` = cruzado. Devuelve el par en el orden en que los evalúa la app.
+    public static func elegibilidad(hayHistoria: Bool,
+                                    hayVeredicto: Bool,
+                                    sinReloj: Bool,
+                                    autonomicNights: Int,
+                                    seed: Int,
+                                    trust: Int) -> (primeraLectura: Bool?, baseFirme: Bool?) {
+        guard hayHistoria else { return (nil, nil) }
+        let primeraLectura = !sinReloj && hayVeredicto && autonomicNights >= seed
+        let baseFirme = !sinReloj && autonomicNights >= trust
+        return (primeraLectura, baseFirme)
+    }
+}

@@ -437,11 +437,14 @@ private struct CuerpoLanding: View {
             diasConDosMetricas: diasConDosMetricas,
             hayVeredicto: hayVeredicto,
             permisoCalendario: permiso)
-        // FER-436 · hitos 3–4: el mismo conteo de días con dato (nil hasta el pase completo del
-        // repo) y la calibración real del ACWR (`trainingLoad == nil` = sin cálculo todavía).
+        // FER-436 · hitos 3–4: dato ausente ≠ umbral no cruzado (qa r1). Con el pase incompleto o
+        // el store VACÍO (sin días) NO registramos `0`/`false` —eso dispararía el hito con el
+        // primer sync—: pasamos `nil` (esperar). Con historia real va el conteo de días con dato
+        // y la calibración real del ACWR (`trainingLoad == nil` = sin cálculo todavía).
+        let hayHistoria = repo.fullyLoaded && !dias.isEmpty
         Hitos.evaluarTendencias(
-            diasConDato: repo.fullyLoaded ? diasConDato : nil,
-            cargaLeida: trainingLoad.map { $0.acwr != nil })
+            diasConDato: hayHistoria ? diasConDato : nil,
+            cargaLeida: hayHistoria ? trainingLoad.map { $0.acwr != nil } : nil)
     }
 
     #if os(iOS) && DEBUG
