@@ -84,7 +84,7 @@ private struct AjustesLanding: View {
     /// FER-435: las puertas de Ayuda hacia Hoy (acta, guardián) viajan por el router.
     @EnvironmentObject private var tabRouter: TabRouter
     /// FER-435: la última versión vista en Novedades — leída aquí (y no solo en `NovedadesEstado`)
-    /// para que la fila se repinte sin punto en cuanto la hoja la marca.
+    /// para que la fila se repinte sin «Nuevo» en cuanto la hoja la marca.
     @AppStorage(NovedadesEstado.claveUltimaVersionVista) private var novedadesUltimaVista = ""
 
     // Imperial/Metric display preference (D#103). Stored data is always SI; this only changes how
@@ -467,11 +467,11 @@ private struct AjustesLanding: View {
         }
     }
 
-    /// FER-435 · «Novedades»: con una versión posterior a la última vista, un punto verde de 8 pt a
-    /// la derecha (antes del chevron) y el subtítulo lo dice en texto — el punto nunca es el único
-    /// canal. Va en el slot `accessory` (el punto LEADING de `LiquidListRow` es identidad de una
-    /// métrica, FER-175: aquí mentiría) y, como ese slot sustituye la afordancia, el chevron se
-    /// vuelve a pintar en paridad. Sin pendientes: la fila estándar, «Estás al día · {versión}».
+    /// FER-435 · «Novedades»: con una versión posterior a la última vista, la fila lleva la palabra
+    /// «Nuevo» en `trailing` y el tono `verdePrimario` de `LiquidListRow` (punto con glow + chevron
+    /// en verde) — la palabra la lee VoiceOver sola, así que el color nunca es el único canal, y el
+    /// subtítulo lo dice también en texto. Nada dibujado a mano: la fila estándar en ambos estados.
+    /// Sin pendientes: «Estás al día · {versión}», sin tono.
     @ViewBuilder private var novedadesRow: some View {
         let pendientes = NovedadesEstado.pendientes(
             ultimaVista: novedadesUltimaVista.isEmpty ? nil : novedadesUltimaVista)
@@ -479,18 +479,9 @@ private struct AjustesLanding: View {
             LiquidListRow(title: String(localized: "What's new"),
                           subtitle: String(localized: "novedades.fila.pendientes",
                                            defaultValue: "What changed in \(nueva)"),
-                          action: { presentedSheet = .novedades }) {
-                HStack(spacing: LiquidSpace.s200) {
-                    Circle()
-                        .fill(LiquidColor.verdePrimario)
-                        .frame(width: 8, height: 8)  // token-exempt(paridad): punto de LiquidListRow (8 pt, no público)
-                        // Glow como geometría, igual que el punto de identidad de la fila.
-                        .liquidShadow([.init(color: LiquidColor.verdePrimario.opacity(CenitOpacity.strokeSoft),
-                                             radius: 4, y: 0)],  // token-exempt(paridad): glow del punto de LiquidListRow (r4)
-                                      silhouette: Circle())
-                        .accessibilityLabel(Text("There's something new"))
-                    LiquidIcon(.chevron, size: 12, color: LiquidColor.tinta500)  // token-exempt(paridad): chevron de LiquidListRow (accessory lo sustituye)
-                }
+                          trailing: String(localized: "novedades.fila.nuevo", defaultValue: "New"),
+                          tone: LiquidColor.verdePrimario) {
+                presentedSheet = .novedades
             }
         } else {
             LiquidListRow(title: String(localized: "What's new"),

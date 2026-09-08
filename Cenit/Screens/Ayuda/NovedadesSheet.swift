@@ -9,8 +9,8 @@ import CenitEnsenanza
 // Qué cambió, por versión, la más reciente arriba; cada ítem con nombre · una línea · su ruta
 // (la misma `AyudaFila` de Ayuda, sin puertas). Con pendientes, primero «Nuevo en {versión}» y
 // después las anteriores bajo «Antes · {versión}»; sin pendientes, una tarjeta corta «Estás al
-// día» y las versiones anteriores debajo. Al aparecer marca vista la versión actual: el punto de
-// la fila de Ajustes se apaga al volver. Nunca un modal — llega desde Ajustes → Novedades o
+// día» y las versiones anteriores debajo. Al aparecer marca vista la versión actual: el «Nuevo»
+// de la fila de Ajustes se apaga al volver. Nunca un modal — llega desde Ajustes → Novedades o
 // desde la puerta de la tarjeta «Nuevo en esta versión» al fondo de Hoy.
 
 struct NovedadesSheet: View {

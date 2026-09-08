@@ -223,16 +223,14 @@ struct AyudaPuerta: Identifiable {
 // MARK: - Fila de lectura (Ayuda y Novedades)
 
 /// La fila de lectura: nombre · para qué · dónde vive · «Necesita Apple Watch» · gesto · botón ·
-/// puerta(s). La fila NO es un botón; solo la puerta lo es (44 pt). Misma geometría que
-/// `LiquidListRow` (vertical `s300`, horizontal `s100`, divisor 0.5 tinta10) para que Ayuda,
-/// Novedades y Ajustes lean como una sola familia. Sin `lineLimit`: a tallas AX todo apila.
+/// puerta(s). La fila NO es un botón (no es una `LiquidListRow`: no navega y lleva captions y
+/// puertas debajo); solo la puerta lo es (44 pt). Ritmo de fila de lista (vertical `s300`,
+/// horizontal `s100`) y `LiquidCapilar` como divisor, para que Ayuda, Novedades y Ajustes lean
+/// como una sola familia. Sin `lineLimit`: a tallas AX todo apila.
 struct AyudaFila: View {
     let funcionalidad: Funcionalidad
     var puertas: [AyudaPuerta] = []
     var divider = true
-
-    /// Chevron de la puerta — el mismo que el de la fila de lista y la tarjeta de una vez.
-    private static let chevron: CGFloat = 12  // token-exempt(paridad): chevron de LiquidListRow / LiquidUnaVez (no público)
 
     /// Los pares gesto · botón del registro, ya resueltos contra el catálogo.
     private var gestos: [(gesto: String, boton: String)] {
@@ -255,7 +253,7 @@ struct AyudaFila: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .overlay(alignment: .bottom) {
             if divider {
-                Rectangle().fill(LiquidColor.tinta10).frame(height: 0.5)  // token-exempt(paridad): paridad divisor LiquidListRow (no público)
+                LiquidCapilar(eje: .horizontal)
             }
         }
     }
@@ -311,7 +309,7 @@ struct AyudaFila: View {
                     Text(verbatim: puerta.rotulo)
                         .font(LiquidType.tituloFila)
                         .foregroundStyle(LiquidColor.verdeProfundo)
-                    LiquidIcon(.chevron, size: Self.chevron, color: LiquidColor.verdeProfundo)
+                    LiquidIcon(.chevron, size: 12, color: LiquidColor.verdeProfundo)
                 }
                 .frame(minHeight: LiquidControl.hitTarget)
                 .contentShape(Rectangle())

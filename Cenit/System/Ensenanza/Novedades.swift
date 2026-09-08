@@ -9,7 +9,7 @@ import CenitEnsenanza
 // tarjeta de una vez al fondo de Hoy (`novedades.ultimaVistaTarjeta`). `""` = nunca.
 //
 // Primera instalación: `ContentView` marca las dos al terminar el onboarding — no hay nada que
-// anunciar a quien acaba de llegar. Quien ACTUALIZA llega con `""` y ve el punto (y la tarjeta,
+// anunciar a quien acaba de llegar. Quien ACTUALIZA llega con `""` y ve el «Nuevo» (y la tarjeta,
 // si la versión está marcada `mayor`) en cuanto el registro declare una `.novedad`: correcto, sí
 // hay novedades. Hoy el registro no declara ninguna (las del épico se registran en FER-439).
 enum NovedadesEstado {
@@ -26,7 +26,7 @@ enum NovedadesEstado {
 
     /// El registro que consume Novedades. En Debug, `-noop.novedades <version>` (misma técnica que
     /// `-cenit.restore`) le cuelga una novedad sintética `mayor` a «Cómo funciona Cénit» y a
-    /// «Novedades» para ver vivos el punto, la hoja y la tarjeta SIN tocar el registro real.
+    /// «Novedades» para ver vivos el «Nuevo», la hoja y la tarjeta SIN tocar el registro real.
     static var registro: [Funcionalidad] {
         #if DEBUG
         if let version = UserDefaults.standard.string(forKey: "noop.novedades"), !version.isEmpty {
@@ -69,7 +69,7 @@ enum NovedadesEstado {
         Novedades.mayorPendiente(en: registro, ultimaVista: ultimaVistaTarjeta) != nil
     }
 
-    /// Al abrir la hoja de Novedades: el punto de Ajustes se apaga.
+    /// Al abrir la hoja de Novedades: el «Nuevo» de la fila de Ajustes se apaga.
     static func marcarVistas() {
         UserDefaults.standard.set(versionActual, forKey: claveUltimaVersionVista)
     }
