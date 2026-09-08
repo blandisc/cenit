@@ -28,7 +28,7 @@ final class FusionResolverTests: XCTestCase {
         ])
         XCTAssertEqual(point?.winningSource, .legacyImport)
         XCTAssertEqual(point?.value, 432)
-        XCTAssertEqual(point?.contributors.first?.reason, "band sleep timeline")
+        XCTAssertEqual(point?.contributors.first?.reason, "legacy sleep timeline")
     }
 
     func testSleepTieOnSameTierBrokenStablyBySourcePriority() {
