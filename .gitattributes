@@ -1,0 +1,6 @@
+# Corridas paralelas aterrizan en `iOS` cada 10-20 min; el único choque recurrente
+# es CHANGELOG.md, donde ambos lados solo AÑADEN entradas bajo «## Unreleased».
+# `merge=union` (driver nativo de git, honrado también por el merge de GitHub) anexa
+# ambos lados en vez de conflictuar — exactamente la resolución manual «conservar ambas
+# entradas» que hacíamos a mano en cada corrida. Ver docs/DECISIONS.md 2026-09-08.
+CHANGELOG.md merge=union

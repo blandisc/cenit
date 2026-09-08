@@ -442,3 +442,29 @@ del test y la nota de archivo que llamaban «legítimo» a este disparo (`WhatMo
 identificado en los pares cruzados, solo que sin corregir en el auto-lag. El copy
 `patron.sleep.priorNight.*` no cambia — la relación sigue existiendo y dispara cuando el rebote es
 real; lo que cambia es cuándo el gate la deja pasar.
+
+## 2026-09-08 · Cierre de «Cénit rumbo a la App Store» — dos arreglos de proceso (director, retro FER-380)
+
+Al cerrar la corrida del épico FER-380 (código 100 % propio + cero rastro de NOOP/WHOOP/banda),
+el retro destiló dos aprendizajes que recurrían y no estaban codificados. Ambos son reversibles y
+los aplicó el director; se suben aquí para no re-litigarlos.
+
+**1 · El choque de `CHANGELOG.md` entre corridas paralelas se mata con `merge=union`, no
+reconciliando a mano.** Se creó `.gitattributes` en la raíz con `CHANGELOG.md merge=union`. El
+driver nativo `union` anexa ambos lados en vez de conflictuar — la misma resolución «conservar
+ambas entradas» que el director hacía a mano en cada corrida (recurrió en FER-323, ola 1 de sala
+limpia #1549, y palanca B FER-479/#1590, cuyo único choque fue el CHANGELOG con FER-482). Elimina
+la clase entera. El workaround previo («sacar el CHANGELOG a un PR de docs aparte») sigue siendo
+válido para lotes grandes, pero ya no es obligatorio para el choque simple de dos entradas.
+
+**2 · Un barrido «cero rastro de X» debe verificar el ARTEFACTO de una instalación NUEVA, no solo
+grepear el fuente.** Regla nueva para el DoD de cualquier trabajo de remoción de marca/origen: la
+marca vive en dos ejes — (a) datos-en-reposo de instalaciones legadas y (b) identificadores que el
+código ESCRIBE en runtime (deviceId de partición, columna source, tags persistidos). El eje (b)
+sobrevive a un `grep` del fuente porque solo nace neutro si se voltean las constantes
+centralizadas. **Criterio de cierre: un `strings` del binario más un volcado de la base de una
+instalación fresca no contienen la marca** — el grep del fuente no basta. Siete frentes de FER-380
+se declararon done y el barrido forense final descubrió que las instalaciones nuevas seguían
+escribiendo la marca en los deviceId de partición; eso motivó la palanca B (migración v44 +
+flip de constantes, FER-479). Esta regla la hubiera atrapado antes. Complementa —no reemplaza— el
+cierre de sala limpia por autoría (`git blame -w -M -C -C -C = 0 líneas de prosa`).
