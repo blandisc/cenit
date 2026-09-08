@@ -24,12 +24,14 @@ Cénit is a **four-tab** app, all of it warm-paper **«Instrumento diurno»** (o
 color only on the datum, hierarchy by space). The tabs are **Hoy** (Today), **Tendencias** (your
 body over time), **Entrenar** (Train), and **Ajustes** (Settings):
 
+<!-- GENERATED:ensenanza:at-a-glance START -->
 | Tab | What it is |
 | --- | --- |
 | **Hoy** | The verdict home — today's readiness word (El Ecosistema) and La Matriz of signals. |
 | **Tendencias** | Your body over time — the trend of every signal, plus sleep, stress, vitals, body composition and longevity. |
 | **Entrenar** | The training planner — plan, routines, a guided live strength session, plus Breathe and Intervals. |
 | **Ajustes** | Profile, units, data & backup, illness watch, reminders, support. |
+<!-- GENERATED:ensenanza:at-a-glance END -->
 
 There is **no live-connection chrome, no battery indicator, no "pairing" state** anywhere:
 everything is computed from Apple Health samples and on-device math. The one place a live heart
@@ -43,206 +45,187 @@ Every metric is an approximation computed locally. Nothing is uploaded.
 
 ## Hoy — Today
 
-**Tab: Hoy · the verdict home. Works from Apple Health data, computed on-device.**
+<!-- GENERATED:ensenanza:hoy START -->
+The verdict home — today's readiness word (El Ecosistema) and La Matriz of signals.
 
-`TodayView.swift` (with the `Cenit/Screens/Hoy/` builders) is the home screen — «El Ecosistema».
-A header with the short date (the 24-hour dial seal was retired on 2026-08-06), then, when you have data:
-
-- **The verdict hero** — the orb, with **one dominant word** — today's *Preparedness* reading
-  (**In range**, **Go light today**, or **Recover**, and **Getting to know you** while the baseline
-  calibrates) — and a plain-language clause. Color lands only on the datum. Tapping "how I got here"
-  opens the **verdict acta** — the same word and math the onboarding and Entrenar show, so no two
-  screens can disagree.
-- **Training load** — a strip with your ACWR band (recent vs. your usual) when there's enough
-  recorded strain.
-- **La Matriz** — three shelves of instrument cells («Deciden tu día», «Te vigila», «Contexto»):
-  **Sleep, Resting HR, the guardian pair (skin temp + respiration), Training load, Day strain, HRV,
-  Stress, Steps**, each with its own chart. Resting HR is your **nocturnal** rate, measured by your
-  Apple Watch during sleep and read through Apple Health. Tapping a cell opens its metric sheet
-  (14-day curve, bands, level table); "Ver más" escalates to the rich detail screen. Dragging across a
-  chart reads it night by night.
-- **Manuals & guardian** — «¿Qué decide tu día?» and «Tu contexto» explain the reading; the
-  **guardian sheet** shows the sentinel pair (skin temp + respiration) and why it only votes when
-  both drift together.
-
-**Data** — everything comes from Apple Health plus on-device computation (`repo.todayPreparedness`,
-the measured `DailyMetric` rows, on-device step estimation when Apple has no count). No network,
-no account, no server.
-
-**Empty state** — with no data and no Health permission, the **orb sleeps**: "Connect Apple Health
-and it will start beating with your nights," a **Connect Apple Health** button (opening Data
-Sources), and "Everything stays on your iPhone. No account, no cloud." The button connects Apple
-Health — there is nothing to scan.
-
-The **illness early-warning** banner also appears here when triggered (see below).
+- **The word of the day** — A reading of how you woke up: in range, go light today, or recover.
+  _(Today, at the top, over the orb.)_ · Needs Apple Watch
+- **The acta: what your word is made of** — Who votes, how much each vote weighs, and what doesn't
+  count. _(Today: tap the ⓘ next to the word.)_ · Needs Apple Watch
+- **Night N of 4 and Confidence N of 14** — How many nights until your first word, and until your
+  baseline is firm. _(Today, under the word, while it calibrates.)_ · Needs Apple Watch
+- **Your first reading (night 4)** — The morning your first word appears, and where it came from.
+  _(Today, a one-time card under the hero.)_ · Needs Apple Watch
+- **Your baseline is firm (night 14)** — From then on you're compared against 14 of your own nights,
+  and the confidence line retires. _(Today, a one-time card under the hero.)_ · Needs Apple Watch
+- **The Ecosystem: the orb and its signals** — The orb takes the day's color; tap the background to
+  split your signals and see them one by one. _(Today, the hero.)_ · Needs Apple Watch
+- **The autonomic axis sheet** — Your resting heart rate against your own baseline; HRV is shown but
+  doesn't vote. _(Today: tap the small resting orb.)_ · Needs Apple Watch
+- **The guardian: it watches over you** — Skin temperature and respiration against your own pattern.
+  They only count when both drift together. _(Today, the «Te vigila» shelf and its orb.)_ · Needs
+  Apple Watch
+- **The manuals: What decides your day? and Your context** — The full model: who votes, the four
+  words, and why context doesn't vote. _(Today: the «?» on each shelf of the Matrix.)_
+- **The Matrix: your signals in cells** — Sleep, resting HR, guardian, load, strain, HRV, stress and
+  steps, each with its chart. _(Today, below the hero.)_
+- **Reading night by night** — Drag across a chart to read each night; the value jumps up to the
+  numeral. _(Today, on any chart of the Matrix.)_ · Needs Apple Watch
+- **Each signal's sheet** — What it is, how it's computed (with its citation), and where the data
+  comes from. _(Today: tap a cell of the Matrix.)_
+- **Your pattern: what moves a signal** — A documented tendency, no cause and no coefficient, for
+  HRV and resting HR. _(Inside the HRV or resting HR sheet.)_ · Needs Apple Watch
+- **A signal's full detail** — Hypnogram, zones, the 90-day calendar and the method. _(Signal sheet
+  → «See more».)_
+- **The illness notice** — When your body looks strained, a banner names the signals. Optional.
+  _(Today, at the very top; enabled in Settings → Watch for illness signals.)_ · Needs Apple Watch
+- **The status strips** — Reading your night, sync pending, night not recorded: they always say
+  what's going on. _(Today, under the date.)_
+- **Pull to sync** — A pull from the top fetches what's new from Apple Health right away. _(Today:
+  pull down from the top.)_
+- **Today without permission or without a watch** — It says what's missing and how to get it, never
+  a made-up number. _(Today, the hero, when there is no reading.)_
+<!-- GENERATED:ensenanza:hoy END -->
 
 ---
 
 ## Tendencias — your body over time
 
-**Tab: Tendencias · works from Apple Health data, computed on-device.**
+<!-- GENERATED:ensenanza:tendencias START -->
+Your body over time — the trend of every signal, plus sleep, stress, vitals, body composition and
+longevity.
 
-The second tab is labeled **Tendencias** and shows `CuerpoView.swift` — your body over time, on
-warm paper. A **W / M / 3M / 6M / 1Y / ALL** range control re-windows every sparkline and the
-hero's "vs your average" delta at once. Top to bottom:
-
-- **Preparación hero** — no 0–100 recovery score (that died with the band): the **verdict word**
-  for today, tinted, with its clause; or a calibration bar ("N/4", "Calibrating your baseline") on
-  a young baseline. Tapping opens the **Preparación detail** ("your 30 mornings": today's word as
-  anchor, a mosaic of 30 mornings, how often each of the three signals drifted, and the method).
-- **Rest & load** — Sleep (minutes), Day strain / Day load, and Stress (0–3), each a tappable
-  sparkline column.
-- **Training load** — the ACWR band in a word (Low / Optimal / High) with the ratio and a
-  mini-trend; "—" and a calibration note under ~2 weeks of recorded strain.
-- **Vitals** — a grid of **HRV, Resting HR, Blood Oxygen, Heart Rate** (intraday average),
-  **Respiratory** and **Skin temp**, each tappable to its detail screen.
-- **Activity** — Steps and Workouts (7d), plus "how you wake after each sport" (a per-sport
-  recovery ranking).
-- **Longevity** — **Physical age** (Nes/HUNT 2011, from resting HR + activity), **Body age**
-  (VitalityEngine over 28 nights), and **VO₂ Max** (your Apple Watch's latest reading). All labeled
-  "Estimate", all with non-clinical disclaimers.
-- **Footer** — **Compare** and **See all metrics** (Explore).
-
-Detail screens reachable from here:
-
-- **Sleep detail** (`SleepDetailScreen.swift`) — a hypnogram of last night, last-night-vs-typical
-  bars, per-night metric tiles, the week's sleep debt, a 90-night calendar, and the method. From
-  Apple Health sleep sessions + on-device nightly metrics.
-- **Stress detail** (`StressDetailScreen.swift`) — a single-number Stress Monitor (0–3, its own
-  color ramp, never the recovery traffic light), what moves it (resting HR + HRV vs your baseline),
-  your patterns, history, a 90-day calendar, and the method.
-- **Skin temp detail** (`SkinTempDetailScreen.swift`) — signed deviation vs your rolling nightly
-  baseline (Apple Watch wrist temperature), a warm/cool streak, bands, history, and (behind the
-  experimental toggle) nightly thermal stability.
-- **Physical age / Body age** (`FitnessAgeDetailView.swift`, `BodyAgeSheet.swift`) — the longevity
-  estimates, what moves each, and honest "not enough signals yet" states.
-- **Compare** (`CompareView.swift`) — overlay 2–4 metrics on a normalized axis and read every
-  pair's **Pearson r** ("Association, not cause"). Sparse series auto-widen.
-- **Explore** (`MetricExplorerView.swift`) — the whole signal catalog, one tap deep: latest value,
-  a trend with a range control, and **"What correlates"** (Pearson scan, |r| ≥ 0.30, n ≥ 10).
-- **Workouts** (`WorkoutsView.swift`) — the activity log: totals, weekly volume, by-sport, and a
-  session list → detail. "Each session is a workout from Apple Health, an on-device capture, or a
-  manual entry."
-- **Apple Health** (`AppleHealthView.swift`) — the per-source viewer for everything read from the
-  `apple-health` source, with tiles and chart sections (Heart & Vitals, Activity & Energy, Body
-  Composition, Sleep).
-
-Every value reads from the merged on-device dashboard (`repo.displayDays`); sparse series auto-widen
-so a short window is never empty. The only wearable the copy ever names is the **Apple Watch**.
+- **Trends: your body over time** — Every signal across weeks and months, with sleep, stress, vitals
+  and longevity. _(The second tab.)_
+- **The period selector** — Week, month, three, six, a year or all: every chart re-windows.
+  _(Trends, under the title.)_
+- **Your 30 mornings** — How you woke up each day of the last month, and how often each signal
+  drifted. _(Trends: tap the hero's word.)_ · Needs Apple Watch
+- **Rest and load** — Sleep, day strain and stress, each with its own detail. _(Trends, first
+  module; tap a column.)_
+- **The day map** — Your day's stress crossed with your calendar: which peak matches which event.
+  _(Stress detail, further down; it asks for calendar permission there.)_ · Needs Apple Watch
+- **Your training load** — Recent versus usual, in a word and a hill; it needs about two weeks of
+  recorded strain. _(Trends, second module; the whole card is tappable.)_
+- **Your vitals** — HRV, resting HR, oxygen, heart rate, respiration and skin temperature, each with
+  its detail. _(Trends, the six-tile module.)_ · Needs Apple Watch
+- **Compare signals** — Overlay two to four signals and see whether they move together. Association,
+  not cause. _(Trends, at the bottom.)_
+- **Explore every signal** — The full catalog, and what correlates with each one. _(Trends, at the
+  bottom.)_
+- **How you wake up after each sport** — How much each type of workout costs you to recover from.
+  _(Trends → Activity, under the hairline.)_ · Needs Apple Watch
+- **Longevity: fitness age, body age and VO₂ max** — Estimates, not diagnoses, with what moves them
+  and when there are no signals yet. _(Trends, the longevity module.)_ · Needs Apple Watch
+- **Agreement between sources** — When two sources report the same day you see both values; they're
+  never averaged. _(Under the metric, one line.)_
+<!-- GENERATED:ensenanza:tendencias END -->
 
 ---
 
 ## Entrenar — Train
 
-**Tab: Entrenar · the training planner. Fully offline; no account, no network.**
+<!-- GENERATED:ensenanza:entrenar START -->
+The training planner — plan, routines, a guided live strength session, plus Breathe and Intervals.
 
-`EntrenarView.swift` is a **planner** on warm paper. Its data comes from the on-device store
-(SQLite/GRDB), the exercise catalog and strength rules of `StrandTraining`/`StrandAnalytics`, and
-the same day-verdict Hoy uses. Top to bottom:
-
-- **The verdict thread** — the first line talks about your *body*, not the plan; tapping it opens
-  the same verdict acta Hoy serves (never switches tabs).
-- **The hero, by day** — a **routine day** shows the routine name, its muscles, "~50 min · 6
-  exercises · 18 sets", and today's earned progression ("Hoy subes…" / "Hoy mantienes… la subida
-  espera"), with one solid green **Empezar** that starts the guided session in a tap; a **rest day**
-  shows "Descanso" and a single **Movilidad · 20 min** door; a **live session** wins over both, with
-  an "En curso · N min" ticker and **Continuar** / **Terminar sesión**.
-- **"Otra forma ›"** — four fixed doors that never read the verdict: **Rápido** (an empty strength
-  session), **Intervalos**, **Movilidad**, **Respira**.
-- **Tu semana** — a Mon→Sun token strip (done / today / planned / rest), a row per other routine,
-  and the way into **Tu Plan**, **Nueva rutina**, and **Crear plan**.
-- **Músculos cargados** — a one-line recovery estimate (or, on a rest day, the full per-muscle
-  module), from `MuscleFatigueMap` over 84 days. Tapping opens the muscle map.
-- **Bitácora** — the last completed sessions ("Mié 12 · Tirón A", marks, "44 min · 4 880 kg",
-  effort "/21" when the Apple Watch gave HR), and **Historial y progreso ›**.
-
-First-run (no split) shows "Arma tu semana", template chips, "Import your plan from your AI ›", and
-a **Crear mi plan** CTA.
-
-**Create a plan — three paths** (`CrearPlanScreen.swift`, FER-137). One door, three rows, all
-offline: **Templates** (copying a group copies its routines *and* fills the free days of the week in
-order, never overwriting an assigned day), **From scratch** (New routine → the library create-flow),
-and **Import from your AI** (`WorkoutImportView.swift`) — Cénit hands you a prompt, you run it in
-*your own* LLM, and you bring back a file that becomes real routines. **Cénit never
-calls the network** — you run the LLM step yourself.
-
-**Tu Plan** (`WeeklyPlanEditorView.swift`) — one surface: assign a routine or rest to each day (top),
-weekly volume by muscle group, and every routine in a flat list (create / import / templates /
-library / folders). `WeekEditorSheet.swift` is the quick way to rotate one day through the routines
-already in the split.
-
-**Routine editor** (`RoutineEditorScreen.swift`, FER-839) — one editor for viewing, editing, and
-starting: the screen *is* the routine (Notes-style autosave, a "Guardado"/Undo banner; edits lock
-while a session is live). On today's routine it evaluates progression per slot (history + your plate
-inventory + the verdict). **Rest editor** (`RestEditorScreen.swift`) handles all five real rest
-shapes (fixed, resting-margin, peak-drop, fixed-BPM, HR reference); **progression setup**
-(`ProgressionSetupScreen.swift`) sets a rep floor/ceiling and a load step from your plate math.
-
-**Exercise library & detail** (`ExerciseLibraryScreen.swift`, `ExerciseDetailScreen.swift`) — browse
-the on-device catalog (search + filter by muscle/equipment), or multi-select into a routine. A
-detail shows which muscles an exercise loads and your estimated-1RM trend; "Create exercise" adds
-your own.
-
-**The guided live strength session** (`LiveStrengthSheet.swift`, `StrengthSessionModel.swift`) — the
-big piece. It presents as a **full-screen cover** owned by `AppModel`, so minimizing it (‹) or
-switching tabs never loses it; a **floating pill** re-opens it from any tab. It runs 100% offline and
-without HealthKit — logging strength is manual.
-
-- **Set → rest → done.** The active exercise row is edited inline with Cénit's **own keypad**
-  (`SessionKeypad.swift`): a 3-column grid whose "Next" key is the confirm affordance and carries the
-  only accent. Marking a set done logs it; the **rest** appears as an inline countdown card. Rest and
-  finish **haptics come from the iPhone** (`AppModel.buzz`).
-- **The receipt.** When you finish, a receipt renders in place; the full-screen thermal print is
-  `ReceiptPrinterScreen.swift`, and `SavedTicketsScreen.swift` is the grid of saved mini-receipts.
-  `ShareCardView.swift` renders the shareable card.
-- **Effort/HR only if present.** A session records HR and an effort score only when it carries
-  **Apple Watch** heart rate; without it, those blocks are omitted (never invented as zero).
-
-**History** — **Mis entrenamientos** (`WorkoutHistoryScreen.swift`) lists completed sessions →
-**detail** (`WorkoutDetailScreen.swift`, honest hero: effort → avg HR → duration); **ManualWorkoutSheet**
-adds a workout you tracked elsewhere.
-
-**Breathe & Intervals** (hub tools):
-
-- **Respira** (`BreathingView.swift`) — a paced-breathing trainer: a visual orb plus an **iPhone
-  haptic cue** (one pulse on the inhale, two on the exhale). The live HRV/RMSSD readout and the
-  coherence card were **retired with the band** (FER-1003) — solo breathing has no live R-R source.
-- **Intervalos** (`IntervalTimerView.swift`) — a silent **haptic HIIT timer**: the phone buzzes each
-  transition (WORK / REST / DONE, countdown ring, session progress), so you can train without looking.
+- **Train: the plan that acts** — Today's routine, your week, the live session and the progression
+  that goes up on its own. _(The third tab.)_
+- **Build your week** — Pick a split, build your routine or import a plan; then Train serves it
+  every day. _(Train, when there's no plan yet.)_
+- **What Cénit can do** — Six hidden tricks and the gym words: AMRAP, drop, RIR, deload week, rests,
+  1RM. _(Train: the «?» in the header.)_
+- **Today's routine and Start** — Name, muscles, duration, what goes up today, and the button that
+  starts the session. _(Train, at the top.)_
+- **Another way: quick, intervals, mobility, breathe** — Four doors besides your routine, no guilt.
+  _(Train: the «Otra forma» fold under the button.)_
+- **The mosaic: week, dose, raises, body, marks, consistency, history** — Seven tiles that fill with
+  your sessions; the ones that can't speak yet stay quiet and say why. _(Train, below the hero.)_
+- **Your Plan and the multi-week program** — Assign routines per day, see volume per muscle, and
+  turn your week into a program with a deload week. _(Train → Week → Edit.)_
+- **Per-exercise progression** — Hit your reps and the routine adds weight; you enable it on each
+  exercise's card. _(Routine editor → exercise card.)_
+- **Reps in reserve** — How many more reps you could have done; 0 is failure. With this the app
+  decides whether you go up. _(Live session, on each set's keypad.)_
+- **As many as you can, and drop and continue** — Two set modes: AMRAP counts toward raises and
+  records; drop adds volume. _(Session: long-press a set or tap its chip.)_
+- **Rest in five forms** — Fixed, rest margin, peak drop, fixed BPM or HR reference; the pulse ones
+  need a watch. _(Routine editor: tap a set's rest.)_
+- **Exercise library and detail** — Search, filter by muscle or equipment, and for each exercise:
+  guide, progress and your history. _(Train → Your Plan → Library.)_
+- **Import your AI's plan, and the templates** — Cénit gives you a prompt, you run it in your AI and
+  bring the file; or start from a template, even with no equipment. _(Train, first use and Your
+  Plan.)_
+- **Import your Strong or Hevy history** — One CSV and your past sessions come in, with exercises
+  mapped to the catalog. _(Empty history, or Settings → Data sources.)_
+- **The live session: Focus, plates and swapping exercises** — Tap the card to enter Focus, tap the
+  weight to see which plates to load, and the menu to swap or add an exercise. _(During a session.)_
+- **How hard was it?** — One tap when you close, and your session enters your load even without a
+  watch. _(When you finish a session.)_
+- **The receipt and your tickets** — Every session prints its receipt; the saved ones live in
+  History. _(When you finish, and in History → My tickets.)_
+- **History and raise cycles** — Your sessions, your month, volume per muscle, and what went up,
+  what's waiting and what stalled. _(Train → History and progress.)_
+- **Your marks** — Every record, most recent first; a row opens its exercise. _(Train → Marks
+  tile.)_
+- **Your body: the muscle map** — Which muscles you loaded and which are fresh, crossed with your
+  recovery. _(Train → Body tile.)_
+- **Breathe and Intervals** — A breathing pacer with haptic pulses, and an interval timer that
+  alerts without looking. _(Train → Another way.)_
+<!-- GENERATED:ensenanza:entrenar END -->
 
 ---
 
 ## Ajustes — Settings
 
-**Tab: Ajustes · always available.**
+<!-- GENERATED:ensenanza:ajustes START -->
+Profile, units, data & backup, illness watch, reminders, support.
 
-`AjustesView.swift` opens directly (no "More" drawer, no dark legacy Settings). Warm paper, sheet
-navigation. A privacy chip up top ("On this iPhone · no account · no cloud"), then:
+- **Profile and max HR** — Age, sex, weight and height give your zones and expenditure; max HR is
+  estimated (Tanaka) or set by you. _(Settings → Profile.)_
+- **Data sources** — Import your Apple Health export, sync, write sessions to Health, record on the
+  watch, and see your coverage. _(Settings → Data sources.)_
+- **Backup and restore** — Everything to a file, or to an iCloud Drive folder automatically;
+  restoring replaces what's on the device. _(Settings → Data sources → Backup.)_
+- **Watch for illness signals** — Crosses your wrist temperature with your night pulse to warn you
+  early. Approximate, not a diagnosis. _(Settings → Monitoring.)_ · Needs Apple Watch
+- **Morning notice and workout reminder** — One reminder a day to read yourself, and one on routine
+  days; they never carry your word. _(Settings → Monitoring.)_
+- **AFib History, in the Health app** — What it sharpens (nocturnal HRV) and what it costs. Neither
+  recommended nor discouraged. _(Settings → Heart rhythm (only when it applies).)_ · Needs Apple
+  Watch
+- **During a session** — Keep the screen on, a tone when rest ends, and a notice even if you lock
+  the phone. _(Settings → During a session.)_
+- **Experimental metrics, cycle phase and recalibrate** — New approximate readings, an optional
+  experiment, and re-anchoring your baseline from today. _(Settings → Experimental.)_
+- **Exercise animations** — Cénit's only network exit, off by default: it downloads animations from
+  an external service. _(Settings → Exercise library.)_
+- **How Cénit works** — Everything the app teaches, by tab, to come back to whenever you want; and
+  see the tips again. _(Settings → More, and the «?» on each tab.)_
+- **What's new** — What changed in each version, and where to find it. _(Settings → What's new.)_
+- **Appearance and units** — System, light or dark; metric or imperial; °C or °F. _(Settings →
+  App.)_
+<!-- GENERATED:ensenanza:ajustes END -->
 
-- **Profile** — Age, Sex, Weight, Height (wheel/segmented editors, unit-aware), and **Max heart
-  rate** (Automatic = Tanaka, 208 − 0.7·age, or a Manual override). These drive your zones and
-  workout-burn estimates.
-- **App** — **Units & format** (Metric/Imperial, temperature °C/°F; display only, storage is SI).
-- **Data** — **Data & sources** (→ Data Sources) and **Recalibrate recovery** (re-anchor your
-  baseline from today; reversible, with Undo).
-- **Salud** — the **illness watch** toggle (`behavior.illnessWatch`, off by default; see below).
-- **Morning notice** (`AjustesAvisoMatutino.swift`) — a reminder (not a delivery: the app doesn't
-  wake itself; the reading computes when you open it) to read yourself in the morning, at a time you
-  set. Asks notification permission on enable; won't fake being on if iOS denied it.
-- **Training reminder** (`AjustesRecordatorioEntreno.swift`) — same pattern, on your training days
-  (read straight from your weekly split).
-- **AFib History** (`AjustesHistorialFA.swift`) — an *informed door* to Apple's AFib History,
-  shown only while your Apple Watch isn't yet giving dense beat-to-beat series. It presents both
-  faces evenly — what it tunes (night HRV as a 0.5 co-vote) and what it costs (Apple requires
-  confirming an AFib diagnosis; not for under-22s; turns off real-time irregular-rhythm alerts) —
-  and never recommends or diagnoses.
-- **During a session** — three off-by-default toggles: keep the screen on, a sound when a timed rest
-  ends, and a rest-is-up notification.
-- **Experimental** — experimental metrics (nightly vagal reserve, thermal stability, nocturnal
-  respiration, post-session recovery) and **Download the exercise library** — the **one** opt-in
-  exception to Cénit's zero-network rule (off by default; downloads exercise animations from a CDN,
-  exposing your IP to that service; with a "Delete downloaded media" button).
-- **More** — **About & support** (→ Support).
+---
+
+## Fuera del iPhone — widgets, Live Activity, Watch
+
+<!-- GENERATED:ensenanza:fuera-del-iphone START -->
+Beyond the four tabs — widgets, the Live Activity, Apple Watch, local notices and every gesture with
+its button.
+
+- **Widgets: today's routine and your week** — Your routine and your word on the Home Screen; the
+  button starts the routine. _(The iPhone widget gallery.)_
+- **The session on the Lock Screen** — Set, rest and pulse without unlocking; with a watch, rest can
+  end when your pulse drops. _(Lock Screen and Dynamic Island during a session.)_
+- **Cénit on Apple Watch** — Your word and your routine on the wrist; log sets with the crown, even
+  without the iPhone. _(The watch app; enabled in Settings → Data sources → Record on Apple Watch.)_
+  · Needs Apple Watch
+- **Local notices** — Morning, workout, rest-end and illness: all optional, all on your iPhone.
+  _(Settings → Monitoring and During a session.)_
+- **Gestures with their button** — Reorder sets, remove a round, delete a routine: every gesture has
+  a tappable path. _(Routine editor and Your Plan.)_
+<!-- GENERATED:ensenanza:fuera-del-iphone END -->
 
 ---
 

@@ -58,19 +58,25 @@ public struct Funcionalidad: Identifiable, Equatable, Sendable {
     public let piezas: [Pieza]
     /// Versión en la que existe esta funcionalidad, p. ej. `"1.85"`.
     public let desde: String
+    /// Nodos del Mapa 100 % (`docs/appmap/mapa/<familia>.json`, épico FER-379) donde vive esta
+    /// funcionalidad, como `"<familia>/<nodo-id>"` (0..n; nunca `componentes`). Solo un dato para
+    /// cruzar docs — `Tools/check-ensenanza-mapa.py` verifica que cada nodo exista (FER-439).
+    public let mapa: [String]
 
     public init(
         id: FuncionalidadID,
         pestana: Pestana,
         requiere: [Requisito] = [],
         piezas: [Pieza],
-        desde: String
+        desde: String,
+        mapa: [String] = []
     ) {
         self.id = id
         self.pestana = pestana
         self.requiere = requiere
         self.piezas = piezas
         self.desde = desde
+        self.mapa = mapa
     }
 
     public var nombreKey: String { "ensenanza.\(id.rawValue).nombre" }
