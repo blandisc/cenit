@@ -20,6 +20,21 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
 
 ## Unreleased
 
+### Interno · las particiones de datos pierden la marca heredada / Internal · data partitions lose the legacy brand (FER-479)
+- **ES** — Cambio interno, sin efecto para quien usa la app. Los identificadores con los que Cénit
+  marca de qué fuente viene cada fila en su base local (y que un vistazo al binario dejaba ver:
+  `strap`, `strap-noop`, `noop-journal`, `apple-health-noop`, `whoop`) pasaron a nombres neutros
+  (`primary`, `primary-computed`, `journal`, `apple-health-computed`, `legacy`). Una migración
+  (`v44`) reescribe de una sola vez los datos ya guardados en tu teléfono, sin perder ni una fila y
+  sin tocar el esquema; una instalación nueva ya nace con los nombres neutros. Tus datos, tus
+  cálculos y tus pantallas quedan idénticos.
+- **EN** — Internal change, no user-visible effect. The identifiers Cénit uses to tag which source
+  each row in its local database came from (visible in a peek at the binary: `strap`, `strap-noop`,
+  `noop-journal`, `apple-health-noop`, `whoop`) were renamed to neutral names (`primary`,
+  `primary-computed`, `journal`, `apple-health-computed`, `legacy`). A migration (`v44`) rewrites the
+  data already on your phone in one pass, losing no row and touching no schema; a fresh install is
+  born with the neutral names. Your data, your math, and your screens stay identical.
+
 ### Deslizadores de descanso al sistema de diseño / Rest sliders adopt the design system (FER-482)
 - **ES** — Los deslizadores del editor de descanso (margen sobre tu reposo, reserva, caída desde el
   pico, pulso fijo) ahora usan el deslizador de vidrio de Cénit en vez del control genérico de iOS:

@@ -93,9 +93,10 @@ enum MetricCatalog {
     /// El orden ES el orden de las secciones en pantalla. Inglés a propósito: es identidad.
     static let categories = ["Heart", "Recovery", "Sleep", "Strain", "Health"]
 
-    /// Ids de partición, valores persistidos: así están escritos en las filas del disco.
+    /// Ids de partición, valores persistidos: así están escritos en las filas del disco (neutros desde
+    /// FER-479; la migración `v44` reescribió las filas heredadas a estos nombres).
     private enum Partition {
-        static let legacy = "strap"
+        static let legacy = "primary"
         static let apple = "apple-health"
     }
 

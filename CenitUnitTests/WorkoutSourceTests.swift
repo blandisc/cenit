@@ -8,12 +8,12 @@ import CenitStore
 /// manual y qué se conserva al editar.
 final class WorkoutSourceTests: XCTestCase {
 
-    // Datos en disco: los valores de `source` con los que quedaron escritas las filas de builds
-    // anteriores. La prueba los reproduce textuales porque eso es justo lo que `classify` debe leer.
-    private static let legacySource = "whoop"
-    private static let computedSource = "strap-noop"
-    private static let otherComputedSource = "my-whoop-noop"
-    private static let appName = "Whoop"
+    // Datos en disco: los valores de `source` ya migrados (neutros desde FER-479). La prueba los
+    // reproduce textuales porque eso es justo lo que `classify` debe leer tras la migración `v44`.
+    private static let legacySource = "legacy"
+    private static let computedSource = "primary-computed"
+    private static let otherComputedSource = "my-legacy-computed"
+    private static let appName = "Legacy"
 
     // MARK: - De dónde viene la fila
 

@@ -10,8 +10,11 @@ public enum DataSourceMode: String, Codable, CaseIterable, Sendable {
     /// On-device stream + Apple Health: the on-device row wins, Apple fills the gaps (the historical default).
     case combined
     /// Legacy on-device stream only — Apple Health is excluded from every read (a night without it stays empty).
-    /// The raw value stays as it was written: any preference already saved on disk must still decode.
-    case legacyOnly = "whoopOnly"
+    /// Raw value is neutral since FER-479 (it was the branded on-device-only token before). Safe to change
+    /// with no preference migration: `SourceModeStore` is PINNED to `.appleHealthOnly` and deliberately
+    /// ignores the persisted `sources.dataSourceMode` (since the band amputation, FER-1003), so no live
+    /// setting decodes this raw value off disk — an old persisted token was already inert, nothing is lost.
+    case legacyOnly = "legacyOnly"
     /// Apple Health only — the on-device stream is excluded from every read (its rows stay stored, just unused).
     case appleHealthOnly
 

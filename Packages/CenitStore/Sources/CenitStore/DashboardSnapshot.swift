@@ -14,9 +14,10 @@ import CenitTraining
 /// Parameters of the one-pass dashboard read. The two flags reproduce the source-mode gating
 /// Repository does at query time — an excluded source is not read at all.
 public struct DashboardReadRequest: Sendable {
-    // Los tres ids de partición son valores PERSISTIDOS: así están escritos en las filas del disco.
-    public var legacyDeviceId: String        // "strap"
-    public var computedDeviceId: String     // "strap-noop"
+    // Los tres ids de partición son valores PERSISTIDOS: así están escritos en las filas del disco
+    // (neutros desde FER-479; la migración `v44` reescribió las filas heredadas a estos nombres).
+    public var legacyDeviceId: String        // "primary"
+    public var computedDeviceId: String     // "primary-computed"
     public var appleDeviceId: String        // "apple-health"
     public var fromDay: String              // YYYY-MM-DD window (dailyMetrics / appleDaily / metricSeries)
     public var toDay: String

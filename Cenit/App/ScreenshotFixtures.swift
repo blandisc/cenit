@@ -468,9 +468,10 @@ enum ScreenshotFixtures {
     /// plus a dense 8-week bench progression (2 sessions/week, a raise every ~2) so «Detalle · Progreso»
     /// draws real charts — 1RM trend, best-set sparkline, weekly volume bars — and «Historial» shows
     /// day blocks with set chips + the RÉCORD badge on today (FER-951).
-    /// Dato en disco: el valor de `source` con el que quedaron marcadas las filas del dispositivo
-    /// anterior. El fixture lo reproduce para que `WorkoutSource.classify` lo lea igual que en real.
-    private static let legacyWorkoutSource = "whoop"
+    /// Dato en disco: el valor de `source` con el que quedan marcadas las filas heredadas ya
+    /// migradas (neutro desde FER-479). El fixture lo reproduce para que `WorkoutSource.classify` lo
+    /// lea igual que en real.
+    private static let legacyWorkoutSource = "legacy"
 
     private static func seedSessions(store: CenitStore, pushId: String, pullId: String, legsId: String) async {
         let cal = Calendar(identifier: .gregorian)

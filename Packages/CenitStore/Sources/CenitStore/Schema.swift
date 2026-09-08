@@ -9,19 +9,68 @@ import GRDB
 
 extension CenitStore {
 
-    /// El migrador del paquete: **una** migración registrada.
+    /// El migrador del paquete: `"v43"` instala el esquema; `"v44"` renombra las particiones heredadas.
     ///
     /// El identificador `"v43"` no es arbitrario. La base que ya está instalada trae en su ledger
     /// `grdb_migrations` los identificadores `v1`…`v43` de la historia anterior, y GRDB ignora en
-    /// silencio los que el migrador no conoce: al registrar sólo `"v43"`, esa base lo lee como
-    /// aplicado, no encuentra nada pendiente y **no ejecuta una sola sentencia de esquema**. Una
-    /// instalación nueva llega con el ledger vacío, corre `"v43"` y obtiene el esquema completo.
+    /// silencio los que el migrador no conoce: al registrar `"v43"`, esa base lo lee como aplicado y
+    /// **no ejecuta una sola sentencia de esquema**. Una instalación nueva llega con el ledger vacío,
+    /// corre `"v43"` y obtiene el esquema completo. `"v44"` sí es nueva para las dos: reescribe datos
+    /// (nunca esquema) para quitarle la marca a los identificadores de partición ya escritos.
     static func makeMigrator() -> DatabaseMigrator {
         var migrator = DatabaseMigrator()
-        // La SIGUIENTE migración es "v44"; NUNCA reusar "v1"…"v42": la base del dueño ya los tiene en
+        // La SIGUIENTE migración es "v45"; NUNCA reusar "v1"…"v43": la base del dueño ya los tiene en
         // su ledger y los saltaría en silencio, dejando su esquema atrás sin ningún error visible.
         migrator.registerMigration("v43") { db in
             for object in schema { try install(object, in: db) }
+        }
+        // La SIGUIENTE migración es "v45"; v44 renombra de una vez las particiones heredadas.
+        //
+        // Los identificadores de fuente con marca (la banda anterior, NOOP, WHOOP) quedaron ESCRITOS en
+        // la base del dueño; un `strings` del binario o la base de un usuario nuevo los mostraría. v44
+        // sólo reescribe DATOS (`UPDATE`), nunca toca el esquema: en una instalación nueva las tablas
+        // están vacías y no cambia una sola fila; en la base del dueño re-etiqueta cada partición a su
+        // nombre neutro. GRDB envuelve el bloque en una transacción, así que si cualquier `UPDATE`
+        // fallara, la base se revierte entera. Los valores DESTINO son nombres nuevos que no existían en
+        // ninguna tabla, por eso ningún `UPDATE` puede chocar con una PK, y la igualdad es EXACTA (no
+        // prefijo) para que el orden de los pares dé igual y "strap" jamás pise "strap-noop".
+        migrator.registerMigration("v44") { db in
+            // (viejo, nuevo) de cada identificador de partición. `apple-health` NO está: ya es neutro.
+            let partitionRenames = [
+                ("strap", "primary"),
+                ("strap-noop", "primary-computed"),
+                ("noop-journal", "journal"),
+                ("apple-health-noop", "apple-health-computed"),
+            ]
+            // Tablas con `deviceId` TEXT directo (la lista sale del esquema de arriba, no de memoria).
+            // `deviceIdMap` es aparte: el texto de la partición vive UNA vez ahí y las tablas de latido
+            // (hrSample/rrInterval) guardan su entero, así que renombrarlo aquí las re-etiqueta solas.
+            let deviceIdTables = ["sleepSession", "dailyMetric", "journal", "workout", "appleDaily",
+                                  "metricSeries", "experiment", "dietPlan", "dietAdherence",
+                                  "strengthSession"]
+            for (old, new) in partitionRenames {
+                try db.execute(sql: "UPDATE deviceIdMap SET deviceId = ? WHERE deviceId = ?",
+                               arguments: [new, old])
+                for table in deviceIdTables {
+                    try db.execute(sql: "UPDATE \"\(table)\" SET deviceId = ? WHERE deviceId = ?",
+                                   arguments: [new, old])
+                }
+            }
+            // Columna `source` (texto) en las dos tablas que la tienen: la marca heredada («whoop») y el
+            // id de la partición computada, con el que quedó escrito el `source` de un bout DERIVADO
+            // (`WorkoutSource` lo clasifica por el sufijo). Los dos pares mantienen la taxonomía viva
+            // tras el flip de constantes: «legacy» para `classify`'s `contains`, «-computed» para su
+            // `hasSuffix`.
+            let sourceRenames = [
+                ("whoop", "legacy"),
+                ("strap-noop", "primary-computed"),
+            ]
+            for table in ["workout", "strengthSession"] {
+                for (old, new) in sourceRenames {
+                    try db.execute(sql: "UPDATE \"\(table)\" SET source = ? WHERE source = ?",
+                                   arguments: [new, old])
+                }
+            }
         }
         return migrator
     }

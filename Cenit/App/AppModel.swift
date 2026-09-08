@@ -18,8 +18,9 @@ import CenitTraining
     /// abra el app, en vez de sostener el modelo de por vida (#42).
     static weak var shared: AppModel?
 
-    /// Partición histórica de filas; se conserva el valor porque está escrito en la DB (FER-398).
-    let legacyDeviceId = "strap"
+    /// Partición raíz de filas. Valor neutro desde FER-479: la migración `v44` reescribió las filas
+    /// que el dispositivo anterior había dejado bajo el id con marca a este nombre.
+    let legacyDeviceId = "primary"
     /// Identificador de la fuente de Apple Salud. Se guarda al lado de las filas heredadas para que
     /// las páginas por fuente y el consenso puedan compararlas. Valor persistido.
     let appleDeviceId = "apple-health"

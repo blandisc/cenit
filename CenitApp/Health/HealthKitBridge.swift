@@ -957,8 +957,9 @@ final class HealthKitBridge: ObservableObject {
         // tarde, sin reprocesar los 45 días completos en cada sync.
         guard let dbStore = await repo.storeHandle() else { return false }
         // Dato en disco: es el id de partición con el que ya se escribieron las filas de usuarios
-        // existentes. Cambiar la cadena dejaría esas noches huérfanas.
-        let deviceId = "apple-health-noop"
+        // existentes. Neutro desde FER-479: la migración `v44` reescribió `apple-health-noop`→
+        // `apple-health-computed`, así que este id sigue apuntando a las mismas noches.
+        let deviceId = "apple-health-computed"
         let today = Date()
         let calendar = Calendar.current
         guard let floor45 = calendar.date(byAdding: .day, value: -45, to: calendar.startOfDay(for: today)) else {
