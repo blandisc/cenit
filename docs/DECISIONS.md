@@ -412,3 +412,33 @@ el contrato. Cuatro decisiones:
 
 Un solo hogar para el copy: `WhatMovesItFinding.phrase` resuelve `patron.<relación>.<rises|falls>`
 del catálogo; ninguna pantalla vuelve a llevar su propio switch de frases.
+
+## 2026-09-07 · `sleep.priorNight` a parcial de 2º orden (FER-480) · director, reversible
+
+Hallazgo del CDO en el re-check posterior a FER-438: el fix de FER-438 (parcial de Spearman de 1er
+orden) arregló los tres pares lag +1 del esfuerzo, pero **no tocó** el auto-lag `sleep.priorNight`
+(sueño de hoy ← sueño de la noche anterior), que hereda el MISMO confound de calendario en ambos
+extremos del par a la vez — la noche larga del día de entreno (extremo x) y la noche corta del día
+siguiente, que rara vez también entrena (extremo y, por la autocorrelación ρ₁ ≈ −0.39 del esfuerzo).
+En una fixture de puro calendario (`sleep = 420 + 35·W(i)`, sin rebote real) el auto-lag daba
+r = −0.405, p = 0.0015; Monte-Carlo (n = 59, 2000 sims) disparaba falso el 17.3 % de las veces.
+
+**Decisión: extender el motor a un parcial de Spearman de 2º orden** (`CorrelationEngine.
+spearmanPartial2`), controlando esfuerzo[D] Y esfuerzo[D+1] a la vez — no degradar ni retirar la
+relación, porque el parcial de 2º orden SÍ la deja estimable honestamente: en la misma fixture de
+puro calendario cae a r ≈ −0.016, p ≈ 0.91 (deja de disparar), y en una fixture con un rebote real
+superpuesto al mismo calendario sigue disparando (r ≈ −0.99). Método elegido: recursión de la
+fórmula de Fisher (1924) — el parcial de orden 1 aplicado tres veces para sacar z1 de x, y y z2, y
+una cuarta vez para sacar el z2 residual — en vez de invertir una matriz de regresión; es
+algebraicamente el mismo coeficiente que dejaría una regresión por mínimos cuadrados de los
+midranks de x e y sobre {z1, z2} en los residuos (`CorrelationEngineOracleTests` cruza ambos
+caminos). p por t exacta con df = n − 4 (dos grados de libertad, uno por control).
+
+El resto de la familia (los tres pares lag +1 ya arreglados por FER-438 con parcial de 1er orden, y
+`strain.efficiency` / `steps.efficiency`) queda intacto: mismo gate (n efectivo Bartlett, piso de
+clase minoritaria ≥ 10, Benjamini-Hochberg, `minAbsR` 0.20, `maxQ` 0.05, pisos de n). El comentario
+del test y la nota de archivo que llamaban «legítimo» a este disparo (`WhatMovesItTests`,
+`WhatMovesIt.swift`) quedan corregidos: era el mismo artefacto de calendario que FER-438 ya había
+identificado en los pares cruzados, solo que sin corregir en el auto-lag. El copy
+`patron.sleep.priorNight.*` no cambia — la relación sigue existiendo y dispara cuando el rebote es
+real; lo que cambia es cuándo el gate la deja pasar.

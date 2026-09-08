@@ -640,6 +640,17 @@ patrón» family below:
   `r_xy·z = (r_xy − r_xz·r_yz) / √((1 − r_xz²)(1 − r_yz²))` on the midranks of x, y and z, read
   against the same t tail on **n − 3** degrees of freedom — one paid for the control (Fisher 1924).
   `triples` is `pairs` with the control read on y's day.
+- **`spearmanPartial2`** with `partialPValue2` (FER-480) is the **second-order** partial Spearman —
+  TWO controls held fixed at once — obtained by RECURSING the formula above rather than inverting a
+  matrix (Fisher 1924's general recursive relation for a partial correlation of any order): partial
+  z1 out of x, y and z2 first (three first-order partials on midranks), then partial the RESIDUAL z2
+  out of the two survivors — `r_xy·z1 = partial(r_xy, r_xz1, r_yz1)`, `r_xz2·z1 = partial(r_xz2,
+  r_xz1, r_z1z2)`, `r_yz2·z1 = partial(r_yz2, r_yz1, r_z1z2)`, `r_xy·z1z2 = partial(r_xy·z1, r_xz2·z1,
+  r_yz2·z1)` — read against the t tail on **n − 4** degrees of freedom, one per control. This is
+  algebraically the same coefficient a least-squares regression of x's and y's midranks on {z1, z2}
+  (with an intercept) would leave in the residuals' correlation; `CorrelationEngineOracleTests`
+  cross-checks the two paths agree. `quadruples` is `pairs` with one control read on x's day and the
+  other on y's day.
 
 ### `WhatMovesItEngine` — «Tu patrón»
 
@@ -653,7 +664,7 @@ Every pair is computed in one pass, so the multiplicity control can see all of t
 | Relationship | x → y | Statistic | Lag | Floor | Extra |
 | --- | --- | --- | --- | --- | --- |
 | `sleep.priorStrain` | strain[D] → sleep duration[D+1] | Spearman, **partial** on strain[D+1] | +1 | 42 | minority floor |
-| `sleep.priorNight` | sleep duration[D] → sleep duration[D+1] | Pearson | +1 | 42 | raw n (auto-lag) |
+| `sleep.priorNight` | sleep duration[D] → sleep duration[D+1] | Spearman, **partial (2nd order)** on strain[D] and strain[D+1] | +1 | 42 | raw n (auto-lag) |
 | `strain.efficiency` | sleep efficiency[D] → strain[D] | Spearman | 0 | 56 | minority floor |
 | `efficiency.priorStrain` | strain[D] → sleep efficiency[D+1] | Spearman, **partial** on strain[D+1] | +1 | 56 | minority floor |
 | `steps.efficiency` | sleep efficiency[D] → steps[D] | Spearman | 0 | 56 | today's partial count excluded |
@@ -685,10 +696,20 @@ series also drops today itself, a partial running total.
    fixture (sleep = 420 + 35·W(i) + 8·K(i)) read ρ = −0.28, q = 0.03; the partial reads +0.04. A
    real next-day effect survives the control (+0.78 → +0.75 on the positive fixture). The triples
    need strain on both days, so a D whose next day has no strain leaves that pair.
-5. **Family control** — the p-values of every testable pair go through Benjamini-Hochberg
+5. **Second-order partial on the sleep auto-lag** (FER-480) — `sleep.priorNight` sits on BOTH ends of
+   the same calendar artefact at once: x = duration[D] is long because D followed a training day, and
+   y = duration[D+1] falls on a day that, by the strain series' own ρ₁ ≈ −0.39, is rarely also a
+   training day. Holding one side's strain fixed (piece 4 above) is not enough here; it takes strain
+   on BOTH days at once — `spearmanPartial2` holding z1 = strain[D] and z2 = strain[D+1] fixed, p on
+   n − 4. The CDO's pure-calendar fixture (sleep = 420 + 35·W(i), no real rebound term) read
+   r = −0.405, p = 0.0015 before the control — a confident «shorter the night after» that was 100%
+   the training calendar; the second-order partial reads r ≈ −0.016, p ≈ 0.91: nothing left. A real
+   homeostatic rebound (Borbély 1982 process S) or nightly habit, superposed on the same calendar,
+   survives the double control (`WhatMovesItTests.testSleepPriorNightSurvivesTheCalendarWithARealReboundUnderneath`).
+6. **Family control** — the p-values of every testable pair go through Benjamini-Hochberg
    (`MultipleComparisons`); a finding needs **q < 0.05**. Eight tests at α = 0.05 would otherwise
    yield at least one false finding 34% of the time under the null.
-6. `|r| ≥ 0.20` is **cosmetic**: below n ≈ 97 the q is the binding bar (|r| ≥ 0.30 at n = 42).
+7. `|r| ≥ 0.20` is **cosmetic**: below n ≈ 97 the q is the binding bar (|r| ≥ 0.30 at n = 42).
 
 Below the gate the metric has nothing to assert, so the sheet hides the block and the detail says
 «todavía»; it never invents a direction. Power is deliberately low (r = 0.30 at n = 42 is about
@@ -713,10 +734,12 @@ efficiency, wake after onset, slow-wave sleep); Atoui 2021 (efficiency and wake 
 next-day activity; activity → shorter total sleep, small); Lambiase 2013; Mead 2019 (day of week
 confounds activity — hence «el calendario también pesa»); Borbély 1982 and 2022 (process S);
 Dettoni 2012 and Faust 2020 (short or late nights → resting pulse up); Stanley 2013 (parasympathetic
-reactivation 24–48 h after hard effort); Zar 1972; Bartlett 1935; Fisher 1924; Benjamini and Hochberg
-1995. Tests: `WhatMovesItTests` (a positive and a negative fixture per relationship, one fixture per
-gate piece, and the calendar-artefact fixture the partial exists for) and
-`CorrelationEngineOracleTests`.
+reactivation 24–48 h after hard effort); Zar 1972; Bartlett 1935; Fisher 1924 (both the first- and
+the second-order partial, FER-438 / FER-480); Benjamini and Hochberg 1995. Tests: `WhatMovesItTests`
+(a positive and a negative fixture per relationship, one fixture per gate piece, and the
+calendar-artefact fixtures — pure and with a real rebound superposed — the two partial orders exist
+for) and `CorrelationEngineOracleTests` (including the second-order partial cross-checked against an
+independent least-squares residual regression).
 
 ---
 

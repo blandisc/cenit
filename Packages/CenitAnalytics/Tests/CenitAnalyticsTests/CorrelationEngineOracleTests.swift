@@ -280,6 +280,161 @@ final class CorrelationEngineOracleTests: XCTestCase {
         XCTAssertEqual(CorrelationEngine.pValue(r: 0.9, n: 2), 1.0)
     }
 
+    // MARK: - Second-order partial Spearman (FER-480)
+
+    func testQuadruplesDropsDaysMissingAnySideAndKeepsTheLastEntry() throws {
+        let x: [(day: String, value: Double)] = [("2026-01-01", 1), ("2026-01-02", 2), ("2026-01-03", 3)]
+        let y: [(day: String, value: Double)] = [("2026-01-02", 10), ("2026-01-03", 20), ("2026-01-04", 30)]
+        let z1: [(day: String, value: Double)] = [("2026-01-01", 100), ("2026-01-02", 200)]
+        let z2: [(day: String, value: Double)] = [("2026-01-02", -1), ("2026-01-02", -2), ("2026-01-03", -3)]
+        // Days 01-01 and 01-02 have x, y[shifted], z1[D] AND z2[shifted] all present; 01-03 does not
+        // (z1 has no entry for it), so it is dropped. A repeated day (z2's 01-02) keeps its LAST
+        // entry, −2 — the control read on 01-01's shifted day.
+        let q = CorrelationEngine.quadruples(x: x, y: y, z1: z1, z2: z2, lagDays: 1)
+        XCTAssertEqual(q.count, 2)
+        XCTAssertTrue(q[0] == (1, 10, 100, -2))
+        XCTAssertTrue(q[1] == (2, 20, 200, -3))
+    }
+
+    func testSpearmanPartial2MatchesHandComputedRanks() throws {
+        // Distinct integers 1…6, so ranks are the values and ρ = 1 − 6Σd²/(n(n² − 1)), n(n² − 1) = 210:
+        // xy Σd² = 26 → 9/35; xz1 Σd² = 28 → 1/5; yz1 Σd² = 42 → −1/5;
+        // xz2 Σd² = 18 → 17/35; yz2 Σd² = 32 → 3/35; z1z2 Σd² = 34 → 1/35.
+        let quads: [(Double, Double, Double, Double)] = [
+            (1, 4, 4, 4), (2, 2, 1, 2), (3, 3, 3, 3), (4, 5, 5, 1), (5, 1, 6, 5), (6, 6, 2, 6),
+        ]
+        let c = try XCTUnwrap(CorrelationEngine.spearmanPartial2(quads))
+        XCTAssertEqual(c.n, 6)
+
+        // The recursion: hold z1 fixed on x, y and z2 first (three first-order partials, already
+        // tested independently), then hold the RESIDUAL z2 fixed on the two survivors.
+        let rxy: Double = 9.0 / 35, rxz1: Double = 1.0 / 5, ryz1: Double = -1.0 / 5
+        let rxz2: Double = 17.0 / 35, ryz2: Double = 3.0 / 35, rz1z2: Double = 1.0 / 35
+        let xyGivenZ1 = try XCTUnwrap(CorrelationEngine.partial(rxy: rxy, rxz: rxz1, ryz: ryz1))
+        let xz2GivenZ1 = try XCTUnwrap(CorrelationEngine.partial(rxy: rxz2, rxz: rxz1, ryz: rz1z2))
+        let yz2GivenZ1 = try XCTUnwrap(CorrelationEngine.partial(rxy: ryz2, rxz: ryz1, ryz: rz1z2))
+        XCTAssertEqual(xyGivenZ1, 13.0 / 42, accuracy: 1e-12, "the middle step is exactly 13/42")
+        let expected = try XCTUnwrap(CorrelationEngine.partial(rxy: xyGivenZ1, rxz: xz2GivenZ1, ryz: yz2GivenZ1))
+        XCTAssertEqual(c.r, expected, accuracy: 1e-12)
+        XCTAssertEqual(c.r, 0.3039337023168104, accuracy: 1e-9)
+
+        // …and its p is the t tail on df = n − 4 = 2: two degrees of freedom paid for the two controls.
+        let t = c.r * (2 / (1 - c.r * c.r)).squareRoot()
+        XCTAssertEqual(c.pApprox, CorrelationEngine.studentTTwoSided(t: t, df: 2), accuracy: 1e-12)
+        XCTAssertEqual(c.pApprox, 0.696066, accuracy: 1e-6)
+    }
+
+    func testSpearmanPartial2AgreesWithLeastSquaresResidualRegression() throws {
+        // An independent second path to the SAME coefficient (documented in CorrelationEngine.swift as
+        // the reason the recursion is valid): regress x's and y's midranks on {z1, z2} with an
+        // intercept by ordinary least squares, and correlate the residuals. On the fixture above the
+        // two paths must agree to double precision.
+        let quads: [(Double, Double, Double, Double)] = [
+            (1, 4, 4, 4), (2, 2, 1, 2), (3, 3, 3, 3), (4, 5, 5, 1), (5, 1, 6, 5), (6, 6, 2, 6),
+        ]
+        let recursive = try XCTUnwrap(CorrelationEngine.spearmanPartial2(quads))
+        let byResiduals = try XCTUnwrap(residualPartial(quads))
+        XCTAssertEqual(recursive.r, byResiduals, accuracy: 1e-9)
+    }
+
+    func testSpearmanPartial2RemovesWhatASingleControlAlreadyExplained() throws {
+        // The FER-438 order-1 fixture (`testPartialSpearmanRemovesWhatTheControlExplains`), with a
+        // SECOND control added: x and y read ρ_xy = −0.4 purely through z1 (x tracks z1, y tracks z1),
+        // and z2 is IDENTICAL to z1 — a control perfectly collinear with the other control. The first
+        // recursion step (holding z1 fixed) already leaves nothing between x and y; z2 buys nothing
+        // more, and being collinear with z1 (|r_z1z2| = 1) it collapses the second step's denominator
+        // to zero — `nil`, not a wrong number.
+        let xyz1: [(Double, Double, Double)] = [(1, 5, 4), (2, 3, 5), (3, 2, 3), (4, 1, 1), (5, 4, 2)]
+        let plain = try XCTUnwrap(CorrelationEngine.spearman(xyz1.map { ($0.0, $0.1) }))
+        XCTAssertEqual(plain.r, -0.4, accuracy: 1e-12)
+        let orderOne = try XCTUnwrap(CorrelationEngine.spearmanPartial(xyz1))
+        XCTAssertEqual(orderOne.r, 0, accuracy: 1e-12, "z1 alone already explains it")
+        let quads = xyz1.map { (x: Double, y: Double, z1: Double) in (x, y, z1, z1) }
+        XCTAssertNil(CorrelationEngine.spearmanPartial2(quads), "z2 collinear with z1")
+    }
+
+    func testSpearmanPartial2RefusesWhatItCannotEstimate() throws {
+        XCTAssertEqual(CorrelationStrength.minPairs + 2, 5, "two more than pearson's: two controls cost two df")
+        XCTAssertNil(CorrelationEngine.spearmanPartial2([(1, 2, 1, 3), (2, 1, 3, 1), (3, 4, 2, 4), (4, 3, 4, 2)]),
+                     "four quadruples, below the floor of five")
+        // z1 identical to x: |r_xz1| = 1 collapses the FIRST recursion step (x, y given z1) to nothing.
+        let z1IsX: [(Double, Double, Double, Double)] = [
+            (1, 2, 1, 5), (2, 1, 2, 3), (3, 5, 3, 1), (4, 3, 4, 4), (5, 4, 5, 2),
+        ]
+        XCTAssertNil(CorrelationEngine.spearmanPartial2(z1IsX))
+        // A control that does not vary at all.
+        let constantZ2: [(Double, Double, Double, Double)] = [
+            (1, 2, 5, 7), (2, 1, 3, 7), (3, 5, 4, 7), (4, 3, 1, 7), (5, 4, 2, 7),
+        ]
+        XCTAssertNil(CorrelationEngine.spearmanPartial2(constantZ2))
+        // x itself does not vary.
+        let constantX: [(Double, Double, Double, Double)] = [
+            (7, 2, 5, 1), (7, 1, 3, 2), (7, 5, 4, 3), (7, 3, 1, 4), (7, 4, 2, 5),
+        ]
+        XCTAssertNil(CorrelationEngine.spearmanPartial2(constantX))
+    }
+
+    func testPartialPValue2IsTheTailOnTwoFewerDegreesOfFreedom() throws {
+        // df = n − 4: the order-2 partial at n reads exactly the plain tail at n − 2 — two degrees of
+        // freedom paid for the two controls (Fisher 1924), one more than `partialPValue`'s n − 3.
+        XCTAssertEqual(CorrelationEngine.partialPValue2(r: 0.5, n: 12), CorrelationEngine.pValue(r: 0.5, n: 10),
+                       accuracy: 1e-15)
+        XCTAssertEqual(CorrelationEngine.partialPValue2(r: 0.5, n: 12), CorrelationEngine.partialPValue(r: 0.5, n: 11),
+                       accuracy: 1e-15, "one fewer df than the first-order partial at the same n")
+        XCTAssertGreaterThan(CorrelationEngine.partialPValue2(r: 0.5, n: 12), CorrelationEngine.partialPValue(r: 0.5, n: 12))
+        // A fractional n (an effective n) is the same tail; n ≤ 4 has no evidence; a perfect fit no residual.
+        XCTAssertEqual(CorrelationEngine.partialPValue2(r: 0.5, n: 12.5), CorrelationEngine.pValue(r: 0.5, n: 10.5),
+                       accuracy: 1e-15)
+        XCTAssertEqual(CorrelationEngine.partialPValue2(r: 0.9, n: 4), 1.0)
+        XCTAssertEqual(CorrelationEngine.partialPValue2(r: 1.0, n: 30), 0.0)
+    }
+
+    /// Second path to `spearmanPartial2`'s coefficient, for `testSpearmanPartial2AgreesWithLeastSquaresResidualRegression`
+    /// ONLY — never used by production, which recurses `partial(rxy:rxz:ryz:)` instead (see
+    /// CorrelationEngine.swift). Regresses x's and y's midranks on {1, z1, z2} by ordinary least
+    /// squares (a 3×3 normal-equations solve by Cramer's rule) and returns the Pearson r of the two
+    /// residual series; `nil` on a singular system or a residual series with no variance.
+    private func residualPartial(_ quads: [(Double, Double, Double, Double)]) -> Double? {
+        let n = quads.count
+        let rx = CorrelationEngine.midranks(quads.map { $0.0 })
+        let ry = CorrelationEngine.midranks(quads.map { $0.1 })
+        let rz1 = CorrelationEngine.midranks(quads.map { $0.2 })
+        let rz2 = CorrelationEngine.midranks(quads.map { $0.3 })
+        let design = (0..<n).map { [1.0, rz1[$0], rz2[$0]] }
+
+        func det3(_ m: [[Double]]) -> Double {
+            m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1])
+                - m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0])
+                + m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0])
+        }
+        func solve(_ target: [Double]) -> [Double]? {
+            var xtx = [[Double]](repeating: [Double](repeating: 0, count: 3), count: 3)
+            var xty = [Double](repeating: 0, count: 3)
+            for a in 0..<3 {
+                for b in 0..<3 { xtx[a][b] = (0..<n).reduce(0) { $0 + design[$1][a] * design[$1][b] } }
+                xty[a] = (0..<n).reduce(0) { $0 + design[$1][a] * target[$1] }
+            }
+            let d = det3(xtx)
+            guard abs(d) > 1e-12 else { return nil }
+            return (0..<3).map { col -> Double in
+                var m = xtx
+                for r in 0..<3 { m[r][col] = xty[r] }
+                return det3(m) / d
+            }
+        }
+        guard let bx = solve(rx), let by = solve(ry) else { return nil }
+        let residX = (0..<n).map { rx[$0] - (bx[0] + bx[1] * rz1[$0] + bx[2] * rz2[$0]) }
+        let residY = (0..<n).map { ry[$0] - (by[0] + by[1] * rz1[$0] + by[2] * rz2[$0]) }
+        let mx = residX.reduce(0, +) / Double(n), my = residY.reduce(0, +) / Double(n)
+        var sxx = 0.0, syy = 0.0, sxy = 0.0
+        for i in 0..<n {
+            let dx = residX[i] - mx, dy = residY[i] - my
+            sxx += dx * dx; syy += dy * dy; sxy += dx * dy
+        }
+        guard sxx > 1e-9, syy > 1e-9 else { return nil }
+        return sxy / (sxx * syy).squareRoot()
+    }
+
     // MARK: - Effective sample size (FER-438)
 
     func testLag1AutocorrelationMatchesHandComputedValues() throws {

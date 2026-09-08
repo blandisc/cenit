@@ -26,6 +26,16 @@ import CenitModels
 //   night after». The post-implementation gate's fixture (sleep = 420 + 35·W(i) + 8K(i)) read
 //   ρ = −0.28, q = 0.03 that way; the partial reads +0.04. The triples need strain on BOTH days, so a
 //   D whose next day has no strain is dropped from that pair.
+// • Second-order partial on the sleep auto-lag (FER-480): `sleepPriorNight` sits on BOTH ends of the
+//   SAME calendar artefact — x = duration[D] falls on a day whose night was long BECAUSE it followed
+//   a training day, y = duration[D+1] falls on a day that, by the strain series' own ρ₁ ≈ −0.39, is
+//   rarely also a training day. Holding one side's strain fixed (the FER-438 fix) is not enough here
+//   because the artefact touches x, not just y; it takes strain on BOTH days at once —
+//   `CorrelationEngine.spearmanPartial2` holding z1 = strain[D] and z2 = strain[D+1] fixed, p on
+//   df = n − 4. The CDO's pure-calendar fixture (sleep = 420 + 35·W(i), no real rebound) read
+//   r = −0.405, p = 0.0015 before the control; the second-order partial reads r ≈ −0.016, p ≈ 0.91 —
+//   effectively 100% of the −0.41 was the training calendar. A real homeostatic rebound (Borbély 1982
+//   or nightly habit, superposed on the same calendar, survives the double control.
 // • Effective n: the p of every CROSS pair is read on Bartlett's n_eff (`CorrelationEngine.effectiveN`,
 //   lag-1 autocorrelations truncated at 0), because daily series are autocorrelated and the raw p is
 //   anticonservative. The auto-lag (sleep → next night's sleep) does NOT: under H0 the series is white
@@ -67,7 +77,8 @@ import CenitModels
 public enum WhatMovesItRelationship: String, CaseIterable, Sendable {
     /// Yesterday's strain → tonight's sleep duration (lag +1, Spearman partial on today's strain).
     case sleepPriorStrain = "sleep.priorStrain"
-    /// Last night's duration → tonight's (lag +1, Pearson; the homeostatic rebound or the habit).
+    /// Last night's duration → tonight's (lag +1, Spearman partial of 2nd order on strain[D] AND
+    /// strain[D+1]; the homeostatic rebound or the habit, net of the training calendar — FER-480).
     case sleepPriorNight = "sleep.priorNight"
     /// Last night's efficiency → today's strain (lag 0, Spearman).
     case strainEfficiency = "strain.efficiency"
@@ -93,8 +104,9 @@ public enum WhatMovesItRelationship: String, CaseIterable, Sendable {
     }
 
     /// `spearmanPartial` is Spearman's ρ holding x on y's OWN day fixed (z = x[D + lag]) — the lag +1
-    /// strain pairs (see the file note).
-    enum Statistic { case pearson, spearman, spearmanPartial }
+    /// strain pairs (see the file note). `spearmanPartial2` holds `controlColumn` fixed on BOTH x's
+    /// and y's day at once — `sleepPriorNight` today (FER-480).
+    enum Statistic { case pearson, spearman, spearmanPartial, spearmanPartial2 }
     enum Column { case sleepDuration, efficiency, strain, steps, restingHR }
     enum Side { case x, y }
 
@@ -125,18 +137,25 @@ public enum WhatMovesItRelationship: String, CaseIterable, Sendable {
 
     var statistic: Statistic {
         switch self {
-        case .sleepPriorNight, .rhrSleepDuration:                        return .pearson
+        case .sleepPriorNight:                                           return .spearmanPartial2
+        case .rhrSleepDuration:                                          return .pearson
         case .strainEfficiency, .stepsEfficiency:                        return .spearman
         case .sleepPriorStrain, .efficiencyPriorStrain, .rhrPriorStrain: return .spearmanPartial
         }
     }
 
+    /// The series held fixed on both x's and y's day for `spearmanPartial2`; `nil` for every other
+    /// statistic. `sleepPriorNight` controls on the day's effort (FER-480).
+    var controlColumn: Column? { statistic == .spearmanPartial2 ? .strain : nil }
+
     /// Cross pairs (x and y are different columns) read p on n_eff; the auto-lag (x == y) does not
-    /// (see the file note). Only `sleepPriorNight` is an auto-lag today.
+    /// (see the file note) — under H0 the series is white and its own ρ₁ IS the statistic, whether or
+    /// not it is also read as a second-order partial. Only `sleepPriorNight` is an auto-lag today.
     var usesEffectiveN: Bool { x != y }
 
     /// Which side carries the zero-inflated strain series (minority-class floor), if any — the side
-    /// whose column is `.strain`.
+    /// whose column is `.strain`. `sleepPriorNight`'s CONTROL is strain too, but neither its x nor its
+    /// y is, so it is not gated here — the floor only ever watches x/y, never a control.
     var zeroInflatedSide: Side? { x == .strain ? .x : (y == .strain ? .y : nil) }
 
     /// Pairs with efficiency on either side take the higher floor (its reliability knob).
@@ -196,14 +215,15 @@ public struct WhatMovesItGate: Equatable, Sendable {
 /// screens never show these; they render `WhatMovesItFinding` only.
 public struct WhatMovesItCandidate: Equatable, Sendable {
     public let relationship: WhatMovesItRelationship
-    /// Spearman's ρ (partial on the same-day strain for the lag +1 strain pairs) or Pearson's r, per the
-    /// relationship's statistic.
+    /// Spearman's ρ (partial on the same-day strain for the lag +1 strain pairs; partial on strain[D]
+    /// AND strain[D+1] for `sleepPriorNight`) or Pearson's r, per the relationship's statistic.
     public let r: Double
-    /// Pairs used (triples, on the partial pairs).
+    /// Pairs used (triples on the order-1 partial pairs, quadruples on the order-2 one).
     public let n: Int
     /// Bartlett's n_eff for a cross pair; `Double(n)` for the auto-lag.
     public let nEffective: Double
-    /// Two-sided p on `nEffective` (df = n_eff − 2; n_eff − 3 on the partial pairs).
+    /// Two-sided p on `nEffective` (df = n_eff − 2; n_eff − 3 on the order-1 partial pairs; n_eff − 4
+    /// on the order-2 one, `sleepPriorNight`).
     public let p: Double
     /// Benjamini-Hochberg q over the family of candidates computed together.
     public let q: Double
@@ -225,11 +245,18 @@ public enum WhatMovesItEngine {
             let xs = series(days, relationship.x, today: today)
             let ys = series(days, relationship.y, today: today)
             let lag = relationship.lagDays
-            // The partial pairs also need x on y's day (z = x[D + lag]); a D without it is dropped, so
-            // every floor below is read on exactly the triples the coefficient will use.
-            let isPartial = relationship.statistic == .spearmanPartial
-            let triples = isPartial ? CorrelationEngine.triples(x: xs, y: ys, z: xs, lagDays: lag) : []
-            let pairs = isPartial ? triples.map { ($0.0, $0.1) } : CorrelationEngine.pairs(x: xs, y: ys, lagDays: lag)
+            // The partial pairs also need one (triples) or two (quadruples) controls read on the
+            // same days the coefficient will use, so every floor below sees exactly those rows.
+            let isPartial1 = relationship.statistic == .spearmanPartial
+            let isPartial2 = relationship.statistic == .spearmanPartial2
+            let triples = isPartial1 ? CorrelationEngine.triples(x: xs, y: ys, z: xs, lagDays: lag) : []
+            let controls = relationship.controlColumn.map { series(days, $0, today: today) }
+            let quads = isPartial2 ? CorrelationEngine.quadruples(
+                x: xs, y: ys, z1: controls ?? [], z2: controls ?? [], lagDays: lag) : []
+            let pairs: [(Double, Double)]
+            if isPartial1 { pairs = triples.map { ($0.0, $0.1) } }
+            else if isPartial2 { pairs = quads.map { ($0.0, $0.1) } }
+            else { pairs = CorrelationEngine.pairs(x: xs, y: ys, lagDays: lag) }
             guard pairs.count >= gate.minPairs(for: relationship) else { continue }
 
             if let side = relationship.zeroInflatedSide {
@@ -242,20 +269,23 @@ public enum WhatMovesItEngine {
             let x = pairs.map { $0.0 }, y = pairs.map { $0.1 }
             let coefficient: (r: Double, n: Int)?
             switch relationship.statistic {
-            case .pearson:         coefficient = CorrelationEngine.pearson(pairs).map { ($0.r, $0.n) }
-            case .spearman:        coefficient = CorrelationEngine.spearman(pairs).map { ($0.r, $0.n) }
-            case .spearmanPartial: coefficient = CorrelationEngine.spearmanPartial(triples).map { ($0.r, $0.n) }
+            case .pearson:          coefficient = CorrelationEngine.pearson(pairs).map { ($0.r, $0.n) }
+            case .spearman:         coefficient = CorrelationEngine.spearman(pairs).map { ($0.r, $0.n) }
+            case .spearmanPartial:  coefficient = CorrelationEngine.spearmanPartial(triples).map { ($0.r, $0.n) }
+            case .spearmanPartial2: coefficient = CorrelationEngine.spearmanPartial2(quads).map { ($0.r, $0.n) }
             }
             guard let c = coefficient else { continue }
 
-            // n_eff is read on the ranks for Spearman (partial included), on the values for Pearson; the
-            // auto-lag reads raw n (`pValue` on an integer n is exactly `Correlation.pApprox`).
+            // n_eff is read on the ranks for Spearman (both partial orders included), on the values
+            // for Pearson; the auto-lag reads raw n (`pValue` on an integer n is exactly
+            // `Correlation.pApprox`) — see `usesEffectiveN`.
             let ranked = relationship.statistic != .pearson
             let ex = ranked ? CorrelationEngine.midranks(x) : x
             let ey = ranked ? CorrelationEngine.midranks(y) : y
             let nEff = relationship.usesEffectiveN ? CorrelationEngine.effectiveN(x: ex, y: ey) : Double(c.n)
-            let p = isPartial ? CorrelationEngine.partialPValue(r: c.r, n: nEff)
-                              : CorrelationEngine.pValue(r: c.r, n: nEff)
+            let p = isPartial1 ? CorrelationEngine.partialPValue(r: c.r, n: nEff)
+                  : isPartial2 ? CorrelationEngine.partialPValue2(r: c.r, n: nEff)
+                  : CorrelationEngine.pValue(r: c.r, n: nEff)
             tested.append(Tested(relationship: relationship, r: c.r, n: c.n, nEff: nEff, p: p))
         }
 

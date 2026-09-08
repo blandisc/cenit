@@ -86,8 +86,9 @@ final class WhatMovesItTests: XCTestCase {
         XCTAssertEqual(c.n, 59)
         XCTAssertEqual(c.r, 0.042, accuracy: 0.01)
         XCTAssertGreaterThan(c.p, 0.5)
-        // The auto-lag legitimately fires on this series (a long night is never followed by one); the
-        // strain pair does not.
+        // NOT "the auto-lag legitimately fires on this series" (that was wrong — FER-480): the SAME
+        // series feeds sleep.priorNight the identical calendar artefact, on BOTH ends of its pair, and
+        // the second-order partial (`testSleepPriorNightIgnoresTheCalendarArtefact` below) kills it too.
         XCTAssertFalse(WhatMovesItEngine.family(days: days, today: day(60))["sleep"]?
             .contains { $0.relationship == .sleepPriorStrain } ?? false)
     }
@@ -104,37 +105,81 @@ final class WhatMovesItTests: XCTestCase {
             .contains { $0.relationship == .sleepPriorStrain } ?? false)
     }
 
-    // MARK: - sleep.priorNight (duration[D] → duration[D+1], Pearson, lag +1, raw n)
+    // MARK: - sleep.priorNight (duration[D] → duration[D+1], Spearman PARTIAL of 2nd order on
+    // strain[D] and strain[D+1], lag +1, raw n — FER-480)
 
     func testSleepPriorNightReboundFalls() throws {
-        // ±40 alternating: a long night is followed by a short one (process S).
-        let days = (0..<60).map { row($0, sleep: 420 + ($0 % 2 == 1 ? -40 : 40) + 6 * J($0)) }
+        // ±40 alternating (process S) + strain(i): the calendar's 2/week training days are unrelated
+        // to the alternation's period-2 pattern, so a real rebound survives holding both days' effort
+        // fixed — the plain Pearson read −0.9925 before the control; the partial reads −0.882.
+        let days = (0..<60).map { row($0, sleep: 420 + ($0 % 2 == 1 ? -40 : 40) + 6 * J($0), strain: strain($0)) }
         let c = try XCTUnwrap(candidate(.sleepPriorNight, in: days, today: day(60)))
         XCTAssertEqual(c.n, 59)
-        XCTAssertEqual(c.r, -0.9925, accuracy: 0.01)
-        XCTAssertLessThan(c.p, 1e-40)
+        XCTAssertEqual(c.r, -0.882, accuracy: 0.005, "the 2nd-order partial; the plain r reads −0.9925")
+        XCTAssertLessThan(c.p, 1e-15)
         XCTAssertEqual(c.nEffective, 59, accuracy: 1e-12, "the auto-lag reads p on raw n, never on n_eff")
         XCTAssertEqual(WhatMovesItEngine.family(days: days, today: day(60)),
                        ["sleep": [finding(.sleepPriorNight, .falls)]])
     }
 
     func testSleepPriorNightHabitRises() throws {
-        // A slow drift (+2/3 min a night): tonight resembles last night.
-        let days = (0..<60).map { row($0, sleep: 400 + 2 * Double($0) / 3 + 6 * J($0)) }
+        // A slow drift (+2/3 min a night) + strain(i): tonight resembles last night, and the training
+        // calendar barely moves the coefficient (+0.7704 plain → +0.7835 held on both days' effort).
+        let days = (0..<60).map { row($0, sleep: 400 + 2 * Double($0) / 3 + 6 * J($0), strain: strain($0)) }
         let c = try XCTUnwrap(candidate(.sleepPriorNight, in: days, today: day(60)))
-        XCTAssertEqual(c.r, 0.770, accuracy: 0.01)
-        XCTAssertLessThan(c.p, 1e-11)
+        XCTAssertEqual(c.r, 0.784, accuracy: 0.005, "the 2nd-order partial; the plain r reads +0.7704")
+        XCTAssertLessThan(c.p, 1e-10)
         XCTAssertEqual(WhatMovesItEngine.family(days: days, today: day(60)),
                        ["sleep": [finding(.sleepPriorNight, .rises)]])
     }
 
     func testSleepPriorNightHiddenOnNoise() throws {
-        // A period-4 sine has zero lag-1 autocorrelation.
-        let days = (0..<60).map { i in row(i, sleep: 420 + 25 * sin(2 * .pi * Double(i) / 4) + 6 * J(i)) }
+        // A period-4 sine has zero lag-1 autocorrelation; strain(i) does not manufacture one.
+        let days = (0..<60).map { i in
+            row(i, sleep: 420 + 25 * sin(2 * .pi * Double(i) / 4) + 6 * J(i), strain: strain(i))
+        }
         let c = try XCTUnwrap(candidate(.sleepPriorNight, in: days, today: day(60)))
-        XCTAssertEqual(c.r, -0.042, accuracy: 0.01)
+        XCTAssertEqual(c.r, -0.068, accuracy: 0.01)
         XCTAssertGreaterThan(c.p, 0.5)
         XCTAssertEqual(WhatMovesItEngine.family(days: days, today: day(60)), [:])
+    }
+
+    func testSleepPriorNightIgnoresTheCalendarArtefact() throws {
+        // FER-480, the CDO's own fixture: sleep[i] = 420 + 35·W(i) — longer ON training days, NO real
+        // rebound term at all. The strain series never trains two days running, so the SAME calendar
+        // artefact that inflated `sleep.priorStrain` (see above) inflates the auto-lag too, on BOTH
+        // ends of the pair at once: the plain Pearson reads r = −0.405, p = 0.0015 — a confident
+        // "shorter the night after" that is 100% the training calendar. Held on strain[D] AND
+        // strain[D+1], the 2nd-order partial reads r ≈ −0.016, p ≈ 0.906: nothing left.
+        let days = (0..<60).map { row($0, sleep: 420 + 35 * W($0), strain: strain($0)) }
+        let sleepSeries = (0..<60).map { (day: day($0), value: 420 + 35 * W($0)) }
+        let plain = try XCTUnwrap(CorrelationEngine.pearson(
+            CorrelationEngine.pairs(x: sleepSeries, y: sleepSeries, lagDays: 1)))
+        XCTAssertEqual(plain.r, -0.405, accuracy: 0.01, "what the auto-lag asserted before the 2nd-order partial")
+        XCTAssertLessThan(plain.pApprox, 0.01)
+
+        let c = try XCTUnwrap(candidate(.sleepPriorNight, in: days, today: day(60)))
+        XCTAssertEqual(c.n, 59)
+        XCTAssertEqual(c.r, -0.016, accuracy: 0.01)
+        XCTAssertGreaterThan(c.p, 0.5)
+        XCTAssertFalse(WhatMovesItEngine.family(days: days, today: day(60))["sleep"]?
+            .contains { $0.relationship == .sleepPriorNight } ?? false,
+            "the fixture is 100% calendar; the block must NOT describe it as a body pattern")
+    }
+
+    func testSleepPriorNightSurvivesTheCalendarWithARealReboundUnderneath() throws {
+        // The same calendar confound as above, PLUS a genuine ±25 rebound superposed: sleep[i] =
+        // 420 + 35·W(i) + (real rebound). The calendar alone would read ≈ 0 after the control (as just
+        // shown); with the real signal underneath, the partial still reads it (r ≈ −0.993) — the gate
+        // does not throw out a true effect together with the artefact.
+        let days = (0..<60).map {
+            row($0, sleep: 420 + 35 * W($0) + ($0 % 2 == 1 ? -25.0 : 25.0), strain: strain($0))
+        }
+        let c = try XCTUnwrap(candidate(.sleepPriorNight, in: days, today: day(60)))
+        XCTAssertEqual(c.r, -0.993, accuracy: 0.005)
+        XCTAssertLessThan(c.p, 1e-30)
+        XCTAssertEqual(WhatMovesItEngine.family(days: days, today: day(60)),
+                       ["sleep": [finding(.sleepPriorNight, .falls)]])
     }
 
     // MARK: - strain.efficiency (efficiency[D] → strain[D], Spearman, lag 0, floor 56)

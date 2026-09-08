@@ -42,6 +42,25 @@ import Foundation
 //   the strain of its OWN day (r₀), the pair strain[D] → y[D+1] reads −r₀·|ρ₁| of it — a longer night
 //   on training days painted as «shorter the night after». Holding z = strain[D+1] fixed removes
 //   exactly that; a real next-day effect survives it (`WhatMovesIt` reads the partial on n_eff − 3).
+// • Second-order partial Spearman (FER-480): TWO controls held fixed at once, by RECURSING the
+//   first-order formula above — Fisher's 1924 general relation for a partial of any order — rather
+//   than inverting a matrix: partial z1 out of x, y and z2 first (three first-order partials on
+//   midranks), then partial the RESIDUAL z2 out of the two survivors,
+//     r_xy·z1 = partial(r_xy, r_xz1, r_yz1);  r_xz2·z1 = partial(r_xz2, r_xz1, r_z1z2);
+//     r_yz2·z1 = partial(r_yz2, r_yz1, r_z1z2);  r_xy·z1z2 = partial(r_xy·z1, r_xz2·z1, r_yz2·z1)
+//   read against Student's t on df = n − 4 — one degree of freedom per control. This is algebraically
+//   the same coefficient a least-squares regression of x's and y's midranks on {z1, z2} (with an
+//   intercept) would leave in the residuals' correlation (cross-checked against exactly that in
+//   `CorrelationEngineOracleTests`); the recursion is used in production because it reuses the
+//   already-tested `partial(rxy:rxz:ryz:)` verbatim, with no matrix inversion to get numerically
+//   wrong. Why it exists: the sleep auto-lag (last night's duration → tonight's) inherits the SAME
+//   calendar artefact as the lag +1 strain pairs above, but on BOTH ends of the pair at once — a
+//   night that falls on a training day is long for the same reason every training night is long, and
+//   the night that follows falls on a day that (by the strain series' own −0.39 autocorrelation) is
+//   rarely also a training day, so the pair reads a "rebound" that is 100% the training calendar,
+//   never touching sleep physiology. Holding BOTH strain[D] and strain[D+1] fixed removes it; a real
+//   homeostatic rebound (Borbély 1982 process S) or nightly habit survives the double control
+//   (`WhatMovesIt` reads `sleepPriorNight` this way as of FER-480).
 //
 // APPROXIMATE, and association only — never a cause. `pApprox` on raw n remains anticonservative
 // on autocorrelated daily series; that is precisely why `MetricTrend` degrades the result to a
@@ -70,14 +89,16 @@ public struct Correlation: Equatable, Sendable {
     }
 }
 
-/// Two daily series read against each other with a third held fixed. (FER-438)
+/// Two daily series read against each other with one (FER-438) or two (FER-480) others held fixed.
 public struct PartialCorrelation: Equatable, Sendable {
-    /// First-order partial coefficient r_xy·z, in [−1, 1].
+    /// Partial coefficient — r_xy·z (one control) or r_xy·z1z2 (two) — in [−1, 1].
     public let r: Double
-    /// Triples actually used.
+    /// Triples (one control) or quadruples (two) actually used.
     public let n: Int
-    /// Two-sided p for H0: r_xy·z = 0, from Student's t on df = n − 3. EXACT tail; anticonservative on
-    /// autocorrelated daily series, exactly as `Correlation.pApprox`.
+    /// Two-sided p for H0: the partial coefficient = 0, from Student's t on df = n − 3 (one control,
+    /// `spearmanPartial`/`partialPValue`) or df = n − 4 (two, `spearmanPartial2`/`partialPValue2`) —
+    /// one degree of freedom per control. EXACT tail; anticonservative on autocorrelated daily
+    /// series, exactly as `Correlation.pApprox`.
     public let pApprox: Double
 }
 
@@ -168,6 +189,31 @@ public enum CorrelationEngine {
         return out
     }
 
+    /// `pairs` with two more series, read ONCE on x's day (z1) and once on y's day (z2): the
+    /// `(x[D], y[D + lagDays], z1[D], z2[D + lagDays])` quadruples, ascending by D — the shape a
+    /// second-order partial needs when the two controls are the SAME underlying series read on each
+    /// side of the pair (`sleepPriorNight`'s effort[D] and effort[D + 1]; `spearmanPartial2`). A D
+    /// missing from ANY of the four sides is dropped, never interpolated; a repeated day keeps its
+    /// LAST entry. (FER-480)
+    public static func quadruples(x: [(day: String, value: Double)],
+                                  y: [(day: String, value: Double)],
+                                  z1: [(day: String, value: Double)],
+                                  z2: [(day: String, value: Double)],
+                                  lagDays: Int) -> [(Double, Double, Double, Double)] {
+        let source = lastWins(x)
+        let target = lastWins(y)
+        let control1 = lastWins(z1)
+        let control2 = lastWins(z2)
+        var out: [(Double, Double, Double, Double)] = []
+        for day in source.keys.sorted() {
+            guard let shifted = shiftDay(day, by: lagDays),
+                  let yv = target[shifted], let z1v = control1[day], let z2v = control2[shifted]
+            else { continue }
+            out.append((source[day]!, yv, z1v, z2v))
+        }
+        return out
+    }
+
     // MARK: - Spearman's ρ (FER-438)
 
     /// Spearman's rank correlation over `xy`: `pearson` on the midranks of each variable, so `r` is ρ
@@ -225,6 +271,47 @@ public enum CorrelationEngine {
         return min(1, max(-1, (rxy - rxz * ryz) / denominator))
     }
 
+    // MARK: - Second-order partial Spearman (FER-480)
+
+    /// Spearman's ρ of x and y HOLDING TWO variables z1 AND z2 FIXED, over `quads` — the second-order
+    /// partial correlation, obtained by RECURSING the first-order formula above (Fisher 1924, Metron
+    /// 3:329-332 — the general recursive relation for a partial correlation of any order): partial z1
+    /// out of x, y and z2 first (three first-order partials on midranks), then partial the RESIDUAL
+    /// z2 out of the two survivors —
+    ///   r_xy·z1 = partial(r_xy, r_xz1, r_yz1); r_xz2·z1 = partial(r_xz2, r_xz1, r_z1z2);
+    ///   r_yz2·z1 = partial(r_yz2, r_yz1, r_z1z2); r_xy·z1z2 = partial(r_xy·z1, r_xz2·z1, r_yz2·z1)
+    /// This is algebraically the same coefficient a least-squares regression of x's and y's midranks
+    /// on {z1, z2} (with an intercept) would leave in the residuals' correlation — the recursion is
+    /// used here because it reuses `partial(rxy:rxz:ryz:)` verbatim, with no matrix inversion.
+    /// `pApprox` is its two-sided p on df = n − 4, one degree of freedom per control (Fisher 1924).
+    /// `nil` below `CorrelationStrength.minPairs` + 2 quadruples (two controls cost two degrees of
+    /// freedom on top of `pearson`'s floor), when any of the four variables does not vary, or when a
+    /// control fixes another variable entirely at any step of the recursion (a first-order partial's
+    /// denominator vanishing — collinearity between a control and x, y, or the other control). (FER-480)
+    public static func spearmanPartial2(_ quads: [(Double, Double, Double, Double)]) -> PartialCorrelation? {
+        let n = quads.count
+        guard n >= CorrelationStrength.minPairs + 2 else { return nil }
+        let rx = midranks(quads.map { $0.0 })
+        let ry = midranks(quads.map { $0.1 })
+        let rz1 = midranks(quads.map { $0.2 })
+        let rz2 = midranks(quads.map { $0.3 })
+        guard let xy = pearson(Array(zip(rx, ry))),
+              let xz1 = pearson(Array(zip(rx, rz1))),
+              let yz1 = pearson(Array(zip(ry, rz1))),
+              let xz2 = pearson(Array(zip(rx, rz2))),
+              let yz2 = pearson(Array(zip(ry, rz2))),
+              let z1z2 = pearson(Array(zip(rz1, rz2)))
+        else { return nil }
+
+        guard let xyGivenZ1 = partial(rxy: xy.r, rxz: xz1.r, ryz: yz1.r),
+              let xz2GivenZ1 = partial(rxy: xz2.r, rxz: xz1.r, ryz: z1z2.r),
+              let yz2GivenZ1 = partial(rxy: yz2.r, rxz: yz1.r, ryz: z1z2.r),
+              let r = partial(rxy: xyGivenZ1, rxz: xz2GivenZ1, ryz: yz2GivenZ1)
+        else { return nil }
+
+        return PartialCorrelation(r: r, n: n, pApprox: partialPValue2(r: r, n: Double(n)))
+    }
+
     // MARK: - Effective sample size (FER-438)
 
     /// Lag-1 sample autocorrelation of `values` in the order given:
@@ -263,6 +350,13 @@ public enum CorrelationEngine {
     /// has no evidence to offer (1.0). (FER-438)
     public static func partialPValue(r: Double, n: Double) -> Double {
         pValue(r: r, degreesOfFreedom: n - 3)
+    }
+
+    /// `pValue(r:n:)` for a second-order PARTIAL coefficient (`spearmanPartial2`): the same tail on
+    /// df = `n` − 4, one degree of freedom per control (Fisher 1924). `n` may be a fractional
+    /// effective sample size; `n ≤ 4` has no evidence to offer (1.0). (FER-480)
+    public static func partialPValue2(r: Double, n: Double) -> Double {
+        pValue(r: r, degreesOfFreedom: n - 4)
     }
 
     private static func pValue(r: Double, degreesOfFreedom df: Double) -> Double {
