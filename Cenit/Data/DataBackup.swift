@@ -239,14 +239,10 @@ final class AutoBackup: ObservableObject {
     /// Cuando mucho un respaldo automático al día. El botón «Respaldar ahora» no lo consulta.
     private let minInterval: TimeInterval = 23 * 3_600
 
-    /// Nombre fijo del archivo (FER-398 lo sacó del tronco de la app heredada). Restaurar es
-    /// indiferente al nombre —el usuario elige el archivo a mano y el encabezado mágico lo valida—,
-    /// así que ambos nombres restauran igual. Lo que el renombre habría roto es la rotación: una
-    /// carpeta configurada antes de FER-398 ya tiene el nombre viejo, y escribir a un lado dejaría
-    /// esa copia congelada para siempre, con pinta de segundo respaldo vigente. Por eso `writeCopy`
-    /// busca los dos y adopta el viejo en la primera corrida.
+    /// Nombre fijo del archivo. `writeCopy` también busca el nombre heredado y lo adopta en la
+    /// primera corrida, para no dejar dos copias rotando en una carpeta configurada antes de FER-398.
     private let fileName = "Cenit-backup.sqlite"
-    /// El nombre anterior a FER-398. Se lee y se adopta; nunca se escribe.
+    /// Nombre heredado en disco. Literal load-bearing: se lee y se adopta; nunca se escribe.
     private let legacyFileName = "NOOP-backup.sqlite"
 
     init() {

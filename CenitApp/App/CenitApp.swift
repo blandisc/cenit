@@ -27,7 +27,7 @@ struct CenitApp: App {
         // ① las preferencias (el prefijo heredado → `cenit.*`; ver `PrefKey.legacyKey`), porque `AppModel` y los `@AppStorage` de la
         //    primera pantalla leen su valor; si corriera después, el usuario vería el onboarding otra
         //    vez y la app escribiría un default nuevo encima del suyo.
-        // ② el contenedor en disco (`OpenWhoop/whoop.sqlite` → `Cenit/cenit.sqlite`), porque
+        // ② el contenedor en disco (ruta heredada → `Cenit/cenit.sqlite`), porque
         //    `AppModel()` abre el store — mover el archivo bajo una conexión viva es cómo se corrompe.
         // Las dos son idempotentes: en una instalación ya migrada cuestan unos `fileExists`.
         PrefMigration.migrateLegacyKeysIfNeeded()
@@ -176,13 +176,13 @@ struct CenitApp: App {
                     // concurrently with the sync below — and assembled the dashboard twice per activation.
                     await model.resumeForegroundAnalysis()
                     await health.sync(trigger: .foreground)   // FER-872: delta window + no-op refresh guard
-                    // Snapshot the (possibly just-offloaded) strap history to iCloud Drive. Throttled
+                    // Snapshot the (possibly just-offloaded) history to iCloud Drive. Throttled
                     // to ~once a day and a no-op until the user picks a folder, so it's safe here.
                     await autoBackup.backupIfDue(checkpoint: { await model.repo.checkpointForBackup() })
                 }
             case .background:
-                // Stop the analysis sequence while NOOP is off screen, so the band-mode periodic recompute
-                // doesn't compete with BLE keep-alive / backfill on the main actor (FER-177).
+                // Stop the analysis sequence while the app is off screen, so the periodic recompute
+                // doesn't compete with backfill on the main actor (FER-177).
                 model.stopAnalysis()
                 model.scheduleInProgressPersist(immediate: true)
             case .inactive:

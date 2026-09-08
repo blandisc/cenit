@@ -1,7 +1,7 @@
 import Foundation
 import os
 
-/// Where Cénit keeps its one SQLite file, and the one-time move off the NOOP-era names.
+/// Where Cénit keeps its one SQLite file, and the one-time move off the legacy names.
 ///
 /// **FER-398.** The container used to be `<AppSupport>/OpenWhoop/whoop.sqlite` — frozen since the
 /// rebrand because renaming it would orphan every existing install's data. It is unfrozen here, with
@@ -30,9 +30,10 @@ enum StorePaths {
     static let folderName = "Cenit"
     /// The single SQLite file inside it.
     static let databaseFileName = "cenit.sqlite"
-    /// The NOOP-era container this migration moves away from.
+    /// The legacy container this migration moves away from. Literal is load-bearing: the on-disk
+    /// migration finds the user's folder by this exact name.
     static let legacyFolderName = "OpenWhoop"
-    /// The NOOP-era database file name inside that container.
+    /// The legacy database file name inside that container. Literal is load-bearing (see above).
     static let legacyDatabaseFileName = "whoop.sqlite"
 
     /// SQLite's own sidecars, renamed alongside the main file (order matters — see the type doc).
@@ -90,7 +91,7 @@ enum StorePaths {
         case mergedIntoExisting
     }
 
-    /// Move the NOOP-era container onto the Cénit names, once. Idempotent and safe to call on every
+    /// Move the legacy container onto the Cénit names, once. Idempotent and safe to call on every
     /// launch: on an already-migrated install it does two `fileExists` checks and returns.
     ///
     /// Call it BEFORE anything opens the store.
