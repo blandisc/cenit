@@ -49,6 +49,8 @@ enum EntrenarTips {
         case "reset": try? Tips.resetDatastore()
         default: break
         }
+        // FER-436: `-noop.hitos reset` borra el registro inicial de los seis hitos del motor.
+        Hitos.aplicarPalancaDebug()
         #endif
         do {
             // .daily (D8): como máximo un tip DISTINTO por día; los de primera sesión se saltan el
