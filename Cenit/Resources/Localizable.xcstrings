@@ -1,6 +1,40 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Physical age is validated for ages 20 to 80. Cénit doesn't estimate it outside that range." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Physical age is validated for ages 20 to 80. Cénit doesn't estimate it outside that range."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La edad física está validada para edades de 20 a 80 años. Cénit no la estima fuera de ese rango."
+          }
+        }
+      }
+    },
+    "Body age is validated for ages 20 to 90. Cénit doesn't estimate it outside that range." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Body age is validated for ages 20 to 90. Cénit doesn't estimate it outside that range."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La edad corporal está validada para edades de 20 a 90 años. Cénit no la estima fuera de ese rango."
+          }
+        }
+      }
+    },
     "Terms of use" : {
       "extractionState" : "manual",
       "localizations" : {

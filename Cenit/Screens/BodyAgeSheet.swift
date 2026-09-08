@@ -192,8 +192,16 @@ struct BodyAgeSheet: View {
 
     // MARK: - 5. Empty (fewer than 3 signals) — checklist de qué está hecha, sin número inventado
 
+    /// FER-469: la Edad corporal (UK Biobank) está validada para adultos [minBodyAge, maxBodyAge]. Con una
+    /// edad fuera de rango el motor devuelve nil A PROPÓSITO (no afirma una edad falsa); el vacío entonces
+    /// NO es por falta de señales — el checklist «faltan señales» mentiría —, así que explica el porqué.
+    private var outsideAgeDomain: Bool {
+        inputs.chronoAge < VitalityEngine.minBodyAge || inputs.chronoAge > VitalityEngine.maxBodyAge
+    }
+
     private var emptyState: some View {
         let present = presentFactors
+        let outside = outsideAgeDomain
         return VStack(alignment: .leading, spacing: .zero) {
             LiquidCampoMetrica(
                 tono: Self.tono,
@@ -203,8 +211,12 @@ struct BodyAgeSheet: View {
                               a11y: String(localized: "no data"), ausente: true)],
                 // B2/B3: el vacío vive en la CLÁUSULA (no en el veredicto) y en voz impersonal
                 // de la familia (nunca «yo necesito»), como las gemelas.
-                clausula: String(localized: "Cénit needs at least 3 signals to work this out without guessing. So far it has \(present.count)."))
+                // FER-469: fuera del dominio validado, la cláusula dice el porqué, no pide señales que sobran.
+                clausula: outside
+                    ? String(localized: "Body age is validated for ages 20 to 90. Cénit doesn't estimate it outside that range.")
+                    : String(localized: "Cénit needs at least 3 signals to work this out without guessing. So far it has \(present.count)."))
 
+            if !outside {
             seccion(String(localized: "What it's built from")) {
                 VStack(alignment: .leading, spacing: LiquidSpace.s250) {
                     // El checklist NUNCA oculta los que faltan: presente = check, ausente = motivo.
@@ -217,6 +229,7 @@ struct BodyAgeSheet: View {
                     .liquidTarjetaSeccion()
                     LiquidNotaLine(String(localized: "As more nights sync, it appears on its own: we don't show a half-finished number."))
                 }
+            }
             }
             // B4: sin dato, sin pie de método ni chip de origen sobre un guion (paridad gemelas /
             // ActivityRecovery). El método y su sello viven solo en el estado con dato.
