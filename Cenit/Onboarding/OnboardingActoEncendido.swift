@@ -510,17 +510,17 @@ struct OnbActoEncendido: View {
     @MainActor
     private func muestrear() {
         // FER-437: las estrofas las manda el progreso real —qué etapas terminaron y con cuántas
-        // filas—, nunca un temporizador. `rowsByStage` viaja ACUMULADO en cada muestra, así que una
-        // etapa que terminó entre dos muestras de 100 ms no se pierde. Y el conteo SOBREVIVE al sync
-        // (qa r1 · D2): `syncProgress` muere en el `defer` de `sync()` en el mismo turno en que llega
-        // `saving`, así que la muestra que sigue a `syncListo` lo lee de `health.syncRowsByStage` y
-        // «Guardando en tu iPhone» sale siempre que se guardó algo. Antes de que arranque el sync no
-        // se lee nada: un reintento vería las filas del intento anterior. Solo las estrofas viven
-        // aquí; el avance, la etapa y los anuncios se quedan donde los dejó la última muestra viva.
-        // El cambio se anima para que la línea de progreso ceda su sitio sin salto; bajo Reduce
-        // Motion, sin animación.
-        if let filas = health.syncProgress?.rowsByStage ?? (syncListo ? health.syncRowsByStage : nil) {
-            let ganadas = EstrofasSync.ganadas(terminadas: filas.map { (clave: $0.key, filas: $0.value) })
+        // filas—, nunca un temporizador. `health.syncRowsByStage` es la única fuente del conteo
+        // (FER-475): va ACUMULADO, así que una etapa que terminó entre dos muestras de 100 ms no se
+        // pierde, y SOBREVIVE al sync (qa r1 · D2): `syncProgress` muere en el `defer` de `sync()`
+        // en el mismo turno en que llega `saving`, así que la muestra que sigue a `syncListo` sigue
+        // leyéndolo y «Guardando en tu iPhone» sale siempre que se guardó algo. Antes de que arranque
+        // el sync no se lee nada: un reintento vería las filas del intento anterior. Solo las
+        // estrofas viven aquí; el avance, la etapa y los anuncios se quedan donde los dejó la última
+        // muestra viva. El cambio se anima para que la línea de progreso ceda su sitio sin salto;
+        // bajo Reduce Motion, sin animación.
+        if health.syncProgress != nil || syncListo {
+            let ganadas = EstrofasSync.ganadas(terminadas: health.syncRowsByStage.map { (clave: $0.key, filas: $0.value) })
             if ganadas != estrofas {
                 let anim: Animation? = reduceMotion ? nil : LiquidMotion.glassOut(LiquidMotion.gentle)
                 withAnimation(anim) { estrofas = ganadas }

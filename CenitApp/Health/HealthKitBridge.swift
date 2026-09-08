@@ -25,14 +25,6 @@ final class HealthKitBridge: ObservableObject {
         let stageKey: String
         let done: Int
         let total: Int
-        /// FER-437: rows each FINISHED stage brought, keyed by its `stageKey` — days for the per-day
-        /// collectors, workouts / HR samples for the workout stages, and the total of upserted rows
-        /// for `saving` (recorded only after the store write succeeds). Cumulative over the run, not
-        /// "the stage that just finished": the onboarding samples this value every 100 ms, and a
-        /// stage that finishes faster than that would otherwise drop off the wire — with the
-        /// "every stage of the group finished" rule, one lost stage would mute its strophe forever.
-        /// A snapshot (mirror) of `syncRowsByStage`, which is the copy that outlives the run.
-        var rowsByStage: [String: Int] = [:]
     }
 
     @Published private(set) var auth: AuthState = .unknown
@@ -44,12 +36,17 @@ final class HealthKitBridge: ObservableObject {
     /// Live stage of the running import (nil when idle), so the card shows real progress instead of a
     /// context-free spinner. (FER-70)
     @Published private(set) var syncProgress: SyncProgress?
-    /// FER-437 (qa r1 · D2): the rows each finished stage of the current — or the LAST — run brought,
-    /// keyed by `stageKey`. Same map `SyncProgress.rowsByStage` mirrors, but this one OUTLIVES the run:
-    /// `syncProgress` goes nil in `sync()`'s `defer` in the same main-actor turn that records
-    /// `saving`, so a 100 ms sampler could never see the last stage's count and «Guardando en tu
-    /// iPhone» was a coin toss. Emptied when a run starts, filled by `finished(_:rows:)`, never
-    /// touched by the `defer`. The onboarding reads it once the run is over.
+    /// FER-437: the rows each FINISHED stage of the current — or the LAST — run brought, keyed by
+    /// `stageKey` — days for the per-day collectors, workouts / HR samples for the workout stages,
+    /// and the total of upserted rows for `saving` (recorded only after the store write succeeds).
+    /// Cumulative over the run, not "the stage that just finished": the onboarding samples this map
+    /// every 100 ms, and a stage that finishes faster than that would otherwise drop off the wire —
+    /// with the "every stage of the group finished" rule, one lost stage would mute its strophe
+    /// forever. It OUTLIVES the run (qa r1 · D2): `syncProgress` goes nil in `sync()`'s `defer` in
+    /// the same main-actor turn that records `saving`, so a sampler reading the progress value could
+    /// never see the last stage's count and «Guardando en tu iPhone» was a coin toss. Emptied when a
+    /// run starts, filled by `finished(_:rows:)`, never touched by the `defer`. The single source of
+    /// the count (FER-475): the onboarding reads it during the run and once it is over.
     @Published private(set) var syncRowsByStage: [String: Int] = [:]
     /// What actually landed in the store under the apple-health source: days per metric + overall
     /// span. Reloaded after every `sync` and on demand via `refreshStatus`. Powers the coverage
@@ -270,11 +267,10 @@ final class HealthKitBridge: ObservableObject {
         // into "Importing HRV… (4/15)" in the UI; `done` counts stages already finished. (FER-70)
         let total = 15
         func stage(_ done: Int, _ key: String) {
-            syncProgress = SyncProgress(stageKey: key, done: done, total: total, rowsByStage: syncRowsByStage)
+            syncProgress = SyncProgress(stageKey: key, done: done, total: total)
         }
-        // FER-437: how many rows stage `key` brought. Lands in `syncRowsByStage` (which outlives the run)
-        // and travels, mirrored, with every progress value published from here on (see
-        // `SyncProgress.rowsByStage`), so the onboarding can print «la espera enseña».
+        // FER-437: how many rows stage `key` brought. Lands in `syncRowsByStage` (which outlives the
+        // run), so the onboarding can print «la espera enseña».
         func finished(_ key: String, rows: Int) { syncRowsByStage[key] = rows }
 
         // Quantity aggregates per day.
@@ -483,13 +479,11 @@ final class HealthKitBridge: ObservableObject {
                 try await store.insert(Streams(hr: workoutHrSamples), deviceId: appleDeviceId)
             }
             try await store.upsertSleepSessions(appleSleepSessions, deviceId: appleDeviceId)   // FER-486 (F3): per-night stage timeline
-            // FER-437: the store write is the last stage and nothing follows it, so re-publish it with
-            // its row count — same `done/total` and `stageKey` (the counter and the label don't move);
-            // only `rowsByStage["saving"]` appears, which is how the onboarding tells «saving finished
-            // with N rows» apart from «saving is running». Not recorded when the write threw.
+            // FER-437: the store write is the last stage and nothing follows it; `syncRowsByStage["saving"]`
+            // is how the onboarding tells «saving finished with N rows» apart from «saving is running».
+            // Not recorded when the write threw.
             finished("saving", rows: appleRows.count + dmRows.count + seriesRows.count + wkRows.count
                      + workoutHrSamples.count + appleSleepSessions.count)
-            stage(14, "saving")
             // B (FER-1003): el write-back a Apple Health de métricas DERIVADAS de la banda (RHR/HRV/SpO2/
             // resp/sueño de la partición -noop) se APAGA. Apple-only, esas filas son viejas y stale, y
             // escribirlas contaminaría Salud (mezcla el RMSSD de banda bajo el SDNN de Apple). El HKWorkout
