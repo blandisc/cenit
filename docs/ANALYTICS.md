@@ -695,6 +695,18 @@ never wrong about SDNN being the wrong construct, only about there being no alte
 pin the revived pairs; most users will not clear the 42-dense-night floor, and the sheet says
 «todavía» honestly rather than inventing a direction.
 
+**Citation scope for `hrv.sleepDuration` (FER-484 note, honest gap, not an overclaim).** Zhang 2025
+supports the *construct* choice above only: under sleep deprivation RMSSD, not the all-day SDNN
+Apple reports, is the parasympathetic marker that moves, which is why this block reads the
+dense-night RMSSD partition instead of `avgHrv`. It does not, by itself, establish the *same-night*
+dose-response `hrv.sleepDuration` tests: duration[D] against nocturnal RMSSD[D] on that identical
+night, lag 0. That direction rests on physiological plausibility instead, namely sleep architecture
+and nocturnal vagal tone, where parasympathetic activity rises across a night's stages, so a longer
+night gives it more time to act, rather than on a citation that directly measures duration against
+same-night RMSSD. The copy stays non-causal («se mueve con»), so the pair itself is not overclaimed,
+but the gap between what Zhang 2025 shows and what this pair asserts is real and stays documented
+here rather than blurred behind the citation.
+
 **The gate.** Every value in it is a labeled product knob, not a derived constant:
 
 1. **n floor** — 42 paired days (about six weeks, a calendar floor); **56** for the three pairs that
@@ -894,7 +906,7 @@ usable one of 4, because at four nights the spread is itself mostly noise.
 | Kredlow et al. 2015; Atoui et al. 2021; Lambiase et al. 2013; Mead et al. 2019 | The exercise-sleep and sleep-activity relationships behind «Tu patrón», and the day-of-week confound |
 | Borbély 1982; Borbély 2022 | Process S, behind the night-to-night pair |
 | Dettoni et al. 2012; Faust et al. 2020; Stanley et al. 2013 | Short nights and hard effort against the next day's resting pulse, and (Stanley) the same for `hrv.priorStrain`'s dense-night RMSSD |
-| Zhang 2025 (Front Neurol 16:1556784, doi:10.3389/fneur.2025.1556784) | Why `hrv.sleepDuration`/`hrv.priorStrain` read the dense nocturnal-RMSSD partition, not the all-day SDNN construct |
+| Zhang 2025 (Front Neurol 16:1556784, doi:10.3389/fneur.2025.1556784) | Why `hrv.sleepDuration`/`hrv.priorStrain` read the dense nocturnal-RMSSD partition, not the all-day SDNN construct (construct only; `hrv.sleepDuration`'s same-night lag-0 direction rests on physiological plausibility, not this citation, see "Citation scope" note in the HRV block) |
 | Zourdos et al. 2016; Helms et al. 2016 | Effort-anchored progression, and reducing load only when reps were missed |
 | Steele et al. 2017 | Why a habitual high effort-rater must not be frozen out of progression |
 | Epley 1985; Brzycki 1993 | The two one-repetition-maximum estimates |

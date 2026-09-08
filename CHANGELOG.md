@@ -34,6 +34,20 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
   question — so most people still won't gather enough nights, and the block will honestly keep
   saying «not yet».
 
+### Interno · pulido de «Tu patrón» VFC: prueba y cita más honesta / Internal · «Your pattern» HRV polish: test and a more honest citation (FER-484)
+- **ES** — Cambio interno, sin efecto para quien usa la app. Un test nuevo confirma que una lectura de
+  RMSSD nocturna en cero o negativa se descarta antes de tomar su logaritmo (FER-472); y la
+  documentación técnica ahora dice explícitamente que la cita usada (Zhang 2025) respalda por qué se
+  lee el RMSSD nocturno y no el número de VFC de todo el día, pero no la relación de la misma noche
+  entre duración de sueño y VFC, que descansa en plausibilidad fisiológica. Ningún copy ni cálculo
+  cambia.
+- **EN** — Internal change, no user-visible effect. A new test confirms a zero or negative nightly
+  RMSSD reading is discarded before its logarithm is taken (FER-472); and the technical documentation
+  now states explicitly that the citation used (Zhang 2025) supports why the block reads nightly
+  RMSSD instead of the all-day HRV figure, but not the same-night relationship between sleep
+  duration and HRV, which rests on physiological plausibility instead. No copy or calculation
+  changes.
+
 ### Interno · las particiones de datos pierden la marca heredada / Internal · data partitions lose the legacy brand (FER-479)
 - **ES** — Cambio interno, sin efecto para quien usa la app. Los identificadores con los que Cénit
   marca de qué fuente viene cada fila en su base local (y que un vistazo al binario dejaba ver:
