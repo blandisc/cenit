@@ -394,7 +394,10 @@ el contrato. Cuatro decisiones:
 3. **El gate es honesto o no es:** estadístico por relación (Spearman donde entra esfuerzo o pasos,
    Pearson donde ambas series son continuas), p sobre n efectivo (Bartlett, ρ₁ truncada a ≥ 0) en
    los pares cruzados, piso de clase minoritaria (≥ 10 días con y sin entreno cuando hay ceros),
-   y Benjamini-Hochberg sobre la familia completa calculada en una sola pasada (q < 0.05). El
+   y Benjamini-Hochberg sobre la familia completa calculada en una sola pasada (q < 0.05). En los
+   tres pares lag +1 del esfuerzo (sueño, eficiencia, FC en reposo) la Spearman es **parcial**:
+   controla por el esfuerzo del día de la y (esfuerzo[D+1], Fisher 1924, df = n_eff − 3), porque sin
+   ese control el calendario de entrenos (no entrenar dos días seguidos) se pintaba como patrón. El
    `|r| ≥ 0.20` se queda rotulado como cosmético. Los pisos 42 / 56 (eficiencia) y el 10 son knobs
    de producto, rotulados como tales. Consecuencia aceptada: «todavía» será lo normal; el gate
    protege el falso positivo, no el falso negativo.
