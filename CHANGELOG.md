@@ -20,6 +20,16 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
 
 ## Unreleased
 
+### Interno · adiós al prefijo «Strand» / Internal · goodbye to the "Strand" prefix (FER-478)
+- **ES** — Cambio interno, sin efecto para quien usa la app. Los paquetes y tokens que todavía
+  llevaban el nombre heredado `Strand` (de cuando la app se llamaba NOOP) pasaron a `Cenit*`:
+  `StrandAnalytics/Training/Import/Models` → `Cenit*`, y los tokens de diseño `StrandFont/Palette/
+  Motion/Tone/Elevation` → `Cenit*`. Nada del comportamiento, los cálculos ni las pantallas cambia.
+- **EN** — Internal change, no user-visible effect. The packages and tokens still carrying the legacy
+  `Strand` name (from when the app was called NOOP) were renamed to `Cenit*`:
+  `StrandAnalytics/Training/Import/Models` → `Cenit*`, and the design tokens `StrandFont/Palette/
+  Motion/Tone/Elevation` → `Cenit*`. No behavior, math, or screen changes.
+
 ### Las frases de «la espera enseña» entran en cuanto su grupo termina / The "wait teaches" sentences land as soon as their group finishes (FER-475)
 - **ES** — Durante la primera lectura de Salud, una frase podía aparecer hasta una etapa después de que
   su grupo terminara: el conteo de filas viajaba en dos copias y la pantalla leía la atrasada. Ahora hay

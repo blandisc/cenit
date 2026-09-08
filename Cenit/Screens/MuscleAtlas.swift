@@ -6,7 +6,7 @@ import SwiftUI
 // The presentation half of the muscle map: it maps each of the catalog's 17 (lowercased,
 // free-exercise-db) muscle names to a Spanish display name and a region on a front- or back-facing
 // schematic silhouette. The LOAD math is muscle-agnostic and lives in `MuscleFatigueMap`
-// (StrandAnalytics); the body geometry is a UI concern and lives here. Regions are normalized rects
+// (CenitAnalytics); the body geometry is a UI concern and lives here. Regions are normalized rects
 // (0…1 in both axes) over a 100×220 figure box, scaled to whatever size the layout gives them.
 //
 // Front vs back is a single-side assignment per muscle (a muscle is colored on one figure, not both):

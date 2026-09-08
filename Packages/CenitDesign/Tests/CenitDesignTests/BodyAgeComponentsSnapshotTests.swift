@@ -43,7 +43,7 @@ private struct BandDemo: View {
     }
     @MainActor private func cell(_ title: String, bodyAge: Double, color: Color) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(title).font(StrandFont.caption).foregroundStyle(t.inkSecondary)
+            Text(title).font(CenitFont.caption).foregroundStyle(t.inkSecondary)
             BodyAgeBand(bodyAge: bodyAge, chronoAge: 34, color: color, youLabel: "you",
                         accessibilityLabelText: "Body age",
                         accessibilityValueText: "\(Int(bodyAge)) years", animated: false)

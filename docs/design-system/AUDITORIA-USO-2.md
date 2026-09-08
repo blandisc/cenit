@@ -34,7 +34,7 @@
 
 ```
 InstrumentoTheme | InstrumentoFlowTitle | InstrumentoToolChip | InstrumentoTabHeader
-| PaperStepper | SectionBand | InstrumentoSectionBand | StrandPalette
+| PaperStepper | SectionBand | InstrumentoSectionBand | CenitPalette
 | .instrumentoTheme(
 ```
 
@@ -50,8 +50,8 @@ Live vs baseline de esos símbolos: **161/161, 54/54 — sin contrabando *dentro
 | | |
 |---|---|
 | **Evidencia** | **130** hits / **31** archivos APP (`Cenit`+`CenitApp`). Top: `WorkoutHistoryScreen.swift` (19), `ExerciseDetailScreen.swift` (14), `LiveStrengthSheet.swift` (11). También en territorio Liquid: `Hoy/HoyModosHost.swift:113,151,155`, `TodayView.swift:68,942`, `EntrenarView.swift:677,838,1154,1286`. |
-| **Por qué escapa** | `InstrumentoType` **no** está en `RE_LEGACY_API`. El gate ve `InstrumentoTheme` / `StrandPalette`, no la familia tipográfica. |
-| **Propuesta** | Ampliar `no-legacy-api` con `\bInstrumentoType\b` (+ alta legal de baseline con el conteo actual) **o** lote `/migracion` tipografía → `LiquidType` / `StrandFont` y luego prohibir. Preferible: gate + baseline (congela) y lote que baje el trinquete. |
+| **Por qué escapa** | `InstrumentoType` **no** está en `RE_LEGACY_API`. El gate ve `InstrumentoTheme` / `CenitPalette`, no la familia tipográfica. |
+| **Propuesta** | Ampliar `no-legacy-api` con `\bInstrumentoType\b` (+ alta legal de baseline con el conteo actual) **o** lote `/migracion` tipografía → `LiquidType` / `CenitFont` y luego prohibir. Preferible: gate + baseline (congela) y lote que baje el trinquete. |
 
 #### C3-2 · CRÍTICO — `theme.paper` / `theme.ink` sin el símbolo `InstrumentoTheme` en la línea
 
@@ -86,19 +86,19 @@ Ejemplos call-site: `AppMap.swift:544` (`.instrumentoConfirm`), `LiveStrengthShe
 | **Por qué escapa** | `CenitMetrics` **no** es legacy-api; es el dialecto de espacio «Instrumento» compartido. Gate de spacing solo ve literales, no el nombre de familia. |
 | **Propuesta** | Ya cubierto como ruta de consolidación en `AUDITORIA-SISTEMA.md` §1 (alias valor-neutral). Acción: lote Fase 1 CONTRATO en hubs Liquid (`CenitMetrics.space2` → `LiquidSpace.s200`, etc.) — no regla nueva. |
 
-#### C3-5 · MEDIO — `StrandPalette` vivo fuera de raíces gateadas + residuales en Screens
+#### C3-5 · MEDIO — `CenitPalette` vivo fuera de raíces gateadas + residuales en Screens
 
 | | |
 |---|---|
-| **Evidencia** | `CenitApp/App/RootTabView.swift:209` — `.tint(StrandPalette.accent)` (**`CenitApp` no está en raíces `legacy`**). En raíces: `ProgressionSetupScreen.swift:140`, `SessionKeypad.swift:306` (`StrandPalette.disabledOpacity`) — sí gateados/congelados. `CenitOpacity.dim` es el token canónico equivalente (`Palette.swift:207`). |
-| **Propuesta** | (1) Añadir `CenitApp` a raíces `legacy`/`exempt` **o** aceptar carve-out documentado. (2) Lote de 2 call-sites: `StrandPalette.disabledOpacity` → `CenitOpacity.dim`. |
+| **Evidencia** | `CenitApp/App/RootTabView.swift:209` — `.tint(CenitPalette.accent)` (**`CenitApp` no está en raíces `legacy`**). En raíces: `ProgressionSetupScreen.swift:140`, `SessionKeypad.swift:306` (`CenitPalette.disabledOpacity`) — sí gateados/congelados. `CenitOpacity.dim` es el token canónico equivalente (`Palette.swift:207`). |
+| **Propuesta** | (1) Añadir `CenitApp` a raíces `legacy`/`exempt` **o** aceptar carve-out documentado. (2) Lote de 2 call-sites: `CenitPalette.disabledOpacity` → `CenitOpacity.dim`. |
 
 #### C3-6 · MEDIO — Tipografía Instrumento en pantallas ya «Liquid» (contrabando de generación, no solo deuda)
 
 | | |
 |---|---|
 | **Evidencia** | `HoyModosHost.swift:113` / `:151` / `:155` — `InstrumentoType.grotesk` en el host de modos de Hoy (DNA Liquid). `TodayView.swift:68,942`. Misma generación tipográfica que el papel, sobre lienzo El Eje. |
-| **Propuesta** | Issue de polish acotado (N≤10): esos call-sites → `LiquidType` / `StrandFont` body. No esperar al lote masivo de C3-1. |
+| **Propuesta** | Issue de polish acotado (N≤10): esos call-sites → `LiquidType` / `CenitFont` body. No esperar al lote masivo de C3-1. |
 
 #### C3-7 · BAJO — Lo que el gate sí congela (sin sorpresa)
 
@@ -166,14 +166,14 @@ Además del par **decidido** `seccionCanto` / `filaRespiro` / `rowVPad` (misma c
 
 #### C4-5 · BAJO — Huérfanos ya reportados en Auditoría C (no re-auditar)
 
-Capa z-index huérfana (archivo ya ausente del árbol), `StrandElevation` (casi solo PKG: `TodayBanner.swift:90`, `InputCard.swift:143`). Ruta: dejar morir. Sin hallazgo nuevo.
+Capa z-index huérfana (archivo ya ausente del árbol), `CenitElevation` (casi solo PKG: `TodayBanner.swift:90`, `InputCard.swift:143`). Ruta: dejar morir. Sin hallazgo nuevo.
 
 #### C4-6 · BAJO — Tres opacidades «disabled» distintas
 
 | Símbolo | Valor | Archivo |
 |---|---|---|
 | `CenitOpacity.dim` | 0.45 | `Palette.swift` (canónico) |
-| `StrandPalette.disabledOpacity` | 0.45 | `Palette.swift:43` (alias legacy) |
+| `CenitPalette.disabledOpacity` | 0.45 | `Palette.swift:43` (alias legacy) |
 | `PaperStepper.disabledOpacity` | **0.35** | `PaperStepper.swift:72` (privado) |
 | `CenitMetrics` N/A | — | — |
 | `Widget` path | — | — |
@@ -238,7 +238,7 @@ Patrón de clase: FER-273/275 acuñó tokens **sin** lote de wrap → el censo y
 |---|---|---|
 | **Gateado** (15 reglas + baseline monótono) | Lista corta de símbolos Instrumento/Paper; literales de spacing/font/radius/opacity/motion; conteo de exempts; `CenitApp` **no** entra en legacy | **~30 %** |
 | **Vigilado por censo** | Generación por símbolo (`CENSO.md` §5: Cenit 20 archivos Instrumento); clusters ×3 de exempts; evasiones indecidibles | **~25 %** |
-| **Ciego** | `InstrumentoType` (130); `theme.*` (~284); helpers `instrumento*`; `CenitMetrics` en hubs Liquid; exempts post-token; `StrandPalette` en `CenitApp`; `LiquidSectionHeader` huérfano | **~45 %** |
+| **Ciego** | `InstrumentoType` (130); `theme.*` (~284); helpers `instrumento*`; `CenitMetrics` en hubs Liquid; exempts post-token; `CenitPalette` en `CenitApp`; `LiquidSectionHeader` huérfano | **~45 %** |
 
 ### Tres movimientos que más bajan el riesgo ciego
 

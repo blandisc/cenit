@@ -1,11 +1,11 @@
 import Foundation
-import StrandAnalytics
+import CenitAnalytics
 
 // Goal.swift — the Bucle's goal model (FER-311).
 //
 // A goal is a single user PREFERENCE: which measurable to improve, and an optional date. It is not
 // analytics history, so it lives in `UserDefaults` (`GoalStore`), not the database. The projection math
-// is `TrajectorySimulator` (pure, StrandAnalytics); this layer only resolves "which metric / bounds /
+// is `TrajectorySimulator` (pure, CenitAnalytics); this layer only resolves "which metric / bounds /
 // hue / copy" and feeds the engine.
 
 /// The measurable the app projects toward a goal. Each case maps to an `InsightEngine.Outcome` (see

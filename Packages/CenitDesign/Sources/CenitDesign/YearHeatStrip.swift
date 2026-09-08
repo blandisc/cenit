@@ -77,7 +77,7 @@ struct YearHeatStrip: View {
     init(days lecturas: [RecoveryDay],
          cellSize lado: CGFloat = 12, spacing aire: CGFloat = 3,
          showsMonthLabels conMeses: Bool = true, showsScrub conRaspado: Bool = true,
-         tint rampa: @escaping (Double) -> Color = { StrandPalette.recoveryColor($0) },
+         tint rampa: @escaping (Double) -> Color = { CenitPalette.recoveryColor($0) },
          emptyFill rellenoHueco: Color = InstrumentoTheme.base.hairline,
          emptyStroke filoHueco: Color = InstrumentoTheme.base.hairline.opacity(0.6),
          labelColor tintaDeRotulo: Color = InstrumentoTheme.base.inkTertiary,
@@ -184,7 +184,7 @@ struct YearHeatStrip: View {
 
     /// La voz de los rótulos de la franja: meses arriba, días a la izquierda, la misma ficha.
     private func rotulo(_ texto: String) -> some View {
-        Text(texto).font(StrandFont.footnote).foregroundStyle(labelColor)
+        Text(texto).font(CenitFont.footnote).foregroundStyle(labelColor)
     }
 
     /// El canal izquierdo: solo lun/mié/vie/dom llevan rótulo, para que no se apelmace.
@@ -249,7 +249,7 @@ struct YearHeatStrip: View {
                                   container: CGSize(width: cuadricula.ancho, height: cuadricula.alto),
                                   tooltip: globo(dia, puntaje: puntaje))
             }
-            .animation(StrandMotion.fade, value: donde)
+            .animation(CenitMotion.fade, value: donde)
             .allowsHitTesting(false)
         }
     }
@@ -266,7 +266,7 @@ struct YearHeatStrip: View {
     private func globo(_ dia: RecoveryDay, puntaje: Double) -> ChartTooltip {
         let fecha = CalendarFormatters.day.string(from: dia.date)
         return ChartTooltip(value: valueFormat(puntaje),
-                            label: "\(fecha) · \(StrandPalette.recoveryState(puntaje))",
+                            label: "\(fecha) · \(CenitPalette.recoveryState(puntaje))",
                             accent: tint(puntaje))
     }
 
@@ -438,7 +438,7 @@ private func anoDeMuestra(_ total: Int = 365) -> [RecoveryDay] {
     VStack(alignment: .leading, spacing: MedidasFranja.aireDelMuestrario) {
         Text(verbatim: "Recuperación — el último año").strandOverline()
         Text(verbatim: "Pasa el cursor por un día: aro, fecha, puntaje y estado en palabras.")
-            .font(StrandFont.footnote).foregroundStyle(InstrumentoTheme.base.inkTertiary)
+            .font(CenitFont.footnote).foregroundStyle(InstrumentoTheme.base.inkTertiary)
         YearHeatStrip(days: anoDeMuestra())
     }
     .padding(28).frame(width: 900, height: 240)

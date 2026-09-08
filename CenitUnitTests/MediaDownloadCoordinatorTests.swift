@@ -1,5 +1,5 @@
 import XCTest
-import StrandTraining
+import CenitTraining
 @testable import Cenit
 
 // FER-722/786/790: the structural guarantee behind "toggle off ⇒ zero network requests" — both entry

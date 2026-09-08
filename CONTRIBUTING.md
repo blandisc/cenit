@@ -21,17 +21,17 @@ real work happens in the packages, and they build and test on their own with no 
 simulator and no signing:
 
 ```bash
-cd Packages/StrandAnalytics && swift build && swift test
+cd Packages/CenitAnalytics && swift build && swift test
 ```
 
 | Package | What it holds |
 | --- | --- |
 | `BiometricStreams` | The neutral shapes of a decoded sample. Foundation-only, the root of the graph. |
-| `StrandModels` | Row types both storage and math need to name. |
+| `CenitModels` | Row types both storage and math need to name. |
 | `CenitStore` | SQLite persistence, the schema and the migration that installs it. |
-| `StrandAnalytics` | Every physiological computation, as pure functions. |
-| `StrandTraining` | The strength domain plus the bundled exercise catalog. |
-| `StrandImport` | Parsers for the files a user supplies. |
+| `CenitAnalytics` | Every physiological computation, as pure functions. |
+| `CenitTraining` | The strength domain plus the bundled exercise catalog. |
+| `CenitImport` | Parsers for the files a user supplies. |
 | `CenitDesign` | The SwiftUI design system. |
 | `CenitEnsenanza` | The registry of what the app teaches and where. |
 

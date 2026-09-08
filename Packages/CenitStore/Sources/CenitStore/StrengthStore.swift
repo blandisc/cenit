@@ -1,17 +1,17 @@
 import Foundation
 import GRDB
-import StrandTraining
+import CenitTraining
 import BiometricStreams
 
 // MARK: - v13 strength tracker persistence (FER-345)
 //
 // CRUD for the relational, user-authored strength data (custom exercises, routines,
-// sessions, sets, PRs). Mirrors the repo idiom: Codable value types from `StrandTraining`,
+// sessions, sets, PRs). Mirrors the repo idiom: Codable value types from `CenitTraining`,
 // raw-SQL `INSERT … ON CONFLICT(id) DO UPDATE` upserts, and `Row.fetchAll` reads mapped by
 // hand. Array fields (muscles, cues, warm-up percents) are stored as explicit JSON strings
 // (same approach as `workout.zonesJSON`), so GRDB's record API is not relied on. All work runs
 // via the actor's `syncWrite`/`syncRead` (off the main thread). The seed catalog is NOT here —
-// it's a bundled resource in `StrandTraining`.
+// it's a bundled resource in `CenitTraining`.
 
 private func encodeJSON<T: Encodable>(_ value: T) -> String {
     guard let data = try? JSONEncoder().encode(value),
@@ -65,7 +65,7 @@ public struct WorkSetHistoryRow: Sendable, Equatable {
 
 extension CenitStore {
 
-    // MARK: - Custom exercises (user-created; the bundled catalog lives in StrandTraining)
+    // MARK: - Custom exercises (user-created; the bundled catalog lives in CenitTraining)
 
     public func saveCustomExercise(_ e: Exercise) async throws {
         try syncWrite { db in
@@ -816,7 +816,7 @@ extension CenitStore {
 
     /// One session that can serve as a CALIBRATION PAIR for the session-effort scale: it carries a
     /// rating AND a pulse series. Whether the pulse is good enough (`HRCoverage`) and what TRIMP it
-    /// adds up to is decided by the caller — that math lives in StrandAnalytics, which this package
+    /// adds up to is decided by the caller — that math lives in CenitAnalytics, which this package
     /// deliberately does not depend on.
     public struct StrengthCalibrationCandidate: Sendable, Equatable {
         public var sessionId: String
@@ -890,7 +890,7 @@ extension CenitStore {
     /// Re-scale every ESTIMATED session onto a new `trimpPerAU`, in ONE write. Only rows whose load
     /// came from the rating (`strainSource == 'rpe'`) are touched — a measured session is a
     /// measurement and never moves. `strain` is supplied by the caller (the map lives in
-    /// StrandAnalytics); a `nil` from it leaves that row alone. Returns the number of rows rewritten.
+    /// CenitAnalytics); a `nil` from it leaves that row alone. Returns the number of rows rewritten.
     ///
     /// Why persist at all: the receipt, the history and Tendencias must all show the same number for
     /// the same session, so a recalibration rewrites the stored value instead of being applied on read.
@@ -1082,7 +1082,7 @@ extension CenitStore {
 
     /// Descansos reales (s) de las series de trabajo hechas en las últimas `sessionLimit` sesiones de
     /// una rutina — el insumo de la tile «DESCANSO REAL» (FER-167). Plano; el promedio/el corte de
-    /// interrupciones es de `RestStats` (StrandTraining), no de SQL. El LIMIT es por SESIÓN, no por
+    /// interrupciones es de `RestStats` (CenitTraining), no de SQL. El LIMIT es por SESIÓN, no por
     /// fila: la subquery elige las `sessionLimit` sesiones más recientes de la rutina, y solo entonces
     /// se filtran sus `setEntry` — así una sesión antigua con muchas series no le roba cupo a una
     /// reciente con pocas. `strengthSession` no tiene índice por `routineId`; la tabla es de cientos de

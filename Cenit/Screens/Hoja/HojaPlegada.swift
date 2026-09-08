@@ -1,7 +1,7 @@
 #if os(iOS)
 import SwiftUI
 import CenitDesign
-import StrandTraining
+import CenitTraining
 
 // MARK: - HojaPlegada — la receta de una línea + «＋ Agregar ejercicio» (FER-166)
 //

@@ -37,6 +37,6 @@ instrucciones ya traducidas.
 
 ## Verificación (criterios FER-795)
 
-- 0 nombres iniciando en minúscula: `python3 -c "import json;print(sum(1 for e in json.load(open('../../Packages/StrandTraining/Sources/StrandTraining/Resources/exercises.es.json')) if e['name'][:1].islower()))"`
+- 0 nombres iniciando en minúscula: `python3 -c "import json;print(sum(1 for e in json.load(open('../../Packages/CenitTraining/Sources/CenitTraining/Resources/exercises.es.json')) if e['name'][:1].islower()))"`
 - 1500 ids, cero entradas perdidas (lo reporta `build_es_overlay.py`).
-- `swift test` verde en `Packages/StrandTraining` y `Packages/StrandImport`.
+- `swift test` verde en `Packages/CenitTraining` y `Packages/CenitImport`.

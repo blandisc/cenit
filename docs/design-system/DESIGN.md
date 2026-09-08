@@ -1,4 +1,4 @@
-# Strand / Cénit — Design System
+# Cenit / Cénit — Design System
 
 > **Un solo lenguaje: «Liquid Glass».** Cada pantalla se lee como un instrumento de precisión hecho
 > de vidrio líquido teñido sobre un lienzo blanco: **color con significado (el valor y la identidad
@@ -23,7 +23,7 @@
 - **Source of truth:** the `CenitDesign` Swift package — `Packages/CenitDesign/Sources/CenitDesign/`
 - **Package version:** `0.1.0` (`CenitDesign.version`)
 - **Token entry points (canónicos — Liquid Glass · El Eje):** `LiquidColor` · `LiquidType` · `LiquidSpace` / `LiquidRadius` · `LiquidElevation` · `LiquidMotion` · `LiquidHaptica` · `liquidGlass(_:)` / `liquidGlass(tono:regimen:)` — mapa completo en [`LIQUID-GLASS.md`](LIQUID-GLASS.md); índice de componentes en [`CATALOGO.md`](CATALOGO.md)
-- **Legado en migración (no usar en pantallas nuevas):** `StrandPalette` · `StrandFont` · `StrandMotion` · `CenitMetrics` · `StrandElevation` (retirado — sin consumidores de pantalla activos; solo su definición en `Elevation.swift`) · `InstrumentoTheme` / `theme.*` — inventario aún en tránsito en **[§8](#8-instrumento-diurno--generación-anterior-absorbida--en-migración)**; `CenitIcon` sigue vivo para glifos (ver [`ICONOGRAFIA.md`](ICONOGRAFIA.md))
+- **Legado en migración (no usar en pantallas nuevas):** `CenitPalette` · `CenitFont` · `CenitMotion` · `CenitMetrics` · `CenitElevation` (retirado — sin consumidores de pantalla activos; solo su definición en `Elevation.swift`) · `InstrumentoTheme` / `theme.*` — inventario aún en tránsito en **[§8](#8-instrumento-diurno--generación-anterior-absorbida--en-migración)**; `CenitIcon` sigue vivo para glifos (ver [`ICONOGRAFIA.md`](ICONOGRAFIA.md))
 - **Machine-readable tokens:** [`tokens/design-tokens.json`](tokens/design-tokens.json) (W3C Design Tokens format)
 - **Assets:** [`assets/`](assets/) — app icons + brand marks
 - **Voz y contenido:** [`LENGUAJE.md`](LENGUAJE.md) — cómo suena el sistema: tono, escritura es-MX, microcopy y glosario canónico (compañero de este doc)
@@ -42,7 +42,7 @@
 
 Surfaces and text still carry the **«Instrumento diurno»** roles while paper screens migrate — see **[§8](#8-instrumento-diurno--generación-anterior-absorbida--en-migración)** for `paper`, `surface`, `hairline`, `hairlineStrong`, `ink`, `inkSecondary`, `inkTertiary`. The dark `surface.*` / `text.*` / `glow` tokens were **retired in FER-430**. The canonical frame is Liquid Glass · El Eje (manifiesto de apertura).
 
-`CenitOpacity.dim = 0.45` — shared dim value for disabled sections (don't invent your own; the old name `opacity.disabled` / `StrandPalette.disabledOpacity` is legado).
+`CenitOpacity.dim = 0.45` — shared dim value for disabled sections (don't invent your own; the old name `opacity.disabled` / `CenitPalette.disabledOpacity` is legado).
 
 ### 1.3 Color — accent (chrome, **not** data)
 
@@ -77,7 +77,7 @@ For Apple-Health-style bars and metric tiles.
 ### 1.6 Data scales — gradients
 
 **Recovery** — a traffic-light scale (low red → high green). Sample any score `0…100`
-with `StrandPalette.recoveryColor(score)`.
+with `CenitPalette.recoveryColor(score)`.
 
 | Stop | Position | Hex | State word |
 |---|---|---|---|
@@ -87,11 +87,11 @@ with `StrandPalette.recoveryColor(score)`.
 | `recovery.s078` | 0.78 | `#18C98B` | PRIMED (`<88`) |
 | `recovery.s100` | 1.00 | `#2FE6A8` | PEAK (`≥88`) |
 
-> State words come from `StrandPalette.recoveryState(score)` and are localized against
+> State words come from `CenitPalette.recoveryState(score)` and are localized against
 > the host app's string catalog (`Bundle.main`) — the package ships no strings of its own.
 
 **Strain** — ember → magenta (output / heat). Sample any value on the `0…21`
-scale with `StrandPalette.strainColor(strain)`.
+scale with `CenitPalette.strainColor(strain)`.
 
 | Stop | Position | Hex |
 |---|---|---|
@@ -102,7 +102,7 @@ scale with `StrandPalette.strainColor(strain)`.
 
 ### 1.7 Sleep stages & HR zones
 
-**Sleep** (`StrandPalette.sleepStageColor(stage)`):
+**Sleep** (`CenitPalette.sleepStageColor(stage)`):
 
 | Stage | Hex |
 |---|---|
@@ -111,7 +111,7 @@ scale with `StrandPalette.strainColor(strain)`.
 | Deep | `#2C3A7A` (deep indigo) |
 | REM | `#3E9E8C` (muted teal — calmer than the old `#5BE0C7` mint, FER-234) |
 
-**HR zones** (`StrandPalette.hrZoneColor(1…5)`):
+**HR zones** (`CenitPalette.hrZoneColor(1…5)`):
 
 | Zone | Hex |
 |---|---|
@@ -123,7 +123,7 @@ scale with `StrandPalette.strainColor(strain)`.
 
 ---
 
-## 2. Typography (`StrandFont`)
+## 2. Typography (`CenitFont`)
 
 SF Pro — **Display ≥ 20pt, Text < 20pt**. Every numeric style uses **tabular /
 monospaced digits** so live values don't reflow. SF Mono for raw/log views.
@@ -144,8 +144,8 @@ monospaced digits** so live values don't reflow. SF Mono for raw/log views.
 | `captionNumber` | 12 | Medium | Tabular digits (sparklines, chips) |
 
 Helpers:
-- `StrandFont.number(size, weight:)` — arbitrary tabular-digit numeric.
-- `StrandFont.mono(size, weight:)` — arbitrary mono.
+- `CenitFont.number(size, weight:)` — arbitrary tabular-digit numeric.
+- `CenitFont.mono(size, weight:)` — arbitrary mono.
 - `Text(...).strandOverline()` — applies overline style (ALL-CAPS, semibold, +0.8 tracking, secondary text).
 
 ---
@@ -166,9 +166,9 @@ Helpers:
 
 ---
 
-## 4. Motion (`StrandMotion` — legado en migración)
+## 4. Motion (`CenitMotion` — legado en migración)
 
-**Pantallas nuevas / Liquid usan `LiquidMotion`** (ver [`LIQUID-GLASS.md`](LIQUID-GLASS.md) §5). `StrandMotion` queda para consumidores aún sin migrar. Physiological motion — **breathe / pulse / flow, no cartoon bounce.**
+**Pantallas nuevas / Liquid usan `LiquidMotion`** (ver [`LIQUID-GLASS.md`](LIQUID-GLASS.md) §5). `CenitMotion` queda para consumidores aún sin migrar. Physiological motion — **breathe / pulse / flow, no cartoon bounce.**
 
 **Spring presets:**
 
@@ -199,7 +199,7 @@ Helpers:
 | Component | Purpose | Key API |
 |---|---|---|
 | *(the old dark-legacy card surface, retired FER-444)* | The current card surface for Liquid Glass screens is `liquidGlass(_:)` — see [CATALOGO.md](CATALOGO.md) for the full index | — |
-| `StrandCardHover` | Hover-lift `ViewModifier` (shadow-md + translateY(-1px) + border emphasis) for any card-like surface | `cornerRadius:` |
+| `CenitCardHover` | Hover-lift `ViewModifier` (shadow-md + translateY(-1px) + border emphasis) for any card-like surface | `cornerRadius:` |
 | `LiquidSectionHeader` (Liquid) / `InstrumentoSectionBand` (Instrumento, not migrated) | Section title with optional overline + trailing text — see [CATALOGO.md](CATALOGO.md) | — |
 
 ### 5.2 Metric & content cards
@@ -221,7 +221,7 @@ around a chart or status text. Full index: [CATALOGO.md](CATALOGO.md).
 | `StatePill` | Status pill: tone color + optional dot + optional breathing pulse | `(_ title, tone:, showsDot:, pulsing:)` |
 | `ConnectionDot` | Tiny status dot with optional breathing halo (connection / live state) | `tone:`, `pulsing:`, `size:` |
 
-`StrandTone`: `neutral` (text.secondary) · `accent` · `positive` · `warning` · `critical`.
+`CenitTone`: `neutral` (text.secondary) · `accent` · `positive` · `warning` · `critical`.
 
 ### 5.4 Signature visualizations
 
@@ -260,7 +260,7 @@ See [`assets/`](assets/) (and its [README](assets/README.md)):
 
 - **Lienzo canónico = blanco (Liquid Glass · El Eje).** El sistema oscuro se retiró (FER-430); la única excepción viva es Watch OLED. Previews Liquid no fuerzan `.dark`.
 - **Data colors come from scales, chrome comes from `accent`.** Never tint a metric with `accent`; never reuse a status color as a recovery color.
-- **Numerics are tabular.** Any live value uses a `*Number` font — en Liquid, `LiquidType.valor*` / helpers; en legado Instrumento, `StrandFont.number(...)` — so digits don't shift.
+- **Numerics are tabular.** Any live value uses a `*Number` font — en Liquid, `LiquidType.valor*` / helpers; en legado Instrumento, `CenitFont.number(...)` — so digits don't shift.
 - **Compose from the locked set (retired).** This dark-legacy set was retired in FER-444; new cards
   use `liquidGlass(_:)` — see [CATALOGO.md](CATALOGO.md) for the current index.
 - **Regenerating tokens:** this doc and [`tokens/design-tokens.json`](tokens/design-tokens.json) are derived from the Swift package; re-derive them when `Palette` / `Typography` / `Motion` / `Components` change. The «Instrumento» color blocks (§8.2 + `color.instrumento`) are emitted from `Instrumento.swift` by `swift run CenitDesignTokens` (run it in `Packages/CenitDesign`); CI fails if they drift (FER-131 handoff · 01).
@@ -298,7 +298,7 @@ paralelo. Origen: FER-131; retiro del marco: épico FER-229.
 
 ### 8.1 Why a `struct`, not static tokens
 
-The roles are an **instance** (`InstrumentoTheme`), not statics like `StrandPalette`,
+The roles are an **instance** (`InstrumentoTheme`), not statics like `CenitPalette`,
 on purpose: the by-the-hour theme engine (**FER-132**) produces dawn/day/dusk/night
 variants by interpolating these same roles. `.base` is the neutral **daytime anchor**.
 Inject with `.instrumentoTheme(_:)`; read with `@Environment(\.instrumentoTheme)`. Every
@@ -361,7 +361,7 @@ hue against the live paper so this 3:1 floor holds at every hour (FER-131 handof
 > **Evolución 2026-07:** para pantallas nuevas o rediseñadas la voz canónica es la de §8.7
 > (Space Grotesk). Esta sección describe la voz que las pantallas aún no migradas conservan.
 
-Reuses SF Pro tabular digits (`StrandFont`); adds only the two opinionated moves:
+Reuses SF Pro tabular digits (`CenitFont`); adds only the two opinionated moves:
 
 - **The protagonist numeral** — `Text(...).instrumentoHero(size)` = tabular hero font +
   size-aware **negative tracking** (~-1.6pt at 72), so a big figure reads as one machined
@@ -457,9 +457,9 @@ no migradas conservan la voz de §8.3 hasta que les toque.
 - **Overlines de pantalla evolucionada, en exclusiva Grotesk:** toda pantalla ya migrada a esta voz usa
   `Text(...).groteskOverline()` (10/600, tracking 2, ALL-CAPS) para sus overlines. `InstrumentoType.overline` /
   `.instrumentoOverline()` (§8.3) queda reservado a pantallas del sistema base «Instrumento diurno» aún sin
-  migrar a esta voz evolucionada. `StrandFont.overline` / `.strandOverline()` es legacy §9.2: ninguna pantalla
+  migrar a esta voz evolucionada. `CenitFont.overline` / `.strandOverline()` es legacy §9.2: ninguna pantalla
   nueva lo usa.
-- **La serif se retira** (supersede FER-564): `StrandFont.serifVerdict` queda deprecada; los
+- **La serif se retira** (supersede FER-564): `CenitFont.serifVerdict` queda deprecada; los
   veredictos migran a `groteskVerdict`. La fuente Instrument Serif sale del bundle al cerrar
   FER-710.
 - **Color bajo 24pt, relajado a conciencia:** en las pantallas rediseñadas el color del dato

@@ -29,7 +29,7 @@ Regla: la palabra «estimado» aparece exactamente una vez por superficie en est
 Fila de esfuerzo = un solo elemento ajustable (patrón `EntrenarStepperSegundos`): label «Esfuerzo de la sesión», value «8 de 10, esfuerzo duro, te sobraban unas 2 reps», swipe recorre 6→10; sin respuesta «sin calificar». Numeral «Esfuerzo estimado, 11.4 de 21». Dynamic Type: desde AX1 la fila de 6 pasa a 2 renglones de 3; celdas ≥ 44 pt. Reduce Motion: sin animación del numeral.
 
 ## Alcance técnico
-`Cenit/Screens/LiveStrengthSheet.swift` (summaryPhase/receiptHero :1406-1585), `LiveStrengthSheets.swift` (RPESheet/EntrenarFilaEsfuerzo :20-153; añadir estilo «sugerido» a `EntrenarFilaEsfuerzo` en StrandDesign con #Preview), `WorkoutDetailScreen.swift`, `WorkoutHistoryScreen.swift:1778-1797`, `TrainingLoadSheet.swift` (pie de procedencia con `strengthEstimatedDays`), `ManualWorkoutSheet.swift`, `Cenit/App/AppModel+Strength.swift` (persistir sessionRpe/source al guardar y al cerrar el recibo). Solo tokens StrandDesign.
+`Cenit/Screens/LiveStrengthSheet.swift` (summaryPhase/receiptHero :1406-1585), `LiveStrengthSheets.swift` (RPESheet/EntrenarFilaEsfuerzo :20-153; añadir estilo «sugerido» a `EntrenarFilaEsfuerzo` en CenitDesign con #Preview), `WorkoutDetailScreen.swift`, `WorkoutHistoryScreen.swift:1778-1797`, `TrainingLoadSheet.swift` (pie de procedencia con `strengthEstimatedDays`), `ManualWorkoutSheet.swift`, `Cenit/App/AppModel+Strength.swift` (persistir sessionRpe/source al guardar y al cerrar el recibo). Solo tokens CenitDesign.
 
 ## Fuera de alcance
 El motor y el overlay (E2). Tile «hoy parcial».

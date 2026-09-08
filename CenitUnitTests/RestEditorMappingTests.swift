@@ -1,5 +1,5 @@
 import XCTest
-import StrandTraining
+import CenitTraining
 @testable import Cenit
 
 /// FER-89 — `RestEditorScreen` pasó de conocer 2 de las 5 formas reales del motor

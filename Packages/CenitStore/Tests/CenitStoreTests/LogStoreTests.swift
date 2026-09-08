@@ -1,5 +1,5 @@
 import XCTest
-import StrandModels
+import CenitModels
 @testable import CenitStore
 
 /// Diario, entrenamientos y totales diarios de Apple: clave natural por partición, alta idempotente y

@@ -1,8 +1,8 @@
 #if os(iOS)
 import Foundation
 import CenitDesign
-import StrandAnalytics
-import StrandTraining
+import CenitAnalytics
+import CenitTraining
 import BiometricStreams
 
 // ReceiptMapping.swift — pure StrengthSummary → ThermalReceipt mapper for the workout receipt printer.

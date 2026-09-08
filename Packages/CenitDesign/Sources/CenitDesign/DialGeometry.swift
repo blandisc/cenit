@@ -10,10 +10,10 @@ import SwiftUI
 // `InstrumentoThemeEngine.swift`.
 //
 // Sin dependencias, como el resto de CenitDesign: las ventanas de sol y sueño se INYECTAN, nunca se
-// importan. La app las calcula desde `StrandAnalytics.SolarClock` + el registro de sueño on-device y
+// importan. La app las calcula desde `CenitAnalytics.SolarClock` + el registro de sueño on-device y
 // pasa valores planos. Puro y determinista: la geometría lee horas de reloj, nunca llama a `Date()`.
 
-// MARK: - Injected sleep window (no StrandStore / HealthKit dependency)
+// MARK: - Injected sleep window (no CenitStore / HealthKit dependency)
 
 /// The night's sleep window as clock hours (e.g. `23.5` == 23:30). The app reads this from the
 /// on-device sleep record it already has — no new permission — and injects it, the same way

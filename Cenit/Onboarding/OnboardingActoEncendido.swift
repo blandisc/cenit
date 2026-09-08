@@ -1,7 +1,7 @@
 import SwiftUI
 import CenitDesign
 import CenitEnsenanza
-import StrandAnalytics
+import CenitAnalytics
 
 // MARK: - Actos 3 y 4  ·  el encendido (FER-109)
 //

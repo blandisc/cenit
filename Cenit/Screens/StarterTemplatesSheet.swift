@@ -1,7 +1,7 @@
 #if os(iOS)
 import SwiftUI
 import CenitDesign
-import StrandTraining
+import CenitTraining
 
 // StarterTemplatesSheet.swift — «Start from a template» (FER-386).
 //
@@ -514,7 +514,7 @@ struct StarterTemplatesSheet: View {
 
     /// Copia cada rutina del grupo y la agenda a su FRECUENCIA recomendada, repartida en la semana
     /// (FER-377): Full body 3×, Upper/Lower cada mitad 2×, PPL 6 días… La receta (`StarterGroupSchedule`)
-    /// y el reparto (`WeeklySchedulePlanner`) son puros (StrandTraining); aquí solo materializamos y
+    /// y el reparto (`WeeklySchedulePlanner`) son puros (CenitTraining); aquí solo materializamos y
     /// escribimos. NUNCA pisa un día ya asignado, y es mejor esfuerzo si no caben todas las sesiones —
     /// las rutinas se guardan igual. Una plantilla que cae en varios días es la MISMA rutina en varias
     /// filas (`routineSchedule` lo soporta, PK=weekday). Si falla el guardado: banner inline, la hoja

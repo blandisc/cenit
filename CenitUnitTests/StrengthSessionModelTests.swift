@@ -1,6 +1,6 @@
 import XCTest
-import StrandTraining
-import StrandAnalytics
+import CenitTraining
+import CenitAnalytics
 @testable import Cenit
 
 /// Pins the guided strength session logic (FER-347): prefill from «la última vez», register/advance,
@@ -1382,8 +1382,8 @@ final class StrengthSessionModelTests: XCTestCase {
         XCTAssertEqual(make([fresh]).runs[0].sets[0].weightKg, 92.5, accuracy: 0.0001)
     }
 
-    /// UNA familia de «bajar»: el 7,5 % que StrandTraining recibe inyectado es el del deload reactivo.
-    /// (`ProgramDeloadTests` escribe 0,075 literal porque no puede importar StrandAnalytics; este test
+    /// UNA familia de «bajar»: el 7,5 % que CenitTraining recibe inyectado es el del deload reactivo.
+    /// (`ProgramDeloadTests` escribe 0,075 literal porque no puede importar CenitAnalytics; este test
     /// ata las dos cifras para que una deriva no pase en silencio — gate /biomecanico FER-329 #6.)
     func testProgramDeloadFractionIsTheReactiveOne() {
         XCTAssertEqual(ProgressionMath.deloadFraction, 0.075, accuracy: 1e-12)

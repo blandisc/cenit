@@ -1,6 +1,6 @@
 #if os(iOS)
 import CenitDesign
-import StrandAnalytics
+import CenitAnalytics
 import Foundation
 
 // MARK: - «Ventana de métrica»: la matemática de ventana compartida por cada detalle (FER-269)

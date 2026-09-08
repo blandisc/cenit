@@ -2,8 +2,8 @@
 import SwiftUI
 import UIKit
 import CenitDesign
-import StrandTraining
-import StrandAnalytics
+import CenitTraining
+import CenitAnalytics
 import CenitStore
 import TipKit
 

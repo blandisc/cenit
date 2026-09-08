@@ -20,7 +20,7 @@ Hoy una serie es trabajo o calentamiento. Los programas reales usan «las que pu
 - Hevy `failure` → RPE 10 (0 en reserva); no es tipo.
 
 ## Alcance técnico
-`Packages/StrandTraining/.../Training.swift` (+SetMode.counts, RoutineSet/SetEntry/SetSnapshot ya con `mode` de E1), nuevo `SetVariants.swift` (fracción 0.8), `Packages/StrandAnalytics/.../PlateMath.swift` (+snap; `ProgressionState.swift` NO se edita: `metGoal` ya basta y E4 es su dueña en esta wave), `Packages/CenitStore/.../StrengthStore.swift` (SQL de los 4 puntos + invariante de adyacencia), `Cenit/Screens/StrengthSessionModel.swift` (WorkingSet.reps Int?, cascada del drop, sin descanso), `Cenit/Screens/RoutineSetEditing.swift`, `Hoja/RoutineSheetLogic.swift:296-329`, `Hoja/RoutineSheetKeypad.swift:41-68`.
+`Packages/CenitTraining/.../Training.swift` (+SetMode.counts, RoutineSet/SetEntry/SetSnapshot ya con `mode` de E1), nuevo `SetVariants.swift` (fracción 0.8), `Packages/CenitAnalytics/.../PlateMath.swift` (+snap; `ProgressionState.swift` NO se edita: `metGoal` ya basta y E4 es su dueña en esta wave), `Packages/CenitStore/.../StrengthStore.swift` (SQL de los 4 puntos + invariante de adyacencia), `Cenit/Screens/StrengthSessionModel.swift` (WorkingSet.reps Int?, cascada del drop, sin descanso), `Cenit/Screens/RoutineSetEditing.swift`, `Hoja/RoutineSheetLogic.swift:296-329`, `Hoja/RoutineSheetKeypad.swift:41-68`.
 
 ## Fuera de alcance
 La UI (menú, «máx», chips, recibo): E7.
@@ -36,4 +36,4 @@ La UI (menú, «máx», chips, recibo): E7.
 - [ ] Censo en el PR: los cuatro call sites de regla (volumen, progresión, récords, 1RM) pasan por `SetMode.counts` / `SetEntry.counts(for:)`; ningún filtro `kind == .work` existente se edita (lista de sitios documentada en la descripción del PR).
 
 ## Definition of Done
-- [ ] `swift test` verde en StrandTraining, StrandAnalytics, CenitStore; `Tools/verify.sh` verde; /biomecanico PASS; /qa PASS.
+- [ ] `swift test` verde en CenitTraining, CenitAnalytics, CenitStore; `Tools/verify.sh` verde; /biomecanico PASS; /qa PASS.

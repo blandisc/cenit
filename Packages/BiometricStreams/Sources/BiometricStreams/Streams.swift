@@ -4,7 +4,7 @@ import Foundation
 ///
 /// `ts` is Unix wall-clock seconds. This is the live, high-volume vocabulary type in the
 /// package — Apple Health feeds it through `CenitStore` (the `hrSample` table) into every
-/// `StrandAnalytics` engine that reads heart rate.
+/// `CenitAnalytics` engine that reads heart rate.
 ///
 /// Callers are expected to keep arrays of samples ordered by `ts` ascending — `CenitStore`
 /// persists and reads them that way, and downstream algorithms assume it — but nothing in
@@ -85,7 +85,7 @@ public struct GravitySample: Equatable, Codable, Sendable {
 }
 
 /// A batch of decoded biometric rows in transit: HealthKit → `Streams` → `CenitStore`
-/// (persistence) / `StrandAnalytics` (computation).
+/// (persistence) / `CenitAnalytics` (computation).
 ///
 /// Only `hr` and `rr` have a live write path today — `CenitStore.insert` maps them onto the
 /// `hrSample`/`rrInterval` tables. `skinTemp`/`resp`/`gravity` are carried for the dormant

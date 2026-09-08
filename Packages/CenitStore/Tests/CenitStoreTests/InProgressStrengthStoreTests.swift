@@ -1,5 +1,5 @@
 import XCTest
-import StrandTraining
+import CenitTraining
 @testable import CenitStore
 
 /// FER-798: the in-progress-session store keeps exactly one snapshot (write is idempotent by id), reads

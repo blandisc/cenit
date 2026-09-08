@@ -1,7 +1,7 @@
 import XCTest
 import SwiftUI
 import CenitDesign
-import StrandModels
+import CenitModels
 @testable import Cenit
 
 /// Guardas de los cimientos de la migración de Comparar + Explorador (FER-104 / TND-29). La clase de

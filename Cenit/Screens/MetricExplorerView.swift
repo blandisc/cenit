@@ -2,7 +2,7 @@
 import SwiftUI
 import Foundation
 import CenitDesign
-import StrandAnalytics
+import CenitAnalytics
 import CenitStore
 
 // MARK: - Explore (Metric Explorer + Detail) — en vidrio «Liquid Glass» (FER-104 · TND-31)

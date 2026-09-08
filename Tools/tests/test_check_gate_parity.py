@@ -106,7 +106,7 @@ class GateParity(unittest.TestCase):
                     "run: python3 Tools/check-design-drift.py --rules no-raw-shadow Cenit/Screens",
                     "run: python3 Tools/check-design-drift.py --rules no-raw-shadow Cenit/Onboarding")
             _mutate(tmp, ".github/workflows/design-lint.yml",
-                    "      - name: Design-drift linter — no raw shadow, use StrandElevation (migrated screens)",
+                    "      - name: Design-drift linter — no raw shadow, use CenitElevation (migrated screens)",
                     "      - name: python3 Tools/check-design-drift.py --rules no-raw-shadow Cenit/Screens")
             problems = parity.check(tmp)
             self.assertTrue(any("no-raw-shadow" in p for p in problems),

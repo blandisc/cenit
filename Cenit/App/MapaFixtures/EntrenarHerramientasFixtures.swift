@@ -1,6 +1,6 @@
 #if os(iOS) && DEBUG
 import Foundation
-import StrandTraining
+import CenitTraining
 
 /// Estados de fixture de la familia **EntrenarHerramientas** para el mapa 100 % (FER-381/386).
 ///

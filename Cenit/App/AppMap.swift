@@ -1,7 +1,7 @@
 #if DEBUG && os(iOS)
 import SwiftUI
 import CenitStore
-import StrandTraining
+import CenitTraining
 import CenitDesign
 
 /// **Canvas del mapa de estados** — todas las variantes de una pantalla, lado a lado, dentro del

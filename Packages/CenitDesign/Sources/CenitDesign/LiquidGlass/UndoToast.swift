@@ -4,7 +4,7 @@ import SwiftUI
 //
 // Barra de tinta con CTA de deshacer. Receta pixel-fiel de
 // `WeeklyPlanEditorView.swift:748-758` (y su gemela de carpeta :871-883):
-//   HStack gap 12 · mensaje `StrandFont.subhead` en `theme.surface` · Spacer min 8 ·
+//   HStack gap 12 · mensaje `CenitFont.subhead` en `theme.surface` · Spacer min 8 ·
 //   CTA grotesk 15 bold · pad H `screenPadding` · V `cardPadding` · fondo `theme.ink` ·
 //   radius `cardRadius` · inset exterior H `screenPadding` · bottom 8.
 //

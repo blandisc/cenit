@@ -2,7 +2,7 @@ import Foundation
 import Combine
 import CenitStore
 import BiometricStreams
-import StrandAnalytics
+import CenitAnalytics
 
 /// Las cifras de sueño por día que la exportación heredada traía ya calculadas: filas de
 /// `metricSeries` que escribió el importador de CSV ya retirado, bajo el identificador de la fuente
@@ -194,7 +194,7 @@ final class Repository: ObservableObject {
     /// FER-1030: today's «Preparación» verdict (nil until enough of the user's own nights). The hero reads this.
     var todayPreparedness: Preparedness.Read? { dashboard.preparedness }
 
-    /// Pure wrapper over the StrandAnalytics engine, kept `nonisolated static` so the refresh can call it
+    /// Pure wrapper over the CenitAnalytics engine, kept `nonisolated static` so the refresh can call it
     /// off the main actor and so tests pin the Repository→engine seam without a store. `nights` are the
     /// dense `apple_rmssd_night` rows (oldest→newest); `asOf`/`recentCutoff` are local day keys.
     /// Forwards to `SourceFusion` (single policy copy; plan 2026-07-20).
@@ -1119,7 +1119,7 @@ final class Repository: ObservableObject {
     // MARK: - N-of-1 experiments (FER-307)
     //
     // Experiments are native on-device records, partitioned under the same `journalDeviceId` source as
-    // the journal they draw adherence from. The verdict reuses StrandAnalytics' `ExperimentVerdict`
+    // the journal they draw adherence from. The verdict reuses CenitAnalytics' `ExperimentVerdict`
     // (which reuses `BehaviorInsights`) over `days` (the same daily metrics the Bucle's levers come
     // from) and the native journal; no math lives here.
 

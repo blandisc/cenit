@@ -181,10 +181,10 @@ para reproducir + Entorno (plataforma, strap, fuente de datos).]
 - [ ] [verificable, observable]
 
 ## Definition of Done (cómo se verifica)
-- [ ] [test/comando concreto, ej. `swift test` pasa en Packages/StrandAnalytics]
+- [ ] [test/comando concreto, ej. `swift test` pasa en Packages/CenitAnalytics]
 - [ ] [qué probar a mano / en simulador, por estado]
 - [ ] Cumple el checklist del PR template (solo tokens CenitDesign, sin
-      warnings nuevos, no se commitea Strand.xcodeproj/)
+      warnings nuevos, no se commitea Cenit.xcodeproj/)
 ```
 
 ## Conocimiento de NOOP (inyecta esto en cada requerimiento)
@@ -199,17 +199,17 @@ alcance** — dilo si surge.
 |---|---|
 | Decodificar bytes del strap, CRC, framing | `Packages/WhoopProtocol` (puro, sin CoreBluetooth) |
 | Persistir datos, migraciones, caches | `Packages/WhoopStore` (GRDB/SQLite) |
-| Recovery / strain / HRV / sleep / correlaciones | `Packages/StrandAnalytics` (puro, sin DB) |
-| Parsear WHOOP CSV o Apple Health | `Packages/StrandImport` |
+| Recovery / strain / HRV / sleep / correlaciones | `Packages/CenitAnalytics` (puro, sin DB) |
+| Parsear WHOOP CSV o Apple Health | `Packages/CenitImport` |
 | Colores, fonts, cards, charts | `Packages/CenitDesign` |
-| CoreBluetooth, bonding, offload | `Strand/BLE`, `Strand/Collect` (capa de app) |
-| Una pantalla, navegación, menú | `Strand/Screens`, `Strand/App` |
+| CoreBluetooth, bonding, offload | `Cenit/BLE`, `Cenit/Collect` (capa de app) |
+| Una pantalla, navegación, menú | `Cenit/Screens`, `Cenit/App` |
 
 **Reglas no negociables** (recuérdalas en el requerimiento cuando apliquen):
-- **UI:** solo tokens de `CenitDesign` (`StrandPalette`, `StrandFont`,
+- **UI:** solo tokens de `CenitDesign` (`CenitPalette`, `CenitFont`,
   `NoopMetrics`, componentes como `NoopCard`). Cero hex/font/spacing
   hardcodeado. Pantalla nueva → registrar en `RootView` (`NavItem`).
-- **Analytics:** lógica pura en `StrandAnalytics`, **test obligatorio** y
+- **Analytics:** lógica pura en `CenitAnalytics`, **test obligatorio** y
   **citar el método**.
 - **Metric nuevo:** registrar en `MetricCatalog.swift`; el `key` debe coincidir
   exacto donde se escribe, en el catálogo y en el SQL. La UI (Explore/Compare)

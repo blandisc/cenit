@@ -1,5 +1,5 @@
 import XCTest
-import StrandTraining
+import CenitTraining
 @testable import Cenit
 
 /// FER-806 — pins the full-session Live Activity: the session-phase derivation, the additive contract

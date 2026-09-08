@@ -1,7 +1,7 @@
 #if os(iOS)
 import SwiftUI
 import CenitDesign
-import StrandTraining
+import CenitTraining
 
 // MARK: - HojaFoco — el modo enfoque (FER-170 · F5, épico FER-165)
 //

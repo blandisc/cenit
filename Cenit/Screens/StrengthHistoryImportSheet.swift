@@ -2,9 +2,9 @@
 import SwiftUI
 import UniformTypeIdentifiers
 import CenitDesign
-import StrandAnalytics
-import StrandImport
-import StrandTraining
+import CenitAnalytics
+import CenitImport
+import CenitTraining
 
 /// Four-step Strong / Hevy / Cénit CSV history import (FER-333 · E9). Self-contained sheet;
 /// callers present it and optionally wire history / «Arm your week» exits.

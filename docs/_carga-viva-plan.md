@@ -8,7 +8,7 @@
 > No hay «dato dormido de banda» que reconciliar: en `repo.days` **todas** las filas son filas Apple
 > (`deviceId == "apple-health"`), y `imported/computed == []` por construcción (`Repository.swift:366-367`).
 >
-> Baseline verificado esta sesión: `StrandAnalytics` compila verde (`swift build`, 2.1s). El resto del
+> Baseline verificado esta sesión: `CenitAnalytics` compila verde (`swift build`, 2.1s). El resto del
 > diseño está probado contra el código leído, no adivinado.
 
 ---
@@ -59,8 +59,8 @@ Sin migración de esquema: `DailyMetric.strain` ya existe y en greenfield Apple-
 
 | Pieza | Paquete/archivo | Por qué ahí |
 |---|---|---|
-| **Estimador de carga diaria** (rest→0 vs missing→NA + score por día) | **NUEVO** `Packages/StrandAnalytics/Sources/StrandAnalytics/AppleLoadEstimator.swift` (pure) | Matemática de dosis + regla rest/missing = math-level → lo más profundo. Foundation + BiometricStreams + StrandModels, cero DB/UIKit. Cubrible por `swift test` sin app/HealthKit. |
-| **ACWR EWMA acoplado + piso de días activos** | `Packages/StrandAnalytics/…/ReadinessEngine.swift` (editar) | La razón acute:chronic y su gate ya viven aquí; el cambio es interno tras la misma API pública. |
+| **Estimador de carga diaria** (rest→0 vs missing→NA + score por día) | **NUEVO** `Packages/CenitAnalytics/Sources/CenitAnalytics/AppleLoadEstimator.swift` (pure) | Matemática de dosis + regla rest/missing = math-level → lo más profundo. Foundation + BiometricStreams + CenitModels, cero DB/UIKit. Cubrible por `swift test` sin app/HealthKit. |
+| **ACWR EWMA acoplado + piso de días activos** | `Packages/CenitAnalytics/…/ReadinessEngine.swift` (editar) | La razón acute:chronic y su gate ya viven aquí; el cambio es interno tras la misma API pública. |
 | **Persistir el strain diario estimado** (orquestación) | `CenitApp/Health/HealthKitBridge.swift` + `Cenit/Data/AppleHealthImport.swift` (editar) | Escribir a `DailyMetric.strain` es trabajo de shell (tiene HR por día, steps, kcal, presencia de workout, y el `Profile`). El shell llama al estimador puro; no reimplementa math. |
 | **Estimado vivo de HOY** (número intradía «Carga del día») | `Cenit/Data/Repository.swift` (sin cambio de fondo) | Se conserva `appleStrainEstimates` midnight→now para el héroe intradía; solo hoy. Ver «Reconciliación hoy». |
 | **Presentación** | `Cenit/Screens/TrainingLoadSheet.swift`, `TodayView.swift`, `CuerpoView.swift`, `RecoveryDetailScreen.swift` | Solo consumen; NO se rediseñan aquí (eso es `/ui`). Los valores cambian, las firmas no. |
@@ -72,7 +72,7 @@ Sin migración de esquema: `DailyMetric.strain` ya existe y en greenfield Apple-
 
 ## Diseño
 
-### Pieza 1 — `AppleLoadEstimator` (pure, StrandAnalytics)
+### Pieza 1 — `AppleLoadEstimator` (pure, CenitAnalytics)
 
 Una función pura por día que resuelve la ambigüedad **descanso real vs dato faltante** y devuelve la dosis:
 
@@ -197,8 +197,8 @@ pero la recomendación es la columna existente.)
 
 - **Offline only:** ✅ todo on-device; el estimador es Foundation-pure, cero red/telemetría/cuenta.
 - **BLE no destructivo + CRC:** N/A — no toca `ProtocoloBanda` ni bytes salientes.
-- **Pureza de paquetes:** ✅ `AppleLoadEstimator` vive en `StrandAnalytics`, depende solo de
-  Foundation + `BiometricStreams` (`HRSample`) + `StrandModels`; ningún `import UIKit/AppKit/CoreBluetooth/GRDB`.
+- **Pureza de paquetes:** ✅ `AppleLoadEstimator` vive en `CenitAnalytics`, depende solo de
+  Foundation + `BiometricStreams` (`HRSample`) + `CenitModels`; ningún `import UIKit/AppKit/CoreBluetooth/GRDB`.
 - **Migraciones append-only:** ✅ **sin migración** (columna existente). No se edita ninguna migración shipped.
 - **Decoded-first durability:** ✅ el strain es un derivado; se escribe **después** de que el HR crudo ya se
   commiteó (el HR ya está persistido, independiente). El raw sigue siendo prunable; el strain persistido se
@@ -236,7 +236,7 @@ Regresión conocida (churn esperado, `/implement` la actualiza): `ReadinessEngin
 cualquier test que pinnee valores de ACWR/monotony **cambian numéricamente** con EWMA + secuencia-con-ceros. No es
 un bug: es el cambio de modelo. Se re-derivan a mano y `/estadistico` los valida.
 
-**Corrido esta sesión:** `swift build` de `StrandAnalytics` → verde (baseline). Los tests nuevos NO se corrieron
+**Corrido esta sesión:** `swift build` de `CenitAnalytics` → verde (baseline). Los tests nuevos NO se corrieron
 (no existen aún; son el contrato de `/implement`). **No afirmo que ningún test nuevo pase.**
 
 ---
@@ -276,9 +276,9 @@ aparezca», no prometer un número que no puede existir.
 - `Cenit/Screens/CuerpoView.swift:1337-1344` (`loadAll` → `TrainingLoadModel`).
 - `Cenit/Screens/RecoveryDetailScreen.swift:673-678` (`LoadState`).
 - `Cenit/Screens/TrainingLoadSheet.swift` (presentación; `acwr==nil` → «calibrando»).
-- `Packages/StrandAnalytics/…/DailyBrief.swift` (bullet `acwr` desde `readiness.signals`).
-- `Packages/StrandAnalytics/…/InsightEngine.swift:560-569` (insight de carga; lee `r.acwr`/`r.loadBand`).
-- `Packages/StrandAnalytics/…/StrainCeiling.swift` — lee `days.strain` (se enciende con el strain persistido)
+- `Packages/CenitAnalytics/…/DailyBrief.swift` (bullet `acwr` desde `readiness.signals`).
+- `Packages/CenitAnalytics/…/InsightEngine.swift:560-569` (insight de carga; lee `r.acwr`/`r.loadBand`).
+- `Packages/CenitAnalytics/…/StrainCeiling.swift` — lee `days.strain` (se enciende con el strain persistido)
   pero su guard `recovery` lo mantiene `nil` en Apple-only (recovery 0–100 retirado). **Afectado-pero-dormido**;
   NO se migra a EWMA (es un techo sobre crónico, otro concepto). Anotar para `/qa`.
 
@@ -286,7 +286,7 @@ aparezca», no prometer un número que no puede existir.
 
 ## Criterios técnicos de aceptación (checklist de `/implement`)
 
-- [ ] Existe `AppleLoadEstimator` en `StrandAnalytics`, puro (sin GRDB/UIKit/CoreBluetooth), con `classify(...)`
+- [ ] Existe `AppleLoadEstimator` en `CenitAnalytics`, puro (sin GRDB/UIKit/CoreBluetooth), con `classify(...)`
       que devuelve `.rest`/`.load`/`.missing` por la regla rest/missing.
 - [ ] `HealthKitBridge.sync` y `AppleHealthImport.importExport` escriben `DailyMetric.strain` desde
       `AppleLoadEstimator` (0 para rest, valor para load, nil para missing), agrupando HR de workout por día local.
@@ -300,7 +300,7 @@ aparezca», no prometer un número que no puede existir.
 - [ ] Tests nuevos de paquete (estimador + EWMA + piso + hold + invariante) verdes; tests de regresión
       (`ReadinessEngineTests`/`StrainCeilingTests`) re-derivados y verdes.
 - [ ] `CenitUnitTests`: `days` Apple con strain persistido → `acwr != nil` tras el piso; F6 contract verde.
-- [ ] `swift build && swift test` de `StrandAnalytics` verde; `swift build` de `CenitStore` verde.
+- [ ] `swift build && swift test` de `CenitAnalytics` verde; `swift build` de `CenitStore` verde.
 - [ ] Gate `/cso` + `/estadistico` + `/qa` PASS antes de merge (carril pesado).
 
 ---
@@ -314,7 +314,7 @@ Diff propuesto (aditivo):
 
 ```
 > **Estimated daily strain now persists (CARGA VIVA).** The Apple-only training-load path (ACWR) is fueled
-> by an ESTIMATED daily strain scored from Apple workout HR by the pure `AppleLoadEstimator` (StrandAnalytics)
+> by an ESTIMATED daily strain scored from Apple workout HR by the pure `AppleLoadEstimator` (CenitAnalytics)
 > and written into the existing `DailyMetric.strain` column under `apple-health` at ingestion (HealthKitBridge
 > sync + AppleHealthImport). A quiet day (low steps/active-kcal, no HKWorkout) writes strain = 0 (real rest,
 > decays the acute EWMA); an active day without a formal workout writes nil (NA — excluded, not zero); a
@@ -339,7 +339,7 @@ Diff propuesto (aditivo):
 ## RESUMEN (para el orquestador)
 
 **Secuencia ordenada (compila al final de cada paso):**
-1. Crear `AppleLoadEstimator` puro en StrandAnalytics (rest→0 / missing→NA / load→TRIMP) + tests. (`swift test`)
+1. Crear `AppleLoadEstimator` puro en CenitAnalytics (rest→0 / missing→NA / load→TRIMP) + tests. (`swift test`)
 2. Migrar `ReadinessEngine` a ACWR EWMA acoplado + piso `minActiveDays` + reimplementar `acwrSeries`; re-derivar tests. (`swift test`)
 3. Cablear la persistencia en `HealthKitBridge.sync` y `AppleHealthImport` → escribir `DailyMetric.strain` (0/valor/nil).
 4. Verificar consumidores (Today/Cuerpo/RecoveryDetail/TrainingLoadSheet/DailyBrief/InsightEngine) — solo valores, sin firma.

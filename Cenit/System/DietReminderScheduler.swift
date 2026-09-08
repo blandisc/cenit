@@ -1,7 +1,7 @@
 #if os(iOS)
 import Foundation
 import UserNotifications
-import StrandImport
+import CenitImport
 
 /// Local, on-device meal reminders for the active diet plan (FER-412). Opt-in: when enabled, one daily
 /// repeating notification per meal that declares a `hora_sugerida`, at that time. Nothing leaves the

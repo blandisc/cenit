@@ -1,6 +1,6 @@
 import SwiftUI
 import CenitDesign
-import StrandTraining
+import CenitTraining
 
 private typealias RunSnapshot = StrengthSessionSnapshot.RunSnapshot
 private typealias SetSnapshot = StrengthSessionSnapshot.SetSnapshot

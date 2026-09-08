@@ -1,7 +1,7 @@
 #if os(iOS)
 import SwiftUI
 import CenitDesign
-import StrandTraining
+import CenitTraining
 
 // MARK: - HojaTarjetaSuperserieCompuesta — la superserie compuesta con `HojaTarjetaSuperserie` (FER-166)
 //

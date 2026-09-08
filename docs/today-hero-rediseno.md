@@ -110,7 +110,7 @@ Señales que deciden (todas de **solo lectura**, sin tocar el motor):
   color del nivel) y **Recuperación** (`92/100` + estado, en su propio color de
   banda). **4 niveles / colores**:
 
-  | Nivel | Palabra (es) | Color (`StrandPalette`) |
+  | Nivel | Palabra (es) | Color (`CenitPalette`) |
   |-------|--------------|--------------------------|
   | `primed` | Listo | `statusPrimed` (menta) |
   | `balanced` | Equilibrado | `statusPositive` (verde) |
@@ -325,7 +325,7 @@ si algún día se diera veredicto desde Apple Health, el estado §7-6 cambiaría
   (`InstrumentoTheme` + tipo, FER-131/147),
   [`InstrumentoThemeEngine`](../Packages/CenitDesign/Sources/CenitDesign/InstrumentoThemeEngine.swift)
   (tema por hora, FER-132), `Sparkline`/`ReferenceRange` (banda 14d, FER-155).
-- **Motor (solo lectura):** `Packages/StrandAnalytics` — `ReadinessEngine.Level`,
+- **Motor (solo lectura):** `Packages/CenitAnalytics` — `ReadinessEngine.Level`,
   `RecoveryScorer.calibrationNights`, `Baselines.minNightsSeed/minNightsTrust`,
   `SolarClock`, `SleepWindowClock` (FER-133/154).
 - **Tickets relacionados:** FER-105 (línea de confianza del veredicto), FER-106

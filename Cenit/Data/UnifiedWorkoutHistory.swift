@@ -1,7 +1,7 @@
 import Foundation
-import StrandTraining   // StrengthSession
+import CenitTraining   // StrengthSession
 import CenitStore       // WorkoutRow
-import StrandImport     // WorkoutHealthKitDedup (FER-362 · C4)
+import CenitImport     // WorkoutHealthKitDedup (FER-362 · C4)
 
 // MARK: - UnifiedWorkoutHistory (FER-202 · épico «Entrenar en vidrio»)
 //
@@ -11,7 +11,7 @@ import StrandImport     // WorkoutHealthKitDedup (FER-362 · C4)
 // el caller ya cargó de `Repository`. No sabe de UI ni de repo.
 //
 // El DEDUP (eco de Apple + colapso de dos apps de terceros solapadas) vive en
-// `StrandImport.WorkoutHealthKitDedup` (FER-362 · C4, ola A) — puro, sin dependencia de CenitStore.
+// `CenitImport.WorkoutHealthKitDedup` (FER-362 · C4, ola A) — puro, sin dependencia de CenitStore.
 // `merge` solo traduce `WorkoutRow`/`StrengthSession` a las DTOs mínimas del motor y aplica el
 // resultado; ver el docstring de ese tipo para el porqué de cada paso. Solo el eco/colapso de APPLE
 // cuenta: las filas manuales, detectadas y las del dispositivo anterior NUNCA se de-duplican (son datos que el usuario

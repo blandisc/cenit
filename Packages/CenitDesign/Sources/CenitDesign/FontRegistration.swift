@@ -13,7 +13,7 @@ import CoreText
 //     sheet titles, overlines, lane labels, tabs, buttons. Static instances (the SemiBold is
 //     instanced from the official variable font), referenced by PostScript name.
 
-extension StrandFont {
+extension CenitFont {
 
     /// Registers the bundled faces with the process font manager. The `static let` makes this run
     /// at most once (lazily, thread-safe) regardless of how many times `ensureFontsRegistered()`
@@ -42,8 +42,8 @@ extension StrandFont {
 
 extension LiquidType {
     /// Warm Space Grotesk registration at launch (FER-305). Thin alias of
-    /// `StrandFont.ensureFontsRegistered` so call sites speak LiquidType, not StrandFont.
+    /// `CenitFont.ensureFontsRegistered` so call sites speak LiquidType, not CenitFont.
     public static func ensureFontsRegistered() {
-        StrandFont.ensureFontsRegistered()
+        CenitFont.ensureFontsRegistered()
     }
 }

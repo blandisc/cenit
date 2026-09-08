@@ -6,7 +6,7 @@ import SwiftUI
 // bench (push), row (pull), squat (legs), dumbbell (full body). Authored in the shared 24×24
 // space (`AuthoredGlyph`, FER-903), stroked in the routine's region tint, decorative only —
 // the routine name beside it carries the meaning. The KIND enum is design-side on purpose:
-// CenitDesign doesn't import StrandTraining, so the app maps `RoutineRegion` → kind.
+// CenitDesign doesn't import CenitTraining, so the app maps `RoutineRegion` → kind.
 
 public enum RoutineGlyphKind: Sendable {
     case push, pull, legs, fullBody

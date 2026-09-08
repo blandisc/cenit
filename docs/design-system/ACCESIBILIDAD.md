@@ -114,16 +114,16 @@ Tres patrones vigentes (en `ContributionBars`, `BodyAgeBand`, `RecoveryZoneGauge
 @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
 // A) proteger el withAnimation
-if animated && !reduceMotion { withAnimation(StrandMotion.drawIn) { drawn = true } }
+if animated && !reduceMotion { withAnimation(CenitMotion.drawIn) { drawn = true } }
 
 // B) ramificar al estado final al instante
-if reduceMotion { drawn = true } else { withAnimation(StrandMotion.drawIn) { drawn = true } }
+if reduceMotion { drawn = true } else { withAnimation(CenitMotion.drawIn) { drawn = true } }
 
 // C) precomputar un bool
 let animating = animateEntrance && !reduceMotion
 ```
 
-> **Deuda conocida:** el patrón es correcto pero **copy-paste por sitio** — `StrandMotion` define
+> **Deuda conocida:** el patrón es correcto pero **copy-paste por sitio** — `CenitMotion` define
 > curvas (`drawIn`, `breathe`), no una compuerta de reduce-motion. Candidato a issue: un modifier
 > compartido (p. ej. `.strandEntrance(_:reduceMotion:)`) que encapsule el gate, para no depender de
 > recordarlo en cada pantalla nueva.
@@ -147,7 +147,7 @@ let animating = animateEntrance && !reduceMotion
 
 - [ ] Cada par texto/fondo libra su piso AA (3:1 numeral ≥24pt, 4.5:1 texto). Si agregas un color,
       corre `swift run CenitDesignTokens` y revisa el `ratio` en la tabla.
-- [ ] El texto de lectura usa tokens de `StrandFont` que escalan; solo la geometría usa los fijos.
+- [ ] El texto de lectura usa tokens de `CenitFont` que escalan; solo la geometría usa los fijos.
 - [ ] VoiceOver: labels en lo que significa, valores hablados en números clave, `accessibilityHidden`
       en lo decorativo.
 - [ ] Toda animación se ramifica bajo `accessibilityReduceMotion`.

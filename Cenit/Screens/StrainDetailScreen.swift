@@ -1,7 +1,7 @@
 #if os(iOS)
 import SwiftUI
 import CenitDesign
-import StrandAnalytics
+import CenitAnalytics
 import CenitStore
 import Foundation
 
@@ -17,7 +17,7 @@ import Foundation
 // referencia: `PreparacionDetailScreen.swift` (estados vacíos, skeleton, sin-permiso).
 //
 // `StrainDetailModel` NO CAMBIA (contrato de datos congelado para esta tarea): consume
-// `StrandAnalytics` tal cual (hoy, la serie, los drivers) — cero math nueva. El esfuerzo sigue
+// `CenitAnalytics` tal cual (hoy, la serie, los drivers) — cero math nueva. El esfuerzo sigue
 // siendo DESCRIPTIVO, sin semáforo: el tono es SIEMPRE `LiquidColor.ambar` (identidad de esfuerzo,
 // no juicio — ver el swatch «ámbar · esfuerzo/piel» en `LiquidColor.swift`).
 //
@@ -596,7 +596,7 @@ struct StrainDetailItem: Identifiable {
 //
 // The data layer of the strain detail, lifted out of the view. `StrainDetailScreen` is pure presentation
 // over this; the caller (Cuerpo) builds it with `StrainDetailModel.build(...)` from the in-memory
-// dashboard so the screen stays DB-free. It CONSUMES `StrandAnalytics` as-is (no new math): today's score
+// dashboard so the screen stays DB-free. It CONSUMES `CenitAnalytics` as-is (no new math): today's score
 // from `repo.today.strain`, the 14d+ series from `repo.days`.
 //
 // FER-101: this contract is UNCHANGED by the Liquid migration — kept verbatim.
@@ -627,7 +627,7 @@ struct StrainDetailModel {
     /// on-device dashboard (`repo.days`, the baseline source — FER-149); `today` is `repo.today`; `todayKey`
     /// is the device's local day key (passed by the caller — `Repository.localDayKey` is main-isolated,
     /// FER-976). The drivers are computed here off the same `days` (which carry recovery) via
-    /// `StrandAnalytics`, keeping the screen DB-free presentation over a ready-made model.
+    /// `CenitAnalytics`, keeping the screen DB-free presentation over a ready-made model.
     static func build(days: [DailyMetric], today: DailyMetric?, loaded: Bool,
                       todayKey: String) -> StrainDetailModel {
         let series = days

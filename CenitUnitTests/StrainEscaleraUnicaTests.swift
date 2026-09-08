@@ -1,5 +1,5 @@
 import XCTest
-import StrandAnalytics
+import CenitAnalytics
 @testable import Cenit
 
 /// La guarda del contrato de TND-10 (FER-101): el detalle de Esfuerzo tiene UNA sola escalera —

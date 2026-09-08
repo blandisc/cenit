@@ -2,7 +2,7 @@ import XCTest
 import SwiftUI
 import UIKit
 import CenitDesign
-import StrandTraining
+import CenitTraining
 @testable import Cenit
 
 /// FER-88 — el puente de la app hacia el tinte de familia. `RoutineRegion.tint` tenía su PROPIA

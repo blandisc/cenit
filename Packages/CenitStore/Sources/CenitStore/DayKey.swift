@@ -1,3 +1,3 @@
-import StrandModels
+import CenitModels
 
-public typealias DayKey = StrandModels.DayKey
+public typealias DayKey = CenitModels.DayKey

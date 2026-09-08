@@ -80,7 +80,7 @@ No heredes el "ya compila" de nadie. Corre tú:
   `xcodebuild test-without-building -destination 'id=<simulador concreto>'`
   (`xcrun simctl list devices available` da un id) — técnica de FER-149. Si aun
   así no corren en este entorno, es **BLOCKED**, no PASS.
-- Si el cambio es matemático (StrandAnalytics): que exista un **test que cite el
+- Si el cambio es matemático (CenitAnalytics): que exista un **test que cite el
   método** (Task Force 1996, Karvonen, Edwards/Banister, Tanaka) — regla de "math
   transparente". Sin test citado, el criterio no pasa.
 - Si toca migraciones: que sea **append-only** y traiga su caso en `MigrationTests`.

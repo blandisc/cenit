@@ -176,19 +176,19 @@ public struct SessionStatsBar: View {
             .font(InstrumentoType.groteskNumber(17, weight: .bold, relativeTo: .body))
             .foregroundStyle(tone)
          + Text(verbatim: " ")
-         + Text(unit).font(StrandFont.caption).foregroundStyle(LiquidColor.tinta500))
+         + Text(unit).font(CenitFont.caption).foregroundStyle(LiquidColor.tinta500))
             .accessibilityElement(children: .combine)
     }
 
     private var dot: some View {
-        Text(verbatim: "·").font(StrandFont.caption).foregroundStyle(LiquidColor.tinta500)
+        Text(verbatim: "·").font(CenitFont.caption).foregroundStyle(LiquidColor.tinta500)
             .accessibilityHidden(true)
     }
 
     private func control(_ symbol: String, label: Text, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: symbol)
-                .font(StrandFont.glyph(.lead))
+                .font(CenitFont.glyph(.lead))
                 .foregroundStyle(LiquidColor.tinta700)
                 .frame(width: EntrenarMetrics.row, height: EntrenarMetrics.row)
                 .background(LiquidColor.papelTarjeta, in: Circle())

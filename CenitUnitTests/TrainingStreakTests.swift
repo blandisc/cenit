@@ -1,5 +1,5 @@
 import XCTest
-import StrandTraining
+import CenitTraining
 @testable import Cenit
 
 /// FER-973 (T-04) — `TrainingStreak`, the single source both Entrenar and the Daily Brief's

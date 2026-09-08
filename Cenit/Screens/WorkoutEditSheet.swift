@@ -1,7 +1,7 @@
 #if os(iOS)
 import SwiftUI
 import CenitDesign
-import StrandTraining
+import CenitTraining
 import CenitStore   // store.routineExercises(routineId:) — clasificación de familia (Alcance punto 5, FER-90)
 
 // WorkoutEditSheet.swift — edit a SAVED strength session (FER-556 → Liquid Glass · FER-294 B.2).

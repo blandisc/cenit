@@ -241,7 +241,7 @@ public struct TrendChart: View {
     public let accessibilityValueText: String?
 
     public init(points puntos: [TrendPoint],
-                gradient rampa: Gradient = StrandPalette.recoveryGradient,
+                gradient rampa: Gradient = CenitPalette.recoveryGradient,
                 valueRange rango: ClosedRange<Double> = 0...100,
                 showsArea conLavado: Bool = true,
                 height alto: CGFloat = 220,
@@ -342,7 +342,7 @@ public struct TrendChart: View {
 
     /// La tinta que le toca a un valor dentro de la rampa de la métrica.
     private func tinta(de valor: Double) -> Color {
-        StrandPalette.sample(stops: gradient.toStops(), at: fraccion(de: valor))
+        CenitPalette.sample(stops: gradient.toStops(), at: fraccion(de: valor))
     }
 
     /// La rampa montada sobre el eje vertical: el trazo cambia de color según a qué altura va.
@@ -489,7 +489,7 @@ public struct TrendChart: View {
             AxisValueLabel(anchor: anclaDeCorte(corte.index, de: corte.count)) {
                 if let fecha = corte.as(Date.self) { Text(xAxisLabel(fecha)) }
             }
-            .font(StrandFont.footnote).foregroundStyle(axisLabelColor)
+            .font(CenitFont.footnote).foregroundStyle(axisLabelColor)
         }
     }
 
@@ -503,12 +503,12 @@ public struct TrendChart: View {
                 AxisValueLabel {
                     if let valor = corte.as(Double.self) { Text(valueFormat(valor)) }
                 }
-                .font(StrandFont.footnote).foregroundStyle(axisLabelColor)
+                .font(CenitFont.footnote).foregroundStyle(axisLabelColor)
             }
         } else {
             AxisMarks(position: .leading, values: .automatic(desiredCount: yTickCount)) { _ in
                 AxisGridLine().foregroundStyle(gridLineColor.opacity(MedidasTendencia.veloDeReticula))
-                AxisValueLabel().font(StrandFont.footnote).foregroundStyle(axisLabelColor)
+                AxisValueLabel().font(CenitFont.footnote).foregroundStyle(axisLabelColor)
             }
         }
     }
@@ -580,7 +580,7 @@ public struct TrendChart: View {
             }
             if !bandLabelsHidden, bandHeight >= MedidasTendencia.altoMinimoParaRotular || band.isActive {
                 Text(band.label)
-                    .font(StrandFont.footnote).fontWeight(band.isActive ? .semibold : .regular)
+                    .font(CenitFont.footnote).fontWeight(band.isActive ? .semibold : .regular)
                     .lineLimit(1)
                     .foregroundStyle(band.isActive ? bandColor : axisLabelColor.opacity(0.8))
                     .frame(width: plot.width - MedidasTendencia.sangriaDelRotulo, alignment: .trailing)
@@ -615,7 +615,7 @@ public struct TrendChart: View {
                             dentro: geo.size)
                 }
             }
-            .animation(StrandMotion.fade, value: dedoX)
+            .animation(CenitMotion.fade, value: dedoX)
             .contentShape(.rect)
             .scrubGesture(enabled: showsScrub, hoverX: $dedoX)
         }
@@ -694,7 +694,7 @@ public extension View {
 // MARK: - Puente de la rampa a sus paradas
 
 fileprivate extension Gradient {
-    /// Las paradas en orden, que es lo que el muestreador de `StrandPalette` sabe interpolar.
+    /// Las paradas en orden, que es lo que el muestreador de `CenitPalette` sabe interpolar.
     /// Vive aquí y no en el módulo: solo esta gráfica necesita el puente.
     func toStops() -> [Gradient.Stop] { stops }
 }
@@ -738,7 +738,7 @@ private struct TarjetaDeTendencia<Nota: View, Grafica: View>: View {
     let serie = SerieDeMuestra(piso: 62, vaiven: 22).dias(30)
     return TarjetaDeTendencia(rotulo: "Recovery — 30 days") {
         Text(verbatim: "Raspa la línea: cruz, punto y globo con fecha y valor.")
-            .font(StrandFont.footnote).foregroundStyle(InstrumentoTheme.base.inkTertiary)
+            .font(CenitFont.footnote).foregroundStyle(InstrumentoTheme.base.inkTertiary)
     } grafica: {
         TrendChart(points: serie)
     }

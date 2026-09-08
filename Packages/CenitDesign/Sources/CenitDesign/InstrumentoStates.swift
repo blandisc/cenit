@@ -40,7 +40,7 @@ public struct ScreenScaffold<Content: View>: View {
                     }
                     if let title {
                         Text(title)
-                            .font(StrandFont.title1)
+                            .font(CenitFont.title1)
                             .foregroundStyle(theme.ink)
                     }
                 }
@@ -67,7 +67,7 @@ public struct QuietButton: View {
     public var body: some View {
         Button(action: action) {
             Text(title)
-                .font(StrandFont.headline)
+                .font(CenitFont.headline)
                 .foregroundStyle(theme.ink)
                 .padding(.horizontal, 18)
                 .padding(.vertical, 10)

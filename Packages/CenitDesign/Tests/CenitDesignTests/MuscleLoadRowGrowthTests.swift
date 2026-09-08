@@ -6,10 +6,10 @@ import XCTest
 /// poder sustituir las filas hechas a mano (`ranking`/`peekCard`): esta prueba clava la única parte
 /// de ese crecimiento que un render no puede comprobar — el formato del número de series.
 ///
-/// `CenitDesign` es la raíz del grafo de paquetes (cero dependencias, ni siquiera StrandAnalytics),
+/// `CenitDesign` es la raíz del grafo de paquetes (cero dependencias, ni siquiera CenitAnalytics),
 /// así que no puede importar `MuscleFatigueMap.formattedSets` para compararse contra él: la fórmula
 /// vive duplicada a propósito, y esta prueba es lo que mantiene las dos copias honestas. Si alguien
-/// cambia una sin la otra, un test equivalente en `StrandAnalyticsTests` (que sí puede importar el
+/// cambia una sin la otra, un test equivalente en `CenitAnalyticsTests` (que sí puede importar el
 /// motor) truena con los mismos valores.
 final class MuscleLoadRowGrowthTests: XCTestCase {
 

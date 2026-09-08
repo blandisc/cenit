@@ -2,7 +2,7 @@
 import SwiftUI
 import TipKit
 import CenitDesign
-import StrandAnalytics
+import CenitAnalytics
 import CenitStore
 import Foundation
 
@@ -1217,7 +1217,7 @@ private struct CuerpoLanding: View {
     }
 
     /// Direction hue: younger → recovery green, older → warning amber, even → ink. The ±0.5-yr
-    /// deadband lives on `FitnessAgeResult.direction` (StrandAnalytics) so the row and the sheet agree.
+    /// deadband lives on `FitnessAgeResult.direction` (CenitAnalytics) so the row and the sheet agree.
     /// Physical age is NOT metric identity (FER-100 spec) — it keeps its DIRECTIONAL color by delta.
     private func physicalAgeColor(_ result: FitnessAgeResult) -> Color {
         switch result.direction {
@@ -1428,7 +1428,7 @@ private struct CuerpoLanding: View {
 
     // MARK: - Loading (memoize once per refresh)
 
-    /// Loads query-backed `@State` on MainActor, then runs the pure StrandAnalytics engines off-main
+    /// Loads query-backed `@State` on MainActor, then runs the pure CenitAnalytics engines off-main
     /// (FER-955 — same snapshot → `Task.detached` seam as `SleepDetailModel.buildDetached`).
     private func loadAll() async {
         // Stale-refresh guard: `.task(id: repo.refreshSeq)` re-runs this when the seq bumps, but the
@@ -1490,7 +1490,7 @@ private struct CuerpoLanding: View {
         let todayKey: String = Repository.localDayKey(Date())
         let regularityCutoff: Int = Int(Date().timeIntervalSince1970) - 35 * 86_400
 
-        // Pure StrandAnalytics engines off MainActor (FER-955). Same expressions as before; only the
+        // Pure CenitAnalytics engines off MainActor (FER-955). Same expressions as before; only the
         // executor moves. Assignments return to main below, gated by `seq`.
         let engines: CuerpoLandingEngines = await Task.detached(priority: .userInitiated) { () -> CuerpoLandingEngines in
             // FER-119: el contador cuenta AHORA lo mismo que madura el veredicto. Antes salía

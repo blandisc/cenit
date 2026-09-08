@@ -1,7 +1,7 @@
 import SwiftUI
 // MARK: - El ritmo del sistema
 //   El movimiento de Cénit es fisiológico —respirar, latir, fluir— y nunca un rebote de caricatura.
-//   `LiquidMotion` es el dialecto vivo y la fuente de los números; `StrandMotion` es el nombre viejo
+//   `LiquidMotion` es el dialecto vivo y la fuente de los números; `CenitMotion` es el nombre viejo
 //   que todavía usan las pantallas sin migrar, y aquí no vuelve a decidir nada: cada pieza reenvía a
 //   su gemela de Liquid, así que un ajuste de tempo se hace en UN lugar y las dos superficies lo
 //   heredan. Solo el trazado y la respiración siguen naciendo aquí: no tienen gemela todavía.
@@ -14,7 +14,7 @@ private enum Compases {
     static let respiracion: Double = 3.2
 }
 
-public enum StrandMotion {
+public enum CenitMotion {
 
     // MARK: Duraciones
 
@@ -136,7 +136,7 @@ public extension View {
 
     /// Holds the three entrance keyframes closed until the presenting screen has landed. Apply this on
     /// the PRESENTER's side (the sheet/layer root), where the arrival duration is actually known.
-    func recEntranceGate(_ settle: Double = StrandMotion.durationStandard) -> some View {
+    func recEntranceGate(_ settle: Double = CenitMotion.durationStandard) -> some View {
         modifier(EntranceGateModifier(settle: settle))
     }
 }
@@ -155,7 +155,7 @@ private struct RitmoDemostrado: View {
     var body: some View { HStack(spacing: 18) { nombre; disco } }
 
     private var nombre: some View {
-        Text(rotulo).font(StrandFont.caption).foregroundStyle(InstrumentoTheme.base.inkSecondary)
+        Text(rotulo).font(CenitFont.caption).foregroundStyle(InstrumentoTheme.base.inkSecondary)
             .frame(width: 132, alignment: .leading)
     }
 
@@ -176,10 +176,10 @@ private struct MuestrarioDeRitmo: View {
 
     private var filas: some View {
         VStack(alignment: .leading, spacing: 22) {
-            RitmoDemostrado(rotulo: "drawIn · \(StrandMotion.durationSlow)s", tinta: StrandPalette.accent,
-                            ritmo: StrandMotion.drawIn, enBucle: false, disparo: disparo)
-            RitmoDemostrado(rotulo: "breathe · \(StrandMotion.breathPeriod)s", tinta: StrandPalette.recovery100,
-                            ritmo: StrandMotion.breathe, enBucle: true, disparo: disparo)
+            RitmoDemostrado(rotulo: "drawIn · \(CenitMotion.durationSlow)s", tinta: CenitPalette.accent,
+                            ritmo: CenitMotion.drawIn, enBucle: false, disparo: disparo)
+            RitmoDemostrado(rotulo: "breathe · \(CenitMotion.breathPeriod)s", tinta: CenitPalette.recovery100,
+                            ritmo: CenitMotion.breathe, enBucle: true, disparo: disparo)
             Button("Disparar el trazado") { disparo.toggle() }
                 .foregroundStyle(InstrumentoTheme.base.ink)
         }

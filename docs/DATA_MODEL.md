@@ -22,7 +22,7 @@ datetime column types anywhere.
 **Days are text.** Columns named `day` (and `startDay`) hold `YYYY-MM-DD` and compare
 lexicographically, which for that format is the same as comparing dates. The key is minted in the
 **device's local zone** and parsed back in **UTC** for chart positions. That asymmetry is deliberate
-and is the single contract in `DayKey` (`Packages/StrandModels/Sources/StrandModels/DayKey.swift`).
+and is the single contract in `DayKey` (`Packages/CenitModels/Sources/CenitModels/DayKey.swift`).
 Mixing the two directions is what produces phantom rows and off-by-one-day charts.
 
 **Rows are partitioned by origin, not by hardware.** Most tables carry a `deviceId`. It names the
@@ -38,8 +38,8 @@ of duplicating. Where the conflict rule is subtler than "last writer wins", it i
 ## The store object
 
 The persistence layer is the `CenitStore` package. Its manifest declares `.iOS(.v16)` and
-`.macOS(.v13)`, ships a single static library, and depends on `BiometricStreams`, `StrandModels`,
-`StrandTraining` and [GRDB](https://github.com/groue/GRDB.swift).
+`.macOS(.v13)`, ships a single static library, and depends on `BiometricStreams`, `CenitModels`,
+`CenitTraining` and [GRDB](https://github.com/groue/GRDB.swift).
 
 `CenitStore` is an **actor** (`Store.swift`). Its public API is `async`, and the GRDB calls it makes
 are the *synchronous* ones, wrapped in helpers that are deliberately **not** `async`: GRDB marks its
@@ -212,7 +212,7 @@ no eviction. These are durable values the app rewrites when it recomputes.
 **`dailyMetric`** is the widest table and the app's main read model: twenty columns covering the
 scores, the sleep breakdown, the nightly vitals, steps, an energy estimate, and a confidence tier for
 each of the two scores. Everything but the key is nullable. The two confidence columns hold a raw
-tier string rather than an enum, because the type that defines those tiers lives in `StrandAnalytics`,
+tier string rather than an enum, because the type that defines those tiers lives in `CenitAnalytics`,
 which sits *above* this package.
 
 **`appleDaily`** holds the source's own daily aggregates, kept apart from the derived ones so a
@@ -240,7 +240,7 @@ app's name where one exists.
 
 Fifteen tables, all user-authored, all keyed by UUID strings rather than by partition and time. That
 difference is the point: this is relational data the user edits, not a sample stream. Array fields are
-JSON text columns, and the seed exercise catalog is a bundled resource in `StrandTraining`, not rows
+JSON text columns, and the seed exercise catalog is a bundled resource in `CenitTraining`, not rows
 here.
 
 | Table | Key | Holds |

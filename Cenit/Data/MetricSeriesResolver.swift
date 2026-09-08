@@ -1,5 +1,5 @@
 import Foundation
-import StrandModels
+import CenitModels
 
 // MetricSeriesResolver.swift — the ONE «catalog key → daily on-device series» map (FER-104 / TND-29).
 //

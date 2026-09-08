@@ -1,5 +1,5 @@
 import Foundation
-import StrandAnalytics
+import CenitAnalytics
 
 // MARK: - FER-51 · Máquina de estados T1–T5 (pura)
 //

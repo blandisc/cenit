@@ -30,7 +30,7 @@ public enum SleepStage: String, Sendable, CaseIterable {
 
 /// Los ÚNICOS escalones con los que se modula una ficha de color por opacidad. Antes de existir,
 /// las pantallas inventaban unas quince opacidades mágicas entre tintes, trazos y estados
-/// atenuados. `dim` coincide con `StrandPalette.disabledOpacity` (0.45).
+/// atenuados. `dim` coincide con `CenitPalette.disabledOpacity` (0.45).
 public enum CenitOpacity {
     public static let tintFill: Double = 0.10       // chip/badge tint fill (absorbs 0.10–0.12)
     public static let tintFillStrong: Double = 0.14 // emphasized tint (absorbs 0.14–0.18)
@@ -41,7 +41,7 @@ public enum CenitOpacity {
 
 // MARK: - Las fichas
 
-public enum StrandPalette { // color de dato: rampas, etapas, zonas y estados
+public enum CenitPalette { // color de dato: rampas, etapas, zonas y estados
 
     // MARK: Acento (cromo, no dato)
 
@@ -151,7 +151,7 @@ public enum StrandPalette { // color de dato: rampas, etapas, zonas y estados
 
 // MARK: - Aritmética de rampa
 //
-// La única matemática de color del paquete, fuera de `StrandPalette` a propósito: leer una rampa es
+// La única matemática de color del paquete, fuera de `CenitPalette` a propósito: leer una rampa es
 // geometría, no una ficha, y así se prueba sin arrastrar la paleta entera.
 private enum Rampa {
 
@@ -257,7 +257,7 @@ private struct TiraDeRampa: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(titulo).font(StrandFont.footnote).foregroundStyle(InstrumentoTheme.base.inkSecondary)
+            Text(titulo).font(CenitFont.footnote).foregroundStyle(InstrumentoTheme.base.inkSecondary)
             RoundedRectangle(cornerRadius: MedidasMuestrario.canto)
                 .fill(LinearGradient(gradient: rampa, startPoint: .leading, endPoint: .trailing))
                 .frame(height: MedidasMuestrario.altoDeTira)
@@ -287,12 +287,12 @@ private struct FilaDeMuestras: View {
 }
 
 #Preview("Palette") {
-    let etapas: [(String, Color)] = SleepStage.allCases.map { ($0.rawValue, StrandPalette.sleepStageColor($0)) }
-    let zonas: [(String, Color)] = (1...5).map { ("Z\($0)", StrandPalette.hrZoneColor($0)) }
+    let etapas: [(String, Color)] = SleepStage.allCases.map { ($0.rawValue, CenitPalette.sleepStageColor($0)) }
+    let zonas: [(String, Color)] = (1...5).map { ("Z\($0)", CenitPalette.hrZoneColor($0)) }
     return ScrollView {
         VStack(alignment: .leading, spacing: 20) {
-            TiraDeRampa(titulo: "recovery", rampa: StrandPalette.recoveryGradient)
-            TiraDeRampa(titulo: "strain", rampa: StrandPalette.strainGradient)
+            TiraDeRampa(titulo: "recovery", rampa: CenitPalette.recoveryGradient)
+            TiraDeRampa(titulo: "strain", rampa: CenitPalette.strainGradient)
             FilaDeMuestras(muestras: etapas)
             FilaDeMuestras(muestras: zonas)
         }

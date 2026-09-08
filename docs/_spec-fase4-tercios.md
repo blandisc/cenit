@@ -87,11 +87,11 @@ En la UI, sobre la serie persistida de `deltaBpm` leída con el **accesor nuevo*
 ## 5 · Dueño de archivos + accesor de lectura (N1)
 | Archivo | Rol |
 |---|---|
-| `Packages/StrandAnalytics/.../NightThirds.swift` (**nuevo**) | Motor puro |
-| `Packages/StrandAnalytics/Tests/.../NightThirdsTests.swift` (**nuevo**) | CAs de motor |
+| `Packages/CenitAnalytics/.../NightThirds.swift` (**nuevo**) | Motor puro |
+| `Packages/CenitAnalytics/Tests/.../NightThirdsTests.swift` (**nuevo**) | CAs de motor |
 | `Cenit/Data/Repository.swift` | Computar en refresh (loop `:446-468`) + `upsertMetricSeries` + **accesor de lectura NUEVO** |
 | `Cenit/Screens/SleepDetailScreen.swift` | Leer escalar + z + módulo descriptivo (imita `nightShapeContent`) |
-| `Packages/StrandAnalytics/.../Baselines.swift` | Alta `MetricCfg` `"night_thirds_delta"` |
+| `Packages/CenitAnalytics/.../Baselines.swift` | Alta `MetricCfg` `"night_thirds_delta"` |
 
 ⚠️ **N1 (bloqueante de wiring):** el accesor de lectura DEBE apuntar a `deviceId: appleComputedDeviceId`
 (`"apple-health (partición computada dedicada)"`), **no** al `computedDeviceId` (`+"(sufijo de fuente computada)"` sobre el banda) del patrón

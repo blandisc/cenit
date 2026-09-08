@@ -2,8 +2,8 @@
 import SwiftUI
 import UIKit
 import CenitDesign
-import StrandTraining
-import StrandAnalytics
+import CenitTraining
+import CenitAnalytics
 import CenitStore
 
 // ExerciseDetailScreen.swift — one exercise: which muscles it loads, your history, and an estimated-1RM

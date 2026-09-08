@@ -5,8 +5,8 @@ Fuente: free-exercise-db (yuhonas), The Unlicense / dominio público.
   https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json
 
 Lee ./cache/free-exercise-db.json (bajado por pull.py) y escribe:
-  * Packages/StrandTraining/.../Resources/exercises.json      (catálogo EN)
-  * Packages/StrandTraining/.../Resources/exercises.json.zlib  (raw DEFLATE, lo que lee el app)
+  * Packages/CenitTraining/.../Resources/exercises.json      (catálogo EN)
+  * Packages/CenitTraining/.../Resources/exercises.json.zlib  (raw DEFLATE, lo que lee el app)
   * ./cache/pending-es.json                                    (strings a traducir p/ el overlay es)
 
 Transforms:
@@ -24,7 +24,7 @@ import json, os, zlib
 HERE = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(HERE, "cache", "free-exercise-db.json")
 RES = os.path.abspath(os.path.join(
-    HERE, "..", "..", "Packages", "StrandTraining", "Sources", "StrandTraining", "Resources"))
+    HERE, "..", "..", "Packages", "CenitTraining", "Sources", "CenitTraining", "Resources"))
 OUT_EN = os.path.join(RES, "exercises.json")
 OUT_ZLIB = os.path.join(RES, "exercises.json.zlib")
 OUT_PENDING = os.path.join(HERE, "cache", "pending-es.json")

@@ -1,6 +1,6 @@
 import XCTest
 @testable import CenitStore
-import StrandTraining
+import CenitTraining
 import BiometricStreams
 
 final class StrengthStoreTests: XCTestCase {
@@ -593,7 +593,7 @@ final class StrengthStoreTests: XCTestCase {
     /// El criterio QA exacto del spec: palomear 825 (contra un PR de ~100) → «SÍ, 825» → el `SetEntry`
     /// SÍ se guarda (el acta no miente) PERO el PR queda intacto Y la siguiente sesión no vuelve a
     /// ofrecer 825 como semilla. Sin columna nueva: `bestPRs`/`lastWorkSets` recomputan el umbral
-    /// (`CaptureGuard`, StrandTraining) contra el PR YA existente, no contra una bandera persistida.
+    /// (`CaptureGuard`, CenitTraining) contra el PR YA existente, no contra una bandera persistida.
     func testAbsurdCaptureConfirmedAsIsNeverMintsAPROrReseedsTheNextSession() async throws {
         let store = try await CenitStore.inMemory()
 

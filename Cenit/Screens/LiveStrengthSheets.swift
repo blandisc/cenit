@@ -2,8 +2,8 @@
 import SwiftUI
 import UIKit
 import CenitDesign
-import StrandTraining
-import StrandAnalytics
+import CenitTraining
+import CenitAnalytics
 import CenitStore
 
 /// The «Change {exercise}» sheet (FER-894 · «Cómo llego a Cambiar»): a search field over the library plus a
@@ -557,7 +557,7 @@ struct ChangeExerciseSheet: View {
 
 // MARK: - HR rest reference mapping (FER-506)
 
-/// Maps the persisted domain enum (StrandTraining) onto the rest-math vocabulary (StrandAnalytics), so the
+/// Maps the persisted domain enum (CenitTraining) onto the rest-math vocabulary (CenitAnalytics), so the
 /// math package stays decoupled from the data model. 1-to-1.
 extension HRRestReference {
     var restTargetReference: RestTarget.Reference {

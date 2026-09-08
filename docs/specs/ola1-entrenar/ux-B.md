@@ -3,7 +3,7 @@
 Corrección al brief: `CrearPlanScreen.swift` y `RoutineEditorScreen.swift` ya no existen. «Crear plan» es un chip con `LiquidMenu` de dos filas (CrearPlanChip.swift:24-27, montado en WeeklyPlanEditorView.swift:489); el first-run son 3 chips + «Desde cero» + «Importar» (EntrenarView.swift:1146-1252). El editor de rutina es `Hoja/RoutineSheet*.swift`.
 
 ## Inventario
-1. Fila de serie `HojaFilaSerie` (StrandDesign; label VO :307-320) e instancia viva RoutineSheetLiveTarjeta.swift:224-289 con `TapZonesSesion` (peso/reps) + ✓. La marca «C» de calentamiento (:235) es el molde de AMRAP/drop.
+1. Fila de serie `HojaFilaSerie` (CenitDesign; label VO :307-320) e instancia viva RoutineSheetLiveTarjeta.swift:224-289 con `TapZonesSesion` (peso/reps) + ✓. La marca «C» de calentamiento (:235) es el molde de AMRAP/drop.
 2. Keypad `SessionKeypad` (fila QUEDABAN 0·1·2·3·4+ → RPE = 10 − RIR, :67-74; «✓ Serie»/«Saltar ›» :51-54). «Al fallo» ya existe como QUEDABAN «0».
 3. `StrengthSessionModel`: «sin descanso» = `.fixed 0` (:609-615), `addSet` clona la última (:815-823), `insertWarmup` (:827-834), `removeSet` (:837-843), `setRPE` (:635-639).
 4. Menús `LiquidMenu` por ejercicio (RoutineSheetLiveLogic.swift:779-851; RoutineSheetLogic.swift:552-598) y `CrearPlanChip`; tira semanal `EntrenarHubSemana` (Cenit/Screens/Entrenar/EntrenarHubSemana.swift, labels VO :114-123); héroe `EntrenarHubHeroe` (kicker, `raiseLine`); `PlanAppliedToast`; `StarterTemplatesSheet.applyTemplateGroup` (:276-293).

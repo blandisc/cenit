@@ -1,7 +1,7 @@
 #if os(iOS)
 import SwiftUI
 import CenitDesign
-import StrandTraining
+import CenitTraining
 
 // PersonalRecordsScreen.swift — «Tus marcas» (FER-360, ola 2 de Entrenar): every exercise with at
 // least one personal record, most-recent-mark first. Pushed onto the Entrenar `trainStack` from the

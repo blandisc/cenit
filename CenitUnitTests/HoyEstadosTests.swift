@@ -1,6 +1,6 @@
 import XCTest
-import StrandAnalytics
-import StrandModels
+import CenitAnalytics
+import CenitModels
 @testable import Cenit
 
 // MARK: - HoyEstadosTests (FER-51 · Ola 4 · máquina T1–T5)

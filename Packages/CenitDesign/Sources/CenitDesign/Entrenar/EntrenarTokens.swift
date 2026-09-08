@@ -7,7 +7,7 @@ import SwiftUI
 // Este archivo es la caja de piezas: los valores que aparecen dos veces en dos archivos distintos
 // viven aquí, y las pantallas solo los ensamblan.
 //
-// El paquete NO importa StrandTraining (mismo precedente que `RoutineGlyph`): la familia de
+// El paquete NO importa CenitTraining (mismo precedente que `RoutineGlyph`): la familia de
 // movimiento se declara del lado del diseño y la app mapea su `RoutineRegion` a esta.
 
 /// La familia de movimiento de una rutina — la identidad de color que recorre toda la sección.
@@ -482,7 +482,7 @@ public extension View {
         ForEach(EntrenarFamily.allCases, id: \.self) { f in
             HStack(spacing: 12) {
                 Circle().fill(f.tint()).frame(width: 24, height: 24)
-                Text(f.label).font(StrandFont.subhead).foregroundStyle(f.reading())
+                Text(f.label).font(CenitFont.subhead).foregroundStyle(f.reading())
                 Spacer()
                 RoutineRegionGlyph(f.glyph, tint: f.tint()).frame(width: 24, height: 24)
             }
@@ -570,7 +570,7 @@ public struct EntrenarFamilyDot: View {
             HStack(spacing: 14) {
                 EntrenarFamilyDot(f.tint())
                 EntrenarFamilyDot(f.tint(), sobreFondo: true)
-                Text(f.label).font(StrandFont.caption).foregroundStyle(LiquidColor.tinta700)
+                Text(f.label).font(CenitFont.caption).foregroundStyle(LiquidColor.tinta700)
             }
         }
     }

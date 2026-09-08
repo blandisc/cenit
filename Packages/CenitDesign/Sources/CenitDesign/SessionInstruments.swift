@@ -99,7 +99,7 @@ public struct SessionPill: View {
                 HStack(spacing: 8) {
                     Circle().fill(hue).frame(width: 6, height: 6)
                     Text(routineName)
-                        .font(StrandFont.subhead).fontWeight(.semibold)
+                        .font(CenitFont.subhead).fontWeight(.semibold)
                         .foregroundStyle(LiquidColor.tinta900)
                         .lineLimit(1)
                     dot
@@ -112,7 +112,7 @@ public struct SessionPill: View {
                     if let bpm {
                         dot
                         HStack(spacing: 3) {
-                            Image(systemName: "heart.fill").font(StrandFont.glyph(.chevron)).foregroundStyle(LiquidColor.rosa)
+                            Image(systemName: "heart.fill").font(CenitFont.glyph(.chevron)).foregroundStyle(LiquidColor.rosa)
                             // r26: measured datum speaks Grotesk tabular (same voice as the session header).
                             Text("\(bpm)").font(InstrumentoType.groteskNumber(12, weight: .medium)).foregroundStyle(LiquidColor.rosa)
                         }
@@ -139,7 +139,7 @@ public struct SessionPill: View {
             if let onDiscard {
                 Button(action: onDiscard) {
                     Image(systemName: "xmark")
-                        .font(StrandFont.glyph(.inline, weight: .bold))
+                        .font(CenitFont.glyph(.inline, weight: .bold))
                         .foregroundStyle(LiquidColor.tinta900)
                         .frame(width: 34, height: 34)
                         .background(Circle().fill(LiquidColor.papelBajo))
@@ -160,7 +160,7 @@ public struct SessionPill: View {
     }
 
     private var dot: some View {
-        Text("·").font(StrandFont.subhead).foregroundStyle(LiquidColor.tinta500)
+        Text("·").font(CenitFont.subhead).foregroundStyle(LiquidColor.tinta500)
     }
 }
 

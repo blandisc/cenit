@@ -1,5 +1,5 @@
 import SwiftUI
-import StrandAnalytics
+import CenitAnalytics
 import CenitDesign
 
 // MARK: - ScoreConfidence → sello (FER-676, app layer)

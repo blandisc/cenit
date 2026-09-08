@@ -2,7 +2,7 @@
 
 > Arquitecto. Rama `claude/demolicion-banda-nunca-existio`. Fuente maestra: plan histórico (ya no versionado).
 > F3 y F4 van **como UNA sola fase compile-válida** (un commit verde). Este doc es el contrato que `/implement` ejecuta.
-> Baseline verificado: `StrandAnalytics` compila y `swift test --filter DataSourceModeTests|CircadianEngineTests|StepsEstimateEngineTests` → **42 tests, 0 fallas** (2026-07-21).
+> Baseline verificado: `CenitAnalytics` compila y `swift test --filter DataSourceModeTests|CircadianEngineTests|StepsEstimateEngineTests` → **42 tests, 0 fallas** (2026-07-21).
 
 ## Resumen
 
@@ -67,12 +67,12 @@ el nombre en `//`; WorkoutSource no lo menciona). Los **llamadores reales de có
 
 `bandaOnlyHistory` es `nonisolated static`, puro (`[DailyMetric] × Set<String> -> [DailyMetric]`), sin estado
 de actor ni store. Su comentario propio (`IntelligenceEngine.swift:836`) lo declara **hermano de
-`SourceLens`** (StrandAnalytics, FER-623/631): la variante «drop de fila completa» del enmascarado por
+`SourceLens`** (CenitAnalytics, FER-623/631): la variante «drop de fila completa» del enmascarado por
 columna de `SourceLens.maskForBaseline`.
 
-**Recomendación: mover `bandaOnlyHistory` VERBATIM a `Packages/StrandAnalytics/Sources/StrandAnalytics/SourceLens.swift`**,
+**Recomendación: mover `bandaOnlyHistory` VERBATIM a `Packages/CenitAnalytics/Sources/CenitAnalytics/SourceLens.swift`**,
 como `public static` dentro del enum `SourceLens`. Verificado que es viable: `SourceLens.swift` ya
-`import StrandModels` y opera sobre `[DailyMetric]`; `DailyMetric` vive en `StrandModels/Models.swift:26`.
+`import CenitModels` y opera sobre `[DailyMetric]`; `DailyMetric` vive en `CenitModels/Models.swift:26`.
 
 ```swift
 // Añadir dentro de `public enum SourceLens` (SourceLens.swift):
@@ -83,7 +83,7 @@ public static func bandaOnlyHistory(_ hist: [DailyMetric], appleHealthDays: Set<
 }
 ```
 
-**Por qué StrandAnalytics y no una extensión de AppModel:** (a) es puro y ya vive con su hermano `SourceLens`
+**Por qué CenitAnalytics y no una extensión de AppModel:** (a) es puro y ya vive con su hermano `SourceLens`
 en ese paquete; (b) consolida TODA la maquinaria FER-519 del read-model en un solo lugar, que es
 justo lo que **F6** va a colapsar. Ponerlo en el app-shell lo dejaría fuera del radar de F6.
 
@@ -104,11 +104,11 @@ F6 borra la función junto con la rama `.band` que la usa.**
 > La fase commitea UNA vez, verde. El orden interno evita romper el type-check a mitad de trabajo (no se
 > pueden borrar `CircadianEngine`/`StepsEstimateEngine` mientras `IntelligenceEngine` los referencie).
 
-**A. Preparar el hogar del único símbolo vivo (StrandAnalytics):**
-1. `Packages/StrandAnalytics/.../SourceLens.swift`: añadir `SourceLens.bandaOnlyHistory` (bloque de §2). `swift build` StrandAnalytics.
+**A. Preparar el hogar del único símbolo vivo (CenitAnalytics):**
+1. `Packages/CenitAnalytics/.../SourceLens.swift`: añadir `SourceLens.bandaOnlyHistory` (bloque de §2). `swift build` CenitAnalytics.
 
 **B. Re-apuntar los llamadores de `bandaOnlyHistory`:**
-2. `Cenit/App/AppModel+Illness.swift:85`: `IntelligenceEngine.bandaOnlyHistory` → `SourceLens.bandaOnlyHistory` (ya importa StrandAnalytics).
+2. `Cenit/App/AppModel+Illness.swift:85`: `IntelligenceEngine.bandaOnlyHistory` → `SourceLens.bandaOnlyHistory` (ya importa CenitAnalytics).
 3. Tests: `CenitUnitTests/IllnessWatchSourceTests.swift:53,72,99` y `CenitUnitTests/IntelligenceBaselinePriorTests.swift:114,119,135,173` → `SourceLens.bandaOnlyHistory`.
 
 **C. Borrar el orquestador muerto:**
@@ -121,7 +121,7 @@ F6 borra la función junto con la rama `.band` que la usa.**
 7. `Cenit/App/AppModel+Maintenance.swift`, `migrateDayKeysToLocalIfNeeded()`: borrar `let writtenComputed = await intelligence.analyzeRecent(...)` (:37) y el paso-1 `pruneFutureLocalDays(... deviceId: deviceId + "(sufijo de fuente computada)", written: writtenComputed)` (:38, ya no hay quién escriba la fuente `(sufijo de fuente computada)`). CONSERVAR intacto el paso-2 Apple Health (:43-46) y el `setCursor` (:50).
 
 **D. Colapsar F3 (`usesBanda`/`usesAppleHealth`), la rama false/true gana:**
-8. `Packages/StrandAnalytics/.../DataSourceMode.swift`: borrar la propiedad `usesBanda` (:16). Colapsar `DataSourcePolicy.filter` (:26-34) → `(imported: [], computed: [], apple: apple)` (o borrar `DataSourcePolicy` e inline en su único caller). **Decisión de alcance:** conservar el enum `DataSourceMode` (3 casos) y `usesAppleHealth` como constantes por ahora — el enum sigue leído por `AppModel+Illness:87` (`== .appleHealthOnly`, ruteo SourceLens = F6) y el naming/greenfield es F7. Colapsar `usesAppleHealth` a `true` en sus call-sites es opcional pero simétrico; recomiendo hacerlo en el mismo pase para no dejar una policy a medias (quitar la propiedad y colapsar los 9 sitios de Repository).
+8. `Packages/CenitAnalytics/.../DataSourceMode.swift`: borrar la propiedad `usesBanda` (:16). Colapsar `DataSourcePolicy.filter` (:26-34) → `(imported: [], computed: [], apple: apple)` (o borrar `DataSourcePolicy` e inline en su único caller). **Decisión de alcance:** conservar el enum `DataSourceMode` (3 casos) y `usesAppleHealth` como constantes por ahora — el enum sigue leído por `AppModel+Illness:87` (`== .appleHealthOnly`, ruteo SourceLens = F6) y el naming/greenfield es F7. Colapsar `usesAppleHealth` a `true` en sus call-sites es opcional pero simétrico; recomiendo hacerlo en el mismo pase para no dejar una policy a medias (quitar la propiedad y colapsar los 9 sitios de Repository).
 9. `Cenit/Data/Repository.swift` — colapsar cada sitio (la rama pineada gana):
    - `:25` `var dataSourceMode = .combined` → `.appleHealthOnly`.
    - `:347-348` `includeApple: true, includeBandaSeries: false` (dejar el campo `includeBandaSeries` en `DashboardSnapshot` para F7; solo pasar `false`).
@@ -142,19 +142,19 @@ F6 borra la función junto con la rama `.band` que la usa.**
 13. `Packages/CenitStore/.../DashboardSnapshot.swift`: **sin cambio** (el campo `includeBandaSeries` y su `if req.includeBandaSeries` :95 se retiran en F7 con las tablas de streams).
 
 **E. Borrar los motores band-only (ya sin consumidor tras C):**
-14. Borrar `Packages/StrandAnalytics/.../CircadianEngine.swift` y `StepsEstimateEngine.swift`. Verificado: 0 referencias intra-paquete (solo un comentario en `IllnessSignalEngine.swift:81`) y 0 fuera del ya-borrado IntelligenceEngine.
+14. Borrar `Packages/CenitAnalytics/.../CircadianEngine.swift` y `StepsEstimateEngine.swift`. Verificado: 0 referencias intra-paquete (solo un comentario en `IllnessSignalEngine.swift:81`) y 0 fuera del ya-borrado IntelligenceEngine.
 15. `Cenit/Data/Profile.swift`: borrar los campos de calibración de pasos-ESTIMADOS (`stepsManualCoefficient` :21, `stepsCalibrationCoefficient` :23, `stepsCalibrationSampleDays` :25, `stepsCalibrationConfidence` :27, `stepsCalibrationManual` :29) + sus keys (`K.stepsManualCoeff`/`stepsCoeff`/`stepsSampleDays`/`stepsConfidence`/`stepsManualFlag` :50-54) + su carga en `init` (:66-70).
 16. `Cenit/Screens/AjustesView.swift`: borrar los helpers YA HUÉRFANOS `stepsCalDisplay` (:222-227) y — si se decide incluir `stepTicksPerStep`, ver abajo — `stepTicksDisplay` (:228-233). **Hallazgo:** ambos helpers están definidos pero **NO se renderizan en ninguna parte** (grep de uso = 0); sus navRows se retiraron en una ola previa. Así que el cascade de UI es trivial: borrar los `private var` muertos.
 
 **F. Borrar tests muertos / re-apuntar los vivos** (ver §4).
 
-**G. Verificar:** `swift build && swift test` de StrandAnalytics (paso A/D/E). El compile iOS completo
+**G. Verificar:** `swift build && swift test` de CenitAnalytics (paso A/D/E). El compile iOS completo
 (pasos que tocan `Cenit/**`) va **uno a la vez, máquina idle** (`while pgrep -x xcodebuild XCBBuildService; do sleep 30; done`), nunca en paralelo — regla anti-OOM de CLAUDE.md.
 
 ### Nota sobre `stepTicksPerStep` (divisor nativo 5/MG, FER-665)
 Es un campo band-only distinto del estimador 4.0, pero **es de paquete**: vive en `UserProfile`
-(`StrandAnalytics/WorkoutDetector.swift:31`) y lo consume `AnalyticsEngine.swift:354` (escalado de pasos).
-Borrarlo amplía F4 a cirugía de API en StrandAnalytics/StrandModels. **Recomendación: dejar
+(`CenitAnalytics/WorkoutDetector.swift:31`) y lo consume `AnalyticsEngine.swift:354` (escalado de pasos).
+Borrarlo amplía F4 a cirugía de API en CenitAnalytics/CenitModels. **Recomendación: dejar
 `stepTicksPerStep` (Profile + UserProfile + AnalyticsEngine) para F7** (naming/greenfield); anotarlo como
 huérfano band-only conocido. El brief acota F4 a «campos de calibración de steps [estimados] en Profile».
 
@@ -170,14 +170,14 @@ en F7. Opcional si `/implement` lo prefiere limpio.
 
 | Test | Acción | Motivo |
 |---|---|---|
-| `Packages/StrandAnalytics/.../DataSourceModeTests.swift` | **BORRAR** | Prueba `usesBanda`/`usesAppleHealth` (propiedades eliminadas). |
-| `Packages/StrandAnalytics/.../CircadianEngineTests.swift` | **BORRAR** | El motor se borra. |
-| `Packages/StrandAnalytics/.../StepsEstimateEngineTests.swift` | **BORRAR** | El motor se borra. |
+| `Packages/CenitAnalytics/.../DataSourceModeTests.swift` | **BORRAR** | Prueba `usesBanda`/`usesAppleHealth` (propiedades eliminadas). |
+| `Packages/CenitAnalytics/.../CircadianEngineTests.swift` | **BORRAR** | El motor se borra. |
+| `Packages/CenitAnalytics/.../StepsEstimateEngineTests.swift` | **BORRAR** | El motor se borra. |
 | `CenitUnitTests/IntelligenceRefreshGateTests.swift` | **BORRAR** | Prueba `computedDailiesChanged` (muere con el engine). |
 | `CenitUnitTests/RepositoryTwoPassTests.swift` | **BORRAR** | Construye `IntelligenceEngine` y prueba el two-pass de `analyzeRecent` (muerto). |
 | `CenitUnitTests/IntelligenceBaselinePriorTests.swift` | **PARTIR** | Borrar los casos de `applePriorDays`/`foldApplePrior`/`applePriorMaxNights` (muertos). **Conservar** los de `bandaOnlyHistory` (:114,119,135,173) re-apuntados a `SourceLens.bandaOnlyHistory`; o migrarlos a `SourceLensTests`. |
 | `CenitUnitTests/IllnessWatchSourceTests.swift` | **RE-APUNTAR** | `IntelligenceEngine.bandaOnlyHistory` → `SourceLens.bandaOnlyHistory` (:53,72,99). La semántica de `.band`/Apple-only sigue siendo F6; el test de identidad no cambia. |
-| `Packages/StrandAnalytics/.../SourceLensTests.swift` | **SIN CAMBIO** (ya cubre el equivalente `bandaOnlyHistory`, :204,226); opción de hogar para los casos migrados. |
+| `Packages/CenitAnalytics/.../SourceLensTests.swift` | **SIN CAMBIO** (ya cubre el equivalente `bandaOnlyHistory`, :204,226); opción de hogar para los casos migrados. |
 | `CenitStore` `MigrationTests` (circadianPhase v25) | **SIN CAMBIO** | La tabla `circadianPhase` es append-only; queda DORMIDA (se drena/borra en F7, no aquí). |
 
 `CDOAuditRegressionTests`: grep no encontró referencia a `usesBanda`/`IntelligenceEngine`/los motores
@@ -204,7 +204,7 @@ sin cambio).
   (no se inventa copy). Si `/implement` cree que falta una cadena, es señal de regresar a `/ux`, no de improvisar.
 - **Riesgo abierto — no corrí el compile iOS** (regla anti-OOM: no `xcodebuild` en esta sesión). El type-check
   de la capa app (AppModel/Repository/TodayView/CuerpoView/AjustesView) queda como **riesgo abierto para
-  `/implement`**, que debe correr `xcodebuild ... -jobs 4` con la máquina idle. Sí verifiqué que StrandAnalytics
+  `/implement`**, que debe correr `xcodebuild ... -jobs 4` con la máquina idle. Sí verifiqué que CenitAnalytics
   compila y sus tests pasan (baseline), y que los borrados de paquete (motores, `usesBanda`) no tienen
   consumidores intra-paquete.
 
@@ -219,14 +219,14 @@ sin cambio).
 ## 6. Criterios técnicos de aceptación (checklist de `/implement`)
 
 - [ ] `Cenit/Data/IntelligenceEngine.swift` NO existe.
-- [ ] `Packages/StrandAnalytics/.../CircadianEngine.swift` y `StepsEstimateEngine.swift` NO existen.
+- [ ] `Packages/CenitAnalytics/.../CircadianEngine.swift` y `StepsEstimateEngine.swift` NO existen.
 - [ ] `grep -rn "usesBanda" --include=*.swift Cenit CenitApp Packages` → **0 resultados** (propiedad y todos los call-sites eliminados).
 - [ ] `grep -rn "IntelligenceEngine" --include=*.swift Cenit CenitApp CenitUnitTests` → **0 resultados** (ni código ni comentarios residuales).
-- [ ] `SourceLens.bandaOnlyHistory` existe en StrandAnalytics y `AppModel+Illness.swift` lo llama; su comportamiento es byte-idéntico al original (test de identidad `appleHealthDays == []` pasa).
+- [ ] `SourceLens.bandaOnlyHistory` existe en CenitAnalytics y `AppModel+Illness.swift` lo llama; su comportamiento es byte-idéntico al original (test de identidad `appleHealthDays == []` pasa).
 - [ ] `AppModel` ya no tiene la propiedad `intelligence` ni construye `IntelligenceEngine`.
 - [ ] `Profile.swift` ya no tiene `stepsManualCoefficient` ni ningún `stepsCalibration*`; sus keys y su carga en `init` se fueron. `stepTicksPerStep` puede seguir (F7).
 - [ ] Tests borrados: `DataSourceModeTests`, `CircadianEngineTests`, `StepsEstimateEngineTests`, `IntelligenceRefreshGateTests`, `RepositoryTwoPassTests`; casos `applePrior*` de `IntelligenceBaselinePriorTests`.
-- [ ] `cd Packages/StrandAnalytics && swift build && swift test` → **verde** (sin los 3 tests borrados; `SourceLensTests` sigue verde).
+- [ ] `cd Packages/CenitAnalytics && swift build && swift test` → **verde** (sin los 3 tests borrados; `SourceLensTests` sigue verde).
 - [ ] `xcodebuild -project Cenit.xcodeproj -scheme Cenit -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO -jobs 4 build` → **compila** (máquina idle, uno a la vez).
 - [ ] `AppModel+Illness.applyIllnessEvaluation` NO cambió `signalSource`/`SourceLens.Source`/`keep:` (F6 intacto): `git diff` sobre esas líneas = solo el rename `IntelligenceEngine.→SourceLens.` en :85.
 - [ ] Ningún cambio en `SourceLens.maskHrv`/`maskForBaseline`, `FusionResolver`, ni en el esquema DB.
@@ -246,7 +246,7 @@ en el mismo PR (ubicar la descripción de `IntelligenceEngine` / la pasada on-de
 +   crudos que puntuar. La recuperación/autonómica ahora sale del path Apple (RMSSD nocturno FER-1008,
 +   AutonomicTrend/ReadinessEngine, ThermalStability/NightAutonomicShape/NocturnalDC sobre datos Apple).
 +   El único helper sobreviviente, `bandaOnlyHistory` (filtro de baseline FER-519), se movió a
-+   `StrandAnalytics/SourceLens` como hermano de `maskForBaseline`; su retiro final es F6.
++   `CenitAnalytics/SourceLens` como hermano de `maskForBaseline`; su retiro final es F6.
 ```
 
 Además, si existe una tabla «where logic belongs» o un diagrama que liste `DataSourceMode.usesBanda` como

@@ -2,7 +2,7 @@ import Foundation
 
 /// FER-923: the two bundled maps that drive the v33 exercise-catalog remap (see `makeMigrator`).
 /// Baked by `Tools/bake-exercisedb/build_remap.py` from the old ExerciseDB catalog against the new
-/// free-exercise-db one, and shipped zlib-compressed (raw DEFLATE, same wrapper as StrandTraining's
+/// free-exercise-db one, and shipped zlib-compressed (raw DEFLATE, same wrapper as CenitTraining's
 /// `exercises.json.zlib`) so the migration is fully offline.
 extension CenitStore {
     /// One legacy (old-ExerciseDB) exercise with NO exact-name match in the new catalog — carried so a

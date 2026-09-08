@@ -1,7 +1,7 @@
 import Foundation
 import WidgetKit
-import StrandAnalytics
-import StrandTraining
+import CenitAnalytics
+import CenitTraining
 
 /// FER-95 · E14 — builds `TrainWidgetSnapshot` and writes it to the App Group, so
 /// `TrainTodayWidget`/`WeekWidget` always show what the app already computed. `AppModel` fetches the
@@ -17,7 +17,7 @@ enum TrainWidgetPublisher {
 
     // MARK: - Pure
 
-    /// The 7-day week strip, from the same `WeeklySplit.weekStates` StrandAnalytics already exposes.
+    /// The 7-day week strip, from the same `WeeklySplit.weekStates` CenitAnalytics already exposes.
     static func week(split: [Int: String], completedWeekdays: Set<Int>, todayWeekday: Int,
                      orderedWeekdays: [Int] = orderedWeekdays,
                      labels: [String]) -> [TrainWidgetSnapshot.WeekDay] {

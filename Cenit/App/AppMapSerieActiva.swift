@@ -1,7 +1,7 @@
 #if DEBUG && os(iOS)
 import SwiftUI
 import CenitDesign
-import StrandTraining
+import CenitTraining
 
 /// **Canvas de revisión de la «Serie activa»** (Acto II · épico FER-928) — monta `LiveStrengthSheet`
 /// con una sesión de fuerza en vivo sembrada a mano, para revisar en el canvas de Xcode el modelo

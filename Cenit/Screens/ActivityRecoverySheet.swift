@@ -1,6 +1,6 @@
 import SwiftUI
 import CenitDesign
-import StrandAnalytics
+import CenitAnalytics
 
 // MARK: - ActivityRecoverySheet — «Cómo amaneces tras cada deporte» en vidrio Liquid (FER-139 · FER-105 · TND-33)
 //

@@ -242,7 +242,7 @@ Cero hits. El riesgo listado en CONTRATO está **vacío hoy**. Sí hay `safeArea
 | `no-opacity-literal` | `.opacity(0.3)` | `.fill(c.opacity(0.3))`, stroke/background con opacity |
 | `no-spacing-literal` | padding/spacing/lineWidth digit | `frame(width/height/minHeight:)`, offset, safeArea* |
 | `no-radius-literal` | `cornerRadius: N` | `clipShape(RoundedRectangle(cornerRadius:))` parcial; radios en Path |
-| `no-legacy-api` | Lista fija Instrumento/Paper/StrandPalette | Helpers que envuelven legacy; `theme.paper` sin símbolo listado; **piezas huérfanas del catálogo** |
+| `no-legacy-api` | Lista fija Instrumento/Paper/CenitPalette | Helpers que envuelven legacy; `theme.paper` sin símbolo listado; **piezas huérfanas del catálogo** |
 | `no-sheet-glass` | `.liquidGlass(.superficie\|pastilla)` | Composición blur+material a mano; `.superficieSolida` |
 | `token-exempt` | Cuenta exenciones | No valida que el motivo siga siendo cierto (eje 5) |
 | — | — | **Rol de componente** (eje 1) — 100 % ciego |
