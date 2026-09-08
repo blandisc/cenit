@@ -373,7 +373,8 @@ struct StrainDetailScreen: View {
         }
     }
 
-    /// «Qué mueve tu esfuerzo» — drivers direccionales, ya gateados por el motor (FER-239). La
+    /// «Qué mueve tu esfuerzo» — drivers direccionales, ya gateados por la familia «Tu patrón»
+    /// (FER-239 → FER-438). La
     /// tarjeta desaparece entera cuando nada cruza el umbral de suficiencia (sin mensaje vacío).
     /// UX-09: la pieza es `LiquidTendenciaCard` (overline + chip «tendencia, no causa»), la
     /// MISMA que Estrés — el chip punteado ya no se copia a mano por pantalla.
@@ -545,6 +546,12 @@ struct StrainDetailScreen: View {
                 LiquidNotaLine(String(localized: "Heart-rate-zone load (TRIMP), compressed logarithmically. (Edwards 1993; Banister 1991)"))
                 if estimated {
                     LiquidNotaLine(String(localized: "Estimated from your Apple Watch workout heart rate. It doesn't include activity outside those workouts, so it can read a little low."))
+                }
+                // FER-438 · El método de «Tu patrón» acompaña al pie SOLO cuando la tarjeta se pintó
+                // (`!model.drivers.isEmpty`, mismo gate que `whatMovesCard`): no se explica lo que no
+                // se ve — la misma regla de dato que las hojas de métrica.
+                if !model.drivers.isEmpty, let patronMetodo = MetricInfo.strain(nil).patternMethod {
+                    LiquidNotaLine(String(localized: patronMetodo))
                 }
             }
             // M1: las MISMAS claves de procedencia que la hoja de Hoy usa por métrica
