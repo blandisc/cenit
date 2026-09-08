@@ -587,19 +587,24 @@ private struct CuerpoLanding: View {
     /// Liquid re-skin of `InstrumentoTabHeader` (FER-100): same glyph, same date, tinta tokens.
     private var titleBlock: some View {
         HStack(alignment: .center, spacing: LiquidSpace.s200) {
-            HStack(spacing: LiquidSpace.s150) {
-                TendenciasGlyph(color: LiquidColor.tinta900).frame(width: 20, height: 20)
-                Text("Tendencias")
-                    .font(LiquidType.displayS).tracking(LiquidType.displaySTracking)
-                    .foregroundStyle(LiquidColor.tinta900)
+            HStack(alignment: .center, spacing: LiquidSpace.s200) {
+                HStack(spacing: LiquidSpace.s150) {
+                    TendenciasGlyph(color: LiquidColor.tinta900).frame(width: 20, height: 20)
+                    Text("Tendencias")
+                        .font(LiquidType.displayS).tracking(LiquidType.displaySTracking)
+                        .foregroundStyle(LiquidColor.tinta900)
+                }
+                Spacer(minLength: LiquidSpace.s200)
+                Text(Self.dateLabel)
+                    .font(LiquidType.kicker).tracking(LiquidType.kickerTracking).textCase(.uppercase)
+                    .foregroundStyle(LiquidColor.tinta500)
             }
-            Spacer(minLength: LiquidSpace.s200)
-            Text(Self.dateLabel)
-                .font(LiquidType.kicker).tracking(LiquidType.kickerTracking).textCase(.uppercase)
-                .foregroundStyle(LiquidColor.tinta500)
+            .accessibilityElement(children: .combine)
+            .accessibilityAddTraits(.isHeader)
+            // FER-435: el «?» → «Cómo funciona Cénit», sección Tendencias — el último elemento a
+            // la derecha, fuera del elemento combinado del encabezado.
+            AyudaBoton(seccion: .tendencias)
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityAddTraits(.isHeader)
         .padding(.bottom, LiquidSpace.s150)
     }
 

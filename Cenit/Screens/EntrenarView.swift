@@ -177,8 +177,6 @@ private struct EntrenarLanding: View {
     @State private var showHubImport = false
     /// FER-251: «Desde cero» del primer uso — misma Biblioteca → crear rutina que «Tres caminos».
     @State private var showLibrary = false
-    /// «Lo que Cénit sabe hacer» (decisión Fer 2026-07-16): puerta permanente + tarjeta única.
-    @State private var showTricks = false
     /// Success toast after a template group is applied — auto-dismisses.
     @State private var showPlanAppliedToast = false
     /// FER-377: whether the applied group's full weekly frequency fit the week — drives an honest toast.
@@ -327,9 +325,6 @@ private struct EntrenarLanding: View {
         // pantalla quedó sin ninguna entrada — puerta fantasma fuera, no dormida.
         .navigationDestination(isPresented: $showLibrary) {
             ExerciseLibraryScreen(createFlow: true) { picks in createRoutineFromLibrary(picks) }
-        }
-        .navigationDestination(isPresented: $showTricks) {
-            WorkshopTricksScreen()
         }
         // «En vivo» from the expanded «Más formas» pill — the live-HR free workout, the same sheet
         // «Otra forma» presents (sheet boundary).
@@ -1527,9 +1522,12 @@ private struct EntrenarLanding: View {
 
     // MARK: - Cabecera (FER-130 «Ritmo 1b»)
     //
-    // «Entrenar · {fecha}» a la izquierda, el «?» de los trucos a la derecha — reemplaza al wordmark
-    // retirado en FER-952. Antes el «?» vivía en la misma fila que el hilo del veredicto; el handoff
-    // los separa: la cabecera es de la PANTALLA (nombra el tab y el día), el hilo es del CUERPO.
+    // «Entrenar · {fecha}» a la izquierda, el «?» a la derecha — reemplaza al wordmark retirado en
+    // FER-952. Antes el «?» vivía en la misma fila que el hilo del veredicto; el handoff los
+    // separa: la cabecera es de la PANTALLA (nombra el tab y el día), el hilo es del CUERPO.
+    // FER-435: el «?» abre «Cómo funciona Cénit» en la sección Entrenar (el taller «Lo que Cénit
+    // sabe hacer» + «Palabras del gym» sigue a un toque desde ahí); es el mismo `AyudaBoton` de
+    // las otras tres cabeceras — el botón que nació aquí, promovido.
 
     private var cabecera: some View {
         HStack(spacing: LiquidSpace.s200) {
@@ -1537,15 +1535,7 @@ private struct EntrenarLanding: View {
                 .liquidKicker()
                 .foregroundStyle(LiquidColor.tinta700)
             Spacer(minLength: LiquidSpace.s200)
-            Button { showTricks = true } label: {
-                Image(systemName: "questionmark.circle")
-                    .font(LiquidType.iconSF(size: 18))
-                    .foregroundStyle(LiquidColor.tinta500)
-                    .frame(width: EntrenarMetrics.row, height: EntrenarMetrics.row)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(EntrenarPressStyle())
-            .accessibilityLabel(Text("Tricks"))
+            AyudaBoton(seccion: .entrenar)
         }
     }
 

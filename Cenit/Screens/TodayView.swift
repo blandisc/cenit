@@ -703,6 +703,12 @@ struct TodayView: View {
         // La pestaña oculta detiene el reloj del polvo (y lo reanuda al volver).
         .onAppear { atmosfera.visible = true }
         .onDisappear { atmosfera.visible = false }
+        // FER-435 · las puertas de «Cómo funciona Cénit» hacia Hoy (el acta, la hoja del
+        // guardián): el router trae la bandera one-shot y Hoy abre SU hoja (las dos se arman
+        // con el modelo de esta pantalla). `onAppear` cubre la bandera puesta antes de montar.
+        .onChange(of: tabRouter.abrirActa) { _, _ in atenderPuertaDeAyuda() }
+        .onChange(of: tabRouter.abrirGuardian) { _, _ in atenderPuertaDeAyuda() }
+        .onAppear { atenderPuertaDeAyuda() }
         // FER-73 · M8: el héroe (60 fps) y los ~10 relojes de la Matriz también se pausan
         // cuando una hoja los tapa — nadie los ve y seguían pintando bajo el modal.
         // FER-111: y cuando el onboarding los tapa, que es el mismo bug en el minuto MÁS caro
@@ -1144,6 +1150,15 @@ struct TodayView: View {
                 },
                 alternarPedido: ecosistemaPedido,
                 onFase: { señalesSeparadas = $0 })
+            // FER-435 · el «?» de Hoy, a la derecha de la fecha. `LiquidHoyContent` dibuja su
+            // cabecera con el slot trailing vacío (el dial se retiró el 2026-08-06), así que el
+            // botón se superpone desde aquí, alineado al kicker — nunca encima del orbe ni de la
+            // palabra (el área de 44 crece hacia adentro; el glifo queda a ~24 del borde).
+            .overlay(alignment: .topTrailing) {
+                AyudaBoton(seccion: .hoy)
+                    .padding(.trailing, LiquidSpace.s250)
+                    .padding(.top, -LiquidSpace.s350)
+            }
             // FER-432 · tip 3 + botón alterno DEBAJO del héroe (nunca sobre el orbe).
             hoyEcosistemaTipYBoton
             // FER-51 · La Matriz (estados T1–T5 + instrumento). Debajo del héroe.
@@ -1159,6 +1174,9 @@ struct TodayView: View {
                 // «Connect Health» del héroe (una causa, una acción).
                 onTapAvisoSalud: { showDataSources = true },
                 onTapSincronizar: { triggerPullSync() })
+            // FER-435 · «Nuevo en esta versión»: la tarjeta de una vez al FONDO de Hoy, debajo
+            // de la Matriz — nunca encima del héroe. Solo con una versión `mayor` en el registro.
+            NovedadMayorTarjeta()
             // /inject: la leyenda de origen se retiró de la superficie Liquid a pedido del
             // dueño (los puntos de origen por tile se quedan).
         }
@@ -1192,6 +1210,34 @@ struct TodayView: View {
             }
         }
         .padding(.horizontal, LiquidSpace.s600)
+    }
+
+    /// FER-435 · consume las banderas one-shot del router (`abrirActa` / `abrirGuardian`) y abre la
+    /// hoja pedida desde Ayuda. Con lectura de hoy, el acta; sin ella, «¿Qué decide tu día?».
+    private func atenderPuertaDeAyuda() {
+        let acta = tabRouter.abrirActa
+        let guardian = tabRouter.abrirGuardian
+        guard acta || guardian else { return }
+        tabRouter.abrirActa = false
+        tabRouter.abrirGuardian = false
+        Task { @MainActor in
+            // La hoja de Ayuda (presentada desde esta u otra pestaña) puede seguir cerrándose:
+            // presentar otra hoja en el mismo instante se pierde. Un pelo de espera.
+            try? await Task.sleep(for: .milliseconds(500))
+            if guardian {
+                showGuardianHoja = true
+            } else if hayVeredictoHoy {
+                showVeredictoActa = true
+            } else {
+                showDecideManual = true
+            }
+        }
+    }
+
+    /// La misma puerta que exige `alimentarHoyTips` para «hay veredicto».
+    private var hayVeredictoHoy: Bool {
+        guard let prep = repo.todayPreparedness else { return false }
+        return prep.verdict != .lowSignal && prep.isNightAnchored
     }
 
     private func alimentarHoyTips(output: LiquidHoyBuilder.Output) {

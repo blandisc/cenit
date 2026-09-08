@@ -1262,6 +1262,35 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
   are unchanged.
 
 
+### Ayuda «Cómo funciona Cénit» y Novedades / Help "How Cénit works" and What's new (FER-435)
+### ES
+- **«Cómo funciona Cénit»**: una sola puerta para volver a aprender, en Ajustes → Más y en el «?»
+  de la cabecera de las cuatro pestañas (que abre la sección de esa pestaña). Lista, por pestaña,
+  todo lo que enseña la app: qué es, para qué y dónde vive, con la nota «Necesita Apple Watch»
+  cuando aplica y cada gesto con su botón. Donde ya existe la pieza (el taller, «¿Qué decide tu
+  día?», «Tu contexto», la hoja del guardián, el acta), se abre a un toque. Al pie de cada pestaña,
+  «Volver a ver los consejos»: sus consejos vuelven a salir y los hints de gesto se reactivan.
+- **«Novedades»** en Ajustes → Más, con un punto de no leído cuando hay una versión posterior a la
+  última que viste; la hoja lista, por versión, qué cambió y dónde encontrarlo. En una versión
+  «mayor», además una tarjeta de una vez al fondo de Hoy (debajo de la Matriz, nunca encima del
+  héroe) con la puerta a la lista. Nunca un modal. Al instalar por primera vez no hay nada que
+  anunciar.
+- El «?» de Entrenar ahora abre Ayuda en su sección; el taller «Lo que Cénit sabe hacer» y
+  «Palabras del gym» siguen a un toque desde ahí.
+
+### EN
+- **"How Cénit works"**: one door to learn again, in Settings → More and behind the "?" in each
+  tab's header (which opens that tab's section). It lists, tab by tab, everything the app teaches:
+  what it is, what it's for and where it lives, with a "Needs Apple Watch" note where it applies
+  and every gesture with its button. Where the piece already exists (the workshop, "What decides
+  your day?", "Your context", the guardian's sheet, the acta) it opens in one tap. At the foot of
+  each tab, "See the tips again": its tips become eligible again and the gesture hints come back.
+- **"What's new"** in Settings → More, with an unread dot when there is a version newer than the
+  last one you saw; the sheet lists, per version, what changed and where to find it. On a "major"
+  version, also a one-time card at the bottom of Today (below the Matrix, never over the hero)
+  with the door to the list. Never a modal. A fresh install has nothing to announce.
+- Train's "?" now opens Help at its section; the workshop stays one tap away from there.
+
 ## Unreleased
 
 - **Hoy: la puerta al acta es ahora un ⓘ junto al veredicto / Today: the verdict's "how I got here" is now an ⓘ next to the word** (FER-71).
