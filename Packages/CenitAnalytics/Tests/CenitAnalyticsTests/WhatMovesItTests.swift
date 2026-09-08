@@ -406,6 +406,27 @@ final class WhatMovesItTests: XCTestCase {
 
     // MARK: - hrv edge cases: the floor, and no dense nights at all
 
+    func testHrvDropsNonPositiveRmssdNights() throws {
+        // Same 60 valid nights as `testHrvSleepDurationRisesOnLongerNights` (r = 0.624), plus two extra
+        // nights whose `rmssdMs` is non-positive (0 and negative) on days that DO have a matching sleep
+        // row — so only the domain guard (`night.rmssdMs > 0`, before `ln(...)`) can keep them out of the
+        // pair count. `ln(0)` is −infinity and `ln(negative)` is NaN in Swift, so if the guard were ever
+        // removed this would silently corrupt `r`/`n` rather than crash — the guard is the only thing
+        // standing between a zero/negative reading and the log domain.
+        let days = (0..<62).map { row($0, sleep: 420 + 40 * J($0) + 10 * K($0)) }
+        var nights = (0..<60).map { i -> (day: String, rmssdMs: Double) in
+            let sl = 420 + 40 * J(i) + 10 * K(i)
+            return hrvRow(i, lnRmssd: 3.9 + 0.002 * (sl - 420) + 0.15 * K(i))
+        }
+        nights.append((day: day(60), rmssdMs: 0))
+        nights.append((day: day(61), rmssdMs: -4))
+        let c = try XCTUnwrap(candidate(.hrvSleepDuration, in: days, today: day(61), hrvNights: nights))
+        XCTAssertEqual(c.n, 60, "the two non-positive-rmssdMs nights must be dropped by the domain guard")
+        XCTAssertEqual(c.r, 0.624, accuracy: 0.01)
+        XCTAssertEqual(WhatMovesItEngine.family(days: days, today: day(61), hrvNights: nights)["hrv"],
+                       [finding(.hrvSleepDuration, .rises)])
+    }
+
     func testHrvBelowFloorHidesBoth() throws {
         // Only 30 dense nights — below the 42-pair calendar floor `hrv.*` shares with `rhr`/`sleep`
         // (dense-night density gates the RMSSD side, not efficiency, so `hrv.*` never takes the higher
