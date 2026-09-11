@@ -164,6 +164,13 @@ public enum LiquidSpace {
     /// 20 — padding HORIZONTAL de una pastilla/botón pill de hoja (con su vertical corto aparte).
     /// Mismo veredicto FER-275 punto 3. (ManualWorkoutSheet — 2 sitios.)
     public static let pastillaHorizontal: CGFloat = 20
+
+    /// 16 — inset superior del CONTENIDO de una pestaña con título: la primera sección bajo el nav
+    /// bar en las tres pestañas apiladas (Tendencias, Entrenar, Ajustes). Antes era `s400`/`s350`
+    /// inline con el comentario «shared titled-tab top inset» en dos sitios, y había derivado a 14
+    /// (`s350`) en Entrenar; un solo nombre lo mantiene unificado. Hoy no lo usa (su cabecera es el
+    /// orbe, no una lista con título). CENSO «titled-tab top inset» (3 sitios).
+    public static let pestanaContenidoTop: CGFloat = 16
 }
 
 // MARK: - Liquid Glass · Chip compacto (FER-273, CONTRATO.md — checklist Fase 1)

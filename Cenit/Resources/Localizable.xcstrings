@@ -76518,6 +76518,142 @@
         }
       }
     },
+    "ayuda.buscar" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search a feature"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Busca una función"
+          }
+        }
+      }
+    },
+    "ayuda.buscar.vacio" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing matches that."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nada coincide con eso."
+          }
+        }
+      }
+    },
+    "ayuda.buscar.vacio.sub" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try another word, or browse by tab above."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prueba otra palabra, o explora por pestaña arriba."
+          }
+        }
+      }
+    },
+    "ayuda.desc.ajustes" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sources, reminders, backup, and what the app teaches."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fuentes, recordatorios, respaldo, y lo que la app enseña."
+          }
+        }
+      }
+    },
+    "ayuda.desc.entrenar" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The plan that acts: today, your week, the live session."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El plan que actúa: hoy, tu semana, la sesión en vivo."
+          }
+        }
+      }
+    },
+    "ayuda.desc.hoy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your reading, the guardian, and what decides your day."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu lectura, el guardián, y qué decide tu día."
+          }
+        }
+      }
+    },
+    "ayuda.desc.tendencias" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your ranges and where they head: rest, load, vitals."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tus rangos y hacia dónde van: descanso, carga, vitales."
+          }
+        }
+      }
+    },
+    "ayuda.desc.transversal" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No account, no cloud, and what the watch adds."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin cuenta, sin nube, y lo que suma el reloj."
+          }
+        }
+      }
+    },
     "ayuda.boton.hint" : {
       "extractionState" : "manual",
       "localizations" : {

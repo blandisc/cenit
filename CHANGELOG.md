@@ -20,6 +20,12 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
 
 ## Unreleased
 
+### La ayuda «Cómo funciona Cénit» pasa de pared de texto a índice con buscador / "How Cénit works" help goes from a wall of text to an index with search (FER-486)
+
+La pantalla de ayuda ya no apila las cinco secciones y sus decenas de funciones de corrido. Abre en un índice de cinco tarjetas —una por pestaña, con su glifo y su color— más un buscador que encuentra cualquier función de un jalón; tocas una sección y entras solo a la suya. De paso, unifica el margen superior de las pestañas con título.
+
+The help screen no longer stacks all five sections and their dozens of features in one scroll. It opens as an index of five cards —one per tab, each with its glyph and color— plus a search that finds any feature at once; tap a section to see just its list. Along the way it unifies the top inset of the titled tabs.
+
 ### Quien no entrena vuelve a ver su patrón de sueño / If you don't train, "your pattern" comes back for sleep (FER-483)
 - **ES** — La hoja de Sueño podía dejar de mostrar «Tu patrón» si nunca registrabas esfuerzo, aunque tu
   noche sí tuviera un patrón real (un rebote, un hábito de horario). Eso pasaba porque el arreglo
