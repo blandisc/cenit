@@ -304,7 +304,7 @@ private struct CuerpoLanding: View {
                 footerActions
             }
             .padding(.horizontal, LiquidSpace.s600)
-            .padding(.top, LiquidSpace.s400)   // shared titled-tab top inset
+            .padding(.top, LiquidSpace.pestanaContenidoTop)   // shared titled-tab top inset
             .padding(.bottom, LiquidSpace.s600)
             .frame(maxWidth: .infinity, alignment: .leading)
         }

@@ -35,8 +35,9 @@ struct AyudaBoton: View {
                                        defaultValue: "Opens help at the \(AyudaScreen.titulo(seccion)) section")))
         .sheet(isPresented: $presentada) {
             // La hoja abre una rama nueva del entorno: se reinyecta lo que Ayuda necesita (mismo
-            // patrón que las hojas hermanas de Ajustes y de Hoy).
-            NavigationStack { AyudaScreen(inicial: seccion) }
+            // patrón que las hojas hermanas de Ajustes y de Hoy). `AyudaScreen` es dueña de su
+            // NavigationStack (rediseño índice) — aquí ya no se envuelve.
+            AyudaScreen(inicial: seccion)
                 .environmentObject(repo)
                 .environmentObject(tabRouter)
         }

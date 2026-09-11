@@ -129,7 +129,7 @@ private struct AjustesLanding: View {
                 footer
             }
             .padding(.horizontal, LiquidSpace.s600)
-            .padding(.top, LiquidSpace.s400)
+            .padding(.top, LiquidSpace.pestanaContenidoTop)   // shared titled-tab top inset
             .padding(.bottom, LiquidSpace.s800)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -714,8 +714,9 @@ private struct AjustesLanding: View {
             .environmentObject(autoBackup)
         case .ayuda:
             // FER-435: «Cómo funciona Cénit» trae su propio «Listo» (también la abre el «?» de
-            // cada pestaña); aquí solo el stack y los objetos que sus puertas necesitan.
-            NavigationStack { AyudaScreen() }
+            // cada pestaña); es dueña de su NavigationStack (rediseño índice), aquí solo los
+            // objetos que sus puertas necesitan.
+            AyudaScreen()
                 .environment(model)
                 .environmentObject(repo)
                 .environmentObject(tabRouter)

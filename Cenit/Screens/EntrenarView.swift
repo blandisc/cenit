@@ -273,7 +273,7 @@ private struct EntrenarLanding: View {
                     }
                 }
             }
-            .padding(.top, LiquidSpace.s350)   // shared titled-tab top inset
+            .padding(.top, LiquidSpace.pestanaContenidoTop)   // shared titled-tab top inset
             .padding(.horizontal, LiquidSpace.s600)
             .padding(.bottom, LiquidSpace.s600)
             .frame(maxWidth: .infinity, alignment: .leading)

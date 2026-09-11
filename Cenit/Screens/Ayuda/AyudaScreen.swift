@@ -5,28 +5,35 @@ import CenitDesign
 import CenitEnsenanza
 import CenitAnalytics
 
-// MARK: - «Cómo funciona Cénit» (épico FER-428 · L2/FER-435, D7 = A+B)
+// MARK: - «Cómo funciona Cénit» (épico FER-428 · L2/FER-435, D7 = A+B · rediseño índice)
 //
-// La única puerta para volver a aprender: una LISTA DE LECTURA, no un menú. Cinco secciones
-// (Hoy · Tendencias · Entrenar · Ajustes · En tu iPhone y tu reloj) leídas del registro
-// `CenitEnsenanza` — la pantalla no inventa contenido: por funcionalidad, nombre · para qué ·
-// dónde vive, la nota «Necesita Apple Watch» cuando `requiere` incluye `.watch` (se lista, nunca se
-// esconde), cada `gestoConBoton` como «gesto · botón», y la PUERTA a su pieza cuando ya existe
-// (taller, manuales, hoja del guardián, el acta). Solo la puerta es tocable. Al pie de cada
-// pestaña, «Volver a ver los consejos» (`EnsenanzaGeneracion.reiniciar`). Nunca un modal.
+// Antes: una sola LISTA DE LECTURA que apilaba las cinco secciones y sus 68 funcionalidades de
+// corrido — una pared de texto sin jerarquía. Ahora un ÍNDICE + DETALLE (rediseño «híbrido»,
+// dueño 2026-09-10): la puerta es un índice de cinco tarjetas de vidrio tintado (glifo del dock +
+// nombre · conteo · una línea de qué encuentras), más un buscador que filtra sobre las 68 de un
+// jalón. Tocas una sección y entras a SU lista (las mismas filas de lectura, `AyudaFila`, ahora
+// solas y no ahogadas por las otras cuatro). El registro `CenitEnsenanza` sigue siendo la única
+// fuente: la pantalla no inventa contenido (por funcionalidad: nombre · para qué · dónde vive, la
+// nota «Necesita Apple Watch», cada `gestoConBoton`, y la PUERTA a su pieza cuando existe). Al pie
+// de cada sección, «Volver a ver los consejos» (`EnsenanzaGeneracion.reiniciar`). Nunca un modal.
 //
-// Hoja hermana de `SupportView` (mismo header, márgenes `s550`, `LiquidSheetFondo`, tarjetas
-// opacas: en hoja no hay vidrio-sobre-vidrio). Trae su propio «Listo»: la abren Ajustes
-// (`presentedSheet = .ayuda`) y el «?» de las cuatro pestañas (`AyudaBoton`, desplazada a su
-// sección con `ScrollViewReader`).
+// Hoja hermana de `SupportView` (mismo header, `LiquidSheetFondo`, tarjetas opacas: en hoja no hay
+// vidrio-sobre-vidrio). Trae su propio «Listo». La abren Ajustes (`presentedSheet = .ayuda`) y el
+// «?» de las cuatro pestañas (`AyudaBoton`, que pasa `inicial` para entrar directo a esa sección).
+// La pantalla es DUEÑA de su `NavigationStack` (path de `Pestana`): los dos call-sites ya no la
+// envuelven.
 
 struct AyudaScreen: View {
-    /// Sección a la que abre desplazada (el «?» de cada pestaña); `nil` = desde arriba (Ajustes).
+    /// Sección a la que entra directo (el «?» de cada pestaña); `nil` = se abre en el índice (Ajustes).
     var inicial: Pestana? = nil
 
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var repo: Repository
     @EnvironmentObject private var tabRouter: TabRouter
+    /// El stack de esta hoja: vacío = índice; `[pestana]` = detalle de esa sección.
+    @State private var path: [Pestana] = []
+    /// Texto del buscador. No vacío ⇒ el índice se reemplaza por resultados filtrados de las 68.
+    @State private var busqueda = ""
     @State private var showDecide = false
     @State private var showContexto = false
     @State private var showTaller = false
@@ -34,43 +41,57 @@ struct AyudaScreen: View {
     @State private var reiniciadas: Set<Pestana> = []
 
     var body: some View {
-        ScrollViewReader { proxy in
-            ScrollView {
-                VStack(alignment: .leading, spacing: .zero) {
-                    header
-                    ForEach(Pestana.allCases, id: \.self) { pestana in
-                        seccion(pestana).id(pestana)
-                    }
+        NavigationStack(path: $path) {
+            indice
+                .navigationDestination(for: Pestana.self) { pestana in
+                    seccionDetalle(pestana)
                 }
-                .padding(.horizontal, LiquidSpace.s550)
-                .padding(.top, LiquidSpace.s550)
-                .padding(.bottom, LiquidSpace.s800)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .scrollIndicators(.hidden)
-            .onAppear {
-                if let inicial { proxy.scrollTo(inicial, anchor: .top) }
-            }
         }
-        .background { LiquidSheetFondo().ignoresSafeArea() }
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(LiquidColor.fondoAlto, for: .navigationBar)
-        .toolbar {
-            ToolbarItem(placement: .confirmationAction) {
-                Button(String(localized: "Done")) { dismiss() }
-                    .foregroundStyle(LiquidColor.tinta900)
-            }
+        // El «?» de una pestaña entra directo a su sección; Ajustes abre en el índice.
+        .onAppear { if let inicial, path.isEmpty { path = [inicial] } }
+        // Las tres puertas de contenido viven como HOJAS (no push): el `path` solo lleva `Pestana`,
+        // así que el taller —que no es una pestaña— se presenta como sheet, no como destino tipado.
+        .sheet(isPresented: $showTaller) {
+            NavigationStack { WorkshopTricksScreen() }
+                .environmentObject(repo)
+                .environmentObject(tabRouter)
         }
-        // `entrenar.taller` → el taller («Lo que Cénit sabe hacer» + «Palabras del gym»), empujado
-        // en el stack de esta hoja, como lo empujaba el «?» del hub de Entrenar.
-        .navigationDestination(isPresented: $showTaller) { WorkshopTricksScreen() }
-        // `hoy.manuales` → los dos manuales, en la misma hoja neutra con que los abre Hoy.
         .sheet(isPresented: $showDecide) {
             LiquidMetricSheet(tono: LiquidColor.tinta700, detent: .porContenido) { HojaDecideTuDia() }
         }
         .sheet(isPresented: $showContexto) {
             LiquidMetricSheet(tono: LiquidColor.tinta700, detent: .porContenido) { HojaContexto() }
         }
+    }
+
+    // MARK: - Índice (la puerta: header + buscador + cinco tarjetas, o resultados)
+
+    private var indice: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: LiquidSpace.s400) {
+                header
+                buscador
+                if busqueda.trimmingCharacters(in: .whitespaces).isEmpty {
+                    VStack(spacing: LiquidSpace.s250) {
+                        ForEach(Pestana.allCases, id: \.self) { tarjetaSeccion($0) }
+                    }
+                } else {
+                    resultados
+                }
+            }
+            .padding(.horizontal, LiquidSpace.s550)
+            .padding(.top, LiquidSpace.pestanaContenidoTop)
+            .padding(.bottom, LiquidSpace.s800)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .scrollIndicators(.hidden)
+        .modifier(HojaChrome())
+        .toolbar { ToolbarItem(placement: .confirmationAction) { botonListo } }
+    }
+
+    private var botonListo: some View {
+        Button(String(localized: "Done")) { dismiss() }
+            .foregroundStyle(LiquidColor.tinta900)
     }
 
     // MARK: - Header (hermano de SupportView)
@@ -82,7 +103,7 @@ struct AyudaScreen: View {
                 .font(LiquidType.displayS).tracking(LiquidType.displaySTracking)
                 .foregroundStyle(LiquidColor.tinta900)
             Text(String(localized: "ayuda.subtitulo",
-                        defaultValue: "Everything the app teaches, by tab, to come back to whenever you want. And to see the tips again."))
+                        defaultValue: "Everything the app teaches, by tab. Open one, or search."))
                 .font(LiquidType.cuerpo)
                 .foregroundStyle(LiquidColor.tinta500)
                 .fixedSize(horizontal: false, vertical: true)
@@ -90,32 +111,213 @@ struct AyudaScreen: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(.isHeader)
-        .padding(.bottom, LiquidSpace.s300)
+        .padding(.bottom, LiquidSpace.s100)
     }
 
-    // MARK: - Sección (una por pestaña, en el orden del registro)
+    // MARK: - Buscador
 
-    private func seccion(_ pestana: Pestana) -> some View {
-        let funcionalidades = Registro.por(pestana)
-        let titulo = Self.titulo(pestana)
-        return VStack(alignment: .leading, spacing: .zero) {
-            LiquidSectionHeader(LocalizedStringKey(titulo)) {
-                Text(String(localized: "ayuda.seccion.conteo", defaultValue: "\(funcionalidades.count) features"))
+    private var buscador: some View {
+        HStack(spacing: LiquidSpace.s150) {
+            Image(systemName: "magnifyingglass")
+                .font(LiquidType.iconSF(size: 15))
+                .foregroundStyle(LiquidColor.tinta500)
+            TextField(String(localized: "ayuda.buscar", defaultValue: "Search a feature"),
+                      text: $busqueda)
+            .font(LiquidType.cuerpo)
+            .foregroundStyle(LiquidColor.tinta900)
+            .textInputAutocapitalization(.never)
+            .autocorrectionDisabled()
+            .submitLabel(.search)
+            if !busqueda.isEmpty {
+                Button {
+                    busqueda = ""
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(LiquidType.iconSF(size: 15))
+                        .foregroundStyle(LiquidColor.tinta500)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text("Clear search"))
+            }
+        }
+        .liquidTarjetaSeccion(padding: LiquidSpace.s250)
+    }
+
+    // MARK: - Tarjeta de sección (una fila del índice → empuja el detalle)
+
+    private func tarjetaSeccion(_ pestana: Pestana) -> some View {
+        NavigationLink(value: pestana) {
+            HStack(spacing: LiquidSpace.s300) {
+                chipGlifo(pestana, glifo: 20, chip: 38)
+                VStack(alignment: .leading, spacing: LiquidSpace.s050) {
+                    HStack(alignment: .firstTextBaseline) {
+                        Text(verbatim: Self.titulo(pestana))
+                            .font(LiquidType.titulo)
+                            .foregroundStyle(LiquidColor.tinta900)
+                        Spacer(minLength: LiquidSpace.s200)
+                        Text(String(localized: "ayuda.seccion.conteo",
+                                    defaultValue: "\(Registro.por(pestana).count) features"))
+                            .font(LiquidType.captionLectura)
+                            .foregroundStyle(LiquidColor.tinta500)
+                    }
+                    Text(descriptor(pestana))
+                        .font(LiquidType.captionLectura)
+                        .foregroundStyle(LiquidColor.tinta500)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                LiquidIcon(.chevron, size: 12, color: LiquidColor.tinta500)
+            }
+            .liquidTarjetaSeccion(padding: LiquidSpace.s300)
+        }
+        .buttonStyle(.liquidPress)
+        .accessibilityElement(children: .combine)
+    }
+
+    // MARK: - Resultados de búsqueda (filtra las 68 de un jalón)
+
+    @ViewBuilder private var resultados: some View {
+        let q = busqueda.trimmingCharacters(in: .whitespaces).lowercased()
+        let hits = Pestana.allCases
+            .flatMap { Registro.por($0) }
+            .filter { f in
+                f.nombre.lowercased().contains(q)
+                    || f.paraQue.lowercased().contains(q)
+                    || f.dondeVive.lowercased().contains(q)
+            }
+        if hits.isEmpty {
+            VStack(alignment: .leading, spacing: LiquidSpace.s100) {
+                Text(String(localized: "ayuda.buscar.vacio", defaultValue: "Nothing matches that."))
+                    .font(LiquidType.tituloFila)
+                    .foregroundStyle(LiquidColor.tinta900)
+                Text(String(localized: "ayuda.buscar.vacio.sub",
+                            defaultValue: "Try another word, or browse by tab above."))
                     .font(LiquidType.captionLectura)
                     .foregroundStyle(LiquidColor.tinta500)
+                    .fixedSize(horizontal: false, vertical: true)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.top, LiquidSpace.s300)
+        } else {
             VStack(spacing: .zero) {
-                ForEach(funcionalidades) { funcionalidad in
+                ForEach(hits) { funcionalidad in
                     AyudaFila(funcionalidad: funcionalidad,
                               puertas: puertas(funcionalidad),
-                              divider: funcionalidad.id != funcionalidades.last?.id)
+                              divider: funcionalidad.id != hits.last?.id)
                 }
             }
             .liquidTarjetaSeccion(padding: LiquidSpace.s300)
-            // «En tu iPhone y tu reloj» no es una pestaña: no tiene consejos que volver a ver.
-            if pestana != .transversal {
-                pie(pestana, titulo: titulo)
+        }
+    }
+
+    // MARK: - Detalle de una sección (las filas de lectura, solas)
+
+    private func seccionDetalle(_ pestana: Pestana) -> some View {
+        let funcionalidades = Registro.por(pestana)
+        let titulo = Self.titulo(pestana)
+        return ScrollView {
+            VStack(alignment: .leading, spacing: .zero) {
+                seccionCabecera(pestana, titulo: titulo, conteo: funcionalidades.count)
+                VStack(spacing: .zero) {
+                    ForEach(funcionalidades) { funcionalidad in
+                        AyudaFila(funcionalidad: funcionalidad,
+                                  puertas: puertas(funcionalidad),
+                                  divider: funcionalidad.id != funcionalidades.last?.id)
+                    }
+                }
+                .liquidTarjetaSeccion(padding: LiquidSpace.s300)
+                // «En tu iPhone y tu reloj» no es una pestaña: no tiene consejos que volver a ver.
+                if pestana != .transversal {
+                    pie(pestana, titulo: titulo)
+                }
             }
+            .padding(.horizontal, LiquidSpace.s550)
+            .padding(.top, LiquidSpace.pestanaContenidoTop)
+            .padding(.bottom, LiquidSpace.s800)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .scrollIndicators(.hidden)
+        .modifier(HojaChrome())
+        .toolbar { ToolbarItem(placement: .confirmationAction) { botonListo } }
+    }
+
+    /// La cabecera del detalle: glifo tintado grande + nombre + conteo, para que la sección se
+    /// reconozca de un vistazo (el mismo glifo y tinte de su tarjeta en el índice).
+    private func seccionCabecera(_ pestana: Pestana, titulo: String, conteo: Int) -> some View {
+        HStack(spacing: LiquidSpace.s300) {
+            chipGlifo(pestana, glifo: 26, chip: 48)
+            VStack(alignment: .leading, spacing: LiquidSpace.s050) {
+                Text(verbatim: titulo)
+                    .font(LiquidType.displayS).tracking(LiquidType.displaySTracking)
+                    .foregroundStyle(LiquidColor.tinta900)
+                Text(String(localized: "ayuda.seccion.conteo", defaultValue: "\(conteo) features"))
+                    .font(LiquidType.captionLectura)
+                    .foregroundStyle(LiquidColor.tinta500)
+            }
+            Spacer(minLength: LiquidSpace.s200)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isHeader)
+        .padding(.bottom, LiquidSpace.s300)
+    }
+
+    // MARK: - Glifo + tinte por sección (mismo mark del dock, tinte de la familia de acentos)
+
+    @ViewBuilder private func glifo(_ pestana: Pestana, size: CGFloat) -> some View {
+        switch pestana {
+        case .hoy:
+            DialTabGlyph(size: size, color: tinte(pestana))
+        case .tendencias:
+            TendenciasGlyph(color: tinte(pestana)).frame(width: size, height: size)
+        case .entrenar:
+            Image(systemName: "dumbbell.fill")
+                .font(LiquidType.iconSF(size: size)).foregroundStyle(tinte(pestana))
+        case .ajustes:
+            Image(systemName: "slider.horizontal.3")
+                .font(LiquidType.iconSF(size: size)).foregroundStyle(tinte(pestana))
+        case .transversal:
+            Image(systemName: "iphone")
+                .font(LiquidType.iconSF(size: size)).foregroundStyle(tinte(pestana))
+        }
+    }
+
+    private func chipGlifo(_ pestana: Pestana, glifo tamano: CGFloat, chip: CGFloat) -> some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: LiquidRadius.control, style: .continuous)
+                .fill(tinte(pestana).opacity(CenitOpacity.tintFillStrong))
+            glifo(pestana, size: tamano)
+        }
+        .frame(width: chip, height: chip)
+    }
+
+    private func tinte(_ pestana: Pestana) -> Color {
+        switch pestana {
+        case .hoy:         return LiquidColor.verdeOrbe
+        case .tendencias:  return LiquidColor.cian
+        case .entrenar:    return LiquidColor.ambar
+        case .ajustes:     return LiquidColor.indigo
+        case .transversal: return LiquidColor.azul
+        }
+    }
+
+    /// La línea de «qué encuentras» de cada tarjeta del índice — la voz de marca, no una lista.
+    private func descriptor(_ pestana: Pestana) -> String {
+        switch pestana {
+        case .hoy:
+            return String(localized: "ayuda.desc.hoy",
+                          defaultValue: "Your reading, the guardian, and what decides your day.")
+        case .tendencias:
+            return String(localized: "ayuda.desc.tendencias",
+                          defaultValue: "Your ranges and where they head: rest, load, vitals.")
+        case .entrenar:
+            return String(localized: "ayuda.desc.entrenar",
+                          defaultValue: "The plan that acts: today, your week, the live session.")
+        case .ajustes:
+            return String(localized: "ayuda.desc.ajustes",
+                          defaultValue: "Sources, reminders, backup, and what the app teaches.")
+        case .transversal:
+            return String(localized: "ayuda.desc.transversal",
+                          defaultValue: "No account, no cloud, and what the watch adds.")
         }
     }
 
@@ -202,6 +404,17 @@ struct AyudaScreen: View {
     private var hayVeredicto: Bool {
         guard let prep = repo.todayPreparedness else { return false }
         return prep.verdict != .lowSignal && prep.isNightAnchored
+    }
+}
+
+// MARK: - Cromo de hoja (fondo + nav bar, compartido por el índice y el detalle)
+
+private struct HojaChrome: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .background { LiquidSheetFondo().ignoresSafeArea() }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(LiquidColor.fondoAlto, for: .navigationBar)
     }
 }
 
