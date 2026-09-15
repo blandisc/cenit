@@ -74152,13 +74152,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Every signal across weeks and months, with sleep, stress, vitals and longevity."
+            "value" : "Every signal across weeks and months, with sleep, stress and vitals."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cada señal a lo largo de semanas y meses, con sueño, estrés, vitales y longevidad."
+            "value" : "Cada señal a lo largo de semanas y meses, con sueño, estrés y vitales."
           }
         }
       }

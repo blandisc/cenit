@@ -212,7 +212,6 @@ final class CenitScreenshotTests: XCTestCase {
             ("intervals",   "interval"),
             // Ajustes + the screens that open from Cuerpo's footer.
             ("settings",    "settings"),
-            ("compare",     "compare"),
             ("workouts",    "workouts"),
             ("applehealth", "apple-health"),
             ("datasources", "data-sources"),

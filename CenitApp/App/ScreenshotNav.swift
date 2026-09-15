@@ -13,7 +13,7 @@ import SwiftUI
 ///     train (alias: entrenar) · settings (aliases: ajustes, more)
 ///   Pushed onto a hub: breathe · intervals · routineToday ·
 ///     library · weeklyplan · misrutinas · workouthistory ·
-///     explore · compare · workouts ·
+///     explore · workouts ·
 ///     applehealth · datasources · support
 ///   // FER-381: `coach`/`dieta`/`automations` retiradas (claves muertas → falso verde). Para llegar a
 ///   // una pantalla sin `nav` (marcas, volumen, tickets…) usa `-cenit.route <familia/clave>`.
@@ -56,7 +56,7 @@ final class DebugNavWatcher {
         "today", "body", "trends", "train", "entrenar", "settings", "ajustes", "more",
         "breathe", "intervals", "routineToday",
         "library", "weeklyplan", "misrutinas", "workouthistory",
-        "sleep", "explore", "compare", "workouts",
+        "sleep", "explore", "workouts",
         "applehealth", "datasources", "support",
     ]
 

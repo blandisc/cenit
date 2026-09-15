@@ -10,9 +10,10 @@ import Foundation
 //
 // Pestaña Cuerpo (FER-182; reemplaza el `TrendsView` interino). Liquid Glass · El Eje: héroe de
 // Preparación (palabra + cláusula, tono del veredicto) sobre módulos `LiquidModulo` — Descanso y
-// carga / Carga de entrenamiento / Vitales / Actividad / Longevidad — con borde aurora del color
+// carga / Carga de entrenamiento / Vitales / Actividad — con borde aurora del color
 // de SU dato (`MetricIdentity.identity(forKey:)`). Stats en tinta quieta · valor en tono de dato,
-// separadas por `LiquidCapilar`; insight de deporte bajo Actividad; Comparar / Ver todas al pie.
+// separadas por `LiquidCapilar`; Ver todas al pie. (Longevidad, el insight de deporte y Comparar se
+// retiraron en FER-489, ola 0b: quedan sin puerta y sin cómputo.)
 // Cada stat es tap target; el header de módulo es rótulo sin chevron. Solo piel: data path /
 // engines / navegación intactos (`loadAll` / `detailOverlayContent` / `DetailChrome`).
 //

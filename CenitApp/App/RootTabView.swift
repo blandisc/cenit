@@ -11,7 +11,7 @@ import CenitStore   // FER-202: `WorkoutRow` — destino de detalle de actividad
 /// Hub tabs reconnect screens which don't have a final home yet:
 ///   • **Entrenar** → Breathe · Intervals (+ strength hub).
 ///   • **Ajustes**  → Settings + a temporary «Más» section listing the still-orphan screens
-///     (Explore · Compare · Workouts · Apple Health · Data Sources · Automations · Support). Sueño /
+///     (Explore · Workouts · Apple Health · Data Sources · Automations · Support). Sueño /
 ///     Health / Stress now live in «Tendencias» (Cuerpo). Nothing from the old shell becomes unreachable.
 struct RootTabView: View {
     // FER-240: `.coach` (Patrones) removed with the screen.

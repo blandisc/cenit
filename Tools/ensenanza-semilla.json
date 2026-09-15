@@ -96,7 +96,7 @@
     {"id":"tendencias.pestana","pestana":"tendencias","requiere":[],"piezas":["ayuda","hito:tendencias.pestana.primera-tendencia"],
      "mapa":["tendencias/cuerpo-m"],
      "nombre":{"en":"Trends: your body over time","es":"Tendencias: tu cuerpo en el tiempo"},
-     "paraQue":{"en":"Every signal across weeks and months, with sleep, stress, vitals and longevity.","es":"Cada señal a lo largo de semanas y meses, con sueño, estrés, vitales y longevidad."},
+     "paraQue":{"en":"Every signal across weeks and months, with sleep, stress and vitals.","es":"Cada señal a lo largo de semanas y meses, con sueño, estrés y vitales."},
      "dondeVive":{"en":"The second tab.","es":"La segunda pestaña."}},
     {"id":"tendencias.periodo","pestana":"tendencias","requiere":[],"piezas":["ayuda"],
      "mapa":["tendencias/cuerpo-m"],
