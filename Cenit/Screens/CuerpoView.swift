@@ -17,7 +17,7 @@ import Foundation
 // Cada stat es tap target; el header de módulo es rótulo sin chevron. Solo piel: data path /
 // engines / navegación intactos (`loadAll` / `detailOverlayContent` / `DetailChrome`).
 //
-// FER-566: cada señal lleva sparkline (héroe + Rest & load / Vitals / Steps), salvo Longevidad,
+// FER-566: cada señal lleva sparkline (héroe + Rest & load / Vitals / Steps), salvo la tarjeta de Longevidad (retirada en FER-489),
 // Entrenamientos y FC intradía. `selectedPeriod` re-ventanea todas; el Δ del héroe usa la misma
 // ventana. Stress lee su serie diaria; el resto corta `displayDays`.
 //
@@ -355,8 +355,8 @@ private struct CuerpoLanding: View {
         #if os(iOS) && DEBUG
         // `-cenit.route tendencias/<métrica>` (FER-384 · mapa 100%): abre el detalle de una métrica
         // sin tocarla — la ruta directa `metricSpec` para las 7 vitales ricas, `Explorar` empujado
-        // para las demás del catálogo. También abre las hojas hermanas (Comparar/Explorar solo/
-        // ActivityRecovery/Fitness Age/Body Age) por su propia clave. Consume `DebugRoute` — la
+        // para las demás del catálogo. También abre el Explorador solo por su propia clave (las de
+        // Comparar/ActivityRecovery/Fitness Age/Body Age se retiraron en FER-489). Consume `DebugRoute` — la
         // Ola 1 ya seleccionó la tab `.body` en `RootTabView.onAppear`.
         .onAppear { openDebugRoute() }
         #endif
@@ -499,7 +499,7 @@ private struct CuerpoLanding: View {
                 spec: spec,
                 depth: .full,
                 // VO₂max is Apple-only: invite connecting Apple Health from its empty state when nothing's
-                // connected and there's no reading (mirrors the Fitness Age VO₂max nudge). (FER-257)
+                // connected and there's no reading (mirrored the Fitness Age VO₂max nudge, retired in FER-489). (FER-257)
                 appleConnectHint: spec.descriptor.key == "vo2max"
                     && health.auth != .authorized && health.auth != .unavailable
                     && latestAppleVO2max == nil,
@@ -780,7 +780,8 @@ private struct CuerpoLanding: View {
                         }
                         // Sin chevron (FER-837): el renglón «Toca cualquier dato para ver su detalle» ya comunica
                         // que la tarjeta es tocable; el chevron se reserva a las que abren una pantalla/herramienta
-                        // distinta («tras cada deporte», Comparar, Ver todas las métricas).
+                        // distinta (hoy solo «Ver todas las métricas»; «tras cada deporte» y Comparar se
+                        // retiraron en FER-489).
                     }
                 }
             }

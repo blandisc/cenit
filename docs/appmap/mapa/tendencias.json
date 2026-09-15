@@ -835,11 +835,6 @@
     },
     {
       "de": "cuerpo-m",
-      "a": "detalle-vo2max-m-full",
-      "etiqueta": "toca VO₂max"
-    },
-    {
-      "de": "cuerpo-m",
       "a": "explorar-full",
       "etiqueta": "Ver todas las métricas"
     },

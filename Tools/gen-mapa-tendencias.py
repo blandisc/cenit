@@ -163,7 +163,6 @@ def edges(catalog: list[tuple[str, str]]) -> list[dict]:
     d = slug_range(DEFAULT_RANGE)
     out = [
         {"de": f"cuerpo-{d}", "a": f"detalle-hrv-{d}-full", "etiqueta": "toca HRV"},
-        {"de": f"cuerpo-{d}", "a": f"detalle-vo2max-{d}-full", "etiqueta": "toca VO₂max"},
         {"de": f"cuerpo-{d}", "a": "explorar-full", "etiqueta": "Ver todas las métricas"},
         {"de": "explorar-full", "a": f"detalle-weight-{d}-full", "etiqueta": "fila → detalle genérico"},
     ]

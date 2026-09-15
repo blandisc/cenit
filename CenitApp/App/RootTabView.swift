@@ -162,7 +162,7 @@ struct RootTabView: View {
     // The visible UI navigates by SHEET (AjustesView), like Cuerpo; the NavigationStack here
     // exists only so DEBUG screenshot-nav can still push a secondary screen — its path only
     // ever carries `SecondaryScreen` (one value type), so there's no FER-171 mixed-path crash.
-    // Explore · Compare · Workouts are gone from Ajustes (they open from Cuerpo now).
+    // Explore · Workouts are gone from Ajustes (they open from Cuerpo now); Compare was retired (FER-489).
     @ViewBuilder
     private var settingsTab: some View {
         NavigationStack(path: $settingsStack) {
