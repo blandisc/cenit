@@ -100,6 +100,21 @@ private struct EntrenarLanding: View {
     /// píldora del héroe se pinta ámbar («Hoy mantienes») SOLO cuando no hay ningún ejercicio en
     /// `raisesToday` — una sesión que sí sube siempre gana el espacio del héroe.
     @State private var atLimitHeldToday: [(name: String, weightKg: Double)] = []
+    /// Ola 2 (FER-488): la subida GANADA que el veredicto de HOY retiene, por ejercicio (`raise.waiting
+    /// == true`, `ProgressionPlanner.deferRaise`) — ya gateada por `Repository.trainingAdvice` (solo con
+    /// noche anclada: sin ella el oráculo no pronuncia veredicto y `seedTodaySlots` no siembra `raise` en
+    /// absoluto, `Cenit/Data/Repository+Strength.swift:36-41`). El peso es el SEMBRADO (`fromKg`, el de
+    /// la última vez), no el que espera (`toKg`) — la subida sigue a un toque dentro de la sesión.
+    @State private var retainedToday: [(name: String, weightKg: Double)] = []
+    /// Ola 2 (FER-488) · «Contexto · Carga»: el ACWR + serie del dashboard band-masked, la MISMA fábrica
+    /// que Hoy (`TrainingLoadModel.fromDashboard`, compartida vía `TrainingLoadSheet.swift`) — nunca una
+    /// segunda derivación que pudiera discrepar de la franja de Hoy.
+    @State private var trainingLoad: TrainingLoadModel?
+    /// Esfuerzo (fuerza) registrado en los últimos 28 días — decide la rama «Calibrando» del predicado
+    /// de tres ramas (ver `filaCargaEstado`) cuando todavía no hay ACWR.
+    @State private var hasEffortHistory = false
+    /// La hoja de «Contexto · Carga» (montada al tocar la fila) — el mismo `TrainingLoadSheet` que Hoy.
+    @State private var trainingLoadItem: TrainingLoadItem?
     /// The verdict `todaySlots` were seeded with; `nil` until the first load. Guards «Empezar» from
     /// handing the session a table built under a verdict that has since changed (FER-82).
     @State private var slotsAdvice: TrainingRegulation.Advice?
@@ -230,6 +245,19 @@ private struct EntrenarLanding: View {
                 // error de lectura sugiere que el resto sí cargó cuando no fue así.
                 if !loadFailed {
                     hiloDelVeredicto.padding(.top, LiquidSpace.s200)
+                    // Ola 2 (FER-488) · decisión 6 (DECISIONS.md 2026-09-15): «Contexto · Carga»
+                    // inmediatamente debajo del hilo, nunca en la misma fila — ver `filaCargaEstado`
+                    // para el predicado de tres ramas (banda / calibrando / oculta).
+                    if let filaCargaEstado {
+                        EntrenarFilaCarga(estado: filaCargaEstado, rotulo: "Context · Load",
+                                          accessibilityLabel: filaCargaAccessibilityLabel(filaCargaEstado),
+                                          hint: "Opens the load sheet") {
+                            trainingLoadItem = TrainingLoadItem(
+                                model: trainingLoad ?? TrainingLoadModel(acwr: nil, series: []),
+                                onSeeTrends: { tabRouter.select(.body) })
+                        }
+                        .padding(.top, LiquidSpace.s100)
+                    }
                 }
                 // FER-373 (C7) «pintado instantáneo»: kicker/título/subtítulo/chips del héroe de
                 // primer uso son copy + catálogo empaquetado (`StarterTemplates`), no una lectura de
@@ -307,6 +335,13 @@ private struct EntrenarLanding: View {
                             doneWeekdays: Set(orderedWeekdays.filter { trainedThisWeek($0) != nil }),
                             dayLetter: weekdayLetter)
                 .environmentObject(repo)
+        }
+        // Ola 2 (FER-488): la hoja «Carga de entrenamiento» que abre «Contexto · Carga» — el MISMO
+        // `TrainingLoadSheet` que Hoy, mismo patrón (`TodayView.swift`, el `.sheet(item:)` junto a
+        // `trainingLoadItem`). «Ver más en Tendencias» despacha al tab Cuerpo vía `TabRouter`.
+        .sheet(item: $trainingLoadItem) { item in
+            TrainingLoadSheet(model: item.model, onSeeTrends: item.onSeeTrends)
+                .recEntranceGate()
         }
         // FER-251: plantillas — catálogo completo (`templatesGroup == nil`) o acotado al chip tocado.
         .sheet(isPresented: $showTemplates, onDismiss: { templatesGroup = nil }) {
@@ -424,12 +459,14 @@ private struct EntrenarLanding: View {
             routineName: r.name,
             meta: sesionMetaTexto(r.id),
             exerciseNames: todaySlotsExerciseNames,
-            // Ola 1 · E5: la píldora del héroe (verde «Hoy subes» + ritmo, o ámbar «Hoy mantienes»).
+            // Ola 1 · E5 / Ola 2 (FER-488): la píldora del héroe — verde «Hoy subes» SOLO con una
+            // subida aplicada; ámbar para «Hoy mantengo» (retenida, ola 2) y «Hoy mantienes» (tope del
+            // ritmo, ola 1) por igual — ver la precedencia de una sola línea en `heroPillLine`.
             raiseLine: heroPillLine,
-            raiseTono: raisesToday.isEmpty ? .ambar : .verde,
+            raiseTono: (retainedToday.isEmpty && !raisesToday.isEmpty) ? .verde : .ambar,
             // Ola 1 · E11: en semana ligera sin subida, el slot explica la ligera (vidrio cian). En una
-            // semana ligera `heroPillLine`→`mantieneText` es nil (el ritmo no propone nada), así que no
-            // colisionan: el componente muestra la línea de ligera.
+            // semana ligera `heroPillLine` es `nil` (ola 2: la primera rama de su precedencia), así que
+            // no colisionan: el componente muestra la línea de ligera.
             lightWeekLine: raisesToday.isEmpty ? heroLightWeekLine : nil,
             onOpenRaise: { openRoutine(r.id) },
             onStart: { startToday() },
@@ -951,10 +988,14 @@ private struct EntrenarLanding: View {
         return t
     }
 
-    /// Ola 1 · E5 (Pasada 2, `ola1-pantallas.html` §②): la píldora del héroe, verde con `raiseText`
-    /// cuando algo sube hoy, o ámbar con `mantieneText` cuando nada sube pero un ejercicio se quedó
-    /// al fallo. Una sesión que sube siempre gana el espacio del héroe sobre una que mantiene.
+    /// Ola 1 · E5 (Pasada 2, `ola1-pantallas.html` §②) / Ola 2 (FER-488): la píldora del héroe —
+    /// precedencia de UNA sola línea, la primera que aplique, nunca dos familias mezcladas: semana
+    /// ligera (`nil` aquí — el componente pinta `lightWeekLine` en su lugar) > retenida (la subida
+    /// GANADA que el veredicto de hoy retiene, por ejercicio) > aplicada (`raiseText`, verde, «Hoy
+    /// subes») > mantiene (tope del ritmo, `mantieneText`, ámbar).
     private var heroPillLine: Text? {
+        guard todayServing?.isLight != true else { return nil }
+        if !retainedToday.isEmpty { return retainedText }
         if !raisesToday.isEmpty {
             guard let line2 = raiseRhythmLine else { return raiseText }
             return raiseText + Text(verbatim: "\n") + line2
@@ -991,15 +1032,28 @@ private struct EntrenarLanding: View {
             + Text("You hit the reps, but at your limit. One easier session and it counts toward the raise.")
     }
 
-    /// «Hoy mantienes: Press banca · 82,5 kg · la subida espera» — el copy literal del handoff
-    /// (copy.md «Héroe»: `Hoy mantienes: 80 kg · la subida espera`, Hoy ve leve / Recupera) para la
-    /// subida retenida. El prefijo va en tinta500 (`inkTertiary`), el peso en 600/tinta (bold, ink) —
-    /// misma jerarquía que `raiseText` — y la cláusula final en tinta500 otra vez. Nombra el ejercicio
-    /// (el ejemplo del handoff no lo hace porque solo ilustra un caso, pero con más de una subida
-    /// retenida el nombre es la única forma de no ambigüar cuál kilaje corresponde a cuál).
-    ///
-    /// Dos separadores, dos trabajos: « · » une un nombre a su peso, «, » separa ejercicios. Los días
-    /// largos se limitan a tres nombres y se resumen, para que el héroe no se vuelva un párrafo.
+    /// «Hoy mantengo: Press banca · 82,5 kg; la subida queda a un toque en la sesión.» — Ola 2
+    /// (FER-488 · decisión 2026-09-15 §2): la subida GANADA que el veredicto de hoy retiene, por
+    /// ejercicio (`retainedToday`). Nombra el ejercicio (con 2+ retenidos, «y N−1 más» — el héroe no
+    /// se vuelve una lista). Nombre y peso van en `LiquidType.tituloFilaNegrita` + `monospacedDigit`,
+    /// teñidos `LiquidTono.ambar.rotulo` — el MISMO tono que pinta esta píldora cuando la línea es la
+    /// retenida (`raiseTono` en `heroeV18`); el resto hereda el estilo corrido de la píldora
+    /// (`EntrenarHubHeroe.subPill`), igual que `mantieneText`.
+    private var retainedText: Text? {
+        guard let first = retainedToday.first else { return nil }
+        let name = Text(verbatim: first.name)
+            .font(LiquidType.tituloFilaNegrita).monospacedDigit()
+            .foregroundStyle(LiquidTono.ambar.rotulo)
+        let peso = Text(verbatim: StrengthDisplay.weight(first.weightKg, system: unitSystem))
+            .font(LiquidType.tituloFilaNegrita).monospacedDigit()
+            .foregroundStyle(LiquidTono.ambar.rotulo)
+        guard retainedToday.count > 1 else {
+            return Text("Today I keep \(name) at \(peso); the raise is one tap away in the session.")
+        }
+        let more = retainedToday.count - 1
+        return Text("Today I keep \(name) at \(peso) and \(more) more exercises at their current weights; the raises are one tap away in the session.")
+    }
+
     // MARK: - SEMANA (v18) — datos compartidos con `EntrenarHubSemana`
 
     /// Los 7 tokens de `WeekTokens`, en el orden L→D (`orderedWeekdays`): hecho = lo que de verdad se
@@ -1591,12 +1645,52 @@ private struct EntrenarLanding: View {
             healthConnected: healthConnected,
             verdictPending: repo.todayPreparedness == nil && !repo.fullyLoaded,
             hasPlan: todayRoutine != nil) {
-            EntrenarHilo(tone: hilo.tono.entrenarTone,
-                         word: LocalizedStringKey(hilo.palabra),
-                         advice: hilo.consejo.map { LocalizedStringKey($0) },
-                         hint: "Opens today's ballot") {
-                showVeredictoActa = true
+            // Ola 2 (FER-488): sin Apple Salud — y ya pasamos el primer-uso-sin-plan, que arriba
+            // suprime el hilo entero — el oráculo sigue devolviendo SU palabra/consejo (calculados
+            // sin datos de Salud, pero hablando como si los hubiera). Este call-site los sustituye por
+            // el hilo honesto que nombra la ausencia; el oráculo (`LiquidHoyBuilder.hiloEntrenar`,
+            // compartido con el widget y el reloj) NO se toca.
+            if !healthConnected {
+                EntrenarHilo(tone: .hollow,
+                             word: LocalizedStringKey("Without Apple Health,"),
+                             advice: LocalizedStringKey("progression uses only your routine and what you log."),
+                             hint: "Opens today's ballot") {
+                    showVeredictoActa = true
+                }
+            } else {
+                EntrenarHilo(tone: hilo.tono.entrenarTone,
+                             word: LocalizedStringKey(hilo.palabra),
+                             advice: hilo.consejo.map { LocalizedStringKey($0) },
+                             hint: "Opens today's ballot") {
+                    showVeredictoActa = true
+                }
             }
+        }
+    }
+
+    // MARK: - «Contexto · Carga» (Ola 2 · FER-488)
+
+    /// Predicado de tres ramas — decisión 6 del dueño (DECISIONS.md 2026-09-15 §6), precisada por la
+    /// revisión adversarial: con ACWR pinta la banda; sin ACWR pero con esfuerzo REGISTRADO en la
+    /// ventana de 28 días pinta «Calibrando»; sin ninguna de las dos, la fila NO EXISTE — no es un
+    /// estado vacío, es ausencia (`EntrenarFilaCarga.Estado` no tiene un tercer caso a propósito).
+    /// Nunca «Calibrando» sobre un orbe dormido (sin Salud y sin esfuerzo): sin esfuerzo,
+    /// `hasEffortHistory` es `false` y ninguna de las dos ramas aplica. Se oculta además en el mismo
+    /// caso que el hilo (`esPrimerUsoSinPlan && !healthConnected`, FER-376) — nunca aparece «Contexto
+    /// · Carga» cuando el hilo de arriba ya se calló por lo mismo. `loadFailed` la oculta por estar
+    /// en el mismo `if !loadFailed` que el hilo, en el body.
+    private var filaCargaEstado: EntrenarFilaCarga.Estado? {
+        guard !(esPrimerUsoSinPlan && !healthConnected) else { return nil }
+        if let band = trainingLoad?.band { return .banda(band.shortLabel) }
+        if trainingLoad?.acwr == nil && hasEffortHistory { return .calibrando }
+        return nil
+    }
+
+    /// La etiqueta VoiceOver completa de la fila, ya localizada — sustituye a los textos visibles.
+    private func filaCargaAccessibilityLabel(_ estado: EntrenarFilaCarga.Estado) -> String {
+        switch estado {
+        case .banda(let palabra): return String(localized: "Training load, \(palabra)")
+        case .calibrando: return String(localized: "Training load, calibrating")
         }
     }
 
@@ -1612,7 +1706,19 @@ private struct EntrenarLanding: View {
         // the awaits below is a cancellation point, so without this an in-flight pre-verdict load
         // would still reach the end and overwrite the post-verdict one it lost the race to (FER-82).
         let seq = repo.refreshSeq
+        // Ola 2 (FER-488) · «Contexto · Carga»: snapshot ÚNICO de `repo.days`, al inicio del pase —
+        // mismo patrón que `TodayView.recomputeDerived`.
+        let days = repo.days
         guard let store = await repo.storeHandle() else { loadFailed = true; loaded = true; return false }
+        // A partir de aquí el pase corre fuera del MainActor (ver el hop explícito a
+        // `MainActor.run` más abajo, para `PlatesStore`) — la MISMA fábrica que Hoy
+        // (`TrainingLoadModel.fromDashboard`), nunca una segunda derivación.
+        let todayKey = Repository.localDayKey(Date())
+        let trainingLoadValue = TrainingLoadModel.fromDashboard(days: days, todayKey: todayKey)
+        // FER-488 · decisión 6: «Calibrando» exige esfuerzo (fuerza) REGISTRADO en los últimos 28 días.
+        let effortCutoff = Repository.localDayKey(
+            Calendar.current.date(byAdding: .day, value: -28, to: Date()) ?? Date())
+        let hasEffortHistoryValue = days.filter { $0.day >= effortCutoff }.contains { ($0.strain ?? 0) > 0 }
         let rs = (try? await store.routines()) ?? []
         let customAll = (try? await store.customExercises()) ?? []
         let customAllByID = Dictionary(customAll.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
@@ -1641,6 +1747,8 @@ private struct EntrenarLanding: View {
         var raisingToday: [(name: String, fromKg: Double, toKg: Double,
                             rhythmNote: ProgressionPlanner.RaiseRhythmNote?)] = []
         var heldToday: [(name: String, weightKg: Double)] = []
+        // Ola 2 (FER-488): la subida retenida por ejercicio — ver el doc-comment de `retainedToday`.
+        var retained: [(name: String, weightKg: Double)] = []
         // The verdict this whole pass was built with, published together with the slots it seeded.
         var passAdvice = repo.trainingAdvice
         // Ola 1 · E10: la semana del programa se lee UNA vez por pase, igual que el veredicto.
@@ -1657,8 +1765,8 @@ private struct EntrenarLanding: View {
             let seeded = await repo.seedTodaySlots(routineId: tid, advice: advice, inventory: inventory,
                                                    serving: passServing)
             slots.append(contentsOf: seeded)
-            // FER-171 · hub v18: la subida RETENIDA (`raise.waiting`) ya no tiene pastilla propia en
-            // el héroe — el mock v18 solo muestra la subida APLICADA; ver el reporte del agente.
+            // FER-171 · hub v18: la subida APLICADA (`raise.waiting == false`) es la que sube el héroe
+            // en verde — `raise.waiting == true` es la RETENIDA (ola 2, `retained` abajo), no ésta.
             raisingToday = seeded.compactMap { slot in
                 guard let raise = slot.raise, !raise.waiting else { return nil }
                 let name = slot.exercise.map(StrengthDisplay.name) ?? slot.re.exerciseId
@@ -1672,6 +1780,13 @@ private struct EntrenarLanding: View {
                 guard case .atLimitHold(let kg)? = slot.raiseRhythmNote else { return nil }
                 let name = slot.exercise.map(StrengthDisplay.name) ?? slot.re.exerciseId
                 return (name: name, weightKg: kg)
+            }
+            // Ola 2 (FER-488): la subida GANADA que el veredicto de HOY retiene — `raise.waiting ==
+            // true`. El peso es el SEMBRADO (`fromKg`, el de la última vez), no el que espera (`toKg`).
+            retained = seeded.compactMap { slot in
+                guard let raise = slot.raise, raise.waiting else { return nil }
+                let name = slot.exercise.map(StrengthDisplay.name) ?? slot.re.exerciseId
+                return (name: name, weightKg: raise.fromKg)
             }
         }
         let recent = (try? await store.recentSessions(limit: 200)) ?? []
@@ -1707,6 +1822,9 @@ private struct EntrenarLanding: View {
         guard seq == repo.refreshSeq else { return false }
         raisesToday = raisingToday
         atLimitHeldToday = heldToday
+        retainedToday = retained
+        trainingLoad = trainingLoadValue
+        hasEffortHistory = hasEffortHistoryValue
         slotsAdvice = passAdvice
         todayServing = passServing
         routines = rs

@@ -12558,6 +12558,24 @@
         }
       }
     },
+    "Context · Load" : {
+      "comment" : "Ola 2 (FER-488): rótulo de la fila «Contexto · Carga», pasado a `EntrenarFilaCarga` (CenitDesign) desde Entrenar.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Context · Load"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contexto · Carga"
+          }
+        }
+      }
+    },
     "Calibrating baseline" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -30974,6 +30992,24 @@
         }
       }
     },
+    "Opens the load sheet" : {
+      "comment" : "Ola 2 (FER-488): hint VoiceOver de «Contexto · Carga», pasado a `EntrenarFilaCarga`.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens the load sheet"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abre la Hoja de carga"
+          }
+        }
+      }
+    },
     "Opens today's metrics page" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -43383,6 +43419,42 @@
         }
       }
     },
+    "Training load, %@" : {
+      "comment" : "Ola 2 (FER-488): etiqueta VoiceOver de «Contexto · Carga» con banda — %@ es la palabra ya localizada (`ReadinessEngine.LoadBand.shortLabel`).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Training load, %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carga de entrenamiento, %@"
+          }
+        }
+      }
+    },
+    "Training load, calibrating" : {
+      "comment" : "Ola 2 (FER-488): etiqueta VoiceOver de «Contexto · Carga» en estado Calibrando.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Training load, calibrating"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carga de entrenamiento, calibrando"
+          }
+        }
+      }
+    },
     "Training load history" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -46648,6 +46720,42 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sin"
+          }
+        }
+      }
+    },
+    "Without Apple Health," : {
+      "comment" : "Ola 2 (FER-488): hilo del veredicto en Entrenar sin Apple Salud — call-site de `hiloDelVeredicto`, el oráculo `LiquidHoyBuilder.hiloEntrenar` no se toca.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Without Apple Health,"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin Apple Salud,"
+          }
+        }
+      }
+    },
+    "progression uses only your routine and what you log." : {
+      "comment" : "Ola 2 (FER-488): segunda mitad del hilo sin Apple Salud en Entrenar, junto con «Without Apple Health,».",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "progression uses only your routine and what you log."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "la progresión usa solo tu rutina y lo que registras."
           }
         }
       }
@@ -67678,6 +67786,42 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hoy mantienes"
+          }
+        }
+      }
+    },
+    "Today I keep %@ at %@; the raise is one tap away in the session." : {
+      "comment" : "Ola 2 (FER-488): la píldora ámbar «retenida» del héroe — la subida GANADA que el veredicto de hoy retiene, por ejercicio (`retainedText`, un solo ejercicio). %1$@ nombre, %2$@ peso.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today I keep %@ at %@; the raise is one tap away in the session."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoy mantengo %1$@ en %2$@; la subida queda a un toque en la sesión."
+          }
+        }
+      }
+    },
+    "Today I keep %@ at %@ and %lld more exercises at their current weights; the raises are one tap away in the session." : {
+      "comment" : "Ola 2 (FER-488): la misma píldora «retenida», con 2+ ejercicios — nombra el primero y resume el resto. %1$@ nombre, %2$@ peso, %3$lld = N−1.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today I keep %@ at %@ and %lld more exercises at their current weights; the raises are one tap away in the session."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoy mantengo %1$@ en %2$@ y %3$lld más; las subidas quedan a un toque en la sesión."
           }
         }
       }

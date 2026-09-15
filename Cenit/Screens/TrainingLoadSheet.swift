@@ -29,6 +29,21 @@ struct TrainingLoadModel: Sendable {
     var band: ReadinessEngine.LoadBand? { acwr.map(ReadinessEngine.loadBand(forACWR:)) }
 }
 
+extension TrainingLoadModel {
+    /// El MISMO corte que Hoy (`TodayView.computeDerived`): días con banda enmascarada → ACWR + serie.
+    /// Puro y `nonisolated`: se llama fuera del MainActor. `acwr == nil` → calibrando. Ola 2 (FER-488):
+    /// extraído para que Entrenar («Contexto · Carga», `EntrenarView`) lea el MISMO corte que Hoy, sin
+    /// una segunda derivación que algún día pudiera discrepar.
+    nonisolated static func fromDashboard(days: [DailyMetric], todayKey: String) -> TrainingLoadModel {
+        let acwrMasked = SourceLens.clearBandColumns(days)
+        let acwrReadiness = ReadinessEngine.evaluate(days: acwrMasked, today: todayKey)
+        return TrainingLoadModel(
+            acwr: acwrReadiness.acwr,
+            series: ReadinessEngine.acwrSeries(days: acwrMasked).map { (day: $0.day, value: $0.ratio) },
+            days: acwrMasked)
+    }
+}
+
 /// Wrapper Identifiable para montar la hoja en `.sheet(item:)` (el modelo no es Identifiable).
 struct TrainingLoadItem: Identifiable {
     let id = UUID()
