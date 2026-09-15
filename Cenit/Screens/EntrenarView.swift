@@ -252,9 +252,11 @@ private struct EntrenarLanding: View {
                         EntrenarFilaCarga(estado: filaCargaEstado, rotulo: "Context · Load",
                                           accessibilityLabel: filaCargaAccessibilityLabel(filaCargaEstado),
                                           hint: "Opens the load sheet") {
-                            trainingLoadItem = TrainingLoadItem(
-                                model: trainingLoad ?? TrainingLoadModel(acwr: nil, series: []),
-                                onSeeTrends: { tabRouter.select(.body) })
+                            // La fila solo existe con un modelo ya publicado (`filaCargaEstado`); el
+                            // guard evita abrir una hoja fabricada vacía si alguna vez se desincronizan.
+                            guard let model = trainingLoad else { return }
+                            trainingLoadItem = TrainingLoadItem(model: model,
+                                                                onSeeTrends: { tabRouter.select(.body) })
                         }
                         .padding(.top, LiquidSpace.s100)
                     }
@@ -1710,15 +1712,19 @@ private struct EntrenarLanding: View {
         // mismo patrón que `TodayView.recomputeDerived`.
         let days = repo.days
         guard let store = await repo.storeHandle() else { loadFailed = true; loaded = true; return false }
-        // A partir de aquí el pase corre fuera del MainActor (ver el hop explícito a
-        // `MainActor.run` más abajo, para `PlatesStore`) — la MISMA fábrica que Hoy
-        // (`TrainingLoadModel.fromDashboard`), nunca una segunda derivación.
+        // La MISMA fábrica que Hoy (`TrainingLoadModel.fromDashboard`), nunca una segunda derivación —
+        // y el MISMO hop: `load()` corre en el MainActor (es un método de `View`), así que el corte del
+        // ACWR sobre 28 días se calcula en un `Task.detached`, igual que `TodayView.recomputeDerived`
+        // (FER-982). Solo entran valores ya snapshoteados (`days` y las claves de día); el guard de
+        // `seq` al final descarta el resultado si un refresh más nuevo ganó mientras tanto.
         let todayKey = Repository.localDayKey(Date())
-        let trainingLoadValue = TrainingLoadModel.fromDashboard(days: days, todayKey: todayKey)
         // FER-488 · decisión 6: «Calibrando» exige esfuerzo (fuerza) REGISTRADO en los últimos 28 días.
         let effortCutoff = Repository.localDayKey(
             Calendar.current.date(byAdding: .day, value: -28, to: Date()) ?? Date())
-        let hasEffortHistoryValue = days.filter { $0.day >= effortCutoff }.contains { ($0.strain ?? 0) > 0 }
+        let (trainingLoadValue, hasEffortHistoryValue) = await Task.detached(priority: .userInitiated) {
+            (TrainingLoadModel.fromDashboard(days: days, todayKey: todayKey),
+             days.filter { $0.day >= effortCutoff }.contains { ($0.strain ?? 0) > 0 })
+        }.value
         let rs = (try? await store.routines()) ?? []
         let customAll = (try? await store.customExercises()) ?? []
         let customAllByID = Dictionary(customAll.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
@@ -1783,10 +1789,15 @@ private struct EntrenarLanding: View {
             }
             // Ola 2 (FER-488): la subida GANADA que el veredicto de HOY retiene — `raise.waiting ==
             // true`. El peso es el SEMBRADO (`fromKg`, el de la última vez), no el que espera (`toKg`).
-            retained = seeded.compactMap { slot in
-                guard let raise = slot.raise, raise.waiting else { return nil }
-                let name = slot.exercise.map(StrengthDisplay.name) ?? slot.re.exerciseId
-                return (name: name, weightKg: raise.fromKg)
+            // Revisión adversarial (ola 2): el planner también aplaza con `.pending` (todavía sin
+            // veredicto), y ahí el héroe NO puede decir «hoy mantengo…» — sería explicar una retenida
+            // sin la palabra que la retiene. La misma regla que la sesión: `explainsHeldRaise`.
+            if TrainingRegulation.explainsHeldRaise(advice) {
+                retained = seeded.compactMap { slot in
+                    guard let raise = slot.raise, raise.waiting else { return nil }
+                    let name = slot.exercise.map(StrengthDisplay.name) ?? slot.re.exerciseId
+                    return (name: name, weightKg: raise.fromKg)
+                }
             }
         }
         let recent = (try? await store.recentSessions(limit: 200)) ?? []
