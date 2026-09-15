@@ -153,11 +153,15 @@ struct StressDetailScreen: View {
             range = .month
             let fullTrend = model?.fullTrend ?? []
             let todayKey = Repository.localDayKey(Date())   // main-isolated: resolve before the hop
-            let (newParsed, heat) = await Task.detached(priority: .userInitiated) {
-                Self.parseAndBuildHeat(fullTrend: fullTrend, todayKey: todayKey)
-            }.value
-            parsed = newParsed
-            stressHeatCache = heat
+            // FER-496 · Xcode 27 / Swift 6.4: sin el tipo explícito del salto, el compilador duda entre
+            // las sobrecargas de `Task.detached` (`@isolated(any)` vs. la lanzante) y lo reporta como
+            // «ambiguous use of 'init'» en el `ScrollView` de arriba. El tipo lo fija.
+            let hop: (parsed: [(day: String, date: Date?, value: Double)], heat: [RecoveryDay]) =
+                await Task.detached(priority: .userInitiated) {
+                    Self.parseAndBuildHeat(fullTrend: fullTrend, todayKey: todayKey)
+                }.value
+            parsed = hop.parsed
+            stressHeatCache = hop.heat
             if let patternsLoader { patterns = await patternsLoader() }
             if let eventPatternsLoader { eventPatterns = await eventPatternsLoader() }
         }
