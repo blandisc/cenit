@@ -553,6 +553,11 @@ public let catalogEntries: [CatalogEntry] = [
                  archivo: "Entrenar/EntrenarStepper.swift",
                  cuandoUsarlo: "Control − valor + de hoja-herramienta (incremento, reloj de descanso) — tallas `.fila`/`.hoja`.",
                  cuandoNo: "No reinventar −/+ a mano; el caller formatea el valor."),
+    // —— FER-488 · ola 1a: la fila «Contexto · Carga» bajo el hilo (decisión 2026-09-15 §2/§6) ——
+    CatalogEntry(rol: "Fila secundaria de contexto (Entrenar)", simbolo: "EntrenarFilaCarga",
+                 archivo: "Entrenar/EntrenarFilaCarga.swift",
+                 cuandoUsarlo: "La fila compacta y NEUTRA bajo el hilo del veredicto en la portada de Entrenar: punto `verdeCarga` (solo con banda) + rótulo en versalitas («CONTEXTO · CARGA», `LiquidType.regla`) + la palabra de banda en tinta, o «Calibrando»; «›» solo con acción y abre la Hoja de carga. Papel pelón: sin vidrio, sin borde, sin pastilla (FER-488; decisión 2026-09-15 §2/§6).",
+                 cuandoNo: "Nunca para el veredicto (eso es `EntrenarHilo`); nunca con un número, ratio o escala (por eso `TrainingLoadStrip` no sirve aquí); nunca con el color de bandera (`Flag.color()`, `verdePrimario`, `atencion`, `negativo`): la carga no vota. No montarla sin carga calculable ni esfuerzo registrado — se oculta; nunca «Calibrando» sobre orbe dormido."),
     CatalogEntry(rol: "Toggle Liquid", simbolo: "LiquidToggleStyle / .liquid",
                  archivo: "LiquidGlass/LiquidToggleStyle.swift",
                  cuandoUsarlo: "Switch cromo El Eje (tinta900/tinta10/papelTarjeta) en hojas Liquid — `.toggleStyle(.liquid)`.",
