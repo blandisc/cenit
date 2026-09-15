@@ -514,3 +514,55 @@ se declararon done y el barrido forense final descubrió que las instalaciones n
 escribiendo la marca en los deviceId de partición; eso motivó la palanca B (migración v44 +
 flip de constantes, FER-479). Esta regla la hubiera atrapado antes. Complementa —no reemplaza— el
 cierre de sala limpia por autoría (`git blame -w -M -C -C -C = 0 líneas de prosa`).
+
+## 2026-09-14 · Camino B tras el Readiness de Apple — seis decisiones (dueño)
+
+Contexto verificado (iOS 27 y watchOS 27 salieron el 14-sep-2026; análisis completo en el artefacto
+«Cénit tras el Readiness de Apple», https://claude.ai/artifact/LcUQHS8QqxAMxnukZA1xa1): Apple lanzó
+un puntaje Readiness 0–10 **solo en Series 12 y Ultra 4**, que **no se expone a terceros** vía
+HealthKit y que describe sin prescribir; anunció Health Age y la app Salud rediseñada (Insights,
+Longevity, evaluaciones de movimiento, laboratorios) «más adelante este año», solo en inglés de
+EE. UU.; **no** lanzó registro nativo de series/reps (el código beta trae estructuras *stubbed*, sin
+API) ni el coach «Health+». Foundation Models 27 corre en el iPhone (modelo de 3B; el de 20B solo en
+17 Pro / 18 Pro / Duo; contexto de 4K–8K; en el Watch solo vía nube) y ya lo usan Athlytic («Ask
+Athlytic»), Gymaholic y SmartGym: **es un igualador, no un foso**. Ninguna de 12 apps de fuerza
+ajusta series por sueño o variabilidad. Con eso, el dueño eligió el **camino B — recentrar en
+Entrenar con la preparación como cerebro** (descartados A «seguir igual» y C «solo fuerza, apagar
+preparación») y cerró seis decisiones:
+
+1. **Entrenar es la portada; el pitch es «te dice cuánto cargar hoy y por qué».** La preparación
+   deja de ser destino y pasa a cerebro: se sigue calculando (Apple no presta su puntaje) y se
+   muestra como franja y «porqué» dentro de la sesión. Cambio de pestaña por defecto y copy; carril
+   ligero. Por qué: la acción diaria gana el hábito y es donde Apple no está.
+2. **Edad física, longevidad y correlaciones libres salen de la v1.** Health Age con laboratorios
+   las deja atrás, y la revisión adversarial del 2026-09-06 ya las marcaba como lo más frágil del
+   tier de pago. El Guardián («señales de carga inusual») se queda como función callada, nunca como
+   argumento de venta (Vitals de Apple ya avisa con 2+ métricas fuera de rango). Se conservan en
+   git, no en la ficha.
+3. **El veredicto propone la sesión, no solo difiere la subida.** Series, peso semilla y descanso
+   sugeridos, con «subir de todos modos» a un toque; **FER-85 «la app aconseja, no bloquea» sigue
+   intacta**, y la carga vota en el veredicto (FER-336). Hoy el único efecto real del veredicto es
+   `deferRaise` en `ProgressionPlanner` vía `TrainingRegulation`. Carril pesado con gate `/cso` y
+   `/biomecanico`.
+4. **La IA local entra solo tras un spike desechable de una semana, después de la tienda, y nunca
+   como chatbot abierto.** Tres momentos concretos si el spike convence: crear rutina por texto o
+   foto (salida tipada), el acta de la sesión en palabras, y buscar/sustituir ejercicio en español.
+   **Regla de oro: el modelo es capa de LENGUAJE, nunca de MATEMÁTICA.** Los motores de
+   `CenitAnalytics`/`CenitTraining` siguen calculando con método citado y prueba; el modelo solo lee
+   esos números vía tool calling y los pone en palabras; nunca inventa una cifra ni diagnostica.
+   Todo aditivo: sin modelo, la app sigue completa. Sin adapters (no hay toolkit para la
+   generación 3), sin depender del modelo de 20B, nada en el Watch.
+5. **Se compra un Apple Watch Series 12 para el spike de datos densos.** Si la frecuencia cardiaca
+   cada 5 s y el nuevo tipo `heartRateVariabilityRMSSD` llegan a HealthKit, se activa la capa densa
+   que el motor ya sabe usar (RMSSD nocturno solo cuando es denso, decisión del 2026-07-24) sin
+   tocar el motor.
+6. **La publicación en la App Store no se frena por el giro.** Nada nuevo antes de enviar salvo
+   portada, franja de veredicto y copy; el resto es v1.x. Por qué: cuatro sesiones de estrategia en
+   seis semanas; cada mes fuera de la tienda regala usuarios a Bevel y Athlytic.
+
+Secuencia acordada tras la tienda: retiros (2) → pulir Entrenar + Watch como logger → cerrar el
+círculo (3) → spike Series 12 (5) → spike IA local (4) → App Intents/entidades para Siri (sin puerta
+de hardware; español en octubre) → IA local v1.x. Señales que reabren esta entrada: Apple activa la
+API de series/reps; Readiness llega a terceros o a Series ≤ 11; Health Age en español/México; Siri
+AI lee Salud; toolkit de adapters para la generación 3; Hevy/Strong/Bevel ajustan por sueño o
+variabilidad.
