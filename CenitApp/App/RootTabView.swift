@@ -45,14 +45,14 @@ struct RootTabView: View {
     /// AppModel so navigation never kills it — dismissing the cover only minimizes it (the pill re-opens).
     @Environment(AppModel.self) private var appModel
 
-    /// The visible tab. Starts on Today, the launch screen.
-    @State private var selection: Tab = .today
-    /// Tabs whose content has been shown at least once. Only Today is built at launch; the one heavy
+    /// The visible tab. Starts on Train (Entrenar), the launch screen (FER-488).
+    @State private var selection: Tab = .train
+    /// Tabs whose content has been shown at least once. Only Train is built at launch (FER-488); the one heavy
     /// lazy tab — Cuerpo (`CuerpoView` runs its own `.task` data load on appear) — is deferred until
     /// first selected, then kept in the set so switching back doesn't rebuild from scratch. The hub
     /// tabs (Entrenar/Ajustes) are plain lists whose destinations build on `NavigationLink` tap,
     /// so they stay eager (cheap). Avoids widening the launch gap — FER-31.
-    @State private var visited: Set<Tab> = [.today]
+    @State private var visited: Set<Tab> = [.train]
     /// One type-erased path per hub. `NavigationPath` (not a homogeneous `[SecondaryScreen]`) because
     /// the Ajustes stack carries Explore, which pushes `MetricDescriptor` values onto it — a typed
     /// path crossing a second value type crashed SwiftUI (FER-171).

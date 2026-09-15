@@ -57087,13 +57087,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "I read it every morning and tell you, in one word, how you woke up. And when you train, I carry your routine and add weight the day it's due."
+            "value" : "I load your routine with last time's weight and, when your pace earns it, I propose a raise. If your body woke up out of range, I keep the weight and the raise is one tap away."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Yo lo leo cada mañana y te digo, en una palabra, cómo amaneciste. Y cuando entrenas, te llevo la rutina y te subo el peso el día que te toca."
+            "value" : "Cargo tu rutina con el peso de la última vez y, cuando tu ritmo lo gana, te propongo subir. Si tu cuerpo amaneció fuera de rango, dejo el peso y la subida queda a un toque."
           }
         }
       }
@@ -57121,13 +57121,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your body has been keeping the record. Nobody has read it."
+            "value" : "I tell you how much weight to load today. And why."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tu cuerpo ya lleva el registro. Nadie lo ha leído."
+            "value" : "Te digo cuánto peso cargar hoy. Y por qué."
           }
         }
       }
@@ -75878,13 +75878,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "With 3 sessions in 7 days I tell you your dose; you have %lld."
+            "value" : "With 3 sessions in 7 days I tell you your sets per muscle; you have %lld."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Con 3 sesiones en 7 días te digo tu dosis; llevas %lld."
+            "value" : "Con 3 sesiones en 7 días te digo las series por músculo; llevas %lld."
           }
         }
       }
