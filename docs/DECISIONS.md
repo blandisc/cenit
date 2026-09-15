@@ -566,3 +566,69 @@ de hardware; español en octubre) → IA local v1.x. Señales que reabren esta e
 API de series/reps; Readiness llega a terceros o a Series ≤ 11; Health Age en español/México; Siri
 AI lee Salud; toolkit de adapters para la generación 3; Hevy/Strong/Bevel ajustan por sueño o
 variabilidad.
+
+## 2026-09-15 · «Cénit replanteada»: tres cuartos, portada honesta y camino en olas (dueño + revisión adversarial)
+
+Tras aprobar el camino B, el dueño pidió «un replanteamiento a fondo de la aplicación, no solo mover
+pantallas». Se exploraron tres conceptos en paralelo (cerebro de producto, dos variantes de UX, el
+espejo del criterio del dueño) y la propuesta se revisó adversarialmente en tres rondas con Grok 4.6 y
+GPT-5.6 Sol contra el código real (artefacto: https://claude.ai/artifact/8RtA1SDdChhp4y2A4LNuNX). El dueño
+aprobó las seis decisiones tal como se recomendaron; la revisión dejó precisiones que también quedan aquí.
+
+1. **Tres cuartos: Entrenar · Cuerpo · Ajustes.** Hoy y Tendencias se funden en Cuerpo con dos modos
+   «Ahora | Tiempo» (selector fijo, un solo árbol cargado a la vez, scroll independiente), moviendo los
+   constructores tal cual, sin reescribir. Estrena con la fusión (ola 1), nunca antes de la tienda.
+   Revierte el supuesto «cuatro pestañas» de FER-428 D7 (2026-09-06). Regla dura: un solo oráculo
+   (`LiquidHoyBuilder.hiloEntrenar`); la palabra grande solo en Entrenar; Cuerpo la muestra en compacto
+   con el Acta a un toque. Nunca dos palabras distintas el mismo día.
+2. **Publicar con la ola 0 y fundir después.** *Ola 0a (antes de enviar, carril ligero):* Entrenar abre
+   la app y el onboarding aterriza ahí; dock de cuatro con los nombres de hoy (Tendencias NO se renombra
+   hasta la fusión); el héroe nombra la subida retenida POR EJERCICIO con la lógica que ya existe
+   (`deferRaise`): «Hoy mantengo {ejercicio} en {peso}; la subida queda a un toque en la sesión.» («y N
+   más» si hay varias), con precedencia de una sola línea: semana ligera > retenida > aplicada > «Hoy
+   mantienes» (tope del ritmo), nunca mezcladas; fila «Contexto · Carga» debajo del hilo (pieza compacta y
+   neutra nueva del sistema, sin ratio, sin escala, sin color de bandera; tres ramas: ACWR → palabra de
+   banda; sin ACWR pero con esfuerzo registrado en la ventana → «Calibrando»; nada → oculta); acto 1
+   nuevo; la línea vacía de «Series por músculo» deja de decir «dosis». Sin botones nuevos en la portada:
+   la subida se toma por ejercicio dentro de la sesión, como hoy. *Ola 0b (justo después de enviar, PR
+   aparte):* retiros inaccesibles y sin cómputo en producción, con matriz de alcanzabilidad. *Ola 1:* la
+   fusión (diseño técnico antes; un dueño por archivo caliente). *Ola 2:* plan de sesión tipado por
+   ejercicio (series, peso semilla, descanso) calculado UNA vez por un solo dueño y leído igual por
+   iPhone, Watch, widget y Live Activity; «opcional hoy» como familia distinta de la semana ligera (el
+   veredicto no toca la rutina, FER-85); «descansos más largos» solo con cita y gate, o no entra; gates
+   `/cso` y `/biomecanico`; FER-336 en el mismo lote. *Ola 3:* onboarding de cinco actos, spikes Series 12
+   e IA local, App Intents, complicación.
+3. **Onboarding:** seis actos con promesa nueva ahora; cinco actos en v1.x con «tu sesión» DESPUÉS del
+   permiso (el permiso sigue siendo el único gate; FER-251 intacta), el Acta como pantalla y el Ciclo
+   adaptado sin reloj intactos (D1/D3 del 2026-09-06). El cierre «Entrenar hace · Cuerpo entiende» solo
+   con la fusión; mientras Hoy exista, «Hoy dice · Entrenar hace» sigue siendo verdad.
+4. **El ritual «toca para separar» del orbe se retira con la fusión.** Un ritual pertenece a la primera
+   pantalla, y esa ya es Entrenar.
+5. **Correlaciones libres (precisión de la revisión):** fuera Comparar, «tras cada deporte» Y el barrido
+   «Qué correlaciona» del Explorador (`MetricExplorerView`, Pearson cruzado); se quedan el catálogo de
+   métricas con sus historiales y «Tu patrón» (gate BH, FER-438).
+6. **Fila de carga sin reloj (precisión de la revisión):** se oculta solo cuando no hay carga calculable
+   ni esfuerzo registrado; la carga de fuerza existe sin reloj y se conserva. Nunca «Calibrando» sobre
+   orbe dormido.
+
+- **Copy que sobrevivió la revisión (es-MX; el inglés va como `defaultValue:`):** acto 1 titular «Te digo
+  cuánto peso cargar hoy. Y por qué.»; cuerpo «Cargo tu rutina con el peso de la última vez y, cuando tu
+  ritmo lo gana, te propongo subir. Si tu cuerpo amaneció fuera de rango, dejo el peso y la subida queda a
+  un toque.»; hilo sin Salud «Sin Apple Salud, la progresión usa solo tu rutina y lo que registras.»;
+  fila «Contexto · Carga · {banda} ›» / «Contexto · Carga · Calibrando». «Dosificar» queda fuera del copy
+  de usuario (suena a fármaco junto a Salud, 1.4.1); «dosis» solo como nombre interno.
+- **Revisión adversarial (registro):** R1 Grok «GO con cambios» / GPT «NO-GO» → R2 sobre la v2: Grok «GO con
+  cambios menores» / GPT «NO-GO» por cuatro puntos, todos cedidos → R3: Grok GO; GPT GO en todo salvo el acto
+  1 (la subida no es automática si el ritmo está en «Constante»), resuelto condicionando la promesa al
+  ritmo. Concesiones: la «dosis en palabras» de la ola 0 mentía sobre series y descansos; «Subir igual» y
+  «Hacer el plan completo» eran botones fantasma; el chip junto a la palabra sugería que la carga vota y la
+  franja actual pinta ratio y `verdePrimario`; renombrar Tendencias antes de fundir creaba un cuarto
+  fantasma; «cuando cumples, subo» mentía (progresión apagable); el Explorador sí correlaciona; Cuerpo
+  en un solo scroll sería pared; los retiros van después de enviar. Defensas que quedaron: el pitch
+  «cuánto peso cargar hoy», la fila de carga en la portada, el default a Entrenar como ola 0, tres cuartos
+  como meta, «Tu patrón» y el catálogo.
+- **Fuera de la propuesta, bloqueante para la tienda (lo señaló GPT):** el respaldo de la base de salud en
+  iCloud (`DataBackup.swift`, conservado por decisión del 2026-09-03) roza 5.1.3(ii): revalidar o acotar a
+  datos de fuerza y corregir «solo en tu dispositivo» en `Terms.swift`; y las descripciones de uso de
+  HealthKit deben enumerar todo lo que se pide (`InfoPlist.xcstrings` vs `HealthKitBridge.swift`) o recortar
+  scopes (5.1.3(i)). Van a la lista de antes de enviar.
