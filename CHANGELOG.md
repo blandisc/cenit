@@ -20,6 +20,12 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
 
 ## Unreleased
 
+- **Entrenar te dice qué peso mantienes hoy y muestra tu carga bajo el veredicto / Train tells you which weight you keep today and shows your load under the verdict**
+  ### ES
+  Cuando tu cuerpo amaneció fuera de rango, el héroe de Entrenar nombra el ejercicio cuya subida se queda esperando y con qué peso entras; la subida sigue a un toque dentro de la sesión. Debajo del veredicto aparece «Contexto · Carga» con la palabra de tu carga del cuerpo entero y abre la misma hoja que Hoy. Sin Apple Salud, Entrenar lo dice claro: la progresión usa solo tu rutina y lo que registras. (`EntrenarView.swift`, `TrainingLoadSheet.swift`)
+  ### EN
+  When your body woke up out of range, Train's hero names the exercise whose raise is waiting and the weight you start with; the raise stays one tap away inside the session. Below the verdict, "Context · Load" shows the word for your whole-body load and opens the same sheet as Today. Without Apple Health, Train says so plainly: progression uses only your routine and what you log. (`EntrenarView.swift`, `TrainingLoadSheet.swift`)
+
 - **La app abre en Entrenar y la promesa del onboarding habla de cuánto peso cargar hoy / The app opens on Train and the onboarding promise is about how much weight to load today**
   ### ES
   Al abrir Cénit ahora aterrizas en Entrenar. El primer acto del onboarding promete lo que la app hace: cargar tu rutina con el peso de la última vez, proponer subir cuando tu ritmo lo gana y dejar el peso si amaneciste fuera de rango. La tesela «Series por músculo» ya no habla de «dosis». (`RootTabView.swift`, `OnboardingPiezas.swift`, `EntrenarView.swift`)

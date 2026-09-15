@@ -309,12 +309,8 @@ struct TodayView: View {
         // Carga de entrenamiento (FER-705): el ACWR + serie desde el dashboard BAND-masked — el mismo corte
         // que la tarjeta de Tendencias y el detalle de recuperación (FER-632), para que la franja, la
         // tarjeta y el veredicto nunca discrepen. `acwr == nil` → la franja muestra «calibrando» sin punto.
-        let acwrMasked = SourceLens.clearBandColumns(days)
-        let acwrReadiness = ReadinessEngine.evaluate(days: acwrMasked, today: todayKey)
-        let trainingLoad = TrainingLoadModel(
-            acwr: acwrReadiness.acwr,
-            series: ReadinessEngine.acwrSeries(days: acwrMasked).map { (day: $0.day, value: $0.ratio) },
-            days: acwrMasked)
+        // Ola 2 (FER-488): fábrica compartida con Entrenar («Contexto · Carga») — mismo corte, un solo sitio.
+        let trainingLoad = TrainingLoadModel.fromDashboard(days: days, todayKey: todayKey)
         return DerivedState(baselineDays: baselineDays,
                             trainingLoad: trainingLoad)
     }
