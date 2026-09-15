@@ -20,6 +20,12 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
 
 ## Unreleased
 
+- **La app abre en Entrenar y la promesa del onboarding habla de cuánto peso cargar hoy / The app opens on Train and the onboarding promise is about how much weight to load today**
+  ### ES
+  Al abrir Cénit ahora aterrizas en Entrenar. El primer acto del onboarding promete lo que la app hace: cargar tu rutina con el peso de la última vez, proponer subir cuando tu ritmo lo gana y dejar el peso si amaneciste fuera de rango. La tesela «Series por músculo» ya no habla de «dosis». (`RootTabView.swift`, `OnboardingPiezas.swift`, `EntrenarView.swift`)
+  ### EN
+  Opening Cénit now lands you on Train. The onboarding's first act promises what the app does: load your routine with last time's weight, propose a raise when your pace earns it, and keep the weight if you woke up out of range. The "Sets per muscle" tile no longer mentions a "dose". (`RootTabView.swift`, `OnboardingPiezas.swift`, `EntrenarView.swift`)
+
 ### La ayuda «Cómo funciona Cénit» pasa de pared de texto a índice con buscador / "How Cénit works" help goes from a wall of text to an index with search (FER-486)
 
 La pantalla de ayuda ya no apila las cinco secciones y sus decenas de funciones de corrido. Abre en un índice de cinco tarjetas —una por pestaña, con su glifo y su color— más un buscador que encuentra cualquier función de un jalón; tocas una sección y entras solo a la suya. De paso, unifica el margen superior de las pestañas con título.

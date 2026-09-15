@@ -496,7 +496,7 @@ private struct EntrenarLanding: View {
         if dosisRows.isEmpty {
             // FER-433 · DOSIS calla con <3 sesiones en 7 días; en vez de silencio, la cuenta.
             LiquidNotaLine(String(localized: "vacio.mosaico.dosis.linea",
-                                  defaultValue: "With 3 sessions in 7 days I tell you your dose; you have \(sessionsIn7Days)."))
+                                  defaultValue: "With 3 sessions in 7 days I tell you your sets per muscle; you have \(sessionsIn7Days)."))
                 .padding(.top, LiquidSpace.s100)
         }
         EntrenarHubPar(raises: parRaises, restReal: nil,
