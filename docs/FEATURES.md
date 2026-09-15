@@ -110,7 +110,7 @@ longevity.
   recorded strain. _(Trends, second module; the whole card is tappable.)_
 - **Your vitals** — HRV, resting HR, oxygen, heart rate, respiration and skin temperature, each with
   its detail. _(Trends, the six-tile module.)_ · Needs Apple Watch
-- **Explore every signal** — The full catalog, and what correlates with each one. _(Trends, at the
+- **Explore every signal** — The full catalog, each signal with its history. _(Trends, at the
   bottom.)_
 - **Agreement between sources** — When two sources report the same day you see both values; they're
   never averaged. _(Under the metric, one line.)_

@@ -1,4 +1,4 @@
-// Los 68 ids estables del registro (épico FER-428, L4/FER-430). Un id nunca se
+// Los 65 ids estables del registro (épico FER-428, L4/FER-430). Un id nunca se
 // renombra: también es el `id` de su `Tip` (TipKit lo pide así). Archivo generado por
 // `Tools/gen-ensenanza.py` a partir de `Tools/ensenanza-semilla.json` — no editar a mano
 // sin regenerar. SOLO este enum vive aquí: es el archivo que

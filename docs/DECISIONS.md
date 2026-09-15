@@ -567,6 +567,22 @@ API de series/reps; Readiness llega a terceros o a Series ≤ 11; Health Age en 
 AI lee Salud; toolkit de adapters para la generación 3; Hevy/Strong/Bevel ajustan por sueño o
 variabilidad.
 
+## 2026-09-15 · Ola 0b antes de enviar a la tienda (dueño)
+
+La entrada «Cénit replanteada» (2026-09-15, punto 2) fijó la ola 0b (retiros inaccesibles y sin cómputo:
+Longevidad, Edad física, Edad corporal, Comparar, «tras cada deporte» y «Qué correlaciona») como el primer
+lote DESPUÉS de enviar a revisión, para no retrasar el envío. Al cerrar la ola 0a (FER-488, #1603) el envío
+no lo detiene el código sino el papel (cuenta de desarrollador e identidad, privacidad y soporte, bundle id
+nuevo: FER-15), y esas superficies son las de mayor riesgo en revisión (1.4.1: claims sobre edad y
+longevidad). El dueño decidió **correr la ola 0b ahora, antes de enviar**, en PR aparte (FER-489). El resto
+de la secuencia no cambia: la ola 1 (fusión) va después de la tienda.
+
+- Precisión: la columna VO₂máx del aterrizaje de Cuerpo se retira junto con la tarjeta «Longevidad»; VO₂máx
+  sigue en el catálogo de métricas (Explorador) y no cambia ningún tipo de HealthKit solicitado.
+- Las pantallas retiradas se quedan en el árbol sin puerta (decisión de FER-489: no borrar código); su
+  registro de enseñanza, sus tips y sus nodos del mapa vivo sí se retiran, porque enseñar lo inaccesible
+  sería mentir.
+
 ## 2026-09-15 · «Cénit replanteada»: tres cuartos, portada honesta y camino en olas (dueño + revisión adversarial)
 
 Tras aprobar el camino B, el dueño pidió «un replanteamiento a fondo de la aplicación, no solo mover

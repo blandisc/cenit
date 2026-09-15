@@ -20,21 +20,14 @@ import CenitStore
 //
 // THE MIGRATION IS SKIN, NOT THREAD (FER-104): the data path is conserved verbatim from the paper
 // screen — the shared `MetricSeriesResolver` for every series (TND-29), the memoized window math
-// (FER-269), and the OFF-MAIN cross-catalog Pearson scan with reattach-by-id (FER-976). What
+// (FER-269). What
 // changed is every surface, plus the three invariants TND-29 exists to fix:
 //   • COLOR IS IDENTITY, per metric — `MetricIdentity.hue(for:)`, never the rival `metricAccent`
-//     map (deleted here). Each dot/field/chart/correlate wears its family's hue on every screen.
+//     map (deleted here). Each dot/field/chart wears its family's hue on every screen.
 //   • NAME IS CANONICAL — `canonicalTitle` says «Effort», never «Day Strain» (HJ-13).
-//   • A negative correlation is NOT an alarm (TND30-4): the sign rides the leading «−» and the
-//     side of the zero axis, never a red/green colour. The r bar wears the correlate's IDENTITY
-//     hue; the value stays neutral ink.
 //
-// CORRELATION ROW — the bar is composed IN-LINE, not coined as a DS piece (DS rule §7: a single
-// call-site composition stays atoms in the screen, the same choice Compare made for its pairCard).
-// Neither declared option fit: `LiquidBarrasContribucion` carries a Body-Age good/bad colour
-// convention (green for negative, amber for positive) that directly contradicts TND30-4, and
-// coining `LiquidFilaCorrelacion` for one call site violates DS §7. So the zero-axis r bar is a
-// handful of shapes here, honest for r∈[−1,1] (magnitude = |r|, side = sign, hue = identity).
+// «Qué correlaciona» (the cross-catalog Pearson sweep and its in-line r bar) was RETIRED in FER-489
+// (ola 0b, DECISIONS 2026-09-15 punto 5): the dossier is hero + history + method, nothing else.
 
 /// «9 jun 2026» — la fecha larga de la cláusula del héroe, en el idioma del usuario. Los días vienen
 /// con clave UTC, así que la zona se clava ahí y el rótulo no se corre de día.
