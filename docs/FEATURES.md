@@ -110,14 +110,8 @@ longevity.
   recorded strain. _(Trends, second module; the whole card is tappable.)_
 - **Your vitals** — HRV, resting HR, oxygen, heart rate, respiration and skin temperature, each with
   its detail. _(Trends, the six-tile module.)_ · Needs Apple Watch
-- **Compare signals** — Overlay two to four signals and see whether they move together. Association,
-  not cause. _(Trends, at the bottom.)_
 - **Explore every signal** — The full catalog, and what correlates with each one. _(Trends, at the
   bottom.)_
-- **How you wake up after each sport** — How much each type of workout costs you to recover from.
-  _(Trends → Activity, under the hairline.)_ · Needs Apple Watch
-- **Longevity: fitness age, body age and VO₂ max** — Estimates, not diagnoses, with what moves them
-  and when there are no signals yet. _(Trends, the longevity module.)_ · Needs Apple Watch
 - **Agreement between sources** — When two sources report the same day you see both values; they're
   never averaged. _(Under the metric, one line.)_
 <!-- GENERATED:ensenanza:tendencias END -->

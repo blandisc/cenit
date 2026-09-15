@@ -2,7 +2,7 @@
   "familia": "tendencias",
   "titulo": "Tendencias · Cuerpo",
   "unidad": "estados",
-  "blurb": "Landing de Cuerpo + detalle de cada una de las 36 métricas de MetricCatalog en su rango por defecto (M) × 1 estados (con datos / sin lecturas / calibrando). Versión ligera: sin repetir por rango (regenerar con --full para los 6 rangos). Más Comparar/Explorar/ActivityRecovery/Fitness Age/Body Age. Ciclo omitido (vive en la familia Ajustes).",
+  "blurb": "Landing de Cuerpo + detalle de cada una de las 36 métricas de MetricCatalog en su rango por defecto (M) × 1 estados (con datos / sin lecturas / calibrando). Versión ligera: sin repetir por rango (regenerar con --full para los 6 rangos). Más Explorar. Ciclo omitido (vive en la familia Ajustes).",
   "nodos": [
     {
       "id": "cuerpo-m",
@@ -781,44 +781,6 @@
       "fixture": "tendencias_full"
     },
     {
-      "id": "comparar-full",
-      "titulo": "Comparar dos métricas superpuestas · full",
-      "condicion": "Comparar dos métricas superpuestas, estado con datos.",
-      "args": [
-        "-cenit.route",
-        "tendencias/comparar"
-      ],
-      "pasos": [
-        {
-          "wait": 2
-        }
-      ],
-      "frames": 1,
-      "png": "tendencias-comparar-full.png",
-      "x": 3200,
-      "y": 0,
-      "fixture": "tendencias_full"
-    },
-    {
-      "id": "comparar-vacio",
-      "titulo": "Comparar dos métricas superpuestas · vacio",
-      "condicion": "Comparar dos métricas superpuestas, estado vacío (sin fixture, freshStore).",
-      "args": [
-        "-cenit.route",
-        "tendencias/comparar"
-      ],
-      "pasos": [
-        {
-          "wait": 2
-        }
-      ],
-      "frames": 1,
-      "png": "tendencias-comparar-vacio.png",
-      "x": 3200,
-      "y": 260,
-      "omitido": "el estado vacío capturó idéntico al de con datos (pantalla poblada por defecto) — afinar backlog"
-    },
-    {
       "id": "explorar-full",
       "titulo": "Explorar · catálogo de métricas (la lista, sin drill-down) · full",
       "condicion": "Explorar · catálogo de métricas (la lista, sin drill-down), estado con datos.",
@@ -833,7 +795,7 @@
       ],
       "frames": 1,
       "png": "tendencias-explorar-full.png",
-      "x": 3580,
+      "x": 3200,
       "y": 0,
       "fixture": "tendencias_full"
     },
@@ -852,128 +814,16 @@
       ],
       "frames": 1,
       "png": "tendencias-explorar-vacio.png",
-      "x": 3580,
+      "x": 3200,
       "y": 260,
       "omitido": "el estado vacío capturó idéntico al de con datos (pantalla poblada por defecto) — afinar backlog"
-    },
-    {
-      "id": "actividad-full",
-      "titulo": "Cómo despiertas después de cada deporte (ActivityRecoverySheet) · full",
-      "condicion": "Cómo despiertas después de cada deporte (ActivityRecoverySheet), estado con datos.",
-      "args": [
-        "-cenit.route",
-        "tendencias/actividad"
-      ],
-      "pasos": [
-        {
-          "wait": 2
-        }
-      ],
-      "frames": 1,
-      "png": "tendencias-actividad-full.png",
-      "x": 3960,
-      "y": 0,
-      "fixture": "tendencias_full"
-    },
-    {
-      "id": "actividad-vacio",
-      "titulo": "Cómo despiertas después de cada deporte (ActivityRecoverySheet) · vacio",
-      "condicion": "Cómo despiertas después de cada deporte (ActivityRecoverySheet), estado vacío (sin fixture, freshStore).",
-      "args": [
-        "-cenit.route",
-        "tendencias/actividad"
-      ],
-      "pasos": [
-        {
-          "wait": 2
-        }
-      ],
-      "frames": 1,
-      "png": "tendencias-actividad-vacio.png",
-      "x": 3960,
-      "y": 260,
-      "omitido": "el estado vacío capturó idéntico al de con datos (pantalla poblada por defecto) — afinar backlog"
-    },
-    {
-      "id": "edad-fisica-full",
-      "titulo": "Edad física / Fitness Age · full",
-      "condicion": "Edad física / Fitness Age, estado con datos.",
-      "args": [
-        "-cenit.route",
-        "tendencias/edad-fisica"
-      ],
-      "pasos": [
-        {
-          "wait": 2
-        }
-      ],
-      "frames": 1,
-      "png": "tendencias-edad-fisica-full.png",
-      "x": 4340,
-      "y": 0,
-      "fixture": "tendencias_full"
-    },
-    {
-      "id": "edad-fisica-vacio",
-      "titulo": "Edad física / Fitness Age · vacio",
-      "condicion": "Edad física / Fitness Age, estado vacío (sin fixture, freshStore).",
-      "args": [
-        "-cenit.route",
-        "tendencias/edad-fisica"
-      ],
-      "pasos": [
-        {
-          "wait": 2
-        }
-      ],
-      "frames": 1,
-      "png": "tendencias-edad-fisica-vacio.png",
-      "x": 4340,
-      "y": 260
-    },
-    {
-      "id": "edad-corporal-full",
-      "titulo": "Edad corporal / Body Age · full",
-      "condicion": "Edad corporal / Body Age, estado con datos.",
-      "args": [
-        "-cenit.route",
-        "tendencias/edad-corporal"
-      ],
-      "pasos": [
-        {
-          "wait": 2
-        }
-      ],
-      "frames": 1,
-      "png": "tendencias-edad-corporal-full.png",
-      "x": 4720,
-      "y": 0,
-      "fixture": "tendencias_full"
-    },
-    {
-      "id": "edad-corporal-vacio",
-      "titulo": "Edad corporal / Body Age · vacio",
-      "condicion": "Edad corporal / Body Age, estado vacío (sin fixture, freshStore).",
-      "args": [
-        "-cenit.route",
-        "tendencias/edad-corporal"
-      ],
-      "pasos": [
-        {
-          "wait": 2
-        }
-      ],
-      "frames": 1,
-      "png": "tendencias-edad-corporal-vacio.png",
-      "x": 4720,
-      "y": 260
     },
     {
       "id": "ciclo",
       "titulo": "Fase del ciclo (CyclePhaseView)",
       "condicion": "Sin nodo capturable desde esta familia.",
       "omitido": "CyclePhaseView se presenta SOLO desde AjustesView.showCyclePhase (familia Ajustes) — no hay palanca en Cuerpo/Tendencias sin tocar AjustesView.swift, fuera del alcance de este lane (FER-384).",
-      "x": 5100,
+      "x": 3580,
       "y": 0
     }
   ],
@@ -990,28 +840,8 @@
     },
     {
       "de": "cuerpo-m",
-      "a": "comparar-full",
-      "etiqueta": "Comparar"
-    },
-    {
-      "de": "cuerpo-m",
       "a": "explorar-full",
       "etiqueta": "Ver todas las métricas"
-    },
-    {
-      "de": "cuerpo-m",
-      "a": "actividad-full",
-      "etiqueta": "Cómo despiertas por deporte"
-    },
-    {
-      "de": "cuerpo-m",
-      "a": "edad-fisica-full",
-      "etiqueta": "Edad física"
-    },
-    {
-      "de": "cuerpo-m",
-      "a": "edad-corporal-full",
-      "etiqueta": "Edad corporal"
     },
     {
       "de": "explorar-full",

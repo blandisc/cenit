@@ -27,9 +27,9 @@ struct RootTabView: View {
         case weeklyPlan = "weeklyplan"            // Entrenar hub — weekly plan editor (FER-533)
         case misRutinas = "misrutinas"           // Entrenar hub — routine + folder management (FER-534)
         case routineToday                         // Entrenar hub — «Rutina de hoy» (DEBUG screenshot-nav)
-        // Reachable via DEBUG screenshot-nav (pushed onto the Ajustes stack). Explore/Compare/Workouts
+        // Reachable via DEBUG screenshot-nav (pushed onto the Ajustes stack). Explore/Workouts
         // also still open from Cuerpo's footer; the rest open as sheets from the Ajustes root (FER-337).
-        case explore, compare, workouts
+        case explore, workouts
         case applehealth, datasources, support
     }
 
@@ -428,7 +428,7 @@ struct RootTabView: View {
         case .library, .workoutHistory, .breathe, .intervals, .weeklyPlan, .misRutinas,
              .routineToday:
             return .train
-        case .explore, .compare, .workouts, .applehealth, .datasources, .support:
+        case .explore, .workouts, .applehealth, .datasources, .support:
             return .settings
         }
     }
@@ -528,7 +528,6 @@ struct RootTabView: View {
                 openDay: { wd in trainStack.append(RoutineEditorRoute.planDay(weekday: wd)) })
         case .routineToday: RoutineSheet(origin: .today(routineId: nil), mode: .editing)
         case .explore:      MetricExplorerView()
-        case .compare:      CompareView()
         // FER-202: `WorkoutsView` se retiró (fusionada en `WorkoutHistoryScreen`). Esta clave solo la
         // alcanza la navegación de screenshots DEBUG (`ScreenshotNav`, rawValue «workouts»), así que
         // apunta al historial unificado en «Todo» con su propio coordinador (no cuelga de un stack que

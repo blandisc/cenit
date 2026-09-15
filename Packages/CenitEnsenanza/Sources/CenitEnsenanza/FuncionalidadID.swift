@@ -35,10 +35,7 @@ public enum FuncionalidadID: String, CaseIterable, Sendable {
     case tendenciasMapaDelDia = "tendencias.mapa-del-dia"
     case tendenciasCarga = "tendencias.carga"
     case tendenciasVitales = "tendencias.vitales"
-    case tendenciasComparar = "tendencias.comparar"
     case tendenciasExplorar = "tendencias.explorar"
-    case tendenciasDeporte = "tendencias.deporte"
-    case tendenciasLongevidad = "tendencias.longevidad"
     case tendenciasFuentes = "tendencias.fuentes"
 
     // MARK: - Entrenar

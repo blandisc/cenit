@@ -156,9 +156,6 @@ private struct CuerpoLandingEngines: Sendable {
     let recoveryCalibration: Int?
     let stressModel: StressModel?
     let trainingLoad: TrainingLoadModel?
-    let fitnessAge: FitnessAgeSnapshot
-    let vitalityInputs: VitalityEngine.Inputs
-    let vitalityResult: VitalityEngine.Result?
 }
 
 private struct CuerpoLanding: View {
@@ -175,10 +172,6 @@ private struct CuerpoLanding: View {
     @State private var recoveryDetail: PreparacionDetalleItem? = nil
     /// Dark screen / catalog-detail sheet, for everything without a Liquid sheet yet.
     @State private var darkSheet: CuerpoSheet? = nil
-    /// Comparar Liquid (FER-268): the «Compare» row opens the overlay as a sheet
-    /// (tokens at the sheet root; they do not cross the `.sheet` boundary, FER-162), NO
-    /// nested NavigationStack (FER-171). Replaces the old dark `.screen(.compare)` bridge.
-    @State private var showCompare = false
     /// Explore Liquid (FER-272): the «See all metrics» row opens the metric catalog as a sheet
     /// with its OWN NavigationStack (so a metric row pushes its detail). Replaces the old dark
     /// `.screen(.explore)` bridge.
@@ -224,16 +217,6 @@ private struct CuerpoLanding: View {
     @State private var trainingLoad: TrainingLoadModel? = nil
     /// Presents the light «Carga de entrenamiento» explainer sheet (FER-705).
     @State private var trainingLoadItem: TrainingLoadItem? = nil
-    /// «How you wake after each sport» — ranked ActivityCost per sport (FER-139); empty = "gathering data".
-    @State private var activityCosts: [ActivityCost] = []
-    /// Presents the light Activity-recovery detail sheet.
-    @State private var showActivityCost = false
-    /// Body Age + Vitality (FER-145): computed in `loadAll` from a window of nightly signals; nil until
-    /// ≥3 factors are present. `vitalityInputs` drives the detail's "what's built from" checklist.
-    @State private var vitalityResult: VitalityEngine.Result? = nil
-    @State private var vitalityInputs: VitalityEngine.Inputs? = nil
-    /// Presents the light Body-age detail sheet.
-    @State private var showBodyAge = false
 
     /// The period the landing's sparklines (hero + every stat) window over. The header selector drives it;
     /// each spark re-slices `repo.displayDays` to this window on change, and the hero's «vs tu media» delta
@@ -263,10 +246,6 @@ private struct CuerpoLanding: View {
     /// Recovery cold-start: nights banked toward the seed gate while the baseline calibrates; nil once
     /// recovery is scored. Drives the hero's "N/4" + "Calibrating" copy instead of a fake number.
     @State private var recoveryCalibration: Int? = nil
-    /// Fitness Age (FER-141): the 7-day orchestration snapshot, memoized once per refresh in `loadAll`.
-    @State private var fitnessAge: FitnessAgeSnapshot? = nil
-    /// Drives the Fitness Age detail sheet (Liquid sheet for «Edad física»).
-    @State private var showFitnessAge = false
 
     private static let recoverySeed = Baselines.minNightsSeed
 
@@ -299,7 +278,6 @@ private struct CuerpoLanding: View {
                 }
                 vitalsCard
                 activityCard
-                longevityCard
                 connectNudge
                 footerActions
             }
@@ -350,22 +328,10 @@ private struct CuerpoLanding: View {
                 TendenciasPreparacionTip().invalidate(reason: .actionPerformed)
             }
         }
-        .onChange(of: showCompare) { _, open in
-            if open { TendenciasCompararTip().invalidate(reason: .actionPerformed) }
-        }
         .onChange(of: showExplore) { _, open in
             if open { TendenciasExplorarTip().invalidate(reason: .actionPerformed) }
         }
         .sheet(item: $darkSheet) { sheet in darkSheetContent(sheet) }
-        .sheet(isPresented: $showCompare) {
-            // Comparar Liquid: tokens at the sheet root (they do not cross the `.sheet`
-            // boundary, FER-162) and env objects re-supplied (a sheet starts a fresh
-            // environment branch). No nested NavigationStack (FER-171); drag to dismiss. (FER-268)
-            CompareView()
-                                .environmentObject(repo)
-                .environment(model)
-                .environmentObject(health)
-        }
         .sheet(isPresented: $showExplore, onDismiss: { explorePath = NavigationPath() }) {
             // Explore Liquid (FER-272): its OWN NavigationStack lives inside the sheet so a
             // metric row pushes its detail (NOT a stack nested across the tab path, FER-171).
@@ -462,11 +428,7 @@ private struct CuerpoLanding: View {
         case "resp_rate":    metricSpec = .respiratory(resolveMeasured { $0.respRateBpm }?.value)
         case "steps":        metricSpec = .steps(freshSteps)
         case "vo2max":       metricSpec = .vo2max(value: latestAppleVO2max, age: model.profile.age, sex: model.profile.sex)
-        case "comparar":     showCompare = true
         case "explorar":     showExplore = true
-        case "actividad":    showActivityCost = true
-        case "edad-fisica":  showFitnessAge = true
-        case "edad-corporal": showBodyAge = true
         default:
             // El resto del catálogo (~28 métricas) no tiene ruta rica propia — se empuja dentro
             // de Explorar (FER-384, el mismo `MetricDetailView` genérico que un tap real abriría).
@@ -486,7 +448,7 @@ private struct CuerpoLanding: View {
     private var detailPresented: Bool {
         metricSpec != nil || recoveryDetail != nil || strainDetail != nil || sleepDetail != nil
             || stressDetail != nil || trainingLoadItem != nil || skinTempDetail != nil
-            || showActivityCost || showFitnessAge || showBodyAge || showWorkouts
+            || showWorkouts
     }
 
     /// Pops the detail layer — clears every detail-presenting state (only one is set). The `.animation`
@@ -494,7 +456,6 @@ private struct CuerpoLanding: View {
     private func dismissDetail() {
         metricSpec = nil; recoveryDetail = nil; strainDetail = nil; sleepDetail = nil
         stressDetail = nil; trainingLoadItem = nil; skinTempDetail = nil
-        showActivityCost = false; showFitnessAge = false; showBodyAge = false
         // The path outlives the layer (it's state here, not inside the stack), so closing from a pushed
         // session and reopening would land back on that session instead of the list.
         showWorkouts = false; workoutsPath = NavigationPath()
@@ -583,20 +544,6 @@ private struct CuerpoLanding: View {
         } else if let item = skinTempDetail {
             SkinTempDetailScreen(model: item.model,
                                  loadWarmingMagnitudes: { await repo.nocturnalWarmingMagnitudes() })
-        } else if showActivityCost {
-            activityRecoverySheet
-        } else if showFitnessAge {
-            FitnessAgeDetailView(snapshot: fitnessAge ?? computeFitnessAge(),
-                                 chronoAge: model.profile.age, sex: model.profile.sex,
-                                 appleVO2max: latestAppleVO2max,
-                                 appleConnectHint: health.auth != .authorized && health.auth != .unavailable
-                                     && latestAppleVO2max == nil,
-                                 vo2Trend: vo2maxTrend,
-                                 vo2Series: vitalSeries(for: "vo2max").map(\.value))
-        } else if showBodyAge {
-            BodyAgeSheet(
-                result: vitalityResult,
-                inputs: vitalityInputs ?? VitalityEngine.Inputs(chronoAge: Double(model.profile.age)))
         }
     }
 
@@ -869,8 +816,7 @@ private struct CuerpoLanding: View {
         }
     }
 
-    /// Activity — Steps · Workouts·7d, with «How you wake after each sport» nested under a hairline.
-    /// Still aurora.
+    /// Activity — Steps · Workouts·7d. Still aurora.
     private var activityCard: some View {
         liquidModulo(index: 4, tones: [LiquidColor.teal, LiquidColor.ambar], period: 58, animated: false) {
             VStack(alignment: .leading, spacing: LiquidSpace.s250) {
@@ -879,25 +825,6 @@ private struct CuerpoLanding: View {
                     stepsStat
                     vsep
                     workoutsStat
-                }
-                LiquidCapilar(eje: .horizontal)
-                activityInsight
-            }
-        }
-    }
-
-    /// Longevity — Physical age · Body age · VO₂ Max, each with a micro-legend, into its sheet. Still aurora.
-    private var longevityCard: some View {
-        liquidModulo(index: 5, tones: [LiquidColor.verdePrimario, LiquidColor.ambar, LiquidColor.tinta500],
-                    period: 44, animated: false) {
-            VStack(alignment: .leading, spacing: LiquidSpace.s250) {
-                moduleTitle("Longevity")
-                HStack(alignment: .top, spacing: LiquidSpace.s300) {
-                    physicalAgeStat
-                    vsep
-                    bodyAgeStat
-                    vsep
-                    vo2maxStat
                 }
             }
         }
@@ -1200,91 +1127,6 @@ private struct CuerpoLanding: View {
         if n > 0 { col } else { col.accessibilityLabel(Text("no workouts yet")) }
     }
 
-    // MARK: - Longevity stats (Fitness Age FER-141 · Body Age FER-145 · VO₂max FER-257)
-
-    /// Physical age — the value tinted by DIRECTION (younger green / older amber / even ink, faint «—»
-    /// when there's no reading), with a compact legend and the «Estimate» chip on low confidence.
-    private var physicalAgeStat: some View {
-        let snap = fitnessAge
-        let estimate = snap?.readiness.confidence == .estimate
-        let color = snap?.result.map(physicalAgeColor) ?? LiquidColor.tinta500
-        return statColumn("Physical age",
-                          value: snap?.result.map { "\(Int($0.fitnessAge.rounded()))" },
-                          color: color,
-                          legend: physicalAgeLegend(snap), estimate: estimate) {
-            showFitnessAge = true
-        }
-    }
-
-    /// Direction hue: younger → recovery green, older → warning amber, even → ink. The ±0.5-yr
-    /// deadband lives on `FitnessAgeResult.direction` (CenitAnalytics) so the row and the sheet agree.
-    /// Physical age is NOT metric identity (FER-100 spec) — it keeps its DIRECTIONAL color by delta.
-    private func physicalAgeColor(_ result: FitnessAgeResult) -> Color {
-        switch result.direction {
-        case .younger: return LiquidColor.verdePrimario
-        case .older:   return LiquidColor.atencion
-        case .even:    return LiquidColor.tinta900
-        }
-    }
-
-    /// The compact footnote under Physical age — direction when ready, else the honest RHR-coverage
-    /// blocker; nil while still loading so the column doesn't jump.
-    private func physicalAgeLegend(_ snap: FitnessAgeSnapshot?) -> LocalizedStringKey? {
-        guard let snap else { return nil }
-        if let result = snap.result {
-            let yrs = Int(abs(result.deltaYears).rounded())
-            let chrono = Int(result.chronoAge.rounded())
-            switch result.direction {
-            case .younger: return "\(yrs) yr younger"
-            case .older:   return "\(yrs) yr older"
-            case .even:    return "at your \(chrono)"
-            }
-        }
-        // notReady — RHR coverage is the real blocker (age/sex come from the profile defaults).
-        return "RHR \(snap.rhrNights)/4 nights"
-    }
-
-    /// Build the Fitness Age snapshot from the trailing 7-day display window + profile. Pure + cheap;
-    /// primary path is the off-main hop in `loadAll` (FER-955); kept as the sheet's on-demand fallback.
-    private func computeFitnessAge() -> FitnessAgeSnapshot {
-        let last7 = trailingDisplay(7)
-        return FitnessAgeEngine.snapshot(
-            rhrLast7: last7.map { $0.restingHr },
-            strainLast7: last7.map { $0.strain },
-            age: model.profile.age, sex: model.profile.sex,
-            hasHeightWeight: true)
-    }
-
-    /// «Body age» (Vitality/Body Age, FER-145): the years datum, tinted by the SIGN of the delta, with a
-    /// «vs your N» legend; opens the longevity detail (the honest checklist even with no reading).
-    private var bodyAgeStat: some View {
-        let r = vitalityResult
-        // NOT metric identity (FER-100 spec) — DIRECTIONAL by delta, via the sheet's OWN Liquid ladder
-        // (`BodyAgeSheet.tintLiquid`) so the tile and the detail it opens never disagree on a color.
-        let color = r.map { BodyAgeSheet.tintLiquid(forDelta: $0.deltaYears) } ?? LiquidColor.tinta500
-        // «Estimate» chip when a heaviest factor (HRV/RHR) is missing — same mechanism as Physical age
-        // (FER-643), so the two longevity stats read consistently.
-        return statColumn("Body age", value: r.map { "\(Int($0.bodyAge.rounded()))" },
-                          color: color,
-                          legend: r == nil ? nil : "vs your \(model.profile.age)",
-                          estimate: r?.isPartialEstimate == true) {
-            showBodyAge = true
-        }
-    }
-
-    /// VO₂max (Apple Health, measured · FER-257): the most recent reading (no freshness gate), the unit
-    /// carried by the «ml/kg·min» legend so the numeral stays clean. «—» + no chip when unread.
-    private var vo2maxStat: some View {
-        let v = latestAppleVO2max
-        // Neutral ink on purpose (MetricIdentity D1, FER-108) — no family assigned yet, so it borrows
-        // no other metric's color. Fixes the old SpO2-blue reuse bug.
-        return statColumn("VO₂ Max", value: v.map { String(format: "%.0f", $0) },
-                          color: MetricIdentity.identity(forKey: "vo2max").hue,
-                          legend: "ml/kg·min", fromApple: v != nil) {
-            metricSpec = .vo2max(value: v, age: model.profile.age, sex: model.profile.sex)
-        }
-    }
-
     // MARK: - Connect nudge + footer
 
     /// Apple-only metrics (Steps) invite connecting Apple Health when it isn't authorized and there's no
@@ -1306,12 +1148,9 @@ private struct CuerpoLanding: View {
 
     private var footerActions: some View {
         VStack(alignment: .leading, spacing: LiquidSpace.s150) {
-            // FER-432 · tips 8 y 9 justo sobre las filas Comparar / Explorar.
-            TipView(TendenciasCompararTip(), arrowEdge: .bottom)
+            // FER-432 · tip 9 justo sobre la fila Explorar.
             TipView(TendenciasExplorarTip(), arrowEdge: .bottom)
             VStack(spacing: .zero) {
-                actionRow("Compare", icon: "arrow.left.arrow.right") { showCompare = true }
-                LiquidCapilar(eje: .horizontal).padding(.leading, 46)
                 actionRow("See all metrics", icon: "square.grid.2x2") { showExplore = true }
             }
             .liquidGlass(.superficieSolida)
@@ -1331,73 +1170,6 @@ private struct CuerpoLanding: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.liquidPress)
-    }
-
-    // MARK: - Activity insight (FER-139) — nested under Activity, NOT a card-in-card (Instrumento rule 3)
-
-    /// «How you wake after each sport» — up to three top sports from the engine's ranking, each as
-    /// `sport · N pts lower/higher` (colour only on the datum). A `delta < 3` sport reads «no clear
-    /// link». When the engine returns nothing the block stays, showing «Gathering data» — it never
-    /// hides. Lives under a hairline inside the Activity card; its own chevron jumps to the detail.
-    private var activityInsight: some View {
-        Button { showActivityCost = true } label: {
-            VStack(alignment: .leading, spacing: LiquidSpace.s150) {
-                HStack(spacing: LiquidSpace.s200) {
-                    Text("How you wake after each sport")
-                        .font(LiquidType.captionLectura).foregroundStyle(LiquidColor.tinta500)
-                    // Provisional placement (likely Entrenar / Patrones later). (FER-566)
-                    Spacer(minLength: LiquidSpace.s200)
-                    if activityCosts.isEmpty {
-                        Text("Gathering data").font(LiquidType.captionLectura).foregroundStyle(LiquidColor.tinta500)
-                    }
-                    LiquidIcon(.chevron, size: 12, color: LiquidColor.tinta500)
-                }
-                if !activityCosts.isEmpty {
-                    VStack(spacing: LiquidSpace.s150) {
-                        ForEach(Array(activityCosts.prefix(3).enumerated()), id: \.offset) { _, c in
-                            activityCostRow(c)
-                        }
-                    }
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.liquidPress)
-        .accessibilityElement(children: .combine)
-        .accessibilityHint("Opens the per-sport detail.")
-    }
-
-    /// One summary row inside the block: sport name (ink) · its direction/points. Colour on the datum:
-    /// the gap takes the strain family's hue (`LiquidColor.ambar`, not routed through `MetricIdentity` —
-    /// this delta isn't a catalog metric) when there's a real link, quiet ink when it's under the
-    /// engine's noise floor (then it reads «no clear link»). Same single-tone rule the paper had — NOT
-    /// re-colored by the sign of the delta: `ActivityCost.delta`'s good/bad direction depends on which
-    /// underlying signal moved, and guessing it here risked telling the wrong story (FER-100 — kept
-    /// conservative rather than invent a new positive/negative semantic). Localized; "pts" stays plural
-    /// (a reported gap is ≥ 3).
-    private func activityCostRow(_ c: ActivityCost) -> some View {
-        let meaningful = abs(c.delta) >= ActivityCostEngine.barelyMovesPoints
-        let pts = Int(abs(c.delta).rounded())
-        let summary: LocalizedStringKey = !meaningful ? "no clear link"
-            : (c.delta >= 0 ? "\(pts) pts lower" : "\(pts) pts higher")
-        return HStack(spacing: LiquidSpace.s200) {
-            Text(verbatim: c.sport).font(LiquidType.tituloFila).foregroundStyle(LiquidColor.tinta900)
-            Spacer(minLength: LiquidSpace.s200)
-            Text(summary)
-                .font(LiquidType.captionLectura)
-                .foregroundStyle(meaningful ? LiquidColor.ambar : LiquidColor.tinta500)
-                .multilineTextAlignment(.trailing)
-        }
-    }
-
-    /// The light Activity-recovery detail (FER-139). The Apple-connect line appears only when nothing's
-    /// connected and there are no sessions to draw from.
-    private var activityRecoverySheet: some View {
-        ActivityRecoverySheet(
-            costs: activityCosts,
-            appleConnectHint: health.auth != .authorized && health.auth != .unavailable && workoutCount == 0
-        )
     }
 
     // MARK: - Detail sheets
@@ -1460,7 +1232,6 @@ private struct CuerpoLanding: View {
             for: Calendar.current.date(byAdding: .day, value: -6, to: Date()) ?? Date())
         let recentCutoffTs = Int(recentCutoff.timeIntervalSince1970)
         recentWorkoutCount = workouts.filter { $0.startTs >= recentCutoffTs }.count
-        activityCosts = repo.activityCosts(from: workouts)   // reuses the rows above — no second query
         hrPoints = await hrRows.map {
             TrendPoint(date: Date(timeIntervalSince1970: TimeInterval($0.ts)), value: $0.bpm)
         }
@@ -1483,12 +1254,7 @@ private struct CuerpoLanding: View {
             guard let p = repo.todayPreparedness else { return false }
             return p.verdict != .lowSignal && p.isNightAnchored
         }()
-        let sleeps = repo.sleeps
-        let appleSleeps = repo.appleSleeps   // FER-1026: las sesiones reales de Apple también alimentan la regularidad
-        let age: Int = model.profile.age
-        let sex = model.profile.sex
         let todayKey: String = Repository.localDayKey(Date())
-        let regularityCutoff: Int = Int(Date().timeIntervalSince1970) - 35 * 86_400
 
         // Pure CenitAnalytics engines off MainActor (FER-955). Same expressions as before; only the
         // executor moves. Assignments return to main below, gated by `seq`.
@@ -1523,65 +1289,10 @@ private struct CuerpoLanding: View {
                 series: acwrSeries,
                 days: bandMasked)
 
-            // Trailing-N of `displayDays` — same cutoff+filter as `trailingDisplay`, inlined so we never
-            // call MainActor-isolated helpers from this detached task. `DayKey.localFormatter` is the
-            // same object `Repository.localDayKey` uses (nonisolated; FER-955).
-            func trailing(_ n: Int) -> [DailyMetric] {
-                let cutoffDate: Date = Calendar.current.date(byAdding: .day, value: -(n - 1), to: Date()) ?? Date()
-                let cutoff: String = DayKey.localFormatter.string(from: cutoffDate)
-                return displayDays.filter { (d: DailyMetric) -> Bool in d.day >= cutoff }
-            }
-
-            let last7: [DailyMetric] = trailing(7)
-            let fitnessAge = FitnessAgeEngine.snapshot(
-                rhrLast7: last7.map { (d: DailyMetric) in d.restingHr },
-                strainLast7: last7.map { (d: DailyMetric) in d.strain },
-                age: age, sex: sex,
-                hasHeightWeight: true)
-
-            // Longevity (FER-145 + FER-214): Body Age + Vitality from a 28-night window. Regularity uses the
-            // real Sleep Regularity Index when there's coverage (FER-214), else the documented duration proxy;
-            // VO₂max needs a waist the profile doesn't collect, so the cardio signal flows through resting HR.
-            // Clear cross-source columns before the engine folds them (FER-640): `nightlyRMSSD`
-            // takes the MEDIAN of `avgHrv` and `VitalityEngine` scores it against an RMSSD-by-age norm, but
-            // `displayDays` back-fills Apple **SDNN** on band-less nights (FER-149) — a different construct with
-            // no published conversion (Task Force 1996; Shaffer & Ginsberg 2017), so a few Apple nights bias
-            // Body Age by source, not physiology. The same `SourceLens.clearBandColumns` (FER-631)
-            // also nils Apple's resting HR (band −12.7 bpm offset), which likewise scores against a band-domain
-            // norm — so both nocturnal inputs stay single-source. Single-source columns (steps) and cross-source-
-            // comparable ones (sleep duration) are untouched. If the user is Apple-only, band RMSSD is empty →
-            // `VitalityInputsBuilder`'s coverage gate drops the HRV factor rather than comparing SDNN to the
-            // band norm. A legacy-only user is the identity — `recentBand == recent`.
-            let recent: [DailyMetric] = trailing(28)
-            let recentBand: [DailyMetric] = SourceLens.clearBandColumns(recent)
-            // Sleep Regularity Index (FER-214) over a trailing ~35d of sessions, as 0–1 for the engine (SRI/100).
-            // nil → the builder's duration proxy. Was `computeSleepRegularity()`; inlined for the hop (FER-955).
-            // FER-1026: feed from Apple + legacy sessions (union, no overlap) so Apple-only users keep the SRI
-            // instead of silently dropping to the duration proxy.
-            let recentSleeps = (appleSleeps + sleeps).filter { (s: CachedSleepSession) -> Bool in s.startTs >= regularityCutoff }
-            let sleepRegularity: Double? = SleepRegularityIndex.fromSessions(recentSleeps).map { (sri: Double) -> Double in sri / 100.0 }
-            let nightlyRestingHR: [Double] = recentBand.compactMap { (d: DailyMetric) -> Double? in d.restingHr.map(Double.init) }
-            let nightlyRMSSD: [Double] = recentBand.compactMap { (d: DailyMetric) -> Double? in d.avgHrv }
-            let nightlySleepHours: [Double] = recent.compactMap { (d: DailyMetric) -> Double? in
-                d.totalSleepMin.map { (m: Double) -> Double in m / 60.0 }
-            }
-            let dailySteps: [Double] = recent.compactMap { (d: DailyMetric) -> Double? in d.steps.map(Double.init) }
-            let vInputs = VitalityInputsBuilder.build(.init(
-                chronoAge: Double(age),
-                nightlyRestingHR: nightlyRestingHR,
-                nightlyRMSSD: nightlyRMSSD,
-                nightlySleepHours: nightlySleepHours,
-                dailySteps: dailySteps,
-                sleepRegularity: sleepRegularity))
-            let vResult = VitalityEngine.compute(vInputs)
-
             return CuerpoLandingEngines(
                 recoveryCalibration: recoveryCalibration,
                 stressModel: stressModel,
-                trainingLoad: trainingLoad,
-                fitnessAge: fitnessAge,
-                vitalityInputs: vInputs,
-                vitalityResult: vResult)
+                trainingLoad: trainingLoad)
         }.value
 
         guard repo.refreshSeq == seq else { return }
@@ -1589,9 +1300,6 @@ private struct CuerpoLanding: View {
         recoveryCalibration = engines.recoveryCalibration
         stressModel = engines.stressModel
         trainingLoad = engines.trainingLoad
-        fitnessAge = engines.fitnessAge
-        vitalityInputs = engines.vitalityInputs
-        vitalityResult = engines.vitalityResult
     }
 
     // MARK: - Trend / curve loaders for the light sheet (mirror Today)
@@ -1604,18 +1312,6 @@ private struct CuerpoLanding: View {
                   let date = Repository.parseDayKey(row.day) else { return nil }
             return TrendPoint(date: date.addingTimeInterval(12 * 3600), value: value)
         }
-    }
-
-    /// The fitness trajectory (rising / stable / falling) from the measured Apple VO₂max series (FER-833).
-    /// `nil` below the data minimum (< 6 readings or < 21 days) → the trend block hides. Uses days-since-
-    /// epoch as the time index the robust (Theil–Sen) slope needs. Every Apple reading is a real
-    /// measurement, so the raw series feeds the trend directly.
-    private var vo2maxTrend: VO2maxTrend.Result? {
-        let points: [VO2maxTrend.Point] = vitalSeries(for: "vo2max").compactMap { row in
-            guard let date = Repository.parseDayKey(row.day) else { return nil }
-            return VO2maxTrend.Point(day: Int(date.timeIntervalSince1970 / 86_400), value: row.value)
-        }
-        return VO2maxTrend.assess(points)
     }
 
     /// The FULL daily series (oldest → newest) for a vital, from `repo.displayDays` — the unified

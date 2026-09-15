@@ -5,7 +5,7 @@ DECISIÓN DEL DUEÑO: **matriz completa** — el detalle de métrica no usa una 
 sino un nodo por (métrica, rango, estado): las ~36 métricas de `MetricCatalog` (leídas del propio
 `Cenit/Data/MetricCatalog.swift`, nunca inventadas) x los 6 rangos de `ExploreRange` x los 4 estados
 (full/focus/sin-lecturas/calibrando). Además el landing de Cuerpo x los 6 rangos, y un puñado de
-nodos para Comparar/Explorar/ActivityRecovery/FitnessAge/BodyAge/Ciclo.
+nodos para Explorar/Ciclo.
 
 El JSON es grande a propósito (ver README del mapa) — este script es la fuente; no se edita el JSON
 a mano. Re-ejecutar tras cualquier cambio a `MetricCatalog.swift` o a las palancas DEBUG:
@@ -21,10 +21,10 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 CATALOG_PATH = REPO_ROOT / "Cenit" / "Data" / "MetricCatalog.swift"
 OUT_PATH = REPO_ROOT / "docs" / "appmap" / "mapa" / "tendencias.json"
 
-# `d("key", String(localized: "Title"), …)` — un renglón por métrica en `MetricCatalog.all`. Captura
-# SOLO la clave + el título en inglés (documentación del nodo); nunca se inventa una clave que el
-# catálogo no declare.
-CATALOG_ROW = re.compile(r'd\("([a-zA-Z0-9_]+)",\s*String\(localized:\s*"([^"]+)"\)')
+# `metric("key", String(localized: "Title"), …)` — un renglón por métrica en `MetricCatalog.all`.
+# Captura SOLO la clave + el título en inglés (documentación del nodo); nunca se inventa una clave
+# que el catálogo no declare.
+CATALOG_ROW = re.compile(r'metric\("([a-zA-Z0-9_]+)",\s*String\(localized:\s*"([^"]+)"\)')
 
 # Las 7 métricas "ricas" que `CuerpoView.openDebugRoute()` abre directo por `metricSpec`
 # (`MetricDetailScreen`, depth `.full`). `heart_rate` NO está en `MetricCatalog` (descriptor sintético
@@ -116,22 +116,18 @@ def metric_nodes(catalog: list[tuple[str, str]]) -> list[dict]:
 
 
 def aux_nodes() -> list[dict]:
-    """Comparar / Explorar (la lista, no el detalle de una métrica) / ActivityRecovery / Fitness Age /
-    Body Age — dos estados cada una (con datos / vacía), NO la matriz de rango×estado (esa es la del
-    detalle de métrica). Ciclo queda `omitido`: `CyclePhaseView` solo se presenta desde
-    `AjustesView.showCyclePhase` (familia Ajustes) — tocar ese archivo está fuera de mi alcance."""
+    """Explorar (la lista, no el detalle de una métrica) — dos estados (con datos / vacía), NO la
+    matriz de rango×estado (esa es la del detalle de métrica). Ciclo queda `omitido`:
+    `CyclePhaseView` solo se presenta desde `AjustesView.showCyclePhase` (familia Ajustes) —
+    tocar ese archivo está fuera de mi alcance."""
     screens = [
-        ("comparar",      "comparar",      "Comparar dos métricas superpuestas"),
         ("explorar",      "explorar",      "Explorar · catálogo de métricas (la lista, sin drill-down)"),
-        ("actividad",     "actividad",     "Cómo despiertas después de cada deporte (ActivityRecoverySheet)"),
-        ("edad-fisica",   "edad-fisica",   "Edad física / Fitness Age"),
-        ("edad-corporal", "edad-corporal", "Edad corporal / Body Age"),
     ]
     nodes = []
-    # El «vacío» de comparar/explorar/actividad capturó idéntico al «con datos» (la pantalla muestra su
+    # El «vacío» de explorar capturó idéntico al «con datos» (la pantalla muestra su
     # estado por defecto poblado aunque el store esté vacío) — se marca omitido para no repetir foto
-    # (FER-392); afinar el estado vacío de esas tres es backlog. Edad física/corporal sí diferencian.
-    NO_DIFERENCIA_VACIO = {"comparar", "explorar", "actividad"}
+    # (FER-392); afinar el estado vacío es backlog.
+    NO_DIFERENCIA_VACIO = {"explorar"}
     for i, (route_key, id_prefix, blurb) in enumerate(screens):
         for state, fixture in (("full", "tendencias_full"), ("vacio", None)):
             node = {
@@ -162,17 +158,13 @@ def aux_nodes() -> list[dict]:
 
 
 def edges(catalog: list[tuple[str, str]]) -> list[dict]:
-    """Aristas ilustrativas del flujo (landing → detalle → comparar/explorar) — no exhaustivas: la
+    """Aristas ilustrativas del flujo (landing → detalle → explorar) — no exhaustivas: la
     matriz tiene ~870 nodos, enumerar cada transición sería ruido, no señal."""
     d = slug_range(DEFAULT_RANGE)
     out = [
         {"de": f"cuerpo-{d}", "a": f"detalle-hrv-{d}-full", "etiqueta": "toca HRV"},
         {"de": f"cuerpo-{d}", "a": f"detalle-vo2max-{d}-full", "etiqueta": "toca VO₂max"},
-        {"de": f"cuerpo-{d}", "a": "comparar-full", "etiqueta": "Comparar"},
         {"de": f"cuerpo-{d}", "a": "explorar-full", "etiqueta": "Ver todas las métricas"},
-        {"de": f"cuerpo-{d}", "a": "actividad-full", "etiqueta": "Cómo despiertas por deporte"},
-        {"de": f"cuerpo-{d}", "a": "edad-fisica-full", "etiqueta": "Edad física"},
-        {"de": f"cuerpo-{d}", "a": "edad-corporal-full", "etiqueta": "Edad corporal"},
         {"de": "explorar-full", "a": f"detalle-weight-{d}-full", "etiqueta": "fila → detalle genérico"},
     ]
     # Aristas de «cambia rango» entre landings consecutivos — solo tienen sentido con --full (varios
@@ -193,8 +185,8 @@ def main() -> None:
         "blurb": (f"Landing de Cuerpo + detalle de cada una de las {len(catalog)} métricas de "
                   f"MetricCatalog en su rango por defecto ({rangos_txt}) × {len(STATES)} estados "
                   "(con datos / sin lecturas / calibrando). Versión ligera: sin repetir por rango "
-                  "(regenerar con --full para los 6 rangos). Más Comparar/Explorar/ActivityRecovery/"
-                  "Fitness Age/Body Age. Ciclo omitido (vive en la familia Ajustes)."),
+                  "(regenerar con --full para los 6 rangos). Más Explorar. "
+                  "Ciclo omitido (vive en la familia Ajustes)."),
         "nodos": nodos,
         "aristas": edges(catalog),
     }
