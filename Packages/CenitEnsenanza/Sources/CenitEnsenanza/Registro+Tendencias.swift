@@ -75,14 +75,6 @@ extension Registro {
             ]
         ),
         Funcionalidad(
-            id: .tendenciasComparar,
-            pestana: .tendencias,
-            requiere: [],
-            piezas: [.ayuda(seccion: .tendencias), .tip(id: "tendencias.comparar"), .vacio(clave: "vacio.comparar.selector.queEs"), .vacio(clave: "vacio.comparar.sin-datos.queEs"), .vacio(clave: "vacio.comparar.pares.queEs")],
-            desde: "1.85",
-            mapa: ["tendencias/comparar-full", "tendencias/comparar-vacio"]
-        ),
-        Funcionalidad(
             id: .tendenciasExplorar,
             pestana: .tendencias,
             requiere: [],
@@ -127,28 +119,6 @@ extension Registro {
                 "tendencias/detalle-bmi-m-full",
                 "tendencias/detalle-stress-m-full",
                 "tendencias/detalle-heart-rate-m-full",
-            ]
-        ),
-        Funcionalidad(
-            id: .tendenciasDeporte,
-            pestana: .tendencias,
-            requiere: [.watch, .entrenos],
-            piezas: [.ayuda(seccion: .tendencias)],
-            desde: "1.85",
-            mapa: ["tendencias/actividad-full", "tendencias/actividad-vacio"]
-        ),
-        Funcionalidad(
-            id: .tendenciasLongevidad,
-            pestana: .tendencias,
-            requiere: [.watch],
-            piezas: [.ayuda(seccion: .tendencias)],
-            desde: "1.85",
-            mapa: [
-                "tendencias/detalle-vo2max-m-full",
-                "tendencias/edad-fisica-full",
-                "tendencias/edad-fisica-vacio",
-                "tendencias/edad-corporal-full",
-                "tendencias/edad-corporal-vacio",
             ]
         ),
         Funcionalidad(

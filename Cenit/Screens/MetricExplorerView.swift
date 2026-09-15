@@ -11,8 +11,7 @@ import CenitStore
 // categorized picker — one section per `MetricCatalog.category`, its rows `LiquidListRow`s on a
 // solid card, each pushing a GENERIC detail. The detail is a uniform analytic dossier for ANY of
 // the ~35 catalog metrics: a tinted Liquid hero (`LiquidCampoMetrica`), a raw-line history
-// (`LiquidGraficaNiveles` + `LiquidResumenVentana`), the cross-catalog Pearson «What correlates»
-// as protagonist #2, and a method+provenance foot.
+// (`LiquidGraficaNiveles` + `LiquidResumenVentana`) as protagonist, and a method+provenance foot.
 // A17 (architecture, co-decided): the Explorer migrates its OWN `MetricDetailView` IN PLACE to a
 // generic Liquid detail — it does NOT route to `MetricDetailScreen`. The 7 rich metrics keep
 // opening `MetricDetailScreen` from Hoy/Cuerpo; from the Explorer, ALL 35 open this generic
@@ -21,21 +20,14 @@ import CenitStore
 //
 // THE MIGRATION IS SKIN, NOT THREAD (FER-104): the data path is conserved verbatim from the paper
 // screen — the shared `MetricSeriesResolver` for every series (TND-29), the memoized window math
-// (FER-269), and the OFF-MAIN cross-catalog Pearson scan with reattach-by-id (FER-976). What
+// (FER-269). What
 // changed is every surface, plus the three invariants TND-29 exists to fix:
 //   • COLOR IS IDENTITY, per metric — `MetricIdentity.hue(for:)`, never the rival `metricAccent`
-//     map (deleted here). Each dot/field/chart/correlate wears its family's hue on every screen.
+//     map (deleted here). Each dot/field/chart wears its family's hue on every screen.
 //   • NAME IS CANONICAL — `canonicalTitle` says «Effort», never «Day Strain» (HJ-13).
-//   • A negative correlation is NOT an alarm (TND30-4): the sign rides the leading «−» and the
-//     side of the zero axis, never a red/green colour. The r bar wears the correlate's IDENTITY
-//     hue; the value stays neutral ink.
 //
-// CORRELATION ROW — the bar is composed IN-LINE, not coined as a DS piece (DS rule §7: a single
-// call-site composition stays atoms in the screen, the same choice Compare made for its pairCard).
-// Neither declared option fit: `LiquidBarrasContribucion` carries a Body-Age good/bad colour
-// convention (green for negative, amber for positive) that directly contradicts TND30-4, and
-// coining `LiquidFilaCorrelacion` for one call site violates DS §7. So the zero-axis r bar is a
-// handful of shapes here, honest for r∈[−1,1] (magnitude = |r|, side = sign, hue = identity).
+// «Qué correlaciona» (the cross-catalog Pearson sweep and its in-line r bar) was RETIRED in FER-489
+// (ola 0b, DECISIONS 2026-09-15 punto 5): the dossier is hero + history + method, nothing else.
 
 /// «9 jun 2026» — la fecha larga de la cláusula del héroe, en el idioma del usuario. Los días vienen
 /// con clave UTC, así que la zona se clava ahí y el rótulo no se corre de día.
@@ -187,14 +179,12 @@ struct MetricExplorerView: View {
 
 /// The uniform analytic dossier for ANY catalog metric in Liquid: a tinted hero
 /// (`LiquidCampoMetrica`, identity per metric), a raw-line history (`LiquidGraficaNiveles` +
-/// `LiquidResumenVentana`), the cross-catalog Pearson «What correlates», and a method+provenance
-/// foot. Serves the ~35 metrics: the ~7 with a canonical hue read from the identity bridge, the
-/// rest fall to `verdePrimario` with no glyph (TND-29's documented fallback).
+/// `LiquidResumenVentana`), and a method+provenance foot. Serves the ~35 metrics: the ~7 with a
+/// canonical hue read from the identity bridge, the rest fall to `verdePrimario` with no glyph
+/// (TND-29's documented fallback).
 struct MetricDetailView: View {
     let metric: MetricDescriptor
     @EnvironmentObject private var repo: Repository
-    /// Drives the correlation row's AX-size stacking (TND31-1), the same lever CompareView.pairCard uses.
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     // Imperial/Metric display preference (D#103). Display-only: weight (kg) and skin temp (°C)
     // re-label; everything else is unit-agnostic and renders unchanged.
@@ -256,15 +246,7 @@ struct MetricDetailView: View {
     /// The series with each `day` string parsed to a `Date` exactly ONCE — the shared window math
     /// reads `date` straight from here (FER-269). Se arma en `cargar()`.
     @State private var parsed: MetricWindowMath.Parsed = []
-    /// TODA otra serie del catálogo, leída una sola vez para el barrido de correlación.
-    @State private var catalogo: [(metric: MetricDescriptor, series: [(day: String, value: Double)])] = []
     @State private var yaLeido = false
-
-    /// Cached correlation scan, keyed by its inputs (selected range + the metric id), so the full
-    /// cross-catalog Pearson sweep runs ONLY when those change — not on every body re-eval.
-    @State private var correlaciones: [CorrRow] = []
-    /// El (id de métrica, ventana) con que se armó la caché; `nil` = todavía sin calcular.
-    @State private var correlacionesHuella: String?
 
     /// «jun 6» axis/scrub label, UTC-anchored so the local-zone label never slips west of UTC.
     private static let ejeFmt: DateFormatter = {
@@ -320,9 +302,6 @@ struct MetricDetailView: View {
         .navigationTitle(metric.canonicalTitle)
         .navigationBarTitleDisplayMode(.inline)
         .task(id: metric.id) { await cargar() }
-        // El rango cambia la ventana, y con ella las entradas de la correlación: la corrida cacheada
-        // se rehace aquí en vez de dejar que `correlationContent` la corra dentro del body.
-        .onChange(of: range) { rehacerCorrelaciones() }
     }
 
     /// Lo que va bajo el héroe: la espera, el vacío honesto, o el dossier completo.
@@ -343,8 +322,6 @@ struct MetricDetailView: View {
         } else {
             LiquidFranjaSeccion(String(localized: "History"), tono: hue)
             trendContent(window: ventana).liquidSeccion()
-            LiquidFranjaSeccion(String(localized: "What correlates"), tono: hue)
-            correlationContent.liquidSeccion()
             pieMetodo
         }
     }
@@ -512,135 +489,7 @@ struct MetricDetailView: View {
         }
     }
 
-    // MARK: - 3. Qué correlaciona («What correlates»)
-
-    private struct CorrRow: Identifiable {
-        /// El id de la OTRA métrica; también identifica la fila.
-        let id: String
-        let otra: MetricDescriptor
-        let r: Double
-        let n: Int
-    }
-
-    /// A Sendable-only scan result — no `MetricDescriptor` — so it can cross the `Task.detached` hop
-    /// (FER-976). `attachCorrelationRows` reattaches the catalog `MetricDescriptor` on MainActor.
-    private struct CorrScan: Sendable {
-        let id: String
-        let r: Double
-        let n: Int
-    }
-
-    private var correlationContent: some View {
-        let filas = correlaciones
-        return VStack(alignment: .leading, spacing: LiquidSpace.s300) {
-            LiquidNotaLine(String(localized: "Pearson r over the visible window · |r| ≥ 0.30, n ≥ 10"))
-            // Asociación, no causa. UNA sola advertencia en los dos instrumentos: la misma que
-            // enseña Comparar, para que la pieza nunca hable con dos textos.
-            LiquidNotaLine(String(localized: "Association, not cause: moving together isn't one driving the other."))
-            if filas.isEmpty {
-                Text(String(localized: "Nothing in the catalog moves clearly with \(metric.canonicalTitle.lowercased()) over this window. Widen the range to surface relationships."))
-                    .font(LiquidType.cuerpo)
-                    .foregroundStyle(LiquidColor.tinta500)
-                    .frame(maxWidth: .infinity,
-                           minHeight: 56,
-                           alignment: .leading)
-                    .fixedSize(horizontal: false,
-                               vertical: true)
-                    .liquidTarjetaSeccion()
-            } else {
-                VStack(spacing: .zero) {
-                    ForEach(Array(filas.enumerated()), id: \.element.id) { posicion, fila in
-                        correlationRow(fila)
-                        if posicion < filas.count - 1 {
-                            LiquidCapilar(eje: .horizontal)
-                        }
-                    }
-                }
-                .liquidTarjetaSeccion()
-            }
-        }
-    }
-
-    /// One correlate: the OTHER metric's identity dot + canonical name + «category · n = N», its
-    /// signed r as a zero-axis bar (magnitude |r|, side = sign, hue = identity), and the value in
-    /// neutral ink with the sign carried by the leading «−» (TND30-4: a negative correlation is not
-    /// an alarm). Composed in-line — DS rule §7 (see the file header). At AX text sizes the row
-    /// STACKS — identity on top, bar + r value below — so «−0.99» never clips and the title never
-    /// races the value on one line (TND31-1, the same fix CompareView.pairCard made for TND30-5).
-    private func correlationRow(_ row: CorrRow) -> some View {
-        let tono = MetricIdentity.hue(for: row.otra)
-        let valor = (row.r >= 0 ? "+" : "−") + String(format: "%.2f", abs(row.r))
-        // The correlate's identity mark — a plain tone dot, the same identity language the catalog
-        // rows carry (LiquidListRow's leading dot), minus its glow (a DS-owned value).
-        let punto = Circle().fill(tono).frame(width: 8, height: 8).accessibilityHidden(true)
-        let identidad = VStack(alignment: .leading, spacing: LiquidSpace.s050) {
-            Text(row.otra.canonicalTitle)
-                .font(LiquidType.tituloFila).foregroundStyle(LiquidColor.tinta900)
-            // C-09: a STABLE key with the house-style «n=%lld» (no spaces, §4.6), not the
-            // interpolation-generated «%@ · n = %@» whose count printed as %@ and never grew an `es`.
-            Text(String(format: String(localized: "explore.corr.footer",
-                                       defaultValue: "%1$@ · n=%2$lld"),
-                        row.otra.localizedCategory, row.n))
-                .font(LiquidType.captionLectura).foregroundStyle(LiquidColor.tinta500)
-        }
-        let valorTexto = Text(verbatim: valor)
-            .font(LiquidType.valorM).monospacedDigit()
-            .foregroundStyle(LiquidColor.tinta900)
-
-        return Group {
-            if dynamicTypeSize.isAccessibilitySize {
-                VStack(alignment: .leading, spacing: LiquidSpace.s200) {
-                    HStack(spacing: LiquidSpace.s300) { punto; identidad }
-                    HStack(spacing: LiquidSpace.s250) {
-                        rBar(row.r, tono: tono)
-                        // No fixed width at AX sizes: the mono value grows past 52 pt and must not clip.
-                        valorTexto.fixedSize()
-                        Spacer(minLength: 0)
-                    }
-                }
-            } else {
-                HStack(spacing: LiquidSpace.s300) {
-                    punto
-                    identidad
-                    Spacer(minLength: LiquidSpace.s200)
-                    HStack(spacing: LiquidSpace.s250) {
-                        rBar(row.r, tono: tono)
-                        valorTexto.frame(width: 52, alignment: .trailing)
-                    }
-                }
-            }
-        }
-        .padding(.vertical, LiquidSpace.s250)
-        .contentShape(Rectangle())
-        .accessibilityElement(children: .combine)
-        // C-03: VoiceOver speaks the SAME signed string the screen shows — the leading «−» (U+2212)
-        // and «+», not the ASCII hyphen `%.2f` emits — so the spoken value matches `valor`.
-        .accessibilityLabel(Text(String(localized: "\(row.otra.canonicalTitle), correlation \(valor), \(row.n) days")))
-    }
-
-    /// The zero-axis r bar: a 1 pt tinta axis at centre, a capsule of width `(track/2)·|r|` growing
-    /// from centre toward the side of the sign, tinted by the correlate's identity hue. Honest for
-    /// r∈[−1,1]; the shared scale is fixed (|r| ≤ 1), so a bar means the same magnitude in every row.
-    private func rBar(_ r: Double, tono: Color) -> some View {
-        GeometryReader { geo in
-            let medio = geo.size.width / 2
-            let cy = geo.size.height / 2
-            let ancho = medio * CGFloat(min(abs(r), 1.0))
-            ZStack(alignment: .topLeading) {
-                Rectangle().fill(LiquidColor.tinta10)
-                    .frame(width: 1, height: 14)
-                    .position(x: medio, y: cy)
-                LiquidBarraProgreso(fraccion: 1, tono: tono, pista: tono,
-                                    altura: LiquidSpace.s150, animada: false)
-                    .frame(width: ancho, height: LiquidSpace.s150)
-                    .position(x: r < 0 ? medio - ancho / 2 : medio + ancho / 2, y: cy)
-            }
-        }
-        .frame(width: 72, height: 18)
-        .accessibilityHidden(true)
-    }
-
-    // MARK: - 4. Método + sello de procedencia
+    // MARK: - 3. Método + sello de procedencia
 
     /// D3/C-17 (b): the method line, HONEST by origin. «Your latest daily reading, shown raw, with no
     /// smoothing» LIED for the on-device-computed metrics (recovery / strain / stress) — those are a
@@ -681,32 +530,6 @@ struct MetricDetailView: View {
         // los puntajes que el teléfono calcula. Las métricas que solo llegan importadas (peso, grasa
         // corporal, zonas de FC…) caen a la tabla. Las dos vías, por el resolvedor COMPARTIDO.
         let tablero = repo.displayDays
-        let importadas = await repo.availableKeySets(sources: MetricCatalog.all.map(\.source))
-
-        // Candidatas del barrido: toda OTRA métrica con datos, calculada o importada.
-        let candidatas = MetricCatalog.all.filter { otra in
-            guard otra.id != metric.id else { return false }
-            let calculada = !(MetricSeriesResolver.dashboardSeries(otra.key, from: tablero) ?? []).isEmpty
-            let importada = importadas[otra.source]?.contains(otra.key) ?? false
-            return calculada || importada
-        }
-
-        let leidas: [(metric: MetricDescriptor, series: [(day: String, value: Double)])] =
-            await withTaskGroup(of: (MetricDescriptor, [(day: String, value: Double)]).self) { group in
-                for otra in candidatas {
-                    let delTablero = MetricSeriesResolver.dashboardSeries(otra.key, from: tablero) ?? []
-                    if delTablero.isEmpty {
-                        group.addTask { (otra, await repo.series(key: otra.key, source: otra.source)) }
-                    } else {
-                        group.addTask { (otra, delTablero) }
-                    }
-                }
-                var acumulado: [(metric: MetricDescriptor, series: [(day: String, value: Double)])] = []
-                for await (descriptor, serie) in group where !serie.isEmpty {
-                    acumulado.append((descriptor, serie))
-                }
-                return acumulado
-            }
 
         // La serie focal: la del tablero si el teléfono calcula esta métrica, si no la importada.
         let focalDelTablero = MetricSeriesResolver.dashboardSeries(metric.key, from: tablero) ?? []
@@ -715,66 +538,7 @@ struct MetricDetailView: View {
             : focalDelTablero
         historia = focal
         parsed = focal.map { ($0.day, Repository.parseDayKey($0.day), $0.value) }
-        // El grupo de tareas termina en orden impredecible: se restaura el orden del catálogo para
-        // que la lista sea estable entre cargas (el barrido la reordena por |r| al presentarla).
-        let ordenDelCatalogo = Dictionary(
-            uniqueKeysWithValues: MetricCatalog.all.enumerated().map { ($1.id, $0) })
-        catalogo = leidas.sorted {
-            (ordenDelCatalogo[$0.metric.id] ?? 0) < (ordenDelCatalogo[$1.metric.id] ?? 0)
-        }
         yaLeido = true
-        rehacerCorrelaciones()
-    }
-
-    // MARK: - Correlation compute (OFF-MAIN, reattach-by-id — conserved verbatim, FER-976)
-
-    /// Top |r| catalog metrics over a given window (|r| ≥ 0.30, n ≥ 10 — the Explorer's stricter
-    /// DISPLAY policy over the `CorrelationStrength.minPairs` compute floor, TND-29). Pure — Sendable
-    /// in, Sendable out — runs inside `Task.detached`. `nonisolated` opts OUT of the View's inferred
-    /// MainActor isolation.
-    private nonisolated static func computeCorrelationScans(
-        windowed: [(day: String, value: Double)],
-        others: [(id: String, series: [(day: String, value: Double)])]
-    ) -> [CorrScan] {
-        let diasVisibles = Set(windowed.map(\.day))
-        guard !diasVisibles.isEmpty else { return [] }
-        var hallazgos: [CorrScan] = []
-        for entrada in others {
-            let recorte = entrada.series.filter { diasVisibles.contains($0.day) }
-            let comunes = CorrelationEngine.alignByDay(windowed, recorte)
-            guard comunes.count >= 10, let correlacion = CorrelationEngine.pearson(comunes) else { continue }
-            guard abs(correlacion.r) >= 0.3 else { continue }
-            hallazgos.append(CorrScan(id: entrada.id, r: correlacion.r, n: correlacion.n))
-        }
-        return Array(hallazgos.sorted { abs($0.r) > abs($1.r) }.prefix(6))
-    }
-
-    /// Re-adjunta cada corrida Sendable a su `MetricDescriptor` del catálogo, por id.
-    private func attachCorrelationRows(_ scans: [CorrScan]) -> [CorrRow] {
-        let porId = Dictionary(uniqueKeysWithValues: catalogo.map { ($0.metric.id, $0.metric) })
-        return scans.compactMap { scan in
-            porId[scan.id].map { CorrRow(id: scan.id, otra: $0, r: scan.r, n: scan.n) }
-        }
-    }
-
-    /// Rebuild the cached correlation scan for the CURRENT effective window, only when its key
-    /// (metric id + selected range) changed. The expensive cross-catalog Pearson sweep runs off the
-    /// MainActor via `Task.detached` (FER-976): a Sendable (day,value) snapshot in, a Sendable scan
-    /// out; `correlaciones` se asigna de vuelta en el hilo principal re-adjuntando el descriptor.
-    private func rehacerCorrelaciones() {
-        let huella = "\(metric.id)|\(range.rawValue)"
-        guard correlacionesHuella != huella else { return }
-        correlacionesHuella = huella
-        let ventana = MetricWindowMath.make(parsed, selected: range)
-        let recorte = MetricWindowMath.slice(parsed, for: ventana.range)
-        let foto = catalogo.map { (id: $0.metric.id, series: $0.series) }
-        Task {
-            let scans = await Task.detached(priority: .userInitiated) {
-                Self.computeCorrelationScans(windowed: recorte, others: foto)
-            }.value
-            guard correlacionesHuella == huella else { return }   // llegó una métrica/ventana más nueva
-            correlaciones = attachCorrelationRows(scans)
-        }
     }
 }
 

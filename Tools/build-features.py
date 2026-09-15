@@ -56,8 +56,8 @@ ROTULO = {"hoy": "Hoy", "tendencias": "Tendencias", "entrenar": "Entrenar", "aju
 # La frase fija por pestaña: la misma que ya decía la tabla «At a glance» a mano.
 FRASE = {
     "hoy": "The verdict home — today's readiness word (El Ecosistema) and La Matriz of signals.",
-    "tendencias": "Your body over time — the trend of every signal, plus sleep, stress, vitals, "
-                  "body composition and longevity.",
+    "tendencias": "Your body over time — the trend of every signal, plus sleep, stress, vitals "
+                  "and body composition.",
     "entrenar": "The training planner — plan, routines, a guided live strength session, plus "
                 "Breathe and Intervals.",
     "ajustes": "Profile, units, data & backup, illness watch, reminders, support.",

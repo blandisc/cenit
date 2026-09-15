@@ -11,7 +11,7 @@ import CenitStore   // FER-202: `WorkoutRow` — destino de detalle de actividad
 /// Hub tabs reconnect screens which don't have a final home yet:
 ///   • **Entrenar** → Breathe · Intervals (+ strength hub).
 ///   • **Ajustes**  → Settings + a temporary «Más» section listing the still-orphan screens
-///     (Explore · Compare · Workouts · Apple Health · Data Sources · Automations · Support). Sueño /
+///     (Explore · Workouts · Apple Health · Data Sources · Automations · Support). Sueño /
 ///     Health / Stress now live in «Tendencias» (Cuerpo). Nothing from the old shell becomes unreachable.
 struct RootTabView: View {
     // FER-240: `.coach` (Patrones) removed with the screen.
@@ -27,9 +27,9 @@ struct RootTabView: View {
         case weeklyPlan = "weeklyplan"            // Entrenar hub — weekly plan editor (FER-533)
         case misRutinas = "misrutinas"           // Entrenar hub — routine + folder management (FER-534)
         case routineToday                         // Entrenar hub — «Rutina de hoy» (DEBUG screenshot-nav)
-        // Reachable via DEBUG screenshot-nav (pushed onto the Ajustes stack). Explore/Compare/Workouts
+        // Reachable via DEBUG screenshot-nav (pushed onto the Ajustes stack). Explore/Workouts
         // also still open from Cuerpo's footer; the rest open as sheets from the Ajustes root (FER-337).
-        case explore, compare, workouts
+        case explore, workouts
         case applehealth, datasources, support
     }
 
@@ -162,7 +162,7 @@ struct RootTabView: View {
     // The visible UI navigates by SHEET (AjustesView), like Cuerpo; the NavigationStack here
     // exists only so DEBUG screenshot-nav can still push a secondary screen — its path only
     // ever carries `SecondaryScreen` (one value type), so there's no FER-171 mixed-path crash.
-    // Explore · Compare · Workouts are gone from Ajustes (they open from Cuerpo now).
+    // Explore · Workouts are gone from Ajustes (they open from Cuerpo now); Compare was retired (FER-489).
     @ViewBuilder
     private var settingsTab: some View {
         NavigationStack(path: $settingsStack) {
@@ -428,7 +428,7 @@ struct RootTabView: View {
         case .library, .workoutHistory, .breathe, .intervals, .weeklyPlan, .misRutinas,
              .routineToday:
             return .train
-        case .explore, .compare, .workouts, .applehealth, .datasources, .support:
+        case .explore, .workouts, .applehealth, .datasources, .support:
             return .settings
         }
     }
@@ -528,7 +528,6 @@ struct RootTabView: View {
                 openDay: { wd in trainStack.append(RoutineEditorRoute.planDay(weekday: wd)) })
         case .routineToday: RoutineSheet(origin: .today(routineId: nil), mode: .editing)
         case .explore:      MetricExplorerView()
-        case .compare:      CompareView()
         // FER-202: `WorkoutsView` se retiró (fusionada en `WorkoutHistoryScreen`). Esta clave solo la
         // alcanza la navegación de screenshots DEBUG (`ScreenshotNav`, rawValue «workouts»), así que
         // apunta al historial unificado en «Todo» con su propio coordinador (no cuelga de un stack que

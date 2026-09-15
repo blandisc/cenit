@@ -16,7 +16,6 @@ enum TendenciasTipGroup {
     static let ordered = TipGroup(.ordered) {
         TendenciasPeriodoTip()
         TendenciasPreparacionTip()
-        TendenciasCompararTip()
         TendenciasExplorarTip()
         TendenciasMapaDelDiaTip()
     }
@@ -52,31 +51,18 @@ struct TendenciasPreparacionTip: Tip {
     }
 }
 
-// MARK: 8 · tendencias.comparar
-
-struct TendenciasCompararTip: Tip {
-    @Parameter
-    static var diasConDosMetricas: Int = 0
-
-    var id: String { EnsenanzaGeneracion.tipID(.tendenciasComparar) }
-    var title: Text { Text("tip.tendencias.comparar.title") }
-    var message: Text? { Text("tip.tendencias.comparar.message") }
-    var options: [any Tip.Option] { [Tip.MaxDisplayCount(3)] }
-    var rules: [Rule] {
-        #Rule(Self.$diasConDosMetricas) { $0 >= 30 }
-    }
-}
-
 // MARK: 9 · tendencias.explorar
 
 struct TendenciasExplorarTip: Tip {
+    @Parameter
+    static var diasConDosMetricas: Int = 0
+
     var id: String { EnsenanzaGeneracion.tipID(.tendenciasExplorar) }
     var title: Text { Text("tip.tendencias.explorar.title") }
     var message: Text? { Text("tip.tendencias.explorar.message") }
     var options: [any Tip.Option] { [Tip.MaxDisplayCount(3)] }
     var rules: [Rule] {
-        // Misma regla que comparar: reusa el mismo `@Parameter`.
-        #Rule(TendenciasCompararTip.$diasConDosMetricas) { $0 >= 30 }
+        #Rule(Self.$diasConDosMetricas) { $0 >= 30 }
     }
 }
 
@@ -111,7 +97,7 @@ enum TendenciasTips {
         permisoCalendario: Bool
     ) {
         TendenciasPeriodoTip.diasConDato = diasConDato
-        TendenciasCompararTip.diasConDosMetricas = diasConDosMetricas
+        TendenciasExplorarTip.diasConDosMetricas = diasConDosMetricas
         TendenciasPreparacionTip.hayVeredicto = hayVeredicto
         TendenciasMapaDelDiaTip.permisoCalendario = permisoCalendario
     }

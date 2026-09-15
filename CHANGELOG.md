@@ -20,6 +20,12 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
 
 ## Unreleased
 
+- **Cuerpo se concentra en lo que la app calcula bien: se retiran Longevidad, Edad física, Edad corporal, Comparar y «tras cada deporte» / Body focuses on what the app computes well: Longevity, Fitness age, Body age, Compare and "after each sport" are retired**
+  ### ES
+  La tarjeta «Longevidad» (edad física, edad corporal), el botón «Comparar», la sección «Cómo despiertas tras cada deporte» y «Qué correlaciona» del Explorador ya no aparecen ni se calculan. Se quedan el catálogo de métricas con su historial, «Tu patrón» y Tendencias completa. (`CuerpoView.swift`, `MetricExplorerView.swift`)
+  ### EN
+  The "Longevity" card (fitness age, body age), the "Compare" button, the "How you wake after each sport" section and the Explorer's "What correlates" no longer appear nor compute. The metric catalog with its history, "Your pattern" and the full Trends stay. (`CuerpoView.swift`, `MetricExplorerView.swift`)
+
 - **Entrenar te dice qué peso mantienes hoy y muestra tu carga bajo el veredicto / Train tells you which weight you keep today and shows your load under the verdict**
   ### ES
   Cuando tu cuerpo amaneció fuera de rango, el héroe de Entrenar nombra el ejercicio cuya subida se queda esperando y con qué peso entras; la subida sigue a un toque dentro de la sesión. Debajo del veredicto aparece «Contexto · Carga» con la palabra de tu carga del cuerpo entero y abre la misma hoja que Hoy. Sin Apple Salud, Entrenar lo dice claro: la progresión usa solo tu rutina y lo que registras. (`EntrenarView.swift`, `TrainingLoadSheet.swift`)

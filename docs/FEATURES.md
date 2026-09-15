@@ -28,7 +28,7 @@ body over time), **Entrenar** (Train), and **Ajustes** (Settings):
 | Tab | What it is |
 | --- | --- |
 | **Hoy** | The verdict home — today's readiness word (El Ecosistema) and La Matriz of signals. |
-| **Tendencias** | Your body over time — the trend of every signal, plus sleep, stress, vitals, body composition and longevity. |
+| **Tendencias** | Your body over time — the trend of every signal, plus sleep, stress, vitals and body composition. |
 | **Entrenar** | The training planner — plan, routines, a guided live strength session, plus Breathe and Intervals. |
 | **Ajustes** | Profile, units, data & backup, illness watch, reminders, support. |
 <!-- GENERATED:ensenanza:at-a-glance END -->
@@ -93,11 +93,10 @@ The verdict home — today's readiness word (El Ecosistema) and La Matriz of sig
 ## Tendencias — your body over time
 
 <!-- GENERATED:ensenanza:tendencias START -->
-Your body over time — the trend of every signal, plus sleep, stress, vitals, body composition and
-longevity.
+Your body over time — the trend of every signal, plus sleep, stress, vitals and body composition.
 
-- **Trends: your body over time** — Every signal across weeks and months, with sleep, stress, vitals
-  and longevity. _(The second tab.)_
+- **Trends: your body over time** — Every signal across weeks and months, with sleep, stress and
+  vitals. _(The second tab.)_
 - **The period selector** — Week, month, three, six, a year or all: every chart re-windows.
   _(Trends, under the title.)_
 - **Your 30 mornings** — How you woke up each day of the last month, and how often each signal
@@ -110,14 +109,8 @@ longevity.
   recorded strain. _(Trends, second module; the whole card is tappable.)_
 - **Your vitals** — HRV, resting HR, oxygen, heart rate, respiration and skin temperature, each with
   its detail. _(Trends, the six-tile module.)_ · Needs Apple Watch
-- **Compare signals** — Overlay two to four signals and see whether they move together. Association,
-  not cause. _(Trends, at the bottom.)_
-- **Explore every signal** — The full catalog, and what correlates with each one. _(Trends, at the
+- **Explore every signal** — The full catalog, each signal with its history. _(Trends, at the
   bottom.)_
-- **How you wake up after each sport** — How much each type of workout costs you to recover from.
-  _(Trends → Activity, under the hairline.)_ · Needs Apple Watch
-- **Longevity: fitness age, body age and VO₂ max** — Estimates, not diagnoses, with what moves them
-  and when there are no signals yet. _(Trends, the longevity module.)_ · Needs Apple Watch
 - **Agreement between sources** — When two sources report the same day you see both values; they're
   never averaged. _(Under the metric, one line.)_
 <!-- GENERATED:ensenanza:tendencias END -->

@@ -73897,13 +73897,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The full catalog, and what correlates with each one."
+            "value" : "The full catalog, each signal with its history."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "El catálogo completo, y qué correlaciona con cada una."
+            "value" : "El catálogo completo, cada señal con su historial."
           }
         }
       }
@@ -74152,13 +74152,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Every signal across weeks and months, with sleep, stress, vitals and longevity."
+            "value" : "Every signal across weeks and months, with sleep, stress and vitals."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cada señal a lo largo de semanas y meses, con sueño, estrés, vitales y longevidad."
+            "value" : "Cada señal a lo largo de semanas y meses, con sueño, estrés y vitales."
           }
         }
       }
@@ -74934,13 +74934,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The full catalog, and what correlates with each one."
+            "value" : "Every metric in the catalog, with its history and where today stands."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "El catálogo completo, y qué correlaciona con cada una."
+            "value" : "Cada métrica del catálogo, con su historial y dónde cae hoy."
           }
         }
       }
