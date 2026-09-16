@@ -185,4 +185,26 @@ final class PrefMigrationTests: XCTestCase {
             XCTAssertNil(group.object(forKey: key.rawValue), "\(key.rawValue) was invented in the group suite")
         }
     }
+
+    // MARK: - FER-490 · generación de enseñanza hoy+tendencias → cuerpo
+
+    func testEnsenanzaGeneracionCuerpoTomaElMaximo() {
+        standard.set(2, forKey: "ensenanza.generacion.hoy")
+        standard.set(5, forKey: "ensenanza.generacion.tendencias")
+
+        PrefMigration.migrateEnsenanzaGeneracionCuerpoIfNeeded(standard: standard)
+
+        XCTAssertEqual(standard.integer(forKey: "ensenanza.generacion.cuerpo"), 5)
+        // Idempotente: un segundo paso no baja ni reescribe si ya corrió.
+        standard.set(1, forKey: "ensenanza.generacion.hoy")
+        PrefMigration.migrateEnsenanzaGeneracionCuerpoIfNeeded(standard: standard)
+        XCTAssertEqual(standard.integer(forKey: "ensenanza.generacion.cuerpo"), 5)
+    }
+
+    func testEnsenanzaGeneracionCuerpoNoInventaCero() {
+        PrefMigration.migrateEnsenanzaGeneracionCuerpoIfNeeded(standard: standard)
+        XCTAssertNil(standard.object(forKey: "ensenanza.generacion.cuerpo"),
+                     "sin generaciones previas no se inventa la clave")
+        XCTAssertTrue(standard.bool(forKey: "cenit.migrated.ensenanzaGeneracionCuerpo"))
+    }
 }

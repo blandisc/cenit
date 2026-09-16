@@ -98,5 +98,24 @@ enum PrefMigration {
             standard.removeObject(forKey: "noop." + retired)
             standard.removeObject(forKey: "cenit." + retired)
         }
+        migrateEnsenanzaGeneracionCuerpoIfNeeded(standard: standard)
+    }
+
+    /// FER-490 · fable #2: al colapsar Pestana hoy+tendencias→cuerpo, la generación tip
+    /// de `.cuerpo` leería 0 y re-mostraría tips ya agotados (o peor: nunca volverían).
+    /// One-shot: `ensenanza.generacion.cuerpo = max(hoy, tendencias)`.
+    private static let ensenanzaCuerpoFlag = "cenit.migrated.ensenanzaGeneracionCuerpo"
+
+    static func migrateEnsenanzaGeneracionCuerpoIfNeeded(standard: UserDefaults = .standard) {
+        guard !standard.bool(forKey: ensenanzaCuerpoFlag) else { return }
+        let hoy = standard.integer(forKey: "ensenanza.generacion.hoy")
+        let tendencias = standard.integer(forKey: "ensenanza.generacion.tendencias")
+        let cuerpoKey = "ensenanza.generacion.cuerpo"
+        let actual = standard.integer(forKey: cuerpoKey)
+        let merged = max(hoy, max(tendencias, actual))
+        if merged > 0 {
+            standard.set(merged, forKey: cuerpoKey)
+        }
+        standard.set(true, forKey: ensenanzaCuerpoFlag)
     }
 }
