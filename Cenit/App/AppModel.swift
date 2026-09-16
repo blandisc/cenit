@@ -261,7 +261,12 @@ import CenitTraining
                 await ScreenshotFixtures.seed(self, state: fixtureState)
                 // FER-939: the Entrenar hub's planned state (routines + split + sessions) rides
                 // every non-empty fixture, so the Train tab captures its full layout too.
-                await ScreenshotFixtures.seedTrainingPlan(self)
+                // FER-495: except for the Entrenar fixtures that seed their OWN plan
+                // (`EntrenarFixtures.all`, e.g. «train-retenida» / «train-hoy») — re-seeding the
+                // default plan here raced with theirs and won, wiping the state the node wanted.
+                if EntrenarFixtures.all[fixtureState] == nil {
+                    await ScreenshotFixtures.seedTrainingPlan(self)
+                }
             }
             return
         }
