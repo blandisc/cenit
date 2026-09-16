@@ -9,7 +9,7 @@ import SwiftUI
 ///   2. URL scheme (backup):              xcrun simctl openurl booted "cenit://<screen>"
 ///
 /// Supported screen keys (FER-182 — 4-tab shell after FER-240):
-///   Tabs: today · body (aliases: trends, sleep — Sueño lives inside Cuerpo now) ·
+///   Tabs (FER-490): today→Cuerpo/Ahora · body (aliases trends, sleep)→Cuerpo/Tiempo ·
 ///     train (alias: entrenar) · settings (aliases: ajustes, more)
 ///   Pushed onto a hub: breathe · intervals · routineToday ·
 ///     library · weeklyplan · misrutinas · workouthistory ·
@@ -52,6 +52,7 @@ final class DebugNavWatcher {
     // FER-381: se quitaron las claves muertas `coach` (Patrones archivada), `dieta` (retirada del enum)
     // y `automations` (sin destino) — capturaban la pantalla ANTERIOR con nombre ajeno y el test seguía
     // verde (falso verde que `Tools/check-shots.py` ahora mata). Toda clave aquí resuelve a una pantalla real.
+    // FER-490 A3: today → Cuerpo/Ahora; body/trends/sleep → Cuerpo/Tiempo (aliases en RootTabView).
     private static let screens = [
         "today", "body", "trends", "train", "entrenar", "settings", "ajustes", "more",
         "breathe", "intervals", "routineToday",
