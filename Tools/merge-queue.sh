@@ -1,6 +1,6 @@
 #!/bin/zsh
 # Cola de merge de /orquesta: por PR en orden, espera CI, rebasa si hay conflicto (CHANGELOG y
-# docs/DECISIONS.md por unión: se conservan ambos lados), mergea con --auto y confirma con el estado real.
+# docs/DECISIONS.md por unión: se conservan ambos lados), mergea plano (--squash --delete-branch) con reintentos acotados y confirma con el estado real; auto-merge está deshabilitado en el repo (2026-09-15).
 # Uso: nohup Tools/merge-queue.sh <PR> [<PR>...] > cola.log 2>&1 &   (nunca en foreground: Bash lo mata a los 600 s)
 set -u
 ROOT=~/code/noop
@@ -41,9 +41,17 @@ for N in "$@"; do
     M=$(gh pr view $N --json mergeable -q .mergeable)
     if [ "$M" = "CONFLICTING" ]; then rebase_pr "$B" || break; continue; fi
     if gh pr merge $N --squash --delete-branch >/dev/null 2>&1; then sleep 5; S=$(gh pr view $N --json state -q .state); echo "PR $N $S"; [ "$S" = "MERGED" ] && close_issue $N; break; fi
-    # La política de la base puede exigir que un check «reporte» aunque todo esté verde: --auto lo mergea solo al cumplirse.
-    gh pr merge $N --squash --delete-branch --auto >/dev/null 2>&1 && echo "auto-merge armado para $N"
-    until [ "$(gh pr view $N --json state -q .state)" = "MERGED" ]; do sleep 60; done; echo "PR $N MERGED"; close_issue $N; break
+    # Primer merge plano falló (checks aún settling o mergeStateStatus no CLEAN): reintentar acotado (auto-merge deshabilitado).
+    for intento in $(seq 1 ${MERGE_REINTENTOS:-10}); do
+      sleep 60
+      pend=$(gh pr checks $N --json bucket -q '[.[]|select(.bucket=="pending")]|length' 2>/dev/null)
+      [ "$pend" = "0" ] || continue
+      gh pr merge $N --squash --delete-branch >/dev/null 2>&1 || true
+      S=$(gh pr view $N --json state -q .state)
+      if [ "$S" = "MERGED" ]; then echo "PR $N MERGED (intento $intento)"; close_issue $N; break 2; fi
+    done
+    echo "PR $N NO MERGEADO tras ${MERGE_REINTENTOS:-10} intentos: $(gh pr view $N --json mergeStateStatus -q .mergeStateStatus 2>/dev/null)"
+    break
   done
   git -C $ROOT worktree remove --force $ROOT/.claude/worktrees/dir-$B 2>/dev/null || true
 done
