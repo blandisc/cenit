@@ -105,7 +105,9 @@ public enum LiquidType {
                                                            relativeTo: .headline)
 
     /// `título` — 15/700. Títulos de tarjeta.
-    public static let titulo = InstrumentoType.grotesk(15, weight: .bold)
+    // FER-501: escala con Dynamic Type (relativeTo). Antes fijo → a tallas AX el título no crecía
+    // mientras su glosa sí, invirtiendo la jerarquía (auditoría C3).
+    public static let titulo = InstrumentoType.grotesk(15, weight: .bold, relativeTo: .headline)
     /// Tracking del reloj compacto de la sesión (15/400 tabular): paridad con
     /// `InstrumentoType.groteskSessionClockCompactTracking` (FER-303 · QA D5).
     public static let relojCompactoTracking: CGFloat = -0.2
@@ -113,7 +115,7 @@ public enum LiquidType {
     public static let relojCompacto = InstrumentoType.groteskNumber(15, weight: .regular)
 
     /// `título/fila` — 13/600. Título de ListRow.
-    public static let tituloFila = InstrumentoType.grotesk(13, weight: .semibold)
+    public static let tituloFila = InstrumentoType.grotesk(13, weight: .semibold, relativeTo: .subheadline)
     /// `tituloFila` en negrita / en medium: el peso se pide por token (regla `no-weight-on-grotesk`).
     public static let tituloFilaNegrita = InstrumentoType.grotesk(13, weight: .bold)
     public static let tituloFilaMedia = InstrumentoType.grotesk(13, weight: .medium)
@@ -158,8 +160,10 @@ public enum LiquidType {
     /// .footnote) — acuñado en el revote adversarial F2 (adiós 14 inline).
     public static let lecturaHojaBase: CGFloat = 14
 
-    /// `cuerpo` — SF 400 12.5. Texto corrido, subtítulos hero.
-    public static let cuerpo = Font.system(size: 12.5)
+    /// `cuerpo` — SF 400, texto corrido / subtítulos hero. FER-501: `.footnote` (13) para que ESCALE con
+    /// Dynamic Type (SF no acepta `relativeTo:`); antes `size: 12.5` fijo se quedaba clavado mientras sus
+    /// vecinos crecían (auditoría C3). `cuerpoLecturaBase` (12.5) sigue disponible para el patrón @ScaledMetric.
+    public static let cuerpo = Font.system(.footnote)
     /// Aproximación del line-height 1.55 de la spec (12.5 × 1.55 ≈ 19.4 pt de línea).
     public static let cuerpoLineSpacing: CGFloat = 4
 
@@ -171,7 +175,8 @@ public enum LiquidType {
     /// CONTRATO.md — checklist Fase 1). CENSO «cuerpo de banner (13pt, igual que el mensaje
     /// de ConfirmCard)» (6 sitios).
     public static let cuerpoBannerTamano: CGFloat = 13
-    public static let cuerpoBanner = Font.system(size: cuerpoBannerTamano)
+    // FER-501: `.footnote` (13, = cuerpoBannerTamano) para que el banner escale; la CIFRA sigue anclada arriba.
+    public static let cuerpoBanner = Font.system(.footnote)
 
     /// `cuerpo/lectura` — la variante que ESCALA con Dynamic Type del mismo 12.5.
     ///
@@ -201,8 +206,9 @@ public enum LiquidType {
     /// `CenitFont.captionNumber`, FER-306).
     public static let filaConteoNumero = Font.system(.caption, weight: .medium).monospacedDigit()
 
-    /// `unidad` — SF 400 11, color tinta/500. «ms», «lpm», «min» junto a valores.
-    public static let unidad = Font.system(size: 11)
+    /// `unidad` — SF 400, color tinta/500. «ms», «lpm», «min» junto a valores. FER-501: `.caption2` (11)
+    /// para que escale con el valor al que acompaña (antes `size: 11` fijo, auditoría C3).
+    public static let unidad = Font.system(.caption2)
     /// La variante compacta (10.5) que usan los stats de Entrenar.
     public static let unidadCompacta = Font.system(size: 10.5)
 
@@ -250,7 +256,7 @@ public enum LiquidType {
     /// `kicker` — 11.5/600, tracking +1.5, MAYÚSCULAS. Fecha, cabeceras («MIÉ 22 DE JUL»).
     /// (kicker/label/micro son alias del escalón «rótulo» de la escala chica unificada.)
     public static let kickerTamano: CGFloat = 11.5
-    public static let kicker = InstrumentoType.grotesk(kickerTamano, weight: .semibold)
+    public static let kicker = InstrumentoType.grotesk(kickerTamano, weight: .semibold, relativeTo: .caption)
     public static let kickerTracking: CGFloat = 1.5
 
     // ESCALA CHICA UNIFICADA (revisión de tipos /inject 2026-07-22, pedido del dueño):
@@ -300,7 +306,7 @@ public enum LiquidType {
                                                             relativeTo: .caption2)
 
     /// `botón` — 14/600, tracking +0.2. GlassButton.
-    public static let boton = InstrumentoType.grotesk(14, weight: .semibold)
+    public static let boton = InstrumentoType.grotesk(14, weight: .semibold, relativeTo: .subheadline)
     public static let botonTracking: CGFloat = 0.2
 
     /// `regla` — 10/600, tracking +2.2, MAYÚSCULAS, tinta/500. La cabecera-kicker de un
