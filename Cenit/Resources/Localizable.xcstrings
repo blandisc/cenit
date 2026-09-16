@@ -46725,7 +46725,7 @@
       }
     },
     "Without Apple Health," : {
-      "comment" : "Ola 2 (FER-488): hilo del veredicto en Entrenar sin Apple Salud — call-site de `hiloDelVeredicto`, el oráculo `LiquidHoyBuilder.hiloEntrenar` no se toca.",
+      "comment" : "Ola 2 (FER-488), FER-499: la palabra del hilo sin Apple Salud la dice el oráculo `LiquidHoyBuilder.hiloEntrenar`; Entrenar, el widget y el reloj la reciben tal cual.",
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
@@ -46743,7 +46743,7 @@
       }
     },
     "progression uses only your routine and what you log." : {
-      "comment" : "Ola 2 (FER-488): segunda mitad del hilo sin Apple Salud en Entrenar, junto con «Without Apple Health,».",
+      "comment" : "Ola 2 (FER-488), FER-499: segunda mitad del hilo sin Apple Salud, consejo del oráculo `LiquidHoyBuilder.hiloEntrenar` junto con «Without Apple Health,».",
       "extractionState" : "manual",
       "localizations" : {
         "en" : {

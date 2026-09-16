@@ -606,9 +606,27 @@ enum LiquidHoyBuilder {
     /// - Parameters:
     ///   - hasPlan: si hay una rutina para hoy. Sin plan, el consejo no puede prometer «tu plan de
     ///     hoy»: sería una frase sobre algo que el usuario todavía no tiene.
+    ///   - primerUsoSinPlan: la portada está en primer uso (sin sesión viva y con la semana vacía, el
+    ///     mismo predicado de `EntrenarView.esPrimerUsoSinPlan`). Solo importa sin Apple Salud: ahí el
+    ///     hilo entero calla (FER-376) en vez de competir con «Arma tu semana».
     static func hiloEntrenar(prep: Preparedness.Read?, nights: Int, healthConnected: Bool,
-                             verdictPending: Bool, hasPlan: Bool) -> HiloEntrenar? {
+                             verdictPending: Bool, hasPlan: Bool, primerUsoSinPlan: Bool) -> HiloEntrenar? {
         if prep == nil, verdictPending { return nil }
+
+        // Sin Apple Salud el oráculo habla de LA AUSENCIA, no de un veredicto que no puede sostener,
+        // y lo dice él mismo para que Entrenar, el widget y el reloj no puedan divergir (FER-499: el
+        // iPhone sustituía esta palabra en su call-site mientras el widget y el reloj publicaban
+        // «Conecta Apple Salud»; regla del oráculo único, DECISIONS 2026-09-15 §1).
+        //   · Primer uso sin plan (FER-376): la línea competiría con «Arma tu semana» y sugeriría en
+        //     falso que hace falta Salud para entrenar. El hilo entero calla.
+        //   · Con plan (FER-488, ola 2): «Sin Apple Salud, la progresión usa solo tu rutina y lo que
+        //     registras» nombra lo que falta y lo que sí funciona.
+        if !healthConnected {
+            if primerUsoSinPlan { return nil }
+            return .init(tono: .hueco,
+                         palabra: String(localized: "Without Apple Health,"),
+                         consejo: String(localized: "progression uses only your routine and what you log."))
+        }
 
         // Con veredicto Y noche anclada: la palabra del héroe, tal cual, con su consejo.
         if let prep, prep.verdict != .lowSignal, prep.isNightAnchored {
@@ -635,12 +653,9 @@ enum LiquidHoyBuilder {
                          consejo: String(localized: "no verdict without your night"))
         }
 
-        // Sin veredicto: tres razones distintas, tres frases distintas. Colapsarlas en
-        // «Conociéndote» le decía «te estoy conociendo» a quien nunca conectó Salud.
-        if !healthConnected {
-            // copy.md: «Sin permiso de Salud | `Conecta Apple Salud`» — imperativo, no infinitivo.
-            return .init(tono: .hueco, palabra: String(localized: "Conecta Apple Health"), consejo: nil)
-        }
+        // Sin veredicto y con Salud (la ausencia de Salud ya se resolvió arriba): razones distintas,
+        // frases distintas. Colapsarlas en «Conociéndote» le decía «te estoy conociendo» a quien no
+        // tiene reloj o a quien ya tiene base y hoy no hay lectura.
         if prep?.autonomicPossible == false {
             return .init(tono: .hueco, palabra: String(localized: "No reading today"),
                          consejo: String(localized: "your resting heart rate needs a watch at night"))
