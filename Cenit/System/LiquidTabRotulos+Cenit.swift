@@ -1,17 +1,17 @@
 import CenitDesign
 
-// MARK: - Los rótulos del dock, traducidos (FER-112)
+// MARK: - Los rótulos del dock, traducidos (FER-112 / FER-490)
 //
 // `CenitDesign` no tiene catálogo de cadenas, así que los títulos del dock vivían hardcodeados
 // en español dentro del paquete: la barra que acompaña TODAS las pantallas se veía en español
 // aunque el teléfono estuviera en inglés. Aquí es donde sí hay catálogo, y de aquí salen.
 //
-// Las cuatro claves ya existían y ya estaban traducidas — solo que nadie se las estaba pidiendo.
+// FER-490: tres rótulos (Entrenar · Cuerpo · Ajustes). «Body» ya traduce a «Cuerpo» en es-MX;
+// el paso 9 puede renombrar la clave de catálogo si hace falta.
 extension LiquidTabRotulos {
     static var cenit: LiquidTabRotulos {
-        .init(hoy: String(localized: "Today"),
-              tendencias: String(localized: "Trends"),
-              entrenar: String(localized: "Train"),
+        .init(entrenar: String(localized: "Train"),
+              cuerpo: String(localized: "Body"),
               // Ronda 2 #24: clave «Settings» (inglés), no el texto español «Ajustes» — esa era
               // una isla marcada `stale` en el catálogo, en riesgo de que un prune del catálogo se
               // la llevara y dejara el dock en español bajo UI inglesa. El encabezado de la propia

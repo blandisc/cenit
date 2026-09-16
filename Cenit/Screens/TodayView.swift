@@ -89,6 +89,22 @@ struct TodayView: View {
     @ObserveInjection private var inject
     @EnvironmentObject private var repo: Repository
 
+    /// Atmósfera inyectada por `CuerpoTabView` (FER-490 · fable #1). Si nil, se usa la local.
+    private let atmosferaInyectada: AtmosferaEstado?
+    /// `Binding<ScrollPosition>` boxed (iOS 18+). `Any?` evita referenciar el tipo en el piso 17.
+    private let scrollPosBox: Any?
+
+    init(atmosfera: AtmosferaEstado? = nil) {
+        self.atmosferaInyectada = atmosfera
+        self.scrollPosBox = nil
+    }
+
+    @available(iOS 18.0, *)
+    init(atmosfera: AtmosferaEstado? = nil, scrollPos: Binding<ScrollPosition>) {
+        self.atmosferaInyectada = atmosfera
+        self.scrollPosBox = scrollPos
+    }
+
     #if os(iOS)
     // iOS-only: the root app state, so the first-launch empty state's connect CTA can kick
     // off a real BLE scan (`AppModel.scan()`). macOS never renders the iOS body, so it never reads this.
@@ -147,11 +163,10 @@ struct TodayView: View {
     @State private var señalesSeparadas = false
     /// FER-432 · contador que pide al Ecosistema el mismo separar/unir que el tap del lienzo.
     @State private var ecosistemaPedido = 0
-    /// El fondo de Hoy en atmósfera (FER-118): lo que la pantalla le empuja al polvo de Metal
-    /// —el desplazamiento del scroll para el parallax y si la pestaña está a la vista— SIN que
-    /// esta vista se recomponga por cada cuadro de scroll: `body` solo pasa el objeto; quien lee
-    /// `desplazamiento` es `LiquidAtmosfera`.
-    @State private var atmosfera = AtmosferaEstado()
+    /// El fondo de Hoy en atmósfera (FER-118). Local por defecto; `CuerpoTabView` inyecta la suya
+    /// para que el reloj del polvo sobreviva Ahora↔Tiempo (FER-490 · fable #1).
+    @State private var atmosferaLocal = AtmosferaEstado()
+    private var atmosfera: AtmosferaEstado { atmosferaInyectada ?? atmosferaLocal }
     /// Tras cuántas separaciones acumuladas se retira el hint «Toca para separar».
     private static let maxSeparacionHints = 3
 
@@ -879,7 +894,14 @@ struct TodayView: View {
         if #available(iOS 18.0, *) {
             // iOS 18+: lee el `contentOffset` real del scroll. En reposo `contentOffset.y == -contentInsets.top`,
             // así que `-(offset.y + insets.top)` es 0 en el tope y POSITIVO al jalar hacia abajo (overscroll).
-            scroll.onScrollGeometryChange(for: CGFloat.self) { geometry in
+            // FER-490: restaura el offset por modo cuando `CuerpoTabView` inyecta el binding.
+            let positioned: AnyView = {
+                if let binding = scrollPosBox as? Binding<ScrollPosition> {
+                    return AnyView(scroll.scrollPosition(binding))
+                }
+                return AnyView(scroll)
+            }()
+            positioned.onScrollGeometryChange(for: CGFloat.self) { geometry in
                 -(geometry.contentOffset.y + geometry.contentInsets.top)
             } action: { _, pull in
                 handlePullOffset(pull)
