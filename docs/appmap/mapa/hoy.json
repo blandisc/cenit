@@ -1,8 +1,8 @@
 {
   "familia": "hoy",
-  "titulo": "Hoy · TodayView",
+  "titulo": "Cuerpo · Ahora (ex-Hoy · TodayView)",
   "unidad": "estados",
-  "blurb": "El hub principal. El héroe nunca miente: numeral a color con veredicto, «··» calibrando, barra gris sin lectura, tinta cuando hay número sin contexto.",
+  "blurb": "Modo Ahora de la pestaña Cuerpo (FER-490). El héroe nunca miente: palabra compacta del veredicto (mismo oráculo que Entrenar), «··» calibrando, barra gris sin lectura, tinta cuando hay número sin contexto. El ritual del orbe (separar/unir) ya no existe.",
   "nodos": [
     {
       "id": "vacio",
