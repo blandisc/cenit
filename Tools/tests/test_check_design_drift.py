@@ -317,12 +317,156 @@ class Fer271CommentGaps(unittest.TestCase):
             self.assertEqual([i for _p, i, _r, _s in drift.check([src], ["no-capsule-a-mano"])], [1])
 
 
+
+
+class AntiEvasionRules(unittest.TestCase):
+    """FER-276 — las 3 reglas del colador del censo."""
+
+    def test_raw_color_positivos_y_negativos(self):
+        for line in ["Color.white", "Color.black", "Color(red: 0.1, green: 0.2, blue: 0.3)",
+                     ".foregroundStyle(.white)"]:
+            self.assertTrue(drift.RE_RAW_COLOR.search(line), line)
+        for line in ["LiquidColor.lienzo", "Color.clear", ".foregroundStyle(.primary)",
+                     "Color.whiteish"]:
+            self.assertFalse(drift.RE_RAW_COLOR.search(line), line)
+
+    def test_edgeinsets_y_aritmetica_de_token(self):
+        self.assertTrue(drift.RE_EDGEINSETS.search("EdgeInsets(top: 16, leading: 10)"))
+        self.assertFalse(drift.RE_EDGEINSETS.search("EdgeInsets(top: CenitMetrics.a, leading: M.b)"))
+        self.assertTrue(drift.RE_TOKEN_ARITH.search(".padding(.top, CenitMetrics.space1 + 2)"))
+        self.assertTrue(drift.RE_TOKEN_ARITH.search("LiquidSpace.s400 - 4"))
+        self.assertFalse(drift.RE_TOKEN_ARITH.search(".padding(CenitMetrics.space1)"))
+
+    def test_carve_outs_de_las_tres(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            w = _swift(tmp, "CenitWidgets/X.swift", ["Color.white", "EdgeInsets(top: 1, leading: 2)",
+                                                     "WidgetMetrics.hero + 2"])
+            pkg = _swift(tmp, "Packages/CenitDesign/Sources/CenitDesign/Y.swift",
+                         ["Color(red: 0.1, green: 0.2, blue: 0.3)", "LiquidSpace.s400 + 8"])
+            rules = ["no-raw-color", "no-edgeinsets-literal", "no-token-arithmetic"]
+            self.assertEqual(drift.check([w], rules), [], "Widgets/Watch: geometría de sistema")
+            self.assertEqual([h for h in drift.check([pkg], rules) if h[2] != "no-edgeinsets-literal"],
+                             [], "el paquete define colores y compone su escala legítimamente")
+
+
+class Fase3Rules(unittest.TestCase):
+    """FER-269 — movimiento y oráculo de Dynamic Type."""
+
+    def test_motion_positivos_y_negativos(self):
+        for line in ["Animation.easeInOut(0.3)", ".easeOut(duration: 0.15)",
+                     ".spring(response: 0.4, dampingFraction: 0.8)"]:
+            self.assertTrue(drift.RE_MOTION.search(line), line)
+        for line in ["LiquidMotion.soft", ".animation(LiquidMotion.ambient(LiquidMotion.brief))",
+                     ".spring()", ".easeInOut"]:
+            self.assertFalse(drift.RE_MOTION.search(line), line)
+
+    def test_dt_solo_el_cap_bendecido(self):
+        self.assertTrue(drift.RE_DT_CAP.search(".dynamicTypeSize(.accessibility3)"))
+        self.assertTrue(drift.RE_DT_CAP.search(".dynamicTypeSize(...DynamicTypeSize.large)"))
+        self.assertFalse(drift.RE_DT_CAP.search(".dynamicTypeSize(.accessibility5)"))
+
+
+class DefaultRootsByRule(unittest.TestCase):
+    """FER-282 — sin roots CLI, cada regla usa la matriz del workflow (no la lista plana vieja)."""
+
+    def test_bare_run_does_not_scan_widgets_for_spacing(self):
+        # no-spacing-literal en CI nunca recibe CenitWidgets; un hit ahí no debe salir en
+        # la corrida default (antes DEFAULT_ROOTS plano lo pintaba de rojo).
+        with tempfile.TemporaryDirectory() as tmp:
+            cwd = os.getcwd()
+            try:
+                os.chdir(tmp)
+                _swift(tmp, "CenitWidgets/RestLiveActivity.swift", ["VStack(spacing: 14) {}"])
+                _swift(tmp, "Cenit/Screens/Clean.swift", ["Text(\"hola\")"])
+                # Empty baseline so any hit fails.
+                baseline = os.path.join(tmp, "baseline.json")
+                with open(baseline, "w", encoding="utf-8") as fh:
+                    json.dump({}, fh)
+                rc = drift.main(["--rules", "no-spacing-literal", "--baseline", baseline])
+                self.assertEqual(rc, 0, "CenitWidgets no está en los roots default de no-spacing-literal")
+            finally:
+                os.chdir(cwd)
+
+    def test_bare_run_does_not_scan_app_for_emdash(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cwd = os.getcwd()
+            try:
+                os.chdir(tmp)
+                _swift(tmp, "Cenit/App/X.swift", ['Text("foo — bar")'])
+                _swift(tmp, "Cenit/Screens/Clean.swift", ["Text(\"hola\")"])
+                baseline = os.path.join(tmp, "baseline.json")
+                with open(baseline, "w", encoding="utf-8") as fh:
+                    json.dump({}, fh)
+                rc = drift.main(["--rules", "no-emdash-string", "--baseline", baseline])
+                self.assertEqual(rc, 0, "Cenit/App no está en los roots default de no-emdash-string")
+            finally:
+                os.chdir(cwd)
+
+    def test_explicit_roots_still_apply_to_all_requested_rules(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            src = _swift(tmp, "CenitWidgets/X.swift", [
+                "VStack(spacing: 14) {}",
+                'Text("foo — bar")',
+            ])
+            hits = drift.check([src], ["no-spacing-literal", "no-emdash-string"])
+            # check() itself doesn't know about DEFAULT_ROOTS_BY_RULE — explicit paths win.
+            rules = sorted({r for _p, _i, r, _s in hits})
+            self.assertEqual(rules, ["no-emdash-string", "no-spacing-literal"])
+            # And main() with explicit roots applies them to every rule in the invocation.
+            cwd = os.getcwd()
+            try:
+                os.chdir(tmp)
+                baseline = os.path.join(tmp, "baseline.json")
+                with open(baseline, "w", encoding="utf-8") as fh:
+                    json.dump({}, fh)
+                rc = drift.main([
+                    "--rules", "no-spacing-literal,no-emdash-string",
+                    "--baseline", baseline,
+                    "CenitWidgets",
+                ])
+                self.assertEqual(rc, 1, "roots explícitos cubren todas las rules de la invocación")
+            finally:
+                os.chdir(cwd)
+
+    def test_pieza_reinventada_capsula_confirm_menu(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            src = _swift(tmp, "Cenit/Screens/P.swift", [
+                ".background(Capsule().fill(LiquidColor.tinta10))",           # 1 inline
+                "Capsule()",                                                    # 2 partida → hit en esta línea
+                "    .fill(LiquidColor.verdePrimario)",
+                "Capsule()   // token-exempt(dato): track de progreso",         # 4 exenta
+                "    .fill(LiquidColor.tinta10)",
+                "Capsule()",                                                    # 6 exenta por el modifier
+                "    .fill(LiquidColor.tinta10)   // token-exempt(dato): track",
+                "Capsule(style: .continuous)",                                  # 8 esquive: cuenta igual
+                "    .fill(LiquidColor.tinta10)",
+                ".confirmationDialog(\"x\", isPresented: $a) {}",              # 10
+                "Menu { Text(\"a\") }",                                       # 11
+                ".liquidMenu(items) {}",                                        # no
+                "LiquidMenu(items)",                                            # no
+            ])
+            caps = drift.check([src], ["no-capsule-a-mano"])
+            self.assertEqual([i for _p, i, _r, _s in caps], [1, 2, 8])
+            self.assertEqual([i for _p, i, _r, _s in drift.check([src], ["no-confirmation-dialog"])], [10])
+            self.assertEqual([i for _p, i, _r, _s in drift.check([src], ["no-native-menu"])], [11])
+
+    def test_native_material_solo_en_recetas(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            src = _swift(tmp, "Cenit/Screens/M.swift", [".background(.ultraThinMaterial)", ".liquidGlass(.lente)"])
+            pkg = _swift(tmp, "Packages/CenitDesign/Sources/CenitDesign/ConfirmCard.swift", [".background(.regularMaterial)"])
+            rec = _swift(tmp, "Packages/CenitDesign/Sources/CenitDesign/LiquidGlass/LiquidGlassRecipes.swift", [".background(.ultraThinMaterial)"])
+            hits = drift.check([src, pkg, rec], ["no-native-material"])
+            self.assertEqual(sorted(os.path.basename(p) for p, _i, _r, _s in hits), ["ConfirmCard.swift", "M.swift"])
+
+
 class UniqueKeysDictionary(unittest.TestCase):
     """FER-502 — `Dictionary(uniqueKeysWithValues:)` en Screens trapea con una clave repetida."""
 
-    def test_pattern_matches_only_the_trapping_initializer(self):
+    def test_pattern_matches_and_evasions(self):
         for line in ["let m = Dictionary(uniqueKeysWithValues: xs.map { ($0.day, $0) })",
-                     "        byDay = Dictionary(uniqueKeysWithValues:"]:
+                     "        byDay = Dictionary(uniqueKeysWithValues:",
+                     "let m = Dictionary (uniqueKeysWithValues: xs)",
+                     "let m = Dictionary.init(uniqueKeysWithValues: xs)"]:
             self.assertTrue(drift.RE_UNIQUE_KEYS_DICT.search(line), line)
         for line in ["Dictionary(xs.map { ($0.day, $0) }, uniquingKeysWith: { a, _ in a })",
                      "let d: [Int: Int] = [:]"]:
@@ -335,6 +479,11 @@ class UniqueKeysDictionary(unittest.TestCase):
                 "let b = Dictionary(uniqueKeysWithValues: ys) // token-exempt(unico): índices de enumerated()",
             ])
             self.assertEqual([i for _p, i, _r, _s in drift.check([src], ["no-unique-keys-dictionary"])], [1])
+
+    def test_data_root_also_guarded(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            src = _swift(tmp, "Cenit/Data/S.swift", ["let a = Dictionary(uniqueKeysWithValues: xs)"])
+            self.assertEqual(len(drift.check([src], ["no-unique-keys-dictionary"])), 1)
 
 
 if __name__ == "__main__":

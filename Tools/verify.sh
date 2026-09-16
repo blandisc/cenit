@@ -72,7 +72,7 @@ run_lint() {
         --baseline Tools/design-drift-baseline.json Cenit/Screens Cenit/Onboarding Cenit/System Cenit/App CenitApp || ok=1
       python3 Tools/check-design-drift.py --rules no-unsafe-int-cast \
         --baseline Tools/design-drift-baseline.json Cenit/Screens Cenit/Data || ok=1
-      python3 Tools/check-design-drift.py --rules no-unique-keys-dictionary Cenit/Screens || ok=1
+      python3 Tools/check-design-drift.py --rules no-unique-keys-dictionary Cenit/Screens Cenit/Data || ok=1
       python3 Tools/check-design-drift.py --rules no-dt-cap-adhoc Cenit/Screens Cenit/Onboarding Cenit/System Cenit/App Cenit/Data Cenit/LiveActivity Cenit/Media CenitWidgets CenitWatch CenitApp || ok=1
       python3 Tools/check-design-drift.py --rules no-legacy-api \
         --baseline Tools/design-drift-baseline.json Cenit/Screens Cenit/Onboarding Cenit/System Cenit/App Cenit/Data Cenit/LiveActivity Cenit/Media CenitApp CenitWidgets CenitWatch || ok=1

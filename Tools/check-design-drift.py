@@ -104,7 +104,7 @@ DEFAULT_ROOTS_BY_RULE = {
     "no-forced-light": ["Cenit/Screens", "Cenit/Onboarding", "Cenit/System", "Cenit/App", "CenitApp"],
     "no-native-material": list(_ROOTS_SPACING_MOTION) + ["Packages/CenitDesign/Sources"],
     "no-unsafe-int-cast": ["Cenit/Screens", "Cenit/Data"],
-    "no-unique-keys-dictionary": ["Cenit/Screens"],
+    "no-unique-keys-dictionary": ["Cenit/Screens", "Cenit/Data"],
 }
 # no-emdash-string: an em-dash (—, U+2014) inside a user-facing Swift string literal. ADN copy rule
 # (FER-878): on-screen copy uses «:», «·» or a comma, never an em-dash. Scoped to STRING LITERALS so the
@@ -305,7 +305,7 @@ RE_UNSAFE_INT_CAST = re.compile(r"\bInt\(.*\.rounded\(\)\)")
 # clave — un día repetido en el historial (re-bucket UTC↔local) tumbaba Hoy al abrir. `Dictionary(_:uniquingKeysWith:)`
 # resuelve la colisión (se queda con una), no crashea. Un mapa con claves provablemente únicas (un `enumerated()`
 # de índices) marca `// token-exempt(unico): <razón>`.
-RE_UNIQUE_KEYS_DICT = re.compile(r"\bDictionary\(uniqueKeysWithValues:")
+RE_UNIQUE_KEYS_DICT = re.compile(r"\bDictionary\s*(?:\.init)?\s*\(\s*uniqueKeysWithValues\s*:")
 
 RULE_PATTERNS = {
     "no-hex": RE_HEX,

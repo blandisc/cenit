@@ -57,10 +57,6 @@ struct WeeklyPlanEditorView: View {
     /// Days since each routine was last trained (`routineId → whole days`), for the «hace N d» column.
     @State private var lastTrainedDays: [String: Int] = [:]
     @State private var showBuilder = false
-    /// FER-502: igual que en `EntrenarView`: la rutina recién creada se abre cuando la biblioteca YA
-    /// desapareció (estado), no tras un reloj de 550 ms.
-    @State private var bibliotecaVisible = false
-    @State private var rutinaPendienteDeAbrir: String?
     @State private var showTemplates = false
     @State private var showImport = false
     @State private var swipedRoutineId: String? = nil
@@ -169,11 +165,6 @@ struct WeeklyPlanEditorView: View {
         // the picks creates the routine on the spot and lands on the unified «Rutina» editor.
         .navigationDestination(isPresented: $showBuilder) {
             ExerciseLibraryScreen(createFlow: true) { picks in createRoutine(picks) }
-                .onAppear { bibliotecaVisible = true }
-                .onDisappear {
-                    bibliotecaVisible = false
-                    if let id = rutinaPendienteDeAbrir { rutinaPendienteDeAbrir = nil; openRoutine(id) }
-                }
         }
         .sheet(isPresented: $showTemplates) {
             StarterTemplatesSheet { await load() }
@@ -1213,8 +1204,10 @@ struct WeeklyPlanEditorView: View {
                 await load()
                 // FER-952 glitch: the library pops itself (dismiss) the moment onAdd returns — pushing the
                 // editor DURING that pop stacked transitions and the new screen flashed in and out
-                // (FER-171 lesson). FER-502: se espera a que la biblioteca DESAPAREZCA (estado), no 550 ms.
-                if bibliotecaVisible { rutinaPendienteDeAbrir = r.id } else { openRoutine(r.id) }
+                // (FER-171 lesson). Let the pop settle, then push. (FER-502 kept the sleep: `dismiss`
+                // fires before the async save finishes, so a state gate would push with no id yet.)
+                try? await Task.sleep(nanoseconds: 550_000_000)
+                openRoutine(r.id)
             } catch {
                 saveError = true
             }

@@ -37,8 +37,13 @@ final class HealthKitBridge: ObservableObject {
     @Published private(set) var lastSync: Date?
     @Published private(set) var syncing = false
     /// FER-502: la corrida de `sync` en vuelo, para que un segundo `sync` la ESPERE en vez de salir con
-    /// `[]` al instante. `nil` = ninguna corriendo.
+    /// `[]` al instante. `nil` = ninguna corriendo. `enVueloDays` = la ventana que trae; un llamador que
+    /// pide MÁS días no se conforma con ella (el onboarding pide 180 y no puede quedarse con los 30 del
+    /// foreground — revisión adversarial FER-502). `enVueloToken` sella la limpieza: solo la corrida
+    /// vigente pone `nil`, nunca una que ya fue reemplazada.
     private var syncEnVuelo: Task<Set<String>, Never>?
+    private var enVueloDays = 0
+    private var enVueloToken = 0
     /// El último fallo de `sync`, o `nil` tras una corrida buena. La UI se ata aquí para que un
     /// permiso revocado, una cuota de HealthKit o una muestra inválida se vean, en vez de perderse
     /// en silencio.
@@ -310,16 +315,24 @@ final class HealthKitBridge: ObservableObject {
         guard auth == .authorized else { return [] }
         // FER-502 (auditoría C4): una corrida ya en vuelo se ESPERA, no se esquiva. Antes el segundo `sync`
         // salía con `[]` al instante, y quien llamaba (el onboarding al volver de la app Salud,
-        // `reintentar()`) leía «nada me llegó» con el permiso ya dado, mientras el sync de foreground
-        // seguía escribiendo. Una sola corrida a la vez; quien llegue durante el vuelo recibe SU resultado.
-        if let enVuelo = syncEnVuelo { return await enVuelo.value }
+        // `reintentar()` con days:180) leía «nada me llegó» con el permiso ya dado, mientras el sync de
+        // foreground escribía. Una sola corrida a la vez:
+        //   · en vuelo que cubre al menos estos días → únete a ella (su resultado es superconjunto);
+        //   · en vuelo MÁS CHICA → espérala (no dos jalones de HealthKit a la vez) y luego corre la tuya,
+        //     más ancha, para que la historia larga del onboarding SÍ entre (revisión adversarial #1).
+        if let enVuelo = syncEnVuelo, enVueloDays >= days { return await enVuelo.value }
+        if let enVuelo = syncEnVuelo { _ = await enVuelo.value }
+        let token = enVueloToken &+ 1
+        enVueloToken = token
         let corrida = Task { [self] () -> Set<String> in
-            let escritas = await self.syncCorrida(days: days, trigger: trigger)
-            self.syncEnVuelo = nil
-            return escritas
+            await self.syncCorrida(days: days, trigger: trigger)
         }
         syncEnVuelo = corrida
-        return await corrida.value
+        enVueloDays = days
+        let escritas = await corrida.value
+        // Solo la corrida vigente limpia; si otra más ancha ya la reemplazó, no la pises.
+        if enVueloToken == token { syncEnVuelo = nil; enVueloDays = 0 }
+        return escritas
     }
 
     /// El cuerpo de una corrida. Solo `sync(days:trigger:)` lo llama, y nunca dos a la vez.
