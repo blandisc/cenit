@@ -133,21 +133,26 @@ struct HoyMatrizHost: View {
     }
 
     /// Franja «Pending sync» con verbo + chevron: misma acción que el jalón (FER-432 tip 5).
+    /// A AX grande el verbo se aplasta contra el chevron; `ViewThatFits` apila en vez de eso
+    /// (mismo patrón que `AyudaScreen.puertasFila`).
     private func franjaSinSyncTocable(_ texto: String) -> some View {
         Button(action: onTapSincronizar) {
-            HStack(alignment: .firstTextBaseline, spacing: LiquidSpace.s150) {
-                Text(texto)
-                    .font(LiquidType.cuerpoBanner)
-                    .foregroundStyle(LiquidColor.tinta500)
-                    .multilineTextAlignment(.leading)
-                Spacer(minLength: LiquidSpace.s100)
-                Text(String(localized: "tip.hoy.sincronizar.boton",
-                             defaultValue: "Sync"))
-                    .font(LiquidType.boton)
-                    .foregroundStyle(LiquidColor.tinta700)
-                Image(systemName: "chevron.down")
-                    .font(LiquidType.iconSF(size: 12).weight(.semibold))
-                    .foregroundStyle(LiquidColor.tinta500)
+            ViewThatFits(in: .horizontal) {
+                HStack(alignment: .firstTextBaseline, spacing: LiquidSpace.s150) {
+                    Text(texto)
+                        .font(LiquidType.cuerpoBanner)
+                        .foregroundStyle(LiquidColor.tinta500)
+                        .multilineTextAlignment(.leading)
+                    Spacer(minLength: LiquidSpace.s100)
+                    franjaSinSyncVerbo
+                }
+                VStack(alignment: .leading, spacing: LiquidSpace.s100) {
+                    Text(texto)
+                        .font(LiquidType.cuerpoBanner)
+                        .foregroundStyle(LiquidColor.tinta500)
+                        .multilineTextAlignment(.leading)
+                    franjaSinSyncVerbo
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
@@ -157,6 +162,18 @@ struct HoyMatrizHost: View {
         .accessibilityHint(Text(String(localized: "tip.hoy.sincronizar.gesto",
                                        defaultValue: "Pull down from the top to sync with Apple Health")))
         .accessibilityIdentifier("hoy-estado-copy")
+    }
+
+    private var franjaSinSyncVerbo: some View {
+        HStack(spacing: LiquidSpace.s150) {
+            Text(String(localized: "tip.hoy.sincronizar.boton",
+                         defaultValue: "Sync"))
+                .font(LiquidType.boton)
+                .foregroundStyle(LiquidColor.tinta700)
+            Image(systemName: "chevron.down")
+                .font(LiquidType.iconSF(size: 12).weight(.semibold))
+                .foregroundStyle(LiquidColor.tinta500)
+        }
     }
 
     /// El aviso de Salud desconectada (con veredicto en caché) es el ÚNICO estado que resalta:

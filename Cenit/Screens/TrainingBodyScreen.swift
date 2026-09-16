@@ -65,6 +65,10 @@ struct TrainingBodyScreen: View {
     /// FER-470: idem — la columna del nombre de músculo (ancho fijo 96) se truncaba a Dynamic Type
     /// grande. Escala con el texto; ancho exacto para que las filas alineen su filo.
     @ScaledMetric(relativeTo: .body) private var muscleNameColWidth: CGFloat = 96
+    /// FER-501: la columna del numeral trailing (`.frame(minWidth:)` en `volumeRow`) — mismo criterio
+    /// que `muscleNameColWidth`, `relativeTo` del propio `filaConteoNumero` (`.caption`), para que
+    /// `volumeRailAxisMarks` pueda alinear sus ticks contra el MISMO ancho que la fila real usa.
+    @ScaledMetric(relativeTo: .caption) private var volumeNumeralColWidth: CGFloat = 34
 
     /// All completed work sets in the trailing 84 days, expanded to per-muscle events (one fetch). The
     /// decay carries recency (no window, FER-719); the detail's weekly trend buckets the whole span.
@@ -721,7 +725,7 @@ struct TrainingBodyScreen: View {
                 .font(LiquidType.filaConteoNumero)
                 .fontWeight(below ? .semibold : .regular)
                 .foregroundStyle(below ? LiquidColor.atencionTexto : LiquidColor.tinta900)
-                .frame(minWidth: 34, alignment: .trailing)
+                .frame(minWidth: volumeNumeralColWidth, alignment: .trailing)
         }
         .frame(minHeight: 46)
         .accessibilityElement(children: .ignore)
@@ -738,12 +742,14 @@ struct TrainingBodyScreen: View {
     }
 
     // Rail axis marks — 0 / railTop/3 / 2·railTop/3 / railTop, under the bars only. Tick labels
-    // aligned to the flexible rail column (same 96 + 12 + rail + 12 + 34 layout as `volumeRow`).
+    // aligned to the flexible rail column (same muscleNameColWidth + 12 + rail + 12 + volumeNumeralColWidth
+    // layout as `volumeRow` — FER-501: los placeholders eran 96/34 FIJOS mientras la fila real ya
+    // escalaba (FER-470), y los ticks se desalineaban del riel a Dynamic Type grande).
     private var volumeRailAxisMarks: some View {
         // Derived from `railTop` so a future band-rail change keeps the ticks honest (today 0 / 10 / 20 / 30).
         let marks: [Double] = [0, railTop / 3, 2 * railTop / 3, railTop]
         return HStack(spacing: LiquidSpace.s300) {
-            Color.clear.frame(width: 96)
+            Color.clear.frame(width: muscleNameColWidth)
             GeometryReader { geo in
                 let w = geo.size.width
                 let h = geo.size.height
@@ -766,7 +772,7 @@ struct TrainingBodyScreen: View {
                 }
             }
             .frame(height: 14)
-            Color.clear.frame(width: 34)
+            Color.clear.frame(width: volumeNumeralColWidth)
         }
         .accessibilityHidden(true)
     }

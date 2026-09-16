@@ -539,7 +539,10 @@ private struct WatchStandaloneWorkingPage: View {
             WatchHaptic.actionTapped.play()
             action()
         } label: {
-            Text(title).font(LiquidType.pie).frame(maxWidth: .infinity, minHeight: LiquidControl.hitTarget)
+            Text(title).font(LiquidType.pie)
+                // FER-501: «Saltar descanso» truncaba en 40/41 mm — mismo par que RestLiveActivity.
+                .lineLimit(1).minimumScaleFactor(0.7)
+                .frame(maxWidth: .infinity, minHeight: LiquidControl.hitTarget)
         }
         // token-exempt(sistema): control nativo watchOS
         .buttonStyle(.bordered)
