@@ -117,7 +117,7 @@ private enum ComparePairing {
 
     /// Re-adjunta cada corrida a sus series (color y descriptor) por id.
     static func attach(_ scans: [PairScan], to series: [OverlaidMetric]) -> [PairedMetrics] {
-        let porId = Dictionary(uniqueKeysWithValues: series.map { ($0.id, $0) })
+        let porId = Dictionary(series.map { ($0.id, $0) }, uniquingKeysWith: { primero, _ in primero })
         return scans.compactMap { scan in
             guard let a = porId[scan.aId], let b = porId[scan.bId] else { return nil }
             return PairedMetrics(id: "\(scan.aId)~\(scan.bId)", a: a, b: b, r: scan.r, n: scan.n)
@@ -728,7 +728,7 @@ private struct CompareOverlay: View {
                 // cuarta escala en un plot que ya comparte tres.
                 dominio: s.lowest...s.highest)
         }
-        self.descriptorById = Dictionary(uniqueKeysWithValues: series.map { ($0.id, $0.descriptor) })
+        self.descriptorById = Dictionary(series.map { ($0.id, $0.descriptor) }, uniquingKeysWith: { primero, _ in primero })
         let fechas = series.flatMap { $0.window.compactMap { compareDate($0.day) } }
         let desde = fechas.min() ?? Date()
         let hasta = fechas.max() ?? Date()

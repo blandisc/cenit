@@ -48,7 +48,11 @@ struct AyudaScreen: View {
                 }
         }
         // El «?» de una pestaña entra directo a su sección; Ajustes abre en el índice.
-        .onAppear { if let inicial, path.isEmpty { path = [inicial] } }
+        .onAppear {
+            if let inicial, path.isEmpty { path = [inicial] }
+            tabRouter.ayudaPresentada = true   // FER-502: Hoy pausa el ambiente y espera esta hoja por estado
+        }
+        .onDisappear { tabRouter.ayudaPresentada = false }
         // Las tres puertas de contenido viven como HOJAS (no push): el `path` solo lleva `Pestana`,
         // así que el taller —que no es una pestaña— se presenta como sheet, no como destino tipado.
         .sheet(isPresented: $showTaller) {

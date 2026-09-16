@@ -33,6 +33,12 @@ final class TabRouter: ObservableObject {
     /// by Today). Consumed (reset to false) by `TodayView`; set by `AyudaScreen`.
     @Published var abrirGuardian = false
 
+    /// FER-502: la hoja «Cómo funciona Cénit» (`AyudaScreen`) está presentada, desde CUALQUIER pestaña.
+    /// La marca la propia hoja (`onAppear`/`onDisappear`). Hoy la lee para pausar el ambiente que nadie
+    /// está viendo (FER-73 M8) y para abrir la puerta pedida desde Ayuda (`abrirActa`/`abrirGuardian`)
+    /// cuando la hoja YA se fue, en vez de adivinarlo con un reloj de 500 ms.
+    @Published var ayudaPresentada = false
+
     func select(_ tab: Tab) { requested = tab }
 
     /// Switch to «Entrenar» and ask it to push the fatigue map (the strength summary's «Ver mapa»).

@@ -313,9 +313,9 @@ struct ReceiptPrinterScreen: View {
         )
 
         let all = await model.repo.allExercises()
-        let exerciseNames = Dictionary(uniqueKeysWithValues: all.map {
+        let exerciseNames = Dictionary(all.map {
             ($0.id, StrengthDisplay.name($0))
-        })
+        }, uniquingKeysWith: { primero, _ in primero })
 
         // HRR window — same pattern as WorkoutDetailScreen.loadHRR (no personal baseline).
         let pad = HeartRateRecovery.horizonS + 2 * HeartRateRecovery.anchorHalfWidthS

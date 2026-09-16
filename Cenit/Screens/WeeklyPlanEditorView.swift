@@ -1204,7 +1204,8 @@ struct WeeklyPlanEditorView: View {
                 await load()
                 // FER-952 glitch: the library pops itself (dismiss) the moment onAdd returns — pushing the
                 // editor DURING that pop stacked transitions and the new screen flashed in and out
-                // (FER-171 lesson). Let the pop settle, then push.
+                // (FER-171 lesson). Let the pop settle, then push. (FER-502 kept the sleep: `dismiss`
+                // fires before the async save finishes, so a state gate would push with no id yet.)
                 try? await Task.sleep(nanoseconds: 550_000_000)
                 openRoutine(r.id)
             } catch {
@@ -1264,7 +1265,7 @@ struct WeeklyPlanEditorView: View {
             guard let ex = byId[re.exerciseId] else { continue }
             for m in ex.primaryMuscles { if tally[m] == nil { order.append(m) }; tally[m, default: 0] += 1 }
         }
-        let idx = Dictionary(uniqueKeysWithValues: order.enumerated().map { ($1, $0) })
+        let idx = Dictionary(order.enumerated().map { ($1, $0) }, uniquingKeysWith: { primero, _ in primero })
         return order.sorted { let a = tally[$0] ?? 0, b = tally[$1] ?? 0
             return a != b ? a > b : (idx[$0] ?? 0) < (idx[$1] ?? 0) }
             .prefix(3).map { MuscleVocabulary.es[$0] ?? $0.capitalized }

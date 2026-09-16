@@ -1515,6 +1515,11 @@ private struct EntrenarLanding: View {
             do {
                 try await repo.saveRoutine(r, exercises: exercises)
                 await load()
+                // La biblioteca hace su propio pop (`dismiss`) al devolver los picks; empujar el editor
+                // DURANTE ese pop apila transiciones y parpadea (FER-952/FER-171). Un respiro deja que el
+                // pop asiente antes de empujar. (FER-502 probó cambiarlo a espera-por-estado, pero el
+                // `dismiss` ocurre ANTES de que termine el save async, así que el `onDisappear` corría con
+                // la rutina aún sin id — la revisión adversarial lo rebotó; el reloj se conserva.)
                 try? await Task.sleep(nanoseconds: 550_000_000)
                 openRoutine(r.id)
             } catch {
@@ -1871,7 +1876,7 @@ private struct EntrenarLanding: View {
                 tally[m, default: 0] += 1
             }
         }
-        let idx = Dictionary(uniqueKeysWithValues: order.enumerated().map { ($1, $0) })
+        let idx = Dictionary(order.enumerated().map { ($1, $0) }, uniquingKeysWith: { primero, _ in primero })
         let top = order.sorted {
             let a = tally[$0] ?? 0, b = tally[$1] ?? 0
             return a != b ? a > b : (idx[$0] ?? 0) < (idx[$1] ?? 0)

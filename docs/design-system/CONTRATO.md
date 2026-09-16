@@ -126,6 +126,7 @@ Tabla humana (resumen) — la verdad máquina-legible es el bloque JSON de abajo
 | no-adhoc-font / no-radius-literal / no-opacity-literal (trinquete) | árbol 5 raíces | árbol 5 raíces | árbol 5 raíces |
 | no-emdash-string | staged Screens+Onboarding | changed Screens+Onboarding | árbol Screens+Onboarding |
 | no-unsafe-int-cast (`Int(x.rounded())` a la medida en display; ratchet, FER-466) | árbol Screens+Data + baseline | idem | idem |
+| no-unique-keys-dictionary (`Dictionary(uniqueKeysWithValues:)`; puro, FER-502) | árbol Screens+Data | idem | idem |
 | no-raw-shadow | staged Screens | changed Screens | árbol Screens |
 | no-sheet-glass | staged (todos)¹ | changed (todos)¹ | árbol CenitDesign+Cenit+CenitApp+CenitShared+CenitWidgets |
 | no-spacing-literal (trinquete) | árbol 5 raíces | árbol 5 raíces | árbol 5 raíces |
@@ -185,7 +186,8 @@ raíces explícitas donde vive el defecto (incluye el paquete, excluye CenitWatc
     "no-native-material":     {"pre-commit": "tree:material", "verify-quick": "tree:material", "design-lint": "tree:material"},
     "no-raw-contrast":        {"pre-commit": "tree:material", "verify-quick": "tree:material", "design-lint": "tree:material"},
     "no-forced-light":        {"pre-commit": "tree:spacing", "verify-quick": "tree:spacing", "design-lint": "tree:spacing"},
-    "no-unsafe-int-cast":     {"pre-commit": "tree:int_display+baseline", "verify-quick": "tree:int_display+baseline", "design-lint": "tree:int_display+baseline"}
+    "no-unsafe-int-cast":     {"pre-commit": "tree:int_display+baseline", "verify-quick": "tree:int_display+baseline", "design-lint": "tree:int_display+baseline"},
+    "no-unique-keys-dictionary": {"pre-commit": "tree:Cenit/Screens Cenit/Data", "verify-quick": "tree:Cenit/Screens Cenit/Data", "design-lint": "tree:Cenit/Screens Cenit/Data"}
   }
 }
 ```

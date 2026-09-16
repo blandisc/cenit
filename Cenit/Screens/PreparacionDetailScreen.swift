@@ -480,8 +480,7 @@ struct PreparacionDetalleModelo {
         // construyen 30 claves de calendario densas y se busca cada una por diccionario. Pasar la
         // serie cruda dibujaría dos noches separadas por una semana como vecinas, y VoiceOver
         // diría «8 de 22» sobre una ventana de 30.
-        let porDia = Dictionary(uniqueKeysWithValues:
-            (prep?.verdictHistory ?? []).map { ($0.day, $0) })
+        let porDia = Dictionary((prep?.verdictHistory ?? []).map { ($0.day, $0) }, uniquingKeysWith: { _, ultimo in ultimo })
         let claves = dayKeys(endingAt: asOf, calendar: calendario, count: ventana)
         let fmtDia = DateFormatter()
         fmtDia.calendar = calendario

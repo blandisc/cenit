@@ -316,8 +316,7 @@ class Fer271CommentGaps(unittest.TestCase):
             ])
             self.assertEqual([i for _p, i, _r, _s in drift.check([src], ["no-capsule-a-mano"])], [1])
 
-if __name__ == "__main__":
-    unittest.main()
+
 
 
 class AntiEvasionRules(unittest.TestCase):
@@ -459,3 +458,33 @@ class DefaultRootsByRule(unittest.TestCase):
             hits = drift.check([src, pkg, rec], ["no-native-material"])
             self.assertEqual(sorted(os.path.basename(p) for p, _i, _r, _s in hits), ["ConfirmCard.swift", "M.swift"])
 
+
+class UniqueKeysDictionary(unittest.TestCase):
+    """FER-502 — `Dictionary(uniqueKeysWithValues:)` en Screens trapea con una clave repetida."""
+
+    def test_pattern_matches_and_evasions(self):
+        for line in ["let m = Dictionary(uniqueKeysWithValues: xs.map { ($0.day, $0) })",
+                     "        byDay = Dictionary(uniqueKeysWithValues:",
+                     "let m = Dictionary (uniqueKeysWithValues: xs)",
+                     "let m = Dictionary.init(uniqueKeysWithValues: xs)"]:
+            self.assertTrue(drift.RE_UNIQUE_KEYS_DICT.search(line), line)
+        for line in ["Dictionary(xs.map { ($0.day, $0) }, uniquingKeysWith: { a, _ in a })",
+                     "let d: [Int: Int] = [:]"]:
+            self.assertFalse(drift.RE_UNIQUE_KEYS_DICT.search(line), line)
+
+    def test_screens_hit_and_exempt_silences(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            src = _swift(tmp, "Cenit/Screens/X.swift", [
+                "let a = Dictionary(uniqueKeysWithValues: xs.map { ($0.id, $0) })",
+                "let b = Dictionary(uniqueKeysWithValues: ys) // token-exempt(unico): índices de enumerated()",
+            ])
+            self.assertEqual([i for _p, i, _r, _s in drift.check([src], ["no-unique-keys-dictionary"])], [1])
+
+    def test_data_root_also_guarded(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            src = _swift(tmp, "Cenit/Data/S.swift", ["let a = Dictionary(uniqueKeysWithValues: xs)"])
+            self.assertEqual(len(drift.check([src], ["no-unique-keys-dictionary"])), 1)
+
+
+if __name__ == "__main__":
+    unittest.main()
