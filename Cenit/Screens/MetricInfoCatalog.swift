@@ -30,7 +30,7 @@ struct MetricInfo: Identifiable {
 
     /// When set, the summary sheet renders the F6 levels instrument (`MetricLevelsExplorer`: a tappable
     /// levels list + range selector + chart over the active band) instead of the static 14-day trend +
-    /// bands table, and its foot link reads «Ver más en Tendencias». Drives the per-metric levels from
+    /// bands table, and its foot link reads «Ver más en Cuerpo». Drives the per-metric levels from
     /// `MetricLevels` (FER-570). nil → the classic summary, untouched. Pilot: resting HR only. (FER-607)
     var levelsMetric: MetricLevels.FixedMetric? = nil
 

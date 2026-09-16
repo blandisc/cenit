@@ -216,7 +216,7 @@ enum OnbCopy {
     static func estrofaPie(_ estrofa: EstrofaSync) -> String {
         switch estrofa {
         case .corazon:  return String(localized: "onb.3.estrofa.corazon.pie", defaultValue: "Lives in Today")
-        case .noches:   return String(localized: "onb.3.estrofa.noches.pie", defaultValue: "Lives in Trends")
+        case .noches:   return String(localized: "onb.3.estrofa.noches.pie", defaultValue: "Lives in Body")
         case .entrenos: return String(localized: "onb.3.estrofa.entrenos.pie", defaultValue: "Lives in Train")
         case .guardado: return String(localized: "onb.3.estrofa.guardado.pie", defaultValue: "Settings · privacy")
         }

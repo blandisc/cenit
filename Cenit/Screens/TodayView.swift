@@ -444,7 +444,7 @@ struct TodayView: View {
             .sheet(item: $trainingLoadItem) { item in
                 // Hoja «Carga de entrenamiento» (FER-705 · handoff «Carga» · FER-33 F2) —
                 // tema explícito (no cruza `.sheet`), sin NavigationStack anidado (FER-171).
-                // «Ver más en Tendencias» despacha al tab Cuerpo vía `TabRouter`.
+                // «Ver más en Cuerpo» despacha al tab Cuerpo vía `TabRouter`.
                 TrainingLoadSheet(model: item.model,
                                   onSeeTrends: item.onSeeTrends)
                     .recEntranceGate()
@@ -506,7 +506,7 @@ struct TodayView: View {
             .enableInjection()   // Inject: ver la nota en `inject` arriba (no-op en Release)
     }
 
-    /// Arma la hoja de carga desde la franja: «Ver más en Tendencias» al tab Cuerpo vía `TabRouter`.
+    /// Arma la hoja de carga desde la franja: «Ver más en Cuerpo» al tab Cuerpo vía `TabRouter`.
     /// El hallazgo de carga sigue vivo en Patrones; ya no se asoma en esta hoja (FER-33 · F2).
     private func makeTrainingLoadItem(_ model: TrainingLoadModel) -> TrainingLoadItem {
         TrainingLoadItem(model: model, onSeeTrends: { tabRouter.verTendencias() })

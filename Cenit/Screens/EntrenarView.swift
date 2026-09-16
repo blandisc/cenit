@@ -343,7 +343,7 @@ private struct EntrenarLanding: View {
         }
         // Ola 2 (FER-488): la hoja «Carga de entrenamiento» que abre «Contexto · Carga» — el MISMO
         // `TrainingLoadSheet` que Hoy, mismo patrón (`TodayView.swift`, el `.sheet(item:)` junto a
-        // `trainingLoadItem`). «Ver más en Tendencias» despacha al tab Cuerpo vía `TabRouter`.
+        // `trainingLoadItem`). «Ver más en Cuerpo» despacha al tab Cuerpo vía `TabRouter`.
         .sheet(item: $trainingLoadItem) { item in
             TrainingLoadSheet(model: item.model, onSeeTrends: item.onSeeTrends)
                 .recEntranceGate()

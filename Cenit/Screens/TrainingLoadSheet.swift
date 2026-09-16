@@ -48,7 +48,7 @@ extension TrainingLoadModel {
 struct TrainingLoadItem: Identifiable {
     let id = UUID()
     let model: TrainingLoadModel
-    /// «Ver más en Tendencias» (opcional, solo desde «Hoy»; redundante desde la propia Tendencias).
+    /// «Ver más en Cuerpo» (opcional, solo desde «Hoy»; redundante desde la propia Tendencias).
     var onSeeTrends: (() -> Void)? = nil
 }
 
@@ -72,7 +72,7 @@ enum LoadScale {
 
 struct TrainingLoadSheet: View {
     let model: TrainingLoadModel
-    /// «Ver más en Tendencias» (solo desde «Hoy»).
+    /// «Ver más en Cuerpo» (solo desde «Hoy»).
     var onSeeTrends: (() -> Void)? = nil
 
     @Environment(\.dismiss) private var dismiss

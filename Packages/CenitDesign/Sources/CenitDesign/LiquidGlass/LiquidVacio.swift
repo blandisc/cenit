@@ -26,7 +26,7 @@ import SwiftUI
 public struct LiquidVacio: View {
     /// La tercera parte del vacío: o le dices dónde vive lo que falta, o le das UNA acción.
     public enum Salida {
-        /// Ruta en pie de página («Vive en Tendencias › Sueño») — cuando la pantalla no tiene
+        /// Ruta en pie de página («Vive en Cuerpo › Sueño») — cuando la pantalla no tiene
         /// una acción real que ofrecer.
         case dondeVive(Text)
         /// Un solo botón (`LiquidGlassButton(.solida)`), con SF Symbol opcional delante.
@@ -125,7 +125,7 @@ public struct LiquidVacio: View {
                 queEs: Text(verbatim: "Tu sueño todavía no tiene base"),
                 comoSeLlena: Text(verbatim: "Cénit necesita varias noches con el reloj puesto para comparar cada noche contra tu normal."),
                 cuenta: Text(verbatim: "Faltan 3 noches"),
-                salida: .dondeVive(Text(verbatim: "Vive en Tendencias › Sueño")))
+                salida: .dondeVive(Text(verbatim: "Vive en Cuerpo › Sueño")))
 
             Text("con acción").font(LiquidType.caption).foregroundStyle(LiquidColor.tinta500)
             LiquidVacio(
