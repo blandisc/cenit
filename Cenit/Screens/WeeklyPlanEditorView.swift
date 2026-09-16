@@ -57,6 +57,10 @@ struct WeeklyPlanEditorView: View {
     /// Days since each routine was last trained (`routineId → whole days`), for the «hace N d» column.
     @State private var lastTrainedDays: [String: Int] = [:]
     @State private var showBuilder = false
+    /// FER-502: igual que en `EntrenarView`: la rutina recién creada se abre cuando la biblioteca YA
+    /// desapareció (estado), no tras un reloj de 550 ms.
+    @State private var bibliotecaVisible = false
+    @State private var rutinaPendienteDeAbrir: String?
     @State private var showTemplates = false
     @State private var showImport = false
     @State private var swipedRoutineId: String? = nil
@@ -165,6 +169,11 @@ struct WeeklyPlanEditorView: View {
         // the picks creates the routine on the spot and lands on the unified «Rutina» editor.
         .navigationDestination(isPresented: $showBuilder) {
             ExerciseLibraryScreen(createFlow: true) { picks in createRoutine(picks) }
+                .onAppear { bibliotecaVisible = true }
+                .onDisappear {
+                    bibliotecaVisible = false
+                    if let id = rutinaPendienteDeAbrir { rutinaPendienteDeAbrir = nil; openRoutine(id) }
+                }
         }
         .sheet(isPresented: $showTemplates) {
             StarterTemplatesSheet { await load() }
@@ -1204,9 +1213,8 @@ struct WeeklyPlanEditorView: View {
                 await load()
                 // FER-952 glitch: the library pops itself (dismiss) the moment onAdd returns — pushing the
                 // editor DURING that pop stacked transitions and the new screen flashed in and out
-                // (FER-171 lesson). Let the pop settle, then push.
-                try? await Task.sleep(nanoseconds: 550_000_000)
-                openRoutine(r.id)
+                // (FER-171 lesson). FER-502: se espera a que la biblioteca DESAPAREZCA (estado), no 550 ms.
+                if bibliotecaVisible { rutinaPendienteDeAbrir = r.id } else { openRoutine(r.id) }
             } catch {
                 saveError = true
             }
@@ -1264,7 +1272,7 @@ struct WeeklyPlanEditorView: View {
             guard let ex = byId[re.exerciseId] else { continue }
             for m in ex.primaryMuscles { if tally[m] == nil { order.append(m) }; tally[m, default: 0] += 1 }
         }
-        let idx = Dictionary(uniqueKeysWithValues: order.enumerated().map { ($1, $0) })
+        let idx = Dictionary(order.enumerated().map { ($1, $0) }, uniquingKeysWith: { primero, _ in primero })
         return order.sorted { let a = tally[$0] ?? 0, b = tally[$1] ?? 0
             return a != b ? a > b : (idx[$0] ?? 0) < (idx[$1] ?? 0) }
             .prefix(3).map { MuscleVocabulary.es[$0] ?? $0.capitalized }

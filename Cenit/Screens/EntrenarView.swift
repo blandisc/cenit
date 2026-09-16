@@ -192,6 +192,10 @@ private struct EntrenarLanding: View {
     @State private var showHubImport = false
     /// FER-251: «Desde cero» del primer uso — misma Biblioteca → crear rutina que «Tres caminos».
     @State private var showLibrary = false
+    /// FER-502: la biblioteca (empujada) sigue en pantalla mientras hace su pop; la rutina recién creada se
+    /// abre cuando la biblioteca YA desapareció (estado), no tras un reloj de 550 ms.
+    @State private var bibliotecaVisible = false
+    @State private var rutinaPendienteDeAbrir: String?
     /// Success toast after a template group is applied — auto-dismisses.
     @State private var showPlanAppliedToast = false
     /// FER-377: whether the applied group's full weekly frequency fit the week — drives an honest toast.
@@ -367,6 +371,11 @@ private struct EntrenarLanding: View {
         // pantalla quedó sin ninguna entrada — puerta fantasma fuera, no dormida.
         .navigationDestination(isPresented: $showLibrary) {
             ExerciseLibraryScreen(createFlow: true) { picks in createRoutineFromLibrary(picks) }
+                .onAppear { bibliotecaVisible = true }
+                .onDisappear {
+                    bibliotecaVisible = false
+                    if let id = rutinaPendienteDeAbrir { rutinaPendienteDeAbrir = nil; openRoutine(id) }
+                }
         }
         // «En vivo» from the expanded «Más formas» pill — the live-HR free workout, the same sheet
         // «Otra forma» presents (sheet boundary).
@@ -1515,8 +1524,11 @@ private struct EntrenarLanding: View {
             do {
                 try await repo.saveRoutine(r, exercises: exercises)
                 await load()
-                try? await Task.sleep(nanoseconds: 550_000_000)
-                openRoutine(r.id)
+                // FER-502: esperar por ESTADO, no por reloj. La biblioteca se cierra sola (`dismiss`) al
+                // devolver los picks; empujar el editor durante ese pop apilaba transiciones (FER-952) y el
+                // reloj de 550 ms era una carrera con el pop. Si ya se fue, se abre ya; si sigue saliendo,
+                // su `onDisappear` abre la rutina pendiente.
+                if bibliotecaVisible { rutinaPendienteDeAbrir = r.id } else { openRoutine(r.id) }
             } catch {
                 saveError = true
             }
@@ -1871,7 +1883,7 @@ private struct EntrenarLanding: View {
                 tally[m, default: 0] += 1
             }
         }
-        let idx = Dictionary(uniqueKeysWithValues: order.enumerated().map { ($1, $0) })
+        let idx = Dictionary(order.enumerated().map { ($1, $0) }, uniquingKeysWith: { primero, _ in primero })
         let top = order.sorted {
             let a = tally[$0] ?? 0, b = tally[$1] ?? 0
             return a != b ? a > b : (idx[$0] ?? 0) < (idx[$1] ?? 0)

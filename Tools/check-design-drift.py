@@ -23,6 +23,9 @@ Rules (each activated in the PR that finishes its migration — pass `--rules` t
     no-confirmation-dialog  a native `.confirmationDialog(` — the catalog has `.liquidConfirm` (FER-338; pure)
     no-native-menu          a native `Menu {` / `Menu(` — the catalog has `.liquidMenu` (FER-338; pure)
     no-native-material      a bare SwiftUI `Material` (`.ultraThinMaterial`, …) outside `LiquidGlassRecipes.swift` — glass is a recipe, `liquidGlass(_:)` (FER-340; pure)
+    no-unique-keys-dictionary `Dictionary(uniqueKeysWithValues:)` en Screens — trapea con una clave
+                       repetida (un día repetido tras un re-bucket UTC↔local tumbaba Hoy, FER-502); usar
+                       `Dictionary(_:uniquingKeysWith:)`, que resuelve la colisión en vez de crashear
     no-unsafe-int-cast `Int(<x>.rounded())` a la medida en la capa de display — trapea con no-finito o
                        magnitud enorme; enruta por `CenitFormat.int/groupedInt/decimal` guardados
                        o marca `// token-exempt(finite): <razón>` si el valor es provablemente finito
@@ -61,7 +64,7 @@ DEFAULT_ROOTS = [
 DESIGN_PKG = "Packages/CenitDesign"
 EXEMPT = re.compile(r"//\s*token-exempt\b")
 
-ALL_RULES = ["no-hex", "no-adhoc-font", "no-radius-literal", "no-opacity-literal", "no-emdash-string", "no-raw-shadow", "no-sheet-glass", "no-spacing-literal", "no-legacy-api", "token-exempt", "no-raw-color", "no-edgeinsets-literal", "no-token-arithmetic", "no-motion-literal", "no-dt-cap-adhoc", "no-deprecated-metrics", "no-instrumento-theme", "no-weight-on-grotesk", "no-iphone-tone-on-oled", "no-capsule-a-mano", "no-confirmation-dialog", "no-native-menu", "no-native-material", "no-raw-contrast", "no-forced-light", "no-unsafe-int-cast"]
+ALL_RULES = ["no-hex", "no-adhoc-font", "no-radius-literal", "no-opacity-literal", "no-emdash-string", "no-raw-shadow", "no-sheet-glass", "no-spacing-literal", "no-legacy-api", "token-exempt", "no-raw-color", "no-edgeinsets-literal", "no-token-arithmetic", "no-motion-literal", "no-dt-cap-adhoc", "no-deprecated-metrics", "no-instrumento-theme", "no-weight-on-grotesk", "no-iphone-tone-on-oled", "no-capsule-a-mano", "no-confirmation-dialog", "no-native-menu", "no-native-material", "no-raw-contrast", "no-forced-light", "no-unsafe-int-cast", "no-unique-keys-dictionary"]
 
 # Per-rule default roots — mirrors `.github/workflows/design-lint.yml` exactly (FER-282).
 # A bare `python3 Tools/check-design-drift.py --baseline …` (no roots) must not paint red on
@@ -101,6 +104,7 @@ DEFAULT_ROOTS_BY_RULE = {
     "no-forced-light": ["Cenit/Screens", "Cenit/Onboarding", "Cenit/System", "Cenit/App", "CenitApp"],
     "no-native-material": list(_ROOTS_SPACING_MOTION) + ["Packages/CenitDesign/Sources"],
     "no-unsafe-int-cast": ["Cenit/Screens", "Cenit/Data"],
+    "no-unique-keys-dictionary": ["Cenit/Screens"],
 }
 # no-emdash-string: an em-dash (—, U+2014) inside a user-facing Swift string literal. ADN copy rule
 # (FER-878): on-screen copy uses «:», «·» or a comma, never an em-dash. Scoped to STRING LITERALS so the
@@ -297,6 +301,12 @@ RE_FORCED_LIGHT = re.compile(r"\.preferredColorScheme\(\.light\)")
 # `// token-exempt(finite): <razón>`. Ratchet: los sitios actuales se congelan y solo se encogen.
 RE_UNSAFE_INT_CAST = re.compile(r"\bInt\(.*\.rounded\(\)\)")
 
+# no-unique-keys-dictionary (FER-502): `Dictionary(uniqueKeysWithValues:)` trapea si dos entradas comparten
+# clave — un día repetido en el historial (re-bucket UTC↔local) tumbaba Hoy al abrir. `Dictionary(_:uniquingKeysWith:)`
+# resuelve la colisión (se queda con una), no crashea. Un mapa con claves provablemente únicas (un `enumerated()`
+# de índices) marca `// token-exempt(unico): <razón>`.
+RE_UNIQUE_KEYS_DICT = re.compile(r"\bDictionary\(uniqueKeysWithValues:")
+
 RULE_PATTERNS = {
     "no-hex": RE_HEX,
     "no-adhoc-font": RE_FONT,
@@ -322,6 +332,7 @@ RULE_PATTERNS = {
     "no-native-menu": RE_NATIVE_MENU,
     "no-native-material": RE_NATIVE_MATERIAL,
     "no-unsafe-int-cast": RE_UNSAFE_INT_CAST,
+    "no-unique-keys-dictionary": RE_UNIQUE_KEYS_DICT,
 }
 
 

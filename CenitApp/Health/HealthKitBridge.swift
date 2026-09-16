@@ -36,6 +36,9 @@ final class HealthKitBridge: ObservableObject {
     @Published private(set) var auth: AuthState = .unknown
     @Published private(set) var lastSync: Date?
     @Published private(set) var syncing = false
+    /// FER-502: la corrida de `sync` en vuelo, para que un segundo `sync` la ESPERE en vez de salir con
+    /// `[]` al instante. `nil` = ninguna corriendo.
+    private var syncEnVuelo: Task<Set<String>, Never>?
     /// El último fallo de `sync`, o `nil` tras una corrida buena. La UI se ata aquí para que un
     /// permiso revocado, una cuota de HealthKit o una muestra inválida se vean, en vez de perderse
     /// en silencio.
@@ -304,7 +307,24 @@ final class HealthKitBridge: ObservableObject {
     /// las usa para podar los huérfanos en UTC. Vacío si salió temprano o si falló la escritura.
     @discardableResult
     func sync(days: Int = 30, trigger: SyncTrigger = .manual) async -> Set<String> {
-        guard auth == .authorized, !syncing else { return [] }
+        guard auth == .authorized else { return [] }
+        // FER-502 (auditoría C4): una corrida ya en vuelo se ESPERA, no se esquiva. Antes el segundo `sync`
+        // salía con `[]` al instante, y quien llamaba (el onboarding al volver de la app Salud,
+        // `reintentar()`) leía «nada me llegó» con el permiso ya dado, mientras el sync de foreground
+        // seguía escribiendo. Una sola corrida a la vez; quien llegue durante el vuelo recibe SU resultado.
+        if let enVuelo = syncEnVuelo { return await enVuelo.value }
+        let corrida = Task { [self] () -> Set<String> in
+            let escritas = await self.syncCorrida(days: days, trigger: trigger)
+            self.syncEnVuelo = nil
+            return escritas
+        }
+        syncEnVuelo = corrida
+        return await corrida.value
+    }
+
+    /// El cuerpo de una corrida. Solo `sync(days:trigger:)` lo llama, y nunca dos a la vez.
+    private func syncCorrida(days: Int, trigger: SyncTrigger) async -> Set<String> {
+        guard !syncing else { return [] }
         syncing = true
         syncRowsByStage = [:]   // FER-437: una corrida nueva empieza con conteos nuevos (el `defer` no los toca)
         defer {

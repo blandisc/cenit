@@ -137,6 +137,10 @@ struct TodayView: View {
     /// FER-54: la hoja-manual «¿Qué decide tu día?» (rótulo de nivel en la Matriz).
     @State private var showDecideManual = false
     @State private var showContextoManual = false
+    /// FER-502: la hoja de Novedades (tarjeta al fondo de la columna) y la puerta pedida desde Ayuda que
+    /// espera a que la hoja de Ayuda termine de irse (por estado, no por reloj).
+    @State private var showNovedades = false
+    @State private var puertaPendiente: PuertaDeAyuda?
     @AppStorage("today.ecosistemaSeparaciones") private var ecosistemaSeparaciones = 0
     /// FER-432 · rótulo local del botón alterno Separar/Unir (el Ecosistema no expone
     /// binding público de fase sin tocar CenitDesign — el lienzo sigue siendo el camino visual).
@@ -704,6 +708,13 @@ struct TodayView: View {
         // con el modelo de esta pantalla). `onAppear` cubre la bandera puesta antes de montar.
         .onChange(of: tabRouter.abrirActa) { _, _ in atenderPuertaDeAyuda() }
         .onChange(of: tabRouter.abrirGuardian) { _, _ in atenderPuertaDeAyuda() }
+        // FER-502: la puerta pedida desde Ayuda se abre cuando la hoja de Ayuda YA se fue (estado), no
+        // tras un reloj de 500 ms que a veces llegaba antes y perdía la presentación.
+        .onChange(of: tabRouter.ayudaPresentada) { _, presentada in
+            guard !presentada, let puerta = puertaPendiente else { return }
+            puertaPendiente = nil
+            abrirPuerta(puerta)
+        }
         .onAppear { atenderPuertaDeAyuda() }
         // FER-73 · M8: el héroe (60 fps) y los ~10 relojes de la Matriz también se pausan
         // cuando una hoja los tapa — nadie los ve y seguían pintando bajo el modal.
@@ -1174,7 +1185,7 @@ struct TodayView: View {
                 onTapSincronizar: { triggerPullSync() })
             // FER-435 · «Nuevo en esta versión»: la tarjeta de una vez al FONDO de Hoy, debajo
             // de la Matriz — nunca encima del héroe. Solo con una versión `mayor` en el registro.
-            NovedadMayorTarjeta()
+            NovedadMayorTarjeta(presentada: $showNovedades)
             // /inject: la leyenda de origen se retiró de la superficie Liquid a pedido del
             // dueño (los puntos de origen por tile se quedan).
         }
@@ -1218,17 +1229,21 @@ struct TodayView: View {
         guard acta || guardian else { return }
         tabRouter.abrirActa = false
         tabRouter.abrirGuardian = false
-        Task { @MainActor in
-            // La hoja de Ayuda (presentada desde esta u otra pestaña) puede seguir cerrándose:
-            // presentar otra hoja en el mismo instante se pierde. Un pelo de espera.
-            try? await Task.sleep(for: .milliseconds(500))
-            if guardian {
-                showGuardianHoja = true
-            } else if hayVeredictoHoy {
-                showVeredictoActa = true
-            } else {
-                showDecideManual = true
-            }
+        let puerta: PuertaDeAyuda = guardian ? .guardian : .lectura
+        // La hoja de Ayuda (presentada desde esta u otra pestaña) puede seguir cerrándose: presentar
+        // otra hoja en el mismo instante se pierde. FER-502: se espera por ESTADO (`ayudaPresentada`
+        // cae a false en su `onDisappear`), nunca por reloj.
+        if tabRouter.ayudaPresentada { puertaPendiente = puerta } else { abrirPuerta(puerta) }
+    }
+
+    /// Lo que Ayuda pidió abrir. `.lectura` se resuelve AL ABRIR (acta con lectura de hoy; si no,
+    /// «¿Qué decide tu día?»), no al pedirlo: mientras la hoja se va, la lectura puede llegar.
+    private enum PuertaDeAyuda { case guardian, lectura }
+
+    private func abrirPuerta(_ puerta: PuertaDeAyuda) {
+        switch puerta {
+        case .guardian: showGuardianHoja = true
+        case .lectura: if hayVeredictoHoy { showVeredictoActa = true } else { showDecideManual = true }
         }
     }
 
@@ -1580,6 +1595,9 @@ struct TodayView: View {
             || trainingLoadItem != nil
             || showDataSources || showVeredictoActa || showGuardianHoja
             || showDecideManual || showContextoManual || showAutonomicoHoja
+            // FER-502 (auditoría C4): Ayuda y Novedades también son hojas encima de Hoy. Sin esto el héroe
+            // (60 fps) y los relojes de la Matriz seguían pintando bajo ellas (FER-73 M8 reabierto).
+            || showNovedades || tabRouter.ayudaPresentada
     }
 
     /// Cero fuentes: ni dispositivo visto, ni datos de Apple Health, ni permiso de Health concedido. (FER-364)
