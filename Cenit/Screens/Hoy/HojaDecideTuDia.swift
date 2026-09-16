@@ -122,7 +122,7 @@ struct HojaDecideTuDia: View {
         let (texto, color): (String, Color) = switch sello {
         case .vota:
             (String(localized: "manual.deciden.sello.vota", defaultValue: "votes"),
-             LiquidColor.verdePrimario)
+             LiquidColor.verdeTexto)   // FER-506: texto verde chico -> verdeTexto (AA)
         case .centinela:
             (String(localized: "manual.deciden.sello.centinela", defaultValue: "sentinel"),
              LiquidColor.doradoTemp)

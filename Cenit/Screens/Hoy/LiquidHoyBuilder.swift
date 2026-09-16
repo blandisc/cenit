@@ -2206,7 +2206,7 @@ enum LiquidHoyBuilder {
             value: i.skinTemp.map { String(format: "%+.1f", $0.value) } ?? "—",
             unit: "°C",
             delta: skinDelta.text, deltaTone: skinDelta.tone,
-            tone: i.skinTemp == nil ? LiquidColor.tinta500 : LiquidColor.ambar, icon: .termo,
+            tone: i.skinTemp == nil ? LiquidColor.tinta500 : LiquidColor.doradoTemp, icon: .termo,
             origen: origen(fromApple: i.skinTemp?.fromApple)))
 
         // Respiración — sin valencia.

@@ -111,7 +111,7 @@ struct HistorialFASection: View {
                 LiquidPatternBlock(
                     overline: String(localized: "What it tunes"),
                     lineas: [String(localized: "HRV joins your resting heart rate as a second, lighter signal on the nights that come in dense: at least 60 clean beats and 30 successive pairs. It is a tuning, not a requirement, and it never speaks on its own.")],
-                    tono: LiquidColor.verdeCarga)
+                    tono: LiquidColor.verdePrimario)
                 LiquidPatternBlock(
                     overline: String(localized: "What it costs"),
                     lineas: [String(localized: "To turn it on, Apple asks you to confirm that a doctor diagnosed you with atrial fibrillation. It is not intended for people under 22. And it switches off the real time irregular rhythm notifications: from then on your Apple Watch sends you a weekly summary instead.")],
