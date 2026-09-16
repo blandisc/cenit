@@ -22,12 +22,10 @@ import SwiftUI
 
 public struct TrendStatSummary: View {
 
-    /// Which direction of change is "good" for this metric — drives the chip colour.
-    public enum Polarity: Sendable {
-        case higherIsBetter   // HRV, sleep duration, recovery
-        case lowerIsBetter    // stress, resting HR
-        case neutral          // strain — more isn't inherently good or bad
-    }
+    /// Which direction of change is "good" for this metric — drives the chip colour. The vocabulary
+    /// now lives at the top level as `LiquidPolaridad` (FER-500 · C2, shared with `LiquidNotaDelta`);
+    /// this alias keeps every `TrendStatSummary.Polarity` call site compiling unchanged.
+    public typealias Polarity = LiquidPolaridad
 
     /// The length of the period the change compares against — drives the chip wording ("vs last week" /
     /// "vs last quarter" …) so it tracks the selected range instead of always saying "month". (FER-264)

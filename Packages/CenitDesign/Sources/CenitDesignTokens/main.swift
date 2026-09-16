@@ -638,7 +638,7 @@ public let catalogEntries: [CatalogEntry] = [
                  cuandoNo: "No CTA de tinta a lo ancho (`CenitCTAButton`); no pill Liquid de hoja (`LiquidGlassButton`); no acción de header (`HeaderActionButton`)."),
     CatalogEntry(rol: "Pastilla de estado Liquid", simbolo: "LiquidStatePill",
                  archivo: "LiquidGlass/LiquidStatePill.swift",
-                 cuandoUsarlo: "Estado vivo/listo sobre cristal (`.pastillaSolida`) o chip de valencia Δ% — sustituye `statusPill` a mano y chips de signo.",
+                 cuandoUsarlo: "Estado vivo/listo sobre cristal (`.pastillaSolida`) o chip de valencia Δ% — sustituye `statusPill` a mano y chips de signo; el texto del Δ% sale de `CenitFormat.deltaPercent`, nunca de un signo concatenado a mano (FER-500).",
                  cuandoNo: "No procedencia (`LiquidOrigenChip`/`LiquidOrigenBadge`); no filtro removible (`LiquidChipSeleccion`)."),
     // —— FER-280 · piezas que matan clases (ola 2q · avisos) ——
     CatalogEntry(rol: "Toast de deshacer", simbolo: "UndoToast",
@@ -673,6 +673,11 @@ public let catalogEntries: [CatalogEntry] = [
                  archivo: "LiquidGlass/LiquidVacio.swift",
                  cuandoUsarlo: "Cualquier lista/sección/pantalla que todavía no tiene datos: qué va aquí · cómo se llena (con `cuenta` «faltan 3 noches» si aplica) · dónde vive o UNA acción (`Salida`). Recibe `Text` ya resuelto por la app desde el registro de enseñanza; plano sobre el lienzo, alineado a la izquierda, donde irán los datos.",
                  cuandoNo: "No para error de lectura ni aviso (`LiquidAviso`); no para «calibrando» con barra (`LiquidCalibracionCard`); no una hoja de onboarding; no reinventar icono+título+cuerpo a mano en la pantalla."),
+    // —— FER-500 · C2 · el Δ% con signo y valencia (mata las cinco copias a mano) ——
+    CatalogEntry(rol: "Nota de Δ% con valencia", simbolo: "LiquidNotaDelta",
+                 archivo: "LiquidGlass/LiquidNotaDelta.swift",
+                 cuandoUsarlo: "El Δ% del periodo vs el anterior bajo la frase de nivel en hojas de detalle y explorador Liquid: el texto lo pone `CenitFormat.deltaPercent` («+12%», «−12%» con el menos real U+2212, «0%» sin signo, localizado) y el tono lo decide `LiquidPolaridad` — dirección buena `positivo`, contraria `atencionTexto`, plano o `.neutral` en tinta quieta. Compone `LiquidNotaLine`; la frase de VoiceOver («12 % más que el periodo anterior») la pasa la app YA localizada, guiada por `direccion(pct:places:)`.",
+                 cuandoNo: "No formatear el signo a mano ni pintar «+0%» en verde; no dar valencia a una métrica descriptiva (esfuerzo → `.neutral`); no como chip con fondo (usa `LiquidStatePill(valencia:)`, con el mismo `deltaPercent`); no para deltas absolutos con unidad («+2 ms vs tu base»: `LiquidBarraMarca` / tile)."),
 ]
 
 func catalogoTable() -> String {
