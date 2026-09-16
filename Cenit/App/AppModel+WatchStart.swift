@@ -25,19 +25,21 @@ extension AppModel {
     /// simply keeps whatever it last knew, or its existing «sin lectura» look.
     func pushWatchIdleContext() async {
         let routine = await todayRoutineForWatch()
-        // FER-499: «primer uso sin plan» con el MISMO predicado que la portada
-        // (`EntrenarView.esPrimerUsoSinPlan`) y el widget (`TrainWidgetPublisher.publish`): sin sesión
-        // viva y con la semana vacía. Sin él, la muñeca decía «Conecta Apple Salud» las mañanas en que
-        // el iPhone callaba a propósito (FER-376). Sin store, la semana cuenta como vacía: es el mismo
-        // estado «en frío» (`!loaded`) que la portada trata como primer uso.
-        var semanaVacia = true
+        // FER-499: «primer uso sin plan» con la MISMA regla nombrada que la portada y el widget
+        // (`TrainWidgetPublisher.esPrimerUsoSinPlan`): sin sesión viva y sin plan. Sin ella, la muñeca
+        // decía «Conecta Apple Salud» las mañanas en que el iPhone callaba a propósito (FER-376).
+        // Si el store NO abre no se puede confirmar la semana → se trata como «hay plan» (semanaVacia =
+        // false), igual que la portada con su split cacheado; asumir vacía empujaba `nil` mientras la
+        // portada decía «Sin Apple Salud,» (hueco de la revisión adversarial de FER-499).
+        var semanaVacia = false
         if let store = await repo.storeHandle(), let sched = try? await store.routineSchedule() {
             semanaVacia = sched.isEmpty
         }
         let hilo = Self.idleHilo(prep: repo.todayPreparedness, fullyLoaded: repo.fullyLoaded,
                                  healthConnected: healthBridge?.auth == .authorized,
                                  hasPlan: routine != nil,
-                                 primerUsoSinPlan: strengthSession == nil && semanaVacia)
+                                 primerUsoSinPlan: TrainWidgetPublisher.esPrimerUsoSinPlan(
+                                    sessionLive: strengthSession != nil, semanaVacia: semanaVacia))
         // C1 (FER-361): also push today's plan as a SEED so the watch can start a session STANDALONE
         // (offline). Same resolution the wrist start uses; nil on a rest day / empty plan → the watch
         // shows «Empieza en tu iPhone» (its no-seed branch). The seed's id/startTs are throwaway — the

@@ -112,12 +112,7 @@ private struct RoutineBody: View {
                     .foregroundStyle(LiquidColor.tinta900)
                     .lineLimit(2)
                     .minimumScaleFactor(0.8)
-                if let verdict {
-                    Text(verbatim: verdict.word)
-                        .font(LiquidType.cuerpoBanner.weight(.medium))
-                        .foregroundStyle(verdict.tone.liquidWord)
-                        .lineLimit(1)
-                }
+                if let verdict { VerdictLines(verdict: verdict) }
                 Spacer(minLength: 0)
                 Text(today.sessionLive ? "Continue" : "Start")
                     .font(LiquidType.cuerpoBanner.weight(.semibold))
@@ -138,6 +133,31 @@ private struct RoutineBody: View {
     }
 }
 
+/// FER-499 — el veredicto del oráculo en el widget: la palabra y, cuando existe, su consejo. El caso sin
+/// Apple Salud parte la frase en dos («Sin Apple Salud,» + «la progresión usa solo tu rutina…») igual que
+/// la portada y el reloj (`EntrenarHilo`); sin la segunda línea el widget mostraba una coma colgando. Los
+/// veredictos normales (una palabra que se basta sola) siguen a una línea — el consejo es corto o nil.
+private struct VerdictLines: View {
+    let verdict: TrainWidgetSnapshot.Verdict
+    private typealias M = HomeWidgetMetrics
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 1) {
+            Text(verbatim: verdict.word)
+                .font(LiquidType.cuerpoBanner.weight(.medium))
+                .foregroundStyle(verdict.tone.liquidWord)
+                .lineLimit(verdict.advice == nil ? 1 : 2)
+            if let advice = verdict.advice {
+                Text(verbatim: advice)
+                    .font(LiquidType.pie)
+                    .foregroundStyle(LiquidColor.tinta500)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.8)
+            }
+        }
+    }
+}
+
 /// Día de descanso: sin rutina asignada hoy, sin CTA de arrancar sesión (spec FER-95).
 private struct RestBody: View {
     let verdict: TrainWidgetSnapshot.Verdict?
@@ -152,12 +172,7 @@ private struct RestBody: View {
             Text("Rest day")
                 .font(.system(size: M.title, weight: .bold, design: .rounded))
                 .foregroundStyle(LiquidColor.tinta900)
-            if let verdict {
-                Text(verbatim: verdict.word)
-                    .font(LiquidType.cuerpoBanner.weight(.medium))
-                    .foregroundStyle(verdict.tone.liquidWord)
-                    .lineLimit(1)
-            }
+            if let verdict { VerdictLines(verdict: verdict) }
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)

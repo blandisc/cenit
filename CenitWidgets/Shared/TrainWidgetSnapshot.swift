@@ -69,9 +69,15 @@ public struct TrainWidgetSnapshot: Codable, Equatable, Sendable {
         public let tone: VerdictTone
         /// Already localized, already resolved — the exact word `EntrenarHilo` shows in the landing.
         public let word: String
-        public init(tone: VerdictTone, word: String) {
+        /// FER-499 — the oracle's second half (`HiloEntrenar.consejo`), already localized. Needed because
+        /// the no-Health `word` is a FRAGMENT («Sin Apple Salud,») meant to be followed by its advice
+        /// («la progresión usa solo tu rutina…»); a widget that paints `word` alone shows a dangling comma.
+        /// Optional + default nil so a snapshot written by a pre-FER-499 app still decodes (missing → nil).
+        public let advice: String?
+        public init(tone: VerdictTone, word: String, advice: String? = nil) {
             self.tone = tone
             self.word = word
+            self.advice = advice
         }
     }
 

@@ -43,13 +43,24 @@ enum TrainWidgetPublisher {
     /// incluido (FER-499: el widget mediano pintaba «Conecta Apple Salud» en «sin plan» mientras el
     /// iPhone callaba a propósito). Puro, para que `OraculoUnicoTests` compare esta palabra con la del
     /// reloj y la del oráculo el mismo día.
+    /// FER-499 — «primer uso sin plan», la MISMA regla nombrada en las tres superficies: sin sesión viva
+    /// y sin plan (semana vacía). Cada superficie calcula `semanaVacia` con el estado que tiene a mano
+    /// (la portada suma su arranque en frío `!loaded`; el widget su `split`; el reloj su `routineSchedule`),
+    /// pero la REGLA es una sola: un plan que EXISTE nunca es primer uso, así que sin Salud las tres dicen
+    /// «Sin Apple Salud,» en vez de callar. Cuando no se puede confirmar la semana (el store no abre), NO
+    /// se asume vacía: se trata como «hay plan» (conservador), para no divergir del split ya cacheado de la
+    /// portada — era el hueco que la revisión adversarial encontró (reloj empujaba `nil`, portada hablaba).
+    static func esPrimerUsoSinPlan(sessionLive: Bool, semanaVacia: Bool) -> Bool {
+        !sessionLive && semanaVacia
+    }
+
     static func verdict(prep: Preparedness.Read?, fullyLoaded: Bool, healthConnected: Bool,
                         hasPlan: Bool, primerUsoSinPlan: Bool) -> TrainWidgetSnapshot.Verdict? {
         LiquidHoyBuilder.hiloEntrenar(prep: prep, nights: prep?.autonomicNights ?? 0,
                                       healthConnected: healthConnected,
                                       verdictPending: prep == nil && !fullyLoaded,
                                       hasPlan: hasPlan, primerUsoSinPlan: primerUsoSinPlan)
-            .map { TrainWidgetSnapshot.Verdict(tone: .init($0.tono), word: $0.palabra) }
+            .map { TrainWidgetSnapshot.Verdict(tone: .init($0.tono), word: $0.palabra, advice: $0.consejo) }
     }
 
     /// The weekdays (Calendar convention) THIS week that already have a completed session — the same
@@ -90,11 +101,11 @@ enum TrainWidgetPublisher {
         let todayRoutineName = todayRoutineId.flatMap { routineNames[$0] }
 
         // `hasPlan` con la MISMA regla que la portada (`EntrenarView.todayRoutine != nil`: la rutina de
-        // hoy existe, no solo su id) y «primer uso sin plan» con el mismo predicado
-        // (`EntrenarView.esPrimerUsoSinPlan`: sin sesión viva y semana vacía) — FER-499.
+        // hoy existe, no solo su id) y «primer uso sin plan» con la regla nombrada compartida — FER-499.
         let veredicto = Self.verdict(prep: prep, fullyLoaded: fullyLoaded, healthConnected: healthConnected,
                                      hasPlan: todayRoutineName != nil,
-                                     primerUsoSinPlan: !sessionLive && split.isEmpty)
+                                     primerUsoSinPlan: esPrimerUsoSinPlan(sessionLive: sessionLive,
+                                                                          semanaVacia: split.isEmpty))
 
         let snap = snapshot(todayRoutineName: todayRoutineName, sessionLive: sessionLive,
                             verdict: veredicto, week: weekDays, now: now)

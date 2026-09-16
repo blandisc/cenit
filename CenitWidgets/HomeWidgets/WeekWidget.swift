@@ -146,7 +146,19 @@ struct WeekWidgetView: View {
                     Text(verbatim: verdict.word)
                         .font(LiquidType.cuerpoBanner.weight(.medium))
                         .foregroundStyle(verdict.tone.liquidWord)
-                        .lineLimit(1)
+                        .lineLimit(verdict.advice == nil ? 1 : 2)
+                        .minimumScaleFactor(0.8)
+                    // FER-499: el consejo del oráculo (solo el caso sin Apple Salud lo trae aquí); sin él
+                    // la palabra «Sin Apple Salud,» quedaba como coma colgando. Encoge antes que romper la
+                    // cabecera compacta del strip.
+                    if let advice = verdict.advice {
+                        Text(verbatim: advice)
+                            .font(LiquidType.pie)
+                            .foregroundStyle(LiquidColor.tinta500)
+                            .multilineTextAlignment(.trailing)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.7)
+                    }
                 }
                 if let cta {
                     cta

@@ -1627,7 +1627,13 @@ private struct EntrenarLanding: View {
     /// pintado instantáneo FER-373 C7) o ya cargado con `split` vacío. Una sola definición para que el
     /// hilo y esa sección no puedan divergir sobre qué es «primer uso».
     private var esPrimerUsoSinPlan: Bool {
-        model.strengthSession == nil && !loadFailed && (!loaded || split.isEmpty)
+        // FER-499: la misma regla nombrada que el widget y el reloj
+        // (`TrainWidgetPublisher.esPrimerUsoSinPlan`). La portada suma `!loadFailed` (un error de lectura
+        // NO es primer uso: hay plan que no pudimos abrir) y su arranque en frío `!loaded` a la
+        // `semanaVacia` — el matiz de carga que el widget y el reloj no tienen (revisión adversarial #3).
+        guard !loadFailed else { return false }
+        return TrainWidgetPublisher.esPrimerUsoSinPlan(sessionLive: model.strengthSession != nil,
+                                                       semanaVacia: !loaded || split.isEmpty)
     }
 
     /// El hilo del veredicto: la misma pastilla que es la puerta de Hoy, construida por el MISMO
