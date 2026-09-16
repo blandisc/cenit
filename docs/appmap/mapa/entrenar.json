@@ -22,7 +22,7 @@
     {
       "id": "hub-sin-salud",
       "titulo": "Entrenar · hub · sin Apple Salud",
-      "fixture": "train",
+      "fixture": "train-hoy",
       "args": [
         "-cenit.healthDenied",
         "YES"

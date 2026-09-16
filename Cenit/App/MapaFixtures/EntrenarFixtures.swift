@@ -22,54 +22,81 @@ enum EntrenarFixtures {
         //       `.lighter` no permite subir (`TrainingRegulation.allowsRaise`), la degrada a
         //       `.deferred` (`raise.waiting == true`) — exactamente lo que `EntrenarView.load()` lee
         //       para llenar `retainedToday`.
+        //
+        // ORDEN (corrección del director, capturas reales 2026-09-15): «strained» va PRIMERO, no al
+        // final. `repo.setDashboard` (dentro de «strained») bumpea `repo.refreshSeq`, que es lo que
+        // dispara `EntrenarView.load()` vía `.task(id: repo.refreshSeq)` — sembrarlo ANTES del wipe
+        // le da a ese `load()` el máximo margen posible antes de que `AppModel.init` corra
+        // `ScreenshotFixtures.seedTrainingPlan` (SIEMPRE, para cualquier fixture no vacío —
+        // `AppModel.swift` l.~264, FER-939), que vuelve a sembrar SU propio plan de demo («Día A —
+        // Empuje» de 3 ejercicios) encima de cualquier rutina que exista. Con «strained» al final
+        // (versión anterior), el bump llegaba demasiado tarde y la captura mostraba el plan de
+        // `seedTrainingPlan`, no el nuestro, sin la píldora.
         "train-retenida": { model in
-            guard let store = await model.repo.storeHandle() else { return }
-            // WIPE + RESEED (mismo motivo que `ScreenshotFixtures.seedTrainingPlan`): el store del
-            // arnés persiste entre nodos de una misma corrida, así que una demo previa («train» u
-            // otra) tiene que salir primero o el split/las sesiones de hoy quedarían mezclados.
-            if let stale = try? await store.routines() {
-                for r in stale { try? await store.deleteRoutine(id: r.id) }
-            }
-            for s in (try? await store.recentSessions(limit: 500)) ?? [] {
-                try? await store.deleteSession(id: s.id)
-            }
-            try? await store.clearInProgressSession()
-            model.strengthSession = nil
-
-            let cal = Calendar(identifier: .gregorian)
-            let now = Int(Date().timeIntervalSince1970)
-            let exerciseId = "Barbell_Bench_Press_-_Medium_Grip"
-
-            // Rutina de HOY con progresión encendida — el mínimo que ejercita la regla.
-            let routine = Routine(name: "Empuje", createdTs: now, updatedTs: now, sortOrder: 0)
-            var re = RoutineExercise(routineId: routine.id, exerciseId: exerciseId, position: 0,
-                                     targetSets: 3, targetReps: 8, targetWeightKg: 80,
-                                     restMode: .fixed, restSeconds: 90)
-            re.progressionEnabled = true
-            re.progressionSessions = 2
-            re.progressionIncrementKg = 2.5
-            try? await store.saveRoutine(routine, exercises: [re])
-            let weekday = cal.component(.weekday, from: Date())
-            try? await store.setRoutineSchedule(weekday: weekday, routineId: routine.id)
-
-            // Dos sesiones PREVIAS (no hoy) que cumplen la meta al mismo peso — la racha que gana la
-            // subida (idéntico patrón a `SingleOracleSeedTests.earnedHistory()`, ya persistido).
-            for daysAgo in [5, 3] {
-                guard let day = cal.date(byAdding: .day, value: -daysAgo, to: Date()) else { continue }
-                let start = Int(cal.startOfDay(for: day).timeIntervalSince1970) + 18 * 3600
-                let session = StrengthSession(routineId: routine.id, startTs: start, endTs: start + 40 * 60)
-                let sets = (0..<3).map { i in
-                    SetEntry(sessionId: session.id, exerciseId: exerciseId, position: i,
-                            kind: .work, weightKg: 80, reps: 8, done: true, ts: start + i * 180)
-                }
-                try? await store.saveSession(session, sets: sets)
-            }
-
-            // El veredicto del día: reutiliza el patrón «strained» ya probado — publica el dashboard
-            // al final, lo que dispara el `refreshSeq` que hace que `EntrenarView.load()` vea todo lo
-            // de arriba junto.
             await ScreenshotFixtures.seed(model, state: "strained")
+            await seedBenchToday(model, priorSessions: 2)
+        },
+
+        // FER-495: el hub con plan de HOY pero SIN datos de preparación — el hilo (con
+        // `-cenit.healthDenied YES`) cae al ramal «Sin Apple Salud, la progresión usa solo tu rutina
+        // y lo que registras.» (`EntrenarView.hiloDelVeredicto`), sin que un veredicto fuera de rango
+        // compita por la misma línea. UNA sola sesión previa a propósito (`seedBenchToday`,
+        // `priorSessions: 1`): no alcanza `progressionSessions=2`, así que `ProgressionMath.classify`
+        // se queda en `.inCycle` — sin subida (ni aplicada ni retenida) que mezcle otro estado en la
+        // misma captura. Sin llamar a «strained»: `repo.todayPreparedness` queda nil a propósito.
+        "train-hoy": { model in
+            await seedBenchToday(model, priorSessions: 1)
         },
     ]
+
+    /// Rutina de HOY con progresión encendida (banca, 3×8 @ 80 kg, sube cada 2 sesiones cumplidas al
+    /// mismo peso, +2.5 kg) — compartida por `"train-retenida"` y `"train-hoy"`, que solo difieren en
+    /// cuántas sesiones previas ya cumplieron la meta. Hace su propio WIPE primero: el store del
+    /// arnés persiste entre nodos de una misma corrida, así que una demo previa (`train`,
+    /// `seedTrainingPlan` u otra) tiene que salir antes o el split/las sesiones de hoy quedarían
+    /// mezclados. `store.deleteRoutine` ya borra en cascada el horario semanal de esa rutina
+    /// (`routineSchedule`, FER-531) — no hace falta limpiarlo aparte.
+    @MainActor
+    private static func seedBenchToday(_ model: AppModel, priorSessions: Int) async {
+        guard let store = await model.repo.storeHandle() else { return }
+        if let stale = try? await store.routines() {
+            for r in stale { try? await store.deleteRoutine(id: r.id) }
+        }
+        for s in (try? await store.recentSessions(limit: 500)) ?? [] {
+            try? await store.deleteSession(id: s.id)
+        }
+        try? await store.clearInProgressSession()
+        model.strengthSession = nil
+
+        let cal = Calendar(identifier: .gregorian)
+        let now = Int(Date().timeIntervalSince1970)
+        let exerciseId = "Barbell_Bench_Press_-_Medium_Grip"
+
+        let routine = Routine(name: "Empuje", createdTs: now, updatedTs: now, sortOrder: 0)
+        var re = RoutineExercise(routineId: routine.id, exerciseId: exerciseId, position: 0,
+                                 targetSets: 3, targetReps: 8, targetWeightKg: 80,
+                                 restMode: .fixed, restSeconds: 90)
+        re.progressionEnabled = true
+        re.progressionSessions = 2
+        re.progressionIncrementKg = 2.5
+        try? await store.saveRoutine(routine, exercises: [re])
+        let weekday = cal.component(.weekday, from: Date())
+        try? await store.setRoutineSchedule(weekday: weekday, routineId: routine.id)
+
+        // `priorSessions` sesiones PREVIAS (no hoy) que cumplen la meta al mismo peso — 2 gana la
+        // subida (idéntico patrón a `SingleOracleSeedTests.earnedHistory()`); 1 se queda a media
+        // racha (`.inCycle`, sin `raise` — ni aplicada ni retenida).
+        let priorDaysAgo: [Int] = priorSessions >= 2 ? [5, 3] : [3]
+        for daysAgo in priorDaysAgo {
+            guard let day = cal.date(byAdding: .day, value: -daysAgo, to: Date()) else { continue }
+            let start = Int(cal.startOfDay(for: day).timeIntervalSince1970) + 18 * 3600
+            let session = StrengthSession(routineId: routine.id, startTs: start, endTs: start + 40 * 60)
+            let sets = (0..<3).map { i in
+                SetEntry(sessionId: session.id, exerciseId: exerciseId, position: i,
+                        kind: .work, weightKg: 80, reps: 8, done: true, ts: start + i * 180)
+            }
+            try? await store.saveSession(session, sets: sets)
+        }
+    }
 }
 #endif
