@@ -20,6 +20,12 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
 
 ## Unreleased
 
+- **El widget y el Apple Watch dicen lo mismo que Entrenar cuando no hay Apple Salud / The widget and Apple Watch now say what Train says without Apple Health**
+  ### ES
+  Sin permiso de Apple Salud, la pantalla de inicio y la muñeca decían «Conecta Apple Salud» mientras Entrenar decía «Sin Apple Salud, la progresión usa solo tu rutina y lo que registras», o callaba a propósito en el primer uso. Ahora la palabra sale de un solo sitio y las tres superficies la muestran igual el mismo día. (`LiquidHoyBuilder.swift`, `TrainWidgetPublisher.swift`, `AppModel+WatchStart.swift`)
+  ### EN
+  Without Apple Health permission, the home screen and the wrist read "Connect Apple Health" while Train read "Without Apple Health, progression uses only your routine and what you log", or stayed silent on purpose on first use. The word now comes from one place and all three surfaces show it the same way on the same day. (`LiquidHoyBuilder.swift`, `TrainWidgetPublisher.swift`, `AppModel+WatchStart.swift`)
+
 - **Cuerpo se concentra en lo que la app calcula bien: se retiran Longevidad, Edad física, Edad corporal, Comparar y «tras cada deporte» / Body focuses on what the app computes well: Longevity, Fitness age, Body age, Compare and "after each sport" are retired**
   ### ES
   La tarjeta «Longevidad» (edad física, edad corporal), el botón «Comparar», la sección «Cómo despiertas tras cada deporte» y «Qué correlaciona» del Explorador ya no aparecen ni se calculan. Se quedan el catálogo de métricas con su historial, «Tu patrón» y Tendencias completa. (`CuerpoView.swift`, `MetricExplorerView.swift`)

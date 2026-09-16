@@ -243,7 +243,10 @@ struct TrainingBodyScreen: View {
             // `EntrenarView.todayRoutine`), pero es inofensivo: `hasPlan` solo mueve el `consejo` del
             // tono `.claro` (`LiquidHoyBuilder.swift:618`), y aquí ese consejo SIEMPRE se reemplaza por
             // `muscleReading` salvo en `.hueco`, donde `hasPlan` nunca se lee.
-            hasPlan: true) {
+            hasPlan: true,
+            // La supresión de primer uso (FER-376) existe porque en la portada el hilo competía con
+            // «Arma tu semana»; esta cabecera no tiene esa sección, así que sin Salud dice la ausencia.
+            primerUsoSinPlan: false) {
             EntrenarHilo(tone: hilo.tono.entrenarTone,
                          word: LocalizedStringKey(hilo.palabra),
                          // Hueco (sin lectura / sin conectar Salud / conociéndote): el consejo de

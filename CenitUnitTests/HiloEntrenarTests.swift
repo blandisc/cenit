@@ -25,9 +25,33 @@ final class HiloEntrenarTests: XCTestCase {
 
     private func hilo(_ prep: Preparedness.Read?, nights: Int = 30,
                       health: Bool = true, pending: Bool = false,
-                      hasPlan: Bool = true) -> LiquidHoyBuilder.HiloEntrenar? {
+                      hasPlan: Bool = true, primerUso: Bool = false) -> LiquidHoyBuilder.HiloEntrenar? {
         LiquidHoyBuilder.hiloEntrenar(prep: prep, nights: nights, healthConnected: health,
-                                      verdictPending: pending, hasPlan: hasPlan)
+                                      verdictPending: pending, hasPlan: hasPlan,
+                                      primerUsoSinPlan: primerUso)
+    }
+
+    /// FER-499: sin Apple Salud el oráculo nombra la ausencia él mismo, aun cuando exista un veredicto
+    /// viejo en el repo. Antes la sustitución vivía en el call-site de la portada y el widget/reloj
+    /// publicaban «Conecta Apple Salud» el mismo día.
+    func testSinSaludElOraculoNombraLaAusenciaAunConVeredicto() {
+        for prep in [nil, read(.full, nightAnchored: true), read(.caution, nightAnchored: true)] {
+            let h = hilo(prep, health: false)
+            XCTAssertEqual(h?.tono, .hueco)
+            XCTAssertEqual(h?.palabra, String(localized: "Without Apple Health,"))
+            XCTAssertEqual(h?.consejo, String(localized: "progression uses only your routine and what you log."))
+            for verdict: Preparedness.Verdict in [.full, .caution, .easy] {
+                XCTAssertNotEqual(h?.palabra, LiquidHoyBuilder.palabraVeredicto(verdict))
+            }
+        }
+    }
+
+    /// FER-376 dentro del oráculo: en primer uso sin plan y sin Salud, el hilo entero calla; con Salud,
+    /// el primer uso no suprime nada (sigue «Conociéndote»).
+    func testEnPrimerUsoSinPlanYSinSaludElHiloCalla() {
+        XCTAssertNil(hilo(nil, health: false, hasPlan: false, primerUso: true))
+        XCTAssertNotNil(hilo(nil, health: false, hasPlan: false, primerUso: false))
+        XCTAssertNotNil(hilo(nil, nights: 1, health: true, hasPlan: false, primerUso: true))
     }
 
     /// La regla que el gate encontró rota: sin noche anclada, Hoy NO dice la palabra. El hilo

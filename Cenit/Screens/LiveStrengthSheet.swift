@@ -909,7 +909,10 @@ struct LiveStrengthSheet: View {
                nights: model.repo.todayPreparedness?.autonomicNights ?? 0,
                healthConnected: model.healthBridge?.auth == .authorized,
                verdictPending: model.repo.todayPreparedness == nil && !model.repo.fullyLoaded,
-               hasPlan: !isEmptyAdHoc) {
+               hasPlan: !isEmptyAdHoc,
+               // Con una sesión viva nunca es «primer uso sin plan» (el predicado de la portada exige
+               // `strengthSession == nil`), y sin Salud `explainsHeldRaise` no retiene nada.
+               primerUsoSinPlan: false) {
             EntrenarHilo(tone: hilo.tono.entrenarTone,
                          word: LocalizedStringKey(hilo.palabra),
                          advice: hilo.consejo.map { LocalizedStringKey($0) },

@@ -38,6 +38,20 @@ enum TrainWidgetPublisher {
         return TrainWidgetSnapshot(writtenAt: now, today: today, verdict: verdict, week: week)
     }
 
+    /// El veredicto que cruza al widget: el oráculo TAL CUAL (`LiquidHoyBuilder.hiloEntrenar`), con los
+    /// mismos argumentos que la portada de Entrenar deriva de sus primitivas, `primerUsoSinPlan`
+    /// incluido (FER-499: el widget mediano pintaba «Conecta Apple Salud» en «sin plan» mientras el
+    /// iPhone callaba a propósito). Puro, para que `OraculoUnicoTests` compare esta palabra con la del
+    /// reloj y la del oráculo el mismo día.
+    static func verdict(prep: Preparedness.Read?, fullyLoaded: Bool, healthConnected: Bool,
+                        hasPlan: Bool, primerUsoSinPlan: Bool) -> TrainWidgetSnapshot.Verdict? {
+        LiquidHoyBuilder.hiloEntrenar(prep: prep, nights: prep?.autonomicNights ?? 0,
+                                      healthConnected: healthConnected,
+                                      verdictPending: prep == nil && !fullyLoaded,
+                                      hasPlan: hasPlan, primerUsoSinPlan: primerUsoSinPlan)
+            .map { TrainWidgetSnapshot.Verdict(tone: .init($0.tono), word: $0.palabra) }
+    }
+
     /// The weekdays (Calendar convention) THIS week that already have a completed session — the same
     /// `TrainingStreak.completedDayStarts` bucketing Entrenar's own streak reads, so the widget's
     /// «trained» dots can never disagree with the app's.
@@ -75,14 +89,15 @@ enum TrainWidgetPublisher {
         let todayRoutineId = WeeklySplit.todayRoutineId(split: split, todayWeekday: todayWeekday)
         let todayRoutineName = todayRoutineId.flatMap { routineNames[$0] }
 
-        let hilo = LiquidHoyBuilder.hiloEntrenar(prep: prep, nights: prep?.autonomicNights ?? 0,
-                                                 healthConnected: healthConnected,
-                                                 verdictPending: prep == nil && !fullyLoaded,
-                                                 hasPlan: todayRoutineId != nil)
-        let verdict = hilo.map { TrainWidgetSnapshot.Verdict(tone: .init($0.tono), word: $0.palabra) }
+        // `hasPlan` con la MISMA regla que la portada (`EntrenarView.todayRoutine != nil`: la rutina de
+        // hoy existe, no solo su id) y «primer uso sin plan» con el mismo predicado
+        // (`EntrenarView.esPrimerUsoSinPlan`: sin sesión viva y semana vacía) — FER-499.
+        let veredicto = Self.verdict(prep: prep, fullyLoaded: fullyLoaded, healthConnected: healthConnected,
+                                     hasPlan: todayRoutineName != nil,
+                                     primerUsoSinPlan: !sessionLive && split.isEmpty)
 
         let snap = snapshot(todayRoutineName: todayRoutineName, sessionLive: sessionLive,
-                            verdict: verdict, week: weekDays, now: now)
+                            verdict: veredicto, week: weekDays, now: now)
         TrainWidgetSnapshot.write(snap)
         WidgetCenter.shared.reloadTimelines(ofKind: TrainWidgetSnapshot.trainTodayKind)
         WidgetCenter.shared.reloadTimelines(ofKind: TrainWidgetSnapshot.weekKind)

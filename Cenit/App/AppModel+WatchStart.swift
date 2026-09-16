@@ -25,12 +25,19 @@ extension AppModel {
     /// simply keeps whatever it last knew, or its existing «sin lectura» look.
     func pushWatchIdleContext() async {
         let routine = await todayRoutineForWatch()
-        let hilo = LiquidHoyBuilder.hiloEntrenar(
-            prep: repo.todayPreparedness,
-            nights: repo.todayPreparedness?.autonomicNights ?? 0,
-            healthConnected: healthBridge?.auth == .authorized,
-            verdictPending: repo.todayPreparedness == nil && !repo.fullyLoaded,
-            hasPlan: routine != nil)
+        // FER-499: «primer uso sin plan» con el MISMO predicado que la portada
+        // (`EntrenarView.esPrimerUsoSinPlan`) y el widget (`TrainWidgetPublisher.publish`): sin sesión
+        // viva y con la semana vacía. Sin él, la muñeca decía «Conecta Apple Salud» las mañanas en que
+        // el iPhone callaba a propósito (FER-376). Sin store, la semana cuenta como vacía: es el mismo
+        // estado «en frío» (`!loaded`) que la portada trata como primer uso.
+        var semanaVacia = true
+        if let store = await repo.storeHandle(), let sched = try? await store.routineSchedule() {
+            semanaVacia = sched.isEmpty
+        }
+        let hilo = Self.idleHilo(prep: repo.todayPreparedness, fullyLoaded: repo.fullyLoaded,
+                                 healthConnected: healthBridge?.auth == .authorized,
+                                 hasPlan: routine != nil,
+                                 primerUsoSinPlan: strengthSession == nil && semanaVacia)
         // C1 (FER-361): also push today's plan as a SEED so the watch can start a session STANDALONE
         // (offline). Same resolution the wrist start uses; nil on a rest day / empty plan → the watch
         // shows «Empieza en tu iPhone» (its no-seed branch). The seed's id/startTs are throwaway — the
@@ -49,6 +56,17 @@ extension AppModel {
         }
         mirroringBridge?.pushIdleContext(word: hilo?.palabra, toneRaw: hilo.map(Self.watchToneRaw(_:)),
                                          advice: hilo?.consejo, routineName: routine?.name, seed: seed)
+    }
+
+    /// Lo que viaja a la muñeca: el oráculo TAL CUAL (`LiquidHoyBuilder.hiloEntrenar`), sin re-derivar ni
+    /// sustituir nada aquí. Puro y `internal` para que `OraculoUnicoTests` compare esta palabra con la
+    /// del widget y la de la portada el mismo día (FER-499).
+    static func idleHilo(prep: Preparedness.Read?, fullyLoaded: Bool, healthConnected: Bool,
+                         hasPlan: Bool, primerUsoSinPlan: Bool) -> LiquidHoyBuilder.HiloEntrenar? {
+        LiquidHoyBuilder.hiloEntrenar(prep: prep, nights: prep?.autonomicNights ?? 0,
+                                      healthConnected: healthConnected,
+                                      verdictPending: prep == nil && !fullyLoaded,
+                                      hasPlan: hasPlan, primerUsoSinPlan: primerUsoSinPlan)
     }
 
     /// The wire vocabulary `CenitWatch` decodes (`"clear"/"caution"/"ease"/"hollow"`) for

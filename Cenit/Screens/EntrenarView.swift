@@ -1638,37 +1638,24 @@ private struct EntrenarLanding: View {
     /// colapsaba los tres estados sin veredicto en «Conociéndote», que le decía «te estoy
     /// conociendo» a quien nunca conectó Apple Salud.
     ///
-    /// FER-376: en primer uso sin plan y SIN Salud, el oráculo devuelve «Conecta Apple Health» como
-    /// primera línea del cuerpo, compitiendo con «Arma tu semana» y sugiriendo en falso que necesitas
-    /// Salud para entrenar. Se suprime SOLO ese caso, aquí en el call-site — el oráculo sigue intacto
-    /// (fuente única de Hoy/widget/reloj). Con Salud conectada, o con un plan, el hilo no cambia.
+    /// FER-499: este call-site es un PASE DIRECTO. La supresión en primer uso sin plan (FER-376) y la
+    /// palabra «Sin Apple Salud, la progresión…» (FER-488) vivían aquí, así que el widget y el reloj,
+    /// que llaman al mismo oráculo, publicaban el hilo crudo («Conecta Apple Salud») el mismo día. Ahora
+    /// las dos reglas viven dentro de `hiloEntrenar` y `esPrimerUsoSinPlan` viaja como argumento;
+    /// `OraculoUnicoTests` fija que los tres consumidores reciben la misma palabra.
     @ViewBuilder private var hiloDelVeredicto: some View {
-        if !(esPrimerUsoSinPlan && !healthConnected),
-           let hilo = LiquidHoyBuilder.hiloEntrenar(
+        if let hilo = LiquidHoyBuilder.hiloEntrenar(
             prep: repo.todayPreparedness,
             nights: repo.todayPreparedness?.autonomicNights ?? 0,
             healthConnected: healthConnected,
             verdictPending: repo.todayPreparedness == nil && !repo.fullyLoaded,
-            hasPlan: todayRoutine != nil) {
-            // Ola 2 (FER-488): sin Apple Salud — y ya pasamos el primer-uso-sin-plan, que arriba
-            // suprime el hilo entero — el oráculo sigue devolviendo SU palabra/consejo (calculados
-            // sin datos de Salud, pero hablando como si los hubiera). Este call-site los sustituye por
-            // el hilo honesto que nombra la ausencia; el oráculo (`LiquidHoyBuilder.hiloEntrenar`,
-            // compartido con el widget y el reloj) NO se toca.
-            if !healthConnected {
-                EntrenarHilo(tone: .hollow,
-                             word: LocalizedStringKey("Without Apple Health,"),
-                             advice: LocalizedStringKey("progression uses only your routine and what you log."),
-                             hint: "Opens today's ballot") {
-                    showVeredictoActa = true
-                }
-            } else {
-                EntrenarHilo(tone: hilo.tono.entrenarTone,
-                             word: LocalizedStringKey(hilo.palabra),
-                             advice: hilo.consejo.map { LocalizedStringKey($0) },
-                             hint: "Opens today's ballot") {
-                    showVeredictoActa = true
-                }
+            hasPlan: todayRoutine != nil,
+            primerUsoSinPlan: esPrimerUsoSinPlan) {
+            EntrenarHilo(tone: hilo.tono.entrenarTone,
+                         word: LocalizedStringKey(hilo.palabra),
+                         advice: hilo.consejo.map { LocalizedStringKey($0) },
+                         hint: "Opens today's ballot") {
+                showVeredictoActa = true
             }
         }
     }
