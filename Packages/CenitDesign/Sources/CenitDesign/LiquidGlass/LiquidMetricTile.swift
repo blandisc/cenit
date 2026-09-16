@@ -18,7 +18,9 @@ public struct LiquidMetricTile: View {
     private let delta: String?
     private let deltaTone: LiquidDeltaTone
     private let tone: Color
-    private let icon: LiquidIcon.Glyph
+    /// `nil` cuando la métrica no tiene identidad canónica (`MetricIdentity` → sin glifo):
+    /// no se presta la gota de carga (FER-506 · C8).
+    private let icon: LiquidIcon.Glyph?
     private let origen: LiquidOrigen
     /// Pie plano sin tono — la variante «quiet» (FER-280 · 1c, H1.4): reemplaza la fila de
     /// delta cuando la pantalla no tiene un cambio direccional que anunciar (Apple Health:
@@ -37,7 +39,7 @@ public struct LiquidMetricTile: View {
     /// - Parameter caption: pie plano sin tono, solo válido cuando `delta` es `nil`.
     /// - Parameter sparkline: traza diminuta opcional, solo válida cuando `delta` es `nil`.
     public init(label: String, value: String, unit: String = "", delta: String? = nil,
-                deltaTone: LiquidDeltaTone = .neutral, tone: Color, icon: LiquidIcon.Glyph,
+                deltaTone: LiquidDeltaTone = .neutral, tone: Color, icon: LiquidIcon.Glyph? = nil,
                 origen: LiquidOrigen = .medido, caption: String? = nil, sparkline: [Double]? = nil,
                 a11yValencia: String? = nil,
                 a11yOrigen: String? = nil, action: (() -> Void)? = nil) {
@@ -89,7 +91,9 @@ public struct LiquidMetricTile: View {
     private var content: some View {
         VStack(alignment: .leading, spacing: 3) {
             HStack(spacing: LiquidSpace.s150) {
-                LiquidIconDrop(icon, tone: tone)
+                if let icon {
+                    LiquidIconDrop(icon, tone: tone)
+                }
                 Text(label).liquidLabel().foregroundStyle(LiquidColor.tinta500)
             }
             HStack(alignment: .firstTextBaseline, spacing: 3) {
@@ -151,7 +155,7 @@ public struct LiquidMetricTile: View {
     LazyVGrid(columns: [GridItem(.flexible(), spacing: LiquidSpace.s200), GridItem(.flexible())],
               spacing: LiquidSpace.s200) {
         LiquidMetricTile(label: "PESO", value: "72.4", unit: "kg",
-                         tone: LiquidColor.tinta700, icon: .carga,
+                         tone: LiquidColor.tinta500,
                          caption: "as of 12 ago")
         LiquidMetricTile(label: "HRV", value: "56", unit: "ms",
                          tone: LiquidColor.cian, icon: .onda,

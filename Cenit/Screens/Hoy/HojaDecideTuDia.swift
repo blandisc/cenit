@@ -55,7 +55,7 @@ struct HojaDecideTuDia: View {
                       String(localized: "hero.title.full", defaultValue: "In range"),
                       String(localized: "manual.deciden.c1.sub",
                              defaultValue: "No signal out. Your body woke up where it usually does."))
-                combo(LiquidColor.ambar,
+                combo(LiquidColor.atencion,
                       String(localized: "hero.title.caution", defaultValue: "Go light today"),
                       String(localized: "manual.deciden.c2.sub",
                              defaultValue: "One signal out of your range, and I tell you which."))
@@ -122,7 +122,7 @@ struct HojaDecideTuDia: View {
         let (texto, color): (String, Color) = switch sello {
         case .vota:
             (String(localized: "manual.deciden.sello.vota", defaultValue: "votes"),
-             LiquidColor.verdePrimario)
+             LiquidColor.verdeTexto)   // FER-506: texto verde chico -> verdeTexto (AA)
         case .centinela:
             (String(localized: "manual.deciden.sello.centinela", defaultValue: "sentinel"),
              LiquidColor.doradoTemp)

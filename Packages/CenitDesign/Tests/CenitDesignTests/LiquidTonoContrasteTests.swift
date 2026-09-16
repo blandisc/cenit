@@ -120,4 +120,15 @@ final class LiquidTonoContrasteTests: XCTestCase {
         XCTAssertTrue(mismoColor(LiquidTono.verde.tesela, LiquidColor.verdeCarga),
                       "tesela verde delega en base → debe ser verdeCarga")
     }
+
+    /// FER-506 · C8: `verdeTexto` (= `verdeProfundo`) es el gemelo de `atencionTexto` para
+    /// texto verde < 24 pt — AA pleno sobre el lienzo claro (mismo patrón que el ámbar de lectura).
+    func testVerdeTextoPasaAAsobreLienzoClaro() {
+        let lienzo = canvas.resolved(at: .light)
+        let ratio = OKLab.contrastRatio(LiquidColor.verdeTexto.resolved(at: .light), lienzo)
+        XCTAssertGreaterThanOrEqual(ratio, 4.5,
+                                    "verdeTexto da \(ratio):1 sobre papelTarjeta claro; piso AA 4.5:1")
+        XCTAssertTrue(mismoColor(LiquidColor.verdeTexto, LiquidColor.verdeProfundo),
+                      "verdeTexto debe ser el alias de verdeProfundo")
+    }
 }

@@ -294,14 +294,11 @@ struct AyudaScreen: View {
         .frame(width: chip, height: chip)
     }
 
+    /// Tinta neutra del dock (LiquidTabBar): un hue 1:1 de dato no decora secciones de Ayuda
+    /// (FER-506 · C8 / LIQUID-GLASS §1).
     private func tinte(_ pestana: Pestana) -> Color {
-        switch pestana {
-        case .hoy:         return LiquidColor.verdeOrbe
-        case .tendencias:  return LiquidColor.cian
-        case .entrenar:    return LiquidColor.ambar
-        case .ajustes:     return LiquidColor.indigo
-        case .transversal: return LiquidColor.azul
-        }
+        _ = pestana
+        return LiquidColor.tinta900
     }
 
     /// La línea de «qué encuentras» de cada tarjeta del índice — la voz de marca, no una lista.
