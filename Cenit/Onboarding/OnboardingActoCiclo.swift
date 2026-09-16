@@ -63,7 +63,7 @@ struct OnbActoCiclo: View {
                 OnbOverline(OnbCopy.cicloOverlineTraduce)
                     .padding(.top, LiquidSpace.s800)
                 OnbFila(nombre: LiquidHoyBuilder.palabraVeredicto(.full),
-                        tono: LiquidColor.verdePrimario, glosa: OnbCopy.cicloFull)
+                        tono: LiquidColor.verdeTexto, glosa: OnbCopy.cicloFull)
                 OnbFila(nombre: LiquidHoyBuilder.palabraVeredicto(.caution),
                         tono: LiquidColor.atencionTexto, glosa: OnbCopy.cicloCaution)
                 OnbFila(nombre: LiquidHoyBuilder.palabraVeredicto(.easy),
@@ -149,7 +149,7 @@ struct OnbActoCiclo: View {
                         tono: nil,
                         glosa: sinDatos ? OnbCopy.cicloSinRelojCuerpoSinSalud : OnbCopy.cicloSinRelojCuerpoGlosa)
                 OnbFila(nombre: OnbCopy.pestanaEntrenar,
-                        tono: LiquidColor.verdePrimario,
+                        tono: nil,
                         glosa: OnbCopy.cicloSinRelojEntrenar)
                 OnbFila(nombre: OnbCopy.pestanaAjustes,
                         tono: nil,

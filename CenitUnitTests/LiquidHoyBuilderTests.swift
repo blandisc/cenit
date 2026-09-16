@@ -518,7 +518,7 @@ final class LiquidHoyBuilderTests: XCTestCase {
         XCTAssertEqual(tiles[2].tone, LiquidColor.rosa)
         XCTAssertEqual(tiles[3].tone, LiquidColor.ambar)
         XCTAssertEqual(tiles[4].tone, LiquidColor.teal)
-        XCTAssertEqual(tiles[5].tone, LiquidColor.ambar)
+        XCTAssertEqual(tiles[5].tone, LiquidColor.doradoTemp)   // FER-506: temp usa su dorado, no el ámbar de esfuerzo
         XCTAssertEqual(tiles[5].value, "+0.1")
         XCTAssertEqual(tiles[6].tone, LiquidColor.azul)
         XCTAssertEqual(tiles[7].tone, LiquidColor.verdePrimario, "estrés bajo → verde")

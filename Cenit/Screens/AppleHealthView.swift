@@ -448,14 +448,13 @@ struct AppleHealthView: View {
             }
         }
 
-        // El glifo no es opcional en el tile; las claves de composición corporal y VO₂ todavía no
-        // tienen familia propia y caen al de carga, igual que su preview en CenitDesign.
+        // MetricIdentity es la ÚNICA fuente: sin familia → tinta500 y sin gota (nunca `.carga`).
         return LiquidMetricTile(label: metricName(recipe.key),
                                 value: hero,
                                 unit: recipe.unit,
                                 delta: nil,
                                 tone: numbers.isEmpty ? LiquidColor.tinta500 : mark.hue,
-                                icon: mark.glyph ?? .carga,
+                                icon: mark.glyph,
                                 caption: footnote,
                                 sparkline: numbers.count > 1 ? Array(numbers.suffix(40)) : nil)
     }
@@ -472,11 +471,12 @@ struct AppleHealthView: View {
                 ? String(localized: "Apple-logged")
                 : String(localized: "All-time total")
         }
+        // Sin identidad canónica en MetricIdentity → tinta, sin gota de carga (FER-506 · C8).
         return LiquidMetricTile(label: String(localized: "Workouts"),
                                 value: "\(total)",
                                 delta: nil,
-                                tone: total > 0 ? LiquidColor.ambar : LiquidColor.tinta500,
-                                icon: .carga,
+                                tone: LiquidColor.tinta500,
+                                icon: nil,
                                 caption: footnote)
     }
 

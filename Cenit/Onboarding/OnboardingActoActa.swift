@@ -47,7 +47,7 @@ struct OnbActoActa: View {
                 OnbOverline(OnbCopy.actaOverlinePalabras)
                     .padding(.top, LiquidSpace.s800)
                 OnbFila(nombre: LiquidHoyBuilder.palabraVeredicto(.full),
-                        tono: LiquidColor.verdePrimario, glosa: OnbCopy.actaGlosaFull)
+                        tono: LiquidColor.verdeTexto, glosa: OnbCopy.actaGlosaFull)
                 OnbFila(nombre: LiquidHoyBuilder.palabraVeredicto(.caution),
                         tono: LiquidColor.atencionTexto, glosa: OnbCopy.actaGlosaCaution)
                 OnbFila(nombre: LiquidHoyBuilder.palabraVeredicto(.easy),
