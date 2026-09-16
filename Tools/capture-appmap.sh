@@ -15,7 +15,8 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 SIM_NAME="${SIM_NAME:-iPhone 17 Pro}"
-STAGING="scratch-appmap-staging"
+STAGING="${NOOP_STAGING_DIR:-$(mktemp -d -t appmap-staging)}"
+if [ -z "${NOOP_STAGING_DIR:-}" ]; then trap 'rm -rf "$STAGING"' EXIT; fi
 LOG="$(mktemp -t capture-appmap).log"
 
 # Tests a correr:
