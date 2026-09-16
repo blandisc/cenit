@@ -20,6 +20,12 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
 
 ## Unreleased
 
+- **Hoy y Tendencias viven juntos en Cuerpo: Ahora | Tiempo, dock de tres / Today and Trends live together in Body: Now | Time, three-tab dock**
+  ### ES
+  El dock baja de cuatro a tres pestañas: Entrenar · Cuerpo · Ajustes. Cuerpo junta lo que era Hoy y Tendencias con el selector «Ahora | Tiempo». La palabra del día es la misma que en Entrenar (compacta aquí, grande allá) y abre la misma Acta. El ritual del orbe (separar/unir) ya no está. (`CuerpoTabView.swift`, `RootTabView.swift`, `LiquidTabBar.swift`)
+  ### EN
+  The dock drops from four tabs to three: Train · Body · Settings. Body folds what used to be Today and Trends behind the "Now | Time" selector. The day's word matches Train (compact here, large there) and opens the same ballot. The orb ritual (split/merge) is gone. (`CuerpoTabView.swift`, `RootTabView.swift`, `LiquidTabBar.swift`)
+
 - **El widget y el Apple Watch dicen lo mismo que Entrenar cuando no hay Apple Salud / The widget and Apple Watch now say what Train says without Apple Health**
   ### ES
   Sin permiso de Apple Salud, la pantalla de inicio y la muñeca decían «Conecta Apple Salud» mientras Entrenar decía «Sin Apple Salud, la progresión usa solo tu rutina y lo que registras», o callaba a propósito en el primer uso. Ahora la palabra sale de un solo sitio y las tres superficies la muestran igual el mismo día. (`LiquidHoyBuilder.swift`, `TrainWidgetPublisher.swift`, `AppModel+WatchStart.swift`)

@@ -70,7 +70,7 @@ Cenit/                         App-layer (Data/Screens/System/…) compiled by t
 │   ├── AppleHealthImport.swift Apple Health / file-import result → store rows
 │   ├── Profile.swift           user profile (age/sex/body/HRmax)
 │   └── BehaviorStore.swift     toggles for automations/coaching
-├── Screens/                    SwiftUI feature screens (Today, Sleep, Trends, Train…)
+├── Screens/                    SwiftUI feature screens (Cuerpo [Ahora=ex-Today | Tiempo=ex-Trends], Sleep, Train…)
 ├── Media/                      opt-in exercise-media cache/download (off by default)
 ├── LiveActivity/               Live Activity / rest-timer presentation glue
 ├── Onboarding/                 first-run / restore / terms flows
@@ -723,10 +723,22 @@ The `Cenit` app shell (under `CenitApp/App/`) builds a single `AppModel`, inject
 plus `Repository`, `ProfileStore`, `BehaviorStore`, `GoalStore` (the Bucle's goal — a single
 metric+date preference in `UserDefaults`, not a DB table, FER-311), `HealthKitBridge`, `AutoBackup`,
 `TabRouter`, and `MediaDownloadCoordinator` as environment objects (`CenitApp.swift`), and presents the
-shared screens under `Cenit/Screens/` (Today, Breathe, Intervals, Compare, Sleep, Trends,
-Workouts, Health, Apple Health, Data Sources, Settings, Support). There is no `LiveState` injection
+shared screens under `Cenit/Screens/` (Cuerpo, Breathe, Intervals, Sleep, Workouts, Health,
+Apple Health, Data Sources, Settings, Support). There is no `LiveState` injection
 (the BLE connection snapshot type was removed with the band amputation), and no separately reachable
 Automations screen. The home / lock-screen widgets live in `CenitWidgets/`.
+
+**Navigation shell (FER-490).** Three tabs — **Entrenar · Cuerpo · Ajustes** — over the floating
+`LiquidTabBar` (the legacy `InstrumentTabBar` was dead code, retired here). The app launches on
+Entrenar (`RootTabView.selection = .train`). **Cuerpo** folds the former **Hoy** and **Tendencias**
+screens into one tab with two modes, **«Ahora | Tiempo»** (`CuerpoTabView`): a fixed selector mounts
+exactly one subtree at a time (`TodayView` for Ahora, `CuerpoView` for Tiempo), each keeping its own
+scroll position. The verdict word is a single oracle (`LiquidHoyBuilder.hiloEntrenar`): large only in
+Entrenar, compact (`EntrenarHilo`, orb 44) in Cuerpo/Ahora, both opening the same Acta
+(`LiquidActaVeredicto`). Tab enums live in `RootTabView.Tab` / `TabRouter.Tab` (app),
+`CenitDesign.LiquidTab` (dock) and `CenitEnsenanza.Pestana` (teaching registry) — all three collapsed
+4→3 in lockstep. The whole shell is light «Liquid Glass · El Eje» (the by-tab dark scheme was retired
+in FER-430).
 
 **Inject (hot-reload).** The app target links the third-party `Inject` package (`project.yml`) for
 Debug UI hot-reload with InjectionIII / InjectionNext. In **Release** the library is a **no-op**: the
