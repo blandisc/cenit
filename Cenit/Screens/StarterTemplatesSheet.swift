@@ -440,7 +440,7 @@ struct StarterTemplatesSheet: View {
         saving = true
         let now = Int(Date().timeIntervalSince1970)
         let ids = Set(motor.weekdays.values)
-        let names = Dictionary(uniqueKeysWithValues: ids.map { ($0, String(localized: templateName($0))) })
+        let names = Dictionary(ids.map { ($0, String(localized: templateName($0))) }, uniquingKeysWith: { primero, _ in primero })
         let elegido = ProgramTemplate(id: motor.id, weekdays: motor.weekdays, weeks: programaWeeks,
                                       deloadRule: programaDeload, endMode: programaEndMode,
                                       barbellProgressionSessions: motor.barbellProgressionSessions,

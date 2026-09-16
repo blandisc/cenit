@@ -20,6 +20,12 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
 
 ## Unreleased
 
+- **Hoy ya no se cierra por un día repetido, y las hojas de Ayuda y Novedades pausan el fondo / Today no longer crashes on a duplicated day, and the Help and What's New sheets pause the background**
+  ### ES
+  Un día repetido en el historial (por ejemplo tras un cambio de zona horaria) podía cerrar la app al abrir Hoy; ahora se toma el dato más reciente y sigue. Las hojas «Cómo funciona Cénit» y «Novedades» pausan la animación de fondo como el resto de las hojas. Además, al volver de la app Salud durante el primer arranque ya no se lee «nada me llegó» mientras la sincronización sigue trabajando, y al crear una rutina desde la biblioteca el editor se abre cuando la biblioteca terminó de cerrarse, sin parpadeos. (`LiquidHoyBuilder+Matriz.swift`, `TodayView.swift`, `HealthKitBridge.swift`, `EntrenarView.swift`)
+  ### EN
+  A duplicated day in the history (after a time-zone change, for instance) could close the app when opening Today; the most recent row now wins and the screen goes on. The "How Cénit works" and "What's new" sheets pause the background animation like every other sheet. Coming back from the Health app during first launch no longer reads "nothing came in" while the sync is still working, and creating a routine from the library opens the editor once the library has finished closing, without flicker. (`LiquidHoyBuilder+Matriz.swift`, `TodayView.swift`, `HealthKitBridge.swift`, `EntrenarView.swift`)
+
 - **Cuerpo se concentra en lo que la app calcula bien: se retiran Longevidad, Edad física, Edad corporal, Comparar y «tras cada deporte» / Body focuses on what the app computes well: Longevity, Fitness age, Body age, Compare and "after each sport" are retired**
   ### ES
   La tarjeta «Longevidad» (edad física, edad corporal), el botón «Comparar», la sección «Cómo despiertas tras cada deporte» y «Qué correlaciona» del Explorador ya no aparecen ni se calculan. Se quedan el catálogo de métricas con su historial, «Tu patrón» y Tendencias completa. (`CuerpoView.swift`, `MetricExplorerView.swift`)

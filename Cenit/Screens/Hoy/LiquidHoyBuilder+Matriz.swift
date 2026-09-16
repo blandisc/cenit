@@ -31,12 +31,17 @@ extension LiquidHoyBuilder {
     /// Proyección pura de los datos del motor al modelo de la cara Matriz.
     static func matriz(_ i: MatrizInputs) -> MatrizHoyModel {
         let keys = dayKeys(endingAt: i.now, calendar: i.calendar, count: matrizVentanaFC)
-        let byDay = Dictionary(uniqueKeysWithValues: i.diasRecientes.map { ($0.day, $0) })
-        let bodyByDay = Dictionary(uniqueKeysWithValues: (i.prep?.bodyHistory ?? []).map { ($0.day, $0) })
-        let sentByDay = Dictionary(uniqueKeysWithValues: (i.prep?.sentinelHistory ?? []).map { ($0.day, $0) })
-        let stressByDay = Dictionary(uniqueKeysWithValues: i.stressTrend.map { ($0.day, $0.value) })
-        let stepsByDay = Dictionary(uniqueKeysWithValues: i.stepsEstimados.map { ($0.day, $0.value) })
-        let cargaSeriesByDay = Dictionary(uniqueKeysWithValues: (i.carga?.series ?? []).map { ($0.day, $0.value) })
+        // FER-502 (auditoría C4): `Dictionary(uniqueKeysWithValues:)` TRAPEA con una clave repetida, y un día
+        // repetido en `stressTrend`/`stepsEstimados` (re-bucket UTC↔local, dos filas del mismo día) tumbaba
+        // Hoy al abrir. Con `uniquingKeysWith` una colisión es un dato, no un crash: por DÍA gana la última
+        // fila (la más reciente escrita); por identidad/orden gana la primera. Regla del gate:
+        // `no-unique-keys-dictionary` (check-design-drift.py).
+        let byDay = Dictionary(i.diasRecientes.map { ($0.day, $0) }, uniquingKeysWith: { _, ultimo in ultimo })
+        let bodyByDay = Dictionary((i.prep?.bodyHistory ?? []).map { ($0.day, $0) }, uniquingKeysWith: { _, ultimo in ultimo })
+        let sentByDay = Dictionary((i.prep?.sentinelHistory ?? []).map { ($0.day, $0) }, uniquingKeysWith: { _, ultimo in ultimo })
+        let stressByDay = Dictionary(i.stressTrend.map { ($0.day, $0.value) }, uniquingKeysWith: { _, ultimo in ultimo })
+        let stepsByDay = Dictionary(i.stepsEstimados.map { ($0.day, $0.value) }, uniquingKeysWith: { _, ultimo in ultimo })
+        let cargaSeriesByDay = Dictionary((i.carga?.series ?? []).map { ($0.day, $0.value) }, uniquingKeysWith: { _, ultimo in ultimo })
 
         let hoyKey = keys.last
         let hoy = hoyKey.flatMap { byDay[$0] }

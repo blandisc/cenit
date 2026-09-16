@@ -536,7 +536,7 @@ struct HojaSesionViva: View {
     func loadRoutineREs() async {
         guard let rid = session.routineId, let store = await sheet.repo.storeHandle(),
               let res = try? await store.routineExercises(routineId: rid) else { return }
-        routineREs = Dictionary(uniqueKeysWithValues: res.map { ($0.id, $0) })
+        routineREs = Dictionary(res.map { ($0.id, $0) }, uniquingKeysWith: { primero, _ in primero })
     }
 }
 

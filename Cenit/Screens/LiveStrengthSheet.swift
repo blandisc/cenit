@@ -1194,7 +1194,7 @@ struct LiveStrengthSheet: View {
             var results: [QuickSuggestion] = []
             for await s in group { results.append(s) }
             // Restore freshness order (most-fresh-first) — a TaskGroup completes in arbitrary order.
-            let order = Dictionary(uniqueKeysWithValues: picked.enumerated().map { ($1.exercise.id, $0) })
+            let order = Dictionary(picked.enumerated().map { ($1.exercise.id, $0) }, uniquingKeysWith: { primero, _ in primero })
             return results.sorted { (order[$0.exercise.id] ?? 0) < (order[$1.exercise.id] ?? 0) }
         }
         loadedMuscle = loads.filter { $0.state == .loaded }.max { $0.load < $1.load }?.muscle
@@ -1274,7 +1274,7 @@ struct LiveStrengthSheet: View {
     private func loadRoutineREs() async {
         guard let rid = session.routineId, let store = await model.repo.storeHandle() else { return }
         let res = (try? await store.routineExercises(routineId: rid)) ?? []
-        routineREs = Dictionary(uniqueKeysWithValues: res.map { ($0.id, $0) })
+        routineREs = Dictionary(res.map { ($0.id, $0) }, uniquingKeysWith: { primero, _ in primero })
     }
 
     /// A stand-in RoutineExercise built from the LIVE run, so the full progression screen can open
@@ -1298,7 +1298,7 @@ struct LiveStrengthSheet: View {
     /// la próxima sesión nace con las mismas parejas. Ad-hoc (sin rutina) no tiene dónde persistir.
     private func persistSupersetGroups() {
         guard let rid = session.routineId else { return }
-        let groups = Dictionary(uniqueKeysWithValues: session.runs.map { ($0.id, $0.supersetGroup) })
+        let groups = Dictionary(session.runs.map { ($0.id, $0.supersetGroup) }, uniquingKeysWith: { primero, _ in primero })
         Task {
             guard let store = await model.repo.storeHandle(),
                   var res = try? await store.routineExercises(routineId: rid),

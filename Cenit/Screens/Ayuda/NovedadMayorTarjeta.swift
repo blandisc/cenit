@@ -41,7 +41,16 @@ struct NovedadMayorTip: Tip {
 }
 
 struct NovedadMayorTarjeta: View {
-    @State private var mostrarNovedades = false
+    @State private var mostrarNovedadesInterna = false
+    /// FER-502: Hoy pasa su propio `@State` para saber que la hoja de Novedades está encima y pausar el
+    /// ambiente (`TodayView.hojaPresentada`); sin binding, la tarjeta gobierna su hoja como antes.
+    private let mostrarNovedadesExterna: Binding<Bool>?
+
+    init(presentada: Binding<Bool>? = nil) {
+        self.mostrarNovedadesExterna = presentada
+    }
+
+    private var mostrarNovedades: Binding<Bool> { mostrarNovedadesExterna ?? $mostrarNovedadesInterna }
 
     var body: some View {
         // Sin versión `mayor` en el registro no hay tip que montar (hoy: ninguna; en Debug,
@@ -51,7 +60,7 @@ struct NovedadMayorTarjeta: View {
                 // La puerta: TipKit ya invalidó el tip (`.actionPerformed`, en el estilo).
                 NovedadesEstado.marcarTarjetaVista()
                 NovedadMayorTip.hayMayorPendiente = NovedadesEstado.hayMayorPendiente
-                mostrarNovedades = true
+                mostrarNovedades.wrappedValue = true
             }
             // Sobrio y neutro: Hoy es sobrio y ninguna tarjeta toma el color del veredicto
             // (voz de marca, nunca juicio — ficha de UI FER-435/436). «Entendido» viene del
@@ -60,7 +69,7 @@ struct NovedadMayorTarjeta: View {
             // La columna de módulos de Hoy (16, = dock), no el margen del héroe (24).
             .padding(.horizontal, LiquidSpace.s400)
             .onAppear { NovedadMayorTip.hayMayorPendiente = NovedadesEstado.hayMayorPendiente }
-            .sheet(isPresented: $mostrarNovedades) {
+            .sheet(isPresented: mostrarNovedades) {
                 NavigationStack { NovedadesSheet() }
             }
         }

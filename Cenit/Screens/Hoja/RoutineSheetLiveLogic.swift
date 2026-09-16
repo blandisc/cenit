@@ -660,7 +660,7 @@ extension HojaSesionViva {
         var cargados = personalRecordsLoadedFor
         for exId in Set(session.runs.map(\.exerciseId)) where !cargados.contains(exId) {
             guard let prs = try? await store.personalRecords(exerciseId: exId) else { continue }
-            built[exId] = Dictionary(uniqueKeysWithValues: prs.map { ($0.metric, $0) })
+            built[exId] = Dictionary(prs.map { ($0.metric, $0) }, uniquingKeysWith: { _, ultimo in ultimo })
             cargados.insert(exId)
         }
         personalRecords = built
@@ -1080,7 +1080,7 @@ extension HojaSesionViva {
     /// próxima vez que la rutina se abra a editar. Sin rutina detrás (sesión ad-hoc), no-op.
     func persistSupersetGroups() {
         guard let rid = session.routineId else { return }
-        let groups = Dictionary(uniqueKeysWithValues: session.runs.map { ($0.id, $0.supersetGroup) })
+        let groups = Dictionary(session.runs.map { ($0.id, $0.supersetGroup) }, uniquingKeysWith: { primero, _ in primero })
         Task {
             guard let store = await sheet.repo.storeHandle(),
                   var res = try? await store.routineExercises(routineId: rid),

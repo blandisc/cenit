@@ -56,7 +56,7 @@ final class PlatesStore: ObservableObject {
         } else if let raw = d.array(forKey: K.owned) as? [Double], !raw.isEmpty {
             // One-shot migration from the legacy boolean list: each owned denomination → 2 pairs
             // (a reasonable "some pairs" default so users don't lose their setup).
-            var migrated: [Double: Int] = Dictionary(uniqueKeysWithValues: Self.selectableKg.map { ($0, 0) })
+            var migrated: [Double: Int] = Dictionary(Self.selectableKg.map { ($0, 0) }, uniquingKeysWith: { primero, _ in primero })
             for kg in raw {
                 if let key = Self.selectableKg.first(where: { abs($0 - kg) < 0.001 }) {
                     migrated[key] = 2
@@ -67,7 +67,7 @@ final class PlatesStore: ObservableObject {
             d.set(Self.encodePairs(migrated), forKey: K.pairsKey)
         } else {
             // Fresh install: seed from `PlateMath.defaultInventory` (pairs already tracked there).
-            var defaults: [Double: Int] = Dictionary(uniqueKeysWithValues: Self.selectableKg.map { ($0, 0) })
+            var defaults: [Double: Int] = Dictionary(Self.selectableKg.map { ($0, 0) }, uniquingKeysWith: { primero, _ in primero })
             for stock in PlateMath.defaultInventory { defaults[stock.kg] = stock.pairs }
             pairs = defaults
         }
@@ -105,7 +105,7 @@ private extension PlatesStore {
     /// rather than `as? [[Double]]` (which often fails for nested arrays).
     static func loadPairs(from d: UserDefaults) -> [Double: Int]? {
         guard let arr = d.array(forKey: K.pairsKey), !arr.isEmpty else { return nil }
-        var result: [Double: Int] = Dictionary(uniqueKeysWithValues: selectableKg.map { ($0, 0) })
+        var result: [Double: Int] = Dictionary(selectableKg.map { ($0, 0) }, uniquingKeysWith: { primero, _ in primero })
         var found = false
         for item in arr {
             guard let row = item as? [Any], row.count >= 2,
