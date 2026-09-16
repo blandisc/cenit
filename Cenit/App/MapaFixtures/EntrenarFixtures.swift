@@ -23,18 +23,15 @@ enum EntrenarFixtures {
         //       `.deferred` (`raise.waiting == true`) — exactamente lo que `EntrenarView.load()` lee
         //       para llenar `retainedToday`.
         //
-        // ORDEN (corrección del director, capturas reales 2026-09-15): «strained» va PRIMERO, no al
-        // final. `repo.setDashboard` (dentro de «strained») bumpea `repo.refreshSeq`, que es lo que
-        // dispara `EntrenarView.load()` vía `.task(id: repo.refreshSeq)` — sembrarlo ANTES del wipe
-        // le da a ese `load()` el máximo margen posible antes de que `AppModel.init` corra
-        // `ScreenshotFixtures.seedTrainingPlan` (SIEMPRE, para cualquier fixture no vacío —
-        // `AppModel.swift` l.~264, FER-939), que vuelve a sembrar SU propio plan de demo («Día A —
-        // Empuje» de 3 ejercicios) encima de cualquier rutina que exista. Con «strained» al final
-        // (versión anterior), el bump llegaba demasiado tarde y la captura mostraba el plan de
-        // `seedTrainingPlan`, no el nuestro, sin la píldora.
+        // ORDEN (capturas reales 2026-09-15): el plan va PRIMERO y «strained» al FINAL. Lo que
+        // dispara `EntrenarView.load()` es el bump de `repo.refreshSeq` que hace `repo.setDashboard`
+        // dentro de «strained»: si llega antes de sembrar la banca, la portada carga «Descanso» y ya
+        // no vuelve a leer. La carrera con `ScreenshotFixtures.seedTrainingPlan` (que antes re-sembraba
+        // el plan de demo encima de éste) la cierra `AppModel.init`, que ahora se lo salta para los
+        // fixtures de `EntrenarFixtures.all`.
         "train-retenida": { model in
-            await ScreenshotFixtures.seed(model, state: "strained")
             await seedBenchToday(model, priorSessions: 2)
+            await ScreenshotFixtures.seed(model, state: "strained")   // publica al final → load()
         },
 
         // FER-495: el hub con plan de HOY pero SIN datos de preparación — el hilo (con
@@ -46,6 +43,8 @@ enum EntrenarFixtures {
         // misma captura. Sin llamar a «strained»: `repo.todayPreparedness` queda nil a propósito.
         "train-hoy": { model in
             await seedBenchToday(model, priorSessions: 1)
+            // Sin datos de preparación, pero SÍ el bump de `refreshSeq` que relee la portada.
+            model.repo.setDashboard(days: [])
         },
     ]
 
