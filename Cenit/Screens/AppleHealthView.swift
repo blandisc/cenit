@@ -254,22 +254,6 @@ struct AppleHealthView: View {
     /// compone a mano queden a la misma línea que las gráficas reales.
     private static let plotHeight: CGFloat = 144
 
-    /// Tramo del subtítulo («12 ago 2026»), en el idioma del app — no clavado a `en_US_POSIX`.
-    private static let spanStamp: DateFormatter = {
-        let formateador = DateFormatter()
-        formateador.locale = .current
-        formateador.setLocalizedDateFormatFromTemplate("dMMMyyyy")
-        return formateador
-    }()
-
-    /// Fecha corta («12 ago») para pies de tile y ejes de gráfica.
-    private static let dayStamp: DateFormatter = {
-        let formateador = DateFormatter()
-        formateador.locale = .current
-        formateador.setLocalizedDateFormatFromTemplate("dMMM")
-        return formateador
-    }()
-
     // MARK: Cuerpo
 
     var body: some View {
@@ -389,12 +373,10 @@ struct AppleHealthView: View {
     private var headerSubtitle: String {
         let rows = finishedReading ? dossier.days : dailyRows
         guard let opening = rows.first?.day, let closing = rows.last?.day,
-              let from = Repository.parseDayKey(opening),
-              let to = Repository.parseDayKey(closing) else {
+              let desde = DayKey.display(opening, template: "dMMMyyyy"),
+              let hasta = DayKey.display(closing, template: "dMMMyyyy") else {
             return String(localized: "Steps, heart, sleep, body composition and VO₂ max: read locally on this iPhone.")
         }
-        let desde = Self.spanStamp.string(from: from)
-        let hasta = Self.spanStamp.string(from: to)
         let stretch = desde == hasta ? desde : "\(desde) → \(hasta)"
         return String(localized: "\(rows.count) days · \(stretch)")
     }
@@ -458,8 +440,8 @@ struct AppleHealthView: View {
             case .newest:
                 hero = recipe.format(numbers.last ?? 0)
                 footnote = window.points.last
-                    .flatMap { Repository.parseDayKey($0.day) }
-                    .map { String(localized: "as of \(Self.dayStamp.string(from: $0))") }
+                    .flatMap { DayKey.display($0.day, template: "dMMM") }
+                    .map { String(localized: "as of \($0)") }
             case .average:
                 hero = recipe.format(average(numbers) ?? 0)
                 footnote = String(localized: "avg · \(numbers.count)d")
@@ -507,13 +489,13 @@ struct AppleHealthView: View {
             AppleHealthChartRecipe(key: "hrv", fallbackDomain: 20...120,
                                    format: { "\(rounded($0)) ms" }),
             AppleHealthChartRecipe(key: "spo2", fallbackDomain: 90...100,
-                                   format: { String(format: "%.1f%%", $0) }),
+                                   format: { "\(CenitFormat.decimal($0, places: 1))%" }),
             AppleHealthChartRecipe(key: "resp_rate", fallbackDomain: 10...22,
-                                   format: { String(format: "%.1f rpm", $0) }),
+                                   format: { "\(CenitFormat.decimal($0, places: 1)) rpm" }),
             // Desviación respecto a la base (°C), no una temperatura absoluta — mismo formato que
             // Cuerpo y la ficha de la métrica.
             AppleHealthChartRecipe(key: "skin_temp", fallbackDomain: -1.5...1.5,
-                                   format: { String(format: "%+.1f°C", $0) }),
+                                   format: { signedOneDecimal($0) + "°C" }),
         ])
     }
 
@@ -530,7 +512,7 @@ struct AppleHealthView: View {
         chartGroup(String(localized: "Body Composition"), recipes: [
             AppleHealthChartRecipe(key: "weight", fallbackDomain: 50...100, format: { mass($0) }),
             AppleHealthChartRecipe(key: "body_fat", fallbackDomain: 8...35,
-                                   format: { String(format: "%.1f%%", $0) }),
+                                   format: { "\(CenitFormat.decimal($0, places: 1))%" }),
             AppleHealthChartRecipe(key: "lean_mass", fallbackDomain: 40...80, format: { mass($0) }),
             AppleHealthChartRecipe(key: "bmi", fallbackDomain: 16...35, format: { oneDecimal($0) }),
         ])
@@ -617,8 +599,8 @@ struct AppleHealthView: View {
                 ticksY: [],
                 tono: tone,
                 formatoValorScrub: recipe.format,
-                formatoFechaScrub: { Self.dayStamp.string(from: $0) },
-                formatoFechaEje: { Self.dayStamp.string(from: $0) },
+                formatoFechaScrub: { DayKey.display(DayKey.utc($0), template: "dMMM") ?? "" },
+                formatoFechaEje: { DayKey.display(DayKey.utc($0), template: "dMMM") ?? "" },
                 estadoVacio: Self.emptySectionHowItFills,
                 a11yLabel: String(localized: "\(name) trend"))
                 .frame(height: Self.plotHeight)
@@ -693,7 +675,15 @@ struct AppleHealthView: View {
     }
 
     private func oneDecimal(_ value: Double) -> String {
-        String(format: "%.1f", value)
+        CenitFormat.decimal(value, places: 1)
+    }
+
+    /// Desviación con signo tipográfico («+0.3» / «−0.3»); el número va por el formateador compartido.
+    private func signedOneDecimal(_ value: Double) -> String {
+        let body = CenitFormat.decimal(abs(value), places: 1)
+        if value > 0 { return "+\(body)" }
+        if value < 0 { return "\(CenitFormat.menosReal)\(body)" }
+        return body
     }
 
     private func clock(_ minutes: Double) -> String {

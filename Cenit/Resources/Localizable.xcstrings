@@ -2173,6 +2173,23 @@
         }
       }
     },
+    "%@ more than the previous period" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ more than the previous period"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ más que el periodo anterior"
+          }
+        }
+      }
+    },
     "%@ night" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -71014,6 +71031,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sin detalle de series. Apple Salud guarda el resumen (duración y energía), no serie por serie."
+          }
+        }
+      }
+    },
+    "%@ less than the previous period" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ less than the previous period"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ menos que el periodo anterior"
           }
         }
       }

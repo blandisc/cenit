@@ -757,7 +757,7 @@ private struct CuerpoLanding: View {
                                 .font(LiquidType.displayS).tracking(LiquidType.displaySTracking)
                                 .foregroundStyle(band.map(loadBandColor) ?? LiquidColor.tinta500)
                             if let acwr = load?.acwr {
-                                Text("\(String(format: "%.2f", acwr)) · recent vs. your usual")
+                                Text("\(CenitFormat.decimal(acwr, places: 2)) · recent vs. your usual")
                                     .font(LiquidType.captionLectura).foregroundStyle(LiquidColor.tinta700)
                             } else {
                                 Text("I need about two weeks of recorded strain to read your load.")
@@ -993,7 +993,7 @@ private struct CuerpoLanding: View {
         // byte-identical ("Day Strain" / originComputed).
         let v = model.displayedDayStrain
         let estimated = repo.isStrainEstimated(repo.today?.day ?? Repository.localDayKey(Date()))
-        return statColumn(estimated ? "Day load" : "Day Strain", value: v.map { String(format: "%.1f", $0) },
+        return statColumn(estimated ? "Day load" : "Day Strain", value: v.map { CenitFormat.decimal($0, places: 1) },
                           color: MetricIdentity.identity(forKey: "strain").hue,
                           spark: windowedSpark { $0.strain }) {
             // Opens the rich Detalle de Esfuerzo (FER-238) — built fresh from the in-memory dashboard.
@@ -1016,7 +1016,7 @@ private struct CuerpoLanding: View {
         // Stress accompanies, it doesn't vote (HJ-09): a STATIC identity chip, not a band ramp —
         // `MetricIdentity`'s representative mid-ocre for "stress", same color with or without a
         // reading today (the empty-state grey in `statColumn` already handles `value == nil`).
-        return statColumn("Stress", value: s.map { String(format: "%.1f", $0) },
+        return statColumn("Stress", value: s.map { CenitFormat.decimal($0, places: 1) },
                           unit: s == nil ? nil : "/ 3",
                           color: MetricIdentity.identity(forKey: "stress").hue,
                           spark: stressSpark) {
@@ -1057,7 +1057,7 @@ private struct CuerpoLanding: View {
     private var spo2Stat: some View {
         let r = resolveMeasured { $0.spo2Pct }
         let fromApple = r?.fromApple == true
-        return statColumn("Blood Oxygen", value: r.map { String(format: "%.0f", $0.value) }, unit: "%",
+        return statColumn("Blood Oxygen", value: r.map { CenitFormat.decimal($0.value, places: 0) }, unit: "%",
                           color: MetricIdentity.identity(forKey: "spo2").hue,
                           fromApple: fromApple,
                           spark: windowedSpark { $0.spo2Pct }) {
@@ -1080,7 +1080,7 @@ private struct CuerpoLanding: View {
     private var respStat: some View {
         let r = resolveMeasured { $0.respRateBpm }
         let fromApple = r?.fromApple == true
-        return statColumn("Respiratory", value: r.map { String(format: "%.1f", $0.value) }, unit: String(localized: "rpm"),
+        return statColumn("Respiratory", value: r.map { CenitFormat.decimal($0.value, places: 1) }, unit: String(localized: "rpm"),
                           color: MetricIdentity.identity(forKey: "resp_rate").hue,
                           fromApple: fromApple,
                           spark: windowedSpark { $0.respRateBpm }) {
@@ -1091,7 +1091,7 @@ private struct CuerpoLanding: View {
     private var skinTempStat: some View {
         let r = resolveMeasured { $0.skinTempDevC }
         let fromApple = r?.fromApple == true
-        return statColumn("Skin temp", value: r.map { String(format: "%+.1f", $0.value) }, unit: "°C",
+        return statColumn("Skin temp", value: r.map { signedOneDecimal($0.value) }, unit: "°C",
                           color: MetricIdentity.identity(forKey: "skin_temp").hue,
                           fromApple: fromApple,
                           spark: windowedSpark { $0.skinTempDevC }) {
@@ -1469,6 +1469,14 @@ private struct CuerpoLanding: View {
     }
 
     private func intString(_ v: Double) -> String { CenitFormat.groupedInt(v) }
+
+    /// Desviación con signo tipográfico; el número va por el formateador compartido (FER-500 · C2).
+    private func signedOneDecimal(_ v: Double) -> String {
+        let body = CenitFormat.decimal(abs(v), places: 1)
+        if v > 0 { return "+\(body)" }
+        if v < 0 { return "\(CenitFormat.menosReal)\(body)" }
+        return body
+    }
 
     private static func descriptor(_ key: String) -> MetricDescriptor? {
         MetricCatalog.all.first { $0.key == key }

@@ -189,16 +189,27 @@ extension MetricDetailScreen {
     /// visually unchanged. (FER-254)
     func fmt(_ v: Double) -> String {
         guard v.isFinite else { return "—" }   // FER-465: NaN/±Inf → «—», nunca `Int(nan)` (trap)
-        guard spec.descriptor.decimals == 0 else { return String(format: "%.\(spec.descriptor.decimals)f", v) }
-        return Self.groupedInt.string(from: NSNumber(value: Int(v.rounded()))) ?? "\(Int(v.rounded()))"
+        guard spec.descriptor.decimals == 0 else {
+            return CenitFormat.decimal(v, places: spec.descriptor.decimals)
+        }
+        return CenitFormat.groupedInt(v)
     }
-
-    static let groupedInt: NumberFormatter = {
-        let f = NumberFormatter(); f.numberStyle = .decimal; f.maximumFractionDigits = 0; return f
-    }()
 
     /// The canonical UTC day-key formatter — read side of the day-key contract (FER-754).
     static let dayParser = DayKey.utcFormatter
+}
+
+/// VoiceOver del Δ% (FER-500 · C2): la app arma la frase YA localizada; el DS no conoce locales.
+enum LiquidNotaDeltaVoice {
+    static func label(pct: Double, places: Int = 0) -> String? {
+        guard let dir = LiquidNotaDelta.direccion(pct: pct, places: places) else { return nil }
+        let texto = CenitFormat.deltaPercent(pct, places: places)
+        switch dir {
+        case .igual: return String(localized: "unchanged")
+        case .sube:  return String(localized: "\(texto) more than the previous period")
+        case .baja:  return String(localized: "\(texto) less than the previous period")
+        }
+    }
 }
 
 #endif

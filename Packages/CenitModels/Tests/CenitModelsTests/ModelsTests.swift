@@ -42,4 +42,13 @@ final class ModelsTests: XCTestCase {
         let decoded = try JSONDecoder().decode(CachedSleepSession.self, from: data)
         XCTAssertEqual(decoded, original)
     }
+
+    /// FER-500 · C2: display parsea en UTC y formatea en UTC — «2026-01-01» no se corre a Dic 31
+    /// al oeste de Greenwich.
+    func testDayKeyDisplayKeepsUTCCivilDay() {
+        let s = DayKey.display("2026-01-01", template: "dMMM",
+                               locale: Locale(identifier: "en_US_POSIX"))
+        XCTAssertEqual(s, "Jan 1")
+        XCTAssertNil(DayKey.display("not-a-day", template: "dMMM"))
+    }
 }

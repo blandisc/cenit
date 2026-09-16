@@ -143,16 +143,16 @@ struct EntrenarHubMarcasVolumen: View {
 
     /// Ronda 2 · D4: positivo → «↗» verde (como hoy); negativo → «↘» tinta700 — NUNCA rojo, bajar
     /// volumen no es un error, es una semana más ligera. El cero ya se filtra en el caller (sin
-    /// flecha, sin signo). Sin «+» duplicado: `deltaPercent` ya trae su propio signo si es negativo.
+    /// flecha, sin signo). El número + signo tipográfico salen de `CenitFormat.deltaPercent`.
     private func deltaText(_ deltaPercent: Int) -> some View {
         let positivo = deltaPercent > 0
         let flecha = positivo ? "↗" : "↘"
-        let numero = positivo ? "+\(deltaPercent)" : "\(deltaPercent)"
-        return Text(verbatim: "\(flecha) \(numero) %")
+        let numero = CenitFormat.deltaPercent(Double(deltaPercent))
+        return Text(verbatim: "\(flecha) \(numero)")
             .font(EntrenarHubMetrics.volumenDelta)
             .foregroundStyle(positivo ? LiquidColor.verdeProfundo : LiquidColor.tinta700)
     }
 
-    private static func oneDecimal(_ v: Double) -> String { String(format: "%.1f", v) }
+    private static func oneDecimal(_ v: Double) -> String { CenitFormat.decimal(v, places: 1) }
 }
 #endif

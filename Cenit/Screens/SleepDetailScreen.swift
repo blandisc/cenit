@@ -768,10 +768,8 @@ struct SleepDetailScreen: View {
                     // «Promedio», dos filas abajo.
                     fraseNivelHistorial(window)
                     if let pctChange {
-                        LiquidNotaLine(pctChange >= 0 ? "+\(Int(pctChange.rounded()))%"
-                                                      : "\(Int(pctChange.rounded()))%",
-                                       tono: pctChange >= 0 ? LiquidColor.positivo
-                                                            : LiquidColor.atencionTexto)
+                        LiquidNotaDelta(pct: pctChange, polaridad: .higherIsBetter,
+                                        accessibilityLabel: LiquidNotaDeltaVoice.label(pct: pctChange))
                     }
                     graficaHistorial(window)
                     // La nota describe la GRÁFICA: va pegada a ella, dentro de la tarjeta.

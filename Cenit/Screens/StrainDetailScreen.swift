@@ -262,8 +262,9 @@ struct StrainDetailScreen: View {
                 VStack(alignment: .leading, spacing: LiquidSpace.s300) {
                     fraseNivelHistorial(window)
                     if let pct {
-                        LiquidNotaLine(pct >= 0 ? "+\(Int(pct.rounded()))%" : "\(Int(pct.rounded()))%",
-                                       tono: pct >= 0 ? LiquidColor.positivo : LiquidColor.atencionTexto)
+                        // Hoja descriptiva: signo sí, juicio no (`.neutral` mata el verde en «+0%»).
+                        LiquidNotaDelta(pct: pct, polaridad: .neutral,
+                                        accessibilityLabel: LiquidNotaDeltaVoice.label(pct: pct))
                     }
                     graficaHistorial(window, smoothed: smoothed)
                     LiquidNotaLine(String(localized: "7-day moving average: day-to-day strain is noisy."))

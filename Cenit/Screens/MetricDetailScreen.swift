@@ -1042,29 +1042,12 @@ struct MetricDetailScreen: View {
     }
 
     /// M1 · El Δ% del periodo vs el anterior como nota coloreada CON signo entre la frase y la
-    /// gráfica — el formato de las hermanas (calco `StrainDetailScreen` :270-273), coloreado
-    /// por la polaridad de la métrica (la MISMA lógica que tenía la celda «Trend» del resumen,
-    /// que muere con esto). Plano (0%) o métrica neutral → tinta quieta.
+    /// gráfica — pieza `LiquidNotaDelta` (FER-500 · C2). Polaridad = `trendPolarity`
+    /// (`LiquidPolaridad` vía alias). Plano o métrica neutral → tinta quieta.
     @ViewBuilder private func liquidNotaDelta(_ window: MetricWindow) -> some View {
         if let pct = window.range.periodComparison(of: trendComparisonSeries)?.pctChange {
-            let rounded = Int(pct.rounded())
-            let texto = pct >= 0 ? "+\(rounded)%" : "\(rounded)%"
-            if let tono = liquidTonoDelta(pct) {
-                LiquidNotaLine(texto, tono: tono)
-            } else {
-                LiquidNotaLine(texto)
-            }
-        }
-    }
-
-    /// El tono del Δ% por polaridad (VFC↑ bueno, FCr/Resp↓ bueno…): la dirección buena →
-    /// positivo, la contraria → atención; plano o neutral → nil (tinta por defecto).
-    private func liquidTonoDelta(_ pct: Double) -> Color? {
-        guard Int(abs(pct).rounded()) != 0 else { return nil }
-        switch trendPolarity {
-        case .higherIsBetter: return pct > 0 ? LiquidColor.positivo : LiquidColor.atencionTexto
-        case .lowerIsBetter:  return pct < 0 ? LiquidColor.positivo : LiquidColor.atencionTexto
-        case .neutral:        return nil
+            LiquidNotaDelta(pct: pct, polaridad: trendPolarity,
+                            accessibilityLabel: LiquidNotaDeltaVoice.label(pct: pct))
         }
     }
 

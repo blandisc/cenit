@@ -485,10 +485,9 @@ struct StressDetailScreen: View {
                 VStack(alignment: .leading, spacing: LiquidSpace.s300) {
                     fraseNivelHistorial(model, window)
                     if let pct {
-                        // Menos estrés es mejor: verde cuando baja, ámbar-texto cuando sube
-                        // (misma valencia que su fila de Hoy, `betterHigher: false`).
-                        LiquidNotaLine(pct >= 0 ? "+\(Int(pct.rounded()))%" : "\(Int(pct.rounded()))%",
-                                       tono: pct <= 0 ? LiquidColor.positivo : LiquidColor.atencionTexto)
+                        // Menos estrés es mejor (misma valencia que su fila de Hoy, `betterHigher: false`).
+                        LiquidNotaDelta(pct: pct, polaridad: .lowerIsBetter,
+                                        accessibilityLabel: LiquidNotaDeltaVoice.label(pct: pct))
                     }
                     graficaHistorial(model, window)
                     LiquidNotaLine(String(localized: "Raw daily values, no smoothing: stress is read day to day. Lower is better."))
