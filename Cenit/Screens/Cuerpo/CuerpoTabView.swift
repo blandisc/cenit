@@ -1,3 +1,4 @@
+// ensenanza: hoy.palabra, tendencias.pestana
 #if os(iOS)
 import SwiftUI
 import CenitDesign

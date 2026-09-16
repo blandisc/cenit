@@ -1,3 +1,4 @@
+// ensenanza: hoy.palabra, hoy.acta
 #if os(iOS)
 import SwiftUI
 import CenitDesign
