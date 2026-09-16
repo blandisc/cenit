@@ -260,14 +260,14 @@ struct PlatesScreen: View {
 
     private func kg(_ v: Double) -> String {
         guard v.isFinite else { return "—" }   // FER-428: nunca `Int(.infinity)` (dato viejo envenenado).
-        return v == v.rounded() ? String(Int(v.rounded())) : String(format: "%.2f", v).replacingOccurrences(of: ".", with: ",")
+        return v == v.rounded() ? CenitFormat.int(v) : CenitFormat.decimal(v, places: 2)
     }
-    /// A plate weight without a trailing «,0» (60, not 60,0) but keeping a half decimal (2,5 / 1,25).
+    /// A plate weight without a trailing «.0» (60, not 60.0) but keeping a half decimal (2.5 / 1.25).
     private func plate(_ v: Double) -> String {
         guard v.isFinite else { return "—" }   // FER-428
-        if v == v.rounded() { return String(Int(v.rounded())) }
-        let s = (v * 100).truncatingRemainder(dividingBy: 100) == 25 ? String(format: "%.2f", v) : String(format: "%.1f", v)
-        return s.replacingOccurrences(of: ".", with: ",")
+        if v == v.rounded() { return CenitFormat.int(v) }
+        let places = (v * 100).truncatingRemainder(dividingBy: 100) == 25 ? 2 : 1
+        return CenitFormat.decimal(v, places: places)
     }
 }
 

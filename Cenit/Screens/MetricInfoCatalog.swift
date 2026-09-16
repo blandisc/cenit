@@ -458,10 +458,7 @@ extension MetricInfo {
             id: "steps",
             name: "Steps",
             headline: "Daily step count. Consistent activity, even a 30-minute walk, supports cardiovascular health and mood. It's context for your day: it doesn't move your daily verdict or your load balance.",
-            displayValue: value.map { v in
-                let f = NumberFormatter(); f.numberStyle = .decimal
-                return f.string(from: NSNumber(value: v)) ?? "\(v)"
-            } ?? "—",
+            displayValue: value.map { CenitFormat.groupedInt(Double($0)) } ?? "—",
             unit: nil,
             headerTint: value == nil ? .neutral : .metric,
             bands: bands,

@@ -294,7 +294,7 @@ private struct AjustesLanding: View {
     private var weightDisplay: String {
         unitSystem == .imperial
             ? "\(Int(UnitFormatter.kgToPounds(profile.weightKg).rounded())) lb"
-            : String(format: "%.1f kg", profile.weightKg)
+            : "\(CenitFormat.decimal(profile.weightKg, places: 1)) kg"
     }
     private var heightDisplay: String {
         UnitFormatter.heightFromCentimeters(profile.heightCm, system: unitSystem)
@@ -816,7 +816,7 @@ private struct ProfileWheelSheet: View {
                 let opts = Array(stride(from: 30.0, through: 250.0, by: 0.5))
                 let kg = snapped($weightKg, options: opts)
                 Picker(String(localized: "Weight in kilograms"), selection: kg) {
-                    ForEach(opts, id: \.self) { Text(String(format: "%.1f kg", $0)).tag($0) }
+                    ForEach(opts, id: \.self) { Text("\(CenitFormat.decimal($0, places: 1)) kg").tag($0) }
                 }
                 .pickerStyle(.wheel).labelsHidden().tint(LiquidColor.tinta900)
             }

@@ -471,21 +471,19 @@ struct MetricDetailView: View {
         guard let pct = window.range.periodComparison(of: historia)?.pctChange else {
             return [promedio, rango]
         }
-        let rounded = Int(pct.rounded())
-        let texto = rounded > 0 ? "+\(rounded)%" : (rounded < 0 ? "−\(abs(rounded))%" : "0%")
         let cambio = LiquidResumenVentana.Celda(
-            rotulo: String(localized: "Change"), valor: texto, tono: deltaTono(pct))
+            rotulo: String(localized: "Change"),
+            valor: CenitFormat.deltaPercent(pct),
+            tono: LiquidNotaDelta.tono(pct: pct, polaridad: metricPolaridad))
         return [promedio, cambio, rango]
     }
 
-    /// Δ% tint by the metric's polarity: the good direction → `positivo`, the other → `atencionTexto`;
-    /// flat or a neutral metric → quiet ink. Mirrors the vital detail's `liquidTonoDelta`.
-    private func deltaTono(_ pct: Double) -> Color? {
-        guard Int(abs(pct).rounded()) != 0 else { return nil }
+    /// `metric.higherIsBetter` Bool? → `LiquidPolaridad` (FER-500 · C2).
+    private var metricPolaridad: LiquidPolaridad {
         switch metric.higherIsBetter {
-        case .some(true):  return pct > 0 ? LiquidColor.positivo : LiquidColor.atencionTexto
-        case .some(false): return pct < 0 ? LiquidColor.positivo : LiquidColor.atencionTexto
-        case .none:        return nil
+        case .some(true):  return .higherIsBetter
+        case .some(false): return .lowerIsBetter
+        case .none:        return .neutral
         }
     }
 

@@ -46,4 +46,13 @@ public enum DayKey {
 
     /// Format a UTC-anchored chart date back to its key — the exact inverse of `parseUTC`.
     public static func utc(_ date: Date) -> String { utcFormatter.string(from: date) }
+
+    /// Formatea una clave-día (`yyyy-MM-dd`, medianoche UTC) a texto localizado SIN correrla un día:
+    /// parsea en UTC y formatea en UTC con la plantilla localizada. `nil` si la clave no parsea.
+    public static func display(_ key: String, template: String, locale: Locale = .autoupdatingCurrent) -> String? {
+        guard let date = parseUTC(key) else { return nil }
+        let f = DateFormatter(); f.locale = locale; f.timeZone = TimeZone(identifier: "UTC")
+        f.setLocalizedDateFormatFromTemplate(template)
+        return f.string(from: date)
+    }
 }
