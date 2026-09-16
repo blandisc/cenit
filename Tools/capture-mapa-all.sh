@@ -14,7 +14,8 @@ cd "$(dirname "$0")/.."
 
 SIM_NAME="${SIM_NAME:-iPhone 17 Pro}"
 CHUNK="${CHUNK:-30}"
-STAGING="scratch-appmap-staging"
+STAGING="${NOOP_STAGING_DIR:-$(mktemp -d -t appmap-staging)}"
+if [ -z "${NOOP_STAGING_DIR:-}" ]; then trap 'rm -rf "$STAGING"' EXIT; fi
 DD="$HOME/Library/Developer/Xcode/DerivedData"
 
 # (familia, total_de_nodos_capturables). El total se usa solo para calcular cuántos trozos; si sobra
@@ -30,7 +31,7 @@ GIT_CONFIG=/dev/null xcodebuild build-for-testing \
   -allowProvisioningUpdates -jobs 4 > "$BUILDLOG" 2>&1 || { echo "✗ build-for-testing falló → $BUILDLOG"; tail -20 "$BUILDLOG"; exit 1; }
 echo "  build OK."
 
-rm -rf "$STAGING"; mkdir -p "$STAGING"
+mkdir -p "$STAGING"
 TOTAL=0
 
 run_chunk() {   # $1=metodo  $2=offset  $3=limit
