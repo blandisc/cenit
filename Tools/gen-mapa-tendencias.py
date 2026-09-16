@@ -60,8 +60,9 @@ def read_catalog() -> list[tuple[str, str]]:
     text = CATALOG_PATH.read_text(encoding="utf-8")
     rows = CATALOG_ROW.findall(text)
     if len(rows) < 30:   # guardia: si el parseo se rompe (el archivo cambió de forma), no generar basura
-        raise SystemExit(f"gen-mapa-tendencias: solo {len(rows)} métricas parseadas de {CATALOG_PATH} "
-                          "— ¿cambió el formato de MetricCatalog.all? Revisa CATALOG_ROW.")
+        print(f"gen-mapa-tendencias: solo {len(rows)} métricas parseadas de {CATALOG_PATH} "
+              "— ¿cambió el formato de MetricCatalog.all? Revisa CATALOG_ROW.", flush=True)
+        raise SystemExit(2)
     rows.append(HEART_RATE_EXTRA)
     return rows
 
@@ -173,11 +174,14 @@ def edges(catalog: list[tuple[str, str]]) -> list[dict]:
     return out
 
 
-def main() -> None:
+def build_manifest(full: bool = False) -> dict:
+    """Construye el manifiesto en memoria. `full` selecciona los 6 rangos (misma semántica que `--full`)."""
+    global RANGES
+    RANGES = FULL_RANGES if full else [DEFAULT_RANGE]
     catalog = read_catalog()
     nodos = landing_nodes() + metric_nodes(catalog) + aux_nodes()
     rangos_txt = "×".join(RANGES) if len(RANGES) > 1 else RANGES[0]
-    manifest = {
+    return {
         "familia": "tendencias",
         "titulo": "Tendencias · Cuerpo",
         "unidad": "estados",
@@ -189,12 +193,62 @@ def main() -> None:
         "nodos": nodos,
         "aristas": edges(catalog),
     }
+
+
+def _serialize(manifest: dict) -> str:
+    return json.dumps(manifest, ensure_ascii=False, indent=2) + "\n"
+
+
+def _diff_summary(generated: str, on_disk: str) -> str:
+    """Resumen: nodos que faltan/sobran por id + N líneas distintas."""
+    gen = json.loads(generated)
+    try:
+        disk = json.loads(on_disk) if on_disk else {"nodos": []}
+    except ValueError:
+        disk = {"nodos": []}
+    gen_ids = {n["id"] for n in gen.get("nodos", []) if "id" in n}
+    disk_ids = {n["id"] for n in disk.get("nodos", []) if "id" in n}
+    faltan = sorted(gen_ids - disk_ids)   # generados que no están en disco
+    sobran = sorted(disk_ids - gen_ids)   # en disco que el generador ya no emite
+    gen_lines = generated.splitlines()
+    disk_lines = on_disk.splitlines()
+    n_diff = sum(1 for a, b in zip(gen_lines, disk_lines) if a != b) + abs(len(gen_lines) - len(disk_lines))
+    parts = []
+    if faltan:
+        parts.append(f"faltan {len(faltan)} nodo(s): {', '.join(faltan[:8])}{'…' if len(faltan) > 8 else ''}")
+    if sobran:
+        parts.append(f"sobran {len(sobran)} nodo(s): {', '.join(sobran[:8])}{'…' if len(sobran) > 8 else ''}")
+    parts.append(f"{n_diff} líneas distintas")
+    return "; ".join(parts)
+
+
+def check_uptodate(full: bool = False) -> int:
+    """Compara el manifiesto generado con OUT_PATH. Exit 0/1 (2 lo lanza read_catalog)."""
+    generated = _serialize(build_manifest(full=full))
+    if not OUT_PATH.is_file():
+        print(f"gen-mapa-tendencias: no existe {OUT_PATH.relative_to(REPO_ROOT)}")
+        print(_diff_summary(generated, ""))
+        print("regenera con `python3 Tools/gen-mapa-tendencias.py`")
+        return 1
+    on_disk = OUT_PATH.read_text(encoding="utf-8")
+    if generated == on_disk:
+        print("✅ gen-mapa-tendencias: docs/appmap/mapa/tendencias.json al día")
+        return 0
+    print(f"gen-mapa-tendencias: {OUT_PATH.relative_to(REPO_ROOT)} desfasado — {_diff_summary(generated, on_disk)}")
+    print("regenera con `python3 Tools/gen-mapa-tendencias.py`")
+    return 1
+
+
+def main(full: bool = False) -> None:
+    manifest = build_manifest(full=full)
+    nodos = manifest["nodos"]
+    catalog_len = len(read_catalog())
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    OUT_PATH.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    OUT_PATH.write_text(_serialize(manifest), encoding="utf-8")
 
     omitidos = [n for n in nodos if "omitido" in n]
-    print(f"gen-mapa-tendencias: {len(catalog)} métricas ({len(RICH_KEYS)} rutas ricas, "
-          f"{len(catalog) - len(RICH_KEYS)} vía Explorar) × {len(RANGES)} rango(s) × {len(STATES)} estados")
+    print(f"gen-mapa-tendencias: {catalog_len} métricas ({len(RICH_KEYS)} rutas ricas, "
+          f"{catalog_len - len(RICH_KEYS)} vía Explorar) × {len(RANGES)} rango(s) × {len(STATES)} estados")
     print(f"  {len(nodos)} nodos totales → {OUT_PATH.relative_to(REPO_ROOT)}")
     print(f"  {len(omitidos)} omitidos (Ciclo)")
     print(f"  {len(nodos) - len(omitidos)} capturables")
@@ -205,7 +259,9 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser(description="Genera docs/appmap/mapa/tendencias.json")
     ap.add_argument("--full", action="store_true",
                     help="matriz completa: los 6 rangos de ExploreRange (default: solo el rango por defecto)")
+    ap.add_argument("--check", action="store_true",
+                    help="no escribe: falla si tendencias.json no coincide con lo que generaría el script")
     a = ap.parse_args()
-    if a.full:
-        RANGES = FULL_RANGES
-    main()
+    if a.check:
+        raise SystemExit(check_uptodate(full=a.full))
+    main(full=a.full)
