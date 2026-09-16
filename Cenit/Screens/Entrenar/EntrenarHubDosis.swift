@@ -32,6 +32,11 @@ struct EntrenarHubDosis: View {
     /// así todas las filas reservan la MISMA columna y el riel de cada una alinea su filo derecho.
     @ScaledMetric(relativeTo: .caption) private var dosisNumeralWidth = EntrenarHubMetrics.dosisNumeralWidthBase
 
+    /// FER-501: `dosisLabelWidth` (30) era un ancho FIJO sobre `microLabel9`, que sí escala
+    /// (`relativeTo: .caption2`) — a AX5 el rótulo de 3 letras desbordaba su columna. Mismo arreglo
+    /// que ya tiene `dosisNumeralWidth` arriba: `@ScaledMetric` con el `relativeTo` del propio texto.
+    @ScaledMetric(relativeTo: .caption2) private var dosisLabelWidth = EntrenarHubMetrics.dosisLabelWidth
+
     var body: some View {
         if !rows.isEmpty {
             EntrenarModulo(tono: .cian) {
@@ -53,7 +58,7 @@ struct EntrenarHubDosis: View {
             Text(verbatim: fila.label3)
                 .font(EntrenarHubMetrics.microLabel9).tracking(EntrenarHubMetrics.microLabel9Tracking)
                 .foregroundStyle(LiquidColor.tinta500)
-                .frame(width: EntrenarHubMetrics.dosisLabelWidth, alignment: .leading)
+                .frame(width: dosisLabelWidth, alignment: .leading)
             LiquidBarraProgreso(
                 fraccion: min(1, fila.fraction),
                 tono: fila.low

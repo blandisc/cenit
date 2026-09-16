@@ -163,6 +163,10 @@ private struct CuerpoLanding: View {
     @EnvironmentObject var repo: Repository
     @Environment(AppModel.self) var model
     @EnvironmentObject var health: HealthKitBridge
+    /// `valorL`/`dato` ya escalan con Dynamic Type (`relativeTo:`); a AX3-5 tres columnas lado a
+    /// lado desbordan (`valorL` corre 22→~40 pt). `statRow` apila 1 dato por fila desde ahí, el
+    /// mismo corte que `PreparacionDetailScreen.tipo >= .accessibility1`.
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     /// Light metric sheet (the same one Today opens), for metrics that have a `MetricInfo` factory.
     /// Unified Detalle de Métrica (FER-185): the three vitals (HRV / FC reposo / Respiración) open this
@@ -677,6 +681,7 @@ private struct CuerpoLanding: View {
             VStack(alignment: .leading, spacing: LiquidSpace.s075) {
                 Text(label).liquidDato().foregroundStyle(LiquidColor.tinta500)
                     .multilineTextAlignment(.leading)
+                    .lineLimit(1)
                     .minimumScaleFactor(0.9)
                 HStack(alignment: .firstTextBaseline, spacing: LiquidSpace.s050) {
                     Text(value ?? "—")
@@ -715,8 +720,25 @@ private struct CuerpoLanding: View {
         .accessibilityElement(children: .combine)
     }
 
-    /// Hairline between stat columns — `LiquidCapilar`, the Liquid capilar divider.
-    private var vsep: some View { LiquidCapilar() }
+    /// Hairline between stat columns — `LiquidCapilar`, the Liquid capilar divider. Turns
+    /// horizontal when `statRow` stacks the columns into rows (AX sizes), matching the seam
+    /// `vitalsCard` already draws between its two 3-stat rows.
+    private var vsep: some View {
+        LiquidCapilar(eje: dynamicTypeSize >= .accessibility1 ? .horizontal : .vertical)
+    }
+
+    /// A module's stat row: columns side by side normally; at AX sizes (`dynamicTypeSize >=
+    /// .accessibility1`) each column's `valorL` alone can run ~40pt and no longer fits next to
+    /// its neighbors, so it stacks one stat per row instead — same cutoff/bifurcation
+    /// `PreparacionDetailScreen.swift` uses (`tipo >= .accessibility1`).
+    @ViewBuilder
+    private func statRow<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
+        if dynamicTypeSize >= .accessibility1 {
+            VStack(alignment: .leading, spacing: LiquidSpace.s300) { content() }
+        } else {
+            HStack(spacing: LiquidSpace.s300) { content() }
+        }
+    }
 
     // MARK: - Domain modules
 
@@ -726,7 +748,7 @@ private struct CuerpoLanding: View {
                     period: 44, animated: true) {
             VStack(alignment: .leading, spacing: LiquidSpace.s250) {
                 moduleTitle("Rest & load")
-                HStack(spacing: LiquidSpace.s300) {
+                statRow {
                     sleepStat
                     vsep
                     strainStat
@@ -810,9 +832,9 @@ private struct CuerpoLanding: View {
             VStack(alignment: .leading, spacing: LiquidSpace.s250) {
                 moduleTitle("Vitals")
                 VStack(spacing: LiquidSpace.s300) {
-                    HStack(spacing: LiquidSpace.s300) { hrvStat; vsep; rhrStat; vsep; spo2Stat }
+                    statRow { hrvStat; vsep; rhrStat; vsep; spo2Stat }
                     LiquidCapilar(eje: .horizontal)
-                    HStack(spacing: LiquidSpace.s300) { heartStat; vsep; respStat; vsep; skinTempStat }
+                    statRow { heartStat; vsep; respStat; vsep; skinTempStat }
                 }
             }
         }
@@ -823,7 +845,7 @@ private struct CuerpoLanding: View {
         liquidModulo(index: 4, tones: [LiquidColor.teal, LiquidColor.ambar], period: 58, animated: false) {
             VStack(alignment: .leading, spacing: LiquidSpace.s250) {
                 moduleTitle("Activity")
-                HStack(spacing: LiquidSpace.s300) {
+                statRow {
                     stepsStat
                     vsep
                     workoutsStat

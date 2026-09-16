@@ -24,20 +24,44 @@ struct EntrenarHubCuerpo: View {
 
     var body: some View {
         EntrenarModulo(tono: .neutro) {
-            HStack(spacing: EntrenarHubMetrics.cuerpoGap) {
-                pictogram
-                (topMuscleName.fontWeight(.semibold).foregroundStyle(LiquidColor.tinta900)
-                 + Text(verbatim: " ")
-                 + Text("high load").foregroundStyle(LiquidColor.tinta700)
-                 + Text(verbatim: " · ").foregroundStyle(LiquidColor.tinta700)
-                 + Text("the rest, fresh").foregroundStyle(LiquidColor.tinta700))
-                    .font(.system(size: cuerpoLineaSize))
-                    .lineLimit(2)
-                Spacer(minLength: LiquidSpace.s100)
-                EntrenarCapsulaPuerta(String(localized: "Body map").uppercased(), action: onOpenMap)
+            // FER-501: a AX grande el pictograma + la frase (ya `.lineLimit(2)`) + la puerta «MAPA ›»
+            // no caben en una fila aun envolviendo — `ViewThatFits` baja la puerta a su propia línea
+            // en vez de aplastar la frase (mismo mecanismo que `EntrenarFilaCarga.fila`).
+            ViewThatFits(in: .horizontal) {
+                filaHorizontal
+                filaApilada
             }
         }
         .liquidEntrada(index: 4)
+    }
+
+    private var filaHorizontal: some View {
+        HStack(spacing: EntrenarHubMetrics.cuerpoGap) {
+            pictogram
+            frase
+            Spacer(minLength: LiquidSpace.s100)
+            EntrenarCapsulaPuerta(String(localized: "Body map").uppercased(), action: onOpenMap)
+        }
+    }
+
+    private var filaApilada: some View {
+        VStack(alignment: .leading, spacing: LiquidSpace.s150) {
+            HStack(spacing: EntrenarHubMetrics.cuerpoGap) {
+                pictogram
+                frase
+            }
+            EntrenarCapsulaPuerta(String(localized: "Body map").uppercased(), action: onOpenMap)
+        }
+    }
+
+    private var frase: some View {
+        (topMuscleName.fontWeight(.semibold).foregroundStyle(LiquidColor.tinta900)
+         + Text(verbatim: " ")
+         + Text("high load").foregroundStyle(LiquidColor.tinta700)
+         + Text(verbatim: " · ").foregroundStyle(LiquidColor.tinta700)
+         + Text("the rest, fresh").foregroundStyle(LiquidColor.tinta700))
+            .font(.system(size: cuerpoLineaSize))
+            .lineLimit(2)
     }
 
     private var pictogram: some View {

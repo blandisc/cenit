@@ -859,8 +859,11 @@ struct OnbFila: View {
                         .foregroundStyle(LiquidColor.tinta900)
                 }
                 if let etiqueta {
+                    // FER-501: `groteskOverline(small:)` es `InstrumentoType.groteskOverlineSmall`
+                    // (9 FIJO, ver GroteskVoice.swift) junto al `nombre` de esta misma fila, que ya
+                    // escala (`LiquidType.label`) — `dato` (8.5, el tamaño más parecido) SÍ escala.
                     Text(etiqueta)
-                        .groteskOverline(small: true)
+                        .liquidDato()
                         .foregroundStyle(LiquidColor.tinta500)
                 }
             }

@@ -222,7 +222,10 @@ private struct WatchFaceMetrics: View {
             WatchHaptic.actionTapped.play()
             action()
         } label: {
-            Text(title).font(LiquidType.pie).frame(maxWidth: .infinity, minHeight: WatchMetrics.pillHeight)
+            Text(title).font(LiquidType.pie)
+                // FER-501: «Saltar descanso» truncaba en 40/41 mm — mismo par que RestLiveActivity.
+                .lineLimit(1).minimumScaleFactor(0.7)
+                .frame(maxWidth: .infinity, minHeight: WatchMetrics.pillHeight)
         }
         // token-exempt(sistema): control nativo watchOS
         .buttonStyle(.bordered)
@@ -246,7 +249,8 @@ private struct WatchFaceMetrics: View {
                 .foregroundStyle(pulseDashed ? LiquidOLED.tintaTerciaria : LiquidOLED.rosa) // inkDim → tintaTerciaria (rol más cercano)
                 .minimumScaleFactor(0.5)
                 .lineLimit(1)
-            Text("bpm").font(LiquidType.unidad).foregroundStyle(LiquidOLED.tintaSecundaria).accessibilityHidden(true)
+            // FER-501: el par exacto de `numeralHoja` (no `unidad`) — mismo criterio que LiquidType.swift.
+            Text("bpm").font(LiquidType.numeralHojaUnidad).foregroundStyle(LiquidOLED.tintaSecundaria).accessibilityHidden(true)
             zoneTag
         }
         .accessibilityElement(children: .ignore)
