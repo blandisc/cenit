@@ -1,5 +1,6 @@
 #!/bin/bash
-# Barrido de fin de trabajo: worktrees fósiles + DerivedData huérfano.
+# Barrido de fin de trabajo: worktrees fósiles + ramas locales de lane huérfanas
+# + DerivedData huérfano.
 #
 # POR QUÉ EXISTE (FER-194). El flujo mergea SIEMPRE con squash. Un squash-merge
 # reescribe los commits, así que la rama mergeada NO queda como ancestro de
@@ -105,6 +106,32 @@ done < <(git -C "$MAIN" worktree list --porcelain | awk '/^worktree /{wt=$2} /^b
 [ $APPLY -eq 1 ] && git -C "$MAIN" worktree prune
 
 echo "worktrees: $podados podado(s), $conservados conservado(s)"
+
+# Ramas locales de lane huérfanas (FER-511). Retro del lote FER-497/493/494/495
+# (2026-09-15): 82 ramas `worktree-agent-*` / `grok/*` sin worktree vivo en el
+# checkout canónico. Por diseño nunca tuvieron upstream, así que el criterio
+# «tuvo upstream y ya no está» no las ve. Guardián: si un worktree vivo la
+# tiene checked out, se conserva (aunque esté sucio o locked).
+ramas_lane_borradas=0
+ramas_lane_detectadas=0
+ramas_con_worktree="$(git -C "$MAIN" worktree list --porcelain | awk '/^branch /{print $2}' | sed 's#^refs/heads/##' || true)"
+while read -r rama; do
+  [ -z "$rama" ] && continue
+  if printf '%s\n' "$ramas_con_worktree" | grep -qxF "$rama"; then
+    echo "  conservada rama de lane: $rama — tiene worktree vivo"
+  else
+    ramas_lane_detectadas=$((ramas_lane_detectadas + 1))
+    echo "  PODAR RAMA DE LANE: $rama"
+    if [ $APPLY -eq 1 ]; then
+      if git -C "$MAIN" branch -D "$rama" >/dev/null 2>&1; then
+        ramas_lane_borradas=$((ramas_lane_borradas + 1))
+      else
+        echo "    (no se pudo borrar $rama; se conserva)"
+      fi
+    fi
+  fi
+done < <(git -C "$MAIN" for-each-ref --format='%(refname:short)' 'refs/heads/worktree-agent-*' 'refs/heads/grok/*' || true)
+echo "ramas de lane huérfanas: $ramas_lane_borradas borrada(s), $ramas_lane_detectadas detectada(s)"
 
 # FER-277: ramas de origin cuyo PR ya está MERGED. El ajuste "Automatically
 # delete head branches" del repo cubre el camino normal (mergear por gh/UI);
