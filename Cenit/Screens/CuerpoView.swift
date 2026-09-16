@@ -343,7 +343,7 @@ private struct CuerpoLanding: View {
         .task(id: repo.refreshSeq) { await loadAll(); alimentarTendenciasTips() }
         .onAppear {
             activarTendenciasTipGroupSiCabe()
-            Hitos.retenerGrupoOrdenado(.tendencias)   // FER-436: hitos 3 y 4 nunca juntos (iOS 18)
+            Hitos.retenerGrupoOrdenado(.cuerpo)   // FER-436: hitos 3 y 4 nunca juntos (iOS 18)
             alimentarTendenciasTips()
         }
         .onChange(of: selectedPeriod) { _, _ in

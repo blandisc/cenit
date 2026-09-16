@@ -335,7 +335,7 @@ private struct ComponentGalleryRangeDemo: View {
 /// Demo con `@State` para `LiquidTabBar` — la pestaña activa necesita un `Binding` vivo
 /// (mismo patrón que su propio `#Preview`).
 private struct ComponentGalleryTabBarDemo: View {
-    @State private var active: LiquidTab = .hoy
+    @State private var active: LiquidTab = .entrenar
 
     var body: some View {
         LiquidTabBar(active: active, rotulos: .demo) { active = $0 }

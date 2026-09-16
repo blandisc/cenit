@@ -9,7 +9,7 @@ import CenitAnalytics
 //
 // Antes: una sola LISTA DE LECTURA que apilaba las cinco secciones y sus 68 funcionalidades de
 // corrido — una pared de texto sin jerarquía. Ahora un ÍNDICE + DETALLE (rediseño «híbrido»,
-// dueño 2026-09-10): la puerta es un índice de cinco tarjetas de vidrio tintado (glifo del dock +
+// dueño 2026-09-10): la puerta es un índice de tres tarjetas de vidrio tintado (glifo del dock +
 // nombre · conteo · una línea de qué encuentras), más un buscador que filtra sobre las 68 de un
 // jalón. Tocas una sección y entras a SU lista (las mismas filas de lectura, `AyudaFila`, ahora
 // solas y no ahogadas por las otras cuatro). El registro `CenitEnsenanza` sigue siendo la única
@@ -68,7 +68,11 @@ struct AyudaScreen: View {
         }
     }
 
-    // MARK: - Índice (la puerta: header + buscador + cinco tarjetas, o resultados)
+    /// Índice de 3 secciones (FER-490): Cuerpo · Entrenar · Ajustes. Los «trucos»
+    /// transversales se listan dentro de Entrenar.
+    private static let seccionesIndice: [Pestana] = [.cuerpo, .entrenar, .ajustes]
+
+    // MARK: - Índice (la puerta: header + buscador + tres tarjetas, o resultados)
 
     private var indice: some View {
         ScrollView {
@@ -77,7 +81,7 @@ struct AyudaScreen: View {
                 buscador
                 if busqueda.trimmingCharacters(in: .whitespaces).isEmpty {
                     VStack(spacing: LiquidSpace.s250) {
-                        ForEach(Pestana.allCases, id: \.self) { tarjetaSeccion($0) }
+                        ForEach(Self.seccionesIndice, id: \.self) { tarjetaSeccion($0) }
                     }
                 } else {
                     resultados
@@ -160,7 +164,7 @@ struct AyudaScreen: View {
                             .foregroundStyle(LiquidColor.tinta900)
                         Spacer(minLength: LiquidSpace.s200)
                         Text(String(localized: "ayuda.seccion.conteo",
-                                    defaultValue: "\(Registro.por(pestana).count) features"))
+                                    defaultValue: "\(Self.funcionalidades(de: pestana).count) features"))
                             .font(LiquidType.captionLectura)
                             .foregroundStyle(LiquidColor.tinta500)
                     }
@@ -215,8 +219,16 @@ struct AyudaScreen: View {
 
     // MARK: - Detalle de una sección (las filas de lectura, solas)
 
+    /// Funcionalidades visibles en una sección del índice. Entrenar absorbe transversal (trucos).
+    private static func funcionalidades(de pestana: Pestana) -> [Funcionalidad] {
+        if pestana == .entrenar {
+            return Registro.por(.entrenar) + Registro.por(.transversal)
+        }
+        return Registro.por(pestana)
+    }
+
     private func seccionDetalle(_ pestana: Pestana) -> some View {
-        let funcionalidades = Registro.por(pestana)
+        let funcionalidades = Self.funcionalidades(de: pestana)
         let titulo = Self.titulo(pestana)
         return ScrollView {
             VStack(alignment: .leading, spacing: .zero) {
@@ -269,9 +281,7 @@ struct AyudaScreen: View {
 
     @ViewBuilder private func glifo(_ pestana: Pestana, size: CGFloat) -> some View {
         switch pestana {
-        case .hoy:
-            DialTabGlyph(size: size, color: tinte(pestana))
-        case .tendencias:
+        case .cuerpo:
             TendenciasGlyph(color: tinte(pestana)).frame(width: size, height: size)
         case .entrenar:
             Image(systemName: "dumbbell.fill")
@@ -296,8 +306,7 @@ struct AyudaScreen: View {
 
     private func tinte(_ pestana: Pestana) -> Color {
         switch pestana {
-        case .hoy:         return LiquidColor.verdeOrbe
-        case .tendencias:  return LiquidColor.cian
+        case .cuerpo:      return LiquidColor.cian
         case .entrenar:    return LiquidColor.ambar
         case .ajustes:     return LiquidColor.indigo
         case .transversal: return LiquidColor.azul
@@ -307,15 +316,12 @@ struct AyudaScreen: View {
     /// La línea de «qué encuentras» de cada tarjeta del índice — la voz de marca, no una lista.
     private func descriptor(_ pestana: Pestana) -> String {
         switch pestana {
-        case .hoy:
-            return String(localized: "ayuda.desc.hoy",
-                          defaultValue: "Your reading, the guardian, and what decides your day.")
-        case .tendencias:
-            return String(localized: "ayuda.desc.tendencias",
-                          defaultValue: "Your ranges and where they head: rest, load, vitals.")
+        case .cuerpo:
+            return String(localized: "ayuda.desc.cuerpo",
+                          defaultValue: "Your reading now, your ranges over time, and what decides your day.")
         case .entrenar:
             return String(localized: "ayuda.desc.entrenar",
-                          defaultValue: "The plan that acts: today, your week, the live session.")
+                          defaultValue: "The plan that acts: today, your week, the live session, and the tips.")
         case .ajustes:
             return String(localized: "ayuda.desc.ajustes",
                           defaultValue: "Sources, reminders, backup, and what the app teaches.")
@@ -325,12 +331,11 @@ struct AyudaScreen: View {
         }
     }
 
-    /// El nombre de la sección: las cuatro pestañas dicen lo mismo que el dock
-    /// (`LiquidTabRotulos.cenit`, mismas claves); la quinta es propia.
+    /// El nombre de la sección: las tres pestañas dicen lo mismo que el dock
+    /// (`LiquidTabRotulos.cenit`, mismas claves); transversal queda bajo Entrenar.
     static func titulo(_ pestana: Pestana) -> String {
         switch pestana {
-        case .hoy: return String(localized: "Today")
-        case .tendencias: return String(localized: "Trends")
+        case .cuerpo: return String(localized: "Body")
         case .entrenar: return String(localized: "Train")
         case .ajustes: return String(localized: "Settings")
         case .transversal:
@@ -373,7 +378,7 @@ struct AyudaScreen: View {
             return [AyudaPuerta(id: "acta", rotulo: rotulo) {
                 dismiss()
                 tabRouter.abrirActa = true
-                tabRouter.requested = .today
+                tabRouter.verAhora()
             }]
         case .hoyGuardian:
             // La hoja del guardián vive en `TodayView` (sus series las carga Hoy): misma ruta.
@@ -381,7 +386,7 @@ struct AyudaScreen: View {
                                 rotulo: String(localized: "ayuda.puerta.guardian", defaultValue: "The guardian's sheet")) {
                 dismiss()
                 tabRouter.abrirGuardian = true
-                tabRouter.requested = .today
+                tabRouter.verAhora()
             }]
         case .hoyManuales:
             return [

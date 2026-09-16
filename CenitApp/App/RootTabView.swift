@@ -205,7 +205,7 @@ struct RootTabView: View {
     private func rootChromeOverlays<Content: View>(_ content: Content) -> some View {
         content
         // `.tint` no longer paints the tab bar (it's hidden below; the custom
-        // `InstrumentTabBar` sets its own ink), but it still tints links/controls
+        // `LiquidTabBar` sets its own ink), but it still tints links/controls
         // inside the screens — kept for those.
         .tint(LiquidColor.verdePrimario)
         // The «Barra de instrumento» (FER-163): the native bar is hidden per page
@@ -452,7 +452,7 @@ struct RootTabView: View {
         // ScrollView stops above the bar (the inset reaches scroll views here; it
         // would not from the TabView — see `body`).
         .barReservation(barHeight)
-        // Hide the native tab bar everywhere; the custom `InstrumentTabBar` (the
+        // Hide the native tab bar everywhere; the custom `LiquidTabBar` (the
         // floating overlay on the TabView) is the visible bar. `tabItem` stays so
         // TabView keeps its tag/selection wiring — its label just never renders.
         .toolbar(.hidden, for: .tabBar)
