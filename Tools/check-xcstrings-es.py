@@ -17,6 +17,13 @@
    Este chequeo va en la dirección contraria: extrae del Swift las claves que se usan y falla si
    alguna no está en su catálogo. Su línea base es `Tools/i18n-keys-baseline.txt`.
 
+   Los literales con interpolación (`Text("… \\(a) …")` / `String(localized: "… \\(a)")`) también
+   entran (FER-493). El runtime de Foundation genera claves con `%@` / `%lld` (nunca posicionales
+   `%1$@`); el extractor convierte cada `\\(…)` en un patrón que casa esos especificadores y
+   exige que alguna clave del catálogo del scope lo case. Si solo existe la variante posicional,
+   el gate falla — FER-488 cayó a inglés en silencio por exactamente eso. Lo heredado se congela
+   en `Tools/i18n-keys-baseline.txt` (issue de copy aparte).
+
    (`Tools/find-dead-strings.py` recorre el mismo eje al revés: claves del catálogo que el código
    ya no usa. Aquel decide qué sobra; este, qué falta.)
 
@@ -94,9 +101,42 @@ def unescape(lit):
             out.append(lit[i]); i += 1
     return "".join(out)
 
+# Marcador interno al convertir `\(…)` → patrón de catálogo. El runtime emite `%@`/`%lld`/…
+# sin índice posicional; `%1$@` NO debe casar (FER-488/FER-493).
+_ARG = "\x00ARG\x00"
+_ARG_RE = r"%(?:@|lld|ld|d|lf|f|\.\d+f|lu|u|s)"
+
+def interpolation_pattern(raw):
+    r"""Del literal Swift con `\(…)` al regex que casa la clave del catálogo.
+
+    Cada interpolación (paréntesis balanceados, puede anidar) se sustituye por un marcador;
+    el resto pasa por unescape + re.escape; un `%` literal se vuelve `%%` antes de escapar.
+    Devuelve `("pattern", regex, literal_original)`.
+    """
+    parts, i, n = [], 0, len(raw)
+    while i < n:
+        if raw[i] == "\\" and i + 1 < n and raw[i + 1] == "(":
+            depth, j = 1, i + 2
+            while j < n and depth:
+                if raw[j] == "(": depth += 1
+                elif raw[j] == ")": depth -= 1
+                j += 1
+            parts.append(_ARG)
+            i = j
+        else:
+            start = i
+            while i < n and not (raw[i] == "\\" and i + 1 < n and raw[i + 1] == "("):
+                i += 1
+            chunk = raw[start:i].replace("%", "%%")
+            parts.append(re.escape(unescape(chunk)))
+    return ("pattern", "".join(parts).replace(_ARG, _ARG_RE), raw)
+
 def extract(src):
-    """{clave: línea} de cada clave que un archivo Swift usa. Aquí vive TODA la heurística
-    (y `--self-test` la clava contra una tabla de casos, para que nadie la deje ciega sin notarlo)."""
+    """{clave|patrón: línea} de cada clave que un archivo Swift usa. Aquí vive TODA la heurística
+    (y `--self-test` la clava contra una tabla de casos, para que nadie la deje ciega sin notarlo).
+
+    Clave exacta: str. Interpolada: `("pattern", regex, literal_original)` — el runtime genera
+    `%@`/`%lld` no posicionales; el patrón los casa y rechaza `%1$@` (FER-493)."""
     src = PREVIEW.sub(lambda m: "\n" * m.group(0).count("\n"), src)
     # Las líneas de comentario (`//`, `///`) se vacían, no se borran: los números siguen ciertos.
     src = "\n".join("" if l.lstrip().startswith("//") else l for l in src.splitlines())
@@ -106,16 +146,16 @@ def extract(src):
             if m.start() in seen: continue     # `defaultValue:` gana sobre el patrón corto
             seen.add(m.start())
             raw = m.group(1)
-            # Un literal interpolado no se puede resolver estáticamente (la clave real lleva
-            # `%@`/`%lld`): fuera. Igual el espaciado puro, que no es copy.
-            if "\\(" in raw: continue
-            key = unescape(raw)
-            if not key.strip(): continue
+            if "\\(" in raw:
+                key = interpolation_pattern(raw)
+            else:
+                key = unescape(raw)
+                if not key.strip(): continue   # espaciado puro no es copy
             out.setdefault(key, src.count("\n", 0, m.start()) + 1)
     return out
 
 def used_keys():
-    """{clave: {cats, sites}} de cada clave que el Swift usa, con el catálogo donde puede vivir."""
+    """{clave|patrón: {cats, sites}} de cada clave que el Swift usa, con el catálogo donde puede vivir."""
     found = {}
     for root, cats in SCOPES:
         for path in sorted(glob.glob(f"{root}/**/*.swift", recursive=True)):
@@ -131,8 +171,14 @@ def missing_keys():
                 for name, p in CATALOGS.items() if os.path.exists(p)}
     out = {}
     for key, info in used_keys().items():
-        if any(key in catalogs.get(c, set()) for c in info["cats"]): continue
-        out[key] = info["sites"]
+        scope = set().union(*(catalogs.get(c, set()) for c in info["cats"]))
+        if isinstance(key, tuple) and key and key[0] == "pattern":
+            _, regex, lit = key
+            if any(re.fullmatch(regex, ck) for ck in scope): continue
+            out[lit] = info["sites"]          # reporta el literal original (repr estable)
+        else:
+            if key in scope: continue
+            out[key] = info["sites"]
     return out
 
 # ---------------------------------------------------------------------------- main
@@ -182,6 +228,7 @@ def check_keys():
 
 # Lo que el extractor DEBE ver y lo que DEBE ignorar. La primera mitad son los seis strings que
 # FER-119 metió sin catálogo; la segunda, cada falso positivo que costó trabajo descartar.
+# Casos exactos: (src, {claves_str}). Casos patrón FER-493: (src, ("pattern", [sí], [no])).
 CASES = [
     (r'String(localized: "prep.titulo", defaultValue: "Preparation")', {"prep.titulo"}),
     (r'String(localized: "Not enough signal")', {"Not enough signal"}),
@@ -190,18 +237,50 @@ CASES = [
     (r'String(' + "\n" + r'    localized: "multi.linea",' + "\n" + r'    defaultValue: "x")', {"multi.linea"}),
     (r'Text("linea\nrota")', {"linea\nrota"}),                        # escapes resueltos…
     (r'Text("punto\u{00B7}medio")', {"punto\u00b7medio"}),            # …también los unicode
-    (r'String(localized: "Confidence: \(n) of \(t) nights")', set()), # interpolado: irresoluble
     (r'Text(" \u{00B7} " + String(localized: "x"))', {"x"}),           # la concatenación NO localiza
     (r'Text(verbatim: "crudo")', set()),
     (r'// Text("comentado")', set()),
     ("#if DEBUG\nText(\"solo debug\")\n#endif", set()),
     (r'Text("")', set()),
     (r'Text(titulo)', set()),
+    # FER-493 · interpoladas → patrón %@/%lld (nunca posicional). Si alguien vuelve el `continue`, fallan.
+    (r'Text("Today I keep \(a) at \(b)")',
+     ("pattern", ["Today I keep %@ at %@", "Today I keep %lld at %lld"],
+                 ["Today I keep %1$@ at %2$@"])),
+    (r'Text("\(days) days ago")',
+     ("pattern", ["%lld days ago"], ["%1$lld days ago"])),
+    (r'Text("Set \(StrengthDisplay.weight(kg, system: u)) done")',
+     ("pattern", ["Set %@ done", "Set %lld done"], ["Set %1$@ done"])),
+    (r'Text("\(p)% of goal")',
+     ("pattern", ["%lld%% of goal", "%@%% of goal"], ["%1$lld%% of goal"])),
+    (r'String(localized: "Confidence: \(n) of \(t) nights")',
+     ("pattern", ["Confidence: %@ of %@ nights", "Confidence: %lld of %lld nights"],
+                 ["Confidence: %1$@ of %2$@ nights"])),
+    # sin interpolación sigue siendo clave exacta (no regresión)
+    (r'Text("Preparation")', {"Preparation"}),
 ]
 
+def _patterns(extracted):
+    return [k for k in extracted if isinstance(k, tuple) and k and k[0] == "pattern"]
+
+def _exact(extracted):
+    return {k for k in extracted if not (isinstance(k, tuple) and k and k[0] == "pattern")}
+
 def self_test():
-    malos = [(src, esperado, set(extract(src)))
-             for src, esperado in CASES if set(extract(src)) != esperado]
+    malos = []
+    for src, esperado in CASES:
+        got = extract(src)
+        if isinstance(esperado, tuple) and esperado and esperado[0] == "pattern":
+            _, yes, no = esperado
+            pats = _patterns(got)
+            if len(pats) != 1 or _exact(got):
+                malos.append((src, esperado, got)); continue
+            regex = pats[0][1]
+            if any(not re.fullmatch(regex, k) for k in yes) or any(re.fullmatch(regex, k) for k in no):
+                malos.append((src, esperado, (regex, pats[0][2])))
+        else:
+            if _exact(got) != esperado or _patterns(got):
+                malos.append((src, esperado, got))
     for src, esperado, real in malos:
         print(f"❌ {src!r}\n   esperaba {esperado!r}\n   obtuvo   {real!r}")
     if malos:

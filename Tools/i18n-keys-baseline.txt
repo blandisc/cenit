@@ -28,3 +28,18 @@
 'Karvonen'
 # el sufijo de horas del reloj de Sueño («7:25 h»)
 'h'
+
+# FER-493 · interpoladas heredadas (copy que hoy cae a inglés; issue de copy aparte)
+'All day: \\(events.map(\\.title).joined(separator: '
+"Slightly off baseline, \\(driver), so you're moderately activated. Nothing alarming; just don't overreach."
+'Your body looks strained: \\(result.firedSignals.joined(separator: '
+'\\(Int((sessionProgressFraction * 100).rounded())) percent complete'
+'\\(days) days ago'
+'\\(fecha) · \\(valueWord) \\(Int(puntaje.rounded()))'
+'\\(n) \\(unit) · \\(span.phrase) · some sparse series widened'
+'\\(n) \\(unit) · sparse: widened to \\(window.span.phrase)'
+'\\(rows.count) days · \\(stretch)'
+'\\(ticket.type), \\(ticket.value) \\(ticket.unit)'
+'\\(warmupLabel(set)), \\(kg(set.weightKg)) kg'
+'avg · \\(numbers.count)d'
+'ramp \\(pct) %'
