@@ -20,6 +20,36 @@
       ]
     },
     {
+      "id": "hub-sin-salud",
+      "titulo": "Entrenar · hub · sin Apple Salud",
+      "fixture": "train-hoy",
+      "args": [
+        "-cenit.healthDenied",
+        "YES"
+      ],
+      "png": "entrenar-hub-sin-salud.png",
+      "condicion": "plan de hoy sin Apple Salud: el hilo dice «Sin Apple Salud, la progresión usa solo tu rutina y lo que registras.»; la fila de carga solo si hay esfuerzo registrado",
+      "pasos": [
+        {
+          "nav": "train",
+          "settle": 4
+        }
+      ]
+    },
+    {
+      "id": "hub-retenida",
+      "titulo": "Entrenar · hub · subida retenida",
+      "fixture": "train-retenida",
+      "png": "entrenar-hub-retenida.png",
+      "condicion": "veredicto fuera de rango con una subida ganada: «Hoy mantengo {ejercicio} en {peso}; la subida queda a un toque en la sesión.»",
+      "pasos": [
+        {
+          "nav": "train",
+          "settle": 4
+        }
+      ]
+    },
+    {
       "id": "sesion",
       "titulo": "Sesión guiada de fuerza",
       "fixture": "train",

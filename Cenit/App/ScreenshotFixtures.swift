@@ -21,6 +21,15 @@ import CenitTraining
 /// `respRate`/`skinTemp` wave INSIDE the typical band (guardian sparklines look real, no flag).
 enum ScreenshotFixtures {
 
+    #if DEBUG
+    /// FER-495: `-cenit.healthDenied YES` simula HealthKit denegado en CUALQUIER pantalla que decida
+    /// por «Salud conectada» (Hoy y Entrenar hoy). Gana sobre el escape de fixture (`activeState()`),
+    /// para combinar un fixture con datos y el permiso tumbado en la misma captura (FER-383).
+    static var healthDenied: Bool {
+        UserDefaults.standard.string(forKey: "cenit.healthDenied")?.uppercased() == "YES"
+    }
+    #endif
+
     /// The requested fixture state, or nil when not in fixture mode. `-cenit.fixture empty` (and an
     /// absent argument) both return nil so the app takes its normal empty/first-launch path.
     /// FER-711 adds `calibrating` (the `··` numeral — a device seen, base not yet seeded) so the
