@@ -37,14 +37,13 @@ enum EnsenanzaGeneracion {
     }
 
     /// «Volver a ver los consejos de {pestaña}»: sube la generación (todos los tips y eventos de
-    /// esa pestaña vuelven a ser elegibles) y, en Hoy, reactiva además los hints de gesto
-    /// (`today.scrubHints`, `HoyModosHost`; `today.ecosistemaSeparaciones`, `TodayView`).
+    /// esa pestaña vuelven a ser elegibles) y, en Cuerpo, reactiva el hint de scrub
+    /// (`today.scrubHints`, `HoyModosHost`). FER-490: el ritual ecosistema ya no existe.
     static func reiniciar(_ pestana: Pestana) {
         let defaults = UserDefaults.standard
         defaults.set(generacion(pestana) + 1, forKey: clave(pestana))
-        if pestana == .hoy {
+        if pestana == .cuerpo {
             defaults.set(0, forKey: "today.scrubHints")
-            defaults.set(0, forKey: "today.ecosistemaSeparaciones")
         }
     }
 }

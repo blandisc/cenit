@@ -35,7 +35,7 @@ struct HoyScrubTip: Tip {
     @Parameter
     static var hayCeldaConDosNoches: Bool = false
 
-    static var scrubUsado: Tips.Event<Tips.EmptyDonation> { Event(id: EnsenanzaGeneracion.id("hoy.scrub.usado", .hoy)) }
+    static var scrubUsado: Tips.Event<Tips.EmptyDonation> { Event(id: EnsenanzaGeneracion.id("hoy.scrub.usado", .cuerpo)) }
 
     var id: String { EnsenanzaGeneracion.tipID(.hoyScrub) }
     var title: Text { Text("tip.hoy.scrub.title") }
@@ -47,29 +47,11 @@ struct HoyScrubTip: Tip {
     }
 }
 
-// MARK: 3 · hoy.ecosistema
-
-struct HoyEcosistemaTip: Tip {
-    @Parameter
-    static var hayVeredicto: Bool = false
-
-    static var separado: Tips.Event<Tips.EmptyDonation> { Event(id: EnsenanzaGeneracion.id("hoy.ecosistema.separado", .hoy)) }
-
-    var id: String { EnsenanzaGeneracion.tipID(.hoyEcosistema) }
-    var title: Text { Text("tip.hoy.ecosistema.title") }
-    var message: Text? { Text("tip.hoy.ecosistema.message") }
-    var options: [any Tip.Option] { [Tip.MaxDisplayCount(3)] }
-    var rules: [Rule] {
-        #Rule(Self.$hayVeredicto) { $0 == true }
-        #Rule(Self.separado) { $0.donations.count == 0 }
-    }
-}
-
-// MARK: 4 · hoy.manuales
+// MARK: 3 · hoy.manuales (FER-490: tip hoy.ecosistema retirado con el ritual)
 
 struct HoyManualesTip: Tip {
     static var mananaConVeredicto: Tips.Event<Tips.EmptyDonation> {
-        Event(id: EnsenanzaGeneracion.id("hoy.manuales.manana-con-veredicto", .hoy))
+        Event(id: EnsenanzaGeneracion.id("hoy.manuales.manana-con-veredicto", .cuerpo))
     }
 
     var id: String { EnsenanzaGeneracion.tipID(.hoyManuales) }
@@ -81,11 +63,11 @@ struct HoyManualesTip: Tip {
     }
 }
 
-// MARK: 5 · hoy.sincronizar
+// MARK: 4 · hoy.sincronizar
 
 struct HoySincronizarTip: Tip {
     static var franjaSinSync: Tips.Event<Tips.EmptyDonation> {
-        Event(id: EnsenanzaGeneracion.id("hoy.sincronizar.franja-sin-sync", .hoy))
+        Event(id: EnsenanzaGeneracion.id("hoy.sincronizar.franja-sin-sync", .cuerpo))
     }
 
     var id: String { EnsenanzaGeneracion.tipID(.hoySincronizar) }
@@ -118,7 +100,7 @@ enum HoyTips {
     ) {
         HoyHojaMetricaTip.hayCeldaConDato = hayCeldaConDato
         HoyScrubTip.hayCeldaConDosNoches = hayCeldaConDosNoches
-        HoyEcosistemaTip.hayVeredicto = hayVeredicto
+        _ = hayVeredicto
     }
 }
 #endif

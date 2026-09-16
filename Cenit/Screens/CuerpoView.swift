@@ -608,7 +608,7 @@ private struct CuerpoLanding: View {
             .accessibilityAddTraits(.isHeader)
             // FER-435: el «?» → «Cómo funciona Cénit», sección Tendencias — el último elemento a
             // la derecha, fuera del elemento combinado del encabezado.
-            AyudaBoton(seccion: .tendencias)
+            AyudaBoton(seccion: .cuerpo)
         }
         .padding(.bottom, LiquidSpace.s150)
     }

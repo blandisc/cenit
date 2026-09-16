@@ -144,10 +144,6 @@ struct TodayView: View {
     /// provocar el gesto de sincronización (FER-204 → FER-269b).
     @State private var syncHaptic = 0
 
-    // «El Ecosistema» (FER-10): la fusión de apertura es el ritual de «tu veredicto llegó»
-    // — corre UNA vez por día LOCAL (dayKey local, no UTC: trampa conocida de la fila
-    // fantasma). El hint «Toca para separar» se retira tras 3 separaciones acumuladas.
-    @AppStorage("today.ecosistemaFusionDay") private var ecosistemaFusionDay = ""
     /// La hoja del guardián («¿qué es VIGILANDO?», FER-10 / FER-33 · F3).
     @State private var showGuardianHoja = false
     /// FER-54: la hoja-manual «¿Qué decide tu día?» (rótulo de nivel en la Matriz).
@@ -157,18 +153,10 @@ struct TodayView: View {
     /// espera a que la hoja de Ayuda termine de irse (por estado, no por reloj).
     @State private var showNovedades = false
     @State private var puertaPendiente: PuertaDeAyuda?
-    @AppStorage("today.ecosistemaSeparaciones") private var ecosistemaSeparaciones = 0
-    /// FER-432 · rótulo local del botón alterno Separar/Unir (el Ecosistema no expone
-    /// binding público de fase sin tocar CenitDesign — el lienzo sigue siendo el camino visual).
-    @State private var señalesSeparadas = false
-    /// FER-432 · contador que pide al Ecosistema el mismo separar/unir que el tap del lienzo.
-    @State private var ecosistemaPedido = 0
     /// El fondo de Hoy en atmósfera (FER-118). Local por defecto; `CuerpoTabView` inyecta la suya
     /// para que el reloj del polvo sobreviva Ahora↔Tiempo (FER-490 · fable #1).
     @State private var atmosferaLocal = AtmosferaEstado()
     private var atmosfera: AtmosferaEstado { atmosferaInyectada ?? atmosferaLocal }
-    /// Tras cuántas separaciones acumuladas se retira el hint «Toca para separar».
-    private static let maxSeparacionHints = 3
 
     // MARK: - Pull-to-refresh propio (FER-222)
     //
@@ -1152,44 +1140,27 @@ struct TodayView: View {
                         trainingLoadItem = makeTrainingLoadItem(trainingLoad)
                     }
                 },
-                // En el Ecosistema (FER-10) el tap del LIENZO separa/une los
-                // orbes; la puerta al ACTA vive en la palabra + la pastilla «Cómo llegué
-                // a esto» (este callback).
+                // FER-490: el ritual Separar/Unir se retiró; el tap del héroe abre el acta
+                // (o Conectar Salud sin permiso).
                 onTapHero: {
-                    // Sin permiso de Salud la puerta dice «Conectar Salud» y abre el
-                    // flujo de conexión (FER-10 estado 8); con permiso, el acta.
                     if output.heroRoute == .salud {
                         showDataSources = true
                     } else {
                         showVeredictoActa = true
                     }
                 },
-                // El guardián (orbe separado Y franja) abre SU hoja: qué vigila y por
-                // qué no vota (FER-10, revisión de usuario).
                 onTapGuardian: { showGuardianHoja = true },
-                mostrarHintSeparar: ecosistemaSeparaciones < Self.maxSeparacionHints,
-                fusionInicial: ecosistemaFusionDay != Repository.localDayKey(Date()),
-                onFusionArrancada: {
-                    ecosistemaFusionDay = Repository.localDayKey(Date())
-                },
-                onSeparacion: {
-                    ecosistemaSeparaciones = min(Self.maxSeparacionHints, ecosistemaSeparaciones + 1)
-                    HoyEcosistemaTip.separado.sendDonation()
-                    HoyEcosistemaTip().invalidate(reason: .actionPerformed)
-                },
-                alternarPedido: ecosistemaPedido,
-                onFase: { señalesSeparadas = $0 })
+                mostrarHintSeparar: false,
+                fusionInicial: false)
             // FER-435 · el «?» de Hoy, a la derecha de la fecha. `LiquidHoyContent` dibuja su
             // cabecera con el slot trailing vacío (el dial se retiró el 2026-08-06), así que el
             // botón se superpone desde aquí, alineado al kicker — nunca encima del orbe ni de la
             // palabra (el área de 44 crece hacia adentro; el glifo queda a ~24 del borde).
             .overlay(alignment: .topTrailing) {
-                AyudaBoton(seccion: .hoy)
+                AyudaBoton(seccion: .cuerpo)
                     .padding(.trailing, LiquidSpace.s250)
                     .padding(.top, -LiquidSpace.s350)
             }
-            // FER-432 · tip 3 + botón alterno DEBAJO del héroe (nunca sobre el orbe).
-            hoyEcosistemaTipYBoton
             // FER-436 · hitos 1–2 (una vez) ENTRE el héroe y la Matriz; nunca sobre la palabra/orbe.
             hitosHoy
             // FER-51 · La Matriz (estados T1–T5 + instrumento). Debajo del héroe.
@@ -1214,33 +1185,6 @@ struct TodayView: View {
         .onAppear { alimentarHoyTips(output: output) }
         .onChange(of: repo.refreshSeq) { _, _ in alimentarHoyTips(output: liquidOutput) }
         .accessibilityAction(named: Text("Sync")) { triggerPullSync() }
-    }
-
-    /// Tip del ecosistema + control «Separar»/«Unir» (quiet), visibles con hint activo o tip elegible.
-    @ViewBuilder
-    private var hoyEcosistemaTipYBoton: some View {
-        let hintActivo = ecosistemaSeparaciones < Self.maxSeparacionHints
-        let tipElegible = HoyEcosistemaTip().shouldDisplay
-        VStack(alignment: .leading, spacing: LiquidSpace.s150) {
-            TipView(HoyEcosistemaTip(), arrowEdge: .top)
-            if hintActivo || tipElegible {
-                LiquidGlassButton(
-                    señalesSeparadas
-                        ? String(localized: "tip.hoy.ecosistema.boton.unir", defaultValue: "Reunite")
-                        : String(localized: "tip.hoy.ecosistema.boton", defaultValue: "Separate"),
-                    variant: .quiet
-                ) {
-                    // Camino tocable del gesto (FER-432): el Ecosistema hace el MISMO alternar()
-                    // que el tap del lienzo (anima, y al separar dispara `onSeparacion`, que dona e
-                    // invalida el tip); `onFase` devuelve el estado para el rótulo.
-                    ecosistemaPedido += 1
-                }
-                .accessibilityLabel(Text(señalesSeparadas
-                    ? String(localized: "Reunite the signals")
-                    : String(localized: "Separate the signals")))
-            }
-        }
-        .padding(.horizontal, LiquidSpace.s600)
     }
 
     /// FER-435 · consume las banderas one-shot del router (`abrirActa` / `abrirGuardian`) y abre la
@@ -1280,7 +1224,6 @@ struct TodayView: View {
             guard let prep = repo.todayPreparedness else { return false }
             return prep.verdict != .lowSignal && prep.isNightAnchored
         }()
-        HoyEcosistemaTip.hayVeredicto = hayVeredicto
         HoyTips.donarMananaConVeredictoSiAplica(
             hayVeredicto: hayVeredicto,
             dayKey: Repository.localDayKey(Date()))
