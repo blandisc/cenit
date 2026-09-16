@@ -249,8 +249,7 @@ private struct WatchFaceMetrics: View {
                 .foregroundStyle(pulseDashed ? LiquidOLED.tintaTerciaria : LiquidOLED.rosa) // inkDim → tintaTerciaria (rol más cercano)
                 .minimumScaleFactor(0.5)
                 .lineLimit(1)
-            // FER-501: el par exacto de `numeralHoja` (no `unidad`) — mismo criterio que LiquidType.swift.
-            Text("bpm").font(LiquidType.numeralHojaUnidad).foregroundStyle(LiquidOLED.tintaSecundaria).accessibilityHidden(true)
+            Text("bpm").font(LiquidType.unidad).foregroundStyle(LiquidOLED.tintaSecundaria).accessibilityHidden(true)
             zoneTag
         }
         .accessibilityElement(children: .ignore)

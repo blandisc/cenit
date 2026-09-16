@@ -15,122 +15,80 @@ import CenitTraining
 enum HojaCabeceraSesion {
 
     /// Fila de cabecera: ‹ minimiza · dot de familia + nombre + «Serie N de M» · ♥ (R14, solo con
-    /// FC viva) · reloj · ⤢ Foco (R2a) · ‖. A talla AX (FER-501) los adornos fijos suman ~361 pt
-    /// contra ~345 pt disponibles y el nombre quedaba en ≤0 pt: `ViewThatFits` baja el nombre a su
-    /// propia línea en vez de aplastarlo — mismo mecanismo que `AyudaScreen.puertasFila`; ningún
-    /// adorno se oculta (paridad de elementos con `LiveStrengthSheet.sessionHeaderRow`, que cabe en
-    /// una sola fila porque tiene un slot menos: sin ⤢).
+    /// FC viva) · reloj · ⤢ Foco (R2a) · ‖.
     static func header(vivo: HojaSesionViva) -> some View {
-        ViewThatFits(in: .horizontal) {
-            headerUnaLinea(vivo: vivo)
-            headerApilado(vivo: vivo)
+        HStack(spacing: LiquidSpace.s200) {
+            Button {
+                vivo.sheet.model.strengthSheetPresented = false   // B17: minimizar, nunca termina
+            } label: {
+                CenitIcon.back.image
+                    .font(LiquidType.infoGlifoCompacto.weight(.semibold))
+                    .foregroundStyle(LiquidColor.tinta700)
+                    .frame(width: EntrenarMetrics.row, height: EntrenarMetrics.row)   // 44 pt de toque
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(Text("Minimize session"))
+
+            EntrenarFamilyDot(vivo.familyTint, size: EntrenarMetrics.familyDotCompact)
+
+            VStack(alignment: .leading, spacing: LiquidSpace.s025) {
+                Text(vivo.session.routineName).font(LiquidType.tituloHoja).foregroundStyle(LiquidColor.tinta900)
+                    .lineLimit(1).minimumScaleFactor(0.8)
+                Text(vivo.session.paused ? String(localized: "Paused") : vivo.serieSubtitle)
+                    .liquidKicker().foregroundStyle(LiquidColor.tinta700)
+                    .lineLimit(1).minimumScaleFactor(0.8)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            heartRate(vivo: vivo)
+
+            TimelineView(.periodic(from: Date(), by: 1)) { ctx in
+                let elapsed = vivo.session.elapsedSeconds(now: ctx.date)
+                let texto = SessionClock.format(elapsed)
+                Text(texto)
+                    .font(LiquidType.datoMenor)
+                    .foregroundStyle(LiquidColor.tinta700)
+                    .numeroVivo(value: texto)
+                    // Misma clave que LiveStrengthSheet (reloj vivo): «Elapsed %@» / «Paused at %@».
+                    .accessibilityLabel(Text(vivo.session.paused ? "Paused at \(texto)" : "Elapsed \(texto)"))
+                    .accessibilityAddTraits(.updatesFrequently)
+            }
+
+            // FER-250: «Terminar» secundario SIEMPRE visible a media sesión (criterio 1: con 0 series
+            // el confirm ya es honesto — «Aún no registras ninguna serie.» + Seguir/Descartar). El CTA
+            // prominente `ctaTerminar` se reserva para sesión completa — no se mueve.
+            if !vivo.session.isComplete {
+                terminarSecundario(vivo: vivo)
+            }
+
+            // R2(a): ⤢ — la misma puerta a Foco que `SessionStatsBar.onFocus` ofrecía en la barra vieja.
+            if vivo.puedeEnfocar {
+                Button { vivo.enterFoco() } label: {
+                    Image(systemName: "arrow.up.left.and.arrow.down.right")
+                        .font(LiquidType.infoGlifo.weight(.semibold))
+                        .foregroundStyle(LiquidColor.tinta700)
+                        .frame(width: EntrenarMetrics.row, height: EntrenarMetrics.row)   // 44 pt de toque
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text("Focus"))
+            }
+
+            if let alternar = vivo.alternarPausa {
+                Button(action: alternar) {
+                    Image(systemName: vivo.session.paused ? "play.fill" : "pause.fill")
+                        .font(LiquidType.infoGlifo.weight(.semibold))
+                        .foregroundStyle(LiquidColor.tinta700)
+                        .frame(width: EntrenarMetrics.row, height: EntrenarMetrics.row)   // 44 pt de toque
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(vivo.session.paused ? Text("Resume session") : Text("Pause session"))
+            }
         }
         .padding(.horizontal, LiquidSpace.s600)
         .padding(.top, LiquidSpace.s150)
-    }
-
-    /// Todo en una sola fila — cabe a tallas normales (layout de siempre).
-    private static func headerUnaLinea(vivo: HojaSesionViva) -> some View {
-        HStack(spacing: LiquidSpace.s200) {
-            botonMinimizar(vivo: vivo)
-            EntrenarFamilyDot(vivo.familyTint, size: EntrenarMetrics.familyDotCompact)
-            nombreYAvance(vivo: vivo)
-            adornos(vivo: vivo)
-        }
-    }
-
-    /// El nombre baja a su propia línea completa; los adornos (♥/reloj/Terminar/⤢/‖) se recorren a
-    /// una segunda fila alineada a la derecha — reordena prioridad, no borra ninguno.
-    private static func headerApilado(vivo: HojaSesionViva) -> some View {
-        VStack(alignment: .leading, spacing: LiquidSpace.s150) {
-            HStack(spacing: LiquidSpace.s200) {
-                botonMinimizar(vivo: vivo)
-                EntrenarFamilyDot(vivo.familyTint, size: EntrenarMetrics.familyDotCompact)
-                nombreYAvance(vivo: vivo)
-            }
-            HStack(spacing: LiquidSpace.s200) {
-                Spacer(minLength: .zero)
-                adornos(vivo: vivo)
-            }
-        }
-    }
-
-    /// ‹ minimiza (nunca termina la sesión — B17).
-    private static func botonMinimizar(vivo: HojaSesionViva) -> some View {
-        Button {
-            vivo.sheet.model.strengthSheetPresented = false   // B17: minimizar, nunca termina
-        } label: {
-            CenitIcon.back.image
-                .font(LiquidType.infoGlifoCompacto.weight(.semibold))
-                .foregroundStyle(LiquidColor.tinta700)
-                .frame(width: EntrenarMetrics.row, height: EntrenarMetrics.row)   // 44 pt de toque
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(Text("Minimize session"))
-    }
-
-    /// Nombre de la rutina + «Serie N de M» / «Paused».
-    private static func nombreYAvance(vivo: HojaSesionViva) -> some View {
-        VStack(alignment: .leading, spacing: LiquidSpace.s025) {
-            Text(vivo.session.routineName).font(LiquidType.tituloHoja).foregroundStyle(LiquidColor.tinta900)
-                .lineLimit(1).minimumScaleFactor(0.8)
-            Text(vivo.session.paused ? String(localized: "Paused") : vivo.serieSubtitle)
-                .liquidKicker().foregroundStyle(LiquidColor.tinta700)
-                .lineLimit(1).minimumScaleFactor(0.8)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    /// ♥ · reloj · Terminar secundario · ⤢ Foco · ‖ — el mismo orden de siempre, factorizado para
-    /// que ambos layouts (`headerUnaLinea`/`headerApilado`) lo compartan sin duplicar lógica.
-    @ViewBuilder
-    private static func adornos(vivo: HojaSesionViva) -> some View {
-        heartRate(vivo: vivo)
-
-        TimelineView(.periodic(from: Date(), by: 1)) { ctx in
-            let elapsed = vivo.session.elapsedSeconds(now: ctx.date)
-            let texto = SessionClock.format(elapsed)
-            Text(texto)
-                .font(LiquidType.datoMenor)
-                .foregroundStyle(LiquidColor.tinta700)
-                .numeroVivo(value: texto)
-                // Misma clave que LiveStrengthSheet (reloj vivo): «Elapsed %@» / «Paused at %@».
-                .accessibilityLabel(Text(vivo.session.paused ? "Paused at \(texto)" : "Elapsed \(texto)"))
-                .accessibilityAddTraits(.updatesFrequently)
-        }
-
-        // FER-250: «Terminar» secundario SIEMPRE visible a media sesión (criterio 1: con 0 series
-        // el confirm ya es honesto — «Aún no registras ninguna serie.» + Seguir/Descartar). El CTA
-        // prominente `ctaTerminar` se reserva para sesión completa — no se mueve.
-        if !vivo.session.isComplete {
-            terminarSecundario(vivo: vivo)
-        }
-
-        // R2(a): ⤢ — la misma puerta a Foco que `SessionStatsBar.onFocus` ofrecía en la barra vieja.
-        if vivo.puedeEnfocar {
-            Button { vivo.enterFoco() } label: {
-                Image(systemName: "arrow.up.left.and.arrow.down.right")
-                    .font(LiquidType.infoGlifo.weight(.semibold))
-                    .foregroundStyle(LiquidColor.tinta700)
-                    .frame(width: EntrenarMetrics.row, height: EntrenarMetrics.row)   // 44 pt de toque
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(Text("Focus"))
-        }
-
-        if let alternar = vivo.alternarPausa {
-            Button(action: alternar) {
-                Image(systemName: vivo.session.paused ? "play.fill" : "pause.fill")
-                    .font(LiquidType.infoGlifo.weight(.semibold))
-                    .foregroundStyle(LiquidColor.tinta700)
-                    .frame(width: EntrenarMetrics.row, height: EntrenarMetrics.row)   // 44 pt de toque
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(vivo.session.paused ? Text("Resume session") : Text("Pause session"))
-        }
     }
 
     /// FER-250: píldora discreta «Terminar» en cabecera — mismo lenguaje que

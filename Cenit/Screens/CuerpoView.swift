@@ -681,7 +681,7 @@ private struct CuerpoLanding: View {
             VStack(alignment: .leading, spacing: LiquidSpace.s075) {
                 Text(label).liquidDato().foregroundStyle(LiquidColor.tinta500)
                     .multilineTextAlignment(.leading)
-                    .lineLimit(1)
+                    .lineLimit(2)
                     .minimumScaleFactor(0.9)
                 HStack(alignment: .firstTextBaseline, spacing: LiquidSpace.s050) {
                     Text(value ?? "—")

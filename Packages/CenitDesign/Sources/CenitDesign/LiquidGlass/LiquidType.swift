@@ -117,8 +117,8 @@ public enum LiquidType {
     /// `título/fila` — 13/600. Título de ListRow.
     public static let tituloFila = InstrumentoType.grotesk(13, weight: .semibold, relativeTo: .subheadline)
     /// `tituloFila` en negrita / en medium: el peso se pide por token (regla `no-weight-on-grotesk`).
-    public static let tituloFilaNegrita = InstrumentoType.grotesk(13, weight: .bold)
-    public static let tituloFilaMedia = InstrumentoType.grotesk(13, weight: .medium)
+    public static let tituloFilaNegrita = InstrumentoType.grotesk(13, weight: .bold, relativeTo: .subheadline)
+    public static let tituloFilaMedia = InstrumentoType.grotesk(13, weight: .medium, relativeTo: .subheadline)
 
     /// `título/gemela` — 15/600. El rótulo de las celdas gemelas destacadas de la Matriz
     /// (Sueño · Reposo): mismo peso callado que `tituloFila`, un punto más grande para que
