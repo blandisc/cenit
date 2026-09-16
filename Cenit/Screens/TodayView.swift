@@ -109,7 +109,9 @@ struct TodayView: View {
         // FER-383 (mapa 100 %): simula HealthKit denegado para capturar t4SinPermiso — gana
         // sobre el "true" de abajo, así un nodo combina un fixture normal (para tener datos y
         // hasAnySource=true) con este arg (para tumbar solo el permiso).
-        if UserDefaults.standard.string(forKey: "cenit.healthDenied")?.uppercased() == "YES" { return false }
+        // FER-495: la lectura de `-cenit.healthDenied` vive en `ScreenshotFixtures.healthDenied`
+        // (compartida con `EntrenarView.healthConnected`) — antes cada pantalla la releía a mano.
+        if ScreenshotFixtures.healthDenied { return false }
         if ScreenshotFixtures.activeState() != nil { return true }
         #endif
         return health.auth == .authorized

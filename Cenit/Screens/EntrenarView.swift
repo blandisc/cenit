@@ -213,6 +213,9 @@ private struct EntrenarLanding: View {
     /// estado sembrado el permiso real nunca está concedido y la hoja caería al copy de conectar.
     private var healthConnected: Bool {
         #if DEBUG
+        // FER-495: gana sobre el escape de fixture de abajo, así un nodo combina un fixture normal
+        // (para tener datos) con este arg (para tumbar solo el permiso) — mismo helper que usa Hoy.
+        if ScreenshotFixtures.healthDenied { return false }
         if ScreenshotFixtures.activeState() != nil { return true }
         #endif
         return health.auth == .authorized

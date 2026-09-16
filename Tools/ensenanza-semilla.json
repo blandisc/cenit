@@ -140,7 +140,7 @@
      "dondeVive":{"en":"Under the metric, one line.","es":"Bajo la métrica, una línea."}},
 
     {"id":"entrenar.pestana","pestana":"entrenar","requiere":[],"piezas":["ayuda"],
-     "mapa":["entrenar/hub"],
+     "mapa":["entrenar/hub", "entrenar/hub-sin-salud", "entrenar/hub-retenida"],
      "nombre":{"en":"Train: the plan that acts","es":"Entrenar: el plan que hace"},
      "paraQue":{"en":"Today's routine, your week, the live session and the progression that goes up on its own.","es":"Tu rutina del día, tu semana, la sesión en vivo y la progresión que sube sola."},
      "dondeVive":{"en":"The third tab.","es":"La tercera pestaña."}},

@@ -12,7 +12,7 @@ extension Registro {
             requiere: [],
             piezas: [.ayuda(seccion: .entrenar)],
             desde: "1.85",
-            mapa: ["entrenar/hub"]
+            mapa: ["entrenar/hub", "entrenar/hub-sin-salud", "entrenar/hub-retenida"]
         ),
         Funcionalidad(
             id: .entrenarPrimerUso,
