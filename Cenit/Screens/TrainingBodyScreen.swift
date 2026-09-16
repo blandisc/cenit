@@ -238,35 +238,20 @@ struct TrainingBodyScreen: View {
     private var cabeceraFecha: String { CenitFormat.weekdayHeading(Date()) }
 
     @ViewBuilder private var hiloDelVeredicto: some View {
-        if let hilo = LiquidHoyBuilder.hiloEntrenar(
+        HiloVeredictoCompacto(
             prep: repo.todayPreparedness,
-            nights: repo.todayPreparedness?.autonomicNights ?? 0,
             healthConnected: healthConnected,
+            nights: repo.todayPreparedness?.autonomicNights ?? 0,
             verdictPending: repo.todayPreparedness == nil && !repo.fullyLoaded,
-            // `repo` no expone la rutina de hoy en esta pantalla (a diferencia de
-            // `EntrenarView.todayRoutine`), pero es inofensivo: `hasPlan` solo mueve el `consejo` del
-            // tono `.claro` (`LiquidHoyBuilder.swift:618`), y aquí ese consejo SIEMPRE se reemplaza por
-            // `muscleReading` salvo en `.hueco`, donde `hasPlan` nunca se lee.
             hasPlan: true,
-            // La supresión de primer uso (FER-376) existe porque en la portada el hilo competía con
-            // «Arma tu semana»; esta cabecera no tiene esa sección, así que sin Salud dice la ausencia.
-            primerUsoSinPlan: false) {
-            EntrenarHilo(tone: hilo.tono.entrenarTone,
-                         word: LocalizedStringKey(hilo.palabra),
-                         // Hueco (sin lectura / sin conectar Salud / conociéndote): el consejo de
-                         // copy.md, tal cual. Con veredicto: la palabra se completa con el mapa; si el
-                         // mapa no tiene nada que decir (todo fresco), cae al consejo genérico del
-                         // constructor en vez de quedarse mudo (quisquilloso ronda 4: la landing SIEMPRE
-                         // trae `hilo.consejo` para ese mismo tono con `hasPlan: true`).
-                         advice: hilo.tono == .hueco
-                            ? hilo.consejo.map { LocalizedStringKey($0) }
-                            : (muscleReading.map { LocalizedStringKey($0.thread) }
-                               ?? hilo.consejo.map { LocalizedStringKey($0) }),
-                         radio: EntrenarMetrics.orbeCuerpo,
-                         hint: "Opens today's ballot") {
-                showVeredictoActa = true
-            }
-        }
+            primerUsoSinPlan: false,
+            advice: { hilo in
+                // Hueco: consejo del copy. Con veredicto: mapa muscular, o consejo genérico.
+                if hilo.tono == .hueco { return hilo.consejo.map { LocalizedStringKey($0) } }
+                return muscleReading.map { LocalizedStringKey($0.thread) }
+                    ?? hilo.consejo.map { LocalizedStringKey($0) }
+            },
+            onOpenActa: { showVeredictoActa = true })
     }
 
     private var healthConnected: Bool {

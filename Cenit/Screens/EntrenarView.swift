@@ -259,7 +259,7 @@ private struct EntrenarLanding: View {
                             // guard evita abrir una hoja fabricada vacía si alguna vez se desincronizan.
                             guard let model = trainingLoad else { return }
                             trainingLoadItem = TrainingLoadItem(model: model,
-                                                                onSeeTrends: { tabRouter.select(.body) })
+                                                                onSeeTrends: { tabRouter.verTendencias() })
                         }
                         .padding(.top, LiquidSpace.s100)
                     }

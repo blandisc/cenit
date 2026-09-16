@@ -143,6 +143,8 @@ public struct LiquidEcosistema: View {
     /// «El Tablero» (FER-28): presentación compacta — reserva `ecosistemaAltoCompacto` y sube
     /// el lienzo recortando su aire superior, sin tocar el arte. Default `false` = héroe pleno.
     private let compacto: Bool
+    /// FER-490: oculta la tipografía grande del veredicto (la palabra vive en `EntrenarHilo` compacto).
+    private let ocultaPalabra: Bool
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.liquidMotionDisabled) private var motionDisabled
@@ -155,7 +157,7 @@ public struct LiquidEcosistema: View {
                 calibracion: LiquidHoyModel.Calibracion?, rotulos: EcosistemaRotulos,
                 heroPuerta: String? = nil, heroInfo: Bool = false, heroHint: String? = nil,
                 mostrarHintSeparar: Bool = true, fusionInicial: Bool = false,
-                compacto: Bool = false,
+                compacto: Bool = false, ocultaPalabra: Bool = false,
                 onTapVeredicto: (() -> Void)? = nil, onTapSenal: ((String) -> Void)? = nil,
                 onTapGuardian: (() -> Void)? = nil,
                 onFusionArrancada: (() -> Void)? = nil, onSeparacion: (() -> Void)? = nil,
@@ -165,6 +167,7 @@ public struct LiquidEcosistema: View {
                   heroInfo: heroInfo,
                   heroHint: heroHint, mostrarHintSeparar: mostrarHintSeparar,
                   fusionInicial: fusionInicial, faseForzada: nil, compacto: compacto,
+                  ocultaPalabra: ocultaPalabra,
                   onTapVeredicto: onTapVeredicto, onTapSenal: onTapSenal,
                   onTapGuardian: onTapGuardian,
                   onFusionArrancada: onFusionArrancada, onSeparacion: onSeparacion,
@@ -177,12 +180,13 @@ public struct LiquidEcosistema: View {
          calibracion: LiquidHoyModel.Calibracion?, rotulos: EcosistemaRotulos,
          heroPuerta: String? = nil, heroInfo: Bool = false, heroHint: String? = nil,
          mostrarHintSeparar: Bool = true, fusionInicial: Bool = false,
-         faseForzada: Sim.Fase?, compacto: Bool = false,
+         faseForzada: Sim.Fase?, compacto: Bool = false, ocultaPalabra: Bool = false,
          onTapVeredicto: (() -> Void)? = nil, onTapSenal: ((String) -> Void)? = nil,
          onTapGuardian: (() -> Void)? = nil,
          onFusionArrancada: (() -> Void)? = nil, onSeparacion: (() -> Void)? = nil,
          alternarPedido: Int = 0, onFase: ((Bool) -> Void)? = nil) {
         self.compacto = compacto
+        self.ocultaPalabra = ocultaPalabra
         self.senales = senales
         self.hero = hero
         self.guardian = guardian
@@ -605,6 +609,8 @@ public struct LiquidEcosistema: View {
                    value: esSeparadaEstable)
         // La palabra del veredicto (abajo, centrada) — se oculta en separado. En compacto
         // (FER-28) sube `acercaVeredicto` hacia el orbe (recorta el aire de abajo).
+        // FER-490: `ocultaPalabra` deja el orbe y mueve la tipografía a `EntrenarHilo` compacto.
+        if !ocultaPalabra {
         palabra
             .frame(width: G.lienzo.width)
             // El subtítulo sube 34→64 pt sobre el fondo del lienzo (auditoría del dueño: la
@@ -642,6 +648,7 @@ public struct LiquidEcosistema: View {
                                 : LiquidMotion.ambient(0.75)
                                     .delay(LiquidEcosistemaMotion.fusionDur * 0.85 + 0.45)),
                        value: esSeparadaEstable)
+        }
         // La PUERTA como PASTILLA solo cuando es una ACCIÓN («Connect Health», ruta .salud):
         // un ⓘ ahí mentiría (HIG: el info button revela información, no ejecuta). Con puerta
         // informativa el ⓘ vive DENTRO del titular (ver `palabraVeredicto`) y la pastilla

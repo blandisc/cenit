@@ -157,6 +157,9 @@ struct TodayView: View {
     /// para que el reloj del polvo sobreviva Ahora↔Tiempo (FER-490 · fable #1).
     @State private var atmosferaLocal = AtmosferaEstado()
     private var atmosfera: AtmosferaEstado { atmosferaInyectada ?? atmosferaLocal }
+    /// Plan de hoy + primer uso (mismos args que Entrenar → oráculo único, FER-490 C2).
+    @State private var hasPlan = true
+    @State private var primerUsoSinPlan = false
 
     // MARK: - Pull-to-refresh propio (FER-222)
     //
@@ -506,7 +509,7 @@ struct TodayView: View {
     /// Arma la hoja de carga desde la franja: «Ver más en Tendencias» al tab Cuerpo vía `TabRouter`.
     /// El hallazgo de carga sigue vivo en Patrones; ya no se asoma en esta hoja (FER-33 · F2).
     private func makeTrainingLoadItem(_ model: TrainingLoadModel) -> TrainingLoadItem {
-        TrainingLoadItem(model: model, onSeeTrends: { tabRouter.select(.body) })
+        TrainingLoadItem(model: model, onSeeTrends: { tabRouter.verTendencias() })
     }
 
 
@@ -756,17 +759,10 @@ struct TodayView: View {
             .environmentObject(repo)
             .environmentObject(health)
         }
-        // El acta del veredicto: la hoja que contesta la pregunta que el héroe provoca.
+        // FER-490: misma Acta que Entrenar / Tu cuerpo (`VeredictoActaSheet` → `LiquidActaVeredicto`).
         .sheet(isPresented: $showVeredictoActa) {
-            LiquidMetricSheet(tono: liquidActaTono, detent: .porContenido) {
-                // La siembra de motas del acta se APAGÓ y el soplo del héroe se retiró
-                // (FER-23, dueño): «Cómo llegué a esto» abre a papel directo, sin
-                // partículas de ningún lado. LiquidSiembraMotas queda en el DS (opt-in).
-                LiquidActaVeredicto(liquidActa, onVerMas: {
-                    showVeredictoActa = false
-                    tabRouter.select(.body)
-                })
-            }
+            VeredictoActaSheet(prep: repo.todayPreparedness, healthConnected: saludConectada,
+                               fullyLoaded: repo.fullyLoaded)
         }
         // La hoja del guardián: qué vigila (temp + respiración) y por qué no vota (FER-33 · F3).
         .sheet(isPresented: $showGuardianHoja) {
@@ -1140,8 +1136,7 @@ struct TodayView: View {
                         trainingLoadItem = makeTrainingLoadItem(trainingLoad)
                     }
                 },
-                // FER-490: el ritual Separar/Unir se retiró; el tap del héroe abre el acta
-                // (o Conectar Salud sin permiso).
+                // FER-490: tipografía grande oculta; la palabra es `HiloVeredictoCompacto`.
                 onTapHero: {
                     if output.heroRoute == .salud {
                         showDataSources = true
@@ -1151,7 +1146,8 @@ struct TodayView: View {
                 },
                 onTapGuardian: { showGuardianHoja = true },
                 mostrarHintSeparar: false,
-                fusionInicial: false)
+                fusionInicial: false,
+                ocultaPalabra: true)
             // FER-435 · el «?» de Hoy, a la derecha de la fecha. `LiquidHoyContent` dibuja su
             // cabecera con el slot trailing vacío (el dial se retiró el 2026-08-06), así que el
             // botón se superpone desde aquí, alineado al kicker — nunca encima del orbe ni de la
@@ -1161,6 +1157,23 @@ struct TodayView: View {
                     .padding(.trailing, LiquidSpace.s250)
                     .padding(.top, -LiquidSpace.s350)
             }
+            // FER-490 · palabra compacta (orbe 44), mismo oráculo que Entrenar.
+            HiloVeredictoCompacto(
+                prep: repo.todayPreparedness,
+                healthConnected: saludConectada,
+                nights: repo.todayPreparedness?.autonomicNights ?? 0,
+                verdictPending: repo.todayPreparedness == nil && !repo.fullyLoaded,
+                hasPlan: hasPlan,
+                primerUsoSinPlan: primerUsoSinPlan,
+                onOpenActa: {
+                    if output.heroRoute == .salud {
+                        showDataSources = true
+                    } else {
+                        showVeredictoActa = true
+                    }
+                })
+            .padding(.horizontal, LiquidSpace.s600)
+            .padding(.top, LiquidSpace.s200)
             // FER-436 · hitos 1–2 (una vez) ENTRE el héroe y la Matriz; nunca sobre la palabra/orbe.
             hitosHoy
             // FER-51 · La Matriz (estados T1–T5 + instrumento). Debajo del héroe.
@@ -1673,6 +1686,15 @@ struct TodayView: View {
         stress = StressModel(days: repo.displayDays, stored: await stressRows,
                              todayKey: Repository.localDayKey(Date()), appleDays: repo.appleHealthDays)
         // Ola 2: live day-strain fold retired with the band; settled daily strain via repo.today is enough.
+        // FER-490 C2: mismos args de plan que Entrenar / widget / reloj.
+        let routineId = await repo.todayRoutineId()
+        var semanaVacia = false
+        if let store = await repo.storeHandle(), let sched = try? await store.routineSchedule() {
+            semanaVacia = sched.isEmpty
+        }
+        hasPlan = routineId != nil
+        primerUsoSinPlan = TrainWidgetPublisher.esPrimerUsoSinPlan(
+            sessionLive: model.strengthSession != nil, semanaVacia: semanaVacia)
     }
 
     // MARK: - 14-day trend loader (all platforms)
