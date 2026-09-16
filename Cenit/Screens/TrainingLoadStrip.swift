@@ -11,7 +11,8 @@ import Foundation
 // consumidores siguen vivos (las columnas de Cuerpo y la hoja de carga), así que la extensión se
 // mudó al archivo de la carga —su usuario principal— en vez de irse con la pantalla.
 extension ReadinessEngine.Flag {
-    /// El único mapeo bandera → color Liquid: bien → verde, neutro → tinta, vigilar → aviso, mal → negativo.
+    /// Mapeo bandera → color de JUICIO (veredicto). La franja de carga NO lo usa: la carga
+    /// pinta con `verdeCarga` (identidad), nunca el verde del veredicto (FER-506 · C8 / DESIGN).
     func color() -> Color {
         switch self {
         case .good:    return LiquidColor.verdePrimario
@@ -62,7 +63,7 @@ struct TrainingLoadStrip: View {
                     .font(LiquidType.captionNegrita)
                     .tracking(1.2)
                     .textCase(.uppercase)
-                    .foregroundStyle(band.flag.color())
+                    .foregroundStyle(LiquidColor.verdeCarga)
                 Text(String(format: "%.2f", acwr))
                     .font(LiquidType.caption)
                     .foregroundStyle(LiquidColor.tinta500)
@@ -91,7 +92,8 @@ struct TrainingLoadStrip: View {
             ZStack(alignment: .topLeading) {
                 HStack(spacing: LiquidSpace.s050) {
                     ForEach(LoadScale.bounds, id: \.lo) { seg in
-                        let tono = seg.band == band ? seg.band.flag.color() : LiquidColor.tinta10
+                        // Identidad de carga (`verdeCarga`), nunca `Flag.color()` / verde de veredicto.
+                        let tono = seg.band == band ? LiquidColor.verdeCarga : LiquidColor.tinta10
                         LiquidBarraProgreso(fraccion: 1, tono: tono, pista: tono,
                                             altura: LiquidSpace.s150, animada: false)
                             .frame(width: max(0, w * (seg.hi - seg.lo) / LoadScale.max - 2),

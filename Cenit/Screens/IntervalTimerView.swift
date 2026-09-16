@@ -16,12 +16,13 @@ private enum IntervalPhase: Equatable {
         }
     }
 
-    /// Ámbar para el esfuerzo, cian para la calma, verde para el cierre.
+    /// Fases en tinta: un hue 1:1 de dato (ámbar/cian/verdePrimario) no decora el timer
+    /// (FER-506 · C8 / LIQUID-GLASS §1).
     var hue: Color {
         switch self {
-        case .work: LiquidColor.ambar
-        case .rest: LiquidColor.cian
-        case .done: LiquidColor.verdePrimario
+        case .work: LiquidColor.tinta900
+        case .rest: LiquidColor.tinta700
+        case .done: LiquidColor.tinta900
         }
     }
 }
@@ -239,10 +240,10 @@ struct IntervalTimerView: View {
 
             VStack(alignment: .leading, spacing: LiquidSpace.s400) {
                 settingRow(title: "Work", unit: "sec", value: $plan.work,
-                           range: 5...600, step: 5, tint: LiquidColor.ambar)
+                           range: 5...600, step: 5, tint: LiquidColor.tinta900)
                 hairline
                 settingRow(title: "Rest", unit: "sec", value: $plan.rest,
-                           range: 5...600, step: 5, tint: LiquidColor.cian)
+                           range: 5...600, step: 5, tint: LiquidColor.tinta700)
                 hairline
                 settingRow(title: "Rounds", unit: nil, value: $plan.rounds,
                            range: 1...30, step: 1, tint: LiquidColor.tinta900)
@@ -311,9 +312,9 @@ struct IntervalTimerView: View {
         HStack(spacing: LiquidSpace.s250) {
             Spacer()
             if run.running {
-                LiquidStatePill(String(localized: "Running"), dot: LiquidColor.ambar)
+                LiquidStatePill(String(localized: "Running"), dot: LiquidColor.tinta900)
             } else if isFinished {
-                LiquidStatePill(String(localized: "Complete"), dot: LiquidColor.verdePrimario)
+                LiquidStatePill(String(localized: "Complete"), dot: LiquidColor.tinta900)
             } else {
                 LiquidStatePill(String(localized: "Paused"))
             }
@@ -410,10 +411,10 @@ struct IntervalTimerView: View {
         .accessibilityLabel(Text("Round \(min(run.round, plan.rounds)) of \(plan.rounds)"))
     }
 
-    /// Ya vividas y la actual en su hue; las que faltan, en tinta apagada.
+    /// Ya vividas y la actual en tinta; las que faltan, apagadas. Sin hues de dato (C8).
     private func roundBarTone(_ index: Int) -> Color {
-        if run.phase == .done || index < run.round { return LiquidColor.ambar }
-        if index == run.round { return run.phase == .rest ? LiquidColor.cian : LiquidColor.ambar }
+        if run.phase == .done || index < run.round { return LiquidColor.tinta900 }
+        if index == run.round { return run.phase == .rest ? LiquidColor.tinta700 : LiquidColor.tinta900 }
         return LiquidColor.tinta10
     }
 
@@ -446,12 +447,12 @@ struct IntervalTimerView: View {
             }
 
             LiquidBarraProgreso(fraccion: run.sessionProgress(in: plan),
-                                tono: LiquidColor.ambar,
+                                tono: LiquidColor.tinta900,
                                 altura: LiquidSpace.s200)
 
             HStack(spacing: .zero) {
-                summaryStat("Work", "\(plan.work)s", LiquidColor.ambar)
-                summaryStat("Rest", "\(plan.rest)s", LiquidColor.cian)
+                summaryStat("Work", "\(plan.work)s", LiquidColor.tinta900)
+                summaryStat("Rest", "\(plan.rest)s", LiquidColor.tinta700)
                 summaryStat("Rounds", "\(plan.rounds)", LiquidColor.tinta900)
                 summaryStat("Remaining", timeString(max(0, plan.totalSeconds - run.elapsed)),
                             LiquidColor.tinta700)

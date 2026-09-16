@@ -193,6 +193,11 @@ public enum LiquidColor {
     /// La voz de «atención» PARA TEXTO CHICO: el ámbar #C4631F ronda 3.5:1 sobre vidrio
     /// (falla AA); esta variante oscurecida pasa 4.5:1 (pasada UI /inject 2026-07-22).
     public static let atencionTexto = LiquidTheme.dynamic(light: Color(hex: "#8F4712"), dark: Color(hex: "#E29A50"))
+    /// La voz de «verde» PARA TEXTO CHICO (< 24 pt): gemelo de `atencionTexto`.
+    /// `verdePrimario` ronda ~3.8:1 sobre papel (falla AA); esta variante (= `verdeProfundo`)
+    /// pasa ≥ 4.5:1. Regla FER-506 · C8: un hue 1:1 (verde = veredicto, ámbar = identidad,
+    /// dorado = temp) no decora; el texto verde chico usa `verdeTexto`.
+    public static let verdeTexto = verdeProfundo
 
     // MARK: Blancos de vidrio (alfas fijos de #FFFFFF — §4.1)
 
@@ -460,6 +465,7 @@ public enum LiquidDeltaTone: Sendable {
             swatch("tinta/500", LiquidColor.tinta500)
             swatch("verde/primario", LiquidColor.verdePrimario)
             swatch("verde/profundo", LiquidColor.verdeProfundo)
+            swatch("verde/texto", LiquidColor.verdeTexto)
             swatch("verde/aurora", LiquidColor.verdeAurora)
             Text("TONOS DE DATO").font(LiquidType.kicker).tracking(LiquidType.kickerTracking)
                 .foregroundStyle(LiquidColor.tinta500)

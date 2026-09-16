@@ -216,7 +216,7 @@ enum LiquidHoyBuilder {
         let temp = LiquidGuardianHoja.Senal(
             id: "temp",
             etiqueta: String(localized: "Skin temperature"),
-            valor: tempVal, tono: LiquidColor.ambar, fuera: tempFuera,
+            valor: tempVal, tono: LiquidColor.doradoTemp, fuera: tempFuera,
             icono: .termo,
             a11y: a11ySenal(String(localized: "Skin temperature"), tempVal, fuera: tempFuera, comparando: comparando),
             serie: tempSerie)
@@ -466,7 +466,7 @@ enum LiquidHoyBuilder {
         let a11y = a11yDomino(temp: tempPts, resp: respPts, encendida: encendida)
         return .init(
             carriles: [
-                .init(id: "temp", icono: .termo, tono: LiquidColor.ambar,
+                .init(id: "temp", icono: .termo, tono: LiquidColor.doradoTemp,
                       noches: tempPts, a11y: String(localized: "Skin temperature")),
                 .init(id: "resp", icono: .resp, tono: LiquidColor.azul,
                       noches: respPts, a11y: String(localized: "Breathing")),
