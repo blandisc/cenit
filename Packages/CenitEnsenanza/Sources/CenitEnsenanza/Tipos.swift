@@ -7,12 +7,12 @@ import Foundation
 // declarativo — no una función. Cero SwiftUI/TipKit/UIKit: es Foundation-only para correr en el
 // fast loop (`swift test`) y en la matriz de ubuntu de `swift-packages.yml`.
 
-/// Las cuatro pestañas del app + «transversal» (widgets, Live Activity, Watch, avisos, gestos:
+/// Las tres pestañas del app + «transversal» (widgets, Live Activity, Watch, avisos, gestos:
 /// nada que viva en una sola pestaña). Espejo de `CenitDesign.LiquidTab` (+ `transversal`): aquí
 /// no se importa SwiftUI (este paquete corre en Linux), así que los nombres se mantienen a mano en
-/// los dos enums.
+/// los dos enums. FER-490: Hoy + Tendencias se fundieron en `cuerpo`.
 public enum Pestana: String, CaseIterable, Sendable {
-    case hoy, tendencias, entrenar, ajustes, transversal
+    case cuerpo, entrenar, ajustes, transversal
 }
 
 /// Qué necesita el usuario para que una funcionalidad aplique. Declarativo: el registro no

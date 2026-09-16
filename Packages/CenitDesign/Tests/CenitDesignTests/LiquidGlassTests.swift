@@ -384,4 +384,16 @@ final class LiquidGlassTests: XCTestCase {
         print("WROTE \(url.path) — \(image.size)")
     }
     #endif
+
+    // MARK: Dock FER-490 (INV-4)
+
+    func test_liquidTab_tresPestanasOrdenDock() {
+        XCTAssertEqual(LiquidTab.allCases, [.entrenar, .cuerpo, .ajustes])
+        XCTAssertEqual(LiquidTab.allCases.count, 3)
+        let r = LiquidTabRotulos.demo
+        XCTAssertEqual(r.titulo(.entrenar), "Entrenar")
+        XCTAssertEqual(r.titulo(.cuerpo), "Cuerpo")
+        XCTAssertEqual(r.titulo(.ajustes), "Ajustes")
+    }
+
 }

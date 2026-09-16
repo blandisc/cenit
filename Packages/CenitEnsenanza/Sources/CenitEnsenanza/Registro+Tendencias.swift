@@ -1,6 +1,6 @@
 import Foundation
 
-// Entradas de la pestaña «tendencias» del registro (semilla del épico FER-428, L4/FER-430).
+// Entradas de la pestaña «cuerpo» (ex-tendencias) del registro (semilla del épico FER-428, L4/FER-430).
 // Generado por `Tools/gen-ensenanza.py` a partir de `Tools/ensenanza-semilla.json`.
 // FER-433: las piezas `.vacio(clave:)` se añadieron a mano (el generador aún no las conoce).
 // FER-439: `mapa:` (nodos del Mapa 100 %) se añadió a mano con el formato exacto que emite el generador.
@@ -8,25 +8,25 @@ extension Registro {
     public static let tendencias: [Funcionalidad] = [
         Funcionalidad(
             id: .tendenciasPestana,
-            pestana: .tendencias,
+            pestana: .cuerpo,
             requiere: [],
-            piezas: [.ayuda(seccion: .tendencias), .hito(id: "tendencias.pestana.primera-tendencia"), .vacio(clave: "vacio.tendencias.pasos.queEs")],
+            piezas: [.ayuda(seccion: .cuerpo), .hito(id: "tendencias.pestana.primera-tendencia"), .vacio(clave: "vacio.tendencias.pasos.queEs")],
             desde: "1.85",
             mapa: ["tendencias/cuerpo-m"]
         ),
         Funcionalidad(
             id: .tendenciasPeriodo,
-            pestana: .tendencias,
+            pestana: .cuerpo,
             requiere: [],
-            piezas: [.ayuda(seccion: .tendencias), .tip(id: "tendencias.periodo")],
+            piezas: [.ayuda(seccion: .cuerpo), .tip(id: "tendencias.periodo")],
             desde: "1.85",
             mapa: ["tendencias/cuerpo-m"]
         ),
         Funcionalidad(
             id: .tendenciasPreparacion,
-            pestana: .tendencias,
+            pestana: .cuerpo,
             requiere: [.watch, .noches(4)],
-            piezas: [.ayuda(seccion: .tendencias), .tip(id: "tendencias.preparacion"), .vacio(clave: "vacio.tendencias.heroe.queEs")],
+            piezas: [.ayuda(seccion: .cuerpo), .tip(id: "tendencias.preparacion"), .vacio(clave: "vacio.tendencias.heroe.queEs")],
             desde: "1.85",
             mapa: [
                 "hoy/preparacion-cargando",
@@ -37,33 +37,33 @@ extension Registro {
         ),
         Funcionalidad(
             id: .tendenciasDescansoCarga,
-            pestana: .tendencias,
+            pestana: .cuerpo,
             requiere: [],
-            piezas: [.ayuda(seccion: .tendencias)],
+            piezas: [.ayuda(seccion: .cuerpo)],
             desde: "1.85",
             mapa: ["hoy/sueno", "hoy/esfuerzo", "hoy/estres"]
         ),
         Funcionalidad(
             id: .tendenciasMapaDelDia,
-            pestana: .tendencias,
+            pestana: .cuerpo,
             requiere: [.watch, .permiso(.calendario)],
-            piezas: [.ayuda(seccion: .tendencias), .tip(id: "tendencias.mapa-del-dia")],
+            piezas: [.ayuda(seccion: .cuerpo), .tip(id: "tendencias.mapa-del-dia")],
             desde: "1.85",
             mapa: ["hoy/estres"]
         ),
         Funcionalidad(
             id: .tendenciasCarga,
-            pestana: .tendencias,
+            pestana: .cuerpo,
             requiere: [.entrenos],
-            piezas: [.ayuda(seccion: .tendencias), .hito(id: "tendencias.carga.leida")],
+            piezas: [.ayuda(seccion: .cuerpo), .hito(id: "tendencias.carga.leida")],
             desde: "1.85",
             mapa: ["tendencias/cuerpo-m"]
         ),
         Funcionalidad(
             id: .tendenciasVitales,
-            pestana: .tendencias,
+            pestana: .cuerpo,
             requiere: [.watch],
-            piezas: [.ayuda(seccion: .tendencias), .vacio(clave: "vacio.detalle.tendencia.queEs"), .vacio(clave: "vacio.detalle.anoche.queEs"), .vacio(clave: "vacio.detalle.hoy.queEs")],
+            piezas: [.ayuda(seccion: .cuerpo), .vacio(clave: "vacio.detalle.tendencia.queEs"), .vacio(clave: "vacio.detalle.anoche.queEs"), .vacio(clave: "vacio.detalle.hoy.queEs")],
             desde: "1.85",
             mapa: [
                 "tendencias/detalle-hrv-m-full",
@@ -76,9 +76,9 @@ extension Registro {
         ),
         Funcionalidad(
             id: .tendenciasExplorar,
-            pestana: .tendencias,
+            pestana: .cuerpo,
             requiere: [],
-            piezas: [.ayuda(seccion: .tendencias), .tip(id: "tendencias.explorar"), .vacio(clave: "vacio.detalle.tendencia.queEs")],
+            piezas: [.ayuda(seccion: .cuerpo), .tip(id: "tendencias.explorar"), .vacio(clave: "vacio.detalle.tendencia.queEs")],
             desde: "1.85",
             mapa: [
                 "tendencias/explorar-full",
@@ -123,9 +123,9 @@ extension Registro {
         ),
         Funcionalidad(
             id: .tendenciasFuentes,
-            pestana: .tendencias,
+            pestana: .cuerpo,
             requiere: [],
-            piezas: [.ayuda(seccion: .tendencias)],
+            piezas: [.ayuda(seccion: .cuerpo)],
             desde: "1.85",
             mapa: []
         ),

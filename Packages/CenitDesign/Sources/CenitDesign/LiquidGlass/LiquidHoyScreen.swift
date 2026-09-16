@@ -406,7 +406,7 @@ struct LiquidHoyScreen: View {
             LiquidVeil(tone: nil).frame(height: LiquidSpace.s1400)
         }
         .overlay(alignment: .bottom) {
-            LiquidTabBar(active: .hoy, rotulos: .demo, onSelect: onSelectTab)
+            LiquidTabBar(active: .cuerpo, rotulos: .demo, onSelect: onSelectTab)
                 .padding(.horizontal, LiquidSpace.dockSide)
                 .padding(.bottom, LiquidSpace.dockBottom)
         }

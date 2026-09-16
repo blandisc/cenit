@@ -252,4 +252,17 @@ final class RegistroTests: XCTestCase {
             XCTAssertEqual(registro.mapa, entrada["mapa"] as? [String] ?? [], "\(raw): mapa distinto")
         }
     }
+
+    // MARK: Pestana FER-490 (INV-5)
+
+    func test_pestana_cuerpoFundido() {
+        XCTAssertEqual(Pestana.allCases, [.cuerpo, .entrenar, .ajustes, .transversal])
+        let cuerpo = Registro.por(.cuerpo)
+        XCTAssertFalse(cuerpo.isEmpty)
+        XCTAssertEqual(Set(cuerpo.map(\.pestana)), [.cuerpo])
+        XCTAssertFalse(cuerpo.contains { $0.id.rawValue == "hoy.ecosistema" })
+        // Unión de las listas internas (ex-hoy + ex-tendencias), sin ecosistema.
+        XCTAssertEqual(cuerpo.count, Registro.hoy.count + Registro.tendencias.count)
+    }
+
 }
