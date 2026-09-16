@@ -259,9 +259,9 @@ struct StarterTemplatesSheet: View {
     /// CTA de modo grupo (FER-251): aplica el programa entero + agenda, no una sola rutina.
     private var useThisPlanFooter: some View {
         VStack(spacing: LiquidSpace.s250) {
+            // Sin `accessibilityHint`: la leyenda visible ya dice lo mismo; VO no la debe oír dos veces.
             CenitCTAButton("Use this plan") { applyTemplateGroup() }
                 .disabled(saving)
-                .accessibilityHint(Text("Choosing a template creates its routines and your week is set; you can always edit it later, day by day."))
 
             Text("Choosing a template creates its routines and your week is set; you can always edit it later, day by day.")
                 .font(LiquidType.caption).foregroundStyle(LiquidColor.tinta500)

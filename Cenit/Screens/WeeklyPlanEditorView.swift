@@ -981,7 +981,7 @@ struct WeeklyPlanEditorView: View {
                     Image(systemName: "ellipsis")
                         .font(LiquidType.iconSF(size: 15))
                         .foregroundStyle(LiquidColor.tinta500)
-                        .frame(width: 32, height: 48)
+                        .frame(width: LiquidControl.hitTarget, height: LiquidControl.hitTarget)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)

@@ -198,6 +198,7 @@ struct WatchHealthKitFailureView: View {
             Image(systemName: "heart.text.square")
                 .font(LiquidType.iconSF(size: 36))
                 .foregroundStyle(LiquidOLED.negativo)
+                .accessibilityHidden(true)
             Text("Couldn't start the workout")
                 .font(LiquidType.tituloHoja)
                 .foregroundStyle(LiquidOLED.tinta)

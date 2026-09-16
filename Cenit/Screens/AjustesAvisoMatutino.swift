@@ -115,7 +115,8 @@ struct AvisoMatutinoSection: View {
                         Text("Open Settings").font(LiquidType.captionLectura).foregroundStyle(LiquidColor.tinta700)
                     }
                     .buttonStyle(.liquidPress)
-                    .frame(minHeight: 32)
+                    .frame(minHeight: LiquidControl.hitTarget)
+                    .contentShape(Rectangle())
                 }
             }
             .liquidTarjetaSeccion()

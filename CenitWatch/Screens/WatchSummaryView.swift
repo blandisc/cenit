@@ -72,6 +72,7 @@ struct WatchSummaryView: View {
         if manager.iPhoneReachable {
             HStack(spacing: LiquidSpace.s100) {
                 Image(systemName: "checkmark")
+                    .accessibilityHidden(true)
                 Text("Synced with your iPhone")
             }
             .font(LiquidType.pie)
@@ -97,6 +98,7 @@ struct WatchSummaryView: View {
         case .saved:
             HStack(spacing: LiquidSpace.s100) {
                 Image(systemName: "checkmark")
+                    .accessibilityHidden(true)
                 Text("Saved to Health")
             }
             .font(LiquidType.filaConteo)
@@ -104,6 +106,7 @@ struct WatchSummaryView: View {
         case .failed:
             HStack(spacing: LiquidSpace.s100) {
                 Image(systemName: "exclamationmark.triangle")
+                    .accessibilityHidden(true)
                 Text("Couldn't save to Health")
             }
             .font(LiquidType.filaConteo)
