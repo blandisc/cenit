@@ -142,12 +142,9 @@ private struct EntrenarLanding: View {
     /// «Músculos cargados» seguía anunciando una espalda cargada después de que el atleta ya la
     /// marcó fresca en «Tu cuerpo» — la misma línea, dos respuestas.
     @AppStorage("muscleRecoveryResetAt") private var muscleRecoveryResetAt: Double = 0
-    /// Top primary muscles per routine (Spanish display labels), built from the same per-routine exercise
-    /// fetch that feeds `exerciseCounts` — drives the hero muscle line and the «También en tu plan» subtitles.
-    @State private var routineMuscles: [String: [String]] = [:]
-    /// The classified training region per routine id (`RoutineClassifier`, FER-775), built from the same
-    /// per-routine exercise fetch as `routineMuscles`. Drives every routine-tinted mark (hero dot, plan
-    /// dots + «Empezar» pills, Constancia grid). Absent = no classifiable exercises → default hue.
+    /// The classified training region per routine id (`RoutineClassifier`, FER-775), built from the
+    /// per-routine exercise fetch. Drives every routine-tinted mark (hero dot, plan dots + «Empezar»
+    /// pills, Constancia grid). Absent = no classifiable exercises → default hue.
     @State private var routineCategory: [String: RoutineRegion] = [:]
     /// The weekly split, `weekday → routineId` (Calendar convention, 1 = Sun … 7 = Sat). FER-531.
     @State private var split: [Int: String] = [:]
@@ -541,7 +538,7 @@ private struct EntrenarLanding: View {
                                   defaultValue: "With 3 sessions in 7 days I tell you your sets per muscle; you have \(sessionsIn7Days)."))
                 .padding(.top, LiquidSpace.s100)
         }
-        EntrenarHubPar(raises: parRaises, restReal: nil,
+        EntrenarHubPar(raises: parRaises,
                       onOpenRaises: { if let r = todayRoutine { openRoutine(r.id) } })
             .padding(.top, parRaises.isEmpty ? 0 : LiquidSpace.s100)
         if let cuerpo = cuerpoData {
@@ -592,7 +589,7 @@ private struct EntrenarLanding: View {
         }
     }
 
-    // MARK: - PAR (v18) — «Subidas listas» de `raisesToday`; «Descanso real» SIEMPRE nil (F2).
+    // MARK: - PAR (v18) — «Subidas listas» de `raisesToday`.
 
     /// Ronda 2 · D1: el ESCALÓN (`toKg − fromKg`), no el peso nuevo — mock «▲ 2.5 kg».
     /// `incrementNumber` (no `weightNumber`): es un incremento, conserva su decimal en las dos
@@ -850,27 +847,6 @@ private struct EntrenarLanding: View {
             : String(localized: "Your week marks rest")
     }
 
-    /// The handoff's per-routine tint (mock 1a). The family is derived from the routine's exercises'
-    /// `primaryMuscles` via the shared `RoutineClassifier` (FER-775) — never guessed from the name or a
-    /// per-process hash, so a routine keeps the same color across launches. Via `EntrenarFamily.tono`:
-    /// push → ámbar, pull → cian, leg / full body → índigo. A routine with no classifiable exercises
-    /// (cardio, «Rápido» without a routine) falls back to ámbar, the screen's default hue. Used for the
-    /// SOLID marks (text, borders); full body reads as indigo here and only becomes a gradient in
-    /// `routineFill`.
-    private func routineTint(_ region: RoutineRegion?) -> Color {
-        region?.family.tono.base ?? LiquidColor.ambar
-    }
-
-    /// The FILL for a routine's dot/square. Same as `routineTint` except full body reads as the mock's
-    /// 135° ember→indigo gradient (its whole point is that it spans the split).
-    private func routineFill(_ region: RoutineRegion?) -> AnyShapeStyle {
-        if region == .fullBody {
-            return AnyShapeStyle(LinearGradient(colors: [LiquidColor.ambar, LiquidColor.indigo],
-                                                startPoint: .topLeading, endPoint: .bottomTrailing))
-        }
-        return AnyShapeStyle(routineTint(region))
-    }
-
     /// The classified region for a routine name — the hero, plan rows and Constancia grid all key
     /// their tinted marks by the routine's name (that's what completed sessions record), so resolve the
     /// name back to its routine's precomputed category. `nil` (unknown / unclassifiable) → default hue.
@@ -1064,7 +1040,7 @@ private struct EntrenarLanding: View {
     /// Los 7 tokens de `WeekTokens`, en el orden L→D (`orderedWeekdays`): hecho = lo que de verdad se
     /// entrenó esa semana (`trainedThisWeek`, gana sobre lo planeado); hoy = aro de tinta, SIEMPRE,
     /// nunca el color del veredicto; planeado = contorno del tinte de familia; descanso = punteado.
-    /// Sin ejercicios clasificables una rutina cae en `.push` (mismo respaldo que `routineTint(nil)`
+    /// Sin ejercicios clasificables una rutina cae en `.push` (mismo respaldo que región nil
     /// ya usaba: `dataStrain`), así que el color de reserva no cambia.
     private var weekTokenDays: [EntrenarDayToken] {
         orderedWeekdays.map { wd in
@@ -1222,29 +1198,6 @@ private struct EntrenarLanding: View {
         .buttonStyle(EntrenarPressStyle())
         .accessibilityElement(children: .combine)
         .accessibilityHint(puerta.hint)
-    }
-
-    /// One quiet full-width foot row (history / diet): leading glyph, label, trailing disclosure chevron.
-    private func utilityRow(icon: String, label: LocalizedStringKey, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            HStack(spacing: LiquidSpace.s225) {
-                Image(systemName: icon)
-                    .font(LiquidType.iconSF(size: 18))
-                    .foregroundStyle(LiquidColor.tinta700)
-                Text(label)
-                    .font(LiquidType.cuerpoBanner)
-                    .foregroundStyle(LiquidColor.tinta700)
-                Spacer(minLength: LiquidSpace.s200)
-                CenitIcon.disclosure.image.font(LiquidType.iconSF(size: 15).weight(.semibold))
-                    .foregroundStyle(LiquidColor.tinta500)
-                    .accessibilityHidden(true)
-            }
-            .padding(.vertical, LiquidSpace.s300)
-            .frame(maxWidth: .infinity, minHeight: LiquidControl.hitTarget, alignment: .leading)   // HIG tap target (FER-944)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityElement(children: .combine)
     }
 
     // MARK: - CUERPO (v18) — datos compartidos con `EntrenarHubCuerpo`
@@ -1730,14 +1683,12 @@ private struct EntrenarLanding: View {
         let customAll = (try? await store.customExercises()) ?? []
         let customAllByID = Dictionary(customAll.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
         var counts: [String: Int] = [:]
-        var muscles: [String: [String]] = [:]
         var categories: [String: RoutineRegion] = [:]
         for r in rs {
             let exs = (try? await store.routineExercises(routineId: r.id)) ?? []
             counts[r.id] = exs.count
-            muscles[r.id] = Self.topMuscles(exs, customByID: customAllByID)
-            // Derive the routine's color family from its exercises' primary muscles (FER-775) — the same
-            // resolution `topMuscles` uses. Absent when nothing classifies → the tint falls back to the hue.
+            // Derive the routine's color family from its exercises' primary muscles (FER-775).
+            // Absent when nothing classifies → the tint falls back to the hue.
             let perExercise = exs.compactMap { re in
                 (ExerciseCatalog.byID(re.exerciseId) ?? customAllByID[re.exerciseId])?.primaryMuscles
             }
@@ -1841,7 +1792,6 @@ private struct EntrenarLanding: View {
         todayServing = passServing
         routines = rs
         exerciseCounts = counts
-        routineMuscles = muscles
         routineCategory = categories
         split = splitMap
         todaySlots = slots
@@ -1863,26 +1813,6 @@ private struct EntrenarLanding: View {
         return true
     }
 
-    /// Tally the primary muscles across a routine's exercises → the top three, as Spanish display labels
-    /// (`MuscleVocabulary`). Frequency-ranked; ties keep first-seen order. Feeds the hero muscle line and
-    /// the «También en tu plan» subtitles from the same per-routine fetch that counts exercises.
-    private static func topMuscles(_ exs: [RoutineExercise], customByID: [String: Exercise]) -> [String] {
-        var tally: [String: Int] = [:]
-        var order: [String] = []
-        for re in exs {
-            guard let ex = ExerciseCatalog.byID(re.exerciseId) ?? customByID[re.exerciseId] else { continue }
-            for m in ex.primaryMuscles {
-                if tally[m] == nil { order.append(m) }
-                tally[m, default: 0] += 1
-            }
-        }
-        let idx = Dictionary(order.enumerated().map { ($1, $0) }, uniquingKeysWith: { primero, _ in primero })
-        let top = order.sorted {
-            let a = tally[$0] ?? 0, b = tally[$1] ?? 0
-            return a != b ? a > b : (idx[$0] ?? 0) < (idx[$1] ?? 0)
-        }.prefix(3)
-        return top.map { MuscleVocabulary.es[$0] ?? $0.capitalized }
-    }
 }
 
 #endif

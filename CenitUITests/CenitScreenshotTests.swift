@@ -33,7 +33,7 @@ import XCTest
 ///    mixed-language bar.
 ///
 /// The native tab bar is hidden app-wide (`.toolbar(.hidden, for: .tabBar)`) in favour of the
-/// custom `InstrumentTabBar` (FER-163/FER-490) — `app.tabBars` is EMPTY. Never query it.
+/// custom `LiquidTabBar` (FER-163/FER-490) — `app.tabBars` is EMPTY. Never query it.
 final class CenitScreenshotTests: XCTestCase {
 
     var app: XCUIApplication!

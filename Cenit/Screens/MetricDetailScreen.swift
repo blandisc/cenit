@@ -2113,9 +2113,8 @@ struct MetricDetailScreen: View {
         }
     }
 
-    /// Las MISMAS claves que `zoneLabel` (papel) para Z1…Z5; el reposo — que el papel
-    /// nunca rotulaba porque su leyenda lo filtraba — estrena la suya con el patrón de
-    /// la familia («Reposo · bajo zona 1»).
+    /// Etiquetas Z1…Z5 (+ reposo). El reposo — que el papel nunca rotulaba porque su
+    /// leyenda lo filtraba — estrena la suya con el patrón de la familia («Reposo · bajo zona 1»).
     private func liquidIntraZonaEtiqueta(_ i: Int) -> String {
         switch i {
         case 0:  return String(localized: "Rest · below zone 1")
@@ -2128,10 +2127,10 @@ struct MetricDetailScreen: View {
     }
 
     /// La rampa de zona en el hue de identidad: reposo en tinta quieta y las cinco zonas
-    /// graduando el rosa, más oscuro = más duro — calco del `zoneFill` de papel (misma
-    /// geometría de opacidades) dicho en tokens Liquid, y el MISMO reparto que la preview
-    /// de `LiquidTiempoZonas` documenta (el DS no conoce zonas de pulso: la rampa es del
-    /// caller). Estática para poder fijarla en un test sin montar la pantalla.
+    /// graduando el rosa, más oscuro = más duro — misma geometría de opacidades dicha en
+    /// tokens Liquid, y el MISMO reparto que la preview de `LiquidTiempoZonas` documenta
+    /// (el DS no conoce zonas de pulso: la rampa es del caller). Estática para poder fijarla
+    /// en un test sin montar la pantalla.
     static func liquidZonaRampa(_ i: Int, tono: Color) -> Color {
         switch i {
         case 0:  return LiquidColor.tinta10

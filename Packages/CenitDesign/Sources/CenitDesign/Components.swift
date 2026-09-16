@@ -29,9 +29,7 @@ public enum WidgetMetrics {
     public static let cardPadding: CGFloat = 12
     public static let hero: CGFloat = 28
     public static let heroSlot: CGFloat = 34
-    public static let pulse: CGFloat = 17
     public static let name: CGFloat = 15
-    public static let overline: CGFloat = 11
     public static let overlineTracking: CGFloat = 1.4
     public static let returnValue: CGFloat = 15
     public static let thumb: CGFloat = 34
@@ -82,19 +80,12 @@ public enum WidgetMetrics {
 // deliberately NOT reflowing with Dynamic Type.
 public enum HomeWidgetMetrics {
     public static let padding: CGFloat = 16
-    public static let overline: CGFloat = 11
     public static let overlineTracking: CGFloat = 1.2
     public static let title: CGFloat = 20
-    public static let cta: CGFloat = 13
-    public static let verdict: CGFloat = 13
     public static let dayToken: CGFloat = 20
-    public static let dayLabel: CGFloat = 10
     public static let rowGap: CGFloat = 6
     public static let weekGap: CGFloat = 10
     public static let microGap: CGFloat = 2
-    public static let dayTokenGap: CGFloat = 4
-    public static let ringToday: CGFloat = 2
-    public static let ringUpcoming: CGFloat = 1.5
     public static let ringRest: CGFloat = 1
     public static let ringRestDash: [CGFloat] = [2, 3]
 }
@@ -110,9 +101,7 @@ public enum WatchMetrics {
     public static let summarySecondaryHeight: CGFloat = 40
     public static let summaryPrimaryHeight: CGFloat = 44
 
-    public static let heroPulse: CGFloat = 52
     public static let heroRestCountdown: CGFloat = 44
-    public static let heroReadiness: CGFloat = 36
     public static let heroSummaryDuration: CGFloat = 40
 }
 

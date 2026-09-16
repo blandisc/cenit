@@ -138,7 +138,7 @@ struct HojaDecideTuDia: View {
             .padding(.horizontal, LiquidSpace.s150)
             .padding(.vertical, LiquidSpace.s025)
             .overlay(Capsule()
-                .strokeBorder(color.opacity(0.45), lineWidth: 1))  // token-exempt(paridad): mismo aro al 45 % del sello «vota» de la Matriz
+                .strokeBorder(color.opacity(CenitOpacity.dim), lineWidth: 1))
     }
 
     private func votante(orbe: Orbe, titulo: String, detalle: String, sello: Sello) -> some View {

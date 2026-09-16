@@ -194,7 +194,7 @@ struct RootTabView: View {
     /// tipo explícito fuera del `@ViewBuilder`. Medido, el costo NO se fue: se MOVIÓ y quedó peor.
     ///
     ///   antes .... método 201 ms · condición (el `if` de abajo) 196 ms
-    ///   después .. método 291 ms · `.tint` 274 ms · isLightTab 103 ms   ← peor, y dos hotspots nuevos
+    ///   después .. método 291 ms · `.tint` 274 ms · sync de pestaña 103 ms   ← peor, y dos hotspots nuevos
     ///
     /// Es el MISMO desenlace que el intento previo de FER-981 (mover la cadena a una sola función
     /// genérica: body 284 → rootChrome 309). Partir o izar piezas de esta cadena redistribuye el costo
@@ -206,9 +206,9 @@ struct RootTabView: View {
     /// NO lo vuelvas a intentar sin medir antes y después: dos intentos ya salieron peor.
     private func rootChromeOverlays<Content: View>(_ content: Content) -> some View {
         content
-        // `.tint` no longer paints the tab bar (it's hidden below; the custom
-        // `InstrumentTabBar` sets its own ink), but it still tints links/controls
-        // inside the screens — kept for those.
+        // `.tint` no longer paints the tab bar (it's hidden below; `LiquidTabBar`
+        // sets its own ink), but it still tints links/controls inside the screens —
+        // kept for those.
         .tint(LiquidColor.verdePrimario)
         // The «Barra de instrumento» (FER-163): the native bar is hidden per page
         // (see `lazyTab` and the per-hub NavigationStacks) and this custom bar takes its place.
@@ -304,13 +304,12 @@ struct RootTabView: View {
         content
         .onPreferenceChange(BarHeightKey.self) { barHeight = $0 }
         // Color scheme lo decide ContentView (cercano a la raíz) según `isTodayActive`; aquí solo lo
-        // mantenemos sincronizado con la pestaña visible. Solo Hoy es papel claro «Instrumento»; las
-        // otras cuatro pestañas son el panel oscuro. (En vivo es ahora un cover sobre Hoy, no pestaña.)
+        // mantenemos en papel claro — las cuatro pestañas viven en Liquid Glass · El Eje.
         .onChange(of: selection) { _, newValue in
             visited.insert(newValue)
-            isTodayActive = isLightTab(newValue)
+            isTodayActive = true
         }
-        .onAppear { isTodayActive = isLightTab(selection) }
+        .onAppear { isTodayActive = true }
         // FER-398 — `cenit://session`, el deep link de la Live Activity de descanso (su `widgetURL`).
         // En AMBOS modos, no solo en Debug: en la app de la tienda ese tap no llevaba a ningún lado
         // porque el único manejador del esquema vivía bajo `#if DEBUG` (`ScreenshotNav`), que además
@@ -412,10 +411,6 @@ struct RootTabView: View {
         // launch — double DB work + an extra refreshSeq bump that re-fired TodayView.loadAll.
     }
 
-    /// Tabs con esquema claro Liquid Glass · El Eje (barra de estado oscura vía `isTodayActive` /
-    /// `isLight`): Hoy, Cuerpo, Entrenar y Ajustes. El resto del chrome legacy sigue oscuro.
-    private func isLightTab(_ tab: Tab) -> Bool { tab == .today || tab == .body || tab == .train || tab == .settings }
-
     /// The hub tab that owns a given secondary screen (for debug navigation).
     ///
     /// Exhaustive on purpose — no `default`. A screen routed to the wrong hub lands on a stack that
@@ -450,9 +445,9 @@ struct RootTabView: View {
         // ScrollView stops above the bar (the inset reaches scroll views here; it
         // would not from the TabView — see `body`).
         .barReservation(barHeight)
-        // Hide the native tab bar everywhere; the custom `InstrumentTabBar` (the
-        // floating overlay on the TabView) is the visible bar. `tabItem` stays so
-        // TabView keeps its tag/selection wiring — its label just never renders.
+        // Hide the native tab bar everywhere; `LiquidTabBar` (floating overlay on the
+        // TabView) is the visible bar. `tabItem` stays so TabView keeps its tag/selection
+        // wiring — its label just never renders.
         .toolbar(.hidden, for: .tabBar)
         .tabItem { Label(title, systemImage: icon) }
         .tag(tag)
@@ -472,9 +467,7 @@ struct RootTabView: View {
 
     // MARK: - Custom bar (FER-163)
 
-    /// The dock tabs as drawn by `InstrumentTabBar`. Thin-stroke set: the 24h dial for Hoy (the bar's
-    /// signature mark), line glyphs for the rest. (Hidden `tabItem` icons use the filled variants from
-    /// the issue spec; only this custom bar is visible.) Four tabs (FER-992 / FER-240).
+    /// The dock tabs as drawn by `LiquidTabBar`. Four tabs (FER-992 / FER-240).
     private func liquidTab(for tab: Tab) -> LiquidTab {
         switch tab {
         case .today: return .hoy
@@ -491,16 +484,6 @@ struct RootTabView: View {
         case .entrenar: return .train
         case .ajustes: return .settings
         }
-    }
-
-    private var barItems: [InstrumentTabBar<Tab>.Item] {
-        [
-            .init(.today,    "Today",   .dial),
-            .init(.body,     "Tendencias", .curveNodes),
-            // FER-240: Patrones archived — no dock row.
-            .init(.train,    "Train",   .system("figure.strengthtraining.functional")),
-            .init(.settings, "Ajustes", .system("gearshape")),
-        ]
     }
 
     @ViewBuilder

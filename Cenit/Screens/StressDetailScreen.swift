@@ -622,7 +622,7 @@ struct StressDetailScreen: View {
     //
     // FER-101 · TND-11: la pantalla de papel traía TRES vocabularios y DOS copias de los cortes
     // (la mini-escala «Calm/Your base/Activated», la gráfica «Low/Base/Activated» con su propio
-    // arreglo `stressBands`, y el calendario/héroe «Low/Moderate/High» vía `StressBand.displayWord`).
+    // arreglo `stressBands`, y el calendario/héroe «Low/Moderate/High»).
     // Se deriva UNA vez de `MetricLevels.displayBands(for: .stress)` — la escalera del motor
     // (low 0–1 · medium 1–2 · high 2–3) — y TODO deriva de aquí por CLAVE. La palabra queda
     // Low/Medium/High, la MISMA que la Matriz de Hoy (`palabraStress`). El color por carril es
