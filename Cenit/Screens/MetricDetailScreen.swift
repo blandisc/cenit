@@ -1268,7 +1268,7 @@ struct MetricDetailScreen: View {
     }
 
     private func liquidSpectralValor(_ v: Double) -> String {
-        Self.groupedInt.string(from: NSNumber(value: Int(v.rounded()))) ?? "\(Int(v.rounded()))"
+        CenitFormat.groupedInt(v)   // FER-500: formateador guardado y compartido
     }
 
     /// El pie de una cajita espectral: subtítulo + «vs tu normal» (mismas claves que el papel).
