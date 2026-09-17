@@ -49,8 +49,10 @@ struct TermsGateView: View {
                 // shipped with Cénit» — cierto para quien clona el repo, falso para quien baja la app:
                 // ese archivo no viaja en el bundle. Un `Link` sobre el mismo `OnbCuerpo` conserva la
                 // tipografía del sistema y le da a VoiceOver el rasgo de enlace.
+                // Color de enlace (`verdeProfundo`), no el del cuerpo (`tinta500`) — misma voz que
+                // `OnbSalidaTexto`.
                 Link(destination: Terms.fullTermsURL) {
-                    OnbCuerpo(Terms.fine, tono: LiquidColor.tinta500)
+                    OnbCuerpo(Terms.fine, tono: LiquidColor.verdeProfundo)
                 }
                 .padding(.top, LiquidSpace.s550)
             } pie: {
@@ -61,7 +63,8 @@ struct TermsGateView: View {
     }
 
     /// El interruptor y su frase. La frase se lee UNA vez: es la etiqueta de VoiceOver del
-    /// interruptor, y el texto visible de al lado se oculta para no repetirla.
+    /// interruptor, y el texto visible de al lado se oculta para no repetirla. Tocar la frase
+    /// también conmuta el switch (zona táctil más amplia que el control solo).
     private var filaDeConsentimiento: some View {
         HStack(alignment: .top, spacing: LiquidSpace.s300) {
             Toggle("", isOn: $aceptado)
@@ -73,6 +76,8 @@ struct TermsGateView: View {
 
             OnbCuerpo(Terms.consent, tono: LiquidColor.tinta900)
                 .accessibilityHidden(true)
+                .contentShape(Rectangle())
+                .onTapGesture { aceptado.toggle() }
         }
         .padding(.bottom, LiquidSpace.s400)
     }

@@ -239,7 +239,7 @@ struct ExerciseDetailScreen: View {
                 // FER-121: círculo visible ≈28pt; el toque real crece a 44 (HIG) sin mover el
                 // círculo — padding + contentShape + padding negativo se cancelan en layout
                 // (mismo truco FER-947 / `LiquidControl.hitTarget`).
-                .padding(LiquidSpace.s200).contentShape(Rectangle()).padding(-LiquidSpace.s200)  // token-exempt(unico): hit slop pair simétrico ±s200
+                .padding(LiquidSpace.s200).contentShape(Rectangle()).padding(-LiquidSpace.s200)  // token-exempt(falta-pieza): hit slop pair simétrico ±s200 (candidato a hitSlop compartido)
                 .padding(LiquidSpace.filaRespiro)
                 .accessibilityLabel(Text(isLoopPlaying ? "Pause preview" : "Play preview"))
             }

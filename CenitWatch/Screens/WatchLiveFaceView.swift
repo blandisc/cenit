@@ -169,7 +169,6 @@ private struct WatchFaceMetrics: View {
         if let target = rest.hrTarget, manager.heartRate > 0 {
             let gap = max(0, manager.heartRate - target)
             if gap == 0 {
-                // displayM (40) es el grotesk más cercano a heroReadiness (36)
                 Text("Ready")
                     .font(LiquidType.displayM)
                     .tracking(LiquidType.displayMTracking)
@@ -188,7 +187,6 @@ private struct WatchFaceMetrics: View {
             } else {
                 (Text("you need").font(LiquidType.subtituloFila).foregroundStyle(LiquidOLED.tintaSecundaria)
                  + Text(verbatim: " ")
-                 // displayM (40) es el grotesk más cercano a heroReadiness (36)
                  + Text(verbatim: "\(gap)").font(LiquidType.displayM).tracking(LiquidType.displayMTracking).foregroundStyle(LiquidOLED.rosa)
                  + Text(verbatim: " ")
                  + Text("bpm").font(LiquidType.subtituloFila).foregroundStyle(LiquidOLED.tintaSecundaria))
@@ -241,7 +239,7 @@ private struct WatchFaceMetrics: View {
         pulseDashed ? Text("Pulse, no reading") : Text("Pulse, \(manager.heartRate) beats per minute")
     }
 
-    // State 3 — the pulse hero. numeralHoja = 52 = WatchMetrics.heroPulse.
+    // State 3 — the pulse hero. numeralHoja = 52.
     private var pulseHero: some View {
         HStack(alignment: .firstTextBaseline, spacing: LiquidSpace.s100) {
             pulseValue
@@ -411,9 +409,17 @@ private struct WatchPlanRotor: View {
     }
 
     @ViewBuilder private func marker(done: Bool, current: Bool) -> some View {
-        if done { Image(systemName: "checkmark").font(LiquidType.pie).foregroundStyle(LiquidOLED.verde) }
-        else if current { Image(systemName: "circle.fill").font(LiquidType.pie).foregroundStyle(LiquidOLED.tinta) }
-        else { Image(systemName: "circle").font(LiquidType.pie).foregroundStyle(LiquidOLED.tintaTerciaria) }
+        // Glifos decorativos junto al nombre: VO no debe leer «checkmark»/«circle» antes del ejercicio.
+        if done {
+            Image(systemName: "checkmark").font(LiquidType.pie).foregroundStyle(LiquidOLED.verde)
+                .accessibilityHidden(true)
+        } else if current {
+            Image(systemName: "circle.fill").font(LiquidType.pie).foregroundStyle(LiquidOLED.tinta)
+                .accessibilityHidden(true)
+        } else {
+            Image(systemName: "circle").font(LiquidType.pie).foregroundStyle(LiquidOLED.tintaTerciaria)
+                .accessibilityHidden(true)
+        }
     }
 }
 

@@ -54,8 +54,6 @@ struct WeeklyPlanEditorView: View {
     /// The classified region per routine (`RoutineClassifier`, FER-775) — the SINGLE source of a routine's
     /// hue, shared with `EntrenarView`, so the same routine never changes color between screens.
     @State private var routineRegion: [String: RoutineRegion] = [:]
-    /// Days since each routine was last trained (`routineId → whole days`), for the «hace N d» column.
-    @State private var lastTrainedDays: [String: Int] = [:]
     @State private var showBuilder = false
     @State private var showTemplates = false
     @State private var showImport = false
@@ -981,7 +979,7 @@ struct WeeklyPlanEditorView: View {
                     Image(systemName: "ellipsis")
                         .font(LiquidType.iconSF(size: 15))
                         .foregroundStyle(LiquidColor.tinta500)
-                        .frame(width: 32, height: 48)
+                        .frame(width: LiquidControl.hitTarget, height: LiquidControl.hitTarget)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
@@ -1239,13 +1237,11 @@ struct WeeklyPlanEditorView: View {
             }
             vol[r.id] = byGrp
         }
-        let sessions = (try? await store.recentSessions(limit: 200)) ?? []
         routines = rs
         exerciseCounts = counts
         routineMuscles = muscles
         routineRegion = regions
         routineVolume = vol
-        lastTrainedDays = Self.daysSinceLast(sessions)
         folders = (try? await store.routineFolders()) ?? []
         await reloadSchedule()
         loaded = true
@@ -1269,18 +1265,6 @@ struct WeeklyPlanEditorView: View {
         return order.sorted { let a = tally[$0] ?? 0, b = tally[$1] ?? 0
             return a != b ? a > b : (idx[$0] ?? 0) < (idx[$1] ?? 0) }
             .prefix(3).map { MuscleVocabulary.es[$0] ?? $0.capitalized }
-    }
-
-    /// Whole days since each routine was last completed (newest session per routine wins).
-    private static func daysSinceLast(_ sessions: [StrengthSession]) -> [String: Int] {
-        let cal = Calendar.current; let today = cal.startOfDay(for: Date())
-        var out: [String: Int] = [:]
-        for s in sessions where s.endTs != nil {
-            guard let rid = s.routineId, out[rid] == nil else { continue }
-            let d = cal.startOfDay(for: Date(timeIntervalSince1970: TimeInterval(s.startTs)))
-            out[rid] = cal.dateComponents([.day], from: d, to: today).day ?? 0
-        }
-        return out
     }
 
     private func reloadSchedule() async {

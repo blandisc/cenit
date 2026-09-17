@@ -1862,6 +1862,8 @@ struct WorkoutSessionDetailScreen: View {
             .onTapGesture {
                 if canRateEffort { showEffortRate = true }
             }
+            // Sin apariencia de botón: el rasgo le dice a VoiceOver que se puede tocar para cambiar.
+            .accessibilityAddTraits(canRateEffort ? .isButton : [])
         case .durationWithHR(let bpm):
             if canRateEffort {
                 unratedEffortHero

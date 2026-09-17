@@ -605,9 +605,12 @@ struct DataSourcesView: View {
             HStack(spacing: LiquidSpace.s150) {
                 Image(systemName: "gearshape")
                     .font(LiquidType.iconSF(size: 13)).foregroundStyle(LiquidColor.tinta700)
+                    .accessibilityHidden(true)
                 Text(String(localized: "Manage Apple Health permissions"))
                     .font(LiquidType.captionLectura).foregroundStyle(LiquidColor.tinta700)
             }
+            .frame(minHeight: LiquidControl.hitTarget)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.liquidPress)
     }

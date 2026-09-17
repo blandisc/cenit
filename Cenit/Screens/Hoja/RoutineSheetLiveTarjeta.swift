@@ -57,14 +57,18 @@ struct HojaTarjetaEjercicioSesion: View {
                 Button { vivo.enterFoco() } label: {
                     Image(systemName: "arrow.up.left.and.arrow.down.right")
                         .font(LiquidType.infoGlifo.weight(.semibold))
-                        .foregroundStyle(LiquidColor.tinta500).frame(width: 30, height: LiquidControl.hitTarget).contentShape(Rectangle())
+                        .foregroundStyle(LiquidColor.tinta500)
+                        .frame(width: LiquidControl.hitTarget, height: LiquidControl.hitTarget)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityHidden(true)   // la acción vive en `.accessibilityAction` del cuerpo — sin botón duplicado en el rotor
             }
             Button { vivo.menuExerciseIndex = ei } label: {
                 CenitIcon.more.image.font(LiquidType.infoGlifo.weight(.semibold))
-                    .foregroundStyle(LiquidColor.tinta500).frame(width: 30, height: LiquidControl.hitTarget).contentShape(Rectangle())
+                    .foregroundStyle(LiquidColor.tinta500)
+                    .frame(width: LiquidControl.hitTarget, height: LiquidControl.hitTarget)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .accessibilityLabel(Text("More options for \(run.name)"))
@@ -354,7 +358,7 @@ struct HojaTarjetaEjercicioSesion: View {
         .background {
             if vivo.prFlash?.setId == set.id {
                 RoundedRectangle(cornerRadius: HojaMetrics.activaRadius, style: .continuous)
-                    .fill(LiquidColor.rosa.opacity(0.16))  // token-exempt(falta-pieza): destello breve R16, sin token de opacidad para «molde rosa» transitorio todavía
+                    .fill(LiquidColor.rosa.opacity(CenitOpacity.tintFillStrong))
                     .transition(LiquidMotion.fadeOrIdentity(reduceMotion: vivo.reduceMotion))
             }
         }

@@ -285,7 +285,7 @@ struct NoteSheet: View {
             Spacer(minLength: 0)
         }
         .padding(.horizontal, LiquidSpace.s600)
-        .padding(.top, LiquidSpace.s800)  // token-exempt(falta-pieza): aire del grabber (decisión dueño r12)
+        .padding(.top, LiquidSpace.s800)
         .padding(.bottom, LiquidSpace.s600)
         // FER-198 (Ola 2): fondo de vidrio El Eje — el `TextEditor` sigue SIN envolver (regla dura
         // del épico), solo cambia el marco que lo rodea.

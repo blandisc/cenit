@@ -858,6 +858,7 @@ private struct BodyFiguresView: View {
                         .onTapGesture { onSelect(item.muscle) }
                         .accessibilityLabel(Text(MuscleAtlas.name(item.muscle)))
                         .accessibilityValue(Text(stateText(item.muscle)))
+                        .accessibilityAddTraits(.isButton)
                 }
             }
             .aspectRatio(200.0 / 430.0, contentMode: .fit)

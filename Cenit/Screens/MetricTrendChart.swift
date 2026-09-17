@@ -13,8 +13,8 @@ import Foundation
 //   • `MetricWindow` — one render's window (effective range, its rows/values, the auto-widen flag) plus
 //     the shared `hasTrend` gate (≥2 points ⇒ there's a line to draw). Replaces the five identical
 //     per-screen `Window` structs.
-//   • `MetricWindowMath` — the window math (`slice` / `effectiveRange` / `make` / `decimatedPoints` /
-//     `axisLabel`). Pure: it reads the screen's already-parsed series and never touches the database.
+//   • `MetricWindowMath` — the window math (`slice` / `effectiveRange` / `make` / `decimatedPoints`).
+//     Pure: it reads the screen's already-parsed series and never touches the database.
 //
 // The screen still owns `@State range` and its parsed series (each `day` string → `Date` once), computes
 // the window ONCE in `body`, and draws it with the Liquid Glass chart (`LiquidGraficaNiveles`).
@@ -103,17 +103,5 @@ enum MetricWindowMath {
         return out
     }
 
-    /// «jun 6» for a day key, anchored to noon UTC so the local-zone label never slips to the previous
-    /// day west of UTC (same fix as `decimatedPoints` above). Was duplicated between Recovery and Sleep
-    /// (identical bodies) before promotion (FER-975).
-    static func axisLabel(_ dayKey: String) -> String? {
-        Repository.parseDayKey(dayKey).map { axisDateFmt.string(from: $0.addingTimeInterval(12 * 3600)) }
-    }
-
-    private static let axisDateFmt: DateFormatter = {
-        let f = DateFormatter()
-        f.setLocalizedDateFormatFromTemplate("dMMM")
-        return f
-    }()
 }
 #endif

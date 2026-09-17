@@ -83,14 +83,6 @@ public enum EntrenarHubMetrics {
     public static let ghgridCantoAlfa: Double = 0.12
     public static let ghgridHoyStroke: CGFloat = 1.8
 
-    // MARK: PAR DEL DÍA — el riel de «Descanso real» (mock `.tDes .rtrack`)
-
-    public static let restTrackHeight: CGFloat = 6
-    public static let restTrackRadius: CGFloat = 3
-    public static let restFillAlfa: Double = 0.75
-    public static let restPlanTickWidth: CGFloat = 1.5
-    public static let restPlanTickAlfa: Double = 0.30
-
     // MARK: HÉROE — el CTA verde y la píldora «Otra forma» (mock `.ctaV`/`.otra`)
 
     public static let heroCTAMinWidth: CGFloat = 168
@@ -191,14 +183,7 @@ public enum EntrenarHubMetrics {
     public static let subLsDelta = InstrumentoType.groteskNumber(10.5, weight: .bold, relativeTo: .caption)
     /// El «▲» que antecede al delta — 8 pt (mock `.subLs b i{font-size:8px}`).
     public static let subLsGlifo = Font.system(size: 8)
-    /// La cláusula de «Descanso real» — 11/400 BASE, line-height 1.55, tabular (mock `.tDes .sub2`).
-    /// Ronda 2 · D2: base para `@ScaledMetric` en la vista.
-    public static let restClausulaBase: CGFloat = 11
-    public static let restClausulaLineSpacing: CGFloat = 6   // 11 × (1.55 − 1) ≈ 6
-    public static let restTrackTop: CGFloat = 10
-
     // MARK: MARCAS · VOLUMEN — el pie de cada tile (mock `.tMar .ult`/`.prev`, `.tVol .delta`)
-
     public static let marcasUltTop: CGFloat = 8
     /// «Sentadilla · peso máx» — 11/400 BASE color t7 (mock `.tMar .ult`). Ronda 2 · D2: base para
     /// `@ScaledMetric` en la vista.

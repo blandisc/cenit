@@ -4,10 +4,8 @@ import CenitDesign
 
 // MARK: - Entrenar · EL PAR DEL DÍA del hub v18 (FER-171 · Parte B)
 //
-// «Subidas listas» (verde) + «Descanso real» (neutro), lado a lado. Silencio del par (regla del
-// diseño, mock §orden): si una tile calla, la otra toma el ancho completo; si ambas callan, el par
-// no se muestra. Hoy «Descanso real» SIEMPRE calla — `restReal` no tiene fuente de datos todavía
-// (F2 la trae) — así que el par hoy es, en la práctica, «Subidas listas a lo ancho o nada».
+// «Subidas listas» (verde). La tesela «Descanso real» y su cable `restReal` se retiraron en
+// FER-510 (cero fuente de datos, cero consumidores). Si no hay subidas, el par calla.
 
 struct EntrenarHubPar: View {
     /// Ronda 2 · D1: `valueText` es el ESCALÓN (`toKg − fromKg`) cuando `isStep` — el mock (`.subLs`,
@@ -21,31 +19,16 @@ struct EntrenarHubPar: View {
     }
 
     let raises: [Subida]
-    /// Cablea la tile a futuro (F2): hoy SIEMPRE `nil`, así que «Descanso real» calla siempre.
-    let restReal: (real: Int, planS: Int)?
     let onOpenRaises: () -> Void
 
-    /// Ronda 2 · D2: `subLsFila`/`restClausula` eran `Font.system(size:)` fijo — texto de LECTURA que
-    /// no escalaba con Dynamic Type. `@ScaledMetric` vive en la vista (el `enum` de tokens no tiene
-    /// entorno); la base sigue viniendo de `EntrenarHubMetrics`.
+    /// Ronda 2 · D2: `subLsFila` era `Font.system(size:)` fijo — texto de LECTURA que no escalaba
+    /// con Dynamic Type. `@ScaledMetric` vive en la vista; la base sigue en `EntrenarHubMetrics`.
     @ScaledMetric(relativeTo: .caption2) private var subLsFilaSize = EntrenarHubMetrics.subLsFilaBase
-    @ScaledMetric(relativeTo: .caption2) private var restClausulaSize = EntrenarHubMetrics.restClausulaBase
-
-    private var hasRaises: Bool { !raises.isEmpty }
-    private var hasRest: Bool { restReal != nil }
 
     var body: some View {
-        if hasRaises || hasRest {
-            Group {
-                if hasRaises, hasRest {
-                    HStack(alignment: .top, spacing: LiquidSpace.s300) { subidasTile; descansoTile }
-                } else if hasRaises {
-                    subidasTile
-                } else {
-                    descansoTile
-                }
-            }
-            .liquidEntrada(index: 3)
+        if !raises.isEmpty {
+            subidasTile
+                .liquidEntrada(index: 3)
         }
     }
 
@@ -87,59 +70,17 @@ struct EntrenarHubPar: View {
     @ViewBuilder
     private func subidaValor(_ subida: Subida) -> some View {
         if subida.isStep {
+            // «▲» es cromo visual: la etiqueta de VO es solo el valor (sin «black up-pointing triangle»).
             (Text(verbatim: "▲").font(EntrenarHubMetrics.subLsGlifo)
              + Text(verbatim: " ") + Text(verbatim: subida.valueText))
                 .font(EntrenarHubMetrics.subLsDelta)
                 .foregroundStyle(LiquidColor.verdeProfundo)
+                .accessibilityLabel(Text(verbatim: subida.valueText))
         } else {
             Text(verbatim: subida.valueText)
                 .font(EntrenarHubMetrics.subLsDelta)
                 .foregroundStyle(LiquidColor.verdeProfundo)
         }
-    }
-
-    // MARK: - Descanso real (F2 — hoy siempre en silencio)
-
-    private var descansoTile: some View {
-        EntrenarTile(tono: .neutro) {
-            VStack(alignment: .leading, spacing: .zero) {
-                Text("Real rest").liquidRegla().foregroundStyle(LiquidColor.tinta500)
-                if let restReal {
-                    Text(verbatim: Self.mmss(restReal.real))
-                        .font(LiquidType.valorTileM).tracking(LiquidType.valorTileTracking)
-                        .foregroundStyle(LiquidColor.tinta900)
-                        .padding(.top, EntrenarHubMetrics.numRowTop)
-                    restTrack(real: restReal.real, planS: restReal.planS)
-                        .padding(.top, EntrenarHubMetrics.restTrackTop)
-                    (Text("your average").foregroundStyle(LiquidColor.tinta700)
-                     + Text(verbatim: " · ").foregroundStyle(LiquidColor.tinta700)
-                     + Text("the plan calls for").foregroundStyle(LiquidColor.tinta700)
-                     + Text(verbatim: " ")
-                     + Text(verbatim: Self.mmss(restReal.planS)).fontWeight(.semibold).foregroundStyle(LiquidColor.tinta900))
-                        .font(.system(size: restClausulaSize))
-                        .lineSpacing(EntrenarHubMetrics.restClausulaLineSpacing)
-                        .padding(.top, EntrenarHubMetrics.subLsTop)
-                }
-            }
-        }
-        .accessibilityElement(children: .combine)
-    }
-
-    private func restTrack(real: Int, planS: Int) -> some View {
-        LiquidBarraProgreso(
-            fraccion: min(1, planS > 0 ? Double(real) / Double(planS) : 1),
-            tono: LiquidColor.cian.opacity(EntrenarHubMetrics.restFillAlfa),
-            pista: LiquidColor.tinta900.opacity(EntrenarHubMetrics.vbarsEmptyAlfa),
-            altura: EntrenarHubMetrics.restTrackHeight,
-            animada: false,
-            // Tick del plan en el tope, dentro de la pieza (FER-358).
-            marcasMudas: [1.0],
-            tonoMarcaMuda: LiquidColor.tinta900.opacity(EntrenarHubMetrics.restPlanTickAlfa))
-            .frame(maxWidth: .infinity)
-    }
-
-    private static func mmss(_ seconds: Int) -> String {
-        String(format: "%d:%02d", seconds / 60, seconds % 60)
     }
 }
 #endif

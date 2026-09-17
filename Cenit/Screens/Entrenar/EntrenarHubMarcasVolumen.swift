@@ -148,9 +148,14 @@ struct EntrenarHubMarcasVolumen: View {
         let positivo = deltaPercent > 0
         let flecha = positivo ? "↗" : "↘"
         let numero = CenitFormat.deltaPercent(Double(deltaPercent))
-        return Text(verbatim: "\(flecha) \(numero)")
-            .font(EntrenarHubMetrics.volumenDelta)
-            .foregroundStyle(positivo ? LiquidColor.verdeProfundo : LiquidColor.tinta700)
+        // Flecha tipográfica es cromo: VO lee el número (ya con signo), no el glifo.
+        return HStack(alignment: .firstTextBaseline, spacing: LiquidSpace.s050) {
+            Text(verbatim: flecha)
+                .accessibilityHidden(true)
+            Text(verbatim: numero)
+        }
+        .font(EntrenarHubMetrics.volumenDelta)
+        .foregroundStyle(positivo ? LiquidColor.verdeProfundo : LiquidColor.tinta700)
     }
 
     private static func oneDecimal(_ v: Double) -> String { CenitFormat.decimal(v, places: 1) }
