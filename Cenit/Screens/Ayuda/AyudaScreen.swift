@@ -163,8 +163,10 @@ struct AyudaScreen: View {
                             .font(LiquidType.titulo)
                             .foregroundStyle(LiquidColor.tinta900)
                         Spacer(minLength: LiquidSpace.s200)
-                        Text(String(localized: "ayuda.seccion.conteo",
-                                    defaultValue: "\(Self.funcionalidades(de: pestana).count) features"))
+                        Text(String(format: String(localized: "ayuda.seccion.conteo",
+                                                   defaultValue: "%lld features"),
+                                    locale: .current,
+                                    Self.funcionalidades(de: pestana).count))
                             .font(LiquidType.captionLectura)
                             .foregroundStyle(LiquidColor.tinta500)
                     }
@@ -266,7 +268,10 @@ struct AyudaScreen: View {
                 Text(verbatim: titulo)
                     .font(LiquidType.displayS).tracking(LiquidType.displaySTracking)
                     .foregroundStyle(LiquidColor.tinta900)
-                Text(String(localized: "ayuda.seccion.conteo", defaultValue: "\(conteo) features"))
+                Text(String(format: String(localized: "ayuda.seccion.conteo",
+                                           defaultValue: "%lld features"),
+                            locale: .current,
+                            conteo))
                     .font(LiquidType.captionLectura)
                     .foregroundStyle(LiquidColor.tinta500)
             }

@@ -188,8 +188,7 @@ struct BreathingView: View {
                     .font(LiquidType.datoMenor)
                     .foregroundStyle(LiquidColor.tinta900)
                 Text("·").foregroundStyle(LiquidColor.tinta500)
-                Text("\(breathCount) " + String(localized: "breath.breaths",
-                                                defaultValue: "breaths"))
+                Text("\(breathCount) breaths")
                     .font(LiquidType.caption)
                     .foregroundStyle(LiquidColor.tinta700)
             }

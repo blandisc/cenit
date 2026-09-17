@@ -1,0 +1,158 @@
+# FER-505 · C7 — plural-blind heredado (fuera del censo). Quitar al añadir variations.plural.
+# Formato: catálogo:clave
+app:%@ versus %@, r equals %@, %lld days
+app:%@, correlation %@, %lld days
+app:%@–%@ %@ · %lld nights
+app:%lld / %lld nights
+app:%lld beats · calibrating
+app:%lld beats · forming read
+app:%lld beats · solid read
+app:%lld cycles, %lld%% awake
+app:%lld days not logged
+app:%lld days with data in this range
+app:%lld days · %lld sleeps
+app:%lld days · %lld sleeps stored
+app:%lld days · %lld workouts
+app:%lld exercises · %lld sets · %lld done
+app:%lld mapped
+app:%lld marks
+app:%lld measurements in this range
+app:%lld new marks
+app:%lld new personal records.
+app:%lld nights cooler
+app:%lld nights measured
+app:%lld nights warmer
+app:%lld nights with data in this range
+app:%lld of %lld days
+app:%lld of %lld done
+app:%lld of %lld nights
+app:%lld of %lld nights calibrated
+app:%lld of %lld readable windows looked steady.
+app:%lld of %lld readable windows showed extra or skipped beats.
+app:%lld of %lld readable windows varied more than usual.
+app:%lld of %lld sets
+app:%lld of the last %lld days in
+app:%lld of your last %lld days
+app:%lld of your last %lld nights
+app:%lld of ~%lld nights
+app:%lld of ~%lld nights learned
+app:%lld overlapping days · %@ %@ correlation
+app:%lld personal records
+app:%lld pts higher
+app:%lld pts lower
+app:%lld readings · %@
+app:%lld routines · %lld exercises
+app:%lld s
+app:%lld sessions in the last 9 weeks
+app:%lld sessions this month
+app:%lld sessions this month · %lld load raises
+app:%lld sessions without hitting the goal at this weight.
+app:%lld sessions · 63 days
+app:%lld sessions · 90 days
+app:%lld sets done
+app:%lld sets · %@
+app:%lld years
+app:%lld years above your %lld
+app:%lld years older than your age of %lld.
+app:%lld years younger than your %lld
+app:%lld years younger than your age of %lld.
+app:%lld–%lld · %lld days
+app:+%lld pts
+app:+%lld vs your average
+app:AVG · %lld DAYS
+app:AVG · %lld NIGHTS
+app:After %@, your next-day Recovery drops ~%lld pts vs your rest days (n=%lld).
+app:Age, %lld years
+app:All %lld nights are in. Computing your first verdict.
+app:An estimate with a ±%lld-year margin.
+app:Body age %lld, %lld years older than your age %lld; estimated range %lld to %lld
+app:Body age %lld, %lld years younger than your age %lld; estimated range %lld to %lld
+app:Confidence: %lld of %lld nights
+app:Create %lld routines
+app:Created %lld routines
+app:Data coverage for the last 30 days: %lld days with data. %lld days on-device, %lld days Apple Health only, %lld days with no data.
+app:Data coverage for the last 30 days: %lld days with data, %lld days with no data.
+app:Day average %@ of 3 · %lld hours with readings
+app:Fit from %lld days your iPhone also counted steps. Confidence: high.
+app:Fit from %lld days your iPhone also counted steps. Confidence: low.
+app:Fit from %lld days your iPhone also counted steps. Confidence: medium.
+app:For %lld days
+app:Forecast for tomorrow: %lld (range %lld–%lld, %lld days).
+app:Heart rate %lld beats per minute
+app:Height, %lld feet %lld inches
+app:Last %lld beats
+app:Measured %lld days ago
+app:Night · %lld cycles
+app:No measurements in this range: showing your most recent %lld.
+app:On days with ‘%@’, your %@ drops %lld%% (n=%lld vs %lld).
+app:On days with ‘%@’, your %@ rises %lld%% (n=%lld vs %lld).
+app:On · %lld meals with a time.
+app:Over the last %lld days your Recovery averaged %lld vs %lld before (%lld%%).
+app:Resolve %lld more to continue
+app:Rest %lld seconds
+app:Resting, %lld seconds left
+app:Sessions like this are typically followed by a Recovery about %lld points higher the next morning (n=%lld).
+app:Sessions like this are typically followed by a Recovery about %lld points higher the next morning, climbing back in about %lld days (n=%lld).
+app:Sessions like this are typically followed by a Recovery about %lld points higher the next morning, climbing back in about 1 day (n=%lld).
+app:Sessions like this are typically followed by a Recovery about %lld points lower the next morning (n=%lld).
+app:Sessions like this are typically followed by a Recovery about %lld points lower the next morning, climbing back in about %lld days (n=%lld).
+app:Sessions like this are typically followed by a Recovery about %lld points lower the next morning, climbing back in about 1 day (n=%lld).
+app:Set %lld · %@ kg × %lld reps
+app:Set %lld, %@ by %lld reps, editable
+app:Sharpening your baseline, %lld of %lld nights.
+app:Sharpening your baseline, %lld of %lld nights. Your baseline comes from Apple Health.
+app:Showing the last %lld days
+app:Showing the last %lld nights
+app:Still learning your schedule · %lld nights to go
+app:This morning I read %lld of %lld body signals.
+app:Timing, %lld seconds
+app:Today falls in %@ · your normal range from %lld days
+app:Trailing %lld days
+app:We can't score your recovery yet. We need at least %lld nights of sleep to learn your baseline; you're at %lld of %lld. We'd rather not show you a made-up number.
+app:Weight, %lld pounds
+app:Window %lld days
+app:You kept %lld of %lld days: not enough days to judge. Try another week, logging daily.
+app:You're %lld of %lld sessions in with %@.
+app:Your Recovery is trending down (%lld days)
+app:Your Recovery is trending up (%lld days)
+app:Your autonomic axis reads %lld of %lld resting signals, but votes on just your resting heart rate; HRV and breathing ride along for context.
+app:Your baseline has a %lld-day gap
+app:Your fitness age is %lld years (±%lld), %lld older than your real age.
+app:Your fitness age is %lld years (±%lld), %lld younger than your real age.
+app:Your verdict stands on %lld of your own nights; at %lld your base is firm.
+app:acta.nota.calibrando
+app:adherence · %lld of %lld meals
+app:and %lld more
+app:applies to all %lld work sets
+app:average over %lld days · %@ %@
+app:average over %lld days · %@ steps
+app:before %@ · %lld days ago
+app:compare.overlay.count
+app:compare.pairs.count
+app:exercise %lld of %lld · %lld sets done
+app:of %lld s
+app:of the last %lld nights
+app:streak %lld days
+app:vs your normal · ~%lld bpm · %lld sessions
+app:without you logging it · %lld days
+app:your last %lld nights
+app:your normal range · %lld nights
+app:−%lld pts
+app:−%lld vs your average
+app:%lld sessions unmoved · proposes %@ %@
+app:%lld sessions unmoved · goal not met
+app:Includes %lld sessions with estimated effort
+app:%lld sessions without effort: not in your load
+app:You raise %@ kg when you hit %lld reps %@.
+app:Illegible dates in %lld rows
+app:%@, in %lld sessions, unresolved. Suggestion: %@
+app:%@, in %lld sessions, unresolved
+app:Reading… %lld sessions found
+app:The estimated 1RM uses a maximum of %lld reps
+app:Turn it into a %lld-week program
+app:hito.hoy.base-firme.resto
+app:hito.hoy.primer-veredicto.resto
+widgets:%lld beats per minute
+watch:Duration, %lld minutes
+watch:Pulse, %lld beats per minute
+watch:Rest, %lld seconds left

@@ -391,11 +391,11 @@ struct AppleHealthView: View {
     /// Cuántos días abarca la ventana, y si alguna serie rala se tuvo que ensanchar.
     private var windowLegend: String {
         let n = dossier.days.count
-        let unit = n == 1 ? String(localized: "day") : String(localized: "days")
-        guard dossier.holdsWidenedSeries else {
-            return String(localized: "\(n) \(unit) · \(span.phrase)")
-        }
-        return String(localized: "\(n) \(unit) · \(span.phrase) · some sparse series widened")
+        // Plural vía catálogo (`%lld days`); el resto se concatena ya localizado.
+        let days = String(format: String(localized: "%lld days"), locale: .current, n)
+        let base = "\(days) · \(span.phrase)"
+        guard dossier.holdsWidenedSeries else { return base }
+        return base + " · " + String(localized: "some sparse series widened")
     }
 
     // MARK: Rejilla de tiles

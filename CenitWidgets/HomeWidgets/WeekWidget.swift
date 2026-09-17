@@ -34,13 +34,14 @@ struct WeekProvider: TimelineProvider {
 
     static let sample = TrainWidgetSnapshot(
         writtenAt: Date(),
-        today: .init(routineName: "Empuje", sessionLive: false),
+        today: .init(routineName: "Push", sessionLive: false),
         verdict: .init(tone: .clear, word: String(localized: "In range")),
         week: [
-            .init(weekday: 2, state: .done, label: "L"), .init(weekday: 3, state: .rest, label: "M"),
-            .init(weekday: 4, state: .done, label: "X"), .init(weekday: 5, state: .rest, label: "J"),
-            .init(weekday: 6, state: .today, label: "V"), .init(weekday: 7, state: .upcoming, label: "S"),
-            .init(weekday: 1, state: .rest, label: "D"),
+            // Iniciales en inglés (galería del widget): M T W T F S S.
+            .init(weekday: 2, state: .done, label: "M"), .init(weekday: 3, state: .rest, label: "T"),
+            .init(weekday: 4, state: .done, label: "W"), .init(weekday: 5, state: .rest, label: "T"),
+            .init(weekday: 6, state: .today, label: "F"), .init(weekday: 7, state: .upcoming, label: "S"),
+            .init(weekday: 1, state: .rest, label: "S"),
         ])
 }
 
@@ -270,7 +271,7 @@ struct WeekWidget: Widget {
 } timeline: {
     WeekEntry(date: .now, snapshot: TrainWidgetSnapshot(
         writtenAt: .now.addingTimeInterval(-60 * 60 * 24 * 5),
-        today: .init(routineName: "Empuje", sessionLive: false), verdict: nil,
+        today: .init(routineName: "Push", sessionLive: false), verdict: nil,
         week: WeekProvider.sample.week))
 }
 

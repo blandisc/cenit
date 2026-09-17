@@ -141,8 +141,8 @@ struct EntrenarHubHeroe<Pliegue: View>: View {
     }
 
     private var empezarPill: some View {
-        // Clave de catálogo «Empezar» → en «Start» (misma que la landing).
-        LiquidGlassButton("Empezar", variant: .primary,
+        // Clave inglesa «Start» (es = «Empezar») — misma que la landing.
+        LiquidGlassButton("Start", variant: .primary,
                           minWidth: EntrenarHubMetrics.heroCTAMinWidth, action: onStart)
     }
 

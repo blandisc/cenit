@@ -768,7 +768,7 @@ struct DataSourcesView: View {
         let days = repo.storedStrapDays.union(repo.storedAppleOnlyDays).count
         VStack(alignment: .leading, spacing: LiquidSpace.s200) {
             sourceRow(name: String(localized: "Apple Health"),
-                      count: days == 1 ? String(localized: "\(days) day") : String(localized: "\(days) days"),
+                      count: String(format: String(localized: "%lld days"), locale: .current, days),
                       tint: LiquidColor.azul)
         }
     }

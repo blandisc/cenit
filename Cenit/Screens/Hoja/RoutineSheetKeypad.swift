@@ -207,7 +207,7 @@ extension RoutineSheet {
                 // D5 (QA ronda 2): fuera de `repsTop` (piso, peso) el slot vuelve a su etiqueta
                 // NORMAL («✓ Serie», el default de `SessionKeypad`) atenuada — como antes de N16, no
                 // «máx» atenuado. «Sigue oculta» es la palabra del contrato: mismo dibujo de siempre.
-                confirmSetLabel: showsMax ? String(localized: "max") : String(localized: "✓ Serie"),
+                confirmSetLabel: showsMax ? String(localized: "max") : String(localized: "Set done"),
                 confirmSetAccessibilityLabel: showsMax
                     ? Text(String(localized: "Mark as however many you can"))
                     : Text("Mark set as done"),

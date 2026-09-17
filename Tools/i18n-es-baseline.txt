@@ -1,19 +1,3 @@
-%lld breaths
-%lld days
-%lld exercises
-%lld nights
-%lld packets
-%lld pieces
-%lld raising
-%lld readings
-%lld recipes
-%lld records
-%lld reps
-%lld rounds
-%lld seconds
-%lld sessions
-%lld sets
-%lld weeks
-Add %lld exercise(s)
-Library · %lld exercises
-You'll lose %lld logged set(s) today. This can't be undone.
+# FER-123/FER-505 — claves del catálogo sin `es` stringUnit.
+# Vacío: las que quedaban eran solo `variations.plural` (sin stringUnit plano);
+# `missing_es` ahora las reconoce como traducidas (FER-505 · C7).
