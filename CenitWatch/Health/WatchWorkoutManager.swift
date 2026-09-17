@@ -652,6 +652,10 @@ final class WatchWorkoutManager: NSObject, ObservableObject {
                 externalUUID = WorkoutMirrorKey.externalUUID(for: sid)
             }
             if !routine.isEmpty { routineName = routine }
+        case .dosePlan:
+            // FER-491 (Ola 2 motor): el plan de dosis se proyecta al reloj por el canal tipado, pero su
+            // render en la muneca llega con la superficie de Ola 2. Aqui solo mantiene el switch exhaustivo.
+            break
         case let .rest(snapshot):
             adoptIdentity(snapshot.sessionId)
             if !snapshot.routineName.isEmpty { routineName = snapshot.routineName }
