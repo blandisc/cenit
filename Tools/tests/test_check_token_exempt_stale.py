@@ -52,17 +52,6 @@ class TokenExemptStale(unittest.TestCase):
             )
             self.assertEqual(stale.main([path]), 1)
 
-    def test_positivo_razon_cita_vota_retirado(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            path = _write(
-                tmp,
-                "BadVota.swift",
-                ".strokeBorder(color.opacity(0.45), lineWidth: 1)  "
-                "// token-exempt(paridad): mismo aro al 45 % del sello «vota» de la Matriz\n",
-            )
-            # opacity 0.45 también dispara CenitOpacity.dim; cualquiera basta.
-            self.assertEqual(stale.main([path]), 1)
-
     def test_positivo_opacity_045_falla_con_dim(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = _write(

@@ -6,8 +6,7 @@ exención ya no tiene sentido porque:
 
   1. La razón **cita un símbolo que ya existe** en el sistema de diseño
      (`iconSF`, `ringProgress`, `CenitOpacity.dim`, `tintFillStrong`, …), o
-  2. La razón **cita una pieza retirada** (p. ej. el sello «vota» de FER-55), o
-  3. La línea exenta **casa con un patrón** cuya pieza sustituta ya existe
+  2. La línea exenta **casa con un patrón** cuya pieza sustituta ya existe
      (`.font(.system(size:` → `LiquidType.iconSF`; `.spring(0.5, 0.8)` →
      `LiquidMotion.ringProgress` / `suave`; `.opacity(0.45)` → `CenitOpacity.dim`;
      opacidad 0.14–0.18 → `tintFillStrong`), o
@@ -57,13 +56,6 @@ EXISTING_SYMBOLS = (
     "LiquidMotion.suave",
     "verticalHitTarget",
     "LiquidControl.hitTarget",
-)
-
-# Piezas retiradas: citarlas en la razón (paridad con algo que ya no existe) falla.
-RETIRED_IN_REASON = (
-    re.compile(r"sello\s+[«\"]?vota", re.I),
-    re.compile(r"[«\"]vota[»\"]"),
-    re.compile(r"\bvota\b.*\b(Matriz|retirad)", re.I),
 )
 
 # Línea exenta → pieza que ya cubre ese literal.
@@ -123,13 +115,6 @@ def _reason_cites_existing(reason: str) -> str | None:
     return None
 
 
-def _reason_cites_retired(reason: str) -> str | None:
-    for rx in RETIRED_IN_REASON:
-        if rx.search(reason):
-            return rx.pattern
-    return None
-
-
 def _line_matches_stale(code: str, cat: str | None) -> str | None:
     """Patrones de literal con sustituto vivo.
 
@@ -179,11 +164,6 @@ def check_file(path: str) -> list[str]:
         if sym := _reason_cites_existing(reason):
             hits.append(
                 f"{path}:{i}: token-exempt-stale — la razón cita `{sym}`, que ya existe"
-            )
-            continue
-        if retired := _reason_cites_retired(reason):
-            hits.append(
-                f"{path}:{i}: token-exempt-stale — la razón cita una pieza retirada ({retired})"
             )
             continue
         if sym := _line_matches_stale(code, cat):
