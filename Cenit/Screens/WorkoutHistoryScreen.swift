@@ -1609,7 +1609,7 @@ struct WorkoutSessionDetailScreen: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button { showMoreMenu = true } label: {
-                    Image(systemName: "ellipsis").foregroundStyle(LiquidColor.tinta900)
+                    CenitIcon.more.image.foregroundStyle(LiquidColor.tinta900)
                 }
                 .accessibilityLabel(Text("More options"))
                 .liquidMenu(isPresented: $showMoreMenu, items: {

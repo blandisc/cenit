@@ -368,7 +368,7 @@ struct WorkoutDetailScreen: View {
         // the «···» itself is hidden — an empty menu is worse than no button.
         if !actionMenuItems.isEmpty {
             Button { showActionMenu = true } label: {
-                Image(systemName: "ellipsis")
+                CenitIcon.more.image
                     .font(LiquidType.iconSF(size: 15))
                     .foregroundStyle(LiquidColor.tinta900)
             }

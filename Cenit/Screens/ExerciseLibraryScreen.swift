@@ -81,7 +81,7 @@ struct ExerciseLibraryScreen: View {
                 exerciseList
                 createRow
             }
-            .padding(.top, LiquidSpace.bloqueAjuste)
+            .padding(.top, LiquidSpace.topeScroll)
             .padding(.horizontal, LiquidSpace.s600)
             // The safeAreaInset already carves out the addBar's height — no magic 88.
             .padding(.bottom, LiquidSpace.s600)

@@ -88,7 +88,7 @@ struct AyudaScreen: View {
                 }
             }
             .padding(.horizontal, LiquidSpace.s550)
-            .padding(.top, LiquidSpace.pestanaContenidoTop)
+            .padding(.top, LiquidSpace.s550)
             .padding(.bottom, LiquidSpace.s800)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -250,7 +250,7 @@ struct AyudaScreen: View {
                 }
             }
             .padding(.horizontal, LiquidSpace.s550)
-            .padding(.top, LiquidSpace.pestanaContenidoTop)
+            .padding(.top, LiquidSpace.s550)
             .padding(.bottom, LiquidSpace.s800)
             .frame(maxWidth: .infinity, alignment: .leading)
         }

@@ -49,7 +49,7 @@ struct PlatesScreen: View {
                         .id("warmup")
                 }
                 .padding(.horizontal, LiquidSpace.s600)
-                .padding(.top, LiquidSpace.s450)
+                .padding(.top, LiquidSpace.s300)
                 .padding(.bottom, LiquidSpace.s600)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }

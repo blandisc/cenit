@@ -70,7 +70,7 @@ struct EntrenarHubHeroe<Pliegue: View>: View {
                 // módulo con varios controles vivos).
                 VStack(alignment: .leading, spacing: .zero) {
                     kicker
-                        .liquidRegla()
+                        .entrenarCabeceraKicker()
                         .foregroundStyle(tono.rotulo)
                     Text(verbatim: routineName)
                         .font(LiquidType.displayM).tracking(LiquidType.displayMTracking)
@@ -78,7 +78,7 @@ struct EntrenarHubHeroe<Pliegue: View>: View {
                         .lineLimit(2).minimumScaleFactor(0.7)
                         .padding(.top, EntrenarHubMetrics.heroKickerToTituloTop)
                     Text(verbatim: meta)
-                        .font(EntrenarHubMetrics.heroMeta)
+                        .font(LiquidType.cuerpoBanner)
                         .foregroundStyle(LiquidColor.tinta700)
                         .padding(.top, EntrenarHubMetrics.heroTituloToMetaTop)
                     if let exerciseNames, !exerciseNames.isEmpty {

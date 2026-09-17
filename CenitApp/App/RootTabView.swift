@@ -171,7 +171,7 @@ struct RootTabView: View {
                         .pantallaFondo()
                         .barReservation(barHeight)
                         .navigationBarTitleDisplayMode(.inline)
-                        .toolbarBackground(LiquidColor.papelAlto, for: .navigationBar)
+                        .toolbarBackground(LiquidColor.fondoAlto, for: .navigationBar)
                 }
         }
         .toolbar(.hidden, for: .tabBar)
@@ -463,7 +463,7 @@ struct RootTabView: View {
             .pantallaFondo()
             .barReservation(barHeight)
             .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(LiquidColor.papelAlto, for: .navigationBar)
+            .toolbarBackground(LiquidColor.fondoAlto, for: .navigationBar)
             .toolbarColorScheme(.light, for: .navigationBar)
     }
 
