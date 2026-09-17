@@ -74,19 +74,48 @@ extension Repository {
     /// `advice` no tiene default (FER-82): leerla otra vez aquí serían DOS lecturas de la base por
     /// pase y, si una sesión se guardara entre ambas, la tabla quedaría recortada con una semana y la
     /// sesión marcada con otra. `nil` = «no hay programa activo».
+    ///
+    /// FER-491: also builds the day's `DosePlan` once (via `DosePlanner`). Callers that only need
+    /// `PlanSlot` keep using this; Watch/widget readers use `seedTodayDose` to project the same plan.
     func seedTodaySlots(routineId: String, advice: TrainingRegulation.Advice,
                         inventory: [PlateMath.PlateStock],
-                        serving: ProgramServing.Context?) async -> [StrengthSessionModel.PlanSlot] {
-        guard let store = await storeHandle() else { return [] }
+                        serving: ProgramServing.Context?,
+                        verdict: DosePlan.Verdict? = nil,
+                        routineName: String? = nil,
+                        now: Date = Date()) async -> [StrengthSessionModel.PlanSlot] {
+        await seedTodayDose(routineId: routineId, advice: advice, inventory: inventory,
+                            serving: serving, verdict: verdict, routineName: routineName,
+                            now: now).slots
+    }
+
+    /// FER-491 · Ola 2 MOTOR: single owner of today's slots AND typed `DosePlan`. Surfaces project
+    /// from `plan`; they never re-derive series / seed weight / rest.
+    func seedTodayDose(routineId: String, advice: TrainingRegulation.Advice,
+                       inventory: [PlateMath.PlateStock],
+                       serving: ProgramServing.Context?,
+                       verdict: DosePlan.Verdict? = nil,
+                       routineName: String? = nil,
+                       now: Date = Date()) async
+        -> (slots: [StrengthSessionModel.PlanSlot], plan: DosePlan?) {
+        guard let store = await storeHandle() else { return ([], nil) }
         let exs = (try? await store.routineExercises(routineId: routineId)) ?? []
         let memo = await StrengthExerciseMemo.load(for: self, store: store)
+        let resolvedName: String
+        if let routineName {
+            resolvedName = routineName
+        } else {
+            resolvedName = ((try? await store.routines()) ?? []).first { $0.id == routineId }?.name
+                ?? ""
+        }
         var slots: [StrengthSessionModel.PlanSlot] = []
+        var inputs: [DosePlanner.ExerciseInput] = []
+        let isLight = serving?.isLight == true
         for re in exs {
             let ex = (ExerciseCatalog.byID(re.exerciseId) ?? memo.customById[re.exerciseId])?.applying(memo.overrides)
             // La progresión se evalúa contra el plan GUARDADO (la receta real); el recorte de la
             // semana ligera solo viaja hacia la sesión, en el slot.
             let seed = await sessionSeed(re: re, exercise: ex, inventory: inventory, advice: advice,
-                                         isLightWeek: serving?.isLight == true)
+                                         isLightWeek: isLight)
             let served = ProgramServing.serve(re, context: serving, equipment: ex?.equipment,
                                               inventory: inventory)
             slots.append(.init(re: served, exercise: ex, lastSets: seed.lastSets,
@@ -95,8 +124,37 @@ extension Repository {
                                lightLoad: ProgramServing.lightLoad(context: serving, equipment: ex?.equipment,
                                                                    inventory: inventory),
                                raiseRhythmNote: seed.evaluation?.rhythmNote))
+            inputs.append(.init(
+                exerciseId: re.exerciseId,
+                name: ex?.name ?? re.exerciseId,
+                order: re.position,
+                served: served,
+                lightWeek: isLight,
+                raise: seed.evaluation?.raise))
         }
-        return slots
+        guard !slots.isEmpty else { return ([], nil) }
+        let plan = DosePlanner.plan(
+            routineId: routineId,
+            routineName: resolvedName,
+            programWeek: serving.flatMap(\.stampWeek),
+            deload: serving.flatMap(\.stampDeload) ?? false,
+            verdict: verdict ?? Self.doseVerdictStub(for: advice),
+            advice: advice,
+            exercises: inputs,
+            computedAt: now,
+            dayKey: Self.localDayKey(now))
+        return (slots, plan)
+    }
+
+    /// Structural verdict placeholder when the caller has `advice` but not the display hilo yet
+    /// (surface copy is deferred). Tone strings match the Watch/`TrainWidgetSnapshot` vocabulary.
+    static func doseVerdictStub(for advice: TrainingRegulation.Advice) -> DosePlan.Verdict {
+        switch advice {
+        case .planAsIs: return .init(tone: "clear", word: "", advice: nil)
+        case .lighter:  return .init(tone: "caution", word: "", advice: nil)
+        case .recover:  return .init(tone: "ease", word: "", advice: nil)
+        case .silent, .pending: return .init(tone: "hollow", word: "", advice: nil)
+        }
     }
 
     // MARK: - Programa de varias semanas (ola 1 · E10, FER-329)

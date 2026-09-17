@@ -45,19 +45,27 @@ extension AppModel {
         // shows «Empieza en tu iPhone» (its no-seed branch). The seed's id/startTs are throwaway — the
         // watch mints a fresh identity via `asTemplate` when it actually starts.
         var seed: WorkoutMirrorMessage?
+        var dose: WorkoutMirrorMessage?
         if let routine {
             let serving = await repo.programServing()
-            let slots = await resolveTodaySlotsForWatch(routineId: routine.id, serving: serving)
-            if !slots.isEmpty {
+            let seeded = await resolveTodayDoseForWatch(routineId: routine.id, routineName: routine.name,
+                                                       serving: serving, hilo: hilo)
+            if !seeded.slots.isEmpty {
                 let model = StrengthSessionModel.make(routineId: routine.id, routineName: routine.name,
-                                                      slots: slots, startTs: Int(Date().timeIntervalSince1970))
+                                                      slots: seeded.slots,
+                                                      startTs: Int(Date().timeIntervalSince1970))
                 model.programWeek = serving.flatMap(\.stampWeek)
                 model.deload = serving.flatMap(\.stampDeload)
                 seed = .sessionModel(model.snapshot())
             }
+            // FER-491: typed DosePlan projection (additive). Pre-FER-491 watches drop unknown cases.
+            if let plan = seeded.plan {
+                dose = DosePlanner.mirrorMessage(from: plan)
+            }
         }
         mirroringBridge?.pushIdleContext(word: hilo?.palabra, toneRaw: hilo.map(Self.watchToneRaw(_:)),
-                                         advice: hilo?.consejo, routineName: routine?.name, seed: seed)
+                                         advice: hilo?.consejo, routineName: routine?.name,
+                                         seed: seed, dose: dose)
     }
 
     /// Lo que viaja a la muñeca: el oráculo TAL CUAL (`LiquidHoyBuilder.hiloEntrenar`), sin re-derivar ni
@@ -121,7 +129,21 @@ extension AppModel {
     private func resolveTodaySlotsForWatch(routineId: String,
                                            serving: ProgramServing.Context?) async
         -> [StrengthSessionModel.PlanSlot] {
-        await repo.seedTodaySlots(routineId: routineId, advice: repo.trainingAdvice,
-                                  inventory: plates.inventory, serving: serving)
+        await resolveTodayDoseForWatch(routineId: routineId, routineName: nil,
+                                       serving: serving, hilo: nil).slots
+    }
+
+    /// FER-491: slots + typed `DosePlan` from the same owner (`repo.seedTodayDose`).
+    private func resolveTodayDoseForWatch(routineId: String,
+                                          routineName: String?,
+                                          serving: ProgramServing.Context?,
+                                          hilo: LiquidHoyBuilder.HiloEntrenar?) async
+        -> (slots: [StrengthSessionModel.PlanSlot], plan: DosePlan?) {
+        let verdict = hilo.map {
+            DosePlan.Verdict(tone: Self.watchToneRaw($0), word: $0.palabra, advice: $0.consejo)
+        }
+        return await repo.seedTodayDose(routineId: routineId, advice: repo.trainingAdvice,
+                                        inventory: plates.inventory, serving: serving,
+                                        verdict: verdict, routineName: routineName)
     }
 }

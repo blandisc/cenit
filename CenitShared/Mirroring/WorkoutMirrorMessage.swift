@@ -123,6 +123,12 @@ public enum WorkoutMirrorMessage: Codable, Equatable {
     /// button uses. `sessionId` is reserved (always nil today) for a future idempotency guard against a
     /// duplicate tap; not read yet.
     case startFromWrist(sessionId: String?)
+
+    /// iPhone → watch: the day's typed `DosePlan` (FER-491 · Ola 2 MOTOR). Additive: a pre-FER-491 watch
+    /// can't decode this case and drops it (`decode` is `try?`). Carries series / seed weight / rest per
+    /// exercise already resolved — the wrist never re-derives, and never receives the training-load
+    /// ratio (ACWR). Render of this payload is deferred to the surface ola.
+    case dosePlan(DosePlan)
 }
 
 /// The capture-phase context the iPhone mirrors to the wrist between rests (FER-809), so the watch's live
@@ -233,6 +239,10 @@ public enum WorkoutMirrorKey {
     /// so the seed rides alongside the idle-face context under its own key rather than clobbering it —
     /// the watch reads both. Only present when today has a plan.
     public static let seedKey = "cenit.seed"
+
+    /// FER-491: a THIRD key for the typed `.dosePlan(...)` payload. Same single-slot channel; absent
+    /// when today has no plan. Pre-FER-491 watches ignore unknown keys.
+    public static let doseKey = "cenit.dose"
 }
 
 public extension WorkoutMirrorMessage {

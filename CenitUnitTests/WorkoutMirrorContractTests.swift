@@ -75,6 +75,18 @@ final class WorkoutMirrorContractTests: XCTestCase {
             .logSet(sessionId: "s1", runId: "r1", set: c1Set),
             .syncSnapshot(snapshot: c1Snapshot, avgHr: 132, energyKcal: 410.5, didSaveWorkout: true),
             .syncSnapshot(snapshot: c1Snapshot, avgHr: nil, energyKcal: nil, didSaveWorkout: false),
+            // FER-491 — typed DosePlan projection (iPhone → watch).
+            .dosePlan(DosePlan(
+                computedAt: Date(timeIntervalSince1970: 1_800_000_000),
+                dayKey: "2026-09-16",
+                routineId: "push", routineName: "Empuje",
+                programWeek: 3, deload: false,
+                verdict: .init(tone: "clear", word: "En rango", advice: "tu plan de hoy"),
+                exercises: [
+                    DoseExercise(exerciseId: "sq", name: "Sentadilla", order: 0,
+                                 workSets: [DoseSet(reps: 8, seedWeightKg: 60, kind: .work)],
+                                 restSeconds: 120, restBumpSeconds: nil, lightWeek: false),
+                ])),
         ]
 
         for message in messages {

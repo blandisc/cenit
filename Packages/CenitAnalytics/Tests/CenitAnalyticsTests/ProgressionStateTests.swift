@@ -76,6 +76,18 @@ final class ProgressionStateTests: XCTestCase {
         XCTAssertEqual(s, .deloading(fromKg: 102.5, toKg: 95))
     }
 
+    /// FER-491: a completed «optional today» set is still a work set in the log. `ProgressionMath`
+    /// has no optional flag — plan-time `DoseSet.optional` never reaches classify — so N work-set
+    /// reps count toward `targetSets` whether the plan marked some optional or not.
+    func testOptionalCompletedSetsCountEqualForProgression() {
+        // 4 work sets logged (2 were optional in the plan): same as a normal 4×8 hit.
+        let withOptionalDone = Past(workingKg: 100, workSetReps: [8, 8, 8, 8])
+        let s = ProgressionMath.classify(input([hit(100), withOptionalDone]))
+        XCTAssertEqual(s, .readyToAdvance(newKg: 102.5))
+        // Same session shape without the optional story: identical classification.
+        XCTAssertEqual(ProgressionMath.classify(input([hit(100), hit(100)])), s)
+    }
+
     func testMissingSetsCountAsNotMet() {
         // Hit target reps but only 3 of 4 work sets logged → goal not met.
         let short = Past(workingKg: 100, workSetReps: [8, 8, 8])
