@@ -1,5 +1,6 @@
 import Foundation
 import CenitTraining
+import CenitAnalytics
 
 /// FER-95 · E14 — «fuera de la app»: los dos widgets de pantalla de inicio + el recordatorio del día que
 /// toca entrenar. Ver el `.sink` sobre `repo.$dashboard` en `AppModel.init()` que llama a este método.
