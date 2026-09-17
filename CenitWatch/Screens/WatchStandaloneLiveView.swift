@@ -405,6 +405,7 @@ private struct WatchStandaloneWorkingPage: View {
             Image(systemName: "checkmark.circle")
                 .font(LiquidType.iconSF(size: 36))
                 .foregroundStyle(LiquidOLED.verde)
+                .accessibilityHidden(true)
             Text("All sets logged").font(LiquidType.tituloHoja).foregroundStyle(LiquidOLED.tinta)
             Text("Swipe to finish your workout.")
                 .font(LiquidType.filaConteo)

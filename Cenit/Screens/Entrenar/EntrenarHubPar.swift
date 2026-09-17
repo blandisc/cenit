@@ -87,10 +87,12 @@ struct EntrenarHubPar: View {
     @ViewBuilder
     private func subidaValor(_ subida: Subida) -> some View {
         if subida.isStep {
+            // «▲» es cromo visual: la etiqueta de VO es solo el valor (sin «black up-pointing triangle»).
             (Text(verbatim: "▲").font(EntrenarHubMetrics.subLsGlifo)
              + Text(verbatim: " ") + Text(verbatim: subida.valueText))
                 .font(EntrenarHubMetrics.subLsDelta)
                 .foregroundStyle(LiquidColor.verdeProfundo)
+                .accessibilityLabel(Text(verbatim: subida.valueText))
         } else {
             Text(verbatim: subida.valueText)
                 .font(EntrenarHubMetrics.subLsDelta)

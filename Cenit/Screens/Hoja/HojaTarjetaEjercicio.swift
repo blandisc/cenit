@@ -88,7 +88,9 @@ struct HojaTarjetaEjercicio: View {
     private var menuButton: some View {
         Button { sheet.menuExerciseIndex = idx } label: {
             CenitIcon.more.image.font(LiquidType.infoGlifo.weight(.semibold))
-                .foregroundStyle(LiquidColor.tinta500).frame(width: 30, height: LiquidControl.hitTarget).contentShape(Rectangle())
+                .foregroundStyle(LiquidColor.tinta500)
+                .frame(width: LiquidControl.hitTarget, height: LiquidControl.hitTarget)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(Text("More options"))   // R12 (QA D13 = Grok G9)

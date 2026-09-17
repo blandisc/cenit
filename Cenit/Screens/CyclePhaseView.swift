@@ -122,12 +122,9 @@ private struct CyclePhaseConsentBody: View {
                 .disabled(!acked)
                 .opacity(acked ? 1 : 0.6)
 
-                Button(action: onDecline) {
-                    Text(String(localized: "Not now"))
-                        .font(LiquidType.tituloFila).foregroundStyle(LiquidColor.tinta500)
-                        .frame(maxWidth: .infinity, minHeight: 44)
+                LiquidGlassButton(String(localized: "Not now"), variant: .quiet, expands: true) {
+                    onDecline()
                 }
-                .buttonStyle(.plain)
             }
         }
     }
@@ -217,13 +214,18 @@ private struct CyclePhaseStateBody: View {
                 Button { showInfo = true } label: {
                     Label(String(localized: "What is this?"), systemImage: "info.circle")
                         .font(LiquidType.tituloFila).foregroundStyle(LiquidColor.tinta500)
+                        .frame(minHeight: LiquidControl.hitTarget)
+                        .contentShape(Rectangle())
                 }
                 Spacer(minLength: 0)
                 Button { confirmOff = true } label: {
-                    Text(String(localized: "Turn off experiment")).font(LiquidType.tituloFila).foregroundStyle(LiquidColor.tinta500)
+                    Text(String(localized: "Turn off experiment"))
+                        .font(LiquidType.tituloFila).foregroundStyle(LiquidColor.tinta500)
+                        .frame(minHeight: LiquidControl.hitTarget)
+                        .contentShape(Rectangle())
                 }
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.liquidPress)
         }
         .sheet(isPresented: $showInfo) {
             // Ronda 2 #9: mismo «Listo» que la hoja madre — esta también solo cerraba por swipe.

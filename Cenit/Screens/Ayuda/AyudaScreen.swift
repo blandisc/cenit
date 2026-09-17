@@ -180,13 +180,14 @@ struct AyudaScreen: View {
     // MARK: - Resultados de búsqueda (filtra las 68 de un jalón)
 
     @ViewBuilder private var resultados: some View {
-        let q = busqueda.trimmingCharacters(in: .whitespaces).lowercased()
+        // Plegado diacrítico: «sueno» encuentra «sueño», «guardian» encuentra «guardián».
+        let q = Self.plegar(busqueda.trimmingCharacters(in: .whitespaces))
         let hits = Pestana.allCases
             .flatMap { Registro.por($0) }
             .filter { f in
-                f.nombre.lowercased().contains(q)
-                    || f.paraQue.lowercased().contains(q)
-                    || f.dondeVive.lowercased().contains(q)
+                Self.plegar(f.nombre).contains(q)
+                    || Self.plegar(f.paraQue).contains(q)
+                    || Self.plegar(f.dondeVive).contains(q)
             }
         if hits.isEmpty {
             VStack(alignment: .leading, spacing: LiquidSpace.s100) {
@@ -333,6 +334,11 @@ struct AyudaScreen: View {
         case .transversal:
             return String(localized: "ayuda.seccion.transversal", defaultValue: "On your iPhone and your watch")
         }
+    }
+
+    /// Búsqueda diacrítico-insensible («sueno» ↔ «sueño»).
+    private static func plegar(_ s: String) -> String {
+        s.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: nil)
     }
 
     /// Pie de sección: «Volver a ver los consejos de {pestaña}» — sube la generación de la pestaña

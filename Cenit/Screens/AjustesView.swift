@@ -363,7 +363,8 @@ private struct AjustesLanding: View {
                             Text(String(localized: "Open Settings")).font(LiquidType.captionLectura).foregroundStyle(LiquidColor.tinta700)
                         }
                         .buttonStyle(.liquidPress)
-                        .frame(minHeight: 32)
+                        .frame(minHeight: LiquidControl.hitTarget)
+                        .contentShape(Rectangle())
                     }
                 }
                 .liquidTarjetaSeccion()
@@ -425,7 +426,8 @@ private struct AjustesLanding: View {
                             Text(String(localized: "Open Settings")).font(LiquidType.captionLectura).foregroundStyle(LiquidColor.tinta700)
                         }
                         .buttonStyle(.liquidPress)
-                        .frame(minHeight: 32)
+                        .frame(minHeight: LiquidControl.hitTarget)
+                        .contentShape(Rectangle())
                     }
                     Text(String(localized: "The only notice that survives locking your phone: a notification your iPhone delivers on its own, for when you leave it on the floor between sets. It's scheduled and delivered on your device; nothing leaves it."))
                         .font(LiquidType.captionLectura).foregroundStyle(LiquidColor.tinta500)
@@ -527,7 +529,9 @@ private struct AjustesLanding: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 Button(String(localized: "Undo")) { model.undoRecalibrateBaseline() }
                     .font(LiquidType.tituloFila).foregroundStyle(LiquidColor.negativo)
-                    .buttonStyle(.plain)
+                    .buttonStyle(.liquidPress)
+                    .frame(minHeight: LiquidControl.hitTarget)
+                    .contentShape(Rectangle())
             }
             .padding(.vertical, 11)  // token-exempt(paridad): paridad fila LiquidListRow (padding interno no público)
             .padding(.horizontal, LiquidSpace.s100)
@@ -1011,11 +1015,16 @@ private struct AjustesSheetTopBar: View {
             if let onCancel {
                 Button(String(localized: "Cancel"), action: onCancel)
                     .foregroundStyle(LiquidColor.tinta700)
+                    .frame(minWidth: LiquidControl.hitTarget, minHeight: LiquidControl.hitTarget)
+                    .contentShape(Rectangle())
             }
             Spacer()
             Button(String(localized: "Done"), action: onDone)
                 .foregroundStyle(LiquidColor.tinta900)
+                .frame(minWidth: LiquidControl.hitTarget, minHeight: LiquidControl.hitTarget)
+                .contentShape(Rectangle())
         }
         .font(LiquidType.boton)
+        .buttonStyle(.liquidPress)
     }
 }

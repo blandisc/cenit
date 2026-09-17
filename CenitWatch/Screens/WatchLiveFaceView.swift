@@ -411,9 +411,17 @@ private struct WatchPlanRotor: View {
     }
 
     @ViewBuilder private func marker(done: Bool, current: Bool) -> some View {
-        if done { Image(systemName: "checkmark").font(LiquidType.pie).foregroundStyle(LiquidOLED.verde) }
-        else if current { Image(systemName: "circle.fill").font(LiquidType.pie).foregroundStyle(LiquidOLED.tinta) }
-        else { Image(systemName: "circle").font(LiquidType.pie).foregroundStyle(LiquidOLED.tintaTerciaria) }
+        // Glifos decorativos junto al nombre: VO no debe leer «checkmark»/«circle» antes del ejercicio.
+        if done {
+            Image(systemName: "checkmark").font(LiquidType.pie).foregroundStyle(LiquidOLED.verde)
+                .accessibilityHidden(true)
+        } else if current {
+            Image(systemName: "circle.fill").font(LiquidType.pie).foregroundStyle(LiquidOLED.tinta)
+                .accessibilityHidden(true)
+        } else {
+            Image(systemName: "circle").font(LiquidType.pie).foregroundStyle(LiquidOLED.tintaTerciaria)
+                .accessibilityHidden(true)
+        }
     }
 }
 
