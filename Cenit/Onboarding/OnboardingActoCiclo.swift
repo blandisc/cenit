@@ -104,7 +104,7 @@ struct OnbActoCiclo: View {
                     Text(OnbCopy.cicloDock)
                         .groteskOverline()
                         .foregroundStyle(LiquidColor.tinta500)
-                    LiquidTabBar(active: .hoy, rotulos: .cenit)
+                    LiquidTabBar(active: .cuerpo, rotulos: .cenit)
                         .allowsHitTesting(false)
                         .accessibilityHidden(true)
                     OnbCuerpo(OnbCopy.cicloDockPie, tono: LiquidColor.tinta500)
@@ -127,7 +127,7 @@ struct OnbActoCiclo: View {
             if case .sinDatos = landing { return true }
             return false
         }()
-        let destino: LiquidTab = destinoEntrenar ? .entrenar : .hoy
+        let destino: LiquidTab = destinoEntrenar ? .entrenar : .cuerpo
         let cta = destinoEntrenar ? OnbCopy.sinFcCta : OnbCopy.entrar
 
         OnbShell(indicadores: true) {
@@ -145,12 +145,9 @@ struct OnbActoCiclo: View {
             Group {
                 OnbOverline(OnbCopy.cicloSinRelojOverlineMapa)
                     .padding(.top, LiquidSpace.s800)
-                OnbFila(nombre: OnbCopy.pestanaHoy,
+                OnbFila(nombre: OnbCopy.pestanaCuerpo,
                         tono: nil,
-                        glosa: sinDatos ? OnbCopy.cicloSinRelojHoySinSalud : OnbCopy.cicloSinRelojHoy)
-                OnbFila(nombre: OnbCopy.pestanaTendencias,
-                        tono: nil,
-                        glosa: OnbCopy.cicloSinRelojTendencias)
+                        glosa: sinDatos ? OnbCopy.cicloSinRelojCuerpoSinSalud : OnbCopy.cicloSinRelojCuerpoGlosa)
                 OnbFila(nombre: OnbCopy.pestanaEntrenar,
                         tono: nil,
                         glosa: OnbCopy.cicloSinRelojEntrenar)

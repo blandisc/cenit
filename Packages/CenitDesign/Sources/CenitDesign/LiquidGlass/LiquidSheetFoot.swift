@@ -199,7 +199,7 @@ public struct LiquidVerMas: View {
         if anchoCompleto {
             Button(action: action) {
                 // El glifo de Tendencias a la IZQUIERDA del rótulo (la variante de ancho
-                // completo es siempre «Ver más en Tendencias»): el pie dibuja la pantalla a
+                // completo es siempre «Ver más en Cuerpo»): el pie dibuja la pantalla a
                 // la que lleva, con el mismo arte de la pestaña del dock. En tinta/900 —
                 // acompaña al rótulo, no compite con el dato. Tamaño fijo: es cromo.
                 HStack(spacing: LiquidSpace.s200) {
@@ -263,7 +263,7 @@ public struct LiquidVerMas: View {
             LiquidOrigenBadge("Manual", tono: nil)
             LiquidOrigenBadge("Medido en el dispositivo", tono: LiquidColor.verdePrimario)
         }
-        LiquidVerMas(title: "Ver más en Tendencias", hint: "Abre el detalle completo",
+        LiquidVerMas(title: "Ver más en Cuerpo", hint: "Abre el detalle completo",
                      tone: LiquidColor.cian, anchoCompleto: true, action: {})
         LiquidVerMas(title: "Ver más", hint: "Abre el detalle completo",
                      tone: LiquidColor.cian, action: {})

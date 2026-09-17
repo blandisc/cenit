@@ -25,6 +25,9 @@ import Observation
     public var desplazamiento: CGFloat = 0
     /// `false` cuando la pestaña Hoy no está en pantalla → el reloj se detiene.
     public var visible: Bool = true
+    /// Origen del reloj de sesión del polvo. Vive aquí (no en `@State` de la vista) para que
+    /// sobreviva el remontaje Ahora↔Tiempo en `CuerpoTabView` (FER-490 · fable #1).
+    public var inicio: Date = Date()
     public init() {}
 }
 
@@ -49,9 +52,8 @@ public struct LiquidAtmosfera: View {
     @Environment(\.liquidMotionDisabled) private var motionDisabled
     @Environment(\.liquidAmbientPaused) private var ambientPaused
     @Environment(\.colorScheme) private var colorScheme   // A1/FER-345: paleta Metal por modo
-    /// El origen del tiempo del polvo: segundos de SESIÓN, no el reloj absoluto (un `Float` no
-    /// resuelve `timeIntervalSinceReferenceDate`; con < 1 día de sesión resuelve 0.02 pt).
-    @State private var inicio = Date()
+    /// El origen del tiempo del polvo vive en `estado.inicio` (FER-490): izado para sobrevivir
+    /// el remontaje Ahora↔Tiempo. Segundos de SESIÓN, no el reloj absoluto.
     #if os(iOS) && canImport(MetalKit)
     @ObservedObject private var metal = EcosistemaMetal.compartido
     #endif
@@ -72,7 +74,7 @@ public struct LiquidAtmosfera: View {
 
     /// Cota del reloj de sesión: un `Float` resuelve bien hasta ~1 día, pero Hoy puede vivir
     /// semanas en background. Cada vez que el polvo REANUDA (vuelve la pestaña, se cierra la hoja,
-    /// vuelve la app) y ya lleva más de esto, `inicio` se re-basa: las motas saltan a su posición
+    /// vuelve la app) y ya lleva más de esto, `estado.inicio` se re-basa: las motas saltan a su posición
     /// inicial en un momento en que nadie las está mirando, y el reloj vuelve a resolver fino.
     static let maxSesion: TimeInterval = 3600
 
@@ -85,7 +87,7 @@ public struct LiquidAtmosfera: View {
         .allowsHitTesting(false)
         .accessibilityHidden(true)
         .onChange(of: paused) { _, p in
-            if !p, Date().timeIntervalSince(inicio) > Self.maxSesion { inicio = Date() }
+            if !p, Date().timeIntervalSince(estado.inicio) > Self.maxSesion { estado.inicio = Date() }
         }
         #if os(iOS) && canImport(MetalKit)
         .onAppear { metal.preparar() }
@@ -106,7 +108,7 @@ public struct LiquidAtmosfera: View {
             let desplazamiento = still ? 0 : estado.desplazamiento
             TimelineView(.animation(minimumInterval: LiquidMotion.intervaloAmbiente, paused: paused)) { ctx in
                 AtmosferaMetalLienzo(recursos: recursos, paleta: paleta,
-                                     t: ctx.date.timeIntervalSince(inicio),
+                                     t: ctx.date.timeIntervalSince(estado.inicio),
                                      desplazamiento: desplazamiento,
                                      neutra: neutra, still: still, crossfade: crossfade)
             }
@@ -126,7 +128,7 @@ public struct LiquidAtmosfera: View {
         let still = self.still
         let desplazamiento = still ? 0 : estado.desplazamiento
         return TimelineView(.animation(minimumInterval: LiquidMotion.intervaloSello, paused: paused)) { ctx in
-            let t = ctx.date.timeIntervalSince(inicio)
+            let t = ctx.date.timeIntervalSince(estado.inicio)
             Canvas(rendersAsynchronously: false) { gc, size in
                 let n = PolvoSimulacion.cuenta(lienzo: size) / 2
                 for i in 0..<n {

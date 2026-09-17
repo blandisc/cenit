@@ -318,7 +318,7 @@ final class LiquidSheetEstadosRenderTests: XCTestCase {
                          ocultar: "Ocultar cómo se calcula") {
                 LiquidNotaLine("SDNN sobre los latidos nocturnos, comparado contra tu base de 21 noches (Task Force, 1996).")
             }
-            LiquidVerMas(title: "Ver más en Tendencias", hint: "Abre el detalle completo",
+            LiquidVerMas(title: "Ver más en Cuerpo", hint: "Abre el detalle completo",
                          tone: LiquidColor.cian, anchoCompleto: true, action: {})
         }
     }
@@ -366,7 +366,7 @@ final class LiquidSheetEstadosRenderTests: XCTestCase {
             LiquidMetodo(title: "Cómo se calcula") {
                 LiquidNotaLine("VFC, pulso en reposo y sueño de anoche, comparados contra tu propia base.")
             }
-            LiquidVerMas(title: "Ver más en Tendencias", hint: "Abre el detalle completo",
+            LiquidVerMas(title: "Ver más en Cuerpo", hint: "Abre el detalle completo",
                          tone: LiquidColor.verdePrimario, anchoCompleto: true, action: {})
         }
     }
@@ -505,7 +505,7 @@ final class LiquidSheetEstadosRenderTests: XCTestCase {
             LiquidMetodo(title: "Cómo se calcula") {
                 LiquidNotaLine("Zonas de pulso ponderadas sobre el día (Edwards/Banister).")
             }
-            LiquidVerMas(title: "Ver más en Tendencias", hint: "Abre el detalle completo",
+            LiquidVerMas(title: "Ver más en Cuerpo", hint: "Abre el detalle completo",
                          tone: LiquidColor.ambar, anchoCompleto: true, action: {})
         }
     }

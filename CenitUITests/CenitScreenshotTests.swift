@@ -190,7 +190,7 @@ final class CenitScreenshotTests: XCTestCase {
 
     // MARK: - All screens (empty/default state)
 
-    /// Sweeps the 5-tab shell (FER-182: Hoy · Tendencias · Patrones · Entrenar · Ajustes) plus every
+    /// Sweeps the 3-tab shell (FER-490: Entrenar · Cuerpo · Ajustes) plus every
     /// secondary screen, all via `nav(_:)`.
     ///
     /// Not swept: `sleep` — Sueño is no longer a standalone screen, its `cenit.nav` key is an ALIAS of

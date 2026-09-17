@@ -370,7 +370,7 @@ enum LiquidActaFixtures {
             vigilantesA11y: conVigilantes
                 ? "Vigilan sin votar: respiración y temperatura." : nil,
             notas: notas, confianza: confianza, plegable: plegable,
-            verMas: "Ver más en Tendencias", verMasHint: "Abre el detalle",
+            verMas: "Ver más en Cuerpo", verMasHint: "Abre el detalle",
             tono: tono)
     }
 

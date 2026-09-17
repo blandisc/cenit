@@ -216,7 +216,7 @@ enum OnbCopy {
     static func estrofaPie(_ estrofa: EstrofaSync) -> String {
         switch estrofa {
         case .corazon:  return String(localized: "onb.3.estrofa.corazon.pie", defaultValue: "Lives in Today")
-        case .noches:   return String(localized: "onb.3.estrofa.noches.pie", defaultValue: "Lives in Trends")
+        case .noches:   return String(localized: "onb.3.estrofa.noches.pie", defaultValue: "Lives in Body")
         case .entrenos: return String(localized: "onb.3.estrofa.entrenos.pie", defaultValue: "Lives in Train")
         case .guardado: return String(localized: "onb.3.estrofa.guardado.pie", defaultValue: "Settings · privacy")
         }
@@ -503,7 +503,7 @@ enum OnbCopy {
         String(localized: "onb.6.overline", defaultValue: "And with that, what")
     }
     static var cicloTitular: String {
-        String(localized: "onb.6.titular", defaultValue: "Today says. Train does.")
+        String(localized: "onb.6.titular", defaultValue: "Train does. Body understands.")
     }
     static var cicloCuerpo: String {
         String(localized: "onb.6.cuerpo",
@@ -562,7 +562,7 @@ enum OnbCopy {
                defaultValue: "Your watch is already giving me your days. Sleep with it on and I start reading your nights. That's where your morning word comes from.")
     }
     static var cicloDock: String {
-        String(localized: "onb.6.dock", defaultValue: "Today says · Train does")
+        String(localized: "onb.6.dock", defaultValue: "Train does · Body understands")
     }
     static var cicloDockPie: String {
         String(localized: "onb.6.dock.pie",
@@ -570,12 +570,12 @@ enum OnbCopy {
     }
 
     // Ciclo adaptado sin reloj (FER-431 · D3 = A). Nombres de pestaña: mismas claves que el
-    // dock (`LiquidTabRotulos+Cenit`: «Today» / «Trends» / «Train» / «Settings»).
+    // dock (`LiquidTabRotulos+Cenit`: «Train» / «Body» / «Settings»).
     static var cicloSinRelojOverline: String {
         String(localized: "onb.6.sinreloj.overline", defaultValue: "And without a watch, what")
     }
     static var cicloSinRelojTitular: String {
-        String(localized: "onb.6.sinreloj.titular", defaultValue: "Train does. Today waits.")
+        String(localized: "onb.6.sinreloj.titular", defaultValue: "Train does. Body waits.")
     }
     static var cicloSinRelojCuerpo: String {
         String(localized: "onb.6.sinreloj.cuerpo",
@@ -584,21 +584,16 @@ enum OnbCopy {
     static var cicloSinRelojOverlineMapa: String {
         String(localized: "onb.6.sinreloj.overline.mapa", defaultValue: "What you'll find")
     }
-    static var pestanaHoy: String { String(localized: "Today") }
-    static var pestanaTendencias: String { String(localized: "Trends") }
+    static var pestanaCuerpo: String { String(localized: "Body") }
     static var pestanaEntrenar: String { String(localized: "Train") }
     static var pestanaAjustes: String { String(localized: "Settings") }
-    static var cicloSinRelojHoy: String {
-        String(localized: "onb.6.sinreloj.hoy",
-               defaultValue: "Stays quiet until you sleep with a watch. It tells you what's missing, never a made-up number.")
+    static var cicloSinRelojCuerpoGlosa: String {
+        String(localized: "onb.6.sinreloj.cuerpo.glosa",
+               defaultValue: "Now and over time. Quiet until you sleep with a watch; steps and workouts from day one.")
     }
-    static var cicloSinRelojHoySinSalud: String {
-        String(localized: "onb.6.sinreloj.hoy.sinsalud",
-               defaultValue: "Stays quiet until you connect Apple Health and sleep with a watch. It tells you what's missing, never a made-up number.")
-    }
-    static var cicloSinRelojTendencias: String {
-        String(localized: "onb.6.sinreloj.tendencias",
-               defaultValue: "Your signals over time. From today: steps and workouts. The rest, once there's a watch.")
+    static var cicloSinRelojCuerpoSinSalud: String {
+        String(localized: "onb.6.sinreloj.cuerpo.sinsalud",
+               defaultValue: "Now and over time. Quiet until you connect Apple Health and sleep with a watch.")
     }
     static var cicloSinRelojEntrenar: String {
         String(localized: "onb.6.sinreloj.entrenar",

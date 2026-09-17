@@ -89,6 +89,22 @@ struct TodayView: View {
     @ObserveInjection private var inject
     @EnvironmentObject private var repo: Repository
 
+    /// Atmósfera inyectada por `CuerpoTabView` (FER-490 · fable #1). Si nil, se usa la local.
+    private let atmosferaInyectada: AtmosferaEstado?
+    /// `Binding<ScrollPosition>` boxed (iOS 18+). `Any?` evita referenciar el tipo en el piso 17.
+    private let scrollPosBox: Any?
+
+    init(atmosfera: AtmosferaEstado? = nil) {
+        self.atmosferaInyectada = atmosfera
+        self.scrollPosBox = nil
+    }
+
+    @available(iOS 18.0, *)
+    init(atmosfera: AtmosferaEstado? = nil, scrollPos: Binding<ScrollPosition>) {
+        self.atmosferaInyectada = atmosfera
+        self.scrollPosBox = scrollPos
+    }
+
     #if os(iOS)
     // iOS-only: the root app state, so the first-launch empty state's connect CTA can kick
     // off a real BLE scan (`AppModel.scan()`). macOS never renders the iOS body, so it never reads this.
@@ -128,10 +144,6 @@ struct TodayView: View {
     /// provocar el gesto de sincronización (FER-204 → FER-269b).
     @State private var syncHaptic = 0
 
-    // «El Ecosistema» (FER-10): la fusión de apertura es el ritual de «tu veredicto llegó»
-    // — corre UNA vez por día LOCAL (dayKey local, no UTC: trampa conocida de la fila
-    // fantasma). El hint «Toca para separar» se retira tras 3 separaciones acumuladas.
-    @AppStorage("today.ecosistemaFusionDay") private var ecosistemaFusionDay = ""
     /// La hoja del guardián («¿qué es VIGILANDO?», FER-10 / FER-33 · F3).
     @State private var showGuardianHoja = false
     /// FER-54: la hoja-manual «¿Qué decide tu día?» (rótulo de nivel en la Matriz).
@@ -141,19 +153,13 @@ struct TodayView: View {
     /// espera a que la hoja de Ayuda termine de irse (por estado, no por reloj).
     @State private var showNovedades = false
     @State private var puertaPendiente: PuertaDeAyuda?
-    @AppStorage("today.ecosistemaSeparaciones") private var ecosistemaSeparaciones = 0
-    /// FER-432 · rótulo local del botón alterno Separar/Unir (el Ecosistema no expone
-    /// binding público de fase sin tocar CenitDesign — el lienzo sigue siendo el camino visual).
-    @State private var señalesSeparadas = false
-    /// FER-432 · contador que pide al Ecosistema el mismo separar/unir que el tap del lienzo.
-    @State private var ecosistemaPedido = 0
-    /// El fondo de Hoy en atmósfera (FER-118): lo que la pantalla le empuja al polvo de Metal
-    /// —el desplazamiento del scroll para el parallax y si la pestaña está a la vista— SIN que
-    /// esta vista se recomponga por cada cuadro de scroll: `body` solo pasa el objeto; quien lee
-    /// `desplazamiento` es `LiquidAtmosfera`.
-    @State private var atmosfera = AtmosferaEstado()
-    /// Tras cuántas separaciones acumuladas se retira el hint «Toca para separar».
-    private static let maxSeparacionHints = 3
+    /// El fondo de Hoy en atmósfera (FER-118). Local por defecto; `CuerpoTabView` inyecta la suya
+    /// para que el reloj del polvo sobreviva Ahora↔Tiempo (FER-490 · fable #1).
+    @State private var atmosferaLocal = AtmosferaEstado()
+    private var atmosfera: AtmosferaEstado { atmosferaInyectada ?? atmosferaLocal }
+    /// Plan de hoy + primer uso (mismos args que Entrenar → oráculo único, FER-490 C2).
+    @State private var hasPlan = true
+    @State private var primerUsoSinPlan = false
 
     // MARK: - Pull-to-refresh propio (FER-222)
     //
@@ -438,7 +444,7 @@ struct TodayView: View {
             .sheet(item: $trainingLoadItem) { item in
                 // Hoja «Carga de entrenamiento» (FER-705 · handoff «Carga» · FER-33 F2) —
                 // tema explícito (no cruza `.sheet`), sin NavigationStack anidado (FER-171).
-                // «Ver más en Tendencias» despacha al tab Cuerpo vía `TabRouter`.
+                // «Ver más en Cuerpo» despacha al tab Cuerpo vía `TabRouter`.
                 TrainingLoadSheet(model: item.model,
                                   onSeeTrends: item.onSeeTrends)
                     .recEntranceGate()
@@ -500,10 +506,10 @@ struct TodayView: View {
             .enableInjection()   // Inject: ver la nota en `inject` arriba (no-op en Release)
     }
 
-    /// Arma la hoja de carga desde la franja: «Ver más en Tendencias» al tab Cuerpo vía `TabRouter`.
+    /// Arma la hoja de carga desde la franja: «Ver más en Cuerpo» al tab Cuerpo vía `TabRouter`.
     /// El hallazgo de carga sigue vivo en Patrones; ya no se asoma en esta hoja (FER-33 · F2).
     private func makeTrainingLoadItem(_ model: TrainingLoadModel) -> TrainingLoadItem {
-        TrainingLoadItem(model: model, onSeeTrends: { tabRouter.select(.body) })
+        TrainingLoadItem(model: model, onSeeTrends: { tabRouter.verTendencias() })
     }
 
 
@@ -753,17 +759,10 @@ struct TodayView: View {
             .environmentObject(repo)
             .environmentObject(health)
         }
-        // El acta del veredicto: la hoja que contesta la pregunta que el héroe provoca.
+        // FER-490: misma Acta que Entrenar / Tu cuerpo (`VeredictoActaSheet` → `LiquidActaVeredicto`).
         .sheet(isPresented: $showVeredictoActa) {
-            LiquidMetricSheet(tono: liquidActaTono, detent: .porContenido) {
-                // La siembra de motas del acta se APAGÓ y el soplo del héroe se retiró
-                // (FER-23, dueño): «Cómo llegué a esto» abre a papel directo, sin
-                // partículas de ningún lado. LiquidSiembraMotas queda en el DS (opt-in).
-                LiquidActaVeredicto(liquidActa, onVerMas: {
-                    showVeredictoActa = false
-                    tabRouter.select(.body)
-                })
-            }
+            VeredictoActaSheet(prep: repo.todayPreparedness, healthConnected: saludConectada,
+                               fullyLoaded: repo.fullyLoaded)
         }
         // La hoja del guardián: qué vigila (temp + respiración) y por qué no vota (FER-33 · F3).
         .sheet(isPresented: $showGuardianHoja) {
@@ -879,7 +878,14 @@ struct TodayView: View {
         if #available(iOS 18.0, *) {
             // iOS 18+: lee el `contentOffset` real del scroll. En reposo `contentOffset.y == -contentInsets.top`,
             // así que `-(offset.y + insets.top)` es 0 en el tope y POSITIVO al jalar hacia abajo (overscroll).
-            scroll.onScrollGeometryChange(for: CGFloat.self) { geometry in
+            // FER-490: restaura el offset por modo cuando `CuerpoTabView` inyecta el binding.
+            let positioned: AnyView = {
+                if let binding = scrollPosBox as? Binding<ScrollPosition> {
+                    return AnyView(scroll.scrollPosition(binding))
+                }
+                return AnyView(scroll)
+            }()
+            positioned.onScrollGeometryChange(for: CGFloat.self) { geometry in
                 -(geometry.contentOffset.y + geometry.contentInsets.top)
             } action: { _, pull in
                 handlePullOffset(pull)
@@ -1130,44 +1136,44 @@ struct TodayView: View {
                         trainingLoadItem = makeTrainingLoadItem(trainingLoad)
                     }
                 },
-                // En el Ecosistema (FER-10) el tap del LIENZO separa/une los
-                // orbes; la puerta al ACTA vive en la palabra + la pastilla «Cómo llegué
-                // a esto» (este callback).
+                // FER-490: tipografía grande oculta; la palabra es `HiloVeredictoCompacto`.
                 onTapHero: {
-                    // Sin permiso de Salud la puerta dice «Conectar Salud» y abre el
-                    // flujo de conexión (FER-10 estado 8); con permiso, el acta.
                     if output.heroRoute == .salud {
                         showDataSources = true
                     } else {
                         showVeredictoActa = true
                     }
                 },
-                // El guardián (orbe separado Y franja) abre SU hoja: qué vigila y por
-                // qué no vota (FER-10, revisión de usuario).
                 onTapGuardian: { showGuardianHoja = true },
-                mostrarHintSeparar: ecosistemaSeparaciones < Self.maxSeparacionHints,
-                fusionInicial: ecosistemaFusionDay != Repository.localDayKey(Date()),
-                onFusionArrancada: {
-                    ecosistemaFusionDay = Repository.localDayKey(Date())
-                },
-                onSeparacion: {
-                    ecosistemaSeparaciones = min(Self.maxSeparacionHints, ecosistemaSeparaciones + 1)
-                    HoyEcosistemaTip.separado.sendDonation()
-                    HoyEcosistemaTip().invalidate(reason: .actionPerformed)
-                },
-                alternarPedido: ecosistemaPedido,
-                onFase: { señalesSeparadas = $0 })
+                mostrarHintSeparar: false,
+                fusionInicial: false,
+                ocultaPalabra: true)
             // FER-435 · el «?» de Hoy, a la derecha de la fecha. `LiquidHoyContent` dibuja su
             // cabecera con el slot trailing vacío (el dial se retiró el 2026-08-06), así que el
             // botón se superpone desde aquí, alineado al kicker — nunca encima del orbe ni de la
             // palabra (el área de 44 crece hacia adentro; el glifo queda a ~24 del borde).
             .overlay(alignment: .topTrailing) {
-                AyudaBoton(seccion: .hoy)
+                AyudaBoton(seccion: .cuerpo)
                     .padding(.trailing, LiquidSpace.s250)
                     .padding(.top, -LiquidSpace.s350)
             }
-            // FER-432 · tip 3 + botón alterno DEBAJO del héroe (nunca sobre el orbe).
-            hoyEcosistemaTipYBoton
+            // FER-490 · palabra compacta (orbe 44), mismo oráculo que Entrenar.
+            HiloVeredictoCompacto(
+                prep: repo.todayPreparedness,
+                healthConnected: saludConectada,
+                nights: repo.todayPreparedness?.autonomicNights ?? 0,
+                verdictPending: repo.todayPreparedness == nil && !repo.fullyLoaded,
+                hasPlan: hasPlan,
+                primerUsoSinPlan: primerUsoSinPlan,
+                onOpenActa: {
+                    if output.heroRoute == .salud {
+                        showDataSources = true
+                    } else {
+                        showVeredictoActa = true
+                    }
+                })
+            .padding(.horizontal, LiquidSpace.s600)
+            .padding(.top, LiquidSpace.s200)
             // FER-436 · hitos 1–2 (una vez) ENTRE el héroe y la Matriz; nunca sobre la palabra/orbe.
             hitosHoy
             // FER-51 · La Matriz (estados T1–T5 + instrumento). Debajo del héroe.
@@ -1192,33 +1198,6 @@ struct TodayView: View {
         .onAppear { alimentarHoyTips(output: output) }
         .onChange(of: repo.refreshSeq) { _, _ in alimentarHoyTips(output: liquidOutput) }
         .accessibilityAction(named: Text("Sync")) { triggerPullSync() }
-    }
-
-    /// Tip del ecosistema + control «Separar»/«Unir» (quiet), visibles con hint activo o tip elegible.
-    @ViewBuilder
-    private var hoyEcosistemaTipYBoton: some View {
-        let hintActivo = ecosistemaSeparaciones < Self.maxSeparacionHints
-        let tipElegible = HoyEcosistemaTip().shouldDisplay
-        VStack(alignment: .leading, spacing: LiquidSpace.s150) {
-            TipView(HoyEcosistemaTip(), arrowEdge: .top)
-            if hintActivo || tipElegible {
-                LiquidGlassButton(
-                    señalesSeparadas
-                        ? String(localized: "tip.hoy.ecosistema.boton.unir", defaultValue: "Reunite")
-                        : String(localized: "tip.hoy.ecosistema.boton", defaultValue: "Separate"),
-                    variant: .quiet
-                ) {
-                    // Camino tocable del gesto (FER-432): el Ecosistema hace el MISMO alternar()
-                    // que el tap del lienzo (anima, y al separar dispara `onSeparacion`, que dona e
-                    // invalida el tip); `onFase` devuelve el estado para el rótulo.
-                    ecosistemaPedido += 1
-                }
-                .accessibilityLabel(Text(señalesSeparadas
-                    ? String(localized: "Reunite the signals")
-                    : String(localized: "Separate the signals")))
-            }
-        }
-        .padding(.horizontal, LiquidSpace.s600)
     }
 
     /// FER-435 · consume las banderas one-shot del router (`abrirActa` / `abrirGuardian`) y abre la
@@ -1258,7 +1237,6 @@ struct TodayView: View {
             guard let prep = repo.todayPreparedness else { return false }
             return prep.verdict != .lowSignal && prep.isNightAnchored
         }()
-        HoyEcosistemaTip.hayVeredicto = hayVeredicto
         HoyTips.donarMananaConVeredictoSiAplica(
             hayVeredicto: hayVeredicto,
             dayKey: Repository.localDayKey(Date()))
@@ -1708,6 +1686,15 @@ struct TodayView: View {
         stress = StressModel(days: repo.displayDays, stored: await stressRows,
                              todayKey: Repository.localDayKey(Date()), appleDays: repo.appleHealthDays)
         // Ola 2: live day-strain fold retired with the band; settled daily strain via repo.today is enough.
+        // FER-490 C2: mismos args de plan que Entrenar / widget / reloj.
+        let routineId = await repo.todayRoutineId()
+        var semanaVacia = false
+        if let store = await repo.storeHandle(), let sched = try? await store.routineSchedule() {
+            semanaVacia = sched.isEmpty
+        }
+        hasPlan = routineId != nil
+        primerUsoSinPlan = TrainWidgetPublisher.esPrimerUsoSinPlan(
+            sessionLive: model.strengthSession != nil, semanaVacia: semanaVacia)
     }
 
     // MARK: - 14-day trend loader (all platforms)

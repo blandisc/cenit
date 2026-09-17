@@ -289,9 +289,9 @@ enum Hitos {
     static func retenerGrupoOrdenado(_ pestana: Pestana) {
         guard #available(iOS 18, *) else { return }
         switch pestana {
-        case .tendencias: _ = HitosTipGroups.tendencias
+        case .cuerpo: _ = HitosTipGroups.tendencias
         case .entrenar: _ = HitosTipGroups.entrenar
-        case .hoy, .ajustes, .transversal: break
+        case .ajustes, .transversal: break
         }
     }
 

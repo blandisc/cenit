@@ -2,47 +2,45 @@ import SwiftUI
 
 // MARK: - Liquid Glass · TabBar (handoff §5.3)
 //
-// Dock flotante: vidrio/lente + e/3, r/pastilla. 4 items a partes iguales; el activo pinta
+// Dock flotante: vidrio/lente + e/3, r/pastilla. 3 items a partes iguales; el activo pinta
 // icono+label en tinta/900 peso 600 y un punto verde 1.5r en la esquina del icono.
 // Posición en pantalla: left/right 16, bottom 14 (LiquidSpace.dockSide / .dockBottom).
+// Orden del dock = orden de `allCases`: Entrenar · Cuerpo · Ajustes (FER-490).
 
 public enum LiquidTab: String, CaseIterable, Sendable {
-    case hoy, tendencias, entrenar, ajustes
+    case entrenar, cuerpo, ajustes
 }
 
 /// Los rótulos del dock, que llegan DESDE LA APP.
 ///
 /// `CenitDesign` no tiene catálogo de cadenas: cualquier texto que nazca dentro del paquete se
 /// queda para siempre en el idioma en que se escribió. Estos se escribieron en español, así que
-/// el dock decía «Hoy · Tendencias · Entrenar · Ajustes» también con el teléfono en inglés — la
+/// el dock decía «Entrenar · Cuerpo · Ajustes» también con el teléfono en inglés — la
 /// barra que el usuario ve en TODAS las pantallas, en el idioma equivocado (FER-112; el TODO
 /// llevaba abierto desde la sesión /inject).
 ///
 /// No hay valor por defecto en `LiquidTabBar.init`: el compilador obliga a cada llamador a
 /// decidir de dónde vienen sus rótulos, y así el bug no puede volver a entrar en silencio.
 public struct LiquidTabRotulos: Sendable {
-    public let hoy: String
-    public let tendencias: String
     public let entrenar: String
+    public let cuerpo: String
     public let ajustes: String
 
-    public init(hoy: String, tendencias: String, entrenar: String, ajustes: String) {
-        self.hoy = hoy
-        self.tendencias = tendencias
+    public init(entrenar: String, cuerpo: String, ajustes: String) {
         self.entrenar = entrenar
+        self.cuerpo = cuerpo
         self.ajustes = ajustes
     }
 
     /// SOLO para previews y demos del propio paquete, que no tienen catálogo al que preguntar.
     /// Jamás para una pantalla de la app: ahí los rótulos salen de `Localizable.xcstrings`.
-    public static let demo = LiquidTabRotulos(hoy: "Hoy", tendencias: "Tendencias",
-                                              entrenar: "Entrenar", ajustes: "Ajustes")
+    public static let demo = LiquidTabRotulos(entrenar: "Entrenar", cuerpo: "Cuerpo",
+                                              ajustes: "Ajustes")
 
     func titulo(_ tab: LiquidTab) -> String {
         switch tab {
-        case .hoy: return hoy
-        case .tendencias: return tendencias
         case .entrenar: return entrenar
+        case .cuerpo: return cuerpo
         case .ajustes: return ajustes
         }
     }
@@ -132,19 +130,11 @@ private struct TabGlyph: View {
 
     private static let viewBox: CGFloat = 23
 
-    /// Capas del glifo: trazo (con grosor) o RELLENO. Familia elegida por el dueño en la
-    /// sesión /inject: Hoy = dial-sello (H2) · Tendencias = curva con nodos (A) ·
-    /// Entrenar = mancuerna (A) · Ajustes = perilla mínima (J3).
+    /// Capas del glifo: trazo (con grosor) o RELLENO. Familia: Cuerpo = curva con nodos
+    /// (ex-Tendencias) · Entrenar = mancuerna · Ajustes = perilla mínima.
     private var layers: [(d: String, width: CGFloat, filled: Bool)] {
         switch tab {
-        case .hoy:
-            return [
-                ("M19 11.5A7.5 7.5 0 1 0 4 11.5A7.5 7.5 0 1 0 19 11.5", 1.6, false),
-                ("M5.7 6.7A7.5 7.5 0 0 1 17.3 6.7", 2.2, false),
-                ("M11.5 2.6v1.4", 1.6, false),
-                ("M18.5 15.2A1.5 1.5 0 1 0 15.5 15.2A1.5 1.5 0 1 0 18.5 15.2", 0, true),
-            ]
-        case .tendencias:
+        case .cuerpo:
             return [
                 ("M2.5 17C7 17 7.5 6 11.5 6s4.5 9 9 9", 1.8, false),
                 ("M8.6 11A1.6 1.6 0 1 0 5.4 11A1.6 1.6 0 1 0 8.6 11", 0, true),
@@ -165,8 +155,7 @@ private struct TabGlyph: View {
 
     private var dotCenter: CGPoint {
         switch tab {
-        case .hoy: return CGPoint(x: 19.5, y: 4)
-        case .tendencias: return CGPoint(x: 19, y: 4.5)
+        case .cuerpo: return CGPoint(x: 19, y: 4.5)
         case .entrenar: return CGPoint(x: 19, y: 4.5)
         case .ajustes: return CGPoint(x: 19.5, y: 4)
         }
@@ -209,7 +198,7 @@ private struct TabGlyphPath: Shape {
 #if DEBUG
 #Preview("Liquid · TabBar") {
     struct Demo: View {
-        @State private var active: LiquidTab = .hoy
+        @State private var active: LiquidTab = .entrenar
         var body: some View {
             VStack {
                 Spacer()

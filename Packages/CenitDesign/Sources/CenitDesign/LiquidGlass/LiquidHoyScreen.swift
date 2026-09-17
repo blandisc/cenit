@@ -283,6 +283,8 @@ public struct LiquidHoyContent: View {
     /// FER-432: botón alterno al gesto de separar/unir (ver `LiquidEcosistema.alternarPedido`).
     private let alternarPedido: Int
     private let onFase: ((Bool) -> Void)?
+    /// FER-490: oculta la tipografía grande; la palabra vive en `EntrenarHilo` compacto.
+    private let ocultaPalabra: Bool
     /// SOLO tests/renders: fija la fase del Ecosistema (p. ej. `.separada`).
     let ecosistemaFase: EcosistemaSimulacion.Fase?
 
@@ -297,13 +299,15 @@ public struct LiquidHoyContent: View {
                 onFusionArrancada: (() -> Void)? = nil,
                 onSeparacion: (() -> Void)? = nil,
                 alternarPedido: Int = 0,
-                onFase: ((Bool) -> Void)? = nil) {
+                onFase: ((Bool) -> Void)? = nil,
+                ocultaPalabra: Bool = false) {
         self.init(model: model, onTapMetric: onTapMetric, onTapSenal: onTapSenal,
                   onTapCarga: onTapCarga, onTapHero: onTapHero,
                   onTapGuardian: onTapGuardian,
                   mostrarHintSeparar: mostrarHintSeparar, fusionInicial: fusionInicial,
                   onFusionArrancada: onFusionArrancada, onSeparacion: onSeparacion,
                   alternarPedido: alternarPedido, onFase: onFase,
+                  ocultaPalabra: ocultaPalabra,
                   ecosistemaFase: nil)
     }
 
@@ -319,6 +323,7 @@ public struct LiquidHoyContent: View {
          onSeparacion: (() -> Void)? = nil,
          alternarPedido: Int = 0,
          onFase: ((Bool) -> Void)? = nil,
+         ocultaPalabra: Bool = false,
          ecosistemaFase: EcosistemaSimulacion.Fase?) {
         self.model = model
         self.onTapMetric = onTapMetric
@@ -332,6 +337,7 @@ public struct LiquidHoyContent: View {
         self.onSeparacion = onSeparacion
         self.alternarPedido = alternarPedido
         self.onFase = onFase
+        self.ocultaPalabra = ocultaPalabra
         self.ecosistemaFase = ecosistemaFase
     }
 
@@ -353,7 +359,7 @@ public struct LiquidHoyContent: View {
                 heroHint: model.heroHint,
                 mostrarHintSeparar: mostrarHintSeparar,
                 fusionInicial: fusionInicial, faseForzada: ecosistemaFase,
-                compacto: false,
+                compacto: ocultaPalabra, ocultaPalabra: ocultaPalabra,
                 onTapVeredicto: onTapHero, onTapSenal: onTapSenal,
                 onTapGuardian: onTapGuardian,
                 onFusionArrancada: onFusionArrancada, onSeparacion: onSeparacion,
@@ -406,7 +412,7 @@ struct LiquidHoyScreen: View {
             LiquidVeil(tone: nil).frame(height: LiquidSpace.s1400)
         }
         .overlay(alignment: .bottom) {
-            LiquidTabBar(active: .hoy, rotulos: .demo, onSelect: onSelectTab)
+            LiquidTabBar(active: .cuerpo, rotulos: .demo, onSelect: onSelectTab)
                 .padding(.horizontal, LiquidSpace.dockSide)
                 .padding(.bottom, LiquidSpace.dockBottom)
         }

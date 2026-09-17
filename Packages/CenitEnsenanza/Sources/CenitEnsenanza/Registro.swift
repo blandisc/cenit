@@ -4,14 +4,14 @@ import Foundation
 /// puro — nunca se instancia. Las listas por pestaña viven en `Registro+<Pestaña>.swift`; este
 /// archivo solo las combina y expone los accesores comunes.
 public enum Registro {
-    /// Orden: hoy → tendencias → entrenar → ajustes → transversal, y dentro de cada pestaña el
-    /// orden de la semilla (D8: el orden del registro es el orden en que aparecen los tips).
+    /// Orden: cuerpo (ex-hoy + ex-tendencias) → entrenar → ajustes → transversal, y dentro de
+    /// cada pestaña el orden de la semilla (D8: el orden del registro es el orden en que aparecen
+    /// los tips). FER-490: Hoy y Tendencias viven bajo `cuerpo`.
     public static let todas: [Funcionalidad] = hoy + tendencias + entrenar + ajustes + transversal
 
     public static func por(_ pestana: Pestana) -> [Funcionalidad] {
         switch pestana {
-        case .hoy: return hoy
-        case .tendencias: return tendencias
+        case .cuerpo: return hoy + tendencias
         case .entrenar: return entrenar
         case .ajustes: return ajustes
         case .transversal: return transversal

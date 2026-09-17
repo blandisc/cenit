@@ -24,10 +24,26 @@ import Foundation
 // Detalle: hojas Liquid (`MetricDetailScreen` FER-185 u hojas propias). Valores y sparklines desde
 // `repo.displayDays` (no la serie cruda de la fuente heredada — FER-149).
 
-/// Landing de Tendencias. (FER-398 retired the by-the-hour tint; the app no longer changes colour with the clock.)
+/// Landing de Tendencias / Cuerpo·Tiempo. (FER-398 retired the by-the-hour tint; the app no longer changes colour with the clock.)
 struct CuerpoView: View {
+    /// `Binding<ScrollPosition>` boxed (iOS 18+).
+    private let scrollPosBox: Any?
+    /// Publica `detailPresented` al padre para ocultar el selector Ahora|Tiempo (FER-490 · fable #4).
+    private var detailOcupado: Binding<Bool>?
+
+    init(detailOcupado: Binding<Bool>? = nil) {
+        self.scrollPosBox = nil
+        self.detailOcupado = detailOcupado
+    }
+
+    @available(iOS 18.0, *)
+    init(scrollPos: Binding<ScrollPosition>, detailOcupado: Binding<Bool>? = nil) {
+        self.scrollPosBox = scrollPos
+        self.detailOcupado = detailOcupado
+    }
+
     var body: some View {
-        CuerpoLanding()
+        CuerpoLanding(scrollPosBox: scrollPosBox, detailOcupado: detailOcupado)
     }
 }
 
@@ -168,6 +184,9 @@ private struct CuerpoLanding: View {
     /// mismo corte que `PreparacionDetailScreen.tipo >= .accessibility1`.
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
+    let scrollPosBox: Any?
+    var detailOcupado: Binding<Bool>?
+
     /// Light metric sheet (the same one Today opens), for metrics that have a `MetricInfo` factory.
     /// Unified Detalle de Métrica (FER-185): the three vitals (HRV / FC reposo / Respiración) open this
     /// at `.full` depth instead of the legacy `MetricInfoSheet` / dark `MetricDetailView` bridge.
@@ -256,7 +275,7 @@ private struct CuerpoLanding: View {
 
     var body: some View {
         ZStack {
-        ScrollView {
+        scrollRoot {
             VStack(alignment: .leading, spacing: LiquidSpace.s700) {
                 VStack(alignment: .leading, spacing: LiquidSpace.s100) {
                     titleBlock
@@ -318,10 +337,13 @@ private struct CuerpoLanding: View {
             }
         }
         .animation(LiquidMotion.toque, value: detailPresented)
+        .onChange(of: detailPresented, initial: true) { _, ocupado in
+            detailOcupado?.wrappedValue = ocupado
+        }
         .task(id: repo.refreshSeq) { await loadAll(); alimentarTendenciasTips() }
         .onAppear {
             activarTendenciasTipGroupSiCabe()
-            Hitos.retenerGrupoOrdenado(.tendencias)   // FER-436: hitos 3 y 4 nunca juntos (iOS 18)
+            Hitos.retenerGrupoOrdenado(.cuerpo)   // FER-436: hitos 3 y 4 nunca juntos (iOS 18)
             alimentarTendenciasTips()
         }
         .onChange(of: selectedPeriod) { _, _ in
@@ -552,6 +574,17 @@ private struct CuerpoLanding: View {
         }
     }
 
+    /// ScrollView raíz con `scrollPosition` opcional (iOS 18+, FER-490 D3).
+    @ViewBuilder
+    private func scrollRoot<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        let scroll = ScrollView { content() }
+        if #available(iOS 18.0, *), let binding = scrollPosBox as? Binding<ScrollPosition> {
+            scroll.scrollPosition(binding)
+        } else {
+            scroll
+        }
+    }
+
     // MARK: - Title + date
 
     /// «Body» + today's date — the landing's temporal frame. Wordmark header (matching «Patrones»):
@@ -575,7 +608,7 @@ private struct CuerpoLanding: View {
             .accessibilityAddTraits(.isHeader)
             // FER-435: el «?» → «Cómo funciona Cénit», sección Tendencias — el último elemento a
             // la derecha, fuera del elemento combinado del encabezado.
-            AyudaBoton(seccion: .tendencias)
+            AyudaBoton(seccion: .cuerpo)
         }
         .padding(.bottom, LiquidSpace.s150)
     }

@@ -256,7 +256,7 @@ private struct EntrenarLanding: View {
                             // guard evita abrir una hoja fabricada vacía si alguna vez se desincronizan.
                             guard let model = trainingLoad else { return }
                             trainingLoadItem = TrainingLoadItem(model: model,
-                                                                onSeeTrends: { tabRouter.select(.body) })
+                                                                onSeeTrends: { tabRouter.verTendencias() })
                         }
                         .padding(.top, LiquidSpace.s100)
                     }
@@ -340,7 +340,7 @@ private struct EntrenarLanding: View {
         }
         // Ola 2 (FER-488): la hoja «Carga de entrenamiento» que abre «Contexto · Carga» — el MISMO
         // `TrainingLoadSheet` que Hoy, mismo patrón (`TodayView.swift`, el `.sheet(item:)` junto a
-        // `trainingLoadItem`). «Ver más en Tendencias» despacha al tab Cuerpo vía `TabRouter`.
+        // `trainingLoadItem`). «Ver más en Cuerpo» despacha al tab Cuerpo vía `TabRouter`.
         .sheet(item: $trainingLoadItem) { item in
             TrainingLoadSheet(model: item.model, onSeeTrends: item.onSeeTrends)
                 .recEntranceGate()

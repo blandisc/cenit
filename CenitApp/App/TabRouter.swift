@@ -8,11 +8,17 @@ import SwiftUI
 /// wiring. (FER-378 — the «Explóralo en el Coach» handoff.)
 @MainActor
 final class TabRouter: ObservableObject {
-    // FER-240: `.coach` (Patrones) removed with the archived screen — four live tabs.
-    enum Tab: String, Sendable { case today, body, train, settings }
+    /// Tres cuartos (FER-490): Entrenar · Cuerpo · Ajustes.
+    enum Tab: String, Sendable { case cuerpo, train, settings }
+
+    /// Modos de la pestaña Cuerpo (Ahora = ex-Hoy, Tiempo = ex-Tendencias). FER-490.
+    enum CuerpoModo: String, Sendable { case ahora, tiempo }
 
     /// A one-shot tab-switch request. `RootTabView` consumes it (sets it back to nil) on receipt.
     @Published var requested: Tab?
+
+    /// One-shot: modo de Cuerpo a aplicar al aterrizar en `.cuerpo`. Lo consume `CuerpoTabView`.
+    @Published var cuerpoModo: CuerpoModo?
 
     /// One-shot: after landing on «Entrenar», push the muscle-fatigue map (`MuscleVolumeRoute`).
     /// Consumed (reset to false) by `RootTabView`. Lets the strength summary's «Ver mapa» reach the
@@ -24,13 +30,13 @@ final class TabRouter: ObservableObject {
     /// Entrenar's own prefetched slots instead of duplicating the load (FER-613).
     @Published var startTodaySession = false
 
-    /// One-shot (FER-435): after landing on «Hoy», open the verdict's acta — or «¿Qué decide tu
-    /// día?» when there is no reading yet. Consumed (reset to false) by `TodayView`. The door in
-    /// «Cómo funciona Cénit» (`AyudaScreen`) sets it, since the acta is built from Today's own model.
+    /// One-shot (FER-435 / FER-490): after landing on Cuerpo/Ahora, open the verdict's acta — or
+    /// «¿Qué decide tu día?» when there is no reading yet. Consumed (reset to false) by `TodayView`.
+    /// The door in «Cómo funciona Cénit» (`AyudaScreen`) sets it.
     @Published var abrirActa = false
 
-    /// One-shot (FER-435): after landing on «Hoy», open the guardian's sheet (its series are loaded
-    /// by Today). Consumed (reset to false) by `TodayView`; set by `AyudaScreen`.
+    /// One-shot (FER-435 / FER-490): after landing on Cuerpo/Ahora, open the guardian's sheet.
+    /// Consumed (reset to false) by `TodayView`; set by `AyudaScreen`.
     @Published var abrirGuardian = false
 
     /// FER-502: la hoja «Cómo funciona Cénit» (`AyudaScreen`) está presentada, desde CUALQUIER pestaña.
@@ -40,6 +46,18 @@ final class TabRouter: ObservableObject {
     @Published var ayudaPresentada = false
 
     func select(_ tab: Tab) { requested = tab }
+
+    /// Cuerpo en modo Tiempo (ex-Tendencias). Sustituye `select(.body)`.
+    func verTendencias() {
+        cuerpoModo = .tiempo
+        requested = .cuerpo
+    }
+
+    /// Cuerpo en modo Ahora (ex-Hoy). Sustituye `select(.today)`.
+    func verAhora() {
+        cuerpoModo = .ahora
+        requested = .cuerpo
+    }
 
     /// Switch to «Entrenar» and ask it to push the fatigue map (the strength summary's «Ver mapa»).
     func openFatigueMap() { openMuscleMapInTrain = true; requested = .train }

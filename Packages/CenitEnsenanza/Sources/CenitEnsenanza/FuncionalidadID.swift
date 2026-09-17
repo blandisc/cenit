@@ -12,7 +12,6 @@ public enum FuncionalidadID: String, CaseIterable, Sendable {
     case hoyCalibracion = "hoy.calibracion"
     case hoyPrimerVeredicto = "hoy.primer-veredicto"
     case hoyBaseFirme = "hoy.base-firme"
-    case hoyEcosistema = "hoy.ecosistema"
     case hoyEjeAutonomico = "hoy.eje-autonomico"
     case hoyGuardian = "hoy.guardian"
     case hoyManuales = "hoy.manuales"

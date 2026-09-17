@@ -138,7 +138,7 @@ public struct LiquidMetricSheet<Content: View>: View {
             LiquidMetodo(title: "Cómo se calcula") {
                 LiquidNotaLine("SDNN sobre los latidos nocturnos (Task Force, 1996).")
             }
-            LiquidVerMas(title: "Ver más en Tendencias", hint: "Abre el detalle completo",
+            LiquidVerMas(title: "Ver más en Cuerpo", hint: "Abre el detalle completo",
                          tone: LiquidColor.cian, anchoCompleto: true, action: {})
         }
     }
