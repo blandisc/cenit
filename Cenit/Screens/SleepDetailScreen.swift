@@ -655,7 +655,7 @@ struct SleepDetailScreen: View {
                               ? String(localized: "your night starts already asleep")
                               : String(localized: "10–20 healthy · see method"),
                           info: .sleepLatency(latenciaNoche))
-            cajitaMetrica(rotulo: String(localized: "Respiration"),
+            cajitaMetrica(rotulo: MetricIdentity.nombre(forKey: "resp_rate"),
                           valor: night.respRate.map { String(format: "%.1f", $0) },
                           pie: String(localized: "rpm"),
                           tono: LiquidColor.azul,

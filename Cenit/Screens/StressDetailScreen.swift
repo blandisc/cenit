@@ -396,7 +396,7 @@ struct StressDetailScreen: View {
                              valor: model.calmTimeValue,
                              pie: String(localized: "of last month"),
                              compacto: true)
-                LiquidCajita(rotulo: String(localized: "Steadiness"),
+                LiquidCajita(rotulo: String(localized: "Consistency"),
                              valor: consistency(model).map { consistencyWord($0) } ?? LiquidCajita.sinDato,
                              pie: String(localized: "week to week"),
                              compacto: true)

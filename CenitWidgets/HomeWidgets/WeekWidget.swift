@@ -223,7 +223,7 @@ private struct WeekStrip: View {
     private func a11yLabel(_ day: TrainWidgetSnapshot.WeekDay) -> Text {
         let name = Text(verbatim: day.label) + Text(verbatim: ", ")
         switch day.state {
-        case .done:     return name + Text("trained")
+        case .done:     return name + Text("trained.day")
         case .today:    return name + Text("today") + Text(verbatim: ", ") + Text("training day")
         case .upcoming: return name + Text("planned")
         case .rest:     return name + Text("rest day")

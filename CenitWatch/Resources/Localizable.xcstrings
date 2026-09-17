@@ -229,7 +229,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FC prom"
+            "value" : "FC media"
           }
         }
       }
@@ -687,7 +687,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Desliza para terminar tu entreno."
+            "value" : "Desliza para terminar tu entrenamiento."
           }
         }
       }
@@ -849,7 +849,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pulso"
+            "value" : "FC"
           }
         }
       }
@@ -1149,7 +1149,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No pudimos empezar el entreno"
+            "value" : "No pudimos empezar el entrenamiento"
           }
         }
       }

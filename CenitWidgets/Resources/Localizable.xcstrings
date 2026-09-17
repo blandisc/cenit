@@ -291,7 +291,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Completar"
+            "value" : "Completado"
           }
         }
       }
@@ -626,7 +626,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pausa"
+            "value" : "En pausa"
           }
         }
       }
@@ -856,7 +856,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Esta semana"
+            "value" : "Tu semana"
           }
         }
       }
@@ -984,7 +984,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "entrenado"
+            "value" : "entrenadas"
           }
         }
       }
@@ -1209,6 +1209,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tu rutina de hoy"
+          }
+        }
+      }
+    },
+    "trained.day": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "trained"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "entrenado"
           }
         }
       }

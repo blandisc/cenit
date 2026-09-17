@@ -64,7 +64,7 @@ La voz base es una; el **tono** se ajusta al momento del usuario.
 | **Éxito / confirmación** | Corto, cálido | «Todo listo.» · «¡Copiado!» · «Todo guardado en tu iPhone» |
 | **Error** | Tranquilo, impersonal, con salida | «No se pudo guardar el entrenamiento. Inténtalo de nuevo.» |
 | **Estado vacío** | Honesto + alentador, explica el porqué | «Aún no encuentro un hábito con efecto claro en tus números. Sigue registrando tu día y lo detectaré.» |
-| **Coach / insight** | Primera persona, con datos y reservas | «La HRV cayó muy por debajo de tu base, lo que apunta a estrés o fatiga elevados. Baja el ritmo…» |
+| **Coach / insight** | Primera persona, con datos y reservas | «La VFC cayó muy por debajo de tu base, lo que apunta a estrés o fatiga elevados. Baja el ritmo…» |
 | **Sin señal / calibrando** | Fáctico, sin drama | «SIN SEÑAL DE BANDA» · «En vivo. Tus puntuaciones se están construyendo.» |
 
 ---
@@ -84,7 +84,7 @@ Reglas duras del español de la app. Varias están **verificadas por CI** (§8).
    `no-emdash-string`.) El glifo suelto **«—»** para «sin dato» **sí** se permite: es un símbolo, no
    texto.
 4. **«·» (punto medio) es el separador de meta/listas.** *«sin cuenta · sin servidor»* · *«mín %@ ·
-   máx %@ bpm»*.
+   máx %@ lpm»*.
 5. **Hedge obligatorio en copy de cuerpo/dato.** Nada de causalidad ni diagnóstico: *«apunta a»,
    «señal de», «tendencia, no causa», «asociación, no causa», «no una predicción de lesiones»*.
 6. **Los números cargan su origen.** Muestra la muestra y la fuente: *«n=%lld»*, *«Calculado a
@@ -141,24 +141,58 @@ Invariante: **color de nivel = lectura lista; tinta / `—` = en espera.**
 ## 6. Glosario canónico
 
 El término de la izquierda es el **único** que debe aparecer en pantalla para ese concepto.
+Los nombres de métrica salen de `MetricIdentity.nombre(forKey:)` /
+`MetricCatalog.canonicalTitle` — no se escriben a mano en pantallas.
+El gate `Tools/check-xcstrings-es.py` defiende las filas marcadas «CI».
+
+### Señales / métricas
 
 | Concepto (EN) | Canónico es-MX | Notas |
 |---|---|---|
 | Recovery | **Recuperación** | — |
-| Strain / Effort | **Esfuerzo** | **Nunca «tensión».** Strain y Effort colapsan en una sola palabra. |
+| Strain / Effort / Day Strain | **Esfuerzo** | **Nunca «tensión».** Strain, Effort y Day Strain colapsan en una sola palabra (clave EN canónica: `Effort`). |
 | Sleep | **Sueño** | — |
-| HRV | **HRV** | Se mantiene la sigla. |
+| HRV | **VFC** | Sigla en es-MX; el doc viejo decía «HRV→HRV» (stale). |
+| Resting HR | **FC en reposo** | No «Resting heart rate» / «FC Reposo» fuera de la celda gemela corta. |
+| Breathing / Respiratory / Respiration | **Respiración** | Clave EN canónica: `Breathing`. Nunca el adjetivo suelto «Respiratoria». |
+| Skin Temperature / Skin temp | **Temperatura de piel** | Clave EN canónica: `Skin Temperature`. |
+| VO₂ Max / VO₂max | **VO₂ máx** | Clave EN canónica: `VO₂ Max` (con espacio). |
 | Baseline | **base** (cotidiano) / **línea base** (formal) | «tu base» en copy corto; «línea base» en explicaciones. |
 | Readiness | **Preparación** | No «disposición» (string viejo, no canónico). |
 | Signals | **Señales** | — |
+| Stress consistency | **Consistencia** | Un nombre (no «Steadiness» / «Estabilidad» en paralelo). |
+
+### Entrenar
+
+| Concepto (EN) | Canónico es-MX | Notas |
+|---|---|---|
 | Session | **Sesión** | — |
+| Workout / training | **entrenamiento** | **Nunca «entreno» / «entrenos».** CI. |
+| History | **Historial** | No «tu historia». |
+| Personal record / PR / Record | **récord** / **marca** | Un concepto; no mezclar «RÉCORD» / «PR» / «marcas nuevas» sin glosa. |
+| Receipt / ticket / acta | **recibo** | El comprobante de la sesión. |
+| Calories / Energy | **Energía** | Cuando es el gasto de la sesión. |
+| Avg HR | **FC media** | Misma clave en iPhone y Watch. |
 | Band | **banda** | Nunca «correa». |
+| Equipment (gym) | **equipo** | Solo para material de gimnasio («Sin equipo»). |
+
+### Aparato / fuentes
+
+| Concepto (EN) | Canónico es-MX | Notas |
+|---|---|---|
+| iPhone / phone / device (app host) | **iPhone** | Preferido. **«dispositivo»** solo cuando el iPhone no cabe (p. ej. «dispositivo médico»). **Nunca «teléfono» ni «equipo»** para el aparato. CI. |
+| Apple Health | **Apple Salud** | Siempre localizado. CI. |
+| Apple Watch | **Apple Watch** | Marca; se mantiene. |
+
+### Navegación / tabs
+
+| Concepto (EN) | Canónico es-MX | Notas |
+|---|---|---|
 | Today | **Hoy** | Tab. |
 | Train | **Entrenar** | Tab. «Add Workout» → «Agregar entrenamiento». |
-| Trends | **Tendencias** | Tab. |
+| Trends | **Tendencias** | Tab. Clave EN: `Trends` (nunca la clave-isla `Tendencias`). |
 | Patterns | **Patrones** | «SIN PATRÓN CLARO», «Ver patrón →». |
 | Coach / Loop | **Coach** (tab) / **el Bucle** (pantalla) | Ver `docs/SCREENS.md`. |
-| Apple Health | **Apple Salud** | Siempre localizado. |
 
 **Verdictos / niveles:** `Primed`→**A punto**, `Balanced`→**Equilibrado**, `Strained`→**Exigido**,
 `Run down`→**Desgastado**, `Recovering`→**Recuperándote**, `Optimal`→**Óptimo**,
@@ -196,10 +230,11 @@ El formato es parte del lenguaje visual; las pantallas consumen los helpers, no 
 - **Enteros agrupados:** `CenitFormat.groupedInt` → `12,345` (sin decimales).
 - **Numerales tabulares siempre** (`font-variant-numeric: tabular-nums` / SF Mono) para que las
   columnas de dígitos alineen.
-- **Unidades con espacio:** `%lld h`, `%lld min`, `bpm` (se mantiene en inglés), `pts`, `kcal`.
+- **Unidades con espacio:** `%lld h`, `%lld min`, `lpm` (canónico es-MX; la clave EN sigue siendo `bpm`), `pts`, `kcal`.
+  Decisión FER-503 · C5: el catálogo ya predominaba con «lpm» (~30 vs ~9); se abandona «bpm» en `es`. CI.
 - **Temperatura:** signo + valor + `°C` sin espacio → `+1.2°C`.
 - **Deltas con el signo menos real** `−` (U+2212), no guion: `−%lld pts`.
-- **Abreviaturas:** `mín / máx / reposo` → «mín %@ · máx %@ · reposo %@ bpm».
+- **Abreviaturas:** `mín / máx / reposo` → «mín %@ · máx %@ · reposo %@ lpm».
 - **Estadística:** `±` para variación, `σ` (o «DE») para desviación → «±tu variación».
 
 ---
@@ -211,7 +246,8 @@ El formato es parte del lenguaje visual; las pantallas consumen los helpers, no 
 | Sin em-dash en copy | **Verificado por CI** — `Tools/check-design-drift.py --rules no-emdash-string`, `.github/workflows/design-lint.yml` |
 | Strings de UI son claves en inglés con traducción `es` (nada de español hardcodeado) | **Verificado por CI** — `Tools/check-hardcoded-strings.py`, `.github/workflows/i18n-guard.yml` |
 | El numeral nunca miente (glifos honestos) | **Con test** — invariante en `RecoveryRules` (`testNumeralEqualsVisibleSumAcrossStates`) |
-| Glosario canónico, tuteo, marcos de microcopy, neutralidad de género | **Convención de revisión** (este documento) — no tooled todavía |
+| Glosario canónico es-MX (Apple Salud, lpm, entrenamiento, iPhone; claves compartidas iPhone/Watch/widgets) | **Verificado por CI** — `Tools/check-xcstrings-es.py` (FER-503 · C5) |
+| Tuteo, marcos de microcopy, neutralidad de género | **Convención de revisión** (este documento) — no tooled todavía |
 
 ---
 

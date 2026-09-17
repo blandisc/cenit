@@ -172,7 +172,7 @@ struct WorkoutHistoryScreen: View {
                     Button { onClose() } label: {
                         HStack(spacing: LiquidSpace.s100) {
                             CenitIcon.back.image.font(LiquidType.iconSF(size: 15))
-                            Text("Tendencias").font(LiquidType.tituloGemela)
+                            Text("Trends").font(LiquidType.tituloGemela)
                         }
                     }
                     .foregroundStyle(LiquidColor.tinta900)
@@ -1844,7 +1844,7 @@ struct WorkoutSessionDetailScreen: View {
                 ? SessionEffortDisplay.estimatedNumeral(StrengthHistoryFormat.strain(strain))
                 : StrengthHistoryFormat.strain(strain)
             VStack(alignment: .leading, spacing: LiquidSpace.s150) {
-                heroStat("Effort", numeral, unit: "/21",
+                heroStat(LocalizedStringKey(MetricIdentity.nombreKey(forKey: "strain")), numeral, unit: "/21",
                          color: LiquidColor.ambar,
                          caption: estimated ? "Tap to change it" : "What this session cost your body.")
                 if estimated {
@@ -1992,7 +1992,7 @@ struct WorkoutSessionDetailScreen: View {
                     HStack(alignment: .firstTextBaseline, spacing: LiquidSpace.s100) {
                         Text(verbatim: "\(hr)")
                             .font(LiquidType.valorM).foregroundStyle(LiquidTono.rosa.rotulo)
-                        Text(verbatim: "bpm").font(LiquidType.unidad).foregroundStyle(LiquidColor.tinta500)
+                        Text(String(localized: "bpm")).font(LiquidType.unidad).foregroundStyle(LiquidColor.tinta500)
                     }
                 }
             }
@@ -2002,7 +2002,7 @@ struct WorkoutSessionDetailScreen: View {
                     HStack(alignment: .firstTextBaseline, spacing: LiquidSpace.s100) {
                         Text(verbatim: "\(maxHr)")
                             .font(LiquidType.valorM).foregroundStyle(LiquidTono.rosa.rotulo)
-                        Text(verbatim: "bpm").font(LiquidType.unidad).foregroundStyle(LiquidColor.tinta500)
+                        Text(String(localized: "bpm")).font(LiquidType.unidad).foregroundStyle(LiquidColor.tinta500)
                     }
                 }
             }

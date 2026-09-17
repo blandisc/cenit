@@ -379,7 +379,7 @@ struct PreparacionDetalleModelo {
 
     static func quienSeSalio(_ n: Preparedness.VerdictNight) -> String {
         var partes: [String] = []
-        if n.autonomicOut { partes.append(String(localized: "Resting HR")) }
+        if n.autonomicOut { partes.append(MetricIdentity.nombre(forKey: "rhr")) }
         if n.sleepOut { partes.append(String(localized: "Sleep")) }
         if n.sentinelOut {
             partes.append(String(localized: "prep.atr.centinela.nombre",
@@ -553,7 +553,7 @@ struct PreparacionDetalleModelo {
                                tono: tono, valorTexto: valor, a11y: a11y)
         }
         let conteosSenal: [ConteoSenal] = leidas.isEmpty ? [] : [
-            conteo("autonomic", .corazon, String(localized: "Resting HR"),
+            conteo("autonomic", .corazon, MetricIdentity.nombre(forKey: "rhr"),
                    leidas.filter(\.autonomicOut).count, LiquidColor.rosa),
             conteo("sleep", .luna, String(localized: "Sleep"),
                    leidas.filter(\.sleepOut).count, LiquidColor.indigo),

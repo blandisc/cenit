@@ -129,7 +129,7 @@ struct StrainDetailScreen: View {
     private func campoConDato(_ v: Double) -> some View {
         LiquidCampoMetrica(
             tono: Self.tono,
-            titulo: String(localized: "Effort"),
+            titulo: MetricIdentity.nombre(forKey: "strain"),
             glifo: .llama,
             datos: [.init(valor: fmt(v), rotulo: String(localized: "of 21"),
                          a11y: String(localized: "\(fmt(v)) out of 21"))],
@@ -156,7 +156,7 @@ struct StrainDetailScreen: View {
     private var campoSinDato: some View {
         LiquidCampoMetrica(
             tono: Self.tono,
-            titulo: String(localized: "Effort"),
+            titulo: MetricIdentity.nombre(forKey: "strain"),
             glifo: .llama,
             datos: [.init(valor: LiquidCajita.sinDato, rotulo: String(localized: "of 21"),
                          a11y: String(localized: "no data"), ausente: true)],
