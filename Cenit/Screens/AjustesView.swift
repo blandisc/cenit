@@ -784,9 +784,9 @@ private struct ProfileWheelSheet: View {
             wheelBody
                 .frame(maxWidth: .infinity)
         }
-        .padding(LiquidSpace.s600)
+        .padding(LiquidSpace.s550)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .pantallaFondo()
+        .background { LiquidSheetFondo().ignoresSafeArea() }
         .fittedSheet()
     }
 
@@ -932,9 +932,9 @@ private struct MaxHRSheet: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .padding(LiquidSpace.s600)
+        .padding(LiquidSpace.s550)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .pantallaFondo()
+        .background { LiquidSheetFondo().ignoresSafeArea() }
         .fittedSheet()
     }
 }
@@ -993,9 +993,9 @@ private struct UnidadesSheet: View {
                 }
             }
         }
-        .padding(LiquidSpace.s600)
+        .padding(LiquidSpace.s550)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .pantallaFondo()
+        .background { LiquidSheetFondo().ignoresSafeArea() }
         .fittedSheet()
     }
 }

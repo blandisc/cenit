@@ -20,6 +20,12 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
 
 ## Unreleased
 
+- **Cromo más parejo entre pantallas / Steadier chrome across screens**
+  ### ES
+  Pequeños ajustes de consistencia: la barra de navegación usa el mismo fondo que las demás; las tarjetas de hito y novedad de Hoy se alinean a la columna de módulos; las hojas de Perfil, FC máx y Unidades usan el fondo de hoja de sus hermanas; y el menú «···» usa el ícono del sistema de diseño. (`RootTabView`, `TodayView`, `AjustesView`, `EntrenarHubHeroe`)
+  ### EN
+  Small consistency tweaks: the nav bar uses the same background as the rest; Today's milestone and what's-new cards align to the module column; the Profile, Max HR and Units sheets use their siblings' sheet background; and the "···" menu uses the design-system icon. (`RootTabView`, `TodayView`, `AjustesView`, `EntrenarHubHeroe`)
+
 - **Copy honesto: estados que no mienten sobre tu cuerpo / Honest copy: states that don't lie about your body**
   ### ES
   Corrige el copy que afirmaba cosas falsas: «Hoy descansas» solo cuando el día del plan es de descanso; el recibo ofrece «Ver en Salud» solo cuando de verdad se guardó; el reloj ya no niega que el iPhone guarde su estimado; la temperatura de piel fecha la noche real en vez de decir «anoche» siempre; el Plan distingue un error de lectura de «no tienes rutinas»; y el Explorador distingue cargando de vacío. (`RoutineSheet`, `ReceiptPrinterScreen`, `WatchLiveFaceView`, `SkinTempDetailScreen`, `WeeklyPlanEditorView`, `MetricExplorerView`, onboarding)

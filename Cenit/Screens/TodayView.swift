@@ -1246,15 +1246,15 @@ struct TodayView: View {
     }
 
     /// FER-436 · «Primera lectura» (noche 4) y «Base firme» (noche 14): tarjetas de una vez en la
-    /// columna de módulos (margen 16), sobrias. `Hitos.evaluarHoy` garantiza que solo una aplica
+    /// columna de módulos (`MatrizTokens.margenModulos`), sobrias. `Hitos.evaluarHoy` garantiza que solo una aplica
     /// (base firme invalida primera lectura); `antes:` lo refuerza. La puerta abre el Acta.
     @ViewBuilder
     private var hitosHoy: some View {
         HitoTarjeta(tip: BaseFirmeHitoTip(), arriba: LiquidSpace.s150) { showVeredictoActa = true }
-            .padding(.horizontal, LiquidSpace.s400)
+            .padding(.horizontal, MatrizTokens.margenModulos)
         HitoTarjeta(tip: PrimerVeredictoHitoTip(), antes: [BaseFirmeHitoTip()],
                     arriba: LiquidSpace.s150) { showVeredictoActa = true }
-            .padding(.horizontal, LiquidSpace.s400)
+            .padding(.horizontal, MatrizTokens.margenModulos)
     }
 
     /// Inputs de Matriz/Cosmos: mismos orígenes que `liquidInputs()` (displayDays, prep, carga…).

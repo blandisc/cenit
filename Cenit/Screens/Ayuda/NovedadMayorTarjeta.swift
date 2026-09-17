@@ -66,8 +66,8 @@ struct NovedadMayorTarjeta: View {
             // (voz de marca, nunca juicio — ficha de UI FER-435/436). «Entendido» viene del
             // catálogo de la app, como en `LiquidConsejoTipStyle` (FER-429).
             .tipViewStyle(LiquidUnaVezTipStyle(entendido: Text("Got it")))
-            // La columna de módulos de Hoy (16, = dock), no el margen del héroe (24).
-            .padding(.horizontal, LiquidSpace.s400)
+            // La columna de módulos de Hoy (`MatrizTokens.margenModulos`), no el margen del héroe.
+            .padding(.horizontal, MatrizTokens.margenModulos)
             .onAppear { NovedadMayorTip.hayMayorPendiente = NovedadesEstado.hayMayorPendiente }
             .sheet(isPresented: mostrarNovedades) {
                 NavigationStack { NovedadesSheet() }
