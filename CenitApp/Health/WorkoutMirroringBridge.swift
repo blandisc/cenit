@@ -336,7 +336,7 @@ final class WorkoutMirroringBridge: NSObject, ObservableObject {
             onWatchLoggedSet?(sessionId, runId, set)
         case let .syncSnapshot(snapshot, avgHr, energyKcal, didSaveWorkout):
             onWatchSyncSnapshot?(snapshot, avgHr, energyKcal, didSaveWorkout)
-        case .start, .rest, .restEnded, .capture, .plan, .sessionModel, .idleContext:
+        case .start, .rest, .restEnded, .capture, .plan, .sessionModel, .idleContext, .dosePlan:
             break   // iPhone → watch only
         }
     }
