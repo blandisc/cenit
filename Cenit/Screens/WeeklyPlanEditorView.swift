@@ -133,7 +133,7 @@ struct WeeklyPlanEditorView: View {
                     }
                 }
             }
-            .padding(.top, LiquidSpace.topeScroll)
+            .padding(.top, EntrenarMetrics.heroKickerTop)
             .padding(.horizontal, LiquidSpace.s600)
             .padding(.bottom, LiquidSpace.s600)
             .frame(maxWidth: .infinity, alignment: .leading)
