@@ -90,10 +90,14 @@ struct WatchIdleView: View {
                             // already reads for Reduce Motion.
                             .environment(\.liquidAmbientPaused, isLuminanceReduced)
                     }
-                    Text(verbatim: comoSeLlena)
-                        .font(LiquidType.filaConteo)
-                        .foregroundStyle(LiquidOLED.tintaSecundaria)
-                        .multilineTextAlignment(.center)
+                    // Con rutina y botón «Empezar» visible, la línea de «inicia en el iPhone»
+                    // contradice. Sin rutina (o sin poder empezar aquí), sí se muestra.
+                    if manager.idleContext.routineName == nil {
+                        Text(verbatim: comoSeLlena)
+                            .font(LiquidType.filaConteo)
+                            .foregroundStyle(LiquidOLED.tintaSecundaria)
+                            .multilineTextAlignment(.center)
+                    }
                 }
                 .accessibilityElement(children: .combine)
                 .accessibilityLabel(idleAccessibilityLabel)
@@ -130,7 +134,10 @@ struct WatchIdleView: View {
                 label = label + Text(verbatim: ". ") + Text(LocalizedStringKey(advice))
             }
         }
-        return label + Text(verbatim: ". ") + Text(verbatim: comoSeLlena)
+        if manager.idleContext.routineName == nil {
+            label = label + Text(verbatim: ". ") + Text(verbatim: comoSeLlena)
+        }
+        return label
     }
 
     private func startButton(_ routine: String) -> some View {

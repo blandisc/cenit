@@ -350,7 +350,11 @@ struct MetricDetailView: View {
                 // numeral whose identity the title already names; the «as of <date>» clause carries
                 // the temporal context.
                 datos: [.init(valor: LiquidCajita.sinDato, rotulo: "",
-                              a11y: String(localized: "no data"), ausente: true)])
+                              a11y: String(localized: "no data"), ausente: true)],
+                // Loading vs empty — same distinction MetricDetailScreen.liquidClausulaSinDato opens with.
+                clausula: yaLeido
+                    ? String(localized: "No reading yet for this metric.")
+                    : String(localized: "Reading your history…"))
         }
     }
 

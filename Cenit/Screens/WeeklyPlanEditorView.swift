@@ -37,6 +37,8 @@ struct WeeklyPlanEditorView: View {
     var openDay: (Int) -> Void = { _ in }
 
     @State private var loaded = false
+    /// `repo.storeHandle()` came back nil — a real read failure, distinct from «cero rutinas».
+    @State private var readError = false
     @State private var routines: [Routine] = []
     @State private var folders: [RoutineFolder] = []
     /// The split as `weekday → routineId` (Calendar weekday convention, 1 = Sun … 7 = Sat).
@@ -119,12 +121,16 @@ struct WeeklyPlanEditorView: View {
             VStack(alignment: .leading, spacing: LiquidSpace.s300) {
                 header
                 if loaded {
-                    if !routines.isEmpty {
-                        weekSection
-                        programaSection
-                        volumeFooter
+                    if readError {
+                        loadErrorState
+                    } else {
+                        if !routines.isEmpty {
+                            weekSection
+                            programaSection
+                            volumeFooter
+                        }
+                        routinesSection
                     }
-                    routinesSection
                 }
             }
             .padding(.top, EntrenarMetrics.heroKickerTop)
@@ -1212,8 +1218,24 @@ struct WeeklyPlanEditorView: View {
         }
     }
 
+    /// «Error de lectura», distinto de «cero rutinas» — mismo patrón `LiquidAviso(cta:)` que
+    /// `PersonalRecordsScreen.errorState`.
+    private var loadErrorState: some View {
+        LiquidAviso(
+            titulo: "",
+            cuerpo: String(localized: "Couldn't read your routines. Try again."),
+            tono: LiquidColor.negativo,
+            cta: String(localized: "Retry"),
+            accion: { Task { await load() } })
+    }
+
     private func load() async {
-        guard let store = await repo.storeHandle() else { loaded = true; return }
+        guard let store = await repo.storeHandle() else {
+            readError = true
+            loaded = true
+            return
+        }
+        readError = false
         let rs = (try? await store.routines()) ?? []
         // Planned volume per routine (mock 1b mini-bars + footer), exercise counts, top muscles, and the
         // classified region — all from the same per-routine exercise fetch.

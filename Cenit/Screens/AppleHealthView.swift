@@ -527,18 +527,12 @@ struct AppleHealthView: View {
     /// Un grupo: rótulo inset + sello de ventana, y debajo sus tarjetas.
     private func chartGroup(_ title: String, recipes: [AppleHealthChartRecipe]) -> some View {
         VStack(alignment: .leading, spacing: LiquidSpace.s300) {
-            HStack(alignment: .firstTextBaseline) {
-                Text(verbatim: title)
-                    .font(LiquidType.franja)
-                    .tracking(LiquidType.franjaTracking)
-                    .textCase(.uppercase)
-                    .foregroundStyle(LiquidColor.tinta500)
-                    .accessibilityAddTraits(.isHeader)
-                Spacer(minLength: LiquidSpace.s200)
-                Text(verbatim: span.stamp)
-                    .font(LiquidType.captionLectura)
-                    .foregroundStyle(LiquidColor.tinta500)
-            }
+            Text(verbatim: title)
+                .font(LiquidType.franja)
+                .tracking(LiquidType.franjaTracking)
+                .textCase(.uppercase)
+                .foregroundStyle(LiquidColor.tinta500)
+                .accessibilityAddTraits(.isHeader)
             ForEach(recipes, id: \.key) { recipe in
                 chartCard(recipe)
             }

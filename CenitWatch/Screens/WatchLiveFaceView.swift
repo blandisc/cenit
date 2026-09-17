@@ -301,7 +301,7 @@ private struct WatchFaceMetrics: View {
     // State 7 — the session keeps serving (timer + rests + haptics); only pulse + saving degrade.
     private var permissionWarning: some View {
         VStack(alignment: .leading, spacing: LiquidSpace.s100) {
-            Text("No access to Health. Without it there's no pulse and nothing saved.")
+            Text("No access to Health. Without it there's no live pulse; your iPhone still saves its estimate.")
                 .font(LiquidType.filaConteo)
                 .foregroundStyle(LiquidOLED.tintaSecundaria)
                 .lineLimit(nil)

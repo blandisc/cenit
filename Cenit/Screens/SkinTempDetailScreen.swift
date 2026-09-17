@@ -164,11 +164,12 @@ struct SkinTempDetailScreen: View {
             infoEtiqueta: String(localized: "What we measure"),
             onInfo: { withAnimation(LiquidMotion.lift) { infoOpen.toggle() } }
         ) {
-            // El streak chip del papel (:210) vive aquí, como sello del campo — la ranura que
-            // el componente existe para cargar (paridad `StrainDetailScreen` «in progress»).
-            // El tinte ámbar de alarma del papel no cruza: el sello habla en papel, la
-            // dirección la dicen las palabras «más cálida / más fría».
-            if let s = streak {
+            // StressDetailScreen: date the hero when the anchor is not anoche.
+            if let key = anchorDayKey, !anchorIsLastNight {
+                LiquidCampoSello(chipDate(key))
+            } else if let s = streak {
+                // El streak chip del papel (:210) vive aquí, como sello del campo — la ranura que
+                // el componente existe para cargar (paridad `StrainDetailScreen` «in progress»).
                 LiquidCampoSello(streakTexto(s))
             }
         }
@@ -281,7 +282,7 @@ struct SkinTempDetailScreen: View {
         if let i = indiceAncla {
             let b = Self.bandasTemp[i]
             LiquidReadingLine(
-                String(localized: "Last night falls in \(b.label) · 0 is your own base"),
+                String(localized: "\(anchorFallsPrefix) falls in \(b.label) · 0 is your own base"),
                 highlight: b.label, highlightTone: Self.tono)
         }
     }
@@ -320,7 +321,7 @@ struct SkinTempDetailScreen: View {
                               valor: "\(Self.fmt(stat.mean)) °C"),
                         .init(rotulo: String(localized: "Variation"),
                               valor: "±\(String(format: "%.1f", stat.stdev)) °C"),
-                        .init(rotulo: String(localized: "Last night"),
+                        .init(rotulo: anchorRotulo,
                               valor: model.today.map { "\(Self.fmt($0)) °C" } ?? LiquidCajita.sinDato,
                               tono: model.today != nil ? Self.tono : nil),
                     ])
@@ -404,7 +405,7 @@ struct SkinTempDetailScreen: View {
     /// Mismo contrato que `SleepDetailScreen.carrilesHistorial` / `StrainDetailScreen`.
     private func carrilesHistorial(_ window: MetricWindow) -> [LiquidLevelsList.Fila] {
         let hint = String(localized: "Highlights this level on the chart")
-        let hoyRotulo = String(localized: "· last night")
+        let hoyRotulo = anchorChipSuffix.map { String(localized: "· \($0)") } ?? ""
         let iAncla = indiceAncla
         return Self.bandasTemp.indices.map { i in
             let b = Self.bandasTemp[i]
@@ -571,9 +572,55 @@ struct SkinTempDetailScreen: View {
             // reloj es quien la mide, no «Apple Salud» a secas.
             LiquidOrigenChip(glyph: .termo, badgeTono: Self.tono,
                              etiqueta: String(localized: "Apple Watch"),
-                             sufijo: String(localized: "last night"))
+                             sufijo: originWhenSuffix)
         }
         .liquidSeccion(top: LiquidSpace.s200, bottom: LiquidSpace.s800)
+    }
+
+    // MARK: - Anchor dating (StressDetailScreen pattern)
+
+    /// Day key of the hero reading — latest series point when `today` is set; nil when no anchor.
+    private var anchorDayKey: String? {
+        guard model.today != nil else { return nil }
+        return model.series.last?.day
+    }
+
+    /// True when the anchor night is today or yesterday (honest «last night»).
+    private var anchorIsLastNight: Bool {
+        guard let key = anchorDayKey else { return false }
+        let todayKey = Repository.localDayKey(Date())
+        if key == todayKey { return true }
+        guard let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: Date()) else { return false }
+        return key == Repository.localDayKey(yesterday)
+    }
+
+    private func chipDate(_ dayKey: String) -> String {
+        Self.dayParser.date(from: dayKey).map { Self.chipDateFormatter.string(from: $0) } ?? ""
+    }
+
+    /// «Last night» only when the anchor is anoche; otherwise the real date (StressDetailScreen).
+    private var anchorFallsPrefix: String {
+        guard let key = anchorDayKey else { return String(localized: "The reading") }
+        if anchorIsLastNight { return String(localized: "Last night") }
+        return chipDate(key)
+    }
+
+    private var anchorRotulo: String {
+        guard let key = anchorDayKey else { return String(localized: "Anchor") }
+        if anchorIsLastNight { return String(localized: "Last night") }
+        return chipDate(key)
+    }
+
+    private var anchorChipSuffix: String? {
+        guard let key = anchorDayKey else { return nil }
+        if anchorIsLastNight { return String(localized: "last night") }
+        return chipDate(key)
+    }
+
+    private var originWhenSuffix: String {
+        guard let key = anchorDayKey else { return "" }
+        if anchorIsLastNight { return String(localized: "last night") }
+        return chipDate(key)
     }
 
     // MARK: - Format
@@ -584,6 +631,14 @@ struct SkinTempDetailScreen: View {
 
     /// The canonical UTC day-key formatter — read side of the day-key contract (FER-754).
     static let dayParser = DayKey.utcFormatter
+
+    /// Short localized date for a non-anoche anchor ("sáb 20 jun") — same template as StressDetailScreen.
+    static let chipDateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.timeZone = TimeZone(identifier: "UTC")
+        f.setLocalizedDateFormatFromTemplate("EEE d MMM")
+        return f
+    }()
 }
 
 // MARK: - SkinTempDetailModel — the data the screen draws, built ONCE from the repo (DB-free presentation)

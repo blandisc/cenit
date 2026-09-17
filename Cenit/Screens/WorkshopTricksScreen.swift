@@ -79,7 +79,7 @@ struct WorkshopTricksScreen: View {
               body: "Minutes times how hard it was. Without a watch, it's your load."),
         .init(id: "rest-ways", systemImage: "timer",
               tint: LiquidColor.tinta900,
-              title: "Rest · five ways",
+              title: "Rest · two ways",
               body: "By the clock or by your pulse."),
         .init(id: "program", systemImage: "calendar",
               tint: LiquidColor.tinta900,

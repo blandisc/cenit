@@ -64,6 +64,7 @@ struct OnbActoEncendido: View {
     @State private var avance: Double = 0
     @State private var etapaClave: String?
     @State private var etapaN = 1
+    @State private var etapaTotal = 15
     @State private var ultimaEtapa = false
     @State private var anunciados: Set<Int> = []
     /// «La espera enseña» (FER-437 · D1): las estrofas ya ganadas, en el orden en que se leen. Las
@@ -135,7 +136,7 @@ struct OnbActoEncendido: View {
         // filas— imprime qué hará Cénit con eso y en qué pestaña vive. Cualquier prefijo es una clase
         // completa: si el sync acaba en el piso, lo que alcanzó a salir se lee entero.
         if estrofas.isEmpty {
-            Text(OnbCopy.conexionProgreso(nombreEtapa, etapaN).teñida(nombreEtapa, con: tonoEtapa))
+            Text(OnbCopy.conexionProgreso(nombreEtapa, etapaN, total: etapaTotal).teñida(nombreEtapa, con: tonoEtapa))
                 .font(LiquidType.captionLectura)
                 .foregroundStyle(LiquidColor.tinta500)
                 .fixedSize(horizontal: false, vertical: true)
@@ -144,7 +145,7 @@ struct OnbActoEncendido: View {
                 // Se puede LEER barriendo (esconderla le quitaría el progreso a quien usa VoiceOver),
                 // pero no se ANUNCIA: los 15 pasos salen por hitos (≤3, ver `anunciarHitos`). Quince
                 // anuncios seguidos convierten una espera tranquila en una metralleta.
-                .accessibilityLabel(Text(String(OnbCopy.conexionProgreso(nombreEtapa, etapaN).characters)))
+                .accessibilityLabel(Text(String(OnbCopy.conexionProgreso(nombreEtapa, etapaN, total: etapaTotal).characters)))
         } else {
             VStack(alignment: .leading, spacing: LiquidSpace.s300) {
                 ForEach(estrofas, id: \.self) { estrofa in
@@ -529,6 +530,7 @@ struct OnbActoEncendido: View {
         guard let p = health.syncProgress else { return }
         let nuevo = Double(p.done) / Double(max(1, p.total))
         etapaClave = p.stageKey
+        etapaTotal = p.total
         etapaN = min(p.total, p.done + 1)
         let esUltima = p.done >= p.total - 1
         if esUltima != ultimaEtapa {
@@ -563,7 +565,7 @@ struct OnbActoEncendido: View {
             AccessibilityNotification.Announcement(texto).post()
         }
         if done == 0 { anunciar(0, OnbCopy.conexionTitular) }
-        if done >= total / 2 { anunciar(1, String(OnbCopy.conexionProgreso(nombreEtapa, etapaN).characters)) }
+        if done >= total / 2 { anunciar(1, String(OnbCopy.conexionProgreso(nombreEtapa, etapaN, total: etapaTotal).characters)) }
         if done >= total - 1 { anunciar(2, OnbCopy.conexionCalculando) }
     }
 
