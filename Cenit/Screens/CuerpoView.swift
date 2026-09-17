@@ -562,7 +562,8 @@ private struct CuerpoLanding: View {
             HStack(alignment: .center, spacing: LiquidSpace.s200) {
                 HStack(spacing: LiquidSpace.s150) {
                     TendenciasGlyph(color: LiquidColor.tinta900).frame(width: 20, height: 20)
-                    Text("Tendencias")
+                    // FER-503: clave «Trends» (no isla «Tendencias») — en inglés el dock y el título coinciden.
+                    Text("Trends")
                         .font(LiquidType.displayS).tracking(LiquidType.displaySTracking)
                         .foregroundStyle(LiquidColor.tinta900)
                 }
@@ -1015,7 +1016,8 @@ private struct CuerpoLanding: View {
         // byte-identical ("Day Strain" / originComputed).
         let v = model.displayedDayStrain
         let estimated = repo.isStrainEstimated(repo.today?.day ?? Repository.localDayKey(Date()))
-        return statColumn(estimated ? "Day load" : "Day Strain", value: v.map { CenitFormat.decimal($0, places: 1) },
+        // FER-503: canónico «Effort» (nunca «Day Strain») — misma fuente que Explorer/Hoy.
+        return statColumn(estimated ? "Day load" : "Effort", value: v.map { CenitFormat.decimal($0, places: 1) },
                           color: MetricIdentity.identity(forKey: "strain").hue,
                           spark: windowedSpark { $0.strain }) {
             // Opens the rich Detalle de Esfuerzo (FER-238) — built fresh from the in-memory dashboard.
@@ -1102,7 +1104,8 @@ private struct CuerpoLanding: View {
     private var respStat: some View {
         let r = resolveMeasured { $0.respRateBpm }
         let fromApple = r?.fromApple == true
-        return statColumn("Respiratory", value: r.map { CenitFormat.decimal($0.value, places: 1) }, unit: String(localized: "rpm"),
+        // FER-503 / HJ-08: canónico «Breathing», nunca «Respiratory».
+        return statColumn("Breathing", value: r.map { CenitFormat.decimal($0.value, places: 1) }, unit: String(localized: "rpm"),
                           color: MetricIdentity.identity(forKey: "resp_rate").hue,
                           fromApple: fromApple,
                           spark: windowedSpark { $0.respRateBpm }) {
@@ -1113,7 +1116,8 @@ private struct CuerpoLanding: View {
     private var skinTempStat: some View {
         let r = resolveMeasured { $0.skinTempDevC }
         let fromApple = r?.fromApple == true
-        return statColumn("Skin temp", value: r.map { signedOneDecimal($0.value) }, unit: "°C",
+        // FER-503: canónico «Skin Temperature», nunca «Skin temp».
+        return statColumn("Skin Temperature", value: r.map { signedOneDecimal($0.value) }, unit: "°C",
                           color: MetricIdentity.identity(forKey: "skin_temp").hue,
                           fromApple: fromApple,
                           spark: windowedSpark { $0.skinTempDevC }) {

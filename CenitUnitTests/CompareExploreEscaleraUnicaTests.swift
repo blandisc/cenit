@@ -110,6 +110,11 @@ final class CompareExploreEscaleraUnicaTests: XCTestCase {
         // inglés, así que se afirma contra el defaultValue EN.
         XCTAssertEqual(title("hrv"), "HRV", "Hoy titula «HRV», no «Heart Rate Variability»")
         XCTAssertEqual(title("rhr"), "Resting HR", "Hoy titula «Resting HR», no «Resting Heart Rate»")
+        // FER-503 / HJ-08: respiración canónica = Breathing (nunca Respiratory / Respiration).
+        XCTAssertEqual(title("resp_rate"), "Breathing", "Hoy titula «Breathing», no «Respiratory Rate»")
+        XCTAssertEqual(MetricIdentity.nombre(forKey: "resp_rate"), "Breathing")
+        XCTAssertEqual(MetricIdentity.nombre(forKey: "strain"), "Effort")
+        XCTAssertEqual(MetricIdentity.nombre(forKey: "skin_temp"), "Skin Temperature")
         // Una métrica sin override conserva su título de catálogo.
         XCTAssertEqual(title("recovery"), "Recovery")
         // El título CRUDO del catálogo sigue intacto (otros lo consumen como identidad): el largo se
@@ -117,6 +122,7 @@ final class CompareExploreEscaleraUnicaTests: XCTestCase {
         XCTAssertEqual(MetricCatalog.all.first { $0.key == "strain" }!.title, "Day Strain")
         XCTAssertEqual(MetricCatalog.all.first { $0.key == "hrv" }!.title, "Heart Rate Variability")
         XCTAssertEqual(MetricCatalog.all.first { $0.key == "rhr" }!.title, "Resting Heart Rate")
+        XCTAssertEqual(MetricCatalog.all.first { $0.key == "resp_rate" }!.title, "Respiratory Rate")
     }
 
     // MARK: - foco 2: UN solo rango (ExploreRange), con la frase heredada de CompareRange

@@ -172,7 +172,7 @@ struct WorkoutHistoryScreen: View {
                     Button { onClose() } label: {
                         HStack(spacing: LiquidSpace.s100) {
                             CenitIcon.back.image.font(LiquidType.iconSF(size: 15))
-                            Text("Tendencias").font(LiquidType.tituloGemela)
+                            Text("Trends").font(LiquidType.tituloGemela)
                         }
                     }
                     .foregroundStyle(LiquidColor.tinta900)
@@ -756,7 +756,8 @@ struct WorkoutHistoryScreen: View {
         let energyUnit: LocalizedStringKey? = m.energyKcal != nil ? "kcal" : nil
         HStack(spacing: LiquidSpace.s200) {
             monthTile("Sessions", sessionsValue, caption: "this month")
-            monthTile("Hours", hoursValue, caption: "trained")
+            // FER-503: clave propia «Hours trained» (no compartir «trained» con el widget del día).
+            monthTile("Hours", hoursValue, caption: "Hours trained")
             monthTile("Energy", energyValue, unit: energyUnit, caption: "measured")
         }
     }

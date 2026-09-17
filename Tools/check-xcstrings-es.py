@@ -224,6 +224,100 @@ def check_keys():
     print(f"✅ toda clave usada existe en su catálogo ({len(missing)} excepciones en la base)")
     return 0
 
+# ---------------------------------------------------------------------------- 3. glosario es (FER-503 · C5)
+#
+# Una cosa, un nombre. Dos guardas:
+#   (a) palabras prohibidas en valores `es` (Apple Health, entreno, bpm, teléfono, equipo-aparato…);
+#   (b) claves compartidas entre iPhone / Watch / widgets deben tener el MISMO `es`.
+#
+# Decisión bpm vs lpm (FER-503): el catálogo ya predominaba en «lpm» (29 vs 7); LENGUAJE §8
+# decía «bpm se mantiene» y estaba rancio. Canónico = **lpm**; el gate prohíbe «bpm» en `es`.
+
+FORBIDDEN_ES = [
+    # (regex, etiqueta_para_mensaje)
+    (re.compile(r"Apple Health"), "Apple Health → Apple Salud"),
+    (re.compile(r"\bentrenos?\b"), "entreno(s) → entrenamiento(s)"),
+    (re.compile(r"\bbpm\b"), "bpm → lpm"),
+    (re.compile(r"\btel[eé]fono\b", re.I), "teléfono → iPhone / dispositivo"),
+    # Solo el sentido «aparato» (no el gym «Equipo» / «Sin equipo» / «Elige el equipo»).
+    (re.compile(r"\b(?:tu|este|propio) equipo\b"), "equipo (aparato) → dispositivo / iPhone"),
+]
+
+def _es_value(entry):
+    return (entry.get("localizations") or {}).get("es", {}).get("stringUnit", {}).get("value")
+
+def forbidden_es_hits(catalog_path=CAT):
+    """[(clave, regla, fragmento_es)] de valores es que rompen el glosario."""
+    strings = json.load(open(catalog_path, encoding="utf-8")).get("strings", {})
+    out = []
+    for key, entry in strings.items():
+        es = _es_value(entry)
+        if not es:
+            continue
+        for rx, label in FORBIDDEN_ES:
+            if rx.search(es):
+                out.append((key, label, es))
+                break
+    return out
+
+def check_forbidden_es():
+    # Los tres catálogos: una fuga en Watch/widgets también llega al usuario.
+    rc = 0
+    for name, path in CATALOGS.items():
+        if not os.path.exists(path):
+            continue
+        hits = forbidden_es_hits(path)
+        if hits:
+            print(f"❌ {name}: {len(hits)} valor(es) es con palabra prohibida del glosario (FER-503):")
+            for key, label, es in hits[:40]:
+                print(f"  [{label}] {key!r}\n      {es!r}")
+            if len(hits) > 40:
+                print(f"  … y {len(hits) - 40} más")
+            rc = 1
+        else:
+            print(f"✅ {name}: sin palabras prohibidas del glosario en es")
+    return rc
+
+def shared_es_diffs():
+    """Claves presentes en ≥2 catálogos cuyo `es` difiere. Devuelve [(clave, {cat: es})]."""
+    loaded = {}
+    for name, path in CATALOGS.items():
+        if os.path.exists(path):
+            loaded[name] = json.load(open(path, encoding="utf-8")).get("strings", {})
+    # Pares (y el triple) — toda clave en al menos dos catálogos.
+    names = list(loaded)
+    out = []
+    seen = set()
+    for i, a in enumerate(names):
+        for b in names[i + 1:]:
+            for key in set(loaded[a]) & set(loaded[b]):
+                if key in seen:
+                    continue
+                vals = {}
+                for n in names:
+                    if key not in loaded[n]:
+                        continue
+                    es = _es_value(loaded[n][key])
+                    if es:
+                        vals[n] = es
+                if len(vals) >= 2 and len(set(vals.values())) > 1:
+                    seen.add(key)
+                    out.append((key, vals))
+    return out
+
+def check_shared_es():
+    diffs = shared_es_diffs()
+    if diffs:
+        print(f"❌ {len(diffs)} clave(s) compartida(s) con `es` distinto entre catálogos (FER-503):")
+        for key, vals in diffs[:40]:
+            detail = ", ".join(f"{n}={v!r}" for n, v in sorted(vals.items()))
+            print(f"  {key!r}: {detail}")
+        if len(diffs) > 40:
+            print(f"  … y {len(diffs) - 40} más")
+        return 1
+    print("✅ claves compartidas: mismo `es` entre iPhone / Watch / widgets")
+    return 0
+
 # ---------------------------------------------------------------------------- --self-test
 
 # Lo que el extractor DEBE ver y lo que DEBE ignorar. La primera mitad son los seis strings que
@@ -287,8 +381,77 @@ def self_test():
         print(f"❌ self-test: {len(malos)}/{len(CASES)} caso(s) del extractor fallaron.")
         return 1
     print(f"✅ self-test: {len(CASES)} casos del extractor OK")
+
+    # FER-503 · glosario: las regex de palabras prohibidas + la comparación de compartidas.
+    glosario_malos = []
+    # (a) cada regla debe disparar sobre un positivo y callar sobre un negativo.
+    POS = [
+        ("Apple Health no está", "Apple Health → Apple Salud"),
+        ("Recordatorio de entreno", "entreno(s) → entrenamiento(s)"),
+        ("máx 180 bpm", "bpm → lpm"),
+        ("en tu teléfono", "teléfono → iPhone / dispositivo"),
+        ("en tu equipo", "equipo (aparato) → dispositivo / iPhone"),
+        ("mi propio equipo", "equipo (aparato) → dispositivo / iPhone"),
+    ]
+    NEG = [
+        "Conectar Apple Salud",
+        "Recordatorio de entrenamiento",
+        "máx 180 lpm",
+        "en tu iPhone",
+        "en tu dispositivo",
+        "Sin equipo",       # gym — no aparato
+        "Elige el equipo",  # gym
+        "Equipo",           # gym label
+    ]
+    for sample, label in POS:
+        hit = next((lab for rx, lab in FORBIDDEN_ES if rx.search(sample)), None)
+        if hit != label:
+            glosario_malos.append(f"POS {sample!r}: esperaba {label!r}, obtuvo {hit!r}")
+    for sample in NEG:
+        hit = next((lab for rx, lab in FORBIDDEN_ES if rx.search(sample)), None)
+        if hit is not None:
+            glosario_malos.append(f"NEG {sample!r}: no debía disparar, obtuvo {hit!r}")
+
+    # (b) shared_es_diffs ve divergencia cuando dos catálogos discrepan.
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmp:
+        def write_cat(name, mapping):
+            path = os.path.join(tmp, f"{name}.xcstrings")
+            strings = {k: {"localizations": {"es": {"stringUnit": {"state": "translated", "value": v}}}}
+                       for k, v in mapping.items()}
+            json.dump({"strings": strings}, open(path, "w", encoding="utf-8"))
+            return path
+        pa = write_cat("app", {"Next": "Siguiente", "Paused": "En pausa", "SoloApp": "x"})
+        pw = write_cat("watch", {"Next": "Sigue", "Paused": "En pausa", "SoloWatch": "y"})
+        # monkey-patch CATALOGS for this check
+        global CATALOGS
+        old = CATALOGS
+        try:
+            CATALOGS = {"app": pa, "watch": pw, "widgets": write_cat("widgets", {})}
+            diffs = dict(shared_es_diffs())
+            if "Next" not in diffs:
+                glosario_malos.append("shared_es_diffs debió reportar «Next» (Siguiente≠Sigue)")
+            if "Paused" in diffs:
+                glosario_malos.append("shared_es_diffs NO debió reportar «Paused» (iguales)")
+            # negativo: catálogos alineados → sin diffs
+            CATALOGS = {
+                "app": write_cat("app2", {"Next": "Sigue"}),
+                "watch": write_cat("watch2", {"Next": "Sigue"}),
+                "widgets": write_cat("w2", {}),
+            }
+            if shared_es_diffs():
+                glosario_malos.append("shared_es_diffs debió quedar vacío con es idéntico")
+        finally:
+            CATALOGS = old
+
+    if glosario_malos:
+        for m in glosario_malos:
+            print(f"❌ glosario self-test: {m}")
+        print(f"❌ self-test glosario: {len(glosario_malos)} fallo(s)")
+        return 1
+    print("✅ self-test glosario: palabras prohibidas + claves compartidas OK")
     return 0
 
 if "--self-test" in sys.argv:
     sys.exit(self_test())
-sys.exit(check_es() | check_keys())
+sys.exit(check_es() | check_keys() | check_forbidden_es() | check_shared_es())

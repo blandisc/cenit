@@ -1237,7 +1237,7 @@ struct MetricDetailScreen: View {
                 let hfnu = denom > 0 ? Int((100 * s.hf.value / denom).rounded()) : 0
                 let lfnu = 100 - hfnu   // fuerza suma = 100, sin artefacto de redondeo
                 LiquidCajitaGrid {
-                    LiquidCajita(rotulo: "\(String(localized: "Respiratory")) · HF",
+                    LiquidCajita(rotulo: "\(MetricIdentity.nombre(forKey: "resp_rate")) · HF",
                                  valor: "\(hfnu)",
                                  unidad: "%",
                                  pie: liquidSpectralPie(

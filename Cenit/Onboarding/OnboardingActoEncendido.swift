@@ -729,20 +729,16 @@ private struct OnbEstrofaFila: View {
 /// convertiría el progreso en un arcoíris y le quitaría el significado al color.
 enum OnbEtapa {
 
+    /// FER-503: etapas con métrica de catálogo leen `MetricIdentity.nombre` (misma fuente que
+    /// DataSourcesView / Explorer). Las que no tienen fila de catálogo conservan su clave onb.*.
     static func nombre(_ clave: String?) -> String {
         switch clave {
-        case "resting_hr":        return String(localized: "onb.etapa.rhr", defaultValue: "Your resting heart")
-        case "avg_hr":            return String(localized: "onb.etapa.avghr", defaultValue: "Your daily rhythm")
-        case "max_hr":            return String(localized: "onb.etapa.maxhr", defaultValue: "Your peak rhythm")
-        case "hrv":               return String(localized: "onb.etapa.hrv", defaultValue: "Your variability")
-        case "spo2":              return String(localized: "onb.etapa.spo2", defaultValue: "Your oxygen")
-        case "resp_rate":         return String(localized: "onb.etapa.resp", defaultValue: "Your breathing")
-        case "steps":             return String(localized: "onb.etapa.pasos", defaultValue: "Your steps")
-        case "active_kcal":       return String(localized: "onb.etapa.gasto", defaultValue: "Your burn")
+        case "resting_hr", "avg_hr", "max_hr", "hrv", "spo2", "resp_rate",
+             "steps", "active_kcal", "vo2max", "skin_temp":
+            return MetricIdentity.nombre(forKey: clave!)
+        case "sleep":
+            return MetricIdentity.nombre(forKey: "asleep_min")
         case "basal_kcal":        return String(localized: "onb.etapa.basal", defaultValue: "Your resting burn")
-        case "vo2max":            return String(localized: "onb.etapa.vo2", defaultValue: "Your VO₂ max")
-        case "skin_temp":         return String(localized: "onb.etapa.temp", defaultValue: "Your temperature")
-        case "sleep":             return String(localized: "onb.etapa.sueno", defaultValue: "Your sleep")
         case "workouts":          return String(localized: "onb.etapa.entrenos", defaultValue: "Your workouts")
         case "hr_apple_workouts": return String(localized: "onb.etapa.pulso", defaultValue: "Your training pulse")
         default:                  return String(localized: "onb.etapa.guardando", defaultValue: "Saving")

@@ -31,7 +31,8 @@ struct HojaDecideTuDia: View {
                                     defaultValue: "How much and how well you slept last night, against the recommended range."),
                     sello: .vota)
             votante(orbe: .simple(LiquidColor.rosa),
-                    titulo: String(localized: "manual.deciden.fc", defaultValue: "Resting heart rate"),
+                    // FER-503: canónico «Resting HR» (nunca el largo «Resting heart rate»).
+                    titulo: MetricIdentity.nombre(forKey: "rhr"),
                     detalle: String(localized: "manual.deciden.fc.sub",
                                     defaultValue: "Your lowest pulse of the night, against your recent weeks."),
                     sello: .vota)

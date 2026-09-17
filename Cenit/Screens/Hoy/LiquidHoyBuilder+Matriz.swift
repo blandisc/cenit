@@ -427,10 +427,10 @@ extension LiquidHoyBuilder {
             a11yValor: {
                 var partes: [String] = []
                 if valorTemp != "—" {
-                    partes.append("\(String(localized: "Skin temp")) \(valorTemp)")
+                    partes.append("\(MetricIdentity.nombre(forKey: "skin_temp")) \(valorTemp)")
                 }
                 if valorResp != "—" {
-                    partes.append("\(String(localized: "Breathing")) \(valorResp) \(String(localized: "rpm"))")
+                    partes.append("\(MetricIdentity.nombre(forKey: "resp_rate")) \(valorResp) \(String(localized: "rpm"))")
                 }
                 return partes.isEmpty ? nil : partes.joined(separator: ", ")
             }(),

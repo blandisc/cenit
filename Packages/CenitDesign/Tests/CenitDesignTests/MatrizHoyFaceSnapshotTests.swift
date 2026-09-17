@@ -82,7 +82,7 @@ final class MatrizHoyFaceSnapshotTests: XCTestCase {
                                         dominio: -1...1, alertaHoy: .ninguna),
                     chip: .init(texto: "At ease", tono: .calma),
                     renglones: [
-                        MatrizRenglon(id: "skintemp", titulo: "Skin temp",
+                        MatrizRenglon(id: "skintemp", titulo: "Skin Temperature",
                                       valor: "+0.1°", hue: LiquidColor.doradoTemp,
                                       chartID: "matriz-guardian-temp",
                                       chart: .lineaSerena(puntos: temp, banda: -0.4...0.4,

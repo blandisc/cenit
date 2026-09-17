@@ -152,7 +152,7 @@ struct SkinTempDetailScreen: View {
     private func campoConDato(_ v: Double) -> some View {
         LiquidCampoMetrica(
             tono: Self.tono,
-            titulo: String(localized: "Skin temp"),
+            titulo: MetricIdentity.nombre(forKey: "skin_temp"),
             glifo: .termo,
             // B7: a11y deletreado (calco del patrón de las hermanas «%@ out of 21») — «+0.5»
             // a secas se dicta ambiguo; la voz dice grados y contra qué base.
@@ -179,7 +179,7 @@ struct SkinTempDetailScreen: View {
     private var campoSinDato: some View {
         LiquidCampoMetrica(
             tono: Self.tono,
-            titulo: String(localized: "Skin temp"),
+            titulo: MetricIdentity.nombre(forKey: "skin_temp"),
             glifo: .termo,
             datos: [.init(valor: LiquidCajita.sinDato,
                           rotulo: String(localized: "vs your base"),

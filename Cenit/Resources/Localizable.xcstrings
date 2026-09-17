@@ -1,6 +1,22 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Hours trained" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "trained"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "entrenadas"
+          }
+        }
+      }
+    },
     "Physical age is validated for ages 20 to 80. Cénit doesn't estimate it outside that range." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1123,7 +1139,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Si no tocas el teléfono, iOS lo bloquea a media serie. Solo aplica mientras la sesión está abierta, y usa más batería: tu iPhone vuelve a su bloqueo automático normal cuando termina la sesión."
+            "value" : "Si no tocas el iPhone, iOS lo bloquea a media serie. Solo aplica mientras la sesión está abierta, y usa más batería: tu iPhone vuelve a su bloqueo automático normal cuando termina la sesión."
           }
         }
       }
@@ -1213,7 +1229,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Automática · %@ bpm"
+            "value" : "Automática · %@ lpm"
           }
         }
       }
@@ -1233,7 +1249,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Exportación de Apple Health"
+            "value" : "Exportación de Apple Salud"
           }
         }
       }
@@ -1243,7 +1259,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Importa una exportación de Apple Health (app Salud → perfil → Exportar todos los datos de salud → export.zip). 7 años de FC, VFC, sueño, SpO₂, pasos y más: se procesan en tu iPhone. Las exportaciones grandes tardan uno o dos minutos."
+            "value" : "Importa una exportación de Apple Salud (app Salud → perfil → Exportar todos los datos de salud → export.zip). 7 años de FC, VFC, sueño, SpO₂, pasos y más: se procesan en tu iPhone. Las exportaciones grandes tardan uno o dos minutos."
           }
         }
       }
@@ -1253,7 +1269,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Apple Health no está disponible en este dispositivo."
+            "value" : "Apple Salud no está disponible en este dispositivo."
           }
         }
       }
@@ -1263,7 +1279,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Se negó el acceso a Apple Health. Actívalo en Ajustes › Privacidad y seguridad › Salud › Cénit."
+            "value" : "Se negó el acceso a Apple Salud. Actívalo en Ajustes › Privacidad y seguridad › Salud › Cénit."
           }
         }
       }
@@ -1283,7 +1299,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Elige una carpeta en iCloud Drive y Cénit guarda ahí una copia reciente de todos tus datos. Tu historial vive solo dentro de la app, así que esto es lo que lo protege si reinstalas Cénit o cambias de teléfono. Basta un Apple ID gratis."
+            "value" : "Elige una carpeta en iCloud Drive y Cénit guarda ahí una copia reciente de todos tus datos. Tu historial vive solo dentro de la app, así que esto es lo que lo protege si reinstalas Cénit o cambias de iPhone. Basta un Apple ID gratis."
           }
         }
       }
@@ -1880,7 +1896,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ bpm para estar listo"
+            "value" : "%@ lpm para estar listo"
           }
         }
       }
@@ -3653,7 +3669,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld bpm para listo"
+            "value" : "%lld lpm para listo"
           }
         }
       }
@@ -9495,7 +9511,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Una exportación de Apple Health agrega FC, VFC, sueño, oxígeno en sangre, pasos y peso."
+            "value" : "Una exportación de Apple Salud agrega FC, VFC, sueño, oxígeno en sangre, pasos y peso."
           }
         }
       }
@@ -11407,7 +11423,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Entre serie y serie pasan dos minutos sin tocar nada y el teléfono se duerme justo cuando lo levantas para anotar. Solo aplica mientras la sesión está abierta, y gasta más batería: al terminar la sesión, tu iPhone vuelve a su bloqueo normal."
+            "value" : "Entre serie y serie pasan dos minutos sin tocar nada y el iPhone se duerme justo cuando lo levantas para anotar. Solo aplica mientras la sesión está abierta, y gasta más batería: al terminar la sesión, tu iPhone vuelve a su bloqueo normal."
           }
         }
       }
@@ -12471,7 +12487,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Calculado en el teléfono"
+            "value" : "Calculado en el iPhone"
           }
         }
       }
@@ -13790,7 +13806,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Calculado en tu teléfono"
+            "value" : "Calculado en tu iPhone"
           }
         }
       }
@@ -15296,7 +15312,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cénit lo calcula en tu teléfono a partir de tu frecuencia cardiaca del día: cada segundo se asigna a una zona (1–5) y el total se comprime a una escala de 0 a 21."
+            "value" : "Cénit lo calcula en tu iPhone a partir de tu frecuencia cardiaca del día: cada segundo se asigna a una zona (1–5) y el total se comprime a una escala de 0 a 21."
           }
         }
       }
@@ -18509,7 +18525,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Todo en tu teléfono"
+            "value" : "Todo en tu iPhone"
           }
         }
       }
@@ -19603,7 +19619,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Desde Apple Health"
+            "value" : "Desde Apple Salud"
           }
         }
       }
@@ -24937,7 +24953,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Registrar entreno a mano"
+            "value" : "Registrar entrenamiento a mano"
           }
         }
       }
@@ -27476,7 +27492,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Siguiente"
+            "value" : "Sigue"
           }
         }
       }
@@ -28804,7 +28820,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aún no hay esfuerzo. El Esfuerzo del día se calcula de la frecuencia cardiaca de tus entrenos; vuelve a abrir esto cuando tu próximo entreno sincronice desde Apple Salud."
+            "value" : "Aún no hay esfuerzo. El Esfuerzo del día se calcula de la frecuencia cardiaca de tus entrenamientos; vuelve a abrir esto cuando tu próximo entrenamiento sincronice desde Apple Salud."
           }
         }
       }
@@ -30908,7 +30924,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Abre el formulario de entreno a mano"
+            "value" : "Abre el formulario de entrenamiento a mano"
           }
         }
       }
@@ -33564,7 +33580,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Leyendo tu historial de Apple Health…"
+            "value" : "Leyendo tu historial de Apple Salud…"
           }
         }
       }
@@ -35214,7 +35230,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "El descanso termina cuando tu pulso baja al umbral. El teléfono avisa con una vibración cuando ya puedes seguir."
+            "value" : "El descanso termina cuando tu pulso baja al umbral. El iPhone avisa con una vibración cuando ya puedes seguir."
           }
         }
       }
@@ -38190,7 +38206,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "HIIT háptico silencioso, el teléfono vibra en las transiciones"
+            "value" : "HIIT háptico silencioso, el iPhone vibra en las transiciones"
           }
         }
       }
@@ -38881,7 +38897,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fuente: Apple Health"
+            "value" : "Fuente: Apple Salud"
           }
         }
       }
@@ -41497,7 +41513,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "El único aviso que sobrevive a que bloquees el teléfono: una notificación que tu iPhone entrega por su cuenta, para cuando lo dejas en el piso entre series. Se programa y se entrega en tu dispositivo; nada sale de ahí."
+            "value" : "El único aviso que sobrevive a que bloquees el iPhone: una notificación que tu iPhone entrega por su cuenta, para cuando lo dejas en el piso entre series. Se programa y se entrega en tu dispositivo; nada sale de ahí."
           }
         }
       }
@@ -43517,7 +43533,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Recordatorio de entreno"
+            "value" : "Recordatorio de entrenamiento"
           }
         }
       }
@@ -45293,7 +45309,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Comparamos tus días con y sin cada hábito que anotas. Si la diferencia es real en tus números, aparece aquí como una palanca.\n\nSon candidatos hasta que un experimento los pruebe. Todo se calcula en tu teléfono."
+            "value" : "Comparamos tus días con y sin cada hábito que anotas. Si la diferencia es real en tus números, aparece aquí como una palanca.\n\nSon candidatos hasta que un experimento los pruebe. Todo se calcula en tu iPhone."
           }
         }
       }
@@ -47286,7 +47302,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Todavía no tienes ningún día de entreno asignado, así que no tengo nada que recordarte."
+            "value" : "Todavía no tienes ningún día de entrenamiento asignado, así que no tengo nada que recordarte."
           }
         }
       }
@@ -48243,7 +48259,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tus datos siguen en este teléfono: reintenta o restaura desde un respaldo de iCloud Drive."
+            "value" : "Tus datos siguen en este iPhone: reintenta o restaura desde un respaldo de iCloud Drive."
           }
         }
       }
@@ -48907,7 +48923,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tu teléfono revisa tus noches y te avisa de tres cosas: lo que se sale de lo normal (una anomalía), lo que viene en tendencia (subiendo o bajando), y qué métricas se mueven juntas.\n\nTodo a partir de tus propios datos."
+            "value" : "Tu iPhone revisa tus noches y te avisa de tres cosas: lo que se sale de lo normal (una anomalía), lo que viene en tendencia (subiendo o bajando), y qué métricas se mueven juntas.\n\nTodo a partir de tus propios datos."
           }
         }
       }
@@ -49346,7 +49362,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tus series están a salvo en este teléfono."
+            "value" : "Tus series están a salvo en este iPhone."
           }
         }
       }
@@ -51862,7 +51878,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "bpm en 60 s"
+            "value" : "lpm en 60 s"
           }
         }
       }
@@ -52400,7 +52416,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "calculado en tu teléfono"
+            "value" : "calculado en tu iPhone"
           }
         }
       }
@@ -57026,7 +57042,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "de descanso · el teléfono vibra al llegar"
+            "value" : "de descanso · el iPhone vibra al llegar"
           }
         }
       }
@@ -59340,7 +59356,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tus señales en el tiempo. Desde hoy: pasos y entrenos. Lo demás, cuando haya reloj."
+            "value" : "Tus señales en el tiempo. Desde hoy: pasos y entrenamientos. Lo demás, cuando haya reloj."
           }
         }
       }
@@ -60037,7 +60053,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Leí y acepto estos términos, y uso Cénit con mi propio equipo y mis propios datos, bajo mi propio riesgo."
+            "value" : "Leí y acepto estos términos, y uso Cénit con mi propio dispositivo y mis propios datos, bajo mi propio riesgo."
           }
         }
       }
@@ -60122,7 +60138,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Lee tus datos de Apple Salud, en tu equipo"
+            "value" : "Lee tus datos de Apple Salud, en tu dispositivo"
           }
         }
       }
@@ -60139,7 +60155,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cada métrica se procesa y guarda solo en tu equipo. No hay servidor de Cénit, ni cuenta, ni telemetría. Quienes mantienen la app no ven tus datos ni los reciben."
+            "value" : "Cada métrica se procesa y guarda solo en tu dispositivo. No hay servidor de Cénit, ni cuenta, ni telemetría. Quienes mantienen la app no ven tus datos ni los reciben."
           }
         }
       }
@@ -62614,7 +62630,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "reposo %1$lld + margen %2$lld bpm"
+            "value" : "reposo %1$lld + margen %2$lld lpm"
           }
         }
       }
@@ -63419,7 +63435,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tus datos ya están de vuelta en este teléfono. Cierra Cénit por completo y vuelve a abrirlo para cargarlos. No se escribe nada hasta que lo hagas."
+            "value" : "Tus datos ya están de vuelta en este iPhone. Cierra Cénit por completo y vuelve a abrirlo para cargarlos. No se escribe nada hasta que lo hagas."
           }
         }
       }
@@ -63453,7 +63469,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tus datos siguen en este teléfono. Reinténtalo, o restaura desde el archivo de respaldo que exportaste."
+            "value" : "Tus datos siguen en este iPhone. Reinténtalo, o restaura desde el archivo de respaldo que exportaste."
           }
         }
       }
@@ -63792,7 +63808,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "el teléfono vibrará"
+            "value" : "el iPhone vibrará"
           }
         }
       }
@@ -64591,7 +64607,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "vs tu normal · ~%lld bpm · %lld sesiones"
+            "value" : "vs tu normal · ~%lld lpm · %lld sesiones"
           }
         }
       }
@@ -65261,7 +65277,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "tu reposo + %lld bpm de margen"
+            "value" : "tu reposo + %lld lpm de margen"
           }
         }
       }
@@ -71217,7 +71233,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aviso matutino y recordatorio de entreno"
+            "value" : "Aviso matutino y recordatorio de entrenamiento"
           }
         }
       }
@@ -71642,7 +71658,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mantener la pantalla encendida, un tono al terminar el descanso y un aviso aunque bloquees el teléfono."
+            "value" : "Mantener la pantalla encendida, un tono al terminar el descanso y un aviso aunque bloquees el iPhone."
           }
         }
       }
@@ -73835,7 +73851,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Qué tanto te cuesta recuperarte de cada tipo de entreno."
+            "value" : "Qué tanto te cuesta recuperarte de cada tipo de entrenamiento."
           }
         }
       }
@@ -74345,7 +74361,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Matutino, de entreno, fin de descanso y malestar: todos opcionales, todos en tu iPhone."
+            "value" : "Matutino, de entrenamiento, fin de descanso y malestar: todos opcionales, todos en tu iPhone."
           }
         }
       }
@@ -78000,7 +78016,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tu patrón: correlación de Spearman del esfuerzo del día anterior con la duración de esa noche (lag +1, mínimo 42 pares; parcial, ajustada por el esfuerzo del mismo día). La duración de una noche con la siguiente (lag +1) usa un parcial de Spearman de segundo orden que sostiene fijo el esfuerzo de ambas noches (mínimo 42 cuádruplas) cuando tu esfuerzo varía en la ventana, o una correlación simple de Pearson en su lugar (mínimo 42 pares) cuando el esfuerzo está ausente o es prácticamente constante, porque ahí no queda calendario de entrenos que pueda confundir. Control de familia (Benjamini-Hochberg) en ambos casos. Fuentes: Kredlow 2015; Atoui 2021; Borbély 1982/2022."
+            "value" : "Tu patrón: correlación de Spearman del esfuerzo del día anterior con la duración de esa noche (lag +1, mínimo 42 pares; parcial, ajustada por el esfuerzo del mismo día). La duración de una noche con la siguiente (lag +1) usa un parcial de Spearman de segundo orden que sostiene fijo el esfuerzo de ambas noches (mínimo 42 cuádruplas) cuando tu esfuerzo varía en la ventana, o una correlación simple de Pearson en su lugar (mínimo 42 pares) cuando el esfuerzo está ausente o es prácticamente constante, porque ahí no queda calendario de entrenamientos que pueda confundir. Control de familia (Benjamini-Hochberg) en ambos casos. Fuentes: Kredlow 2015; Atoui 2021; Borbély 1982/2022."
           }
         }
       }

@@ -60,6 +60,7 @@ private struct WatchFaceMetrics: View {
     // Health-access warning while keeping the timer running.
     private var active: some View {
         VStack(alignment: .leading, spacing: LiquidSpace.s100) {
+            // FER-503: clave «Pulse» → es «FC» (misma señal que el iPhone; nunca «Pulso»).
             Text("Pulse").liquidKicker().foregroundStyle(LiquidOLED.tintaTerciaria).accessibilityHidden(true)
             pulseHero
             Spacer(minLength: LiquidSpace.s200)

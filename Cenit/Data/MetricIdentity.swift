@@ -100,4 +100,13 @@ enum MetricIdentity {
     static func identity(forIngestKey key: String) -> (hue: Color, glyph: LiquidIcon.Glyph?) {
         identity(forKey: MetricCatalog.catalogKey(forIngestKey: key))
     }
+
+    /// El ÚNICO nombre visible de una métrica (FER-503 / HJ-13): delega en
+    /// `MetricDescriptor.canonicalTitle`. Acepta llave de catálogo o de ingesta.
+    static func nombre(forKey key: String) -> String {
+        if let d = MetricCatalog.all.first(where: { $0.key == key }) {
+            return d.canonicalTitle
+        }
+        return MetricCatalog.descriptor(forIngestKey: key)?.canonicalTitle ?? key
+    }
 }

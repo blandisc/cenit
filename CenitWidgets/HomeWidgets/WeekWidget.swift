@@ -223,7 +223,8 @@ private struct WeekStrip: View {
     private func a11yLabel(_ day: TrainWidgetSnapshot.WeekDay) -> Text {
         let name = Text(verbatim: day.label) + Text(verbatim: ", ")
         switch day.state {
-        case .done:     return name + Text("trained")
+        // FER-503: clave propia (no compartir «trained» con iPhone «Hours trained» — género distinto).
+        case .done:     return name + Text("day trained")
         case .today:    return name + Text("today") + Text(verbatim: ", ") + Text("training day")
         case .upcoming: return name + Text("planned")
         case .rest:     return name + Text("rest day")

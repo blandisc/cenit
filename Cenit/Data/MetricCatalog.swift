@@ -28,12 +28,14 @@ struct MetricDescriptor: Identifiable, Hashable {
     /// corto propio; el resto se titula con su nombre de catálogo.
     var canonicalTitle: String {
         switch key {
-        case "strain": return String(localized: "Effort")
-        case "stress": return String(localized: "Stress")
+        case "strain":    return String(localized: "Effort")
+        case "stress":    return String(localized: "Stress")
         // D4/C-18: exactamente las cadenas cortas de la matriz de Hoy, no las largas del catálogo.
-        case "hrv":    return String(localized: "HRV")
-        case "rhr":    return String(localized: "Resting HR")
-        default:       return title
+        case "hrv":       return String(localized: "HRV")
+        case "rhr":       return String(localized: "Resting HR")
+        // FER-503 / HJ-08: un dato, un nombre — «Breathing», nunca «Respiratory»/«Respiration».
+        case "resp_rate": return String(localized: "Breathing")
+        default:          return title
         }
     }
 

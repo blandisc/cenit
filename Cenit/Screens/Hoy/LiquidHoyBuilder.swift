@@ -215,17 +215,17 @@ enum LiquidHoyBuilder {
         let respVal = i.guardian?.resp ?? "—"
         let temp = LiquidGuardianHoja.Senal(
             id: "temp",
-            etiqueta: String(localized: "Skin temperature"),
+            etiqueta: MetricIdentity.nombre(forKey: "skin_temp"),
             valor: tempVal, tono: LiquidColor.doradoTemp, fuera: tempFuera,
             icono: .termo,
-            a11y: a11ySenal(String(localized: "Skin temperature"), tempVal, fuera: tempFuera, comparando: comparando),
+            a11y: a11ySenal(MetricIdentity.nombre(forKey: "skin_temp"), tempVal, fuera: tempFuera, comparando: comparando),
             serie: tempSerie)
         let resp = LiquidGuardianHoja.Senal(
             id: "resp",
-            etiqueta: String(localized: "Breathing"),
+            etiqueta: MetricIdentity.nombre(forKey: "resp_rate"),
             valor: respVal, tono: LiquidColor.azul, fuera: respFuera,
             icono: .resp,
-            a11y: a11ySenal(String(localized: "Breathing"), respVal, fuera: respFuera, comparando: comparando),
+            a11y: a11ySenal(MetricIdentity.nombre(forKey: "resp_rate"), respVal, fuera: respFuera, comparando: comparando),
             serie: respSerie)
 
         let calibracion: LiquidGuardianHoja.Calibracion? = {
@@ -467,9 +467,9 @@ enum LiquidHoyBuilder {
         return .init(
             carriles: [
                 .init(id: "temp", icono: .termo, tono: LiquidColor.doradoTemp,
-                      noches: tempPts, a11y: String(localized: "Skin temperature")),
+                      noches: tempPts, a11y: MetricIdentity.nombre(forKey: "skin_temp")),
                 .init(id: "resp", icono: .resp, tono: LiquidColor.azul,
-                      noches: respPts, a11y: String(localized: "Breathing")),
+                      noches: respPts, a11y: MetricIdentity.nombre(forKey: "resp_rate")),
             ],
             cercoUltimas: encendida ? 2 : nil,
             etiquetas: [String(localized: "night before last"),
@@ -509,8 +509,8 @@ enum LiquidHoyBuilder {
             return "\(nombre): \(bits.joined(separator: ", "))."
         }
         var parts = [
-            carril(String(localized: "Skin temperature"), temp),
-            carril(String(localized: "Breathing"), resp),
+            carril(MetricIdentity.nombre(forKey: "skin_temp"), temp),
+            carril(MetricIdentity.nombre(forKey: "resp_rate"), resp),
         ]
         if encendida {
             parts.append(String(localized: "Your day was pushed to a lighter one."))
@@ -523,11 +523,11 @@ enum LiquidHoyBuilder {
         EcosistemaRotulos(
             // P4: la luna se llama IGUAL que su sección en la Matriz (era «At rest»
             // arriba y «Resting HR» abajo — nadie conectaba las dos).
-            reposo: String(localized: "Resting HR").uppercased(with: locale),
+            reposo: MetricIdentity.nombre(forKey: "rhr").uppercased(with: locale),
             sueno: String(localized: "Sleep").uppercased(with: locale),
             guardian: String(localized: "Guardian").uppercased(with: locale),
             temperatura: String(localized: "Temperature").uppercased(with: locale),
-            respiracion: String(localized: "Breathing").uppercased(with: locale),
+            respiracion: MetricIdentity.nombre(forKey: "resp_rate").uppercased(with: locale),
             hintSeparar: String(localized: "Tap to separate").uppercased(with: locale),
             hintUnir: String(localized: "Tap to reunite").uppercased(with: locale),
             accionSeparar: String(localized: "Separate the signals"),
@@ -1321,7 +1321,7 @@ enum LiquidHoyBuilder {
                     : String(localized: "Watching, not voting"))
                 : nil,
             vigilantes: hayVeredicto
-                ? [String(localized: "Breathing"), String(localized: "Temperature")] : [],
+                ? [MetricIdentity.nombre(forKey: "resp_rate"), String(localized: "Temperature")] : [],
             vigilantesA11y: hayVeredicto
                 ? (parVoto
                     ? String(localized: "acta.vigilantes.votaron.a11y",
@@ -1794,7 +1794,7 @@ enum LiquidHoyBuilder {
         // «FC en reposo», no «Autonómico» (revisión del dueño): la fila vota SOLO con la FC
         // en reposo (wRHR=1); «Autonómico» era jerga y un tercer nombre para la misma señal
         // que la celda ya llama «FC en reposo». Reusa la MISMA key que la celda de la Matriz.
-        case .autonomic: return String(localized: "Resting HR")
+        case .autonomic: return MetricIdentity.nombre(forKey: "rhr")
         case .sleep: return String(localized: "Sleep")
         case .thermal: return String(localized: "Thermal")
         case .load: return String(localized: "Load")
@@ -1991,9 +1991,9 @@ enum LiquidHoyBuilder {
     private static func nombreSenal(_ s: Preparedness.Signal) -> String {
         switch s {
         // «FC en reposo» (misma key que la celda y el acta), no «Frecuencia cardiaca en reposo».
-        case .rhr: return String(localized: "Resting HR")
-        case .hrv: return String(localized: "HRV")
-        case .resp: return String(localized: "Breathing")
+        case .rhr: return MetricIdentity.nombre(forKey: "rhr")
+        case .hrv: return MetricIdentity.nombre(forKey: "hrv")
+        case .resp: return MetricIdentity.nombre(forKey: "resp_rate")
         }
     }
 
@@ -2166,7 +2166,7 @@ enum LiquidHoyBuilder {
                                           betterHigher: false, deadband: 1,
                                           format: { "\(Int($0.rounded())) \(String(localized: "bpm"))" }))
         out.append(.init(
-            id: "rhr", label: String(localized: "Resting HR"),
+            id: "rhr", label: MetricIdentity.nombre(forKey: "rhr"),
             value: i.rhr.map { "\(Int($0.value.rounded()))" } ?? "—",
             unit: String(localized: "bpm"),
             delta: rhrDelta.text, deltaTone: rhrDelta.tone,
@@ -2179,7 +2179,7 @@ enum LiquidHoyBuilder {
                                              format: { String(format: "%.1f", $0) }))
         out.append(.init(
             id: "strain",
-            label: i.strainEstimated ? String(localized: "Day load") : String(localized: "Day Strain"),
+            label: i.strainEstimated ? String(localized: "Day load") : MetricIdentity.nombre(forKey: "strain"),
             value: i.strain.map { String(format: "%.1f", $0) } ?? "—",
             delta: strainDelta.text, deltaTone: strainDelta.tone,
             tone: i.strain == nil ? LiquidColor.tinta500 : LiquidColor.ambar, icon: .llama,
@@ -2202,7 +2202,7 @@ enum LiquidHoyBuilder {
                                            betterHigher: nil, deadband: 0.1,
                                            format: { String(format: "%.1f °C", $0) }))
         out.append(.init(
-            id: "skintemp", label: String(localized: "Skin temp"),
+            id: "skintemp", label: MetricIdentity.nombre(forKey: "skin_temp"),
             value: i.skinTemp.map { String(format: "%+.1f", $0.value) } ?? "—",
             unit: "°C",
             delta: skinDelta.text, deltaTone: skinDelta.tone,
@@ -2214,7 +2214,7 @@ enum LiquidHoyBuilder {
                                            betterHigher: nil, deadband: 0.5,
                                            format: { String(format: "%.1f", $0) }))
         out.append(.init(
-            id: "resp", label: String(localized: "Respiration"),
+            id: "resp", label: MetricIdentity.nombre(forKey: "resp_rate"),
             value: i.resp.map { String(format: "%.1f", $0.value) } ?? "—",
             unit: String(localized: "rpm"),
             delta: respDelta.text, deltaTone: respDelta.tone,
