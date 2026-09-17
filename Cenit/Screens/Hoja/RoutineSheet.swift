@@ -336,10 +336,18 @@ struct RoutineSheet: View {
 
     // MARK: - Empty fallback (no routine resolved for this origin)
 
+    /// Plan day with no routine = rest for THAT weekday — never «Hoy descansas» for an edited day.
+    private var emptyFallbackTitle: String {
+        if isPlanDay, let wd = planWeekday {
+            return String(localized: "\(weekdayName(wd)) · rest day")
+        }
+        return String(localized: "No routine")
+    }
+
     private var emptyFallback: some View {
         VStack(spacing: LiquidSpace.s250) {
             CenitIcon.sleep.image.font(LiquidType.iconSF(size: 34)).foregroundStyle(LiquidColor.tinta500)
-            Text(isPlanDay ? "Rest day" : "No routine").font(LiquidType.displayS).foregroundStyle(LiquidColor.tinta900)
+            Text(emptyFallbackTitle).font(LiquidType.displayS).foregroundStyle(LiquidColor.tinta900)
             Text(isPlanDay ? "This day has no routine. Assign one from the weekly plan."
                            : "This routine could not be found.")
                 .font(LiquidType.cuerpoBanner).foregroundStyle(LiquidColor.tinta700)

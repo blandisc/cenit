@@ -87,7 +87,7 @@ struct SavedTicketsScreen: View {
     private var header: some View {
         // FER-293: la línea de conteo SUBE a kicker (mismo orden que Biblioteca / Detalle).
         LiquidFlowTitle(
-            kicker: String(localized: "\(sessions.count) receipts · tap one to reprint"),
+            kicker: String(localized: "\(filteredSessions.count) receipts · tap one to reprint"),
             titulo: String(localized: "Saved tickets"))
     }
 
@@ -135,7 +135,7 @@ struct SavedTicketsScreen: View {
 
     private var emptyTitle: LocalizedStringKey {
         switch segment {
-        case .cardio: return "No cardio tickets yet"
+        case .cardio: return "Cardio isn't stored here"
         case .all, .strength: return "No tickets yet"
         }
     }
@@ -143,7 +143,8 @@ struct SavedTicketsScreen: View {
     private var emptyCaption: LocalizedStringKey {
         switch segment {
         case .cardio:
-            return "Cardio sessions will show up here once they save a receipt."
+            // Segment is always empty by design (no cardio classifier on this store path).
+            return "Cardio sessions aren't saved here yet."
         case .all, .strength:
             return "When you finish a strength session, its receipt lands here."
         }

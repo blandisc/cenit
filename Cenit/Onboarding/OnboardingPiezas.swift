@@ -175,10 +175,10 @@ enum OnbCopy {
         String(localized: "onb.3.largo",
                defaultValue: "This is going to take a while. I'll keep reading while you use the app.")
     }
-    /// `%@` = la etapa · `%lld` = cuál de las 15.
-    static func conexionProgreso(_ etapa: String, _ n: Int) -> AttributedString {
-        let fmt = String(localized: "onb.3.progreso", defaultValue: "Reading: %@ · %lld of 15")
-        return AttributedString(String(format: fmt, etapa, n))
+    /// `%@` = la etapa · `%lld` = cuál · `%lld` = total (`p.total`, no un 15 fijo).
+    static func conexionProgreso(_ etapa: String, _ n: Int, total: Int) -> AttributedString {
+        let fmt = String(localized: "onb.3.progreso", defaultValue: "Reading: %@ · %lld of %lld")
+        return AttributedString(String(format: fmt, etapa, n, total))
     }
 
     // Acto 3 · «La espera enseña» (FER-437 · D1). Cada estrofa dice qué HARÁ Cénit con el grupo de
@@ -253,7 +253,7 @@ enum OnbCopy {
     /// normal de quien abre la app en la mañana antes de que Apple publique su FC en reposo.
     static func calibrandoCuerpoSinHoy(dias: Int, noches: Int) -> String {
         String(localized: "onb.4.calibrando.cuerpo.sinhoy",
-               defaultValue: "I already have your \(dias) days of history and your \(noches) nights. What I still don't have is today: your watch hasn't published this morning's resting heart rate yet.")
+               defaultValue: "I already have your \(dias) days of history and your \(noches) nights. Almost always what's still missing is today: your watch hasn't published this morning's resting heart rate yet.")
     }
     static var calibrandoPie: String {
         String(localized: "onb.4.calibrando.pie", defaultValue: "I'm not going to make up a verdict in the meantime.")
@@ -601,7 +601,7 @@ enum OnbCopy {
     }
     static var cicloSinRelojAjustes: String {
         String(localized: "onb.6.sinreloj.ajustes",
-               defaultValue: "This is where the watch connects the day you have one. Two taps.")
+               defaultValue: "Data sources and the Watch recording mirror live here.")
     }
     static var cicloSinRelojAjustesSinSalud: String {
         String(localized: "onb.6.sinreloj.ajustes.sinsalud",

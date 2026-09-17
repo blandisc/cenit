@@ -1,6 +1,108 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "Anchor": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anchor"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ancla"
+          }
+        }
+      }
+    },
+    "Couldn't read your routines. Try again.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't read your routines. Try again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No pudimos leer tus rutinas. Inténtalo de nuevo."
+          }
+        }
+      }
+    },
+    "No reading yet for this metric.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No reading yet for this metric."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aún no hay lectura para esta métrica."
+          }
+        }
+      }
+    },
+    "The reading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The reading"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La lectura"
+          }
+        }
+      }
+    },
+    "%@ falls in %@ · 0 is your own base": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ falls in %@ · 0 is your own base"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ cae en %@ · 0 es tu propia base"
+          }
+        }
+      }
+    },
+    "%@ · rest day": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · rest day"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · día de descanso"
+          }
+        }
+      }
+    },
     "Physical age is validated for ages 20 to 80. Cénit doesn't estimate it outside that range.": {
       "extractionState": "manual",
       "localizations": {
@@ -58038,13 +58140,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reading: %@ · %lld of 15"
+            "value": "Reading: %@ · %lld of %lld"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Leyendo: %@ · %lld de 15"
+            "value": "Leyendo: %@ · %lld de %lld"
           }
         }
       }
@@ -58190,7 +58292,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "I already have your %1$#@days@ of history and your %2$#@nights@. What I still don't have is today: your watch hasn't published this morning's resting heart rate yet."
+            "value": "I already have your %1$#@days@ of history and your %2$#@nights@. Almost always what's still missing is today: your watch hasn't published this morning's resting heart rate yet."
           },
           "substitutions": {
             "days": {
@@ -58238,7 +58340,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ya tengo %1$#@days@ de historia y %2$#@nights@. Lo que todavía no tengo es hoy: tu reloj no ha publicado tu frecuencia cardiaca en reposo de esta mañana."
+            "value": "Ya tengo %1$#@days@ de historia y %2$#@nights@. Casi siempre lo que todavía falta es hoy: tu reloj no ha publicado tu frecuencia cardiaca en reposo de esta mañana."
           },
           "substitutions": {
             "days": {

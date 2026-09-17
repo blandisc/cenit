@@ -18,6 +18,7 @@ struct ReceiptPrinterScreen: View {
 
     @Environment(AppModel.self) private var model
     @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw: String = UnitSystem.metric.rawValue
+    @AppStorage(HealthKitBridge.saveStrengthWorkoutsKey) private var saveStrengthWorkouts = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     // MARK: - Loaded receipt
@@ -267,9 +268,12 @@ struct ReceiptPrinterScreen: View {
 
     private var actionBar: some View {
         VStack(spacing: LiquidSpace.s250) {
-            CenitCTAButton("View in Apple Health") {
-                if let url = URL(string: "x-apple-health://") {
-                    UIApplication.shared.open(url)
+            // Same gate as LiveStrengthSheet.receiptHealthSaved: only when Health save ran.
+            if summary.watchRecorded || saveStrengthWorkouts {
+                CenitCTAButton("View in Apple Health") {
+                    if let url = URL(string: "x-apple-health://") {
+                        UIApplication.shared.open(url)
+                    }
                 }
             }
 

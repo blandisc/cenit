@@ -1437,6 +1437,7 @@ private struct EntrenarLanding: View {
         }
         .buttonStyle(EntrenarPressStyle())
         .disabled(!loaded)
+        .opacity(loaded ? 1 : CenitOpacity.dim)
         .accessibilityLabel(Text(LocalizedStringKey(name)) + Text(verbatim: ", ") + Text(subtitle))
         .accessibilityHint(Text("Show the plan"))
     }

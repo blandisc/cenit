@@ -104,7 +104,7 @@ struct OnbActoCiclo: View {
                     Text(OnbCopy.cicloDock)
                         .groteskOverline()
                         .foregroundStyle(LiquidColor.tinta500)
-                    LiquidTabBar(active: .cuerpo, rotulos: .cenit)
+                    LiquidTabBar(active: .entrenar, rotulos: .cenit)
                         .allowsHitTesting(false)
                         .accessibilityHidden(true)
                     OnbCuerpo(OnbCopy.cicloDockPie, tono: LiquidColor.tinta500)

@@ -120,13 +120,25 @@ struct SupportView: View {
         section(String(localized: "Links")) {
             VStack(spacing: .zero) {
                 Link(destination: Self.privacyURL) {
-                    LiquidListRow(title: String(localized: "Privacy policy"))
+                    LiquidListRow(title: String(localized: "Privacy policy")) {
+                        Image(systemName: "arrow.up.forward.app")
+                            .font(LiquidType.iconSF(size: 12))
+                            .foregroundStyle(LiquidColor.tinta500)
+                    }
                 }
                 Link(destination: Self.supportURL) {
-                    LiquidListRow(title: String(localized: "Support"))
+                    LiquidListRow(title: String(localized: "Support")) {
+                        Image(systemName: "arrow.up.forward.app")
+                            .font(LiquidType.iconSF(size: 12))
+                            .foregroundStyle(LiquidColor.tinta500)
+                    }
                 }
                 Link(destination: Terms.fullTermsURL) {
-                    LiquidListRow(title: String(localized: "Terms of use"), divider: false)
+                    LiquidListRow(title: String(localized: "Terms of use"), divider: false) {
+                        Image(systemName: "arrow.up.forward.app")
+                            .font(LiquidType.iconSF(size: 12))
+                            .foregroundStyle(LiquidColor.tinta500)
+                    }
                 }
             }
             .liquidTarjetaSeccion()
