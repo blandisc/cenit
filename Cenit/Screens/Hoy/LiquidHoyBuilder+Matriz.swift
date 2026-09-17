@@ -427,10 +427,10 @@ extension LiquidHoyBuilder {
             a11yValor: {
                 var partes: [String] = []
                 if valorTemp != "—" {
-                    partes.append("\(String(localized: "Skin temp")) \(valorTemp)")
+                    partes.append("\(MetricIdentity.nombre(forKey: "skin_temp")) \(valorTemp)")
                 }
                 if valorResp != "—" {
-                    partes.append("\(String(localized: "Breathing")) \(valorResp) \(String(localized: "rpm"))")
+                    partes.append("\(MetricIdentity.nombre(forKey: "resp_rate")) \(valorResp) \(String(localized: "rpm"))")
                 }
                 return partes.isEmpty ? nil : partes.joined(separator: ", ")
             }(),
@@ -503,7 +503,7 @@ extension LiquidHoyBuilder {
             // Effort = Day Strain: su identidad es ÁMBAR (igual que la hoja de resumen y el
             // detalle «Day Strain»). Antes teal — chocaba con la identidad naranja del detalle.
             id: "strain", hue: LiquidColor.ambar,
-            titulo: String(localized: "Effort"),
+            titulo: MetricIdentity.nombre(forKey: "strain"),
             valor: valorEsf,
             // Fuente única del sufijo de escala (no un literal): la hoja de detalle usa el
             // mismo `MetricFormat.scaleSuffix`, así que Matriz y hoja no divergen.

@@ -110,6 +110,13 @@ final class CompareExploreEscaleraUnicaTests: XCTestCase {
         // inglés, así que se afirma contra el defaultValue EN.
         XCTAssertEqual(title("hrv"), "HRV", "Hoy titula «HRV», no «Heart Rate Variability»")
         XCTAssertEqual(title("rhr"), "Resting HR", "Hoy titula «Resting HR», no «Resting Heart Rate»")
+        // FER-503 · C5: Breathing / Skin Temperature / VO₂ Max — un dato, un nombre.
+        XCTAssertEqual(title("resp_rate"), "Breathing", "Hoy dice «Breathing», no «Respiratory Rate»")
+        XCTAssertEqual(title("skin_temp"), "Skin Temperature")
+        XCTAssertEqual(title("vo2max"), "VO₂ Max", "con espacio, no «VO₂max»")
+        XCTAssertEqual(MetricIdentity.nombre(forKey: "strain"), title("strain"))
+        XCTAssertEqual(MetricIdentity.nombre(forKey: "resp_rate"), title("resp_rate"))
+        XCTAssertEqual(MetricIdentity.nombreKey(forKey: "rhr"), "Resting HR")
         // Una métrica sin override conserva su título de catálogo.
         XCTAssertEqual(title("recovery"), "Recovery")
         // El título CRUDO del catálogo sigue intacto (otros lo consumen como identidad): el largo se

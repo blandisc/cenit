@@ -87,6 +87,19 @@ enum MetricIdentity {
         }
     }
 
+    /// El ÚNICO nombre visible de una métrica de catálogo (FER-503 · C5). Delega en
+    /// `MetricCatalog.canonicalTitle` — no inventa un segundo glosario.
+    static func nombre(forKey key: String) -> String {
+        MetricCatalog.descriptor(forIngestKey: key)?.canonicalTitle ?? key
+    }
+
+    /// Clave EN del nombre canónico, para `Text` / `LocalizedStringKey` (sin localizar aún).
+    static func nombreKey(forKey key: String) -> String {
+        let catalogKey = MetricCatalog.catalogKey(forIngestKey: key)
+        if let k = MetricCatalog.canonicalTitleKey(forCatalogKey: catalogKey) { return k }
+        return catalogKey
+    }
+
     /// The Liquid hue for a catalog metric.
     static func hue(for metric: MetricDescriptor) -> Color { identity(forKey: metric.key).hue }
 

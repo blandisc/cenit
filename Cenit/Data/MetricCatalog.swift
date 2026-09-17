@@ -27,14 +27,10 @@ struct MetricDescriptor: Identifiable, Hashable {
     /// vive como expansión de la ⓘ; jamás como título (D4/C-18, HJ-12). Cuatro métricas tienen nombre
     /// corto propio; el resto se titula con su nombre de catálogo.
     var canonicalTitle: String {
-        switch key {
-        case "strain": return String(localized: "Effort")
-        case "stress": return String(localized: "Stress")
-        // D4/C-18: exactamente las cadenas cortas de la matriz de Hoy, no las largas del catálogo.
-        case "hrv":    return String(localized: "HRV")
-        case "rhr":    return String(localized: "Resting HR")
-        default:       return title
+        if let k = MetricCatalog.canonicalTitleKey(forCatalogKey: key) {
+            return String(localized: String.LocalizationValue(k))
         }
+        return title
     }
 
     /// Número + unidad. Un valor no finito se declara ausente en vez de imprimir «inf» (FER-465).
@@ -89,6 +85,22 @@ struct MetricDescriptor: Identifiable, Hashable {
 /// El catálogo canónico de métricas. Las llaves son EXACTAMENTE las que los importadores escriben en
 /// `metricSeries`, así que esta lista es a la vez el índice de la interfaz y el contrato con el disco.
 enum MetricCatalog {
+
+    /// Clave EN del nombre canónico (FER-503 · C5). Una sola tabla; `canonicalTitle` y los
+    /// `LocalizedStringKey` de UI leen de aquí.
+    static func canonicalTitleKey(forCatalogKey key: String) -> String? {
+        switch key {
+        case "strain":    return "Effort"
+        case "stress":    return "Stress"
+        // D4/C-18: exactamente las cadenas cortas de la matriz de Hoy, no las largas del catálogo.
+        case "hrv":       return "HRV"
+        case "rhr":       return "Resting HR"
+        case "resp_rate": return "Breathing"
+        case "skin_temp": return "Skin Temperature"
+        case "vo2max":    return "VO₂ Max"
+        default:          return nil
+        }
+    }
 
     /// El orden ES el orden de las secciones en pantalla. Inglés a propósito: es identidad.
     static let categories = ["Heart", "Recovery", "Sleep", "Strain", "Health"]

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Dos guardas sobre el catálogo de strings del app. Ambas fallan el CI (`i18n-guard`).
+"""Cuatro guardas sobre el catálogo de strings del app. Fallan el CI (`i18n-guard`).
 
 1. **missing-es** — una clave del catálogo sin traducción `es`.
    La auditoría de Hoy (FER-audit) encontró strings en inglés que veía un usuario es-MX
@@ -26,6 +26,13 @@
 
    (`Tools/find-dead-strings.py` recorre el mismo eje al revés: claves del catálogo que el código
    ya no usa. Aquel decide qué sobra; este, qué falta.)
+
+3. **glosario-es** (FER-503 · C5) — palabras/frases prohibidas en `es`
+   («Apple Health», «entreno(s)», «teléfono», «bpm» — canónico **lpm** —, frases de
+   «equipo» como aparato). «Sin equipo» (gimnasio) se permite.
+
+4. **shared-es** (FER-503 · C5) — claves presentes en ≥2 de los tres catálogos
+   (iPhone / Watch / widgets) deben compartir el mismo `es`.
 
 Recordatorio de la regla dura del repo: una clave nueva va SIEMPRE bajo la llave `es`, nunca bajo
 `es-MX` — una clave es-MX secuestra el idioma y tira el app entero a inglés.
@@ -224,6 +231,88 @@ def check_keys():
     print(f"✅ toda clave usada existe en su catálogo ({len(missing)} excepciones en la base)")
     return 0
 
+# ---------------------------------------------------------------------------- 3. glosario es-MX (FER-503 · C5)
+
+# Unidad canónica: el catálogo ya predomina con «lpm» (≈30 vs ≈9 «bpm»). LENGUAJE §8 se alineó.
+# «equipo» de gimnasio («Sin equipo») es legítimo; solo se prohíben frases de aparato.
+FORBIDDEN_ES = [
+    # (nombre, regex sobre el valor es, flags)
+    ("Apple Health", re.compile(r"Apple Health"), 0),
+    ("entreno/entrenos", re.compile(r"\bentreno(s)?\b"), 0),
+    ("teléfono", re.compile(r"\btel[eé]fono(s)?\b", re.I), 0),
+    ("bpm (canónico: lpm)", re.compile(r"\bbpm\b", re.I), 0),
+    ("equipo-aparato", re.compile(
+        r"\b(en tu equipo|mi propio equipo|su propio equipo|en el equipo|este equipo)\b", re.I), 0),
+]
+
+def _es_value(entry):
+    return (entry.get("localizations") or {}).get("es", {}).get("stringUnit", {}).get("value")
+
+def forbidden_es_hits(strings):
+    """[(catálogo_label no aplica aquí)] → [(clave, regla, valor)]."""
+    out = []
+    for key, entry in strings.items():
+        es = _es_value(entry)
+        if not es:
+            continue
+        for name, rx, _ in FORBIDDEN_ES:
+            if rx.search(es):
+                out.append((key, name, es))
+    return out
+
+def check_forbidden_es():
+    """Palabras/frases prohibidas en `es` de los tres catálogos."""
+    malos = []
+    for name, path in CATALOGS.items():
+        if not os.path.exists(path):
+            continue
+        strings = json.load(open(path, encoding="utf-8")).get("strings", {})
+        for key, rule, es in forbidden_es_hits(strings):
+            malos.append((name, key, rule, es))
+    if malos:
+        print(f"❌ {len(malos)} cadena(s) es con palabra/frase de glosario prohibida (FER-503 · C5):")
+        for cat, key, rule, es in malos[:40]:
+            print(f"  [{cat}] {key!r} · regla {rule!r}\n      {es!r}")
+        if len(malos) > 40:
+            print(f"  … y {len(malos) - 40} más")
+        return 1
+    print("✅ glosario es: sin Apple Health / entreno / teléfono / bpm / equipo-aparato")
+    return 0
+
+def shared_key_es_diffs(catalogs=None):
+    """Claves presentes en ≥2 catálogos cuyo `es` diverge."""
+    catalogs = catalogs or {
+        name: json.load(open(path, encoding="utf-8")).get("strings", {})
+        for name, path in CATALOGS.items() if os.path.exists(path)
+    }
+    names = sorted(catalogs)
+    diffs = []
+    # Pairwise over every shared key
+    seen = set()
+    for i, a in enumerate(names):
+        for b in names[i + 1:]:
+            for key in set(catalogs[a]) & set(catalogs[b]):
+                ea, eb = _es_value(catalogs[a][key]), _es_value(catalogs[b][key])
+                if ea is None or eb is None:
+                    continue
+                if ea != eb and (key, a, b) not in seen:
+                    seen.add((key, a, b))
+                    diffs.append((key, {a: ea, b: eb}))
+    return diffs
+
+def check_shared_es():
+    """El `es` de una clave compartida entre iPhone/Watch/widgets debe coincidir."""
+    diffs = shared_key_es_diffs()
+    if diffs:
+        print(f"❌ {len(diffs)} clave(s) compartida(s) con `es` distinto entre catálogos (FER-503 · C5):")
+        for key, vals in diffs[:40]:
+            print(f"  {key!r}: {vals}")
+        if len(diffs) > 40:
+            print(f"  … y {len(diffs) - 40} más")
+        return 1
+    print("✅ claves compartidas: mismo `es` entre iPhone / Watch / widgets")
+    return 0
+
 # ---------------------------------------------------------------------------- --self-test
 
 # Lo que el extractor DEBE ver y lo que DEBE ignorar. La primera mitad son los seis strings que
@@ -287,8 +376,56 @@ def self_test():
         print(f"❌ self-test: {len(malos)}/{len(CASES)} caso(s) del extractor fallaron.")
         return 1
     print(f"✅ self-test: {len(CASES)} casos del extractor OK")
+
+    # FER-503 · C5 — glosario: palabras prohibidas + claves compartidas.
+    # Prueba negativa: una cadena es con «Apple Health» debe fallar.
+    fake_bad = {"demo.apple": {"localizations": {
+        "es": {"stringUnit": {"state": "translated", "value": "Conecta Apple Health ahora"}}}}}
+    hits = forbidden_es_hits(fake_bad)
+    if not hits or hits[0][1] != "Apple Health":
+        print(f"❌ self-test glosario: esperaba fallo por Apple Health, obtuvo {hits!r}")
+        return 1
+    fake_ok = {"demo.ok": {"localizations": {
+        "es": {"stringUnit": {"state": "translated", "value": "Conecta Apple Salud ahora"}}}}}
+    if forbidden_es_hits(fake_ok):
+        print("❌ self-test glosario: Apple Salud no debe fallar")
+        return 1
+    # entreno / bpm / teléfono / equipo-aparato
+    for val, rule in [
+        ("Recordatorio de entreno", "entreno/entrenos"),
+        ("máx 120 bpm", "bpm (canónico: lpm)"),
+        ("en tu teléfono", "teléfono"),
+        ("guarda solo en tu equipo", "equipo-aparato"),
+    ]:
+        h = forbidden_es_hits({"k": {"localizations": {
+            "es": {"stringUnit": {"state": "translated", "value": val}}}}})
+        if not h or h[0][1] != rule:
+            print(f"❌ self-test glosario: {val!r} debía disparar {rule!r}, obtuvo {h!r}")
+            return 1
+    # gym «Sin equipo» NO falla
+    if forbidden_es_hits({"No equipment": {"localizations": {
+            "es": {"stringUnit": {"state": "translated", "value": "Sin equipo"}}}}}):
+        print("❌ self-test glosario: «Sin equipo» (gimnasio) no debe fallar")
+        return 1
+    # claves compartidas divergentes
+    fake_cats = {
+        "app": {"Next": {"localizations": {"es": {"stringUnit": {"value": "Siguiente"}}}}},
+        "watch": {"Next": {"localizations": {"es": {"stringUnit": {"value": "Sigue"}}}}},
+    }
+    diffs = shared_key_es_diffs(fake_cats)
+    if not diffs or diffs[0][0] != "Next":
+        print(f"❌ self-test compartidas: esperaba diff en Next, obtuvo {diffs!r}")
+        return 1
+    fake_same = {
+        "app": {"Next": {"localizations": {"es": {"stringUnit": {"value": "Sigue"}}}}},
+        "watch": {"Next": {"localizations": {"es": {"stringUnit": {"value": "Sigue"}}}}},
+    }
+    if shared_key_es_diffs(fake_same):
+        print("❌ self-test compartidas: mismo es no debe fallar")
+        return 1
+    print("✅ self-test: glosario es + claves compartidas OK")
     return 0
 
 if "--self-test" in sys.argv:
     sys.exit(self_test())
-sys.exit(check_es() | check_keys())
+sys.exit(check_es() | check_keys() | check_forbidden_es() | check_shared_es())

@@ -125,7 +125,7 @@ extension MetricInfo {
         let bands = engineBands(.strain, value: value)
         return MetricInfo(
             id: "strain",
-            name: "Day Strain",
+            name: "Effort",
             headline: "Cardiovascular load scored 0–21. Each second of the day your heart rate is recorded, it's assigned to a zone (1–5). Higher zones carry more weight. The total is compressed logarithmically so 21 represents a theoretical maximum: a full day at peak intensity.",
             displayValue: value.map { String(format: "%.1f", $0) } ?? "—",
             unit: nil,
