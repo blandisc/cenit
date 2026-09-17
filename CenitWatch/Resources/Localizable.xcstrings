@@ -1,6 +1,23 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "No access to Health. Without it there's no live pulse; your iPhone still saves its estimate." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No access to Health. Without it there's no live pulse; your iPhone still saves its estimate."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin acceso a Salud. Sin él no hay pulso en vivo; tu iPhone guarda su estimado."
+          }
+        }
+      }
+    },
     "at failure" : {
       "localizations" : {
         "en" : {

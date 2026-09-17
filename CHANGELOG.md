@@ -20,6 +20,12 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
 
 ## Unreleased
 
+- **Copy honesto: estados que no mienten sobre tu cuerpo / Honest copy: states that don't lie about your body**
+  ### ES
+  Corrige el copy que afirmaba cosas falsas: «Hoy descansas» solo cuando el día del plan es de descanso; el recibo ofrece «Ver en Salud» solo cuando de verdad se guardó; el reloj ya no niega que el iPhone guarde su estimado; la temperatura de piel fecha la noche real en vez de decir «anoche» siempre; el Plan distingue un error de lectura de «no tienes rutinas»; y el Explorador distingue cargando de vacío. (`RoutineSheet`, `ReceiptPrinterScreen`, `WatchLiveFaceView`, `SkinTempDetailScreen`, `WeeklyPlanEditorView`, `MetricExplorerView`, onboarding)
+  ### EN
+  Fixes copy that stated false things: "Today you rest" only when the plan day is a rest day; the receipt offers "View in Health" only when it actually saved; the watch no longer denies that your iPhone saves its estimate; skin temperature dates the real night instead of always saying "last night"; the Plan tells a read error apart from "no routines"; and the Explorer tells loading apart from empty. (`RoutineSheet`, `ReceiptPrinterScreen`, `WatchLiveFaceView`, `SkinTempDetailScreen`, `WeeklyPlanEditorView`, `MetricExplorerView`, onboarding)
+
 - **Plurales e i18n: «1 serie», claves en inglés, recibo y Atajos / Plurals and i18n: "1 set", English keys, receipt and Shortcuts**
   ### ES
   Deja de decir «1 series / 1 sesiones / 1 recibos / 1 funciones / 1 respiraciones». El CTA del héroe, «Serie hecha», reimprimir y «Ver en Apple Salud» ya no salen en español con el teléfono en inglés. El intent de Atajos y la zona de esfuerzo del Watch traen español. Un gate nuevo en el catálogo caza plurales ciegos y claves escritas en español. (`Localizable.xcstrings`, `check-xcstrings-es.py`, Entrenar, recibo, widgets, Watch)
