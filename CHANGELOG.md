@@ -20,6 +20,12 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
 
 ## Unreleased
 
+- **Plurales e i18n: «1 serie», claves en inglés, recibo y Atajos / Plurals and i18n: "1 set", English keys, receipt and Shortcuts**
+  ### ES
+  Deja de decir «1 series / 1 sesiones / 1 recibos / 1 funciones / 1 respiraciones». El CTA del héroe, «Serie hecha», reimprimir y «Ver en Apple Salud» ya no salen en español con el teléfono en inglés. El intent de Atajos y la zona de esfuerzo del Watch traen español. Un gate nuevo en el catálogo caza plurales ciegos y claves escritas en español. (`Localizable.xcstrings`, `check-xcstrings-es.py`, Entrenar, recibo, widgets, Watch)
+  ### EN
+  No more "1 series / 1 sessions / 1 receipts / 1 features / 1 breaths". The hero CTA, "Set done", reprint and "View in Apple Health" no longer stay Spanish when the phone is in English. The Shortcuts intent and the Watch effort zone ship with Spanish. A new catalog gate catches blind plurals and Spanish-as-key copy. (`Localizable.xcstrings`, `check-xcstrings-es.py`, Train, receipt, widgets, Watch)
+
 - **Hoy y Tendencias viven juntos en Cuerpo: Ahora | Tiempo, dock de tres / Today and Trends live together in Body: Now | Time, three-tab dock**
   ### ES
   El dock baja de cuatro a tres pestañas: Entrenar · Cuerpo · Ajustes. Cuerpo junta lo que era Hoy y Tendencias con el selector «Ahora | Tiempo». La palabra del día es la misma que en Entrenar (compacta aquí, grande allá) y abre la misma Acta. El ritual del orbe (separar/unir) ya no está. (`CuerpoTabView.swift`, `RootTabView.swift`, `LiquidTabBar.swift`)

@@ -1,0 +1,7 @@
+# FER-505 · C7 — español-como-clave heredado (key == es, en no corrige). Quitar al pasar a clave inglesa.
+# Formato: catálogo:clave
+app:Salud
+app:Dejar la base como está
+app:Las animaciones guardadas se borran de tu iPhone. Puedes volver a descargarlas cuando quieras.
+app:Recalibrar desde hoy
+app:series

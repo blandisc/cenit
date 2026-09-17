@@ -51,7 +51,7 @@ struct SessionKeypad: View {
     /// FER-167 (F2, mock P4): durante el descanso la MISMA tecla dice «Saltar ›» — un solo slot que
     /// cambia de rol en vez de una quinta tecla. El caller decide QUÉ hace `onConfirmSet` en cada
     /// caso (registrar vs. saltar); esta etiqueta solo pinta lo que la tecla promete.
-    var confirmSetLabel: String = String(localized: "✓ Serie")
+    var confirmSetLabel: String = String(localized: "Set done")
     var confirmSetAccessibilityLabel: Text = Text("Mark set as done")
     /// Hides the keypad without registering anything (canvas pass 2026-07-15) — every keystroke has
     /// already committed live to the model, so dismissing loses nothing. `nil` hides the button

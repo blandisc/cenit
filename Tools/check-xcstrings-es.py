@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Cuatro guardas sobre el catálogo de strings del app. Fallan el CI (`i18n-guard`).
+"""Seis guardas sobre el catálogo de strings del app. Fallan el CI (`i18n-guard`).
 
 1. **missing-es** — una clave del catálogo sin traducción `es`.
    La auditoría de Hoy (FER-audit) encontró strings en inglés que veía un usuario es-MX
@@ -34,6 +34,16 @@
 4. **shared-es** (FER-503 · C5) — claves presentes en ≥2 de los tres catálogos
    (iPhone / Watch / widgets) deben compartir el mismo `es`.
 
+5. **plural-blind** (FER-505 · C7) — clave cuyo `es` tiene `%lld` + sustantivo en plural
+   (palabra tras `%lld` que termina en «s») SIN `variations.plural`. Molde: `%lld sets` /
+   `%lld exercises`. Lo heredado fuera del censo C7 se congela en
+   `Tools/i18n-plural-baseline.txt`. Aplica a iPhone / Watch / widgets.
+
+6. **es-eq-en** (FER-505 · C7) — clave con palabra española cuyo `es == en` (o `en` ausente y
+   `es == clave`). Caza «Empezar», «Tendencias», «✓ Serie» que el guard de ñ/acentos no ve.
+   Allow-list de marca (`Cénit`). Lo heredado fuera de C7 se congela en
+   `Tools/i18n-es-eq-en-baseline.txt`. Aplica a iPhone / Watch / widgets.
+
 Recordatorio de la regla dura del repo: una clave nueva va SIEMPRE bajo la llave `es`, nunca bajo
 `es-MX` — una clave es-MX secuestra el idioma y tira el app entero a inglés.
 """
@@ -43,6 +53,14 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 CAT = "Cenit/Resources/Localizable.xcstrings"
 BASELINE = os.path.join(HERE, "i18n-es-baseline.txt")
 KEYS_BASELINE = os.path.join(HERE, "i18n-keys-baseline.txt")
+PLURAL_BASELINE = os.path.join(HERE, "i18n-plural-baseline.txt")
+ES_EQ_EN_BASELINE = os.path.join(HERE, "i18n-es-eq-en-baseline.txt")
+
+def _loc_has_plural(loc):
+    """True si la localización trae `variations.plural` en cualquier nivel (incl. substitutions)."""
+    if not loc:
+        return False
+    return '"plural"' in json.dumps(loc, ensure_ascii=False)
 
 # ---------------------------------------------------------------------------- 1. missing-es
 
@@ -52,8 +70,11 @@ def missing_es():
     for key, entry in strings.items():
         # una clave vacía "" no necesita traducción; el resto sí.
         if key.strip() == "": continue   # claves de formato/espaciado no son copy
-        es = entry.get("localizations", {}).get("es", {}).get("stringUnit", {}).get("value")
-        if not es:
+        loc = entry.get("localizations", {}).get("es") or {}
+        es = (loc.get("stringUnit") or {}).get("value")
+        # FER-505: `variations.plural` (one/other) cuenta como traducción es — no exigir
+        # también un stringUnit plano (los moldes `%lld sets` / `%lld exercises` solo traen plural).
+        if not es and not _loc_has_plural(loc):
             out.add(key)
     return out
 
@@ -313,6 +334,122 @@ def check_shared_es():
     print("✅ claves compartidas: mismo `es` entre iPhone / Watch / widgets")
     return 0
 
+# ---------------------------------------------------------------------------- 5. plural-blind (FER-505 · C7)
+
+# Sustantivo justo después de `%lld` (o `%1$lld` / `%#@…@` ya resuelto en el valor plano).
+_NOUN_AFTER_LLD = re.compile(r"%(?:\d+\$)?lld\s+([A-Za-zÁÉÍÓÚÜáéíóúüñÑ]+)")
+
+def _es_flat_value(entry):
+    """Valor `es` plano (stringUnit) si existe — el que se muestra cuando NO hay plural."""
+    loc = (entry.get("localizations") or {}).get("es") or {}
+    unit = loc.get("stringUnit") or {}
+    return unit.get("value")
+
+def plural_blind_hits(strings):
+    """[(clave, es)] con `%lld` + sustantivo en «s» sin `variations.plural`."""
+    out = []
+    for key, entry in strings.items():
+        loc = (entry.get("localizations") or {}).get("es") or {}
+        if _loc_has_plural(loc):
+            continue
+        es = _es_flat_value(entry)
+        if not es or "%lld" not in es:
+            continue
+        nouns = _NOUN_AFTER_LLD.findall(es)
+        if any(w.lower().endswith("s") for w in nouns):
+            out.append((key, es))
+    return out
+
+def check_plural_blind():
+    """Clave con conteo + sustantivo plural en es sin variations.plural (FER-505 · C7)."""
+    base = read_baseline(PLURAL_BASELINE)
+    malos = []
+    for name, path in CATALOGS.items():
+        if not os.path.exists(path):
+            continue
+        strings = json.load(open(path, encoding="utf-8")).get("strings", {})
+        for key, es in plural_blind_hits(strings):
+            token = f"{name}:{key}"
+            if token in base or key in base:
+                continue
+            malos.append((name, key, es))
+    if malos:
+        print(f"❌ {len(malos)} clave(s) con `%lld` + sustantivo plural en es SIN variations.plural (FER-505 · C7):")
+        for cat, key, es in malos[:40]:
+            print(f"  [{cat}] {key!r}\n      {es!r}")
+        if len(malos) > 40:
+            print(f"  … y {len(malos) - 40} más")
+        return 1
+    print("✅ plural-blind: sin `%lld` + sustantivo en «s» sin variations.plural (nuevas)")
+    return 0
+
+# ---------------------------------------------------------------------------- 6. es == en con palabra española (FER-505 · C7)
+
+# Palabras españolas que el guard de ñ/acentos NO ve (Empezar, Tendencias, Serie…) más acentos.
+_ES_WORD = re.compile(
+    r"(?:[¿¡ñÑ«»áéíóúÁÉÍÓÚüÜ]"
+    r"|\b(?:Empezar|Tendencias|Serie|Series|Guardar|Compartir|REIMPRIMIR|"
+    r"Ajustes|Entrenar|Cancelar|Aceptar|Continuar|Volver|Descartar|Terminar|"
+    r"Imprimir|Recibo|Historial|Sesión|Sesiones|Rutina|Rutinas|Recibos|"
+    r"Reimprimir|Salud|Dejar|Recalibrar|Vista|clásica)\b)",
+    re.I,
+)
+_ES_EQ_EN_ALLOW = {"Cénit", "Cénit %@"}
+
+def _lang_value(entry, lang):
+    loc = (entry.get("localizations") or {}).get(lang) or {}
+    if "stringUnit" in loc:
+        return (loc.get("stringUnit") or {}).get("value")
+    plur = ((loc.get("variations") or {}).get("plural") or {})
+    other = (plur.get("other") or {}).get("stringUnit") or {}
+    return other.get("value")
+
+def es_eq_en_hits(strings):
+    """[(clave, es)] donde la clave ES un literal español (key == es) y en no lo corrige.
+
+    El bug C7: `Text("Empezar")` / `Text("Tendencias")` / `Text("✓ Serie")` — la clave es
+    español, así que el inglés también sale en español. Ids semánticos (`recibo.foo`) y
+    claves inglesas con `es` distinto no entran.
+    """
+    out = []
+    for key, entry in strings.items():
+        if key in _ES_EQ_EN_ALLOW:
+            continue
+        if not _ES_WORD.search(key):
+            continue
+        es = _lang_value(entry, "es")
+        if not es or es != key:
+            continue
+        en = _lang_value(entry, "en")
+        # Si `en` ya es distinto del español, el catálogo corrige el idioma fuente.
+        if en is not None and en != key and en != es:
+            continue
+        out.append((key, es))
+    return out
+
+def check_es_eq_en():
+    """Clave con palabra española cuyo es == en (FER-505 · C7)."""
+    base = read_baseline(ES_EQ_EN_BASELINE)
+    malos = []
+    for name, path in CATALOGS.items():
+        if not os.path.exists(path):
+            continue
+        strings = json.load(open(path, encoding="utf-8")).get("strings", {})
+        for key, es in es_eq_en_hits(strings):
+            token = f"{name}:{key}"
+            if token in base or key in base:
+                continue
+            malos.append((name, key, es))
+    if malos:
+        print(f"❌ {len(malos)} clave(s) con palabra española y es == en (FER-505 · C7):")
+        for cat, key, es in malos[:40]:
+            print(f"  [{cat}] {key!r}\n      {es!r}")
+        if len(malos) > 40:
+            print(f"  … y {len(malos) - 40} más")
+        return 1
+    print("✅ es==en: sin claves españolas con es idéntico a en (nuevas)")
+    return 0
+
 # ---------------------------------------------------------------------------- --self-test
 
 # Lo que el extractor DEBE ver y lo que DEBE ignorar. La primera mitad son los seis strings que
@@ -424,8 +561,69 @@ def self_test():
         print("❌ self-test compartidas: mismo es no debe fallar")
         return 1
     print("✅ self-test: glosario es + claves compartidas OK")
+
+    # FER-505 · C7 — plural-blind: `%lld` + sustantivo en «s» sin variations.plural debe fallar.
+    fake_plural_bad = {"%lld sessions": {"localizations": {
+        "es": {"stringUnit": {"state": "translated", "value": "%lld sesiones"}}}}}
+    if not plural_blind_hits(fake_plural_bad):
+        print("❌ self-test plural-blind: esperaba fallo en «%lld sesiones»")
+        return 1
+    fake_plural_ok = {"%lld sessions": {"localizations": {"es": {"variations": {"plural": {
+        "one": {"stringUnit": {"state": "translated", "value": "%lld sesión"}},
+        "other": {"stringUnit": {"state": "translated", "value": "%lld sesiones"}}}}}}}}
+    if plural_blind_hits(fake_plural_ok):
+        print("❌ self-test plural-blind: con variations.plural no debe fallar")
+        return 1
+    # sin sustantivo en «s» (frase invariante) no falla
+    fake_plural_inv = {"Night · %lld cycles": {"localizations": {
+        "es": {"stringUnit": {"state": "translated", "value": "Noche · %lld ciclos"}}}}}
+    # «ciclos» termina en s → SÍ debe fallar (sustantivo plural ciego)
+    if not plural_blind_hits(fake_plural_inv):
+        print("❌ self-test plural-blind: «%lld ciclos» debía fallar")
+        return 1
+    fake_plural_no_noun = {"Rest %lld seconds": {"localizations": {
+        "es": {"stringUnit": {"state": "translated", "value": "Descanso de %lld segundos"}}}}}
+    # «segundos» también termina en s — la regla es mecánica (termina en s), no léxica
+    if not plural_blind_hits(fake_plural_no_noun):
+        print("❌ self-test plural-blind: «%lld segundos» debía fallar")
+        return 1
+
+    # FER-505 · C7 — es == en con palabra española debe fallar.
+    fake_eq_bad = {"Empezar": {"localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Empezar"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Empezar"}}}}}
+    if not es_eq_en_hits(fake_eq_bad):
+        print("❌ self-test es==en: esperaba fallo en «Empezar»")
+        return 1
+    fake_eq_ok = {"Start": {"localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Start"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Empezar"}}}}}
+    if es_eq_en_hits(fake_eq_ok):
+        print("❌ self-test es==en: Start/Empezar no debe fallar")
+        return 1
+    # Clave española con `en` ya corregido tampoco falla
+    fake_eq_fixed = {"Empezar": {"localizations": {
+        "en": {"stringUnit": {"state": "translated", "value": "Start"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Empezar"}}}}}
+    if es_eq_en_hits(fake_eq_fixed):
+        print("❌ self-test es==en: Empezar con en=Start no debe fallar")
+        return 1
+    # marca allow-list
+    fake_brand = {"Cénit": {"localizations": {
+        "es": {"stringUnit": {"state": "translated", "value": "Cénit"}}}}}
+    if es_eq_en_hits(fake_brand):
+        print("❌ self-test es==en: marca Cénit no debe fallar")
+        return 1
+    print("✅ self-test: plural-blind + es==en OK")
     return 0
 
 if "--self-test" in sys.argv:
     sys.exit(self_test())
-sys.exit(check_es() | check_keys() | check_forbidden_es() | check_shared_es())
+sys.exit(
+    check_es()
+    | check_keys()
+    | check_forbidden_es()
+    | check_shared_es()
+    | check_plural_blind()
+    | check_es_eq_en()
+)

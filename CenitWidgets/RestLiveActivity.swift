@@ -196,7 +196,8 @@ private struct HeroZone: View {
         switch state.resolvedPhase {
         case .active:
             // «Serie X de Y» — the «de Y» in a quieter tint/weight so the number leads.
-            (Text("\(state.setNumber) ").font(.system(size: M.hero, weight: .semibold, design: .rounded))
+            // Número en verbatim: evita la clave huérfana «%lld » (espacio final) del catálogo.
+            (Text(verbatim: "\(state.setNumber) ").font(.system(size: M.hero, weight: .semibold, design: .rounded))
                 .foregroundColor(stale ? LiquidColor.tinta500 : LiquidColor.tinta900)
                 + Text(String(localized: "of \(state.setTotal)"))
                     .font(.system(size: M.hero * 0.7, weight: .medium, design: .rounded))

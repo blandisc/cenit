@@ -1228,6 +1228,40 @@
           }
         }
       }
+    },
+    "Start today's routine" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start today's routine"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Empezar la rutina de hoy"
+          }
+        }
+      }
+    },
+    "Opens Cénit in today's guided routine." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens Cénit in today's guided routine."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abre Cénit en la rutina guiada de hoy."
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

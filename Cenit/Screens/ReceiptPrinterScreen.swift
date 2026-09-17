@@ -118,7 +118,7 @@ struct ReceiptPrinterScreen: View {
         } else if ticketState == .removed {
             VStack(spacing: LiquidSpace.s400) {
                 ReceiptSavedSeal()
-                CenitCTAButton("REIMPRIMIR", kind: .outline) { reprint() }
+                CenitCTAButton("Reprint", kind: .outline) { reprint() }
                     .frame(maxWidth: 220)
             }
             .padding(.horizontal, LiquidSpace.s600)
@@ -267,20 +267,20 @@ struct ReceiptPrinterScreen: View {
 
     private var actionBar: some View {
         VStack(spacing: LiquidSpace.s250) {
-            CenitCTAButton("Ver en Apple Health") {
+            CenitCTAButton("View in Apple Health") {
                 if let url = URL(string: "x-apple-health://") {
                     UIApplication.shared.open(url)
                 }
             }
 
             HStack(spacing: LiquidSpace.s250) {
-                CenitCTAButton("Guardar", kind: .outline) {
+                CenitCTAButton("Save", kind: .outline) {
                     if let img = renderTicket() { FileExport.saveImageToPhotos(img) }
                 }
-                CenitCTAButton("Compartir", kind: .outline) {
+                CenitCTAButton("Share", kind: .outline) {
                     if let img = renderTicket() { FileExport.exportImage(img) }
                 }
-                CenitCTAButton(showClassic ? "Ver ticket" : "Vista clásica", kind: .outline) {
+                CenitCTAButton(showClassic ? "View ticket" : "Classic view", kind: .outline) {
                     withAnimation(.easeInOut(duration: 0.25)) { showClassic.toggle() }  // token-exempt(unico): coreografía del recibo térmico — toggle vista clásica (0.25 s)
                 }
             }

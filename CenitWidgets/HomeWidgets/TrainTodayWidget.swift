@@ -57,7 +57,7 @@ struct TrainTodayProvider: TimelineProvider {
 
     static let sample = TrainWidgetSnapshot(
         writtenAt: Date(),
-        today: .init(routineName: "Empuje", sessionLive: false),
+        today: .init(routineName: "Push", sessionLive: false),
         verdict: .init(tone: .clear, word: String(localized: "In range")),
         week: [])
 }
@@ -86,7 +86,7 @@ struct TrainTodayWidgetView: View {
         } else {
             // Primera instalación: sin snapshot, nunca datos inventados. `redacted` es la única
             // decoración — el mismo layout que `RoutineBody` pintaría, opaco.
-            RoutineBody(today: .init(routineName: "Empuje", sessionLive: false), verdict: nil)
+            RoutineBody(today: .init(routineName: "Push", sessionLive: false), verdict: nil)
                 .redacted(reason: .placeholder)
                 .allowsHitTesting(false)
         }
@@ -274,7 +274,7 @@ struct TrainTodayWidget: Widget {
     TrainTodayWidget()
 } timeline: {
     TrainTodayEntry(date: .now, snapshot: TrainWidgetSnapshot(
-        writtenAt: .now, today: .init(routineName: "Empuje", sessionLive: false),
+        writtenAt: .now, today: .init(routineName: "Push", sessionLive: false),
         verdict: .init(tone: .clear, word: String(localized: "In range")), week: []))
 }
 
@@ -299,7 +299,7 @@ struct TrainTodayWidget: Widget {
 } timeline: {
     TrainTodayEntry(date: .now, snapshot: TrainWidgetSnapshot(
         writtenAt: .now.addingTimeInterval(-60 * 60 * 24 * 5),
-        today: .init(routineName: "Empuje", sessionLive: false), verdict: nil, week: []))
+        today: .init(routineName: "Push", sessionLive: false), verdict: nil, week: []))
 }
 
 #Preview("Sin snapshot (primera instalación)", as: .systemSmall) {
