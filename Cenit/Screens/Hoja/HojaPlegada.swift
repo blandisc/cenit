@@ -54,7 +54,7 @@ enum HojaPlegada {
             sheet.showLibrary = true
         } label: {
             HStack(spacing: LiquidSpace.s200) {
-                Image(systemName: "plus").font(.system(size: 12, weight: .semibold))  // token-exempt(falta-pieza): glifo del troquel
+                Image(systemName: "plus").font(LiquidType.iconSF(size: 12).weight(.semibold))
                 Text("Add exercise").font(LiquidType.cuerpoBanner.weight(.semibold))
             }
             .foregroundStyle(LiquidColor.tinta700)

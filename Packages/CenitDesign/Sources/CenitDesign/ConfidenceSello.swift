@@ -39,7 +39,7 @@ public struct ConfidenceSello: View {
 
     public var body: some View {
         label
-            .font(.system(size: 11, weight: .semibold))   // token-exempt: sello semibold+tracking (micro es 11/medium)
+            .font(LiquidType.iconSF(size: 11).weight(.semibold))
             .tracking(0.3)
             .textCase(.uppercase)
             .foregroundStyle(textTint)

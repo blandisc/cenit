@@ -257,9 +257,9 @@ public struct LiquidTiempoZonas: View {
 }
 
 #if DEBUG
-/// La rampa de zona que arma el CALLER (aquí, la de `MetricDetailSupport.zoneFill`: reposo en
-/// tinta quieta y las cinco zonas graduando el tono de la métrica, más oscuro = más duro).
-/// Vive en las previews porque el DS no conoce zonas de pulso.
+/// La rampa de zona que arma el CALLER (reposo en tinta quieta y las cinco zonas graduando
+/// el tono de la métrica, más oscuro = más duro). Vive en las previews porque el DS no
+/// conoce zonas de pulso.
 private func rampaZona(_ i: Int, tono: Color) -> Color {
     switch i {
     case 0:  return LiquidColor.tinta10

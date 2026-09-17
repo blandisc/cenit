@@ -7,18 +7,6 @@ import Foundation
 
 extension MetricDetailScreen {
 
-    /// Heart Rate routes through a separate, intraday path (today's curve at minute resolution) rather
-    /// than the daily-series machinery the vitals use. (FER-253)
-    var isIntraday: Bool { spec.blocks.contains(.intradayCurve) }
-
-    /// The five vitals the «Detalle de Vital» narrative redesign covers — HRV, Resting HR, Respiratory
-    /// rate, Blood oxygen (SpO₂) and Heart Rate. They render the Hoy → Tu historia → (Tu patrón) → Método
-    /// narrative with the inline range band, the tappable stat strip and per-datum disclosures. Steps and
-    /// VO₂max also ride this screen but keep their existing block layout (out of the handoff's scope).
-    var isNarrative: Bool {
-        ["hrv", "rhr", "resp_rate", "spo2", "heart_rate"].contains(spec.descriptor.key)
-    }
-
     // MARK: - Depth → visible blocks
 
     /// `.full` shows everything the spec declares; `.focus` shows only the day-photo subset.
@@ -31,31 +19,6 @@ extension MetricDetailScreen {
 
     /// The default window: a short week in focus, a month at full depth.
     var defaultRange: ExploreRange { depth == .focus ? .week : .month }
-
-    // MARK: - §8.7 header + origin seal (handoff v2, FER-804)
-
-    /// The metric's standardized icon + hue for the §8.7 title overline. nil → keep the plain title.
-    var metricGlyph: MetricGlyph? {
-        switch spec.descriptor.key {
-        case "hrv":        return .hrv
-        case "rhr":        return .restingHR
-        case "resp_rate":  return .respiration
-        case "spo2":       return .spo2
-        case "heart_rate": return .heartRate
-        case "steps":      return .steps
-        case "vo2max":     return .vo2max
-        default:           return nil
-        }
-    }
-
-    /// Where this metric's reading comes from, for the OriginStamp at the foot. Steps + VO₂max are Apple
-    /// Health metrics; the cross-source vitals follow today's actual source; the rest default to the band.
-    var footerOrigin: DataOrigin {
-        switch spec.descriptor.key {
-        case "steps", "vo2max": return .apple
-        default:                return todayFromApple ? .apple : .band
-        }
-    }
 
     /// Resolve a `LocalizedStringKey` band label to a plain String for GraficaRangos lane copy.
     func plainLocalizedLabel(_ key: LocalizedStringKey) -> String {
@@ -72,8 +35,8 @@ extension MetricDetailScreen {
     /// array. Positional ramps were the TND-19 defect class: when SpO₂ and Respiration shrank to the
     /// engine's two bands, the stale index ramps painted SpO₂'s «low (< 95)» lane green (verdict) and
     /// «normal» amber — inverted — and Respiration's «elevated (≥ 20)» green. A band with no engine
-    /// key (or an unmapped one) falls back to the metric's own hue, matching the old `default`.
-    /// Static (fallback injected) so the key→colour map is pinned by `MetricInfoEscaleraUnicaTests`.
+    /// key (or an unmapped one) falls back to the caller's hue. Static (fallback injected) so the
+    /// key→colour map is pinned by `MetricInfoEscaleraUnicaTests`.
     static func laneColor(metric: String, bandKey: String?, fallback: Color) -> Color {
         switch (metric, bandKey) {
         case ("spo2", "normal"):
@@ -103,47 +66,11 @@ extension MetricDetailScreen {
         }
     }
 
-    /// Instance sugar over `laneColor` with this screen's metric and hue plugged in.
-    func bandLaneColor(key: String?) -> Color {
-        Self.laneColor(metric: spec.descriptor.key, bandKey: key, fallback: metricHue)
-    }
-
     var unit: String { spec.info.unit ?? "" }
 
     /// The three vitals the band and Apple measure with different instruments — folding both sources into
     /// one baseline/σ, CV or Δ% mixes two scales (FER-629). SpO₂/steps/skin-temp/VO₂max are single-source. (FER-635)
     var isCrossSource: Bool { ["hrv", "rhr", "resp_rate"].contains(spec.descriptor.key) }
-
-    /// The chart's caption: the 7-day-average note, suffixed with the window ("· last month") for a
-    /// bounded range and left bare for ALL. The window name is already localized, so it's interpolated
-    /// as a `String` (a `%@` placeholder), not re-localized as a key. (FER-211)
-    /// Whether the chart plots RAW measured points (clinical SpO₂ band, or sparse VO₂max readings) rather
-    /// than the 7-day moving average the noisy nightly vitals smooth. (FER-252 / FER-257)
-    var plotsRawValues: Bool { spec.clinicalBands || spec.sparseMeasured }
-
-    /// Rest (below Zone 1) reads in quiet ink; the five training zones grade up the metric hue so a
-    /// harder zone reads darker. The bar segments ARE the datum, so hue is allowed here. (FER-253)
-    /// Rampa DELIBERADA de opacidad del `metricHue` (NO la paleta compartida `hrZoneRamp`): esta es su propia geometría de zonas, 1 de 3 superficies HR distintas — no se unifican (FER-908).
-    func zoneFill(_ i: Int) -> Color {
-        switch i {
-        case 0:  return LiquidColor.vidrioCanto
-        case 1:  return metricHue.opacity(0.35)  // token-exempt(dato): rampa de intensidad de zona (geometría de dato)
-        case 2:  return metricHue.opacity(0.5)  // token-exempt(dato): rampa de intensidad de zona (geometría de dato)
-        case 3:  return metricHue.opacity(0.65)  // token-exempt(dato): rampa de intensidad de zona (geometría de dato)
-        case 4:  return metricHue.opacity(0.82)  // token-exempt(dato): rampa de intensidad de zona (geometría de dato)
-        default: return metricHue
-        }
-    }
-
-    func zoneLabel(_ n: Int) -> LocalizedStringKey {
-        switch n {
-        case 1:  return "Zone 1 · very light"
-        case 2:  return "Zone 2 · light"
-        case 3:  return "Zone 3 · moderate"
-        case 4:  return "Zone 4 · hard"
-        default: return "Zone 5 · max"
-        }
-    }
 
     /// Whether a rise is good for this metric, from the catalog's `higherIsBetter` — drives the trend
     /// chip's colour in `TrendStatSummary`. HRV rises = good, resting HR rises = bad, respiration neutral.
@@ -165,25 +92,6 @@ extension MetricDetailScreen {
         }
     }
 
-    func clampFrac(_ v: Double) -> CGFloat { CGFloat(min(max(v, 0.02), 0.98)) }
-
-    // MARK: - Colour + format
-
-    var metricHue: Color {
-        switch spec.descriptor.key {
-        case "hrv":               return LiquidColor.cian
-        case "rhr":               return LiquidColor.rosa
-        case "resp_rate":         return LiquidColor.azul
-        case "spo2":              return LiquidColor.verdeCarga
-        case "heart_rate":        return LiquidColor.rosa
-        case "steps":             return LiquidColor.teal
-        case "vo2max":            return LiquidColor.azul
-        default:                  return LiquidColor.verdePrimario
-        }
-    }
-
-    var chartGradient: Gradient { ChartWell.fillGradient(metricHue) }
-
     /// Format a value with the descriptor's own decimal precision. Integers get locale grouping so a
     /// four-figure step count reads "9,210", not "9210"; the vitals stay under 1,000 so they're
     /// visually unchanged. (FER-254)
@@ -198,8 +106,11 @@ extension MetricDetailScreen {
     /// The canonical UTC day-key formatter — read side of the day-key contract (FER-754).
     static let dayParser = DayKey.utcFormatter
 }
+#endif
 
-/// VoiceOver del Δ% (FER-500 · C2): la app arma la frase YA localizada; el DS no conoce locales.
+
+// FER-500 · C2: la etiqueta VoiceOver del Δ% (usada por Strain/Stress/Sleep/MetricDetail). VIVA — el
+// barrido de muertos FER-510 la había borrado por error (se añadió después de la auditoría C12).
 enum LiquidNotaDeltaVoice {
     static func label(pct: Double, places: Int = 0) -> String? {
         guard let dir = LiquidNotaDelta.direccion(pct: pct, places: places) else { return nil }
@@ -211,5 +122,3 @@ enum LiquidNotaDeltaVoice {
         }
     }
 }
-
-#endif

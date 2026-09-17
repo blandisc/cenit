@@ -459,7 +459,7 @@ struct WorkoutImportView: View {
                 ZStack {
                     Circle().fill(LiquidColor.verdePrimario.opacity(CenitOpacity.tintFill)).frame(width: 116, height: 116)
                     Image(systemName: "checkmark")
-                        .font(.system(size: 44, weight: .semibold)).foregroundStyle(LiquidColor.verdePrimario)  // token-exempt(falta-pieza): glifo héroe del cierre (44pt, pareado al círculo de 116)
+                        .font(LiquidType.iconSF(size: 44).weight(.semibold)).foregroundStyle(LiquidColor.verdePrimario)
                 }
                 .scaleEffect(celebrate ? 1 : 0.72)
                 .opacity(celebrate ? 1 : 0)

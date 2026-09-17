@@ -69,7 +69,7 @@ struct TrainingLoadStrip: View {
                     .foregroundStyle(LiquidColor.tinta500)
                     .padding(.leading, LiquidSpace.s150)
                 CenitIcon.disclosure.image
-                    .font(.system(size: 9, weight: .semibold))  // token-exempt(falta-pieza): microtexto <10pt
+                    .font(LiquidType.iconSF(size: 9).weight(.semibold))
                     .foregroundStyle(LiquidColor.tinta500)
                     .padding(.leading, LiquidSpace.s150)
             } else {
@@ -108,7 +108,7 @@ struct TrainingLoadStrip: View {
                         .overlay(Circle().strokeBorder(LiquidColor.tinta900, lineWidth: 3))
                         .frame(width: 12, height: 12)
                         .offset(x: w * x - 6, y: 0)
-                        .strandAnimation(.spring(response: 0.5, dampingFraction: 0.8), value: acwr)  // token-exempt(unico): marcador ACWR sobre la franja de carga — spring único de esta geometría
+                        .strandAnimation(LiquidMotion.ringProgress, value: acwr)
                 }
             }
         }

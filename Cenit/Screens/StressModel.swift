@@ -1,4 +1,3 @@
-import SwiftUI
 import Foundation
 import CenitAnalytics
 import CenitDesign
@@ -8,55 +7,13 @@ import CenitStore
 //
 // The math — the 0–3 stress proxy, its band thresholds and the per-source baseline derivation —
 // lives in `CenitAnalytics.DailyStressModel` / `CenitAnalytics.StressMath` (FER-756). This file
-// keeps only PRESENTATION: the band's copy and colors, the explanation copy, the calm-time strings,
-// and a thin `StressModel` shim so the live consumers (TodayView, CuerpoView, StressDetailScreen)
-// keep their surface unchanged.
-
-// MARK: - Stress band presentation (copy + color)
-//
-// The band enum (with its 0–3 → band init) lives in CenitAnalytics; every consumer screen already
-// imports the package, so `StressBand` resolves directly — only its presentation lives here.
-
-extension StressBand {
-    /// La palabra en mayúsculas del medidor legado oscuro.
-    var title: String {
-        switch self {
-        case .low:    String(localized: "LOW")
-        case .medium: String(localized: "MEDIUM")
-        case .high:   String(localized: "HIGH")
-        }
-    }
-
-    /// Sentence-case band word for «Instrumento» surfaces ("Low" / "Moderate" / "High"). Single source
-    /// for the band→word mapping; distinct from `title` (ALL-CAPS, for the dark legacy gauge).
-    var displayWord: LocalizedStringKey {
-        switch self {
-        case .low:    return "Low"
-        case .medium: return "Moderate"
-        case .high:   return "High"
-        }
-    }
-
-    var tone: CenitTone {
-        switch self {
-        case .low:    .positive
-        case .medium: .warning
-        case .high:   .critical
-        }
-    }
-
-    /// The data color for this band (low→verdict, medium→warning, high→critical).
-    /// Single source for the stress band→color mapping (FER-326).
-    func dataColor() -> Color {
-        switch self {
-        case .low:    return LiquidColor.verdePrimario
-        case .medium: return LiquidColor.atencion
-        case .high:   return LiquidColor.negativo
-        }
-    }
-}
+// keeps the explanation copy, the calm-time value, and a thin `StressModel` shim so the live
+// consumers (TodayView, CuerpoView, StressDetailScreen) keep their surface unchanged.
 
 // MARK: - Stress model shim (math in CenitAnalytics + copy here)
+//
+// `StressBand` (enum + umbrales) vive en CenitAnalytics. La presentación ALL-CAPS / displayWord /
+// tone / dataColor de este archivo se retiró en FER-510: cero llamadores.
 
 struct StressModel: Sendable {
     let score: Double            // 0–3, el día ancla
@@ -68,7 +25,6 @@ struct StressModel: Sendable {
     let hrvDelta: Double?        // hoy − media de la línea base (ms)
     let fullTrend: [TrendPoint]  // toda la historia del proxy diario, del más viejo al más nuevo
     let calmTimeValue: String    // p. ej. «58%»
-    let calmTimeCaption: String  // p. ej. «de los últimos 30 días»
     let usingStored: Bool        // el valor del día salió de la serie ya guardada
 
     // FER-397 — the hero is anchored to the most recent day that actually carries a reading, so a still-
@@ -111,10 +67,8 @@ struct StressModel: Sendable {
         if core.calmWindow > 0 {
             let porcentaje = Int((Double(core.calmDays) / Double(core.calmWindow) * 100).rounded())
             self.calmTimeValue = "\(porcentaje)%"
-            self.calmTimeCaption = "low-stress days · \(core.calmWindow)d"
         } else {
             self.calmTimeValue = "—"
-            self.calmTimeCaption = "needs history"
         }
     }
 

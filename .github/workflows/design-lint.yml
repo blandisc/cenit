@@ -46,6 +46,8 @@ jobs:
         run: python3 Tools/gen-mapa-tendencias.py --check
       - name: "Mapa: claves nav de ScreenshotNav alcanzables y declaradas (FER-497)"
         run: python3 Tools/check-nav-keys.py
+      - name: "Exenciones caducas: token-exempt que cita símbolo vivo o pieza retirada (FER-510)"
+        run: python3 Tools/check-token-exempt-stale.py
       - name: Design-drift linter — no raw hex (all roots)
         run: python3 Tools/check-design-drift.py --rules no-hex
       - name: Design-drift linter — no ad-hoc font/radius/opacity, ratchet (FER-276)

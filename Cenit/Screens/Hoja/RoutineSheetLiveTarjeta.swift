@@ -358,7 +358,7 @@ struct HojaTarjetaEjercicioSesion: View {
         .background {
             if vivo.prFlash?.setId == set.id {
                 RoundedRectangle(cornerRadius: HojaMetrics.activaRadius, style: .continuous)
-                    .fill(LiquidColor.rosa.opacity(0.16))  // token-exempt(falta-pieza): destello breve R16, sin token de opacidad para «molde rosa» transitorio todavía
+                    .fill(LiquidColor.rosa.opacity(CenitOpacity.tintFillStrong))
                     .transition(LiquidMotion.fadeOrIdentity(reduceMotion: vivo.reduceMotion))
             }
         }

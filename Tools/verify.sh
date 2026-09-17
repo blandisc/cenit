@@ -141,6 +141,11 @@ run_lint() {
   if [ -n "$mapa_base" ]; then rm -f "$mapa_base"; fi
   python3 Tools/build-features.py --check \
     || fail "docs/FEATURES.md está desfasado del registro: corre python3 Tools/build-features.py y commitea el resultado."
+  # FER-510 · C12: exención token-exempt que cita símbolo vivo / pieza retirada / escape sobre token.
+  # Corre SIEMPRE (barre las mismas raíces que el ratchet de token-exempt). Sin guard de existencia
+  # a propósito: si el script desaparece, esto FALLA en vez de callar.
+  python3 Tools/check-token-exempt-stale.py \
+    || fail "token-exempt caduco: cita un símbolo que ya existe, una pieza retirada, o escapa sobre un token (Tools/check-token-exempt-stale.py)."
   echo "verify: linters OK"
 }
 
