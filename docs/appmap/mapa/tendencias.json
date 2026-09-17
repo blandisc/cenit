@@ -1,8 +1,8 @@
 {
   "familia": "tendencias",
-  "titulo": "Cuerpo · Tiempo (ex-Tendencias)",
+  "titulo": "Tendencias · Cuerpo",
   "unidad": "estados",
-  "blurb": "Modo Tiempo de la pestaña Cuerpo (FER-490). Landing de Cuerpo + detalle de cada una de las 36 métricas de MetricCatalog en su rango por defecto (M) × 1 estados (con datos / sin lecturas / calibrando). Versión ligera: sin repetir por rango (regenerar con --full para los 6 rangos). Más Explorar. Ciclo omitido (vive en la familia Ajustes).",
+  "blurb": "Landing de Cuerpo + detalle de cada una de las 36 métricas de MetricCatalog en su rango por defecto (M) × 1 estados (con datos / sin lecturas / calibrando). Versión ligera: sin repetir por rango (regenerar con --full para los 6 rangos). Más Explorar. Ciclo omitido (vive en la familia Ajustes).",
   "nodos": [
     {
       "id": "cuerpo-m",
