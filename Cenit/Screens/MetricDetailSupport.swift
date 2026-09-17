@@ -107,3 +107,18 @@ extension MetricDetailScreen {
     static let dayParser = DayKey.utcFormatter
 }
 #endif
+
+
+// FER-500 · C2: la etiqueta VoiceOver del Δ% (usada por Strain/Stress/Sleep/MetricDetail). VIVA — el
+// barrido de muertos FER-510 la había borrado por error (se añadió después de la auditoría C12).
+enum LiquidNotaDeltaVoice {
+    static func label(pct: Double, places: Int = 0) -> String? {
+        guard let dir = LiquidNotaDelta.direccion(pct: pct, places: places) else { return nil }
+        let texto = CenitFormat.deltaPercent(pct, places: places)
+        switch dir {
+        case .igual: return String(localized: "unchanged")
+        case .sube:  return String(localized: "\(texto) more than the previous period")
+        case .baja:  return String(localized: "\(texto) less than the previous period")
+        }
+    }
+}
