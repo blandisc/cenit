@@ -58038,13 +58038,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reading: %@ · %lld of 15"
+            "value": "Reading: %@ · %lld of %lld"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Leyendo: %@ · %lld de 15"
+            "value": "Leyendo: %@ · %lld de %lld"
           }
         }
       }
@@ -58190,7 +58190,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "I already have your %1$#@days@ of history and your %2$#@nights@. What I still don't have is today: your watch hasn't published this morning's resting heart rate yet."
+            "value": "I already have your %1$#@days@ of history and your %2$#@nights@. Almost always what's still missing is today: your watch hasn't published this morning's resting heart rate yet."
           },
           "substitutions": {
             "days": {
@@ -58238,7 +58238,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ya tengo %1$#@days@ de historia y %2$#@nights@. Lo que todavía no tengo es hoy: tu reloj no ha publicado tu frecuencia cardiaca en reposo de esta mañana."
+            "value": "Ya tengo %1$#@days@ de historia y %2$#@nights@. Casi siempre lo que todavía falta es hoy: tu reloj no ha publicado tu frecuencia cardiaca en reposo de esta mañana."
           },
           "substitutions": {
             "days": {
