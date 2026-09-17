@@ -32,12 +32,19 @@ public struct TrainWidgetSnapshot: Codable, Equatable, Sendable {
     public let verdict: Verdict?
     /// The 7 days of the week, Monday-first (`orderedWeekdays` convention the app already uses).
     public let week: [WeekDay]
+    /// FER-491 · Ola 2 MOTOR: JSON of the day's `DosePlan` (CenitTraining), already computed by the
+    /// app. Stored as `Data` so this file stays free of `CenitTraining` (the widget target only pulls
+    /// `CenitShared/AppGroup.swift` + Design). Surfaces decode when they render (Ola 2 surface deferred).
+    /// Optional + default nil so pre-FER-491 snapshots still decode.
+    public var dosePlanData: Data?
 
-    public init(writtenAt: Date, today: TodayPlan?, verdict: Verdict?, week: [WeekDay]) {
+    public init(writtenAt: Date, today: TodayPlan?, verdict: Verdict?, week: [WeekDay],
+                dosePlanData: Data? = nil) {
         self.writtenAt = writtenAt
         self.today = today
         self.verdict = verdict
         self.week = week
+        self.dosePlanData = dosePlanData
     }
 
     /// Whether this snapshot is too old to trust — see `staleAfter`.

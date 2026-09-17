@@ -1,4 +1,5 @@
 import Foundation
+import CenitTraining
 
 /// FER-95 · E14 — «fuera de la app»: los dos widgets de pantalla de inicio + el recordatorio del día que
 /// toca entrenar. Ver el `.sink` sobre `repo.$dashboard` en `AppModel.init()` que llama a este método.
@@ -16,10 +17,31 @@ extension AppModel {
         let routineNames = Dictionary(routines.map { ($0.id, $0.name) }, uniquingKeysWith: { a, _ in a })
         let sessions = await repo.recentSessions(limit: 200)
 
+        // FER-491: populate widget from the same DosePlan owner as Watch/iPhone (never re-derive).
+        var dose: DosePlan?
+        if let tid = WeeklySplit.todayRoutineId(
+            split: split, todayWeekday: Calendar.current.component(.weekday, from: Date())),
+           let name = routineNames[tid] {
+            let serving = await repo.programServing()
+            let hilo = TrainWidgetPublisher.verdict(
+                prep: repo.todayPreparedness, fullyLoaded: repo.fullyLoaded,
+                healthConnected: healthBridge?.auth == .authorized,
+                hasPlan: true,
+                primerUsoSinPlan: TrainWidgetPublisher.esPrimerUsoSinPlan(
+                    sessionLive: strengthSession != nil, semanaVacia: split.isEmpty))
+            let verdict = hilo.map {
+                DosePlan.Verdict(tone: $0.tone.rawValue, word: $0.word, advice: $0.advice)
+            }
+            dose = await repo.seedTodayDose(routineId: tid, advice: repo.trainingAdvice,
+                                            inventory: plates.inventory, serving: serving,
+                                            verdict: verdict, routineName: name).plan
+        }
+
         TrainWidgetPublisher.publish(split: split, routineNames: routineNames, sessions: sessions,
                                      sessionLive: strengthSession != nil, prep: repo.todayPreparedness,
                                      fullyLoaded: repo.fullyLoaded,
-                                     healthConnected: healthBridge?.auth == .authorized)
+                                     healthConnected: healthBridge?.auth == .authorized,
+                                     dosePlan: dose)
         await TrainingDayReminder.reschedule(split: split, routineNames: routineNames)
     }
 }

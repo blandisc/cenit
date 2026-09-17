@@ -31,11 +31,16 @@ enum TrainWidgetPublisher {
 
     /// The whole snapshot, from already-resolved primitives — no store/HealthKit access here, so this
     /// is the part `TrainWidgetPublisherTests` exercises directly.
+    /// `dosePlan` (FER-491): optional typed plan already computed by `DosePlanner`; encoded into
+    /// `dosePlanData` so the widget never re-derives series/weight/rest.
     static func snapshot(todayRoutineName: String?, sessionLive: Bool,
                          verdict: TrainWidgetSnapshot.Verdict?,
-                         week: [TrainWidgetSnapshot.WeekDay], now: Date) -> TrainWidgetSnapshot {
+                         week: [TrainWidgetSnapshot.WeekDay], now: Date,
+                         dosePlan: DosePlan? = nil) -> TrainWidgetSnapshot {
         let today = todayRoutineName.map { TrainWidgetSnapshot.TodayPlan(routineName: $0, sessionLive: sessionLive) }
-        return TrainWidgetSnapshot(writtenAt: now, today: today, verdict: verdict, week: week)
+        return DosePlanner.populateWidgetSnapshot(
+            TrainWidgetSnapshot(writtenAt: now, today: today, verdict: verdict, week: week),
+            with: dosePlan)
     }
 
     /// El veredicto que cruza al widget: el oráculo TAL CUAL (`LiquidHoyBuilder.hiloEntrenar`), con los
@@ -91,7 +96,8 @@ enum TrainWidgetPublisher {
     /// reuse them for `TrainingDayReminder.reschedule` too, so one dashboard publish costs one store trip.
     static func publish(split: [Int: String], routineNames: [String: String], sessions: [StrengthSession],
                         sessionLive: Bool, prep: Preparedness.Read?, fullyLoaded: Bool, healthConnected: Bool,
-                        now: Date = Date(), calendar: Calendar = .current) {
+                        now: Date = Date(), calendar: Calendar = .current,
+                        dosePlan: DosePlan? = nil) {
         let todayWeekday = calendar.component(.weekday, from: now)
         let labels = orderedWeekdays.map { weekdayLetter($0, calendar: calendar) }
         let completed = thisWeekCompletedWeekdays(sessions: sessions, now: now, calendar: calendar)
@@ -108,7 +114,7 @@ enum TrainWidgetPublisher {
                                                                           semanaVacia: split.isEmpty))
 
         let snap = snapshot(todayRoutineName: todayRoutineName, sessionLive: sessionLive,
-                            verdict: veredicto, week: weekDays, now: now)
+                            verdict: veredicto, week: weekDays, now: now, dosePlan: dosePlan)
         TrainWidgetSnapshot.write(snap)
         WidgetCenter.shared.reloadTimelines(ofKind: TrainWidgetSnapshot.trainTodayKind)
         WidgetCenter.shared.reloadTimelines(ofKind: TrainWidgetSnapshot.weekKind)

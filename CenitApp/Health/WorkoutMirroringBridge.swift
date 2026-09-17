@@ -252,7 +252,8 @@ final class WorkoutMirroringBridge: NSObject, ObservableObject {
     /// no-op without WatchConnectivity; best-effort like every other push in this bridge (`AppModel`
     /// never awaits or blocks on it).
     func pushIdleContext(word: String?, toneRaw: String?, advice: String?, routineName: String?,
-                         seed: WorkoutMirrorMessage? = nil) {
+                         seed: WorkoutMirrorMessage? = nil,
+                         dose: WorkoutMirrorMessage? = nil) {
         guard WCSession.isSupported() else { return }
         let session = WCSession.default
         guard session.activationState == .activated else { return }
@@ -263,6 +264,8 @@ final class WorkoutMirroringBridge: NSObject, ObservableObject {
         // C1 (FER-361): the standalone SEED (today's plan) rides in the same single-slot app context
         // under its own key, so it never clobbers the idle-face context. Absent = no plan today.
         if let seed, let seedData = seed.encoded() { context[WorkoutMirrorKey.seedKey] = seedData }
+        // FER-491: typed DosePlan under its own key (same channel). Absent = no plan today.
+        if let dose, let doseData = dose.encoded() { context[WorkoutMirrorKey.doseKey] = doseData }
         do { try session.updateApplicationContext(context) }
         catch { log.error("updateApplicationContext failed: \(error.localizedDescription, privacy: .public)") }
     }
