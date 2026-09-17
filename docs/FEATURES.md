@@ -27,8 +27,6 @@ body over time), **Entrenar** (Train), and **Ajustes** (Settings):
 <!-- GENERATED:ensenanza:at-a-glance START -->
 | Tab | What it is |
 | --- | --- |
-| **Hoy** | The verdict home — today's readiness word (El Ecosistema) and La Matriz of signals. |
-| **Tendencias** | Your body over time — the trend of every signal, plus sleep, stress, vitals and body composition. |
 | **Entrenar** | The training planner — plan, routines, a guided live strength session, plus Breathe and Intervals. |
 | **Ajustes** | Profile, units, data & backup, illness watch, reminders, support. |
 <!-- GENERATED:ensenanza:at-a-glance END -->
@@ -48,44 +46,6 @@ Every metric is an approximation computed locally. Nothing is uploaded.
 <!-- GENERATED:ensenanza:hoy START -->
 The verdict home — today's readiness word (El Ecosistema) and La Matriz of signals.
 
-- **The word of the day** — A reading of how you woke up: in range, go light today, or recover.
-  _(Today, at the top, over the orb.)_ · Needs Apple Watch
-- **The acta: what your word is made of** — Who votes, how much each vote weighs, and what doesn't
-  count. _(Today: tap the ⓘ next to the word.)_ · Needs Apple Watch
-- **Night N of 4 and Confidence N of 14** — How many nights until your first word, and until your
-  baseline is firm. _(Today, under the word, while it calibrates.)_ · Needs Apple Watch
-- **Your first reading (night 4)** — The morning your first word appears, and where it came from.
-  _(Today, a one-time card under the hero.)_ · Needs Apple Watch
-- **Your baseline is firm (night 14)** — From then on you're compared against 14 of your own nights,
-  and the confidence line retires. _(Today, a one-time card under the hero.)_ · Needs Apple Watch
-- **The Ecosystem: the orb and its signals** — The orb takes the day's color; tap the background to
-  split your signals and see them one by one. _(Today, the hero.)_ · Needs Apple Watch
-- **The autonomic axis sheet** — Your resting heart rate against your own baseline; HRV is shown but
-  doesn't vote. _(Today: tap the small resting orb.)_ · Needs Apple Watch
-- **The guardian: it watches over you** — Skin temperature and respiration against your own pattern.
-  They only count when both drift together. _(Today, the «Te vigila» shelf and its orb.)_ · Needs
-  Apple Watch
-- **The manuals: What decides your day? and Your context** — The full model: who votes, the four
-  words, and why context doesn't vote. _(Today: the «?» on each shelf of the Matrix.)_
-- **The Matrix: your signals in cells** — Sleep, resting HR, guardian, load, strain, HRV, stress and
-  steps, each with its chart. _(Today, below the hero.)_
-- **Reading night by night** — Drag across a chart to read each night; the value jumps up to the
-  numeral. _(Today, on any chart of the Matrix.)_ · Needs Apple Watch
-- **Each signal's sheet** — What it is, how it's computed (with its citation), and where the data
-  comes from. _(Today: tap a cell of the Matrix.)_
-- **Your pattern: what moves a signal** — A documented tendency, no cause and no coefficient, for
-  sleep, strain, efficiency, steps and resting HR. _(Inside the sleep, strain, efficiency, steps or
-  resting HR sheet.)_ · Needs Apple Watch
-- **A signal's full detail** — Hypnogram, zones, the 90-day calendar and the method. _(Signal sheet
-  → «See more».)_
-- **The illness notice** — When your body looks strained, a banner names the signals. Optional.
-  _(Today, at the very top; enabled in Settings → Watch for illness signals.)_ · Needs Apple Watch
-- **The status strips** — Reading your night, sync pending, night not recorded: they always say
-  what's going on. _(Today, under the date.)_
-- **Pull to sync** — A pull from the top fetches what's new from Apple Health right away. _(Today:
-  pull down from the top.)_
-- **Today without permission or without a watch** — It says what's missing and how to get it, never
-  a made-up number. _(Today, the hero, when there is no reading.)_
 <!-- GENERATED:ensenanza:hoy END -->
 
 ---
@@ -95,24 +55,6 @@ The verdict home — today's readiness word (El Ecosistema) and La Matriz of sig
 <!-- GENERATED:ensenanza:tendencias START -->
 Your body over time — the trend of every signal, plus sleep, stress, vitals and body composition.
 
-- **Trends: your body over time** — Every signal across weeks and months, with sleep, stress and
-  vitals. _(The second tab.)_
-- **The period selector** — Week, month, three, six, a year or all: every chart re-windows.
-  _(Trends, under the title.)_
-- **Your 30 mornings** — How you woke up each day of the last month, and how often each signal
-  drifted. _(Trends: tap the hero's word.)_ · Needs Apple Watch
-- **Rest and load** — Sleep, day strain and stress, each with its own detail. _(Trends, first
-  module; tap a column.)_
-- **The day map** — Your day's stress crossed with your calendar: which peak matches which event.
-  _(Stress detail, further down; it asks for calendar permission there.)_ · Needs Apple Watch
-- **Your training load** — Recent versus usual, in a word and a hill; it needs about two weeks of
-  recorded strain. _(Trends, second module; the whole card is tappable.)_
-- **Your vitals** — HRV, resting HR, oxygen, heart rate, respiration and skin temperature, each with
-  its detail. _(Trends, the six-tile module.)_ · Needs Apple Watch
-- **Explore every signal** — The full catalog, each signal with its history. _(Trends, at the
-  bottom.)_
-- **Agreement between sources** — When two sources report the same day you see both values; they're
-  never averaged. _(Under the metric, one line.)_
 <!-- GENERATED:ensenanza:tendencias END -->
 
 ---

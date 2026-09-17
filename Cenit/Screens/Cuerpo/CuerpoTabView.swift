@@ -15,7 +15,7 @@ struct CuerpoTabView: View {
     @State private var detailOcupado = false
 
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: LiquidSpace.s0) {
             if !detailOcupado {
                 selector
                     .padding(.horizontal, LiquidSpace.s600)

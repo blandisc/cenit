@@ -8,6 +8,8 @@ import SwiftUI
 public enum LiquidSpace {
     /// 1 — micro-gap: rótulo ↔ dato dentro de una columna, respiro superior del bullet de
     /// carga. Paso fino de la escala (FER-31): existe porque la superficie lo pedía crudo.
+    /// Cero: apilado sin separacion (el padding vive en los hijos). FER-490.
+    public static let s0: CGFloat = 0
     public static let s025: CGFloat = 1
     /// 2 — gaps de segmentos de barra.
     public static let s050: CGFloat = 2
