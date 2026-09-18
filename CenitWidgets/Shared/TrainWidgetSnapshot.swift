@@ -16,6 +16,10 @@ public struct TrainWidgetSnapshot: Codable, Equatable, Sendable {
     /// literals drift, and an unentitled/mismatched one fails silently.
     public static let trainTodayKind = "TrainTodayWidget"
     public static let weekKind = "WeekWidget"
+    /// FER-521 · Ola 3: medium home-screen widget — day's DosePlan rows + week strip.
+    public static let dayPlanKind = "TrainDayPlanWidget"
+    /// FER-521 · Ola 3: watchOS accessoryRectangular complication — «{rutina} · {palabra}».
+    public static let verdictComplicationKind = "TrainVerdictComplication"
 
     /// How long a written snapshot stays trusted. Past this, the widgets show «Abre Cénit» rather than
     /// a routine name that may no longer be true — the app hasn't run in a while, and nothing else is
@@ -33,10 +37,9 @@ public struct TrainWidgetSnapshot: Codable, Equatable, Sendable {
     /// The 7 days of the week, Monday-first (`orderedWeekdays` convention the app already uses).
     public let week: [WeekDay]
     /// FER-491 · Ola 2 MOTOR: JSON of the day's `DosePlan` (CenitTraining), already computed by the
-    /// app. Stored as `Data` so this file stays free of `CenitTraining` (the widget target only pulls
-    /// `CenitShared/AppGroup.swift` + Design). Widget/LA do NOT paint the per-exercise plan (content
-    /// unchanged); readers that need it call `DosePlan.decode(_:)` (undecodable / stale → nil, never
-    /// crash). Optional + default nil so pre-FER-491 snapshots still decode.
+    /// app. Stored as `Data` so this file stays free of `CenitTraining` at the type level; the widget
+    /// target depends on CenitTraining (FER-521) and decodes via `DosePlan.decode(_:)` (undecodable /
+    /// stale → nil, never crash). Optional + default nil so pre-FER-491 snapshots still decode.
     public var dosePlanData: Data?
 
     public init(writtenAt: Date, today: TodayPlan?, verdict: Verdict?, week: [WeekDay],
@@ -124,5 +127,22 @@ public struct TrainWidgetSnapshot: Codable, Equatable, Sendable {
     public static func read() -> TrainWidgetSnapshot? {
         guard let data = defaults.data(forKey: key) else { return nil }
         return try? JSONDecoder().decode(TrainWidgetSnapshot.self, from: data)
+    }
+}
+
+// FER-433 / FER-521 · Shared by home widgets + Watch complication: «sin plan» rule and empty-state copy.
+extension TrainWidgetSnapshot {
+    /// «Sin plan»: ni rutina hoy ni ningún día de la semana planeado (todo descanso, o una semana
+    /// vacía). Distinto de un día de descanso dentro de una semana ya armada.
+    public var hasPlan: Bool { today != nil || week.contains { $0.state != .rest } }
+
+    public static var sinPlanQueEs: String {
+        String(localized: "vacio.widget.sin-plan.queEs", defaultValue: "Your routine for today")
+    }
+    public static var sinPlanComoSeLlena: String {
+        String(localized: "vacio.widget.sin-plan.comoSeLlena", defaultValue: "Build your week in Cénit")
+    }
+    public static var rancioComoSeLlena: String {
+        String(localized: "vacio.widget.rancio.comoSeLlena", defaultValue: "Open Cénit to refresh")
     }
 }

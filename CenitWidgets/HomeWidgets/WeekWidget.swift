@@ -171,67 +171,6 @@ struct WeekWidgetView: View {
     }
 }
 
-/// The 7-day strip: one SQUARE tesela per day, label INSIDE — the same tesela grammar
-/// `EntrenarHubSemana.tesela(_:label:action:)` draws in the app (no more circle-with-label-below).
-/// Geometry/font tokens copied 1:1 from `EntrenarHubMetrics` (the app's own tesela tokens); box size
-/// stays `HomeWidgetMetrics.dayToken` (20pt, unchanged) — the widget's box, not the app's 26pt, per the
-/// "don't enlarge the widget" constraint. No family tint here still applies (out of scope — decisión
-/// #13 del épico, ya documentada arriba): `.done` stays a flat `tinta900` fill and `.upcoming` a flat
-/// `tinta500` dashed outline rather than the app's per-family tint — `TrainWidgetSnapshot.WeekDay`
-/// carries no family, so these two are the closest equivalent, not an exact one.
-private struct WeekStrip: View {
-    let days: [TrainWidgetSnapshot.WeekDay]
-    private typealias M = HomeWidgetMetrics
-    private typealias T = EntrenarHubMetrics
-
-    var body: some View {
-        HStack(spacing: 0) {
-            ForEach(Array(days.enumerated()), id: \.offset) { _, day in
-                tesela(day.state, label: day.label)
-                    .frame(maxWidth: .infinity)
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityLabel(a11yLabel(day))
-            }
-        }
-    }
-
-    /// Same case grammar as the app: `.done` fills, everyone else outlines the shape; `.today` is a
-    /// SOLID ring, `.upcoming`/`.rest` are DASHED — only color/opacity tells those two apart, exactly
-    /// like `EntrenarDayToken.planned`/`.rest` do.
-    @ViewBuilder private func tesela(_ state: TrainWidgetSnapshot.WeekDayState, label: String) -> some View {
-        let side = M.dayToken
-        let shape = RoundedRectangle(cornerRadius: T.teselaRadius, style: .continuous)
-        ZStack {
-            switch state {
-            case .done:
-                shape.fill(LiquidColor.tinta900)
-            case .today:
-                shape.strokeBorder(LiquidColor.tinta900, lineWidth: T.teselaHoyLineWidth)
-            case .upcoming:
-                shape.strokeBorder(LiquidColor.tinta500,
-                                    style: StrokeStyle(lineWidth: T.teselaOffLineWidth, dash: [2, 2]))
-            case .rest:
-                shape.strokeBorder(LiquidColor.tinta900.opacity(T.teselaOffAlfa),
-                                    style: StrokeStyle(lineWidth: T.teselaOffLineWidth, dash: [2, 2]))
-            }
-            Text(verbatim: label)
-                .font(T.teselaLabel)
-                .foregroundStyle(state == .done ? LiquidColor.papelTarjeta : LiquidColor.tinta500)
-        }
-        .frame(width: side, height: side)
-    }
-
-    private func a11yLabel(_ day: TrainWidgetSnapshot.WeekDay) -> Text {
-        let name = Text(verbatim: day.label) + Text(verbatim: ", ")
-        switch day.state {
-        case .done:     return name + Text("trained.day")
-        case .today:    return name + Text("today") + Text(verbatim: ", ") + Text("training day")
-        case .upcoming: return name + Text("planned")
-        case .rest:     return name + Text("rest day")
-        }
-    }
-}
-
 struct WeekWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: TrainWidgetSnapshot.weekKind, provider: WeekProvider()) { entry in
