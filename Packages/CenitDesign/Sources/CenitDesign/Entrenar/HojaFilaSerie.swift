@@ -65,6 +65,12 @@ public struct HojaFilaSerie: View {
         /// mock §③) — `nil` = sin detalle (p. ej. una vez hecha la serie, ya no hace falta instruir).
         /// Se ignora si `tipoEtiqueta` es `nil`.
         public let tipoDetalle: String?
+        /// FER-491: tono del chip `LiquidStatePill`. `nil` = heurística viva (↳ → ámbar, else verde).
+        /// «Opcional hoy» pasa `LiquidColor.tinta700` (quieto, no deshabilitado).
+        public let tipoTono: Color?
+        /// FER-491: palabra de tipo solo para VoiceOver cuando el chip visual se retiró (opcional
+        /// hecha → indistinguible visualmente; VO sigue diciendo «opcional, hecha»).
+        public let a11yTipo: String?
 
         public init(
             numero: String,
@@ -79,7 +85,9 @@ public struct HojaFilaSerie: View {
             arrastrable: Bool = false,
             esPrimera: Bool = false,
             tipoEtiqueta: String? = nil,
-            tipoDetalle: String? = nil
+            tipoDetalle: String? = nil,
+            tipoTono: Color? = nil,
+            a11yTipo: String? = nil
         ) {
             self.numero = numero
             self.esCalentamiento = esCalentamiento
@@ -94,6 +102,8 @@ public struct HojaFilaSerie: View {
             self.esPrimera = esPrimera
             self.tipoEtiqueta = tipoEtiqueta
             self.tipoDetalle = tipoDetalle
+            self.tipoTono = tipoTono
+            self.a11yTipo = a11yTipo
         }
     }
 
@@ -315,8 +325,11 @@ public struct HojaFilaSerie: View {
     /// igual de compacto. `onTipoTap == nil` (default de todos los callers salvo la sesión) lo deja
     /// puramente informativo, sin envolverlo en un `Button`.
     @ViewBuilder private func chip(_ texto: String) -> some View {
-        let pill = LiquidStatePill(valencia: texto,
-                                    tono: texto.hasPrefix("↳") ? LiquidColor.ambar : LiquidColor.verdePrimario)
+        // FER-491: `tipoTono` explícito (p. ej. tinta700 para «Opcional hoy»); si no, la heurística
+        // viva de AMRAP (verde) / «bajar y seguir» (ámbar).
+        let tono = datos.tipoTono
+            ?? (texto.hasPrefix("↳") ? LiquidColor.ambar : LiquidColor.verdePrimario)
+        let pill = LiquidStatePill(valencia: texto, tono: tono)
         if let onTipoTap {
             Button(action: onTipoTap) { pill }
                 .buttonStyle(.plain)
@@ -380,7 +393,7 @@ public struct HojaFilaSerie: View {
             // `numero` es siempre un entero como texto salvo calentamiento/escalón (cubiertos arriba);
             // el fallback no localizado es defensivo y en la práctica nunca se toma.
             parts.append(Int(datos.numero).map { String(localized: "Set \($0)") } ?? "Set \(datos.numero)")
-            if let tipo = datos.tipoEtiqueta { parts.append(tipo) }
+            if let tipo = datos.tipoEtiqueta ?? datos.a11yTipo { parts.append(tipo) }
         }
         if !datos.peso.isEmpty, datos.peso != "—" {
             parts.append(datos.unidad.isEmpty ? datos.peso : "\(datos.peso) \(datos.unidad)")
@@ -389,6 +402,10 @@ public struct HojaFilaSerie: View {
             // D8 (QA ronda 2): el placeholder visual «máx» se lee «máximo de reps» — no el glifo
             // abreviado, que VoiceOver pronunciaría ambiguo.
             parts.append(datos.reps == String(localized: "max") ? String(localized: "Maximum reps") : datos.reps)
+        }
+        // FER-491: detalle de tipo («Puedes saltarla») entra al VO mientras la serie no está hecha.
+        if marca != .hecha, let detalle = datos.tipoDetalle, !detalle.isEmpty {
+            parts.append(detalle)
         }
         switch marca {
         case .hecha:

@@ -263,19 +263,38 @@ struct HojaTarjetaEjercicioSesion: View {
         case .distance: repsText = (set.distanceM ?? 0) > 0 ? String(format: "%.1f", (set.distanceM ?? 0) / 1000) : "—"
         }
         // Ola 1 (E7): la marca del tipo, en su propia línea bajo la fila (nunca en el numeral).
+        // FER-491: «Opcional hoy» es OTRA valencia del MISMO slot (ortogonal a mode; motor marca
+        // opcionales sobre series estándar). Chip retirado al cerrarse (indistinguible de requerida
+        // hecha); VO conserva «opcional» vía `a11yTipo`.
         let tipoEtiqueta: String?
         let tipoDetalle: String?
+        let tipoTono: Color?
+        let a11yTipo: String?
         switch set.mode {
         case .amrap:
             tipoEtiqueta = String(localized: "However many you can")   // catalog: es «Las que puedas»
             tipoDetalle = set.done ? nil : String(localized: "Log how many you got")   // es «anota cuántas salieron»
+            tipoTono = nil
+            a11yTipo = nil
         case .drop:
             // El glifo «↳» va FUERA de la cadena localizada — es un símbolo, no una palabra.
             tipoEtiqueta = "↳ " + String(localized: "Drop and continue")   // catalog: es «Bajar y seguir»
             tipoDetalle = set.done ? nil : String(localized: "No rest, −20%")   // es «sin descanso, −20 %»
+            tipoTono = nil
+            a11yTipo = nil
         case .standard:
-            tipoEtiqueta = nil
-            tipoDetalle = nil
+            if set.optional {
+                // Default marcado (UI spec): retirar el chip al cerrarse.
+                tipoEtiqueta = set.done ? nil : String(localized: "Optional today")
+                tipoDetalle = set.done ? nil : String(localized: "You can skip it")
+                tipoTono = set.done ? nil : LiquidColor.tinta700
+                a11yTipo = set.done ? String(localized: "optional") : nil
+            } else {
+                tipoEtiqueta = nil
+                tipoDetalle = nil
+                tipoTono = nil
+                a11yTipo = nil
+            }
         }
         let datos = HojaFilaSerie.Datos(
             numero: set.kind == .warmup ? String(localized: "C") : (set.mode == .drop ? "↳" : "\(workNumber)"),
@@ -288,7 +307,9 @@ struct HojaTarjetaEjercicioSesion: View {
             ant: marca == .activa ? antPlayheadTexto(run) : nil,   // E11: sufijo «· ligera»
             esPrimera: esPrimera,
             tipoEtiqueta: tipoEtiqueta,
-            tipoDetalle: tipoDetalle
+            tipoDetalle: tipoDetalle,
+            tipoTono: tipoTono,
+            a11yTipo: a11yTipo
         )
         return HojaFilaSerie(
             datos: datos, contexto: .sesion, marca: marca,
@@ -838,8 +859,30 @@ struct HojaTarjetaSuperserieSesion: View {
         }
         // Ola 1 (E7): la marca del tipo, misma gramática que `filaSerie` (ejercicio suelto). `set`
         // aquí NUNCA es un escalón — `workSetIndex` los excluye de la ronda (ver su doc); un escalón
-        // solo llega por `filaDrop`, abajo.
-        let tipoEtiqueta: String? = set.mode == .amrap ? String(localized: "However many you can") : nil
+        // solo llega por `filaDrop`, abajo. FER-491: «Opcional hoy» también aquí (paridad).
+        let tipoEtiqueta: String?
+        let tipoDetalle: String?
+        let tipoTono: Color?
+        let a11yTipo: String?
+        switch set.mode {
+        case .amrap:
+            tipoEtiqueta = String(localized: "However many you can")
+            tipoDetalle = set.done ? nil : String(localized: "Log how many you got")
+            tipoTono = nil; a11yTipo = nil
+        case .drop:
+            tipoEtiqueta = "↳ " + String(localized: "Drop and continue")
+            tipoDetalle = set.done ? nil : String(localized: "No rest, −20%")
+            tipoTono = nil; a11yTipo = nil
+        case .standard:
+            if set.optional {
+                tipoEtiqueta = set.done ? nil : String(localized: "Optional today")
+                tipoDetalle = set.done ? nil : String(localized: "You can skip it")
+                tipoTono = set.done ? nil : LiquidColor.tinta700
+                a11yTipo = set.done ? String(localized: "optional") : nil
+            } else {
+                tipoEtiqueta = nil; tipoDetalle = nil; tipoTono = nil; a11yTipo = nil
+            }
+        }
         let datos = HojaFilaSerie.Datos(
             numero: "\(ronda)", esCalentamiento: false,
             peso: usesReps ? vivo.plateNumber(vivo.displayWeight(set.weightKg)) : "—",
@@ -852,7 +895,9 @@ struct HojaTarjetaSuperserieSesion: View {
             q: marca == .hecha ? set.rpe.map(LiveStrengthSheet.qLabel(fromRPE:)) : nil,
             ant: nil, esPrimera: esPrimera,
             tipoEtiqueta: tipoEtiqueta,
-            tipoDetalle: nil
+            tipoDetalle: tipoDetalle,
+            tipoTono: tipoTono,
+            a11yTipo: a11yTipo
         )
         return VStack(alignment: .leading, spacing: LiquidSpace.s100) {
             // A11y: nombre + fila madre se combinan en UN elemento («Zancadas, ronda 2 de 3, serie
