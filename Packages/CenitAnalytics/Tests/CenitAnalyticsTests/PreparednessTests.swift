@@ -129,6 +129,50 @@ final class PreparednessTests: XCTestCase {
         XCTAssertEqual(read(days, asOf: "2026-06-24").verdict, .full)
     }
 
+    // MARK: Load axis never flips the verdict (FER-491 · `/cso` · FER-336 rejected)
+
+    /// Invariante: para cualquier `strainByDay`, el `verdict` de `Preparedness` es IDÉNTICO con y
+    /// sin la entrada de carga del día; solo cambia `drivers[.load].state` (`.inRange` vs `.noData`).
+    /// Congela que la carga NO vota el veredicto (ACWR es marco de lesión; consenso 2019-2020 lo
+    /// descarta — la carga queda como contexto).
+    func testLoadAxisNeverFlipsVerdict() {
+        var days = baseline()
+        days.append(dm("2026-06-21"))
+        let asOf = "2026-06-21"
+        let strains: [[String: Double]] = [
+            [:],
+            [asOf: 8.0],
+            [asOf: 0.1],
+            [asOf: 21.0],
+            ["2026-06-20": 12.0],           // strain de OTRO día no cuenta como load de hoy
+            [asOf: 8.0, "2026-06-20": 5.0],
+        ]
+        for strain in strains {
+            let withLoad = read(days, asOf: asOf, strain: strain, config: noHyst)
+            let without = read(days, asOf: asOf, strain: [:], config: noHyst)
+            XCTAssertEqual(withLoad.verdict, without.verdict,
+                           "strainByDay=\(strain) no debe flipar el veredicto")
+            let loadWith = withLoad.drivers.first { $0.axis == .load }
+            let loadWithout = without.drivers.first { $0.axis == .load }
+            XCTAssertEqual(loadWithout?.state, .noData)
+            if strain[asOf] != nil {
+                XCTAssertEqual(loadWith?.state, .inRange,
+                               "con strain de hoy el eje load es contexto (.inRange), no voto")
+            } else {
+                XCTAssertEqual(loadWith?.state, .noData)
+            }
+        }
+        // También con un día que SÍ mueve el veredicto (autonomic out → caution): la carga no lo cambia.
+        var bad = baseline()
+        bad.append(dm("2026-06-21", hrv: 30, rhr: 75, resp: 20, sleep: 450, temp: 0.0))
+        let cautionNoLoad = read(bad, asOf: asOf, strain: [:], config: noHyst)
+        let cautionWithLoad = read(bad, asOf: asOf, strain: [asOf: 14.0], config: noHyst)
+        XCTAssertEqual(cautionNoLoad.verdict, .caution)
+        XCTAssertEqual(cautionWithLoad.verdict, cautionNoLoad.verdict)
+        XCTAssertEqual(cautionWithLoad.drivers.first { $0.axis == .load }?.state, .inRange)
+        XCTAssertEqual(cautionNoLoad.drivers.first { $0.axis == .load }?.state, .noData)
+    }
+
     // MARK: Confidence depth (FER-1040 — D2: the arc measures the verdict's OWN maturity)
 
     /// `autonomicNights` is the depth of the SDNN baseline the verdict actually stands on (nights

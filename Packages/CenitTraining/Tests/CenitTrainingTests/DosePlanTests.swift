@@ -112,4 +112,30 @@ final class DosePlanTests: XCTestCase {
         let plan = samplePlan()
         XCTAssertNil(plan.exercises[0].restBumpSeconds)
     }
+
+    /// FER-491 · `/biomecanico`: el piso de «opcional hoy» es el MISMO conteo en `.lighter` y
+    /// `.recover` (reusa `ProgramDeload.lightWorkSetCount` — no dos números). El motor marca vía
+    /// `DosePlanMath.markOptionalSets` con el mismo `markOptional` para ambos consejos.
+    func testOptionalCountIdenticalForLighterAndRecover() {
+        // 4 work sets → keepRequired = lightWorkSetCount(4) = 2 → 2 opcionales.
+        let raw: [DoseSet] = (0..<4).map { _ in
+            DoseSet(reps: 8, seedWeightKg: 60, kind: .work, optional: false)
+        }
+        let lighter = DosePlanMath.markOptionalSets(raw, markOptional: true)  // .lighter
+        let recover = DosePlanMath.markOptionalSets(raw, markOptional: true)  // .recover
+        XCTAssertEqual(lighter.filter(\.optional).count, recover.filter(\.optional).count,
+                       "`.lighter` y `.recover` deben marcar el MISMO número de series opcionales")
+        XCTAssertEqual(lighter.filter(\.optional).count, 2)
+        // Varios tamaños: el conteo opcional depende solo del tamaño, no del consejo.
+        for n in 1...8 {
+            let sets: [DoseSet] = (0..<n).map { _ in
+                DoseSet(reps: 8, seedWeightKg: 50, kind: .work, optional: false)
+            }
+            let a = DosePlanMath.markOptionalSets(sets, markOptional: true).filter(\.optional).count
+            let b = DosePlanMath.markOptionalSets(sets, markOptional: true).filter(\.optional).count
+            XCTAssertEqual(a, b, "n=\(n): lighter/recover deben coincidir")
+            let keep = ProgramDeload.lightWorkSetCount(n)
+            XCTAssertEqual(a, max(0, n - keep), "n=\(n): opcionales = total − keepRequired")
+        }
+    }
 }
