@@ -243,6 +243,11 @@ public enum WorkoutMirrorKey {
     /// FER-491: a THIRD key for the typed `.dosePlan(...)` payload. Same single-slot channel; absent
     /// when today has no plan. Pre-FER-491 watches ignore unknown keys.
     public static let doseKey = "cenit.dose"
+
+    /// FER-521: Bool in the same application-context dict — whether the weekly split has any planned
+    /// day. Lets the Watch complication tell rest-day (plan exists, no routine today) from sin-plan
+    /// (empty week). Absent on pre-FER-521 iPhones → Watch treats as unknown / sin-plan-safe.
+    public static let hasWeeklyPlanKey = "cenit.hasWeeklyPlan"
 }
 
 public extension WorkoutMirrorMessage {

@@ -71,6 +71,9 @@ final class WatchWorkoutManager: NSObject, ObservableObject {
     /// FER-491 · SUPERFICIE: typed day's `DosePlan` for the idle «Plan de hoy» glance. Nil when
     /// absent, undecodable, or stale (>3d) — the face then behaves as «sin plan» (no adornments).
     @Published private(set) var todayDosePlan: DosePlan?
+    /// FER-521: whether the iPhone's weekly split has any planned day (application-context flag).
+    /// Nil until the first push that carries `hasWeeklyPlanKey`.
+    private var hasWeeklyPlan: Bool?
     /// True for the ~3s «Descanso terminado» transition after a rest naturally expires.
     @Published var restEndedBanner = false
     /// The end-of-session summary, set when the session ends with something saved.
@@ -706,6 +709,8 @@ final class WatchWorkoutManager: NSObject, ObservableObject {
             // FER-96: the resting-face verdict, resolved by the iPhone — adopted as-is, never recomputed.
             idleContext = WatchIdleContext(word: word, advice: advice, routineName: routineName,
                                            toneRaw: toneRaw)
+            // FER-521: refresh the accessoryRectangular glance from the same oracle payload.
+            publishTrainGlance()
         case .watchDidSaveWorkout, .watchWillNotSave, .completeSet, .logSet, .syncSnapshot,
              .skipRest, .adjustRest, .openReceipt, .watchPulse, .startFromWrist:
             break   // watch → iPhone only (FER-808/810/1003/96/361)
@@ -732,9 +737,28 @@ final class WatchWorkoutManager: NSObject, ObservableObject {
             // Blob present but undecodable → degrade silently.
             todayDosePlan = nil
         }
+        // FER-521: rest vs sin-plan for the complication. Absent on pre-FER-521 iPhones.
+        if let flag = context[WorkoutMirrorKey.hasWeeklyPlanKey] as? Bool {
+            hasWeeklyPlan = flag
+        }
         guard let data = context[WorkoutMirrorKey.payloadKey] as? Data,
-              let message = WorkoutMirrorMessage.decode(data) else { return }
+              let message = WorkoutMirrorMessage.decode(data) else {
+            // Context without idle payload still may have refreshed hasWeeklyPlan — republish.
+            publishTrainGlance()
+            return
+        }
         handle(message)
+    }
+
+    /// FER-521: App Group glance the Watch complication reads (same oracle word; no ACWR).
+    private func publishTrainGlance() {
+        let weekly = hasWeeklyPlan ?? (idleContext.routineName != nil || todayDosePlan != nil || hasSeed)
+        WatchTrainGlancePublisher.publish(
+            routineName: idleContext.routineName,
+            word: idleContext.word,
+            advice: idleContext.advice,
+            toneRaw: idleContext.toneRaw,
+            hasWeeklyPlan: weekly)
     }
 
     private func adoptIdentity(_ sid: String) {
