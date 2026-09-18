@@ -361,7 +361,31 @@ extension AppModel {
         case .skip:
             guard s.phase == .resting, !s.paused else { return }
             s.skipRest()
+        case .logSet:
+            applyLogSetAction(action)
         }
+    }
+
+    /// FER-522 — apply a spoken weight×reps to the live session. Reuses `StrengthSessionModel`
+    /// mutators (`setWeight`/`setReps` + `registerCurrentSet`); passes the user's numbers as-is
+    /// (never computes load). Mirror guards of `applyRestAction`: no live session / receipt closed /
+    /// wrong session / stale vs `lastRestStartedAt` → no-op, no crash.
+    func applyLogSetAction(_ action: RestActivityBridge.PendingAction) {
+        guard action.action == .logSet else { return }
+        guard let s = strengthSession, s.summary == nil else { return }
+        guard action.sessionId == nil || action.sessionId == s.id else { return }
+        if let anchor = s.lastRestStartedAt, action.ts < anchor { return }
+        guard let exerciseId = action.exerciseId,
+              let weightKg = action.weightKg,
+              let reps = action.reps,
+              let ei = s.runs.firstIndex(where: { $0.exerciseId == exerciseId && !$0.skipped })
+        else { return }
+        if s.currentIndex != ei { s.goToExercise(ei) }
+        let si = s.runs[ei].currentSet
+        s.setWeight(exercise: ei, set: si, kg: weightKg)
+        s.setReps(exercise: ei, set: si, reps: reps)
+        s.registerCurrentSet(restingHR: restingHrBaseline, maxHR: Double(profile.hrMax),
+                             hasLivePulse: watchBpm != nil)
     }
 
     /// Apply a wrist-initiated action (FER-808) to the live session. Routes to the SAME session mutators

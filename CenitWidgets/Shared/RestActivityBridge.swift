@@ -19,9 +19,12 @@ enum RestActivityBridge {
 
     /// The lock-screen actions the Live Activity can request. FER-789 adds `removeThirty` (−30 s),
     /// `completeSet` (register the upcoming set and rest again) and `finishWorkout` (register the last
-    /// set and end the session). FER-806 adds `resume` (leave the «En pausa» state). New raw values
-    /// decode as-is; older payloads never carry them.
-    enum Action: String, Codable { case addThirty, removeThirty, skip, completeSet, finishWorkout, resume }
+    /// set and end the session). FER-806 adds `resume` (leave the «En pausa» state). FER-522 adds
+    /// `logSet` (Siri / Shortcuts: weight×reps for a named exercise — payload fields on `PendingAction`).
+    /// New raw values decode as-is; older payloads never carry them.
+    enum Action: String, Codable {
+        case addThirty, removeThirty, skip, completeSet, finishWorkout, resume, logSet
+    }
 
     /// Darwin notification the extension posts and the app observes (cross-process, unlike
     /// `NotificationCenter`). Named, not payload-carrying — the payload is the App Group inbox.
@@ -38,16 +41,46 @@ enum RestActivityBridge {
     /// `Decodable` treats a missing key on an `Optional` property as `nil`, no migration needed). The
     /// app treats `nil` as an old payload and falls back to the pre-existing `lastRestStartedAt` guard,
     /// same as before this fix.
-    struct PendingAction: Codable { var action: Action; var ts: Date; var sessionId: String? }
+    /// FER-522: `exerciseId` / `weightKg` / `reps` travel only with `.logSet`; missing on every other
+    /// action and on pre-FER-522 payloads (decode as nil — additive).
+    struct PendingAction: Codable {
+        var action: Action
+        var ts: Date
+        var sessionId: String?
+        var exerciseId: String?
+        var weightKg: Double?
+        var reps: Int?
+
+        init(action: Action, ts: Date, sessionId: String?,
+             exerciseId: String? = nil, weightKg: Double? = nil, reps: Int? = nil) {
+            self.action = action
+            self.ts = ts
+            self.sessionId = sessionId
+            self.exerciseId = exerciseId
+            self.weightKg = weightKg
+            self.reps = reps
+        }
+    }
 
     /// Append an action to the inbox and wake the app. Called from the intent (any process). Sealed with
     /// whatever session the app last recorded as current (see `setCurrentSession`), so a late drain can
     /// never misapply the action to a DIFFERENT session that happens to be live by the time it's read
     /// (P0-3: a stale ±30/Saltar/Completar/Terminar from session A landing on session B).
     static func enqueue(_ action: Action, now: Date = Date()) {
+        enqueue(PendingAction(action: action, ts: now, sessionId: currentSessionId()))
+    }
+
+    /// FER-522 — enqueue a spoken weight×reps for a named exercise. Numbers pass through as-is
+    /// (language, never math). Sealed with the current session id like every other inbox action.
+    static func enqueueLogSet(exerciseId: String, weightKg: Double, reps: Int, now: Date = Date()) {
+        enqueue(PendingAction(action: .logSet, ts: now, sessionId: currentSessionId(),
+                              exerciseId: exerciseId, weightKg: weightKg, reps: reps))
+    }
+
+    private static func enqueue(_ pending: PendingAction) {
         guard let defaults else { return }
         var queue = readQueue()
-        queue.append(PendingAction(action: action, ts: now, sessionId: currentSessionId()))
+        queue.append(pending)
         if let data = try? JSONEncoder().encode(queue) {
             defaults.set(data, forKey: inboxKey)
         }
