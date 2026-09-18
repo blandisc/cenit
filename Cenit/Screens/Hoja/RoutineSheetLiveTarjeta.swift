@@ -138,9 +138,10 @@ struct HojaTarjetaEjercicioSesion: View {
         // `Raise.phrase` es la justificación larga («Hiciste 3×8…») → overline, no el CTA.
         let phrase = raise?.phrase.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         let cta = String(localized: "Take the bump") + " →"
+        let cuerpo = String(format: String(localized: "Go to %@ %@"), toKgText, unit)
         return LiquidAviso(
             titulo: phrase,
-            cuerpo: String(localized: "Go to \(toKgText) \(unit)"),
+            cuerpo: cuerpo,
             tono: LiquidColor.verdePrimario,
             cta: cta,
             accion: {

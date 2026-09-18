@@ -166,7 +166,9 @@ struct WatchIdleView: View {
         }()
         let restMin = max(1, Int((Double(ex.restSeconds) / 60.0).rounded()))
         // UX: «{ejercicio} · {series}×{reps} · descanso {min}» — sin carga.
-        let detail = String(localized: "\(series)×\(reps) · rest \(restMin) min")
+        let detail = String(format: String(localized: "%lld×%@ · rest %lld min"),
+                            series, reps, restMin)
+        let restA11y = String(format: String(localized: "rest %lld min"), restMin)
         return VStack(alignment: .leading, spacing: LiquidSpace.s050) {
             Text(ex.name)
                 .font(LiquidType.filaConteo)
@@ -178,7 +180,7 @@ struct WatchIdleView: View {
                 .fixedSize(horizontal: false, vertical: true)
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel(Text(verbatim: "\(ex.name), \(series) × \(reps), \(String(localized: "rest \(restMin) min"))"))
+        .accessibilityLabel(Text(verbatim: "\(ex.name), \(series) × \(reps), \(restA11y)"))
     }
 
     private func verdictOLEDColor(_ tone: EntrenarHilo.Tone) -> Color {
