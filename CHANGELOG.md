@@ -20,6 +20,12 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
 
 ## Unreleased
 
+- **Siri y Atajos: qué toca hoy, arrancar rutina y registrar una serie / Siri and Shortcuts: what's due today, start a routine, log a set**
+  ### ES
+  Tres Atajos nuevos (y frases listas para Siri): «¿qué toca hoy?» lee la misma lectura que el widget, sin puntaje; «arranca {rutina}» abre Entrenar lista para empezar; «registra peso×reps» anota en la sesión viva los números que dictaste, sin recalcular carga. Todo en el teléfono, sin red.
+  ### EN
+  Three new Shortcuts (with Siri phrases ready): "what's due today?" reads the same reading as the widget, with no score; "start {routine}" opens Train ready to begin; "log weight×reps" writes the numbers you spoke into the live session, without recomputing load. All on-device, no network.
+
 - **La sesión viva pinta el plan del día: opcionales y subida a un toque / Live session paints today's plan: optionals and one-tap raise**
   ### ES
   Con «Hoy ve leve» o «Recupera», las series de más aparecen como «Opcional hoy · Puedes saltarla» (siguen registrables y cuentan para la progresión). Si hay una subida retenida, «Tomar la subida» la aplica a las series que faltan; luego puedes volver al peso anterior. El Watch muestra el «Plan de hoy» por ejercicio, sin número de carga. Sin Apple Salud o con un plan viejo, la sesión se comporta como siempre, sin adornos.

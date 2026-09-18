@@ -129,4 +129,20 @@ final class OraculoUnicoTests: XCTestCase {
         XCTAssertNotEqual(reloj?.palabra, crudo)
         XCTAssertEqual(widget?.tone, .hollow)
     }
+
+    /// FER-522: `TodaySpokenSummary` reads the SAME `verdict.word` the widget snapshot carries —
+    /// the spoken answer cannot invent a different oracle.
+    func testSpokenSummaryLeeLaMismaPalabraDelWidget() {
+        for c in casos {
+            let widget = TrainWidgetPublisher.verdict(
+                prep: c.prep, fullyLoaded: c.fullyLoaded, healthConnected: c.health,
+                hasPlan: c.hasPlan, primerUsoSinPlan: c.primerUso)
+            let snap = TrainWidgetPublisher.snapshot(
+                todayRoutineName: c.hasPlan ? "Empuje" : nil,
+                sessionLive: false, verdict: widget, week: [], now: Date())
+            let spoken = TodaySpokenSummary.from(snapshot: snap)
+            XCTAssertEqual(spoken.word, widget?.word, c.nombre)
+            XCTAssertEqual(spoken.advice, widget?.advice, c.nombre)
+        }
+    }
 }

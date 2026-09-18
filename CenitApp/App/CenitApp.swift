@@ -132,7 +132,7 @@ struct CenitApp: App {
                 // directo en `.active`), así que ese drain solo cubre reanudar desde segundo plano.
                 // Este `.task` cubre el arranque en frío; `drain()` es idempotente (limpia la bandera
                 // al leerla), así que si el segundo camino también corre, el segundo no hace nada.
-                .task { if StartRoutineBridge.drain() { tabRouter.startTodayTraining() } }
+                .task { Self.drainStartRoutine(into: tabRouter) }
                 // FER-96: push the watch's idle-face context once at launch (today's routine + the daily
                 // verdict, once resolved) — best-effort, a no-op without a paired watch.
                 .task { await model.pushWatchIdleContext() }
@@ -167,7 +167,7 @@ struct CenitApp: App {
                 // (`TabRouter.startTodayTraining()`), so the app lands directly in today's guided
                 // session, no second tap. `tabRouter` lives here (not on `AppModel`), so the drain
                 // happens at this call site rather than alongside `drainPendingIntents()`.
-                if StartRoutineBridge.drain() { tabRouter.startTodayTraining() }
+                Self.drainStartRoutine(into: tabRouter)
                 Task {
                     // FER-1024: one refresh per foreground, never two concurrent. `resumeForegroundAnalysis`
                     // forces a rebuild ONLY when the day rolled over (so «Hoy» re-buckets past midnight even
@@ -195,6 +195,16 @@ struct CenitApp: App {
             @unknown default:
                 break
             }
+        }
+    }
+
+    /// FER-522 — drain the App-Group start request into `TabRouter`. Today → path FER-613; named →
+    /// `startTraining(routineId:)` (open ready to start, no force). Idempotent: a second drain is a no-op.
+    private static func drainStartRoutine(into tabRouter: TabRouter) {
+        guard let request = StartRoutineBridge.drain() else { return }
+        switch request {
+        case .today: tabRouter.startTodayTraining()
+        case .named(let id): tabRouter.startTraining(routineId: id)
         }
     }
 }

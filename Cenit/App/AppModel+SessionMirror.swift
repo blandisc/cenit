@@ -19,17 +19,32 @@ extension AppModel {
     func bindRestActivity() {
         lastObservedStrengthPhase = strengthSession?.phase
         lastPlanSignature = nil   // FER-810: force a fresh plan push for the newly bound session
+        publishActiveSessionSnapshot()   // FER-522: Siri's ExerciseEntityQuery reads this
         restActivityCancellable = strengthSession?.objectWillChange
             .receive(on: DispatchQueue.main)   // read the session AFTER its change lands
             .sink { [weak self] in
                 guard let self else { return }
                 self.reconcileRestActivity()
+                self.publishActiveSessionSnapshot()
                 let phase = self.strengthSession?.phase
                 let phaseChanged = phase != self.lastObservedStrengthPhase
                 self.lastObservedStrengthPhase = phase
                 self.scheduleInProgressPersist(immediate: phaseChanged)
             }
         reconcileRestActivity()
+    }
+
+    /// FER-522 — App-Group picture of the live session's exercises (id+name) for `ExerciseEntityQuery`.
+    /// Cleared with no session / receipt so Siri never offers exercises that aren't loggable.
+    func publishActiveSessionSnapshot() {
+        guard let s = strengthSession, s.summary == nil else {
+            ActiveSessionSnapshot.clear()
+            return
+        }
+        ActiveSessionSnapshot.write(ActiveSessionSnapshot(
+            writtenAt: Date(),
+            sessionId: s.id,
+            exercises: s.runs.filter { !$0.skipped }.map { .init(id: $0.exerciseId, name: $0.name) }))
     }
 
     // MARK: - Crash-recovery persistence of the in-progress session (FER-798)
@@ -346,7 +361,31 @@ extension AppModel {
         case .skip:
             guard s.phase == .resting, !s.paused else { return }
             s.skipRest()
+        case .logSet:
+            applyLogSetAction(action)
         }
+    }
+
+    /// FER-522 — apply a spoken weight×reps to the live session. Reuses `StrengthSessionModel`
+    /// mutators (`setWeight`/`setReps` + `registerCurrentSet`); passes the user's numbers as-is
+    /// (never computes load). Mirror guards of `applyRestAction`: no live session / receipt closed /
+    /// wrong session / stale vs `lastRestStartedAt` → no-op, no crash.
+    func applyLogSetAction(_ action: RestActivityBridge.PendingAction) {
+        guard action.action == .logSet else { return }
+        guard let s = strengthSession, s.summary == nil else { return }
+        guard action.sessionId == nil || action.sessionId == s.id else { return }
+        if let anchor = s.lastRestStartedAt, action.ts < anchor { return }
+        guard let exerciseId = action.exerciseId,
+              let weightKg = action.weightKg,
+              let reps = action.reps,
+              let ei = s.runs.firstIndex(where: { $0.exerciseId == exerciseId && !$0.skipped })
+        else { return }
+        if s.currentIndex != ei { s.goToExercise(ei) }
+        let si = s.runs[ei].currentSet
+        s.setWeight(exercise: ei, set: si, kg: weightKg)
+        s.setReps(exercise: ei, set: si, reps: reps)
+        s.registerCurrentSet(restingHR: restingHrBaseline, maxHR: Double(profile.hrMax),
+                             hasLivePulse: watchBpm != nil)
     }
 
     /// Apply a wrist-initiated action (FER-808) to the live session. Routes to the SAME session mutators

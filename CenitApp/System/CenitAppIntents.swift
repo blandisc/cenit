@@ -66,14 +66,43 @@ struct MarkMomentIntent: AppIntent {
 }
 
 /// Publica los intents de Cénit a Siri, Spotlight y la galería de Atajos, sin que el usuario
-/// tenga que configurar nada.
+/// tenga que configurar nada. FER-522 adds the three Train intents (phrases es-MX + en ready;
+/// Siri es-MX may land later — Shortcuts covers the gate meanwhile).
 struct CenitShortcuts: AppShortcutsProvider {
     static var appShortcuts: [AppShortcut] {
         AppShortcut(
             intent: MarkMomentIntent(),
-            phrases: ["Mark a moment in \(.applicationName)"],
+            phrases: [
+                "Mark a moment in \(.applicationName)",
+                "Marca un momento en \(.applicationName)",
+            ],
             shortTitle: "Mark a Moment",
             systemImageName: "mappin.and.ellipse")
+        AppShortcut(
+            intent: WhatIsDueTodayIntent(),
+            phrases: [
+                "What's due today in \(.applicationName)",
+                "What do I train today in \(.applicationName)",
+            ],
+            shortTitle: "What's due today?",
+            systemImageName: "calendar")
+        AppShortcut(
+            intent: StartRoutineIntent(),
+            phrases: [
+                "Start \(\.$routine) in \(.applicationName)",
+                "Start today's routine in \(.applicationName)",
+                "Arranca \(\.$routine) en \(.applicationName)",
+                "Empieza \(\.$routine) en \(.applicationName)",
+            ],
+            shortTitle: "Start a routine",
+            systemImageName: "figure.strengthtraining.traditional")
+        AppShortcut(
+            intent: LogSetIntent(),
+            phrases: [
+                "Log a set in \(.applicationName)",
+            ],
+            shortTitle: "Log a set",
+            systemImageName: "checkmark.circle")
     }
 }
 #endif

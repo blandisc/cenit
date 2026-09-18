@@ -107,11 +107,36 @@ final class RestActivityFER806Tests: XCTestCase {
     /// Every bridge action — including FER-806's `resume` — round-trips through JSON (the inbox payload).
     func testActionsRoundTripInclResume() throws {
         for action in [RestActivityBridge.Action.addThirty, .removeThirty, .skip,
-                       .completeSet, .finishWorkout, .resume] {
+                       .completeSet, .finishWorkout, .resume, .logSet] {
             let data = try JSONEncoder().encode(action)
             XCTAssertEqual(try JSONDecoder().decode(RestActivityBridge.Action.self, from: data), action)
         }
         // The raw value is stable (older/newer payloads agree on the wire string).
         XCTAssertEqual(RestActivityBridge.Action.resume.rawValue, "resume")
+        XCTAssertEqual(RestActivityBridge.Action.logSet.rawValue, "logSet")
+    }
+
+    /// FER-522: `logSet` payload round-trips; a pre-FER-522 action (no exercise/weight/reps keys)
+    /// still decodes with those fields as nil.
+    func testLogSetPendingActionRoundTripAndOldPayload() throws {
+        let full = RestActivityBridge.PendingAction(
+            action: .logSet, ts: Date(timeIntervalSince1970: 42), sessionId: "s1",
+            exerciseId: "bench", weightKg: 80, reps: 8)
+        let data = try JSONEncoder().encode(full)
+        let decoded = try JSONDecoder().decode(RestActivityBridge.PendingAction.self, from: data)
+        XCTAssertEqual(decoded.action, .logSet)
+        XCTAssertEqual(decoded.exerciseId, "bench")
+        XCTAssertEqual(decoded.weightKg, 80)
+        XCTAssertEqual(decoded.reps, 8)
+
+        // Old payload shape (pre-FER-522): only action/ts/sessionId — optional logSet fields stay nil.
+        let old = RestActivityBridge.PendingAction(action: .addThirty, ts: Date(timeIntervalSince1970: 0),
+                                                   sessionId: "s1")
+        let oldData = try JSONEncoder().encode(old)
+        let oldDecoded = try JSONDecoder().decode(RestActivityBridge.PendingAction.self, from: oldData)
+        XCTAssertEqual(oldDecoded.action, .addThirty)
+        XCTAssertNil(oldDecoded.exerciseId)
+        XCTAssertNil(oldDecoded.weightKg)
+        XCTAssertNil(oldDecoded.reps)
     }
 }
