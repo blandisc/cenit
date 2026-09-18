@@ -241,24 +241,6 @@ private struct NoPlanBody: View {
     }
 }
 
-// FER-433 · Lo que ambos widgets (`TrainTodayWidget`, `WeekWidget`) comparten del primer uso: la regla
-// «sin plan» y el copy de las tres partes. Vive aquí (no en `Shared/`) porque solo la extensión lo usa.
-extension TrainWidgetSnapshot {
-    /// «Sin plan»: ni rutina hoy ni ningún día de la semana planeado (todo descanso, o una semana
-    /// vacía). Distinto de un día de descanso dentro de una semana ya armada.
-    var hasPlan: Bool { today != nil || week.contains { $0.state != .rest } }
-
-    static var sinPlanQueEs: String {
-        String(localized: "vacio.widget.sin-plan.queEs", defaultValue: "Your routine for today")
-    }
-    static var sinPlanComoSeLlena: String {
-        String(localized: "vacio.widget.sin-plan.comoSeLlena", defaultValue: "Build your week in Cénit")
-    }
-    static var rancioComoSeLlena: String {
-        String(localized: "vacio.widget.rancio.comoSeLlena", defaultValue: "Open Cénit to refresh")
-    }
-}
-
 struct TrainTodayWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: TrainWidgetSnapshot.trainTodayKind, provider: TrainTodayProvider()) { entry in

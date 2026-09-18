@@ -65,7 +65,8 @@ extension AppModel {
         }
         mirroringBridge?.pushIdleContext(word: hilo?.palabra, toneRaw: hilo.map(Self.watchToneRaw(_:)),
                                          advice: hilo?.consejo, routineName: routine?.name,
-                                         seed: seed, dose: dose)
+                                         seed: seed, dose: dose,
+                                         hasWeeklyPlan: !semanaVacia)
     }
 
     /// Lo que viaja a la muñeca: el oráculo TAL CUAL (`LiquidHoyBuilder.hiloEntrenar`), sin re-derivar ni

@@ -118,6 +118,8 @@ enum TrainWidgetPublisher {
         TrainWidgetSnapshot.write(snap)
         WidgetCenter.shared.reloadTimelines(ofKind: TrainWidgetSnapshot.trainTodayKind)
         WidgetCenter.shared.reloadTimelines(ofKind: TrainWidgetSnapshot.weekKind)
+        // FER-521 · Ola 3: medium day-plan widget reads the same snapshot + dosePlanData.
+        WidgetCenter.shared.reloadTimelines(ofKind: TrainWidgetSnapshot.dayPlanKind)
     }
 }
 

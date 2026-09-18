@@ -213,6 +213,8 @@ targets:
       # The workout-mirroring contract (WorkoutMirrorMessage, RestActivitySnapshot) + App-Group plumbing,
       # shared verbatim with the iPhone app so both processes agree on the wire shape.
       - path: CenitShared
+      # FER-521: same TrainWidgetSnapshot the complication reads (written here from idleContext).
+      - path: CenitWidgets/Shared/TrainWidgetSnapshot.swift
     info:
       path: CenitWatch/Resources/Info.plist
       properties:
@@ -238,6 +240,9 @@ targets:
       path: CenitWatch/Resources/CenitWatch.entitlements
       properties:
         com.apple.developer.healthkit: true
+        # FER-521: App Group so the watch app can write the glance the complication reads.
+        com.apple.security.application-groups:
+          - group.com.feriracheta.cenit
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.feriracheta.cenit.watchkitapp
@@ -252,6 +257,50 @@ targets:
     dependencies:
       - package: CenitDesign
       - package: CenitTraining   # C1 (FER-361): the wire + the on-wrist logger use the real domain types
+      # FER-521 · Ola 3: embed the watchOS complication extension.
+      - target: CenitWatchWidgets
+
+  # ---------------------------------------------------------------------------
+  # FER-521 · Ola 3: watchOS WidgetKit extension — accessoryRectangular «{rutina} · {palabra}».
+  # Shares the App Group glance written by CenitWatch from the iPhone's idleContext push.
+  CenitWatchWidgets:
+    type: app-extension
+    platform: watchOS
+    deploymentTarget: "10.0"
+    sources:
+      - path: CenitWatchWidgets
+        excludes:
+          - "Resources/Info.plist"
+          - "Resources/CenitWatchWidgets.entitlements"
+      - path: CenitWidgets/Shared/TrainWidgetSnapshot.swift
+      - path: CenitShared/AppGroup.swift
+    info:
+      path: CenitWatchWidgets/Resources/Info.plist
+      properties:
+        CFBundleDisplayName: Cénit
+        CFBundleName: CenitWatchWidgets
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        ITSAppUsesNonExemptEncryption: false
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    entitlements:
+      path: CenitWatchWidgets/Resources/CenitWatchWidgets.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.feriracheta.cenit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.feriracheta.cenit.watchkitapp.widgets
+        PRODUCT_NAME: CenitWatchWidgets
+        DEVELOPMENT_TEAM: "B7KRCF776Z"
+        CODE_SIGN_STYLE: Automatic
+        GENERATE_INFOPLIST_FILE: NO
+        TARGETED_DEVICE_FAMILY: "4"
+        SWIFT_EMIT_LOC_STRINGS: NO
+        SKIP_INSTALL: YES
+    dependencies:
+      - package: CenitDesign
 
   # ---------------------------------------------------------------------------
   # FER-721: the app's first app-extension target — a WidgetKit extension that hosts the guided
@@ -296,6 +345,8 @@ targets:
         SKIP_INSTALL: YES
     dependencies:
       - package: CenitDesign
+      # FER-521 · Ola 3: decode `dosePlanData` with the same `DosePlan` the app writes (never re-derive).
+      - package: CenitTraining
 
   # ---------------------------------------------------------------------------
   # UI test bundle that drives the Cenit app in the simulator and captures
@@ -362,6 +413,7 @@ schemes:
     build:
       targets:
         CenitWatch: all
+        CenitWatchWidgets: all
     run:
       config: Debug
   Cenit:
@@ -370,6 +422,7 @@ schemes:
         Cenit: all
         CenitWidgets: all
         CenitWatch: all
+        CenitWatchWidgets: all
         CenitUITests: [testing]
         CenitUnitTests: [testing]
     run:

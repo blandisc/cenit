@@ -76,8 +76,8 @@ public enum WidgetMetrics {
 
 // MARK: - Home-screen widget metrics
 //
-// `TrainTodayWidget` (.systemSmall) and `WeekWidget` (.systemMedium) — WidgetKit's own fixed canvases,
-// deliberately NOT reflowing with Dynamic Type.
+// `TrainTodayWidget` (.systemSmall), `WeekWidget` / `TrainDayPlanWidget` (.systemMedium) — WidgetKit's
+// own fixed canvases, deliberately NOT reflowing with Dynamic Type.
 public enum HomeWidgetMetrics {
     public static let padding: CGFloat = 16
     public static let overlineTracking: CGFloat = 1.2

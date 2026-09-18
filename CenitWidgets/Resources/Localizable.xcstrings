@@ -1,1214 +1,1214 @@
 {
-  "sourceLanguage" : "en",
-  "strings" : {
-    " / %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : " / %@"
+  "sourceLanguage": "en",
+  "strings": {
+    " / %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": " / %@"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : " / %@"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " / %@"
           }
         }
       }
     },
-    "%@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%@"
+    "%@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%@"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@"
           }
         }
       }
     },
-    "%@ " : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%@ "
+    "%@ ": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%@ "
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ "
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ "
           }
         }
       }
     },
-    "%@ beats per minute" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%@ beats per minute"
+    "%@ beats per minute": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%@ beats per minute"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ latidos por minuto"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ latidos por minuto"
           }
         }
       }
     },
-    "%@ beats per minute, recovering toward %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@ beats per minute, recovering toward %2$@"
+    "%@ beats per minute, recovering toward %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@ beats per minute, recovering toward %2$@"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$@ latidos por minuto, recuperando hacia %2$@"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ latidos por minuto, recuperando hacia %2$@"
           }
         }
       }
     },
-    "%@/%@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@/%2$@"
+    "%@/%@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@/%2$@"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$@/%2$@"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@/%2$@"
           }
         }
       }
     },
-    "%lld beats per minute" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld beats per minute"
+    "%lld beats per minute": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld beats per minute"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld latidos por minuto"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld latidos por minuto"
           }
         }
       }
     },
-    "%lld beats per minute, recovering toward %lld" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld beats per minute, recovering toward %2$lld"
+    "%lld beats per minute, recovering toward %lld": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld beats per minute, recovering toward %2$lld"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld latidos por minuto, recuperando hacia %2$lld"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld latidos por minuto, recuperando hacia %2$lld"
           }
         }
       }
     },
-    "%lld/%lld series" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld/%2$lld series"
+    "%lld/%lld series": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld/%2$lld series"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$lld/%2$lld series"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld/%2$lld series"
           }
         }
       }
     },
-    "→ %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "→ %@"
+    "→ %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "→ %@"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "→ %@"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "→ %@"
           }
         }
       }
     },
-    "+30 s" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+30 s"
+    "+30 s": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "+30 s"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+30 s"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "+30 s"
           }
         }
       }
     },
-    "−30 s" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "−30 s"
+    "−30 s": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "−30 s"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "−30 s"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "−30 s"
           }
         }
       }
     },
-    "Add 30 seconds" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Add 30 seconds"
+    "Add 30 seconds": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add 30 seconds"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sumar 30 segundos"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sumar 30 segundos"
           }
         }
       }
     },
-    "Back to" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Back to"
+    "Back to": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Al volver"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Al volver"
           }
         }
       }
     },
-    "back to set %lld · %@" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "back to set %1$lld · %2$@"
+    "back to set %lld · %@": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "back to set %1$lld · %2$@"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "al volver: serie %1$lld · %2$@"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "al volver: serie %1$lld · %2$@"
           }
         }
       }
     },
-    "By HR" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "By HR"
+    "By HR": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "By HR"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Por FC"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Por FC"
           }
         }
       }
     },
-    "Cap" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cap"
+    "Cap": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cap"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tope"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tope"
           }
         }
       }
     },
-    "Complete" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Complete"
+    "Complete": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complete"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Completado"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completado"
           }
         }
       }
     },
-    "Complete set" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Complete set"
+    "Complete set": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complete set"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Serie hecha"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Serie hecha"
           }
         }
       }
     },
-    "Ends the current rest and returns to the set." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ends the current rest and returns to the set."
+    "Ends the current rest and returns to the set.": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ends the current rest and returns to the set."
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Termina el descanso y regresa a la serie."
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Termina el descanso y regresa a la serie."
           }
         }
       }
     },
-    "Ends the current rest without logging the set." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ends the current rest without logging the set."
+    "Ends the current rest without logging the set.": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ends the current rest without logging the set."
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Termina el descanso sin registrar la serie."
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Termina el descanso sin registrar la serie."
           }
         }
       }
     },
-    "Ends the rest without logging the set" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ends the rest without logging the set"
+    "Ends the rest without logging the set": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ends the rest without logging the set"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Corta el descanso sin registrar la serie"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Corta el descanso sin registrar la serie"
           }
         }
       }
     },
-    "Extends the current rest by 30 seconds." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Extends the current rest by 30 seconds."
+    "Extends the current rest by 30 seconds.": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Extends the current rest by 30 seconds."
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Alarga el descanso 30 segundos."
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alarga el descanso 30 segundos."
           }
         }
       }
     },
-    "Finish workout" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Finish workout"
+    "Finish workout": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finish workout"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Terminar"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terminar"
           }
         }
       }
     },
-    "Finish" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Finish"
+    "Finish": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finish"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Terminar"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terminar"
           }
         }
       }
     },
-    "Last set" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Last set"
+    "Last set": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last set"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Última serie"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Última serie"
           }
         }
       }
     },
-    "last set of the workout" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "last set of the workout"
+    "last set of the workout": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "last set of the workout"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Última serie del entrenamiento"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Última serie del entrenamiento"
           }
         }
       }
     },
-    "Logs the last set and ends the workout" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Logs the last set and ends the workout"
+    "Logs the last set and ends the workout": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Logs the last set and ends the workout"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Registra la última serie y termina el entrenamiento"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Registra la última serie y termina el entrenamiento"
           }
         }
       }
     },
-    "Logs the last set and ends the workout." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Logs the last set and ends the workout."
+    "Logs the last set and ends the workout.": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Logs the last set and ends the workout."
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Registra la última serie y termina el entrenamiento."
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Registra la última serie y termina el entrenamiento."
           }
         }
       }
     },
-    "Logs the set and advances" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Logs the set and advances"
+    "Logs the set and advances": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Logs the set and advances"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Registra la serie y avanza"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Registra la serie y avanza"
           }
         }
       }
     },
-    "Logs the upcoming set and starts the next rest." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Logs the upcoming set and starts the next rest."
+    "Logs the upcoming set and starts the next rest.": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Logs the upcoming set and starts the next rest."
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Registra la siguiente serie y arranca su descanso."
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Registra la siguiente serie y arranca su descanso."
           }
         }
       }
     },
-    "Next" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Next"
+    "Next": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sigue"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sigue"
           }
         }
       }
     },
-    "Next up: %@" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Next up: %@"
+    "Next up: %@": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next up: %@"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sigue: %@"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sigue: %@"
           }
         }
       }
     },
-    "Next: set %lld of %lld" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Next: set %1$lld of %2$lld"
+    "Next: set %lld of %lld": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next: set %1$lld of %2$lld"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Siguiente: serie %1$lld de %2$lld"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Siguiente: serie %1$lld de %2$lld"
           }
         }
       }
     },
-    "of %lld" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "of %lld"
+    "of %lld": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "of %lld"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "de %lld"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "de %lld"
           }
         }
       }
     },
-    "On pause" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "On pause"
+    "On pause": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On pause"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "En pausa"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En pausa"
           }
         }
       }
     },
-    "Open Cénit to continue" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open Cénit to continue"
+    "Open Cénit to continue": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Cénit to continue"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Abre Cénit para continuar"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abre Cénit para continuar"
           }
         }
       }
     },
-    "Paused" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paused"
+    "Paused": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paused"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "En pausa"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En pausa"
           }
         }
       }
     },
-    "Remove 30 seconds" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Remove 30 seconds"
+    "Remove 30 seconds": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove 30 seconds"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Restar 30 segundos"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restar 30 segundos"
           }
         }
       }
     },
-    "Rest" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rest"
+    "Rest": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rest"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Descanso"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descanso"
           }
         }
       }
     },
-    "Resume" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Resume"
+    "Resume": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resume"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reanudar"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reanudar"
           }
         }
       }
     },
-    "Resume workout" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Resume workout"
+    "Resume workout": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resume workout"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reanudar entrenamiento"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reanudar entrenamiento"
           }
         }
       }
     },
-    "Resumes the paused workout." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Resumes the paused workout."
+    "Resumes the paused workout.": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resumes the paused workout."
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reanuda el entrenamiento en pausa."
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reanuda el entrenamiento en pausa."
           }
         }
       }
     },
-    "set %@ of %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "set %1$@ of %2$@"
+    "set %@ of %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "set %1$@ of %2$@"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Serie %1$@ de %2$@"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Serie %1$@ de %2$@"
           }
         }
       }
     },
-    "Set %lld" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Set %lld"
+    "Set %lld": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set %lld"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Serie %lld"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Serie %lld"
           }
         }
       }
     },
-    "set %lld of %lld" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "set %1$lld of %2$lld"
+    "set %lld of %lld": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "set %1$lld of %2$lld"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Serie %1$lld de %2$lld"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Serie %1$lld de %2$lld"
           }
         }
       }
     },
-    "Shortens the current rest by 30 seconds." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Shortens the current rest by 30 seconds."
+    "Shortens the current rest by 30 seconds.": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shortens the current rest by 30 seconds."
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Acorta el descanso 30 segundos."
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acorta el descanso 30 segundos."
           }
         }
       }
     },
-    "Skip" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Skip"
+    "Skip": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skip"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Saltar"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saltar"
           }
         }
       }
     },
-    "Skip rest" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Skip rest"
+    "Skip rest": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skip rest"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Saltar descanso"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saltar descanso"
           }
         }
       }
     },
-    "no reading" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "no reading"
+    "no reading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "no reading"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "sin lectura"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "sin lectura"
           }
         }
       }
     },
-    "Today" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Today"
+    "Today": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hoy"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoy"
           }
         }
       }
     },
-    "This week" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "This week"
+    "This week": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This week"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tu semana"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu semana"
           }
         }
       }
     },
-    "Rest day" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rest day"
+    "Rest day": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rest day"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hoy descansas"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoy descansas"
           }
         }
       }
     },
-    "rest day" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "rest day"
+    "rest day": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "rest day"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "día de descanso"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "día de descanso"
           }
         }
       }
     },
-    "Start" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Start"
+    "Start": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Empezar"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empezar"
           }
         }
       }
     },
-    "Continue" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Continue"
+    "Continue": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Continuar"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuar"
           }
         }
       }
     },
-    "Open Cénit" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open Cénit"
+    "Open Cénit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Cénit"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Abre Cénit"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abre Cénit"
           }
         }
       }
     },
-    "Start routine" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Start routine"
+    "Start routine": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start routine"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Empezar rutina"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empezar rutina"
           }
         }
       }
     },
-    "Opens today's guided session" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Opens today's guided session"
+    "Opens today's guided session": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opens today's guided session"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Abre la sesión guiada de hoy"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abre la sesión guiada de hoy"
           }
         }
       }
     },
-    "trained" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "trained"
+    "trained": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "trained"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "entrenadas"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "entrenadas"
           }
         }
       }
     },
-    "today" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "today"
+    "today": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "today"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "hoy"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hoy"
           }
         }
       }
     },
-    "training day" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "training day"
+    "training day": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "training day"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "día de entrenamiento"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "día de entrenamiento"
           }
         }
       }
     },
-    "planned" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "planned"
+    "planned": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "planned"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "planeado"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "planeado"
           }
         }
       }
     },
-    "Today's routine" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Today's routine"
+    "Today's routine": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today's routine"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rutina de hoy"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rutina de hoy"
           }
         }
       }
     },
-    "Today's routine, and start it in one tap." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Today's routine, and start it in one tap."
+    "Today's routine, and start it in one tap.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today's routine, and start it in one tap."
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tu rutina de hoy, y empiézala en un toque."
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu rutina de hoy, y empiézala en un toque."
           }
         }
       }
     },
-    "Your week's plan, and today's routine in one tap." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your week's plan, and today's routine in one tap."
+    "Your week's plan, and today's routine in one tap.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your week's plan, and today's routine in one tap."
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "El plan de tu semana, y la rutina de hoy en un toque."
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El plan de tu semana, y la rutina de hoy en un toque."
           }
         }
       }
     },
-    "In range" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "In range"
+    "In range": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In range"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "En rango"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En rango"
           }
         }
       }
     },
-    "Go light today" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Go light today"
+    "Go light today": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Go light today"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hoy ve leve"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoy ve leve"
           }
         }
       }
     },
-    "Getting to know you" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Getting to know you"
+    "Getting to know you": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Getting to know you"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Conociéndote"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conociéndote"
           }
         }
       }
     },
-    "vacio.live-activity.por-fc.linea" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rest ends when your pulse drops to %lld"
+    "vacio.live-activity.por-fc.linea": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rest ends when your pulse drops to %lld"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "El descanso termina cuando tu pulso baja a %lld"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El descanso termina cuando tu pulso baja a %lld"
           }
         }
       }
     },
-    "vacio.live-activity.por-fc.linea.sin-umbral" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rest ends when your pulse drops"
+    "vacio.live-activity.por-fc.linea.sin-umbral": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rest ends when your pulse drops"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "El descanso termina cuando tu pulso baja"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El descanso termina cuando tu pulso baja"
           }
         }
       }
     },
-    "vacio.widget.rancio.comoSeLlena" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open Cénit to refresh"
+    "vacio.widget.rancio.comoSeLlena": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Cénit to refresh"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Abre Cénit para actualizar"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abre Cénit para actualizar"
           }
         }
       }
     },
-    "vacio.widget.sin-plan.comoSeLlena" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Build your week in Cénit"
+    "vacio.widget.sin-plan.comoSeLlena": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Build your week in Cénit"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Arma tu semana en Cénit"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arma tu semana en Cénit"
           }
         }
       }
     },
-    "vacio.widget.sin-plan.queEs" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your routine for today"
+    "vacio.widget.sin-plan.queEs": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your routine for today"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tu rutina de hoy"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu rutina de hoy"
           }
         }
       }
@@ -1229,40 +1229,136 @@
         }
       }
     },
-    "Start today's routine" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Start today's routine"
+    "Start today's routine": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start today's routine"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Empezar la rutina de hoy"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empezar la rutina de hoy"
           }
         }
       }
     },
-    "Opens Cénit in today's guided routine." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Opens Cénit in today's guided routine."
+    "Opens Cénit in today's guided routine.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opens Cénit in today's guided routine."
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Abre Cénit en la rutina guiada de hoy."
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abre Cénit en la rutina guiada de hoy."
+          }
+        }
+      }
+    },
+    "widget.day-plan.row": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %lld×%@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %lld×%@"
+          }
+        }
+      }
+    },
+    "widget.day-plan.row.with-seed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %lld×%@ @ %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %lld×%@ @ %@"
+          }
+        }
+      }
+    },
+    "widget.day-plan.seed-kg": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ kg"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ kg"
+          }
+        }
+      }
+    },
+    "widget.day-plan.more": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations" : {"plural" : {"one" : {"stringUnit" : {"state" : "translated","value" : "+%lld more"}},"other" : {"stringUnit" : {"state" : "translated","value" : "+%lld more"}}}}
+        },
+        "es": {
+          "variations" : {"plural" : {"one" : {"stringUnit" : {"state" : "translated","value" : "+%lld más"}},"other" : {"stringUnit" : {"state" : "translated","value" : "+%lld más"}}}}
+        }
+      }
+    },
+    "widget.day-plan.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today's exercises and your week at a glance."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los ejercicios de hoy y tu semana de un vistazo."
+          }
+        }
+      }
+    },
+    "Today's plan": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today's plan"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plan de hoy"
           }
         }
       }
     }
   },
-  "version" : "1.0"
+  "version": "1.0"
 }
