@@ -112,19 +112,37 @@ struct HojaTarjetaEjercicioSesion: View {
         .buttonStyle(.plain)
     }
 
-    /// «Subida esperando ▲» — la propuesta de la barra RETENIDA (mapa: intervención vigente, alcanzable
-    /// aquí). El «por qué» expandible es F4 (deload/intervención); esta hoja solo ofrece tomarla.
+    /// FER-491 · SUPERFICIE: «Tomar la subida» — gemelo-antes de `raiseRevertCard` (misma familia
+    /// `LiquidAviso` + barra `verdePrimario` + verbo `verdeProfundo`). Un toque aplica `toKg` a las
+    /// series no hechas; luego abre el after-state «Volver a X / Seguir en X». Editar a mano nunca
+    /// se bloquea (las tap-zones de peso siguen abiertas).
     private var raisePill: some View {
-        OutlineCapsule(size: .sm, action: {
-            withAnimation(vivo.reduceMotion ? nil : .snappy) { _ = vivo.session.takeHeldRaise(at: ei) }
-        }) {
-            HStack(spacing: LiquidSpace.s150) {
-                Text(verbatim: "▲").foregroundStyle(LiquidColor.verdeProfundo)
-                if let raise = run.proposedRaise {
-                    Text(String(localized: "Take the raise to \(vivo.plateNumber(vivo.displayWeight(raise.toKg))) \(vivo.weightUnit())"))
+        let raise = run.proposedRaise
+        let toKgText = raise.map { vivo.plateNumber(vivo.displayWeight($0.toKg)) } ?? ""
+        let unit = vivo.weightUnit()
+        // Sublínea fact (tinta vía LiquidPatternBlock); verbo fijo en cta (`verdeProfundo`).
+        // `Raise.phrase` es la justificación larga («Hiciste 3×8…») → overline, no el CTA.
+        let phrase = raise?.phrase.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let cta = String(localized: "Take the bump") + " →"
+        return LiquidAviso(
+            titulo: phrase,
+            cuerpo: String(localized: "Go to \(toKgText) \(unit)"),
+            tono: LiquidColor.verdePrimario,
+            cta: cta,
+            accion: {
+                withAnimation(vivo.reduceMotion ? nil : .snappy) {
+                    guard vivo.session.takeHeldRaise(at: ei) else { return }
+                    // After-state vivo (B6b): ofrece revertir / seguir en el peso nuevo.
+                    vivo.raiseRevertOpenRunId = run.id
                 }
             }
-            .font(LiquidType.captionFuerte).foregroundStyle(LiquidColor.tinta900)
+        )
+        .transition(LiquidMotion.fadeOrIdentity(reduceMotion: vivo.reduceMotion))
+        .accessibilityAction(named: Text(LocalizedStringKey("Take the bump"))) {
+            withAnimation(vivo.reduceMotion ? nil : .snappy) {
+                guard vivo.session.takeHeldRaise(at: ei) else { return }
+                vivo.raiseRevertOpenRunId = run.id
+            }
         }
     }
 
