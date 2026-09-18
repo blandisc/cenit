@@ -83,8 +83,6 @@ struct CenitShortcuts: AppShortcutsProvider {
             phrases: [
                 "What's due today in \(.applicationName)",
                 "What do I train today in \(.applicationName)",
-                "Qué toca hoy en \(.applicationName)",
-                "Qué entreno hoy en \(.applicationName)",
             ],
             shortTitle: "What's due today?",
             systemImageName: "calendar")
@@ -104,7 +102,6 @@ struct CenitShortcuts: AppShortcutsProvider {
                 "Log \(\.$weightKg) by \(\.$reps) of \(\.$exercise) in \(.applicationName)",
                 "Log a set in \(.applicationName)",
                 "Registra \(\.$weightKg) por \(\.$reps) de \(\.$exercise) en \(.applicationName)",
-                "Registra una serie en \(.applicationName)",
             ],
             shortTitle: "Log a set",
             systemImageName: "checkmark.circle")

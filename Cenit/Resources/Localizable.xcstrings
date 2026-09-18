@@ -79361,47 +79361,11 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Qué entreno hoy en \\(.applicationName)"
+            "value": "Qué toca entrenar hoy en \\(.applicationName)"
           }
         }
       },
       "comment": "FER-522: Siri phrase"
-    },
-    "Qué toca hoy en \\(.applicationName)": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Qué toca hoy en \\(.applicationName)"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Qué toca hoy en \\(.applicationName)"
-          }
-        }
-      },
-      "comment": "FER-522: Siri phrase es (key kept for donation)"
-    },
-    "Qué entreno hoy en \\(.applicationName)": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Qué entreno hoy en \\(.applicationName)"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Qué entreno hoy en \\(.applicationName)"
-          }
-        }
-      },
-      "comment": "FER-522: Siri phrase es"
     },
     "Start \\(\\.$routine) in \\(.applicationName)": {
       "extractionState": "manual",
@@ -79524,24 +79488,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Registra \\(\\.$weightKg) por \\(\\.$reps) de \\(\\.$exercise) en \\(.applicationName)"
-          }
-        }
-      },
-      "comment": "FER-522: Siri phrase es"
-    },
-    "Registra una serie en \\(.applicationName)": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Registra una serie en \\(.applicationName)"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Registra una serie en \\(.applicationName)"
           }
         }
       },
