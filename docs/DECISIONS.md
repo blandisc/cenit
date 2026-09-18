@@ -648,3 +648,19 @@ aprobó las seis decisiones tal como se recomendaron; la revisión dejó precisi
   datos de fuerza y corregir «solo en tu dispositivo» en `Terms.swift`; y las descripciones de uso de
   HealthKit deben enumerar todo lo que se pide (`InfoPlist.xcstrings` vs `HealthKitBridge.swift`) o recortar
   scopes (5.1.3(i)). Van a la lista de antes de enviar.
+
+## 2026-09-18 · La carga NO vota el veredicto (FER-336) — rechazado por `/cso` (FER-491)
+
+Gate `/cso` sobre FER-491 (Ola 2): **la carga no entra al veredicto**. El eje `load` de
+`Preparedness` sigue siendo contexto (`.inRange` / `.noData` según haya workout el día); nunca
+flipea `verdict`. Motivo: ACWR es un marco de lesión; el consenso 2019-2020 (Lolli, Impellizzeri
+et al.) lo descarta como predictor usable. La carga se queda como contexto (palabra/banda en la
+fila de Entrenar), no como votante. Test-guardián: `PreparednessTests.testLoadAxisNeverFlipsVerdict`.
+
+## 2026-09-18 · Descansos más largos por veredicto — no adoptado por `/biomecanico` (FER-491)
+
+Gate `/biomecanico` sobre FER-491: **no hay método citable** que justifique alargar el descanso
+por el veredicto del día. El hook `DoseExercise.restBumpSeconds` permanece `nil` (inerte). El
+piso de «opcional hoy» reusa `ProgramDeload.lightWorkSetCount` (mismo conteo en `.lighter` y
+`.recover` — no dos números). Test-guardián: `DosePlanTests.testOptionalCountIdenticalForLighterAndRecover`
+(+ `testRestBumpSecondsHookStaysNil`).

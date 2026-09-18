@@ -1,5 +1,6 @@
 import SwiftUI
 import CenitDesign
+import CenitTraining
 
 /// The watch face for a mirrored strength session (FER-741). One dominant focus per state, color only in
 /// the datum, hierarchy by space — Liquid sobre OLED (DECISIONS 2026-09-03, FER-309/312). It routes the
@@ -106,6 +107,11 @@ struct WatchIdleView: View {
                     if canStartNow { startButton(routine) }
                     else { startNeedsPhoneLine }
                 }
+                // FER-491 · SUPERFICIE: glance «Plan de hoy» — tipado desde DosePlan, sin número de carga.
+                if let plan = manager.todayDosePlan {
+                    dosePlanGlance(plan)
+                        .padding(.top, LiquidSpace.s200)
+                }
                 if couldNotConnect {
                     Text("Couldn't connect to the session. Keep going on your iPhone.")
                         .font(LiquidType.pie)
@@ -122,6 +128,67 @@ struct WatchIdleView: View {
             .frame(maxWidth: .infinity)
             .padding(.horizontal, LiquidSpace.s300)
             .padding(.vertical, LiquidSpace.s200)
+        }
+    }
+
+    /// FER-491: lista-glance del plan tipado. Encabezado kicker + palabra del oráculo; por ejercicio
+    /// «{nombre} · {series}×{reps} · descanso {min}» — sin peso ni ACWR. AX5: 1 dato por línea.
+    @ViewBuilder private func dosePlanGlance(_ plan: DosePlan) -> some View {
+        VStack(alignment: .leading, spacing: LiquidSpace.s150) {
+            Text(String(localized: "Today's plan"))
+                .liquidKicker()
+                .foregroundStyle(LiquidOLED.tintaTerciaria)
+            if let word = manager.idleContext.word, !word.isEmpty {
+                Text(LocalizedStringKey(word))
+                    .font(LiquidType.tituloHoja)
+                    .foregroundStyle(verdictOLEDColor(manager.idleContext.tone))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            ForEach(Array(plan.exercises.sorted(by: { $0.order < $1.order }).enumerated()),
+                    id: \.offset) { _, ex in
+                doseExerciseRow(ex)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func doseExerciseRow(_ ex: DoseExercise) -> some View {
+        let work = ex.workSets.filter { $0.kind == .work }
+        let series = work.count
+        let reps: String = {
+            guard let first = work.first else { return "—" }
+            if let top = first.repsRangeTop, let floor = first.reps, top != floor {
+                return "\(floor)–\(top)"
+            }
+            if let r = first.reps { return "\(r)" }
+            if let top = first.repsRangeTop { return "\(top)" }
+            return "—"
+        }()
+        let restMin = max(1, Int((Double(ex.restSeconds) / 60.0).rounded()))
+        // UX: «{ejercicio} · {series}×{reps} · descanso {min}» — sin carga.
+        let detail = String(format: String(localized: "%lld×%@ · rest %lld min"),
+                            series, reps, restMin)
+        let restA11y = String(format: String(localized: "rest %lld min"), restMin)
+        return VStack(alignment: .leading, spacing: LiquidSpace.s050) {
+            Text(ex.name)
+                .font(LiquidType.filaConteo)
+                .foregroundStyle(LiquidOLED.tinta)
+                .fixedSize(horizontal: false, vertical: true)
+            Text(detail)
+                .font(LiquidType.pie)
+                .foregroundStyle(LiquidOLED.tintaSecundaria)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(Text(verbatim: "\(ex.name), \(series) × \(reps), \(restA11y)"))
+    }
+
+    private func verdictOLEDColor(_ tone: EntrenarHilo.Tone) -> Color {
+        switch tone {
+        case .clear:   return LiquidOLED.verde
+        case .caution: return LiquidOLED.ambar
+        case .ease:    return LiquidOLED.negativo
+        case .hollow:  return LiquidOLED.tinta
         }
     }
 

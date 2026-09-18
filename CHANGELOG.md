@@ -20,6 +20,12 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
 
 ## Unreleased
 
+- **La sesión viva pinta el plan del día: opcionales y subida a un toque / Live session paints today's plan: optionals and one-tap raise**
+  ### ES
+  Con «Hoy ve leve» o «Recupera», las series de más aparecen como «Opcional hoy · Puedes saltarla» (siguen registrables y cuentan para la progresión). Si hay una subida retenida, «Tomar la subida» la aplica a las series que faltan; luego puedes volver al peso anterior. El Watch muestra el «Plan de hoy» por ejercicio, sin número de carga. Sin Apple Salud o con un plan viejo, la sesión se comporta como siempre, sin adornos.
+  ### EN
+  On a "go light" or "recover" day, extra sets show as "Optional today · You can skip it" (still loggable and they count for progression). If a raise is held back, "Take the bump" applies it to the sets you have left; then you can go back to the previous weight. The Watch shows today's plan per exercise, with no training-load number. Without Apple Health or with a stale plan, the session behaves as before, without adornments.
+
 - **Cromo más parejo entre pantallas / Steadier chrome across screens**
   ### ES
   Pequeños ajustes de consistencia: la barra de navegación usa el mismo fondo que las demás; las tarjetas de hito y novedad de Hoy se alinean a la columna de módulos; las hojas de Perfil, FC máx y Unidades usan el fondo de hoja de sus hermanas; y el menú «···» usa el ícono del sistema de diseño. (`RootTabView`, `TodayView`, `AjustesView`, `EntrenarHubHeroe`)

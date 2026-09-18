@@ -184,6 +184,10 @@ final class StrengthSessionModel: ObservableObject {
         /// docena de estos conteos lo colaban como si fuera trabajo prescrito). `isNumberedWorkSet`
         /// abajo es ese ÚNICO oráculo — no relees `kind == .work && mode != .drop` a mano.
         var mode: SetMode = .standard
+        /// FER-491 · Ola 2 SUPERFICIE: serie de más marcada «opcional hoy» por el `DosePlan` (leve/
+        /// recupera, no lightWeek). Default false. Un ✓ en opcional cuenta IGUAL para la progresión
+        /// (`buildForSave` no la filtra; `ProgressionMath.classify` la ve como serie de trabajo).
+        var optional: Bool = false
 
         /// Ola 1 (FER-327 · E7 · D2): ¿esta serie cuenta como UNA serie de trabajo NUMERADA? Un
         /// escalón de «bajar y seguir» sigue siendo `kind == .work` (cuenta a volumen), pero no es una
@@ -1374,7 +1378,8 @@ final class StrengthSessionModel: ObservableObject {
                             distanceM: s.distanceM, done: s.done, doneTs: s.doneTs,
                             rest: s.rest, kind: s.kind, rpe: s.rpe, note: s.note,
                             touched: s.touched ? true : nil, restTakenS: s.restTakenS,
-                            mode: s.mode == .standard ? nil : s.mode)
+                            mode: s.mode == .standard ? nil : s.mode,
+                            optional: s.optional ? true : nil)
                     },
                     currentSet: run.currentSet, skipped: run.skipped,
                     raiseOptedOut: run.raiseOptedOut ? true : nil,
@@ -1418,7 +1423,7 @@ final class StrengthSessionModel: ObservableObject {
                                        distanceM: s.distanceM, done: s.done, doneTs: s.doneTs,
                                        rest: s.rest, kind: s.kind, touched: s.touched ?? false,
                                        rpe: s.rpe, note: s.note, restTakenS: s.restTakenS,
-                                       mode: s.mode ?? .standard)
+                                       mode: s.mode ?? .standard, optional: s.optional ?? false)
                         },
                         currentSet: r.currentSet, skipped: r.skipped,
                         // The held offer is re-armed exactly as it was: the table already opened at
@@ -1488,6 +1493,10 @@ final class StrengthSessionModel: ObservableObject {
         /// Ola 1 · E5: por qué el ritmo «según reps en reserva» hizo lo que hizo — para la línea 2 del
         /// hub (`EntrenarView`). Default nil, misma convención que `raise`/`progressionState`.
         var raiseRhythmNote: ProgressionPlanner.RaiseRhythmNote? = nil
+        /// FER-491 · Ola 2 SUPERFICIE: el `DoseExercise` tipado del día (series / peso semilla /
+        /// opcional / descanso / heldRaise). La superficie lo LEE; no re-deriva. nil = sin plan /
+        /// plan caduco / no decodifica / camino sin dosis (movilidad, historial, plantilla).
+        var doseExercise: DoseExercise? = nil
     }
 
     static func make(routineId: String?, routineName: String, slots: [PlanSlot],
@@ -1498,30 +1507,44 @@ final class StrengthSessionModel: ObservableObject {
             let last = slot.lastSets.first
             let lastWeight = last?.weightKg
             let lastReps = last?.reps
+            // FER-491: work sets of the typed plan, in order — optional flags + seedWeightKg live here.
+            let doseWork = slot.doseExercise?.workSets.filter { $0.kind == .work }
             // Seed one working set per planned set (FER-492): each carries its own reps/weight, with
             // «la última vez» as the fallback. `plannedSets` normalizes a legacy/template slot (no sets)
             // to the single target* fanned out, so both paths share one mapping. Reps only seed the
             // rep-based types; time/distance capture their datum live, so 0 there.
-            let sets: [WorkingSet] = slot.re.plannedSets.filter { $0.kind == .work }.map { p in
-                // FER-E: an earned raise changes the SEED, not the table — every work cell arrives at
-                // the proposed weight (double progression trains all work sets at one load).
-                // Regla fantasma (decisión Fer, FER-952): «si no lleno nada, que sea lo mismo que la
-                // anterior» — la última vez gana al plan; la subida ganada (FER-E) sigue primero.
-                // FER-82: a raise the day is HOLDING (`waiting`) does not seed — the table opens at
-                // the weight the raise would climb FROM (the cycle's working load, i.e. last session's
-                // top work set), and the raise is offered inside the session, one tap away. Using
-                // `lastWeight` here would open at the last row logged, which may be a back-off set:
-                // the hero would promise «la subida DESDE 82,5» over a table sitting at 70.
-                let held = (type == .weightReps && slot.raise?.waiting == true) ? slot.raise?.fromKg : nil
-                let earned = (type == .weightReps && slot.raise?.waiting == false) ? slot.raise?.toKg : nil
-                let seeded = earned ?? held ?? lastWeight
-                let weight = seeded.map { slot.lightLoad?($0) ?? $0 } ?? p.weightKg ?? 0
+            let plannedWork = slot.re.plannedSets.filter { $0.kind == .work }
+            let sets: [WorkingSet] = plannedWork.enumerated().map { idx, p in
+                let doseSet = doseWork.flatMap { $0.indices.contains(idx) ? $0[idx] : nil }
+                // FER-491: when the typed plan is present, its seedWeightKg is the seed (already
+                // resolved by DosePlanner for held/earned raise). Without a plan, keep the prior
+                // raise / «la última vez» / plan / lightLoad path.
+                let weight: Double
+                if let seedKg = doseSet?.seedWeightKg {
+                    weight = seedKg
+                } else {
+                    // FER-E: an earned raise changes the SEED, not the table — every work cell arrives at
+                    // the proposed weight (double progression trains all work sets at one load).
+                    // Regla fantasma (decisión Fer, FER-952): «si no lleno nada, que sea lo mismo que la
+                    // anterior» — la última vez gana al plan; la subida ganada (FER-E) sigue primero.
+                    // FER-82: a raise the day is HOLDING (`waiting`) does not seed — the table opens at
+                    // the weight the raise would climb FROM (the cycle's working load, i.e. last session's
+                    // top work set), and the raise is offered inside the session, one tap away. Using
+                    // `lastWeight` here would open at the last row logged, which may be a back-off set:
+                    // the hero would promise «la subida DESDE 82,5» over a table sitting at 70.
+                    let held = (type == .weightReps && slot.raise?.waiting == true) ? slot.raise?.fromKg : nil
+                    let earned = (type == .weightReps && slot.raise?.waiting == false) ? slot.raise?.toKg : nil
+                    let seeded = earned ?? held ?? lastWeight
+                    weight = seeded.map { slot.lightLoad?($0) ?? $0 } ?? p.weightKg ?? 0
+                }
                 // E13/FER-94: with a rep range (e.g. 8-12), the cell opens at the TOP — «la última
                 // vez» still wins whenever it exists, exactly the fantasma rule above; the range top
                 // only enters as the plan's fallback, same tier as the fixed `p.reps` it replaces.
                 // Nancy · ronda 3: `max(1, …)` — una rutina con `targetReps` 0, o un historial viejo con
                 // series de 0 reps, sembraba filas imposibles de registrar (ver `canRegisterCurrentSet`).
-                let reps = usesReps ? max(1, lastReps ?? p.repsRangeTop ?? p.reps ?? 8) : 0
+                // FER-491: DoseSet reps/range are the plan fallback when «la última vez» is absent.
+                let planReps = doseSet?.repsRangeTop ?? doseSet?.reps ?? p.repsRangeTop ?? p.reps
+                let reps = usesReps ? max(1, lastReps ?? planReps ?? 8) : 0
                 // FER-327 (Q7): un AMRAP nace con la celda VACÍA — «las que puedas» no tiene número
                 // hasta que la serie termina, y prellenarlo con «la última vez» convertiría un objetivo
                 // abierto en una cuota. El ✓ queda bloqueado hasta que se escriba (`canRegisterCurrentSet`).
@@ -1529,12 +1552,14 @@ final class StrengthSessionModel: ObservableObject {
                 // FER-715: keep the planned `RoutineSet` id (so a per-set rest edit can persist back to the
                 // routine) and carry the set's own rest override (nil = inherit the exercise at rest time).
                 return WorkingSet(id: p.id, weightKg: weight, reps: seededReps, done: false, rest: p.rest,
-                                  mode: p.mode)
+                                  mode: p.mode, optional: doseSet?.optional ?? false)
             }
+            // FER-491: rest from the typed plan when present (restBumpSeconds stays nil / unused).
+            let restSeconds = slot.doseExercise?.restSeconds ?? slot.re.restSeconds
             return ExerciseRun(id: slot.re.id, exerciseId: slot.re.exerciseId,
                                name: slot.exercise.map(StrengthDisplay.name) ?? String(localized: "Exercise"),
                                type: type,
-                               restSeconds: slot.re.restSeconds,
+                               restSeconds: restSeconds,
                                restMode: slot.re.restMode,
                                hrRestReference: slot.re.hrRestReference,
                                hrRestValue: slot.re.hrRestValue,

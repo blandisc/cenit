@@ -55,6 +55,20 @@ public struct DosePlan: Codable, Equatable, Sendable {
         self.dayKey == today
     }
 
+    /// FER-491 · SUPERFICIE: a plan the live session / Watch may paint. Stale (>3d) or wrong
+    /// `version` → nil («sin plan»); never yesterday's adornments.
+    public func usable(asOf now: Date = Date()) -> DosePlan? {
+        guard version == Self.currentVersion, !isStale(asOf: now) else { return nil }
+        return self
+    }
+
+    /// Decode helper for widget / Watch / App Group readers. Undecodable or stale → nil (silent).
+    public static func decode(_ data: Data?, asOf now: Date = Date()) -> DosePlan? {
+        guard let data,
+              let plan = try? JSONDecoder().decode(DosePlan.self, from: data) else { return nil }
+        return plan.usable(asOf: now)
+    }
+
     /// `yyyy-MM-dd` in the given calendar's time zone (matches app `DayKey.local` / Analytics day keys).
     public static func dayKey(for date: Date, calendar: Calendar = .current) -> String {
         let c = calendar.dateComponents([.year, .month, .day], from: date)

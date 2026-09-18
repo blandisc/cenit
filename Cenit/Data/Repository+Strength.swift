@@ -130,7 +130,8 @@ extension Repository {
                 order: re.position,
                 served: served,
                 lightWeek: isLight,
-                raise: seed.evaluation?.raise))
+                raise: seed.evaluation?.raise,
+                lastWeightKg: seed.lastSets.first?.weightKg))
         }
         guard !slots.isEmpty else { return ([], nil) }
         let plan = DosePlanner.plan(
@@ -143,7 +144,29 @@ extension Repository {
             exercises: inputs,
             computedAt: now,
             dayKey: Self.localDayKey(now))
-        return (slots, plan)
+        // FER-491 · SUPERFICIE: attach each DoseExercise onto its PlanSlot so the live session
+        // reads series / seed / rest / optional from the typed plan (never re-derives). Match by
+        // exerciseId + order; a missing match leaves doseExercise nil (plain seed path).
+        // Stale plan (shouldn't happen on a fresh seed) → attach nothing («sin plan»).
+        let usable = plan.usable(asOf: now)
+        if let usable {
+            for i in slots.indices {
+                let exId = slots[i].re.exerciseId
+                let order = slots[i].re.position
+                var dose = usable.exercises.first {
+                    $0.exerciseId == exId && $0.order == order
+                } ?? usable.exercises.first { $0.exerciseId == exId }
+                // Sin Apple Salud (`.silent`): plan llano — NO pintar opcional ni subida retenida
+                // del veredicto (DosePlanner ya no las marca; cinturón por si el advice llega raro).
+                if advice == .silent, var plain = dose {
+                    plain.heldRaise = nil
+                    plain.workSets = plain.workSets.map { var s = $0; s.optional = false; return s }
+                    dose = plain
+                }
+                slots[i].doseExercise = dose
+            }
+        }
+        return (slots, usable)
     }
 
     /// Structural verdict placeholder when the caller has `advice` but not the display hilo yet
