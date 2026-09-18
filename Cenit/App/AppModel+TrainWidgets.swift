@@ -43,6 +43,11 @@ extension AppModel {
                                      fullyLoaded: repo.fullyLoaded,
                                      healthConnected: healthBridge?.auth == .authorized,
                                      dosePlan: dose)
+        // FER-522: same store trip publishes the routine catalog Siri's RoutineEntityQuery reads
+        // (id+name only). One flight with the widget snapshot — no extra store round-trip.
+        RoutineCatalogSnapshot.write(RoutineCatalogSnapshot(
+            writtenAt: Date(),
+            routines: routines.map { .init(id: $0.id, name: $0.name) }))
         await TrainingDayReminder.reschedule(split: split, routineNames: routineNames)
     }
 }

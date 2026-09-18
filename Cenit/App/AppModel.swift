@@ -198,6 +198,7 @@ import CenitTraining
         // `didSet` reconcile adopts the running Activity, so it stays alive.
         onNoRecoverableStrengthSession = { [weak self] in self?.restActivity.endOrphans() }
         RestThumbnailStore.clear()   // FER-789: sweep any rest thumbnail left by a killed session
+        ActiveSessionSnapshot.clear()   // FER-522: drop a stale Siri exercise catalog until a session binds
         // Illness/strain early-warning recomputes when the daily history changes. `days` is no longer
         // its own @Published (folded into `dashboard` for single-publish refreshes, FER-30), so watch
         // the dashboard and project its days — still one emission per refresh.

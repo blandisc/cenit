@@ -19,17 +19,32 @@ extension AppModel {
     func bindRestActivity() {
         lastObservedStrengthPhase = strengthSession?.phase
         lastPlanSignature = nil   // FER-810: force a fresh plan push for the newly bound session
+        publishActiveSessionSnapshot()   // FER-522: Siri's ExerciseEntityQuery reads this
         restActivityCancellable = strengthSession?.objectWillChange
             .receive(on: DispatchQueue.main)   // read the session AFTER its change lands
             .sink { [weak self] in
                 guard let self else { return }
                 self.reconcileRestActivity()
+                self.publishActiveSessionSnapshot()
                 let phase = self.strengthSession?.phase
                 let phaseChanged = phase != self.lastObservedStrengthPhase
                 self.lastObservedStrengthPhase = phase
                 self.scheduleInProgressPersist(immediate: phaseChanged)
             }
         reconcileRestActivity()
+    }
+
+    /// FER-522 — App-Group picture of the live session's exercises (id+name) for `ExerciseEntityQuery`.
+    /// Cleared with no session / receipt so Siri never offers exercises that aren't loggable.
+    func publishActiveSessionSnapshot() {
+        guard let s = strengthSession, s.summary == nil else {
+            ActiveSessionSnapshot.clear()
+            return
+        }
+        ActiveSessionSnapshot.write(ActiveSessionSnapshot(
+            writtenAt: Date(),
+            sessionId: s.id,
+            exercises: s.runs.filter { !$0.skipped }.map { .init(id: $0.exerciseId, name: $0.name) }))
     }
 
     // MARK: - Crash-recovery persistence of the in-progress session (FER-798)
