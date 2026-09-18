@@ -1318,16 +1318,10 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "+%lld more"
-          }
+          "variations" : {"plural" : {"one" : {"stringUnit" : {"state" : "translated","value" : "+%lld more"}},"other" : {"stringUnit" : {"state" : "translated","value" : "+%lld more"}}}}
         },
         "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "+%lld más"
-          }
+          "variations" : {"plural" : {"one" : {"stringUnit" : {"state" : "translated","value" : "+%lld más"}},"other" : {"stringUnit" : {"state" : "translated","value" : "+%lld más"}}}}
         }
       }
     },
