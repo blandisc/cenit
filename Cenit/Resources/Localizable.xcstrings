@@ -79439,24 +79439,6 @@
       },
       "comment": "FER-522: Siri phrase es"
     },
-    "Log \\(\\.$weightKg) by \\(\\.$reps) of \\(\\.$exercise) in \\(.applicationName)": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Log \\(\\.$weightKg) by \\(\\.$reps) of \\(\\.$exercise) in \\(.applicationName)"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Registra \\(\\.$weightKg) por \\(\\.$reps) de \\(\\.$exercise) en \\(.applicationName)"
-          }
-        }
-      },
-      "comment": "FER-522: Siri phrase"
-    },
     "Log a set in \\(.applicationName)": {
       "extractionState": "manual",
       "localizations": {
@@ -79474,24 +79456,6 @@
         }
       },
       "comment": "FER-522: Siri phrase"
-    },
-    "Registra \\(\\.$weightKg) por \\(\\.$reps) de \\(\\.$exercise) en \\(.applicationName)": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Registra \\(\\.$weightKg) por \\(\\.$reps) de \\(\\.$exercise) en \\(.applicationName)"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Registra \\(\\.$weightKg) por \\(\\.$reps) de \\(\\.$exercise) en \\(.applicationName)"
-          }
-        }
-      },
-      "comment": "FER-522: Siri phrase es"
     },
     "Marca un momento en \\(.applicationName)": {
       "extractionState": "manual",

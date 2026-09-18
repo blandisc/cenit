@@ -99,9 +99,7 @@ struct CenitShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: LogSetIntent(),
             phrases: [
-                "Log \(\.$weightKg) by \(\.$reps) of \(\.$exercise) in \(.applicationName)",
                 "Log a set in \(.applicationName)",
-                "Registra \(\.$weightKg) por \(\.$reps) de \(\.$exercise) en \(.applicationName)",
             ],
             shortTitle: "Log a set",
             systemImageName: "checkmark.circle")
