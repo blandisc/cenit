@@ -177,6 +177,18 @@
       "titulo": "Watch · resumen de sesión",
       "condicion": "WatchSummaryView — resumen al terminar el entreno",
       "omitido": "Mismo bloqueo de plataforma que watch-idle-con-veredicto. Además el archivo no trae #Preview propio (0 encontrados en CenitWatch/Screens/WatchSummaryView.swift) — habría que autorarlo primero, incluso si el límite de plataforma no existiera."
+    },
+    {
+      "id": "watch-plan-de-hoy",
+      "titulo": "Watch · idle · Plan de hoy (DosePlan)",
+      "condicion": "WatchIdleView con todayDosePlan usable: liquidKicker «Plan de hoy» + palabra del oráculo + filas ejercicio · series×reps · descanso; sin número de carga",
+      "omitido": "Mismo bloqueo de plataforma que watch-idle-con-veredicto (CenitWatch es watchOS; CenitUnitTests es iOS)."
+    },
+    {
+      "id": "watch-plan-caduco",
+      "titulo": "Watch · idle · plan caduco",
+      "condicion": "dosePlan.isStale o decode fail → todayDosePlan nil; idle sin glance de plan (como sin plan)",
+      "omitido": "Mismo bloqueo de plataforma que watch-idle-con-veredicto."
     }
   ]
 }

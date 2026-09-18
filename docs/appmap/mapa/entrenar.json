@@ -911,6 +911,24 @@
           "wait": 1
         }
       ]
+    },
+    {
+      "id": "sesion-opcional-leve",
+      "titulo": "Sesión viva · leve/recupera con series opcionales",
+      "condicion": "DosePlan con advice .lighter/.recover: series de más con chip «Opcional hoy» (tinta700) + «Puedes saltarla»; nota del porqué al pie; ninguna serie se recorta",
+      "omitido": "exige sembrar un DosePlan con markOptional=true y arrancar la sesión viva con ese plan; ScreenshotFixtures/seedTrainingPlan no fuerza advice.lighter ni adjunta doseExercise — sin palanca determinista en el harness actual (backlog: fixture train-opcional)"
+    },
+    {
+      "id": "sesion-subida-retenida",
+      "titulo": "Sesión viva · subida retenida (Tomar la subida)",
+      "condicion": "ejercicio con heldRaise: LiquidAviso «Tomar la subida» → aplica toKg a no hechas → raiseRevertCard Volver/Seguir",
+      "omitido": "el hub ya captura «hub-retenida»; pintar la afordancia DENTRO de la sesión viva exige el mismo veredicto + raise.waiting al abrir Empezar, sin fixture que lo fije hoy (backlog: extender fixture train-retenida a la hoja viva)"
+    },
+    {
+      "id": "sesion-plan-caduco",
+      "titulo": "Sesión viva · plan caduco (isStale >3d)",
+      "condicion": "DosePlan.usable == nil → sesión como «sin plan» (siembra fresca, sin opcionales ni Tomar la subida); nunca el plan de ayer",
+      "omitido": "isStale solo aplica a un plan CACHED/empujado (Watch/widget); la siembra viva siempre computa now. Forzar un plan rancio en la sesión iPhone exigiría inyectar computedAt viejo en el seed — sin palanca en el harness (el estado sí se cubre en Watch/widget vía omitidos abajo)"
     }
   ],
   "aristas": [
