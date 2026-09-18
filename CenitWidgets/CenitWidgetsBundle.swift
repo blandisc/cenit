@@ -13,6 +13,7 @@ struct CenitWidgetsBundle: WidgetBundle {
         RestLiveActivity()
         TrainTodayWidget()
         WeekWidget()
+        TrainDayPlanWidget()
     }
 }
 #endif
