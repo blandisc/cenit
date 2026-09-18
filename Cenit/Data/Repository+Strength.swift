@@ -143,6 +143,16 @@ extension Repository {
             exercises: inputs,
             computedAt: now,
             dayKey: Self.localDayKey(now))
+        // FER-491 · SUPERFICIE: attach each DoseExercise onto its PlanSlot so the live session
+        // reads series / seed / rest / optional from the typed plan (never re-derives). Match by
+        // exerciseId + order; a missing match leaves doseExercise nil (plain seed path).
+        for i in slots.indices {
+            let exId = slots[i].re.exerciseId
+            let order = slots[i].re.position
+            slots[i].doseExercise = plan.exercises.first {
+                $0.exerciseId == exId && $0.order == order
+            } ?? plan.exercises.first { $0.exerciseId == exId }
+        }
         return (slots, plan)
     }
 

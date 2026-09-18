@@ -515,18 +515,22 @@ public struct StrengthSessionSnapshot: Codable, Sendable, Equatable {
         /// How the set is performed (ola 1, `SetMode`). Legacy JSON without the key decodes to nil
         /// (= `.standard`), same pattern as `rpe`.
         public var mode: SetMode?
+        /// FER-491 · Ola 2 SUPERFICIE: «opcional hoy» from the day's `DosePlan`. Optional so a
+        /// pre-FER-491 snapshot (key absent) still decodes; nil means false.
+        public var optional: Bool?
 
         public init(id: String, weightKg: Double, reps: Int?, timeS: Int? = nil,
                     distanceM: Double? = nil, done: Bool = false, doneTs: Int? = nil,
                     rest: RestConfig? = nil, kind: SetKind = .work, rpe: Double? = nil,
                     note: String? = nil, touched: Bool? = nil, restTakenS: Int? = nil,
-                    mode: SetMode? = nil) {
+                    mode: SetMode? = nil, optional: Bool? = nil) {
             self.id = id; self.weightKg = weightKg; self.reps = reps; self.timeS = timeS
             self.distanceM = distanceM; self.done = done; self.doneTs = doneTs
             self.rest = rest; self.kind = kind; self.rpe = rpe; self.note = note
             self.touched = touched
             self.restTakenS = restTakenS
             self.mode = mode
+            self.optional = optional
         }
     }
     /// One exercise's run within the session.
