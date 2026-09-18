@@ -338,6 +338,26 @@ is a single slot, overwritten per rest and cleared when the rest/session ends an
 circle, never a placeholder. No network is introduced; the provider only copies a file the opt-in media
 download already fetched.
 
+### App Intents / Siri (FER-522)
+
+Three App Intents live in `CenitApp/System/` (app target, `#if os(iOS)`), joining `MarkMomentIntent`:
+`WhatIsDueTodayIntent`, `StartRoutineIntent`, `LogSetIntent`, published via `CenitShortcuts`. They
+follow the same two channels the widgets already use — never the store directly:
+
+- **Read** goes through App-Group snapshots. `WhatIsDueTodayIntent` reads `TrainWidgetSnapshot`
+  (today's routine name + the one-oracle verdict word/advice) — the SAME picture the widgets read,
+  so a spoken answer can never contradict the app, and no score (0–100) is reachable. Two new
+  Foundation-only snapshots in `CenitShared` back the entity queries offline: `RoutineCatalogSnapshot`
+  (id+name of every routine, for `RoutineEntity`) and `ActiveSessionSnapshot` (the live session's
+  exercises, for `ExerciseEntity`). AppEntities carry only id+displayName — language, never math.
+- **Write** goes through the durable App-Group inbox + Darwin pattern (`StartRoutineBridge`,
+  `RestActivityBridge`), drained by `AppModel` on `.active`. `StartRoutineIntent` reuses the «Empezar»
+  path (`TabRouter`); `LogSetIntent` reuses `StrengthSessionModel` mutators via
+  `AppModel.applyLogSetAction`, passing the user's spoken weight×reps through without recomputation.
+
+Intents run in their own process off `@MainActor`; only the App-Group I/O + enqueue happens there,
+the real mutation happens on the app's `@MainActor` at drain time.
+
 ---
 
 ## 7. Storage model (CenitStore / SQLite)
