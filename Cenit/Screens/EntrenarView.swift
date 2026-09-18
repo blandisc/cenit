@@ -399,12 +399,16 @@ private struct EntrenarLanding: View {
         .onAppear {
             Hitos.retenerGrupoOrdenado(.entrenar)   // FER-436: hitos 5 y 6 nunca juntos (iOS 18)
             if tabRouter.startTodaySession { consumeBriefStart() }
+            if tabRouter.startRoutineId != nil { consumeNamedStart() }
             // Refresh the plan when returning (e.g. from «Editar» / the weekly plan editor): the initial
             // `.task` doesn't re-run on a NavigationStack pop, so edits wouldn't reflect otherwise (FER-787).
             if loaded { Task { await load() } }
         }
         .onChange(of: tabRouter.startTodaySession) { _, requested in
             if requested { consumeBriefStart() }
+        }
+        .onChange(of: tabRouter.startRoutineId) { _, id in
+            if id != nil { consumeNamedStart() }
         }
         // L7 (FER-434): el hub es quien sabe si hoy es descanso — la regla de «Hoy descansas» es
         // EXACTAMENTE la rama ③ «Descanso» del cuerpo (cargado sin error, sin sesión viva, semana
@@ -429,6 +433,20 @@ private struct EntrenarLanding: View {
     private func consumeBriefStart() {
         tabRouter.startTodaySession = false
         if loaded { startToday() } else { startWhenLoaded = true }
+    }
+
+    /// FER-522 — Siri / Shortcuts asked for a named routine. Today's id reuses path FER-613
+    /// (`startToday`); any other id opens the routine ready to start (`openRoutine`) without
+    /// force-starting — FER-85: advise, don't block. Leaves the id set until `loaded` so `load()`
+    /// can finish resolving `todayRoutine` first.
+    private func consumeNamedStart() {
+        guard loaded, let id = tabRouter.startRoutineId else { return }
+        tabRouter.startRoutineId = nil
+        if id == todayRoutine?.id {
+            startToday()
+        } else {
+            openRoutine(id)
+        }
     }
 
     /// FER-436 · «Primera sesión» y «Primera marca»: tarjetas de una vez en el hub, DEBAJO del
@@ -1811,6 +1829,8 @@ private struct EntrenarLanding: View {
         Hitos.evaluarEntrenar(sesionGuardada: recent.contains { $0.endTs != nil }, hayMarca: latest != nil)
         // A «Empezar» from the Daily Brief that arrived before the prefetch finished now has its slots (FER-613).
         if startWhenLoaded { startWhenLoaded = false; startToday() }
+        // FER-522: a named Siri start that landed before the prefetch finished.
+        if tabRouter.startRoutineId != nil { consumeNamedStart() }
         return true
     }
 

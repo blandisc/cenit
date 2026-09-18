@@ -30,6 +30,11 @@ final class TabRouter: ObservableObject {
     /// Entrenar's own prefetched slots instead of duplicating the load (FER-613).
     @Published var startTodaySession = false
 
+    /// One-shot (FER-522): after landing on «Entrenar», open a named routine (ready to start — one tap).
+    /// Consumed (reset to nil) by `EntrenarView`. Used when Siri asks for a routine that is NOT today's;
+    /// today's still goes through `startTodaySession` (path FER-613). Does not force-start — FER-85.
+    @Published var startRoutineId: String?
+
     /// One-shot (FER-435 / FER-490): after landing on Cuerpo/Ahora, open the verdict's acta — or
     /// «¿Qué decide tu día?» when there is no reading yet. Consumed (reset to false) by `TodayView`.
     /// The door in «Cómo funciona Cénit» (`AyudaScreen`) sets it.
@@ -64,5 +69,9 @@ final class TabRouter: ObservableObject {
 
     /// Switch to «Entrenar» and ask it to start today's session (the Daily Brief's «Empezar»).
     func startTodayTraining() { startTodaySession = true; requested = .train }
+
+    /// Switch to «Entrenar» and ask it to open a named routine ready to start (FER-522 · Siri).
+    /// Additive — does not replace `startTodayTraining()`.
+    func startTraining(routineId: String) { startRoutineId = routineId; requested = .train }
 }
 #endif
