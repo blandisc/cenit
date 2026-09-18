@@ -21,6 +21,9 @@ enum DosePlanner {
         var served: RoutineExercise
         var lightWeek: Bool
         var raise: ProgressionPlanner.Raise?
+        /// FER-952 · D1: «la última vez» del ejercicio, para que el peso semilla la respete sobre la
+        /// rutina-plantilla (la subida ganada/retenida va primero). nil = sin historial.
+        var lastWeightKg: Double?
     }
 
     /// Builds the day's plan. Pure given its inputs (`now` / `dayKey` injected for determinism).
@@ -41,11 +44,16 @@ enum DosePlanner {
             }()
             let rawSets: [DoseSet] = input.served.plannedSets.map { set in
                 var seedKg = set.weightKg
-                // Held raise: seed at fromKg (table opens at last working load).
-                if let held, set.kind == .work {
-                    seedKg = held.fromKg
-                } else if let raise = input.raise, !raise.waiting, set.kind == .work {
-                    seedKg = raise.toKg
+                // Seed precedence (FER-E + FER-952): subida ganada/retenida primero; luego «la última
+                // vez» gana a la rutina-plantilla; el peso de la plantilla es el último recurso.
+                if set.kind == .work {
+                    if let held {
+                        seedKg = held.fromKg
+                    } else if let raise = input.raise, !raise.waiting {
+                        seedKg = raise.toKg
+                    } else if let last = input.lastWeightKg {
+                        seedKg = last
+                    }
                 }
                 return DoseSet(reps: set.reps, repsRangeTop: set.repsRangeTop,
                                seedWeightKg: seedKg, kind: set.kind, optional: false)

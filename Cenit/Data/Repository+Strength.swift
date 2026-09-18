@@ -130,7 +130,8 @@ extension Repository {
                 order: re.position,
                 served: served,
                 lightWeek: isLight,
-                raise: seed.evaluation?.raise))
+                raise: seed.evaluation?.raise,
+                lastWeightKg: seed.lastSets.first?.weightKg))
         }
         guard !slots.isEmpty else { return ([], nil) }
         let plan = DosePlanner.plan(
