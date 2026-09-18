@@ -68,6 +68,9 @@ final class WatchWorkoutManager: NSObject, ObservableObject {
     /// FER-96: today's routine + the already-resolved daily verdict, for the idle face — pushed by the
     /// iPhone over `updateApplicationContext`, adopted outside any active session.
     @Published var idleContext = WatchIdleContext()
+    /// FER-491 · SUPERFICIE: typed day's `DosePlan` for the idle «Plan de hoy» glance. Nil when
+    /// absent, undecodable, or stale (>3d) — the face then behaves as «sin plan» (no adornments).
+    @Published private(set) var todayDosePlan: DosePlan?
     /// True for the ~3s «Descanso terminado» transition after a rest naturally expires.
     @Published var restEndedBanner = false
     /// The end-of-session summary, set when the session ends with something saved.
@@ -652,10 +655,11 @@ final class WatchWorkoutManager: NSObject, ObservableObject {
                 externalUUID = WorkoutMirrorKey.externalUUID(for: sid)
             }
             if !routine.isEmpty { routineName = routine }
-        case .dosePlan:
-            // FER-491 (Ola 2 motor): el plan de dosis se proyecta al reloj por el canal tipado, pero su
-            // render en la muneca llega con la superficie de Ola 2. Aqui solo mantiene el switch exhaustivo.
-            break
+        case let .dosePlan(plan):
+            // FER-491 · SUPERFICIE: adopt only a usable plan (fresh + current version). Stale or
+            // wrong version → clear («sin plan»), never paint yesterday's series.
+            todayDosePlan = plan.usable()
+
         case let .rest(snapshot):
             adoptIdentity(snapshot.sessionId)
             if !snapshot.routineName.isEmpty { routineName = snapshot.routineName }
@@ -718,6 +722,15 @@ final class WatchWorkoutManager: NSObject, ObservableObject {
         if let seedData = context[WorkoutMirrorKey.seedKey] as? Data,
            let seedMsg = WorkoutMirrorMessage.decode(seedData) {
             handle(seedMsg)
+        }
+        // FER-491: typed DosePlan under its own key (same channel). Absent / undecodable / stale →
+        // clear so the idle glance behaves as «sin plan».
+        if let doseData = context[WorkoutMirrorKey.doseKey] as? Data,
+           let doseMsg = WorkoutMirrorMessage.decode(doseData) {
+            handle(doseMsg)
+        } else if context[WorkoutMirrorKey.doseKey] != nil {
+            // Blob present but undecodable → degrade silently.
+            todayDosePlan = nil
         }
         guard let data = context[WorkoutMirrorKey.payloadKey] as? Data,
               let message = WorkoutMirrorMessage.decode(data) else { return }

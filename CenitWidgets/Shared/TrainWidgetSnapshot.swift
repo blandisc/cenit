@@ -34,8 +34,9 @@ public struct TrainWidgetSnapshot: Codable, Equatable, Sendable {
     public let week: [WeekDay]
     /// FER-491 · Ola 2 MOTOR: JSON of the day's `DosePlan` (CenitTraining), already computed by the
     /// app. Stored as `Data` so this file stays free of `CenitTraining` (the widget target only pulls
-    /// `CenitShared/AppGroup.swift` + Design). Surfaces decode when they render (Ola 2 surface deferred).
-    /// Optional + default nil so pre-FER-491 snapshots still decode.
+    /// `CenitShared/AppGroup.swift` + Design). Widget/LA do NOT paint the per-exercise plan (content
+    /// unchanged); readers that need it call `DosePlan.decode(_:)` (undecodable / stale → nil, never
+    /// crash). Optional + default nil so pre-FER-491 snapshots still decode.
     public var dosePlanData: Data?
 
     public init(writtenAt: Date, today: TodayPlan?, verdict: Verdict?, week: [WeekDay],
