@@ -32,6 +32,10 @@ struct HojaTarjetaEjercicioSesion: View {
                 if vivo.session.canTakeHeldRaise(at: ei) { raisePill.padding(.top, LiquidSpace.s100) }
                 if let deload = run.deloadDisplay { deloadPill(deload).padding(.top, LiquidSpace.s100) }   // B7 (FER-169)
                 tabla.padding(.top, LiquidSpace.s150)
+                // FER-491: nota del «porqué» (sistema, SIN ✎) — solo si hay series opcionales.
+                if run.sets.contains(where: \.optional) {
+                    optionalWhyNote.padding(.top, LiquidSpace.s100)
+                }
                 footer.padding(.top, LiquidSpace.s200)
             }
         }
@@ -110,6 +114,16 @@ struct HojaTarjetaEjercicioSesion: View {
             .frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+    }
+
+    /// FER-491: pie del «porqué» — misma tipografía/color que `notaF`, SIN glifo ✎ (no es editable;
+    /// es explicación del sistema). Copy aprobado: sin claim de prevención de lesión.
+    private var optionalWhyNote: some View {
+        Text(String(localized: "Today we left some sets optional based on your recovery. Your call."))
+            .font(LiquidType.caption)
+            .foregroundStyle(LiquidColor.tinta500)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .fixedSize(horizontal: false, vertical: true)
     }
 
     /// FER-491 · SUPERFICIE: «Tomar la subida» — gemelo-antes de `raiseRevertCard` (misma familia
