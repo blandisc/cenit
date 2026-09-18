@@ -30,7 +30,8 @@ struct TodaySpokenSummary: Equatable, Sendable {
         case .ready:
             var parts: [String] = []
             if let routineName {
-                parts.append(String(localized: "Today is \(routineName)."))
+                parts.append(String(format: String(localized: "Today is %@."), locale: .current,
+                                    routineName))
             }
             if let word { parts.append(word) }
             if let advice, !advice.isEmpty { parts.append(advice) }
