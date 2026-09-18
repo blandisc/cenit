@@ -118,6 +118,24 @@ final class TrainWidgetPublisherTests: XCTestCase {
         XCTAssertNil(decoded.verdict)
     }
 
+    /// FER-491 · SUPERFICIE: el blob `dosePlanData` viaja en el snapshot sin que el widget lo pinte.
+    /// Round-trip con el campo presente no debe romper Codable ni el contenido de today/verdict/week.
+    func testSnapshotRoundTripsWithDosePlanDataPresent() throws {
+        let blob = Data("{\"version\":1}".utf8)   // opaque to the widget target
+        let original = TrainWidgetSnapshot(
+            writtenAt: Date(timeIntervalSince1970: 1_700_000_000),
+            today: .init(routineName: "Empuje", sessionLive: false),
+            verdict: .init(tone: .clear, word: "En rango"),
+            week: [.init(weekday: 2, state: .today, label: "L")],
+            dosePlanData: blob)
+        let data = try JSONEncoder().encode(original)
+        let decoded = try JSONDecoder().decode(TrainWidgetSnapshot.self, from: data)
+        XCTAssertEqual(decoded.dosePlanData, blob)
+        XCTAssertEqual(decoded.today?.routineName, "Empuje")
+        XCTAssertEqual(decoded.verdict?.word, "En rango")
+        XCTAssertEqual(decoded.week.count, 1)
+    }
+
     // MARK: - Rancio
 
     func testIsStaleTrasElHorizonte() {
