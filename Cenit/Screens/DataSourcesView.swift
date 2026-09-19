@@ -46,6 +46,10 @@ struct DataSourcesView: View {
     @State private var exportingHeartbeats = false
     @State private var heartbeatSummary: String?
     #endif
+    #if DEBUG && CENIT_SPIKE_IALOCAL
+    /// FER-524 spike desechable: entrada oculta a la pantalla de IA local.
+    @State private var showSpikeFER524 = false
+    #endif
     #endif
 
     // Backup & restore + automatic iCloud backup — migrated here from SettingsView for FER-337 so no
@@ -451,6 +455,21 @@ struct DataSourcesView: View {
                 Text(verbatim: s).font(LiquidType.captionLectura).foregroundStyle(LiquidColor.tinta500)
                     .fixedSize(horizontal: false, vertical: true)
             }
+        }
+        #endif
+        #if DEBUG && CENIT_SPIKE_IALOCAL
+        // FER-524 spike DESECHABLE: fila oculta, solo con -DCENIT_SPIKE_IALOCAL en el scheme.
+        // Borrar con la carpeta Cenit/Screens/_SpikeFER524/ + esta fila.
+        Button {
+            showSpikeFER524 = true
+        } label: {
+            Text("Spike FER-524 · IA local (dev)")
+                .font(LiquidType.cuerpo)
+                .foregroundStyle(LiquidColor.tinta700)
+        }
+        .buttonStyle(.plain)
+        .sheet(isPresented: $showSpikeFER524) {
+            NavigationStack { SpikeFER524View() }
         }
         #endif
 
