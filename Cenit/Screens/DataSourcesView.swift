@@ -323,6 +323,20 @@ struct DataSourcesView: View {
             // Reachability for the per-source Apple Health viewer. Pushed within this screen's
             // NavigationStack — «Ver datos importados ›».
             appleHealthNavRow
+
+            #if DEBUG && CENIT_SPIKE_SERIES12
+            // FER-523 spike desechable: sonda de densidad Series 12. Pide su propio permiso.
+            NavigationLink {
+                SpikeSeries12DensityView()
+            } label: {
+                LiquidListRow(
+                    title: "Spike Series 12 (densidad)",
+                    tone: LiquidColor.ambar,
+                    divider: false)
+            }
+            .buttonStyle(.plain)
+            .liquidTarjetaSeccion(padding: LiquidSpace.s300)
+            #endif
         }
         // Load coverage + write permissions on appear so opening the screen shows "X days imported"
         // and the per-metric list without forcing a re-import first.

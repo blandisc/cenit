@@ -184,6 +184,10 @@ targets:
           # InjectionIII no puede recompilar en caliente («Could not locate compile command»). Esto lo
           # re-activa (solo Debug). Requiere UN rebuild para que el log se regenere.
           EMIT_FRONTEND_COMMAND_LINES: YES
+          # FER-523 spike Series 12 (DESECHABLE). Descomenta para compilar
+          # Cenit/Screens/_SpikeFER523/ y la fila en Fuentes de datos.
+          # Tras cambiar: xcodegen generate. Borrar carpeta + esta línea al cerrar el spike.
+          # SWIFT_ACTIVE_COMPILATION_CONDITIONS: $(inherited) DEBUG CENIT_SPIKE_SERIES12
     dependencies:
       - package: BiometricStreams
       - package: CenitStore
