@@ -79474,6 +79474,125 @@
         }
       },
       "comment": "FER-522: Siri phrase es for MarkMomentIntent"
+    },
+    "onb.sesion.overline": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your session today"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu sesión de hoy"
+          }
+        }
+      }
+    },
+    "onb.sesion.titular": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is what you're loading today."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esto es lo que te toca cargar."
+          }
+        }
+      }
+    },
+    "onb.sesion.cuerpo": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I loaded your routine with last time's weight. When your pace earns it I propose a raise; today the raise is one tap away in the session."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cargué tu rutina con el peso de la última vez. Cuando tu ritmo lo gane, te propongo subir; hoy la subida queda a un toque en la sesión."
+          }
+        }
+      }
+    },
+    "onb.sesion.vacia": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You haven't built a routine yet. Pick one in Train and I'll set the weight."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todavía no armas una rutina. En Entrenar eliges una y yo le pongo el peso."
+          }
+        }
+      }
+    },
+    "onb.sesion.pie": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "And going by today's word:"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Y según tu palabra de hoy:"
+          }
+        }
+      }
+    },
+    "onb.sesion.subida": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "the raise to %@ is one tap away"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "la subida a %@ queda a un toque"
+          }
+        }
+      }
+    },
+    "onb.acta.sinPalabra": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I can't read you yet, and I won't make it up. Before you go in, two things the engine does need from you."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aún no puedo leerte, y no me lo voy a inventar. Antes de entrar, dos datos que el motor sí necesita de ti."
+          }
+        }
+      }
     }
   },
   "version": "1.1"

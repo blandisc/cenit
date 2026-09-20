@@ -378,6 +378,12 @@ enum OnbCopy {
     }
 
     // Acto 5 · El acta (sus claves conservan el prefijo `onb.5.*` de FER-109)
+    /// Encabezado del Acta cuando no hubo palabra (calibrando / sin ritmo / sin datos / «Ahora no»).
+    /// La anatomía se omite; la coda del perfil sigue capturando los cuatro datos (FER-520).
+    static var actaSinPalabra: String {
+        String(localized: "onb.acta.sinPalabra",
+               defaultValue: "I can't read you yet, and I won't make it up. Before you go in, two things the engine does need from you.")
+    }
     static var actaOverline: String {
         String(localized: "onb.5.overline", defaultValue: "What it's made of")
     }
@@ -498,7 +504,34 @@ enum OnbCopy {
     static var etiquetaEnPar: String { String(localized: "onb.5.tag.enpar", defaultValue: "paired") }
     static var etiquetaNunca: String { String(localized: "onb.5.tag.nunca", defaultValue: "never") }
 
-    // Acto 7 · Ciclo y mañana (claves `onb.6.*`, mismo motivo)
+    // Acto 5 · Tu sesión · cierre (FER-520). Claves nuevas `onb.sesion.*`; el cierre reusa
+    // `onb.6.titular` / `onb.6.dock` / `onb.6.dock.pie` (no se acuñan de cierre).
+    static var sesionOverline: String {
+        String(localized: "onb.sesion.overline", defaultValue: "Your session today")
+    }
+    static var sesionTitular: String {
+        String(localized: "onb.sesion.titular",
+               defaultValue: "This is what you're loading today.")
+    }
+    static var sesionCuerpo: String {
+        String(localized: "onb.sesion.cuerpo",
+               defaultValue: "I loaded your routine with last time's weight. When your pace earns it I propose a raise; today the raise is one tap away in the session.")
+    }
+    static var sesionVacia: String {
+        String(localized: "onb.sesion.vacia",
+               defaultValue: "You haven't built a routine yet. Pick one in Train and I'll set the weight.")
+    }
+    static var sesionPie: String {
+        String(localized: "onb.sesion.pie", defaultValue: "And going by today's word:")
+    }
+    /// Formato con el peso YA formateado (`%@`); no meter número crudo.
+    static func sesionSubida(_ peso: String) -> String {
+        String(format: String(localized: "onb.sesion.subida",
+                              defaultValue: "the raise to %@ is one tap away"),
+               peso)
+    }
+
+    // Acto 5 · cierre (claves `onb.6.*` reusadas del Ciclo previo a FER-520)
     static var cicloOverline: String {
         String(localized: "onb.6.overline", defaultValue: "And with that, what")
     }
