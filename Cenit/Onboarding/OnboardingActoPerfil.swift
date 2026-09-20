@@ -2,57 +2,39 @@ import SwiftUI
 import CenitDesign
 import CenitAnalytics
 
-// MARK: - Acto 6 · el perfil (FER-113)
+// MARK: - Perfil-coda (FER-113 · FER-520)
 //
 // Cuatro datos que el motor necesita de ti y que Apple Salud casi siempre ya sabe: edad, sexo,
 // peso y estatura. La EDAD, ella sola, manda tus zonas de frecuencia cardiaca (`Profile.hrMax` =
 // 208 − 0.7·edad, Tanaka, la misma fórmula que Ajustes: el sexo NO entra), y sexo, peso y estatura
 // afinan el gasto de cada entrenamiento.
 //
-// Lo que este acto NO alimenta: la base del veredicto. Ésa sale de tu historial de FC en reposo,
-// y ninguno de estos cuatro datos la toca — por eso el overline dejó de decir «para tu base».
+// FER-520: dejó de ser acto navegable. Vive como **coda del Acta** (`OnbPerfilCoda`): arranca en
+// overline (sin titular propio) y cierra el Acta antes de «Tu sesión». Se captura en TODAS las
+// ramas —incluidas las sin palabra y la salida de «Ahora no» (FER-113).
 //
-// **Por qué es un acto propio y no una línea dentro del reveal.** FER-109 lo había convertido en
-// una línea confirmable (`OnbPerfilLinea`), y esa línea solo existía en TRES de las cinco ramas:
-// faltaba justo en `.sinDatos` y en la salida de «Ahora no», que son las dos ramas donde no hay
-// autollenado posible — o sea, las únicas donde los cuatro valores se quedaban en el default de
-// fábrica sin que nadie se enterara. Como paso propio, el perfil es la ÚLTIMA parada común de
-// todas las ramas: se pasa por aquí se llegue por donde se llegue. Por eso el acto sabe a dónde
-// va después (`OnbPerfilLuego`) en vez de suponerlo, y su CTA es literalmente el botón que la
-// persona apretó una pantalla antes.
-//
-// **Dónde se cobra.** En el camino con veredicto, DESPUÉS del acta (rumbo al ciclo) y no antes:
-// la ⓘ del reveal promete el acta, y meter un formulario entre la palabra y su explicación era
-// contestar una pregunta con otra cosa.
-//
-// Tres reglas de este acto:
+// Tres reglas:
 //
 //   · **La procedencia se VE, campo por campo.** «Desde Apple Salud» / «Lo pusiste tú» / «Lo puse
-//     yo». Sin ese sello, un dato real y un default de fábrica se ven idénticos, que es
-//     exactamente el defecto que este issue arregla.
+//     yo». Sin ese sello, un dato real y un default de fábrica se ven idénticos.
 //
 //   · **Lo que el usuario edita GANA.** El autollenado corre UNA vez por onboarding, y su sello
-//     vive en el wizard (no aquí): volver desde el ciclo reconstruye este acto, y un segundo
+//     vive en el wizard (no aquí): volver desde la sesión reconstruye el Acta, y un segundo
 //     autollenado pisaría lo que la persona acaba de corregir. Por eso mismo los cuatro controles
-//     están INERTES hasta que existe el sello: `.task` corre DESPUÉS del primer cuadro, así que
-//     hay una ventana —chica pero real— en la que los campos ya se ven, ya se dejan tocar, y el
-//     prellenado que viene en camino se llevaría por delante lo que se acabara de poner.
+//     están INERTES hasta que existe el sello.
 //
 //   · **Fuera de rango se DESCARTA, no se recorta.** Un peso de 12 kg en Salud es un dato
 //     equivocado, no un peso bajo: recortarlo a 30 kg inventaría una medición que nadie hizo.
-//
-// Tipografía: el titular (22) y la FC máxima derivada (22) son lo más grande de la pantalla. La
-// única talla de 30 en todo el flujo sigue siendo la palabra del veredicto, en el acto 4.
 
-// MARK: - A dónde va el perfil cuando termina
+// MARK: - A dónde va el Acta/coda cuando termina
 
-/// La salida del acto, fijada por el wizard al entrar (`irAPerfil`). Quien tocó «Ir a Entrenar»
-/// vuelve a encontrar «Ir a Entrenar» al pie de este paso, no un «Continuar» que lo lleve a otro
-/// lado: el perfil se mete en el camino, no lo cambia.
+/// La salida fijada por el wizard al entrar al Acta con coda (`irAActa`). Quien tocó «Ir a
+/// Entrenar» vuelve a encontrar ese destino al pie de «Tu sesión», no un «Continuar» que lo lleve
+/// a otro lado: la coda se mete en el camino, no lo cambia.
 enum OnbPerfilLuego: Hashable {
-    /// El camino con veredicto: el acta ya se leyó y todavía queda el ciclo.
+    /// El camino con veredicto: el Acta ya se leyó y todavía queda «Tu sesión».
     case ciclo
-    /// Ya no hay nada más que explicar: entrar a la app.
+    /// Ya no hay nada más que explicar: entrar a la app (vía «Tu sesión» sin reloj / vacía).
     case entrar
     /// Igual que `entrar`, aterrizando en Entrenar (la mitad que sí funciona sin reloj).
     case entrenar
@@ -104,9 +86,9 @@ struct OnbPerfilDeSalud: Equatable {
 /// Lo que dejó el autollenado: qué campos llenó Apple Salud y con qué valores quedó el perfil.
 /// Lo que hoy no coincida con este sello lo puso la persona, y por eso gana.
 ///
-/// Vive en el WIZARD (llega como `@Binding`) y no en el acto: volver desde el acta reconstruye el
-/// acto con su estado en blanco, y sin el sello afuera el autollenado correría una segunda vez y
-/// pisaría la corrección que se acaba de hacer.
+/// Vive en el WIZARD (llega como `@Binding`) y no en la coda: volver desde la sesión reconstruye
+/// el Acta con su estado en blanco, y sin el sello afuera el autollenado correría una segunda vez
+/// y pisaría la corrección que se acaba de hacer.
 struct OnbPerfilSello: Equatable {
     var deSalud: Set<OnbCampoPerfil>
     var edad: Int
@@ -115,20 +97,18 @@ struct OnbPerfilSello: Equatable {
     var estaturaCm: Double
 }
 
-// MARK: - El acto
+// MARK: - La coda reutilizable (FER-520)
 
-struct OnbActoPerfil: View {
+/// Contenido del perfil fundido al pie del Acta. Sin `OnbTitular` propio: arranca en overline
+/// porque es el cierre del acta, no un acto nuevo. La FC máxima va en `valorM` (demotada de
+/// `valorL`) para no competir con la palabra teñida de arriba.
+struct OnbPerfilCoda: View {
 
     @Binding var sello: OnbPerfilSello?
-    let luego: OnbPerfilLuego
-    /// El desenlace del reveal, para saber si el cuerpo puede apoyarse en una palabra ya dada.
-    /// `nil` en la rama de «Ahora no», donde el encendido nunca corrió.
     let landing: OnboardingLanding?
-    /// ¿Se llegó por «Ahora no»? Lo sabe el wizard (`perfilAtras == .salida`), no este acto: sin
+    /// ¿Se llegó por «Ahora no»? Lo sabe el wizard (`actaAtras == .salida`), no esta coda: sin
     /// eso, la nota le echaría a Apple la culpa de una decisión que tomó la persona.
     let desdeSalida: Bool
-    let onAtras: () -> Void
-    let onContinuar: () -> Void
 
     @EnvironmentObject private var profile: ProfileStore
     @EnvironmentObject private var health: HealthKitBridge
@@ -137,47 +117,32 @@ struct OnbActoPerfil: View {
     private var unitSystem: UnitSystem { .init(rawValue: unitSystemRaw) ?? .metric }
 
     var body: some View {
-        // Los `Group` son puramente estructurales (SwiftUI tope los hijos de un builder en 10); son
-        // transparentes para el layout, así que cada pieza sigue siendo hermana directa del `VStack`
-        // del shell y el `Spacer` sigue empujando el CTA al pie.
-        OnbShell {
-            Group {
-                OnbAtras(accion: onAtras)
+        Group {
+            OnbOverline(OnbCopy.perfilOverline)
 
-                OnbOverline(OnbCopy.perfilOverline)
-                    .padding(.top, LiquidSpace.s250)
-                OnbTitular(OnbCopy.perfilTitular)
-                    .padding(.top, LiquidSpace.s250)
-                OnbCuerpo(cuerpo)
-                    .padding(.top, LiquidSpace.s300)
+            OnbCuerpo(cuerpo)
+                .padding(.top, LiquidSpace.s300)
+
+            OnbTarjeta {
+                campoEdad
+                OnbHairline()
+                campoSexo
+                OnbHairline()
+                campoPeso
+                OnbHairline()
+                campoEstatura
             }
+            .padding(.top, LiquidSpace.s600)
+            // Inertes hasta que el autollenado deja su sello (ver la regla 2 de la cabecera).
+            .disabled(buscando)
 
-            Group {
-                OnbTarjeta {
-                    campoEdad
-                    OnbHairline()
-                    campoSexo
-                    OnbHairline()
-                    campoPeso
-                    OnbHairline()
-                    campoEstatura
-                }
+            // Mientras busca, la nota dice justo eso. Poner ya «Lo puse yo» sería sellar como
+            // propio un valor que Apple Salud todavía puede estar a punto de corregir.
+            OnbCuerpo(buscando ? OnbCopy.perfilBuscando : nota, tono: LiquidColor.tinta500)
+                .padding(.top, LiquidSpace.s400)
+
+            fcMaxima
                 .padding(.top, LiquidSpace.s600)
-                // Inertes hasta que el autollenado deja su sello (ver la regla 2 de la cabecera).
-                .disabled(buscando)
-
-                // Mientras busca, la nota dice justo eso. Poner ya «Lo puse yo» sería sellar como
-                // propio un valor que Apple Salud todavía puede estar a punto de corregir.
-                OnbCuerpo(buscando ? OnbCopy.perfilBuscando : nota, tono: LiquidColor.tinta500)
-                    .padding(.top, LiquidSpace.s400)
-
-                fcMaxima
-                    .padding(.top, LiquidSpace.s600)
-
-                Spacer(minLength: LiquidSpace.s600)
-
-                LiquidGlassButton(cta, variant: .primary, expands: true, action: onContinuar)
-            }
         }
         .task { await autollenar() }
     }
@@ -246,8 +211,8 @@ struct OnbActoPerfil: View {
     }
 
     /// La cara de un campo: etiqueta, valor y de dónde salió. El valor va en `valorM` (17) y no en
-    /// `valorL` (22) a propósito: lo más grande de esta pantalla son el titular y la FC máxima que
-    /// se deriva, y cuatro números de 22 competirían con los dos.
+    /// `valorL` (22) a propósito: en la coda el héroe es la palabra del Acta (si la hay), y cuatro
+    /// números de 22 competirían con ella.
     private func fila(_ etiqueta: String, valor: String, campo: OnbCampoPerfil) -> some View {
         VStack(alignment: .leading, spacing: LiquidSpace.s150) {
             HStack(alignment: .firstTextBaseline, spacing: LiquidSpace.s300) {
@@ -283,12 +248,13 @@ struct OnbActoPerfil: View {
 
     /// Para qué sirvieron los cuatro datos, en un número que se mueve con ellos: cambiar la edad
     /// mueve la FC máxima delante de los ojos. La cita («Tanaka») es la misma que muestra Ajustes.
+    /// FER-520: demotada de `valorL` (22) a `valorM` (17) — en la coda el héroe es la palabra.
     private var fcMaxima: some View {
         VStack(alignment: .leading, spacing: LiquidSpace.s150) {
             OnbOverline(OnbCopy.perfilFcMax)
             HStack(alignment: .firstTextBaseline, spacing: LiquidSpace.s200) {
                 Text(profile.hrMax, format: .number)
-                    .font(LiquidType.valorL)
+                    .font(LiquidType.valorM)
                     .monospacedDigit()
                     .contentTransition(.numericText())
                     .foregroundStyle(LiquidColor.tinta900)
@@ -321,14 +287,6 @@ struct OnbActoPerfil: View {
     private var nota: String {
         if !(sello?.deSalud.isEmpty ?? true) { return OnbCopy.perfilNotaSalud }
         return desdeSalida ? OnbCopy.perfilNotaSinPermiso : OnbCopy.perfilNotaSinSalud
-    }
-
-    private var cta: String {
-        switch luego {
-        case .ciclo:    return OnbCopy.continuar
-        case .entrar:   return OnbCopy.entrar
-        case .entrenar: return OnbCopy.sinFcCta
-        }
     }
 
     /// Sexo con la etiqueta del catálogo (misma que usaba el editor de FER-109).
@@ -385,9 +343,8 @@ struct OnbActoPerfil: View {
     ///
     /// Corre UNA sola vez por onboarding, y el sello es lo que lo garantiza. La única excepción
     /// la maneja el WIZARD (`replantearAutollenado`): si Salud se conecta después de haber pasado
-    /// por aquí —ruta real: «Ahora no» → perfil → Atrás → reconsiderar → Conectar— el sello se
-    /// tira y esto vuelve a correr, pero SOLO si nadie ha corregido nada todavía. Un segundo
-    /// autollenado sobre un campo editado borraría lo que la persona acaba de escribir.
+    /// por aquí —ruta real: «Ahora no» → acta → Atrás → reconsiderar → Conectar— el sello se
+    /// tira y esto vuelve a correr, pero SOLO si nadie ha corregido nada todavía.
     @MainActor
     private func autollenar() async {
         guard sello == nil else { return }
@@ -409,18 +366,20 @@ struct OnbActoPerfil: View {
 // MARK: - Preview
 
 #if DEBUG
-private struct OnbPerfilPreview: View {
+private struct OnbPerfilCodaPreview: View {
     @State private var model = AppModel.preview
-    /// Nil = el acto corre su autollenado. En preview no hay permiso de Salud, así que se ve la
-    /// rama que este issue vino a arreglar: los cuatro campos en su valor de arranque.
+    /// Nil = la coda corre su autollenado. En preview no hay permiso de Salud, así que se ve la
+    /// rama que FER-113 vino a arreglar: los cuatro campos en su valor de arranque.
     @State private var sello: OnbPerfilSello?
 
     var body: some View {
         ZStack {
             LiquidColor.fondoGradient.ignoresSafeArea()
-            OnbActoPerfil(sello: $sello, luego: .ciclo,
-                          landing: .lectura(verdict: .full, noches: 22, diasHistoria: 180),
-                          desdeSalida: false, onAtras: {}, onContinuar: {})
+            OnbShell {
+                OnbPerfilCoda(sello: $sello,
+                              landing: .lectura(verdict: .full, noches: 22, diasHistoria: 180),
+                              desdeSalida: false)
+            }
         }
         .environmentObject(model.profile)
         .environmentObject(HealthKitBridge(repo: model.repo,
@@ -429,5 +388,5 @@ private struct OnbPerfilPreview: View {
     }
 }
 
-#Preview("Onboarding · perfil") { OnbPerfilPreview() }
+#Preview("Onboarding · perfil-coda") { OnbPerfilCodaPreview() }
 #endif
