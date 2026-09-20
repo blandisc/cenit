@@ -745,7 +745,8 @@
         "ayuda"
       ],
       "mapa": [
-        "entrenar/hub-sin-plan"
+        "entrenar/hub-sin-plan",
+        "onboarding/sesion-vacia"
       ],
       "nombre": {
         "en": "Build your week",
@@ -793,7 +794,9 @@
       "mapa": [
         "entrenar/hub",
         "entrenar/hub-descanso",
-        "entrenar/hub-sesion-viva"
+        "entrenar/hub-sesion-viva",
+        "onboarding/sesion",
+        "onboarding/sesion-sinreloj"
       ],
       "nombre": {
         "en": "Today's routine and Start",
@@ -1272,7 +1275,7 @@
         "ajustes/perfil-peso",
         "ajustes/perfil-altura",
         "ajustes/fc-max",
-        "onboarding/perfil"
+        "onboarding/acta-sinpalabra"
       ],
       "nombre": {
         "en": "Profile and max HR",
@@ -1381,8 +1384,7 @@
       ],
       "mapa": [
         "ajustes/aviso-matutino",
-        "ajustes/recordatorio-entreno",
-        "onboarding/ciclo"
+        "ajustes/recordatorio-entreno"
       ],
       "nombre": {
         "en": "Morning notice and workout reminder",

@@ -1,8 +1,8 @@
 {
   "familia": "onboarding",
-  "titulo": "Onboarding · los siete actos + gates de arranque",
+  "titulo": "Onboarding · los cinco actos + gates de arranque",
   "unidad": "estados",
-  "blurb": "El wizard de bienvenida (FER-109/FER-113): siete actos sobre un mismo lienzo de partículas que se transforma, sus siete aterrizajes según lo que Apple Salud entregó (OnboardingLanding), y las pantallas bloqueantes que pueden aparecer antes de llegar a la app — términos, store roto, restaurar un respaldo, la coreografía de entrada.",
+  "blurb": "El wizard de bienvenida (FER-109/FER-113/FER-520): cinco actos sobre un mismo lienzo de partículas que se transforma. El Perfil vive como coda del Acta; «Tu sesión» (DosePlan) es el acto 5 post-permiso. Incluye los aterrizajes según lo que Apple Salud entregó (OnboardingLanding) y las pantallas bloqueantes de arranque — términos, store roto, restaurar un respaldo, la coreografía de entrada.",
   "nodos": [
     {
       "id": "promesa",
@@ -20,36 +20,50 @@
     },
     {
       "id": "encendido",
-      "titulo": "Actos 3-4 · el encendido (leyendo → revelado)",
+      "titulo": "Acto 3 · el encendido (leyendo → revelado)",
       "condicion": "LA MISMA pantalla que se transforma; forzado con `-cenit.onboardingLanding lectura-full` para que el primer cuadro capturable ya sea el desenlace, sin depender del sync real de HealthKit",
       "args": ["-cenit.onboardingActo", "encendido", "-cenit.onboardingLanding", "lectura-full"],
       "pasos": [{ "wait": 1 }]
     },
     {
-      "id": "perfil",
-      "titulo": "Acto 6 · el perfil",
-      "condicion": "los cuatro campos (edad/sexo/peso/estatura); sin Salud conectada en esta captura, sin sello de autollenado — «Lo puse yo» de fábrica",
-      "args": ["-cenit.onboardingActo", "perfil"],
-      "pasos": [{ "wait": 1 }]
-    },
-    {
       "id": "acta",
-      "titulo": "Acto 5 · el acta",
-      "condicion": "de qué está hecha la palabra — ejes, pesos, contra qué compara; sin landing forzado usa el tono de «calibrando» por default",
-      "args": ["-cenit.onboardingActo", "acta"],
+      "titulo": "Acto 4 · el acta + perfil-coda",
+      "condicion": "anatomía de la palabra (con landing lectura) + coda del perfil (cuatro campos); sin landing forzado usa el encabezado sin-palabra + coda",
+      "args": ["-cenit.onboardingActo", "acta", "-cenit.onboardingLanding", "lectura-full"],
       "pasos": [{ "wait": 1 }]
     },
     {
-      "id": "ciclo",
-      "titulo": "Acto 7 · el ciclo y la mañana",
-      "condicion": "cómo se traduce la palabra + el dock real; sin landing forzado, cierre «sin reloj» (`conReloj == false`)",
-      "args": ["-cenit.onboardingActo", "ciclo"],
+      "id": "acta-sinpalabra",
+      "titulo": "Acto 4 · acta coda-only (sin palabra)",
+      "condicion": "sin anatomía; encabezado onb.acta.sinPalabra + perfil-coda; rama calibrando",
+      "args": ["-cenit.onboardingActo", "acta", "-cenit.onboardingLanding", "calibrando"],
+      "pasos": [{ "wait": 1 }]
+    },
+    {
+      "id": "sesion",
+      "titulo": "Acto 5 · Tu sesión · cierre (con palabra)",
+      "condicion": "tarjeta DosePlan + traducción palabra→carga en tinta + «Entrenar hace. Cuerpo entiende.» + dock dibujado; sin landing forzado, cierre sin-reloj si landing nil",
+      "args": ["-cenit.onboardingActo", "sesion", "-cenit.onboardingLanding", "lectura-full"],
+      "pasos": [{ "wait": 1 }]
+    },
+    {
+      "id": "sesion-sinreloj",
+      "titulo": "Acto 5 · Tu sesión · variante sin reloj",
+      "condicion": "misma tarjeta DosePlan como foco; mapa de pestañas en vez de palabra→carga (FER-431 D3)",
+      "args": ["-cenit.onboardingActo", "sesion", "-cenit.onboardingLanding", "sinritmo"],
+      "pasos": [{ "wait": 1 }]
+    },
+    {
+      "id": "sesion-vacia",
+      "titulo": "Acto 5 · Tu sesión vacía",
+      "condicion": "sin rutina armada en el store: tarjeta con onb.sesion.vacia, sin numeral ni verdeCarga",
+      "args": ["-cenit.onboardingActo", "sesion", "-cenit.onboardingLanding", "calibrando"],
       "pasos": [{ "wait": 1 }]
     },
     {
       "id": "salida",
       "titulo": "La salida de «Ahora no»",
-      "condicion": "quien tocó «Ahora no» en el permiso; CTA «Reconsiderar» vuelve al permiso, «Entrar» sigue al perfil sin haber conectado Salud",
+      "condicion": "quien tocó «Ahora no» en el permiso; CTA «Reconsiderar» vuelve al permiso, «Entrar» sigue al Acta coda-only sin haber conectado Salud",
       "args": ["-cenit.onboardingActo", "salida"],
       "pasos": [{ "wait": 1 }]
     },
@@ -142,9 +156,11 @@
     { "de": "promesa", "a": "permiso", "etiqueta": "Empezar" },
     { "de": "permiso", "a": "encendido", "etiqueta": "Conectar Apple Salud" },
     { "de": "permiso", "a": "salida", "etiqueta": "Ahora no" },
-    { "de": "encendido", "a": "acta", "etiqueta": "Continuar" },
-    { "de": "acta", "a": "perfil", "etiqueta": "Continuar" },
-    { "de": "perfil", "a": "ciclo", "etiqueta": "Continuar" },
+    { "de": "encendido", "a": "acta", "etiqueta": "Continuar (con palabra)" },
+    { "de": "acta", "a": "sesion", "etiqueta": "Continuar" },
+    { "de": "encendido", "a": "acta-sinpalabra", "etiqueta": "Continuar / Entrar (sin palabra)" },
+    { "de": "acta-sinpalabra", "a": "sesion-sinreloj", "etiqueta": "Continuar" },
+    { "de": "salida", "a": "acta-sinpalabra", "etiqueta": "Entrar así" },
     { "de": "encendido", "a": "lectura-full", "etiqueta": "revela: En rango" },
     { "de": "encendido", "a": "lectura-caution", "etiqueta": "revela: Ve leve" },
     { "de": "encendido", "a": "lectura-easy", "etiqueta": "revela: Recupera" },
@@ -152,7 +168,6 @@
     { "de": "encendido", "a": "calibrando", "etiqueta": "revela: calibrando" },
     { "de": "encendido", "a": "sinritmo", "etiqueta": "revela: sin FC en reposo" },
     { "de": "encendido", "a": "sindatos", "etiqueta": "revela: sin datos" },
-    { "de": "salida", "a": "sindatos", "etiqueta": "Entrar sin conectar" },
     { "de": "terms-gate", "a": "hoy/vacio", "etiqueta": "Aceptar" }
   ]
 }

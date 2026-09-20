@@ -20,7 +20,7 @@ extension Registro {
             requiere: [],
             piezas: [.ayuda(seccion: .entrenar)],
             desde: "1.85",
-            mapa: ["entrenar/hub-sin-plan"]
+            mapa: ["entrenar/hub-sin-plan", "onboarding/sesion-vacia"]
         ),
         Funcionalidad(
             id: .entrenarTaller,
@@ -36,7 +36,7 @@ extension Registro {
             requiere: [],
             piezas: [.ayuda(seccion: .entrenar)],
             desde: "1.85",
-            mapa: ["entrenar/hub", "entrenar/hub-descanso", "entrenar/hub-sesion-viva"]
+            mapa: ["entrenar/hub", "entrenar/hub-descanso", "entrenar/hub-sesion-viva", "onboarding/sesion", "onboarding/sesion-sinreloj"]
         ),
         Funcionalidad(
             id: .entrenarOtraForma,

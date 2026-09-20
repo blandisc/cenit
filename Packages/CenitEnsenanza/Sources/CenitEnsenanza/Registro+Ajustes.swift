@@ -18,7 +18,7 @@ extension Registro {
                 "ajustes/perfil-peso",
                 "ajustes/perfil-altura",
                 "ajustes/fc-max",
-                "onboarding/perfil",
+                "onboarding/acta-sinpalabra",
             ]
         ),
         Funcionalidad(
@@ -66,7 +66,7 @@ extension Registro {
             requiere: [.permiso(.notificaciones)],
             piezas: [.ayuda(seccion: .ajustes)],
             desde: "1.85",
-            mapa: ["ajustes/aviso-matutino", "ajustes/recordatorio-entreno", "onboarding/ciclo"]
+            mapa: ["ajustes/aviso-matutino", "ajustes/recordatorio-entreno"]
         ),
         Funcionalidad(
             id: .ajustesHistorialFa,
