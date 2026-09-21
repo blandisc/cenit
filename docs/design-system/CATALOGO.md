@@ -174,8 +174,9 @@ empieza aquí.
 |---|---|---|---|---|
 | Superficie de vidrio | `liquidGlass(_:)` | `LiquidGlass/LiquidGlassRecipes.swift` | Cualquier tile/tarjeta/pastilla/dock nuevo en pantallas Liquid — ÚNICA puerta al vidrio (blur + fondo + borde + highlight + sombra compuestos). | No componer blur/material/sombra a mano; en hub Entrenar preferir `EntrenarModulo`/`EntrenarTile` (ya fijan régimen mosaico). |
 | Módulo mosaico (Entrenar) | `EntrenarModulo` | `Entrenar/EntrenarVidrio.swift` | Contenedor a lo ancho del hub/hojas Entrenar — fija `regimen: .mosaico` por construcción. | No en pantallas sobrias (Hoy/detalle); ahí `liquidGlass(tono:regimen: .sobrio)` o receta de forma. |
-| Tile mosaico (Entrenar) | `EntrenarTile` | `Entrenar/EntrenarVidrio.swift` | Tesela del grid 2-col del hub Entrenar (marcas, volumen, descanso…) — mosaico + minHeight fijo. | No para sub-métricas de una hoja Liquid de detalle (usa `LiquidCajita`); no reinventar tile local. |
-| Cajita de sub-métrica | `LiquidCajita` | `LiquidGlass/LiquidCajita.swift` | Mosaico de lecturas en detalle Liquid (rótulo · valor · pie) vía `LiquidCajita`/`LiquidCajitaGrid`. | No es el tile de hub con gota+delta (`LiquidMetricTile` está huérfano); no para filas de lista (`LiquidListRow`). |
+| Tile mosaico (Entrenar) | `EntrenarTile` | `Entrenar/EntrenarVidrio.swift` | Tesela del grid 2-col del hub Entrenar (marcas, volumen, descanso…) — mosaico + minHeight fijo. | No para sub-métricas de un detalle (usa `LiquidCajita`); no para la tarjeta con gota y variación (usa `LiquidMetricTile`); no reinventar tile local. |
+| Tarjeta de métrica con variación | `LiquidMetricTile` | `LiquidGlass/LiquidMetricTile.swift` | Grid que necesita gota, número y una variación con signo. Si no hay variación, la variante quiet (delta nil) usa pie y mini gráfica. Hoy la usa Salud. Decisión 2026-09-21: esta tarjeta y `LiquidCajita` conviven, cada una con su trabajo. | No para el mosaico de sub-métricas de un detalle (usa `LiquidCajita`); no para una tesela de Entrenar (usa `EntrenarTile`); no para una fila (`LiquidListRow`). |
+| Cajita de sub-métrica | `LiquidCajita` | `LiquidGlass/LiquidCajita.swift` | Mosaico de lecturas en un detalle (rótulo · valor · pie) vía `LiquidCajita`/`LiquidCajitaGrid`. Sin gota y sin variación: el detalle ya dijo de qué habla. | No es la tarjeta con gota y variación (usa `LiquidMetricTile`, la de Salud); no para teselas de Entrenar (`EntrenarTile`); no para filas de lista (`LiquidListRow`). |
 | Fila de lista | `LiquidListRow` | `LiquidGlass/LiquidListRow.swift` | Listas de hoja/detalle Liquid (historial, entradas) con la fila estándar. | No para un grid de lecturas (usa `LiquidCajita`); no para check de factores (usa `LiquidChecklistRow`). |
 | Fila check de factores | `LiquidChecklistRow` | `LiquidGlass/LiquidChecklistRow.swift` | Fila presente/ausente de un factor (edad corporal, fitness, fuentes) con tono. | No como fila genérica de navegación (usa `LiquidListRow`). |
 | Franja de sección (Liquid) | `LiquidFranjaSeccion` | `LiquidGlass/LiquidFranjaSeccion.swift` | Cabecera a sangre de sección en hojas Liquid de métrica (velo del tono al 4 %). | No inventar banda local; en pantallas Liquid usar esta pieza o `LiquidSectionHeader`. |
@@ -223,5 +224,28 @@ empieza aquí.
 | Rampas de dato Liquid | `LiquidRampas` | `LiquidGlass/LiquidRampas.swift` | Color de zona HR (`hrZone`), fatiga muscular 0…1 (`muscleLoad`) o tinte de familia de movimiento (`movementFamilyTint`) sin tocar `InstrumentoTheme` desde pantallas. | No inventar rampas locales; no leer `InstrumentoTheme.base.hrZoneRamp`/`muscleLoadColor`/`movementFamilyTint` desde `Cenit/`/`CenitApp/`. |
 | Barra de progreso (pista+relleno) | `LiquidBarraProgreso` | `LiquidGlass/LiquidBarraProgreso.swift` | Cualquier riel de avance 0…1 (calibración, dosis, sesión, volumen): pista + relleno Capsule con tono/altura; opcional marca/contorno. | No para barra con rótulo/delta/promedio (`LiquidBarraMarca`); no conteo en ventana (`LiquidBarraConteo`); no etapas de sueño (`LiquidStageBar`); no chrome de acción (`OutlineCapsule`). |
 | Halo / glow geométrico | `LiquidGlow · LiquidGlowDisco` | `LiquidGlass/LiquidGlow.swift` | Contorno que late (aviso, filo con aura) o disco radial desenfocado (orbe de respiración): la pantalla pasa color/fase y el blur vive en la pieza. | No para sombra de elevación (`liquidShadow`); no vidrio (`liquidGlass(_:)`); no `.blur` + fill a mano en pantallas. |
-| Estado vacío que enseña | `LiquidVacio` | `LiquidGlass/LiquidVacio.swift` | Cualquier lista/sección/pantalla que todavía no tiene datos: qué va aquí · cómo se llena (con `cuenta` «faltan 3 noches» si aplica) · dónde vive o UNA acción (`Salida`). Recibe `Text` ya resuelto por la app desde el registro de enseñanza; plano sobre el lienzo, alineado a la izquierda, donde irán los datos. | No para error de lectura ni aviso (`LiquidAviso`); no para «calibrando» con barra (`LiquidCalibracionCard`); no una hoja de onboarding; no reinventar icono+título+cuerpo a mano en la pantalla. |
+| Estado vacío que enseña | `LiquidVacio` | `LiquidGlass/LiquidVacio.swift` | Cualquier lista/sección/pantalla que todavía no tiene datos: qué va aquí · cómo se llena (con `cuenta` «faltan 3 noches» si aplica) · dónde vive o UNA acción (`Salida`). Recibe `Text` ya resuelto por la app desde el registro de enseñanza; plano sobre el lienzo, alineado a la izquierda, donde irán los datos. | No para error de lectura, aviso o falta de permiso de Salud (`LiquidAviso`); no para «calibrando» con barra (`LiquidCalibracionCard`); no una hoja de onboarding; no reinventar icono+título+cuerpo a mano en la pantalla. |
+| Calibrando la base | `LiquidCalibracionCard` | `LiquidGlass/LiquidCalibracionCard.swift` | La base todavía se está formando y hay que mostrar cuántas noches van, con barra. Estado quieto, sin animación propia. | No para un vacío sin progreso (`LiquidVacio`); no para un error o un permiso (`LiquidAviso`). |
 | Nota de Δ% con valencia | `LiquidNotaDelta` | `LiquidGlass/LiquidNotaDelta.swift` | El Δ% del periodo vs el anterior bajo la frase de nivel en hojas de detalle y explorador Liquid: el texto lo pone `CenitFormat.deltaPercent` («+12%», «−12%» con el menos real U+2212, «0%» sin signo, localizado) y el tono lo decide `LiquidPolaridad` — dirección buena `positivo`, contraria `atencionTexto`, plano o `.neutral` en tinta quieta. Compone `LiquidNotaLine`; la frase de VoiceOver («12 % más que el periodo anterior») la pasa la app YA localizada, guiada por `direccion(pct:places:)`. | No formatear el signo a mano ni pintar «+0%» en verde; no dar valencia a una métrica descriptiva (esfuerzo → `.neutral`); no como chip con fondo (usa `LiquidStatePill(valencia:)`, con el mismo `deltaPercent`); no para deltas absolutos con unidad («+2 ms vs tu base»: `LiquidBarraMarca` / tile). |
+
+## Mapa de estados
+
+Una situación, una pieza. Si la situación no está aquí, no se inventa una tarjeta nueva.
+
+| Situación | Pieza | No usar |
+|---|---|---|
+| Todavía no hay datos | `LiquidVacio` | Un icono y un título dibujados en la pantalla |
+| Aviso, error de lectura, o falta permiso de Salud | `LiquidAviso` | Una pastilla o un banner local |
+| La base se está calibrando | `LiquidCalibracionCard` | Una barra de progreso suelta |
+| No se pudo guardar | `.saveErrorToast` | Un banner rojo local |
+| Deshacer | `UndoToast` | Un aviso sin acción de deshacer |
+| Cargando | No hay pieza | Una tarjeta de spinner. La pantalla conserva su estructura |
+
+## Archivo
+
+Estas piezas siguen en el paquete y no se ofrecen para pantallas nuevas. Se borran cuando su última pantalla las suelte. `StatTile` y los estados vacíos de papel ya no están en el código.
+
+| Pieza | La reemplaza |
+|---|---|
+| `Hypnogram` | `LiquidHipnograma` |
+| `YearHeatStrip` | `LiquidCalendario90` |
