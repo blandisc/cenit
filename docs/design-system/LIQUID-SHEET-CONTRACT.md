@@ -1,9 +1,9 @@
-# Contrato F−1 · Hoja de resumen → Liquid Glass
+# Contrato F−1 · Hoja de resumen → El Eje
 
-**Épico:** «Hoja de resumen → Liquid Glass» (plan v3, GO condicional round 2).
-**Marco:** Liquid Glass · El Eje (vidrio teñido sobre lienzo blanco; régimen **sobrio** en hojas
+**Épico:** «Hoja de resumen → El Eje» (plan v3, GO condicional round 2; archivado bajo el nombre anterior «Liquid Glass»).
+**Marco:** El Eje (vidrio teñido sobre lienzo blanco; régimen **sobrio** en hojas
 de detalle). «Instrumento diurno / papel cálido» es generación anterior absorbida · en migración —
-este contrato describe el cutover desde esa hoja de papel hacia Liquid Glass.
+este contrato describe el cutover desde esa hoja de papel hacia El Eje.
 **Fase:** F−1 (este documento). Es el contrato que gobierna F0…F6: la matriz de estados
 sirve de criterios de aceptación para `/qa`, los props definen los componentes del DS, y las
 decisiones por pieza acoplada (C3) quedan tomadas aquí.

@@ -1,8 +1,8 @@
-# Catálogo Liquid Glass
+# Catálogo El Eje
 
 <!-- GENERADO por `swift run CenitDesignTokens` desde `Packages/CenitDesign/Sources/CenitDesignTokens/main.swift` — no editar a mano. `rol`/`simbolo`/valores salen del código; `archivo`/`cuándo usarlo`/`cuándo no` son la tabla curada `catalogEntries` de ese mismo archivo. -->
 
-Diccionario + índice del sistema **Liquid Glass · El Eje** (FER-229), leído directo del API
+Diccionario + índice del sistema **El Eje** (nombre desde 2026-09-21; «Liquid Glass» se retiró para no confundirlo con el material de Apple, FER-229). Las recetas en código siguen llamándose `liquidGlass`; el aspecto no cambia. Leído directo del API
 público de `CenitDesign` — mismo trato que `color.instrumento` en
 [`tokens/design-tokens.json`](tokens/design-tokens.json): el código gana, este archivo solo
 lo refleja.
@@ -208,12 +208,12 @@ empieza aquí.
 | Toast de error al guardar | `.saveErrorToast` | `Cenit/Screens/SaveErrorToast.swift` | Banner auto-descarte «No se pudo guardar» tras un write fallido (modifier de app). | No reinventar banner rojo local; no para confirmaciones (usa `.instrumentoConfirm`). |
 | Bloque patrón (Instrumento) | `.patternBlock(_:bar:)` | `SessionInstruments.swift` | Fondo `patternBlock` + barra lateral de tono para avisos/errores en pantallas Instrumento. | No en hojas ya Liquid (usa `LiquidPatternBlock`); no pintar `theme.patternBlock` a mano sin la barra. |
 | Bloque patrón (Liquid) | `LiquidPatternBlock` | `LiquidGlass/LiquidPatternBlock.swift` | «Tu patrón» / lectura quieta en hojas Liquid — overline + líneas + barra del tono, sin vidrio. | No en pantallas Instrumento (usa `.patternBlock`); no envolverlo en `liquidGlass`. |
-| Gráfica de tendencia (Liquid) | `LiquidTrendChart` | `LiquidGlass/LiquidTrendChart.swift` | Series temporales dentro de una pantalla/hoja ya migrada a Liquid Glass. | No en pantallas aún en Instrumento (usa `TrendChart`). |
+| Gráfica de tendencia (Liquid) | `LiquidTrendChart` | `LiquidGlass/LiquidTrendChart.swift` | Series temporales dentro de una pantalla/hoja ya migrada a El Eje. | No en pantallas aún en Instrumento (usa `TrendChart`). |
 | Gráfica de tendencia (compartida) | `TrendChart` | `TrendChart.swift` | Serie temporal con hover/crosshair — inventario Instrumento y wrappers. | No para una línea inline diminuta (usa `Sparkline`). |
 | Sparkline inline | `Sparkline` | `Sparkline.swift` | Tendencia diminuta dentro de un tile (Hoy / live-HR). | No como gráfica principal de una pantalla de detalle (usa `TrendChart`/`LiquidTrendChart`). |
 | Hipnograma (Liquid) | `LiquidHipnograma` | `LiquidGlass/LiquidHipnograma.swift` | Bandas de etapa de sueño de una noche en hoja Liquid. | No usar el `Hypnogram` legado (0 call-sites APP); no para otras series categóricas. |
 | Calendario 90 días (Liquid) | `LiquidCalendario90` | `LiquidGlass/LiquidCalendario90.swift` | Mosaico de 90 días en hojas Liquid (Stress/Strain/Sleep). | No usar `Calendario90`/`YearHeatStrip` del índice viejo (0 call-sites APP). |
-| Encabezado de sección (Liquid) | `LiquidSectionHeader` | `LiquidGlass/LiquidSectionHeader.swift` | Abrir una sección en una pantalla Liquid Glass — kicker + aire, sin banda de fondo (FER-273; adopción en Ola 3). | No inventar kicker+banda local; si hace falta franja a sangre de métrica usa `LiquidFranjaSeccion`. |
+| Encabezado de sección (Liquid) | `LiquidSectionHeader` | `LiquidGlass/LiquidSectionHeader.swift` | Abrir una sección en una pantalla de El Eje — kicker + aire, sin banda de fondo (FER-273; adopción en Ola 3). | No inventar kicker+banda local; si hace falta franja a sangre de métrica usa `LiquidFranjaSeccion`. |
 | Cápsula de acción (Hoja) | `HojaCapsulaAccion` | `Entrenar/HojaCapsulaAccion.swift` | Acción compacta sobre vidrio DENTRO de una hoja de Entrenar que no promete navegación — flecha opcional, apagada por default (FER-280·1c). | No para una puerta a otra pantalla/hoja (usa `EntrenarCapsulaPuerta`); no para un CTA de pantalla completa (usa `LiquidGlassButton`/`CenitCTAButton`). |
 | Cápsula outline de acción | `OutlineCapsule` | `OutlineCapsule.swift` | Acción secundaria en cápsula con `hairlineStrong` ± fill (raise, Start/Stop, filtro, Use, Match…) — sm/md + press. | No CTA de tinta a lo ancho (`CenitCTAButton`); no pill Liquid de hoja (`LiquidGlassButton`); no acción de header (`HeaderActionButton`). |
 | Pastilla de estado Liquid | `LiquidStatePill` | `LiquidGlass/LiquidStatePill.swift` | Estado vivo/listo sobre cristal (`.pastillaSolida`) o chip de valencia Δ% — sustituye `statusPill` a mano y chips de signo; el texto del Δ% sale de `CenitFormat.deltaPercent`, nunca de un signo concatenado a mano (FER-500). | No procedencia (`LiquidOrigenChip`/`LiquidOrigenBadge`); no filtro removible (`LiquidChipSeleccion`). |

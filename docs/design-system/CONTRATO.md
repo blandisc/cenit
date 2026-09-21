@@ -97,7 +97,7 @@ Todo issue de lote de wrapping **copia estos 5 puntos como criterios de aceptaci
 
 ## Regla de arbitraje de colisiones
 
-Cuando N valores compiten por el mismo rol: gana **Liquid Glass · El Eje**, en su contexto — hay
+Cuando N valores compiten por el mismo rol: gana **El Eje**, en su contexto — hay
 **tres**: mosaico, sobrio y **Watch OLED** (el Watch no se pinta de blanco). Si Liquid no define el
 rol, gana el valor más frecuente entre pantallas ya migradas; empate → decide el dueño con preview.
 Los veredictos viven en [CENSO.md](CENSO.md); a `docs/DECISIONS.md` solo sube la política.

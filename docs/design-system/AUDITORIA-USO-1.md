@@ -1,5 +1,7 @@
 # Auditoría B1 — Pieza equivocada y evasiones (MITAD 1)
 
+> **Foto histórica — 2026-09-01.** Describe el árbol en esa fecha. No sirve para decidir el estado actual. El sistema se llama **El Eje** desde 2026-09-21. Los conteos de aquí ya no describen la app.
+
 > **Solo reporte.** Cero cambios a Swift/CI/linter/baselines.  
 > **Issue:** FER-279 · **rama:** `grok/fer-279b1-uso-1788282399-76192-27724`  
 > **Fecha:** 2026-09-01 · **ejes:** 1 (pieza equivocada) y 2 (evasiones fuera de gate).  

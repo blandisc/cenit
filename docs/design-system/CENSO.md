@@ -1,5 +1,7 @@
 # CENSO.md — censo de 8 dimensiones
 
+> **Foto histórica — 2026-09-01.** Describe el árbol en el commit de abajo. No sirve para decidir el estado actual. El sistema se llama **El Eje** desde 2026-09-21. Los conteos de aquí ya no describen la app.
+
 > Regenerable: `cd Tools/DesignCensus && swift run design-census --repo ../.. --roles roles.yaml --labels labels/composicion-etiquetado.json --out ../../docs/design-system/CENSO.md`
 >
 > **Commit**: `17ba6c45d2d9` · **fecha del commit**: 2026-09-01T16:36:29-06:00 · **archivos .swift escaneados**: 209
@@ -90,7 +92,7 @@ Taxonomía: `dato` · `sistema` · `falta-pieza` · `optico` · `paridad` · `un
 
 ## 3. Colisiones de rol y veredicto del árbitro [ETIQUETADO + MEDIDO]
 
-Regla: canónico = Liquid Glass · El Eje en su contexto (`roles.yaml`); si Liquid no define el rol, el más frecuente entre pantallas ya migradas; empate → dueño con preview. **Estos veredictos viven aquí; aplicarlos es trabajo de `/migracion`.**
+Regla: canónico = El Eje en su contexto (`roles.yaml`); si Liquid no define el rol, el más frecuente entre pantallas ya migradas; empate → dueño con preview. **Estos veredictos viven aquí; aplicarlos es trabajo de `/migracion`.**
 
 Contexto asignado por heurística de ruta (`Watch` → watch_oled, `Liquid` en el path → mosaico, resto → sobrio) — es una aproximación declarada, no una verdad medida.
 

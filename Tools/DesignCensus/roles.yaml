@@ -1,7 +1,7 @@
 # roles.yaml — el mapa sitio→rol [ETIQUETADO A MANO] (FER-266 §c)
 #
 # El AST no ve roles: `LiquidRadius.tarjeta = 18` y `.modulo = 20` son dos roles que el DNA
-# «Liquid Glass · El Eje» ya separó a propósito — no una colisión. Este archivo es el insumo
+# «El Eje» ya separó a propósito — no una colisión. Este archivo es el insumo
 # etiquetado que el árbitro (Arbiter.swift) usa para distinguir «roles distintos, ya nombrados»
 # de «colisión real» (dos+ valores compitiendo por el MISMO sitio sin que ninguno tenga rol).
 #

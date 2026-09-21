@@ -1,10 +1,14 @@
-# «Liquid Glass · El Eje» — el sistema unificado de vidrio
+# El Eje — el sistema unificado de vidrio
 
-> **Un solo lenguaje: Liquid Glass.** Cada pantalla se lee como un instrumento de precisión hecho
-> de **vidrio líquido teñido sobre un lienzo blanco**: color con significado (el valor y la
+> **Nombre.** El sistema se llama **El Eje** (2026-09-21). «Liquid Glass» queda retirado como nombre
+> para no confundirlo con el material de Apple. El look no cambia. En código las recetas siguen
+> llamándose `liquidGlass`; este archivo conserva su nombre de ruta.
+
+> **Un solo lenguaje: El Eje.** Cada pantalla se lee como un instrumento de precisión hecho
+> de **vidrio teñido sobre un lienzo blanco**: color con significado (el valor y la
 > identidad de cada señal), jerarquía por espacio, numerales tabulares, movimiento fisiológico.
-> La materialidad canónica es la de **El Eje**: el vidrio toma el tono de identidad de lo que
-> contiene, con la misma refracción, filo y sombra en todo el sistema.
+> El vidrio toma el tono de identidad de lo que contiene, con la misma refracción, filo y sombra
+> en todo el sistema.
 >
 > **Dos regímenes, una receta** (`liquidGlass(tono:regimen:)`):
 > - **Mosaico** — muchos módulos (Entrenar): cada tesela se tiñe con su identidad (~10 % sobre
@@ -65,7 +69,7 @@ Space Grotesk (la voz ya empaquetada, vía `InstrumentoType.grotesk`) para displ
 labels y botones; SF para cuerpo y captions. Cada token trae su tracking hermano; los
 MAYÚSCULAS se aplican con los helpers `Text.liquidKicker()/liquidLabel()/liquidMicro()`.
 
-`displayXL` 54/700 −1.9 (legado hero) · `displayL` 30/700 (palabra del veredicto FER-10) · `displayM` 40/700 · `displayS` 22/700 −0.5 («Conociéndote»: la calibración habla más bajito) · `orbita` 8/600 +2.2 (SOLO etiquetas in-canvas del Ecosistema, exenta de Dynamic Type como los glifos) · `valorL` 20/700 tabular ·
+`displayXL` 54/700 −1.9 (legado hero) · `displayL` 30/700 (palabra del veredicto FER-10) · `displayM` 40/700 · `displayS` 22/700 −0.5 («Conociéndote»: la calibración habla más bajito) · `orbita` 8/600 +2.2 (SOLO etiquetas in-canvas del Ecosistema, exenta de Dynamic Type como los glifos) · `valorL` 22/700 tabular ·
 `titulo` 15/700 · `tituloFila` 13/600 · `cuerpo` SF 12.5 · `kicker` 11/600 +2 MAYÚS ·
 `unidad` SF 11 tinta/500 · `caption` 9/500 · `label` 8.5/600 +1.2 MAYÚS · `micro` 8/700 +0.8 ·
 `microEstado` 7.5/600 · `boton` 14/600 +0.2 · `tab(active:)` SF 10 400/600.

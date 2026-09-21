@@ -1,5 +1,7 @@
 # Auditoría A — Construcciones a mano vs. el catálogo (FER-279)
 
+> **Foto histórica — septiembre 2026 (FER-279).** Describe el árbol de esa corrida. No sirve para decidir el estado actual. El sistema se llama **El Eje** desde 2026-09-21.
+
 > **Solo reporte.** Línea Grok (3 barridos, 38 archivos de pantalla auditados — 32 leídos completos,
 > los 4 gigantes por secciones de UI + grep exhaustivo de superficies), consolidado por el director
 > desde el transcript del lane (el worktree del lane murió antes del push; los hallazgos citan

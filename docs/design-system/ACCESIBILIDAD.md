@@ -6,7 +6,7 @@
 > que aún no está cubierto). No propone un estándar nuevo: describe el vigente y lo hace auditable.
 >
 > Cénit no es un dispositivo médico. Accesibilidad aquí = usable con VoiceOver, Dynamic Type, alto
-> contraste y Reduce Motion, en una app iOS de **Liquid Glass · El Eje** (vidrio teñido sobre
+> contraste y Reduce Motion, en una app iOS de **El Eje** (vidrio teñido sobre
 > lienzo blanco). El contraste AA del vidrio teñido (`LiquidTono` × rol) se documenta en
 > [`LIQUID-GLASS.md` §4.1](LIQUID-GLASS.md); las pantallas de papel de la generación anterior
 > («Instrumento diurno», absorbida · en migración) siguen midiendo contra `paper` mientras migran.
@@ -49,7 +49,7 @@
 > generación «Instrumento diurno», donde el papel cambiaba a lo largo del día y cada tono de
 > dato se re-oscurecía contra el papel vivo. Ese motor se **retiró en FER-398**; el inventario
 > de papel que aún migra usa un solo `.base`. No lo cites como comportamiento vigente del marco
-> canónico (Liquid Glass · El Eje).
+> canónico (El Eje).
 
 ---
 
@@ -167,7 +167,7 @@ let animating = animateEntrance && !reduceMotion
 ---
 
 ### Ver también
-- [`DESIGN.md`](DESIGN.md) — marco canónico Liquid Glass · El Eje; §8.2 (tabla de contraste del inventario Instrumento en migración), split fijo/escala, 44pt.
+- [`DESIGN.md`](DESIGN.md) — marco canónico El Eje; §8.2 (tabla de contraste del inventario Instrumento en migración), split fijo/escala, 44pt.
 - [`LIQUID-GLASS.md`](LIQUID-GLASS.md) §4.1 — contrato AA del vidrio teñido (`LiquidTono` / `LiquidRegimen`).
 - [`LENGUAJE.md`](LENGUAJE.md) §5.6 — «el numeral nunca miente» (base del label honesto).
 - [`I18N.md`](I18N.md) — internacionalización.

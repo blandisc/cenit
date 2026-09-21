@@ -152,7 +152,7 @@ struct CensusReport {
         }
 
         md += "## 3. Colisiones de rol y veredicto del árbitro [ETIQUETADO + MEDIDO]\n\n"
-        md += "Regla: canónico = Liquid Glass · El Eje en su contexto (`roles.yaml`); si Liquid no define el rol, el más frecuente entre pantallas ya migradas; empate → dueño con preview. **Estos veredictos viven aquí; aplicarlos es trabajo de `/migracion`.**\n\n"
+        md += "Regla: canónico = El Eje en su contexto (`roles.yaml`); si Liquid no define el rol, el más frecuente entre pantallas ya migradas; empate → dueño con preview. **Estos veredictos viven aquí; aplicarlos es trabajo de `/migracion`.**\n\n"
         md += "Contexto asignado por heurística de ruta (`Watch` → watch_oled, `Liquid` en el path → mosaico, resto → sobrio) — es una aproximación declarada, no una verdad medida.\n\n"
         if verdicts.isEmpty {
             md += "Sin colisiones detectadas en esta corrida.\n\n"

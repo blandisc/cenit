@@ -39,7 +39,7 @@ struct CompositionCandidate: Codable {
 
 /// Deuda por generación visual, por archivo.
 enum Generation: String, Codable {
-    case liquid            // «Liquid Glass · El Eje» — vigente
+    case liquid            // «El Eje» — vigente
     case instrumento       // «Instrumento diurno / papel cálido» — absorbida, en migración
     case indeterminada     // ni marcador Liquid* ni Instrumento* — no clasificable por símbolo
 }
