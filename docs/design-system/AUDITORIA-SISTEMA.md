@@ -1,5 +1,7 @@
 # Auditoría C — El sistema por dentro (CenitDesign)
 
+> **Foto histórica — 2026-09-01.** Describe el árbol en esa fecha. No sirve para decidir el estado actual. El sistema se llama **El Eje** desde 2026-09-21. Los conteos de aquí ya no describen la app.
+
 > **Solo reporte.** Cero cambios a Swift/CI/linter/docs existentes.  
 > **Issue:** FER-279 · **rama:** `grok/fer-279c-sistema-1788281605-68973-8231`  
 > **Fecha del censo:** 2026-09-01 · **worktree** de esta corrida.  

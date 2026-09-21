@@ -757,7 +757,7 @@ scroll position. The verdict word is a single oracle (`LiquidHoyBuilder.hiloEntr
 Entrenar, compact (`EntrenarHilo`, orb 44) in Cuerpo/Ahora, both opening the same Acta
 (`LiquidActaVeredicto`). Tab enums live in `RootTabView.Tab` / `TabRouter.Tab` (app),
 `CenitDesign.LiquidTab` (dock) and `CenitEnsenanza.Pestana` (teaching registry) — all three collapsed
-4→3 in lockstep. The whole shell is light «Liquid Glass · El Eje» (the by-tab dark scheme was retired
+4→3 in lockstep. The whole shell is light «El Eje» (the by-tab dark scheme was retired
 in FER-430).
 
 **Inject (hot-reload).** The app target links the third-party `Inject` package (`project.yml`) for

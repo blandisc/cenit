@@ -605,7 +605,7 @@ public let catalogEntries: [CatalogEntry] = [
     // —— Gráficas ——
     CatalogEntry(rol: "Gráfica de tendencia (Liquid)", simbolo: "LiquidTrendChart",
                  archivo: "LiquidGlass/LiquidTrendChart.swift",
-                 cuandoUsarlo: "Series temporales dentro de una pantalla/hoja ya migrada a Liquid Glass.",
+                 cuandoUsarlo: "Series temporales dentro de una pantalla/hoja ya migrada a El Eje.",
                  cuandoNo: "No en pantallas aún en Instrumento (usa `TrendChart`)."),
     CatalogEntry(rol: "Gráfica de tendencia (compartida)", simbolo: "TrendChart",
                  archivo: "TrendChart.swift",
@@ -625,7 +625,7 @@ public let catalogEntries: [CatalogEntry] = [
                  cuandoNo: "No usar `Calendario90`/`YearHeatStrip` del índice viejo (0 call-sites APP)."),
     CatalogEntry(rol: "Encabezado de sección (Liquid)", simbolo: "LiquidSectionHeader",
                  archivo: "LiquidGlass/LiquidSectionHeader.swift",
-                 cuandoUsarlo: "Abrir una sección en una pantalla Liquid Glass — kicker + aire, sin banda de fondo (FER-273; adopción en Ola 3).",
+                 cuandoUsarlo: "Abrir una sección en una pantalla de El Eje — kicker + aire, sin banda de fondo (FER-273; adopción en Ola 3).",
                  cuandoNo: "No inventar kicker+banda local; si hace falta franja a sangre de métrica usa `LiquidFranjaSeccion`."),
     CatalogEntry(rol: "Cápsula de acción (Hoja)", simbolo: "HojaCapsulaAccion",
                  archivo: "Entrenar/HojaCapsulaAccion.swift",
@@ -690,11 +690,11 @@ func catalogoTable() -> String {
 
 func catalogoDoc() -> String {
     """
-    # Catálogo Liquid Glass
+    # Catálogo El Eje
 
     <!-- GENERADO por `swift run CenitDesignTokens` desde `Packages/CenitDesign/Sources/CenitDesignTokens/main.swift` — no editar a mano. `rol`/`simbolo`/valores salen del código; `archivo`/`cuándo usarlo`/`cuándo no` son la tabla curada `catalogEntries` de ese mismo archivo. -->
 
-    Diccionario + índice del sistema **Liquid Glass · El Eje** (FER-229), leído directo del API
+    Diccionario + índice del sistema **El Eje** (nombre desde 2026-09-21; «Liquid Glass» se retiró para no confundirlo con el material de Apple, FER-229). Las recetas en código siguen llamándose `liquidGlass`; el aspecto no cambia. Leído directo del API
     público de `CenitDesign` — mismo trato que `color.instrumento` en
     [`tokens/design-tokens.json`](tokens/design-tokens.json): el código gana, este archivo solo
     lo refleja.
@@ -868,7 +868,7 @@ do {
     if existingCatalogo != newCatalogo { try newCatalogo.write(to: catalogoURL, atomically: true, encoding: .utf8) }
 
     print("✓ Instrumento tokens regenerated from Instrumento.swift (\(roles.count) roles)")
-    print("✓ Liquid Glass catálogo regenerated (\(liquidColorEntries.count) colors, \(liquidOLEDEntries.count) oled, \(liquidSpaceEntries.count) space, \(liquidControlEntries.count) control, \(liquidRadiusEntries.count) radius, \(liquidTypeEntries.count) type, \(catalogEntries.count) components)")
+    print("✓ El Eje catálogo regenerated (\(liquidColorEntries.count) colors, \(liquidOLEDEntries.count) oled, \(liquidSpaceEntries.count) space, \(liquidControlEntries.count) control, \(liquidRadiusEntries.count) radius, \(liquidTypeEntries.count) type, \(catalogEntries.count) components)")
     print("  · \(jsonURL.path)")
     print("  · \(designURL.path)")
     print("  · \(catalogoURL.path)")

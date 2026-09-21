@@ -1,9 +1,10 @@
 # Cenit / Cénit — Design System
 
-> **Un solo lenguaje: «Liquid Glass».** Cada pantalla se lee como un instrumento de precisión hecho
-> de vidrio líquido teñido sobre un lienzo blanco: **color con significado (el valor y la identidad
+> **Un solo lenguaje: «El Eje».** Cada pantalla se lee como un instrumento de precisión hecho
+> de vidrio teñido sobre un lienzo blanco: **color con significado (el valor y la identidad
 > de cada señal)**, jerarquía por espacio, numerales tabulares que nunca se reacomodan, movimiento
 > fisiológico. La calidez ya no vive en el lienzo, vive en el vidrio y las tarjetas.
+> «Liquid Glass» ya no es el nombre del sistema (2026-09-21): chocaba con el material de Apple.
 
 > **La materialidad canónica es la del Eje:** el vidrio toma el tono de identidad de lo que contiene,
 > con la misma refracción, filo y sombra en todo el sistema. Dos regímenes, una receta: **Mosaico**
@@ -22,12 +23,12 @@
 
 - **Source of truth:** the `CenitDesign` Swift package — `Packages/CenitDesign/Sources/CenitDesign/`
 - **Package version:** `0.1.0` (`CenitDesign.version`)
-- **Token entry points (canónicos — Liquid Glass · El Eje):** `LiquidColor` · `LiquidType` · `LiquidSpace` / `LiquidRadius` · `LiquidElevation` · `LiquidMotion` · `LiquidHaptica` · `liquidGlass(_:)` / `liquidGlass(tono:regimen:)` — mapa completo en [`LIQUID-GLASS.md`](LIQUID-GLASS.md); índice de componentes en [`CATALOGO.md`](CATALOGO.md)
+- **Token entry points (canónicos — El Eje):** `LiquidColor` · `LiquidType` · `LiquidSpace` / `LiquidRadius` · `LiquidElevation` · `LiquidMotion` · `LiquidHaptica` · `liquidGlass(_:)` / `liquidGlass(tono:regimen:)` — mapa completo en [`LIQUID-GLASS.md`](LIQUID-GLASS.md); índice de componentes en [`CATALOGO.md`](CATALOGO.md)
 - **Legado en migración (no usar en pantallas nuevas):** `CenitPalette` · `CenitFont` · `CenitMotion` · `CenitMetrics` · `CenitElevation` (retirado — sin consumidores de pantalla activos; solo su definición en `Elevation.swift`) · `InstrumentoTheme` / `theme.*` — inventario aún en tránsito en **[§8](#8-instrumento-diurno--generación-anterior-absorbida--en-migración)**; `CenitIcon` sigue vivo para glifos (ver [`ICONOGRAFIA.md`](ICONOGRAFIA.md))
 - **Machine-readable tokens:** [`tokens/design-tokens.json`](tokens/design-tokens.json) (W3C Design Tokens format)
 - **Assets:** [`assets/`](assets/) — app icons + brand marks
 - **Voz y contenido:** [`LENGUAJE.md`](LENGUAJE.md) — cómo suena el sistema: tono, escritura es-MX, microcopy y glosario canónico (compañero de este doc)
-- **«Liquid Glass · El Eje» (marco canónico):** [`LIQUID-GLASS.md`](LIQUID-GLASS.md) — tokens `Liquid*`, recetas de vidrio, regímenes mosaico/sobrio, motion y hápticos; pantalla de referencia `LiquidHoyScreen` (sobrio) · hub Entrenar (`EntrenarModulo` / `EntrenarTile`, mosaico)
+- **«El Eje» (marco canónico):** [`LIQUID-GLASS.md`](LIQUID-GLASS.md) — tokens `Liquid*`, recetas de vidrio, regímenes mosaico/sobrio, motion y hápticos; pantalla de referencia `LiquidHoyScreen` (sobrio) · hub Entrenar (`EntrenarModulo` / `EntrenarTile`, mosaico)
 - **Guías compañeras:** [`ACCESIBILIDAD.md`](ACCESIBILIDAD.md) (contraste, Dynamic Type, VoiceOver, reduce-motion, 44pt) · [`I18N.md`](I18N.md) (locales, plurales, formato) · [`ICONOGRAFIA.md`](ICONOGRAFIA.md) (catálogo `CenitIcon`, glifos, naming)
 
 > ⚠️ This document is **generated from code**. The Swift package is canonical — if a
@@ -40,7 +41,7 @@
 
 ### 1.1 Color — surfaces & text
 
-Surfaces and text still carry the **«Instrumento diurno»** roles while paper screens migrate — see **[§8](#8-instrumento-diurno--generación-anterior-absorbida--en-migración)** for `paper`, `surface`, `hairline`, `hairlineStrong`, `ink`, `inkSecondary`, `inkTertiary`. The dark `surface.*` / `text.*` / `glow` tokens were **retired in FER-430**. The canonical frame is Liquid Glass · El Eje (manifiesto de apertura).
+Surfaces and text still carry the **«Instrumento diurno»** roles while paper screens migrate — see **[§8](#8-instrumento-diurno--generación-anterior-absorbida--en-migración)** for `paper`, `surface`, `hairline`, `hairlineStrong`, `ink`, `inkSecondary`, `inkTertiary`. The dark `surface.*` / `text.*` / `glow` tokens were **retired in FER-430**. The canonical frame is El Eje (manifiesto de apertura).
 
 `CenitOpacity.dim = 0.45` — shared dim value for disabled sections (don't invent your own; the old name `opacity.disabled` / `CenitPalette.disabledOpacity` is legado).
 
@@ -198,7 +199,7 @@ Helpers:
 
 | Component | Purpose | Key API |
 |---|---|---|
-| *(the old dark-legacy card surface, retired FER-444)* | The current card surface for Liquid Glass screens is `liquidGlass(_:)` — see [CATALOGO.md](CATALOGO.md) for the full index | — |
+| *(the old dark-legacy card surface, retired FER-444)* | The current card surface for El Eje screens is `liquidGlass(_:)` — see [CATALOGO.md](CATALOGO.md) for the full index | — |
 | `CenitCardHover` | Hover-lift `ViewModifier` (shadow-md + translateY(-1px) + border emphasis) for any card-like surface | `cornerRadius:` |
 | `LiquidSectionHeader` (Liquid) / `InstrumentoSectionBand` (Instrumento, not migrated) | Section title with optional overline + trailing text — see [CATALOGO.md](CATALOGO.md) | — |
 
@@ -209,7 +210,7 @@ Helpers:
 | `StatTile` | Uniform fixed-height (104pt) metric tile: overline label, big tabular value, optional sparkline, caption + delta | `label:`, `value:`, `caption:`, `accent:`, `delta:`, `deltaColor:`, `sparkline:`, `sparkColor:` |
 
 Chart containers and insight callouts no longer use a dedicated card type — they compose
-`liquidGlass(_:)` (Liquid Glass) or `.instrumentoCard(_:)` (Instrumento, not migrated) directly
+`liquidGlass(_:)` (El Eje) or `.instrumentoCard(_:)` (Instrumento, not migrated) directly
 around a chart or status text. Full index: [CATALOGO.md](CATALOGO.md).
 
 ### 5.3 Controls & chrome
@@ -258,7 +259,7 @@ See [`assets/`](assets/) (and its [README](assets/README.md)):
 
 ## 7. Usage notes
 
-- **Lienzo canónico = blanco (Liquid Glass · El Eje).** El sistema oscuro se retiró (FER-430); la única excepción viva es Watch OLED. Previews Liquid no fuerzan `.dark`.
+- **Lienzo canónico = blanco (El Eje).** El sistema oscuro se retiró (FER-430); la única excepción viva es Watch OLED. Previews Liquid no fuerzan `.dark`.
 - **Data colors come from scales, chrome comes from `accent`.** Never tint a metric with `accent`; never reuse a status color as a recovery color.
 - **Numerics are tabular.** Any live value uses a `*Number` font — en Liquid, `LiquidType.valor*` / helpers; en legado Instrumento, `CenitFont.number(...)` — so digits don't shift.
 - **Compose from the locked set (retired).** This dark-legacy set was retired in FER-444; new cards
@@ -269,7 +270,7 @@ See [`assets/`](assets/) (and its [README](assets/README.md)):
 
 ## 8. «Instrumento diurno» — generación anterior (absorbida · en migración)
 
-**Generación anterior del ADN — ya absorbida por Liquid Glass · El Eje y en migración.** No es un
+**Generación anterior del ADN — ya absorbida por El Eje y en migración.** No es un
 lenguaje vivo alternativo: su punto de vista (instrumento de precisión, color con significado,
 jerarquía por espacio, numerales tabulares) se absorbió en la receta de vidrio teñido del Eje; las
 pantallas de papel migran; los componentes de papel se borran al migrar su último consumidor. Lo
@@ -278,7 +279,7 @@ paralelo. Origen: FER-131; retiro del marco: épico FER-229.
 
 > **2026-08 · Tendencias salió del inventario Instrumento (épico FER-97).** Toda la pestaña
 > Tendencias — su aterrizaje (`CuerpoView`, FER-100), las gemelas, el detalle de vital, Sueño,
-> Comparar/Explorador, longevidad y «Fuentes de datos»/«Apple Health» — migró a **Liquid Glass**
+> Comparar/Explorador, longevidad y «Fuentes de datos»/«Apple Health» — migró a **El Eje**
 > ([LIQUID-GLASS.md](LIQUID-GLASS.md)).
 >
 > **Entrenar ya no es papel Instrumento:** es régimen **mosaico** Liquid
@@ -385,7 +386,7 @@ Not tokens — how the tokens are allowed to combine. `/qa` checks screens again
    *(Evolución Fer 2026-08: la regla anterior, «color solo en el dato», prohibía teñir
    rótulos/íconos; se retira. El color de identidad de cada señal también habla —como en los
    rótulos del héroe y las filas del acta de Hoy—, con la misma contención. Enmienda 2026-08-29
-   · Liquid Glass · El Eje: el «nunca llena fondos» queda matizado por régimen — Mosaico tiñe
+   · El Eje: el «nunca llena fondos» queda matizado por régimen — Mosaico tiñe
    vidrio; Sobrio no.)*
 3. **Hierarchy by space, not boxes.** Group with whitespace + hairlines. No card-in-card;
    `surface` is the exception, used sparingly and never nested.

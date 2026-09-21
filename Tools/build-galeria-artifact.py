@@ -9,7 +9,7 @@ Fuentes de verdad que lee (nunca las copia):
   · `Tools/build-appmap.py`            → manifiesto de pantallas (MAP) y de piezas (COMPONENTS)
   · `docs/appmap/shots/*.png`          → los pixeles (reescalados a 800 px por capture-appmap.sh)
   · `docs/design-system/CATALOGO.md`   → rol · símbolo · archivo · cuándo usarlo · cuándo no
-  · `LiquidGlass/LiquidColor.swift`    → la paleta (claro y oscuro) de «Liquid Glass · El Eje»
+  · `LiquidGlass/LiquidColor.swift`    → la paleta (claro y oscuro) de «El Eje»
 
 Regenerar tras capturar:   Tools/capture-appmap.sh && python3 Tools/build-galeria-artifact.py
 Salida (por defecto):      $TMPDIR/galeria-viva.html  (o --out <ruta>); pesa ~1 MB, sin red.
@@ -322,7 +322,7 @@ footer code{{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12px;b
 </style>
 
 <header class="top"><div class="in">
-  <div><div class="kicker">Cénit · Liquid Glass · El Eje</div><h1 class="g">Figma casero</h1></div>
+  <div><div class="kicker">Cénit · El Eje</div><h1 class="g">Figma casero</h1></div>
   <div class="meta">{total} capturas reales del simulador (iPhone 17 Pro · iOS 26). Nada está redibujado: si una pieza no aparece aquí, no está capturada.</div>
   <label class="buscar"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg><input id="q" type="search" placeholder="Buscar pieza, familia o estado…" autocomplete="off" aria-label="Buscar"><button id="limpiar" type="button" aria-label="Limpiar búsqueda">×</button></label>
   <span class="hits" id="hits">{total} de {total}</span>

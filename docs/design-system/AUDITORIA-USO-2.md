@@ -1,5 +1,7 @@
 # Auditoría B2 — Contrabando, el paquete por dentro y exenciones (MITAD 2)
 
+> **Foto histórica — 2026-09-01.** Describe el árbol en esa fecha. No sirve para decidir el estado actual. El sistema se llama **El Eje** desde 2026-09-21. Los conteos de aquí ya no describen la app.
+
 > **Solo reporte.** Cero cambios a Swift/CI/linter/baselines.  
 > **Issue:** FER-279 · **rama:** `grok/fer-279b2-uso-1788282407-76269-1258`  
 > **Fecha:** 2026-09-01 · **carril:** uso del sistema (ejes **3–5**; ejes 1–2 = otro lane).  

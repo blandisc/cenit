@@ -154,7 +154,16 @@ el mismo PR** que la implementa (una línea basta: fecha, decisión, por qué).
   papel cálido» queda muerto como marco y en migración (punto de vista absorbido; pantallas de
   papel migran; componentes de papel se borran al migrar su último consumidor). Watch OLED es la
   única excepción viva del sistema oscuro retirado. Nombre fundido en API: `liquidGlass` +
-  `LiquidTono`.
+  `LiquidTono`. **Nombre sustituido 2026-09-21:** el sistema se llama **El Eje**; la receta
+  y los regímenes de esta entrada siguen vigentes (ver la entrada de esa fecha).
+- **2026-09-21 · El sistema se llama El Eje.** Revierte solo el nombre de la entrada
+  2026-08-29 (FER-229). El look no cambia: vidrio teñido sobre lienzo blanco, regímenes
+  mosaico y sobrio, cuatro colores que no se mezclan. «Liquid Glass» deja de ser el nombre
+  para no confundirlo con el material de Apple. En código las recetas siguen llamándose
+  `liquidGlass` y `LiquidTono` hasta una ola posterior; ese renombre no cambia píxeles.
+  Las piezas de la generación anterior se esconden y se apagan, y se borran cuando su
+  última pantalla las suelta. La tarjeta de un dato sigue en dos piezas, cada una con su
+  trabajo escrito en el catálogo.
 - **2026-08-29 · Fondo de pantalla blanco (revierte parcialmente el «papel cálido» del DNA):**
   el lienzo de TODAS las secciones (Hoy, Tendencias, Entrenar, Ajustes) pasa de papel cálido a
   blanco, vía el componente compartido `pantallaFondo` (`CenitColor.pantalla`). El papel cálido

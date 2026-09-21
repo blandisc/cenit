@@ -1,30 +1,21 @@
 import SwiftUI
 
-// MARK: - «Instrumento diurno» — the daytime design language (FER-131)
+// MARK: - «Instrumento diurno» — previous generation, kept while screens migrate
 //
-// A second visual language that lives ALONGSIDE the dark, instrument-grade
-// `CenitPalette` (which every shipped screen still uses). Where the legacy
-// system is a near-black instrument panel, this one reads like a precision
-// instrument printed on warm paper:
+// Not a second live language. The canonical system is El Eje (tinted glass on a
+// white canvas). This file remains because some call sites still read
+// `InstrumentoTheme`. New screens use `LiquidColor` / `liquidGlass`. Paper
+// components are deleted when their last consumer leaves (FER-229).
 //
-//   • Light mode, warm paper — calm off-white, never pure white.
-//   • One dominant number — a screen has a single hero figure; everything else
-//     is subordinate (see the hierarchy rules below).
-//   • Color ONLY in the datum — saturated hue appears on the measured value
-//     (recovery / strain / verdict), never as chrome. Labels are ink, not color.
-//   • Hierarchy by space, not by boxes — no card-in-card; whitespace separates,
-//     hairlines divide, surfaces are used sparingly.
-//   • AA at every hour — every text/background pair clears WCAG AA.
-//
-// The roles are an instance `struct` (not static like `CenitPalette`) on
-// purpose: the design originally varied them by the hour (FER-132), but FER-398
-// retired that engine — the app now uses the single `.base` daytime anchor at
-// every hour. The instance shape stays (cheap, and keeps the door open). Nothing
-// here touches the legacy palette or any screen.
+// What this generation contributed, and El Eje kept: one dominant number, color
+// with meaning, hierarchy by space, tabular numerals. The warm-paper canvas and
+// the hour-of-day theme (FER-132) are retired (FER-398); `.base` is the only
+// anchor. Watch OLED is the one living dark exception, and it does not live here.
 
-/// The semantic color roles of the «Instrumento diurno» language, in one
-/// instance so the hour engine (FER-132) can vary them. Inject with
+/// Semantic color roles of the previous «Instrumento diurno» generation.
+/// The hour engine (FER-132) is retired; the app uses `.base`. Inject with
 /// `.instrumentoTheme(_:)`; read with `@Environment(\.instrumentoTheme)`.
+/// New screens use El Eje (`LiquidColor`), not this type.
 public struct InstrumentoTheme: Equatable, Sendable {
 
     // MARK: Surfaces — warm paper

@@ -1,6 +1,6 @@
 # Iconografía
 
-> Compañero de [`DESIGN.md`](DESIGN.md) (**Liquid Glass · El Eje** — marco canónico; «Instrumento
+> Compañero de [`DESIGN.md`](DESIGN.md) (**El Eje** — marco canónico; «Instrumento
 > diurno» = generación anterior absorbida · en migración). Define cómo se eligen, nombran y usan
 > los iconos en Cénit: el catálogo `CenitIcon`, los glifos dibujados a mano, el tamaño ligado a
 > la rejilla, la accesibilidad y qué reservar. Aterrizado en el uso real (76 nombres SF distintos,
@@ -67,7 +67,7 @@ custom se justifica solo cuando la familia SF no cubre el significado con el est
 ## 5. Estilo y tamaño
 
 - **Estilo:** SF Symbols en su estilo por defecto; los glifos custom son de **línea** (coherentes
-  con el instrumento de precisión del ADN Liquid Glass · El Eje). No mezclar filled/outlined al
+  con el instrumento de precisión del ADN El Eje). No mezclar filled/outlined al
   azar en una misma superficie.
 - **Tamaño ligado a texto/rejilla:** usa `CenitFont.GlyphSize` (chevron/inline/lead/empty) y
   `CenitFont.glyph(_:)` para que el icono case con el texto y el grid (no `.font(.system(size:))`
