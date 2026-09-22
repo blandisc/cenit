@@ -1,9 +1,11 @@
-/// Firma del sistema visual de Cénit.
+/// Firma del sistema visual de Cénit: El Eje.
 ///
-/// Las fichas no viven aquí: están repartidas por rol — `CenitPalette` pinta el color de un dato,
-/// `CenitFont` da la voz tipográfica, `CenitMotion` marca el ritmo, y las piezas de gráfica y de
-/// componente se apoyan en las tres. Este enum solo pone nombre y número al conjunto.
+/// Las fichas viven por rol (`LiquidColor`, `LiquidType`, `liquidGlass`). Este enum solo
+/// pone nombre y número al conjunto.
 public enum CenitDesign {
-    /// Súbela cuando la superficie de fichas cambie de forma perceptible.
-    public static let version = "0.1.0"
+    /// 1.0.0 desde 2026-09-22: el sistema se llama El Eje y el catálogo dice la verdad.
+    /// Sube el número chico cuando entra o sale una pieza del catálogo. Sube el número
+    /// grande cuando cambia el nombre del sistema o una regla que la persona ve.
+    /// Ver `docs/design-system/RETIRADAS.md`.
+    public static let version = "1.0.0"
 }

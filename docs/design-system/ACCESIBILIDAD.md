@@ -66,9 +66,14 @@ pegados a geometría **no**. La decisión está codificada y comentada en `Typog
   Dynamic Type sin romper la geometría. El chrome de tabs debe conservar tamaño para alinear.
 - **Techo:** la app **cap­a el rango superior en xxxLarge** en la raíz.
 
-> **Deuda conocida:** no hay snapshot ni preview que ejercite `.dynamicTypeSize` grande. El split
-> fijo/escala se garantiza por construcción (qué token mapea a qué text style), no por un render de
-> tipo grande. Candidato a issue: agregar un snapshot a AX5/xxxLarge.
+> **Prueba:** `LetraGrandeTests` ata el contrato. El dato (`LiquidType.valorL`, el de Hoy) es
+> Grotesk 22 anclado a `.title3`, así que crece con la letra del sistema. El cuerpo
+> (`LiquidType.cuerpo`, el de Entrenar) es `Font.system(.footnote)` y también crece. El número
+> de un anillo (`CenitFont.number`) es un tamaño en puntos y se queda quieto (FER-394).
+> La misma prueba mide la curva: un alto con `@ScaledMetric` relativo a `.title3` y a
+> `.footnote` crece de `.large` a `.accessibility5`; un alto fijo no. En la Mac de integración
+> `ImageRenderer` no agranda un `Font` de estilo de texto, así que la medida usa esa curva de
+> layout y no es una foto del iPhone con la letra al máximo.
 
 ---
 
@@ -159,7 +164,6 @@ let animating = animateEntrance && !reduceMotion
 
 | Hueco | Dónde | Severidad |
 |---|---|---|
-| Sin snapshot de Dynamic Type grande (AX/xxxLarge) | `Typography.swift` (solo por construcción) | media |
 | `··` y `~N` sin label hablado dedicado | numeral honesto | media |
 | Reduce Motion copy-paste, sin helper central | 5 componentes | baja/media |
 | `accessibilityRepresentation` sin usar | — | baja |

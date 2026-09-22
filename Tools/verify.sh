@@ -146,6 +146,11 @@ run_lint() {
   # a propósito: si el script desaparece, esto FALLA en vez de callar.
   python3 Tools/check-token-exempt-stale.py \
     || fail "token-exempt caduco: cita un símbolo que ya existe, una pieza retirada, o escapa sobre un token (Tools/check-token-exempt-stale.py)."
+  # Puerta vieja: una pantalla nueva no puede adoptar SegmentedPillControl ni .font(.system
+  # sin que el chequeo se detenga. La lista (Tools/puerta-vieja.txt) solo baja. Sin guard de
+  # existencia a propósito: si el script desaparece, esto FALLA en vez de callar.
+  python3 Tools/check-puerta-vieja.py \
+    || fail "puerta vieja: una pantalla nueva usa una pieza de la generación anterior, o la lista miente (Tools/check-puerta-vieja.py)."
   echo "verify: linters OK"
 }
 

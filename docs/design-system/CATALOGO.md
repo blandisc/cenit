@@ -243,7 +243,7 @@ Una situación, una pieza. Si la situación no está aquí, no se inventa una ta
 
 ## Archivo
 
-Estas piezas siguen en el paquete y no se ofrecen para pantallas nuevas. Se borran cuando su última pantalla las suelte. `StatTile` y los estados vacíos de papel ya no están en el código.
+Estas piezas siguen en el paquete y no se ofrecen para pantallas nuevas. Se borran cuando su última pantalla las suelte. `StatTile` y los estados vacíos de papel ya no están en el código. Las pantallas que todavía usan una pieza de la generación anterior están en [EN-TRANSITO.md](EN-TRANSITO.md).
 
 | Pieza | La reemplaza |
 |---|---|
