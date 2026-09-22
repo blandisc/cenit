@@ -360,11 +360,9 @@ struct ExerciseLibraryScreen: View {
         }
         .disabled(selected.isEmpty)
         .padding(.horizontal, LiquidSpace.s600)
-        // Libra el dock, que se queda visible (decisión Fer): el `safeAreaInset` inferior comparte carril
-        // con la barra de pestañas y el botón quedaba medio tapado. Sin banda de papel detrás — la lámina
-        // casi-opaca se desbordaba por abajo y se veía como un borde suelto; ahora solo flota la cápsula,
-        // y el inset ya reserva el alto para que la lista no se le meta debajo.
-        .padding(.bottom, 68)  // token-exempt(falta-pieza): alto del dock + respiro
+        // La tab bar del sistema ya aparta este `safeAreaInset`. El pad de 68 existía porque
+        // el dock flotante y este inset compartían carril y el botón quedaba medio tapado.
+        .padding(.bottom, LiquidSpace.s200)
     }
 
     // MARK: - Data

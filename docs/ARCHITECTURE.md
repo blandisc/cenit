@@ -748,17 +748,25 @@ Apple Health, Data Sources, Settings, Support). There is no `LiveState` injectio
 (the BLE connection snapshot type was removed with the band amputation), and no separately reachable
 Automations screen. The home / lock-screen widgets live in `CenitWidgets/`.
 
-**Navigation shell (FER-490).** Three tabs — **Entrenar · Cuerpo · Ajustes** — over the floating
-`LiquidTabBar` (the legacy `InstrumentTabBar` was dead code, retired here). The app launches on
+**Navigation shell (FER-490).** Three tabs — **Entrenar · Cuerpo · Ajustes** — on the system
+`TabView` bar. The item labels are the catalog keys `Train` · `Body` · `Settings` (the same keys as
+the screen titles; Spanish renders Entrenar · Cuerpo · Ajustes). `LiquidTabBar` is no longer the
+shell: it stays in the design system for the component gallery and `LiquidHoyScreen` previews, and
+is not for new screens. The minimized strength-session pill is a bottom `safeAreaInset` on each tab
+root (empty, with zero spacing, when there is no session), so a pushed screen keeps it and scroll
+content clears it without a second measured gap. On iOS 26 the bar is pinned with
+`tabBarMinimizeBehavior(.never)`: the pill is not tied to a measured bar height, and a shrinking bar
+would leave it floating. The system bar is what moves to the side on iPhone Duo; this shell does not
+add a fixed bottom pad for that. The app launches on
 Entrenar (`RootTabView.selection = .train`). **Cuerpo** folds the former **Hoy** and **Tendencias**
 screens into one tab with two modes, **«Ahora | Tiempo»** (`CuerpoTabView`): a fixed selector mounts
 exactly one subtree at a time (`TodayView` for Ahora, `CuerpoView` for Tiempo), each keeping its own
 scroll position. The verdict word is a single oracle (`LiquidHoyBuilder.hiloEntrenar`): large only in
 Entrenar, compact (`EntrenarHilo`, orb 44) in Cuerpo/Ahora, both opening the same Acta
 (`LiquidActaVeredicto`). Tab enums live in `RootTabView.Tab` / `TabRouter.Tab` (app),
-`CenitDesign.LiquidTab` (dock) and `CenitEnsenanza.Pestana` (teaching registry) — all three collapsed
-4→3 in lockstep. The whole shell is light «El Eje» (the by-tab dark scheme was retired
-in FER-430).
+`CenitDesign.LiquidTab` (the design-system bar, not the shell) and `CenitEnsenanza.Pestana`
+(teaching registry) — all three collapsed 4→3 in lockstep. The whole shell is light «El Eje» (the
+by-tab dark scheme was retired in FER-430).
 
 **Inject (hot-reload).** The app target links the third-party `Inject` package (`project.yml`) for
 Debug UI hot-reload with InjectionIII / InjectionNext. In **Release** the library is a **no-op**: the

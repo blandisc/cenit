@@ -44,7 +44,6 @@ struct OnbActoSesion: View {
     }
 
     var body: some View {
-        let destino: LiquidTab = destinoEntrenar ? .entrenar : .cuerpo
         let cta = destinoEntrenar ? OnbCopy.sinFcCta : OnbCopy.entrar
 
         OnbShell(indicadores: true) {
@@ -87,9 +86,6 @@ struct OnbActoSesion: View {
                     Text(OnbCopy.cicloDock)
                         .groteskOverline()
                         .foregroundStyle(LiquidColor.tinta500)
-                    LiquidTabBar(active: destino, rotulos: .cenit)
-                        .allowsHitTesting(false)
-                        .accessibilityHidden(true)
                     OnbCuerpo(OnbCopy.cicloDockPie, tono: LiquidColor.tinta500)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
