@@ -15,7 +15,6 @@ Cenit/Screens/SavedTicketsScreen.swift
 Cenit/Screens/SessionKeypad.swift
 Cenit/Screens/StarterTemplatesSheet.swift
 Cenit/Screens/StrengthHistoryImportSheet.swift
-Cenit/Screens/TrainingBodyScreen.swift
 Cenit/Screens/WeeklyPlanEditorView.swift
 Cenit/Screens/WorkoutDetailScreen.swift
 Cenit/Screens/WorkoutEditSheet.swift

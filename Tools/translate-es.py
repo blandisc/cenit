@@ -1707,6 +1707,9 @@ ES: dict[str, str] = {
     "Just for today": "Solo por hoy",
     "%@ for %@": "%@ por %@",
     "%@ %lld → %lld sets": "%@ %lld → %lld series",
+    # Confirmaciones de programa: la tarjeta nombra la acción. «Cancel» no existe en El Eje.
+    "Keep the program": "Conservar el programa",
+    "YOUR PROGRAM": "TU PROGRAMA",
 }
 
 

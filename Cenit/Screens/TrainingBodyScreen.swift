@@ -669,8 +669,22 @@ struct TrainingBodyScreen: View {
         .overlay(alignment: .top) { Rectangle().fill(LiquidColor.tinta10).frame(height: 1) }
     }
 
+    /// Índice del periodo. `Span.rawValue` son días, no la posición del selector.
+    private var spanSeleccion: Binding<Int> {
+        Binding(
+            get: { Span.allCases.firstIndex(of: span) ?? 0 },
+            set: { nuevo in
+                guard Span.allCases.indices.contains(nuevo) else { return }
+                span = Span.allCases[nuevo]
+            }
+        )
+    }
+
     private var volumeSpanPicker: some View {
-        SegmentedPillControl(Span.allCases, selection: $span) { $0.label }
+        LiquidRangeSelector(opciones: Span.allCases.map(\.label),
+                            seleccion: spanSeleccion,
+                            tono: LiquidColor.tinta700)
+            .accessibilityLabel(Text("Time range"))
     }
 
     private var volumeRows: some View {

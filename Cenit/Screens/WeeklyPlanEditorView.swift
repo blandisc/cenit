@@ -184,12 +184,16 @@ struct WeeklyPlanEditorView: View {
         .sheet(isPresented: $showConvertToProgram, onDismiss: { convertStartsMonday = false }) {
             convertToProgramSheet
         }
-        .alert("End the program?", isPresented: $confirmEndProgram) {
-            Button("Cancel", role: .cancel) { }
-            Button("End program", role: .destructive) { endProgram() }
-        } message: {
-            Text("Your routines and your week stay; only the week count goes away.")
-        }
+        .liquidConfirm(
+            isPresented: $confirmEndProgram,
+            title: String(localized: "End the program?"),
+            context: String(localized: "YOUR PROGRAM"),
+            message: String(localized: "Your routines and your week stay; only the week count goes away."),
+            actions: [
+                .init(String(localized: "Keep the program"), role: .primary),
+                .init(String(localized: "End program"), role: .destructive) { endProgram() }
+            ]
+        )
         .liquidInput(
             isPresented: Binding(get: { showNewFolder },
                                  set: { if !$0 { showNewFolder = false; newFolderName = ""; pendingMove = nil } }),
