@@ -122,7 +122,7 @@ func jsonBlock() -> String {
     let pad = (roles.map { $0.key.count }.max() ?? 0) + 4   // align the opening brace
     var lines = [
         "\"instrumento\": {",
-        "      \"$description\": \"«Instrumento diurno» (FER-131) — the light, warm-paper language; .base daytime anchor (the by-the-hour engine FER-132 varies these roles). GENERATED from Instrumento.swift by `swift run CenitDesignTokens` — do not edit by hand.\",",
+        "      \"$description\": \"Previous generation, absorbed and in migration — «Instrumento diurno» (FER-131). Not for a new screen; a new screen uses color.liquid («El Eje»). .base is the daytime anchor. The by-the-hour engine (FER-132) was retired in FER-398. GENERATED from Instrumento.swift by `swift run CenitDesignTokens` — do not edit by hand.\",",
     ]
     for (i, r) in roles.enumerated() {
         let keyField = "\"\(r.key)\":".padding(toLength: pad, withPad: " ", startingAt: 0)
