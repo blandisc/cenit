@@ -1,6 +1,6 @@
 {
   "$schema": "https://design-tokens.github.io/community-group/format/",
-  "$description": "Cenit / Cénit design tokens. The app speaks one visual language — «Instrumento diurno» (FER-131): light warm paper, color only on the datum — under color.instrumento. The dark legacy system was retired in FER-430. Besides instrumento, what remains are the shared data scales (recovery / strain / sleep / hrZone / status / metric) and the chrome accent. Extracted from the CenitDesign Swift package. Hex values are exact; do not substitute.",
+  "$description": "Cenit / Cénit design tokens. The app speaks one visual language — «El Eje»: tinted glass on a white canvas. Canonical color, space and radius live under *.liquid; each value is named for its job (verdeCarga is load identity, verdePrimario is the verdict green). color.instrumento is the previous generation («Instrumento diurno», FER-131), still in the file while paper screens migrate. The dark legacy system was retired in FER-430. Shared data scales (recovery / strain / sleep / hrZone / status / metric) and the chrome accent remain. Extracted from the CenitDesign Swift package. Hex values are exact; do not substitute. The Swift package is the source of truth; this file exchanges the resolved values.",
   "color": {
     "$type": "color",
     "accent": {
@@ -47,7 +47,7 @@
       "s100": { "$value": "#C13AC1", "$description": "1.00 — magenta" }
     },
     "instrumento": {
-      "$description": "«Instrumento diurno» (FER-131) — the light, warm-paper language; .base daytime anchor (the by-the-hour engine FER-132 varies these roles). GENERATED from Instrumento.swift by `swift run CenitDesignTokens` — do not edit by hand.",
+      "$description": "Previous generation, absorbed and in migration — «Instrumento diurno» (FER-131). Not for a new screen; a new screen uses color.liquid («El Eje»). .base is the daytime anchor. The by-the-hour engine (FER-132) was retired in FER-398. GENERATED from Instrumento.swift by `swift run CenitDesignTokens` — do not edit by hand.",
       "paper":           { "$value": "#F4F1E8", "$description": "canvas — warm bone paper (never pure white)" },
       "surface":         { "$value": "#FBF9F2", "$description": "a sparingly-used raised surface; never nested" },
       "hairline":        { "$value": "#E6E0D2", "$description": "faint warm 1px rule" },
