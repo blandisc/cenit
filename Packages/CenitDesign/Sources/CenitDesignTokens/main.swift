@@ -491,11 +491,11 @@ public let catalogEntries: [CatalogEntry] = [
     CatalogEntry(rol: "Selector de periodo (Liquid)", simbolo: "LiquidRangeSelector",
                  archivo: "LiquidGlass/LiquidRangeSelector.swift",
                  cuandoUsarlo: "Selector de periodo en Cuerpo / hojas Liquid (S·M·3M·…) con tick del tono.",
-                 cuandoNo: "No en pantallas Instrumento/entrenamiento que aún usan `SegmentedPillControl`; no reinventar periodo."),
+                 cuandoNo: "No reinventar el periodo. `SegmentedPillControl` no entra en una pantalla nueva."),
     CatalogEntry(rol: "Control segmentado (Instrumento)", simbolo: "SegmentedPillControl",
                  archivo: "Components.swift",
-                 cuandoUsarlo: "Segmentado vivo en pantallas Instrumento/entrenamiento (historial, editors, no-periodo).",
-                 cuandoNo: "No como selector de periodo en pantalla ya Liquid (usa `LiquidRangeSelector`)."),
+                 cuandoUsarlo: "Solo donde ya está, para una opción que no es un periodo. No para pantallas nuevas.",
+                 cuandoNo: "No como selector de periodo (usa `LiquidRangeSelector`). No adoptarlo en una pantalla nueva."),
     CatalogEntry(rol: "Chip de selección", simbolo: "LiquidChipSeleccion",
                  archivo: "LiquidGlass/LiquidChipSeleccion.swift",
                  cuandoUsarlo: "Chips de filtro/selección múltiple sobre vidrio.",
@@ -565,7 +565,7 @@ public let catalogEntries: [CatalogEntry] = [
     CatalogEntry(rol: "Toggle Liquid", simbolo: "LiquidToggleStyle / .liquid",
                  archivo: "LiquidGlass/LiquidToggleStyle.swift",
                  cuandoUsarlo: "Switch cromo El Eje (tinta900/tinta10/papelTarjeta) en hojas Liquid — `.toggleStyle(.liquid)`.",
-                 cuandoNo: "No en pantallas aún Instrumento (usa `.instrumento`); no teñir el track con el color del dato."),
+                 cuandoNo: "No teñir el track con el color del dato. El estilo `.instrumento` no es para pantallas nuevas."),
     CatalogEntry(rol: "Deslizador Liquid", simbolo: "LiquidSlider",
                  archivo: "LiquidGlass/LiquidSlider.swift",
                  cuandoUsarlo: "Ajuste continuo o por pasos sobre un rango en hojas Liquid (margen, reserva, caída, bpm) — pista de vidrio + relleno del `base` del tono + perilla de papel; construido sobre `liquidScrubPan`, así que convive con el ScrollView de la hoja (no roba el scroll vertical).",
@@ -573,7 +573,7 @@ public let catalogEntries: [CatalogEntry] = [
     CatalogEntry(rol: "Título de flujo Liquid", simbolo: "LiquidFlowTitle",
                  archivo: "LiquidGlass/LiquidFlowTitle.swift",
                  cuandoUsarlo: "Cabecera kicker + displayS de pantallas empujadas sin salida propia (Tickets).",
-                 cuandoNo: "No cuando ya hay `EntrenarHojaCabecera`; no en pantallas Instrumento (usa `InstrumentoFlowTitle`)."),
+                 cuandoNo: "No cuando ya hay `EntrenarHojaCabecera`. `InstrumentoFlowTitle` no es para pantallas nuevas."),
     CatalogEntry(rol: "CTA de tinta (barra)", simbolo: "CenitCTAButton",
                  archivo: "CenitCTAButton.swift",
                  cuandoUsarlo: "CTA sólido/outline a lo ancho (o compacto) en flujos Entrenar/Instrumento — una sola barra canónica.",
@@ -600,25 +600,25 @@ public let catalogEntries: [CatalogEntry] = [
                  cuandoNo: "No reinventar banner rojo local; no para confirmaciones (usa `.instrumentoConfirm`)."),
     CatalogEntry(rol: "Bloque patrón (Instrumento)", simbolo: ".patternBlock(_:bar:)",
                  archivo: "SessionInstruments.swift",
-                 cuandoUsarlo: "Fondo `patternBlock` + barra lateral de tono para avisos/errores en pantallas Instrumento.",
-                 cuandoNo: "No en hojas ya Liquid (usa `LiquidPatternBlock`); no pintar `theme.patternBlock` a mano sin la barra."),
+                 cuandoUsarlo: "Solo donde ya está. No para pantallas nuevas.",
+                 cuandoNo: "En una pantalla nueva usa `LiquidPatternBlock`. No pintar `theme.patternBlock` a mano."),
     CatalogEntry(rol: "Bloque patrón (Liquid)", simbolo: "LiquidPatternBlock",
                  archivo: "LiquidGlass/LiquidPatternBlock.swift",
                  cuandoUsarlo: "«Tu patrón» / lectura quieta en hojas Liquid — overline + líneas + barra del tono, sin vidrio.",
-                 cuandoNo: "No en pantallas Instrumento (usa `.patternBlock`); no envolverlo en `liquidGlass`."),
+                 cuandoNo: "No envolverlo en `liquidGlass`. `.patternBlock` no es para pantallas nuevas."),
     // —— Gráficas ——
     CatalogEntry(rol: "Gráfica de tendencia (Liquid)", simbolo: "LiquidTrendChart",
                  archivo: "LiquidGlass/LiquidTrendChart.swift",
-                 cuandoUsarlo: "Series temporales dentro de una pantalla/hoja ya migrada a El Eje.",
-                 cuandoNo: "No en pantallas aún en Instrumento (usa `TrendChart`)."),
+                 cuandoUsarlo: "Serie temporal en una pantalla de El Eje. Es la gráfica de tendencia para una pantalla nueva.",
+                 cuandoNo: "No para una línea inline diminuta (usa `Sparkline`). `TrendChart` no entra en una pantalla nueva."),
     CatalogEntry(rol: "Gráfica de tendencia (compartida)", simbolo: "TrendChart",
                  archivo: "TrendChart.swift",
-                 cuandoUsarlo: "Serie temporal con hover/crosshair — inventario Instrumento y wrappers.",
-                 cuandoNo: "No para una línea inline diminuta (usa `Sparkline`)."),
+                 cuandoUsarlo: "Solo donde ya está. No para pantallas nuevas.",
+                 cuandoNo: "En una pantalla nueva usa `LiquidTrendChart`. No para una línea inline diminuta (usa `Sparkline`)."),
     CatalogEntry(rol: "Sparkline inline", simbolo: "Sparkline",
                  archivo: "Sparkline.swift",
                  cuandoUsarlo: "Tendencia diminuta dentro de un tile (Hoy / live-HR).",
-                 cuandoNo: "No como gráfica principal de una pantalla de detalle (usa `TrendChart`/`LiquidTrendChart`)."),
+                 cuandoNo: "No como gráfica principal de una pantalla de detalle (usa `LiquidTrendChart`)."),
     CatalogEntry(rol: "Hipnograma (Liquid)", simbolo: "LiquidHipnograma",
                  archivo: "LiquidGlass/LiquidHipnograma.swift",
                  cuandoUsarlo: "Bandas de etapa de sueño de una noche en hoja Liquid.",
@@ -779,6 +779,10 @@ func catalogoDoc() -> String {
     |---|---|
     | `Hypnogram` | `LiquidHipnograma` |
     | `YearHeatStrip` | `LiquidCalendario90` |
+    | `SegmentedPillControl` | `LiquidRangeSelector` para un periodo |
+    | `TrendChart` | `LiquidTrendChart` |
+    | `.patternBlock` | `LiquidPatternBlock` |
+    | `InstrumentoFlowTitle` | `LiquidFlowTitle` |
     """
 }
 

@@ -11,6 +11,8 @@ El sistema se llama **El Eje**. El look sigue siendo vidrio teñido sobre lienzo
 
 `Hypnogram` y `YearHeatStrip` siguen en el paquete hasta que su última prueba las suelte. No se ofrecen para pantallas nuevas. El catálogo las tiene en Archivo.
 
+El mismo catálogo marca como no aptas para una pantalla nueva las piezas que comparten trabajo con una vigente: `SegmentedPillControl`, `TrendChart`, `.patternBlock` e `InstrumentoFlowTitle`. Siguen donde ya están. Una pantalla nueva no las adopta.
+
 ## Versión
 
 `CenitDesign.version` es **1.0.0** desde el 2026-09-22, el día en que el sistema pasó a llamarse El Eje y el catálogo dijo la verdad.

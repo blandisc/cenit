@@ -189,62 +189,13 @@ Helpers:
 
 ---
 
-## 5. Components
+## 5. Componentes
 
-> Every screen composes **only** these. Fixed dimensions + the spacing scale (two names,
-> same values: `CenitMetrics` legado and `LiquidSpace` canónico, puente valor-neutral)
-> guarantee the uniform look. Don't invent ad-hoc cards.
+El menú de piezas es [CATALOGO.md](CATALOGO.md). Sale del código: cada pieza tiene su trabajo, cuándo usarla y cuándo no.
 
-### 5.1 Surfaces & layout
+Este capítulo ya no lista piezas. La lista escrita a mano se había quedado atrás: ofrecía `StatTile`, que ya no existe, y presentaba el selector y las gráficas de la generación anterior como si fueran la opción vigente.
 
-| Component | Purpose | Key API |
-|---|---|---|
-| *(the old dark-legacy card surface, retired FER-444)* | The current card surface for El Eje screens is `liquidGlass(_:)` — see [CATALOGO.md](CATALOGO.md) for the full index | — |
-| `CenitCardHover` | Hover-lift `ViewModifier` (shadow-md + translateY(-1px) + border emphasis) for any card-like surface | `cornerRadius:` |
-| `LiquidSectionHeader` (Liquid) / `InstrumentoSectionBand` (Instrumento, not migrated) | Section title with optional overline + trailing text — see [CATALOGO.md](CATALOGO.md) | — |
-
-### 5.2 Metric & content cards
-
-| Component | Purpose | Key API |
-|---|---|---|
-| `StatTile` | Uniform fixed-height (104pt) metric tile: overline label, big tabular value, optional sparkline, caption + delta | `label:`, `value:`, `caption:`, `accent:`, `delta:`, `deltaColor:`, `sparkline:`, `sparkColor:` |
-
-Chart containers and insight callouts no longer use a dedicated card type — they compose
-`liquidGlass(_:)` (El Eje) or `.instrumentoCard(_:)` (Instrumento, not migrated) directly
-around a chart or status text. Full index: [CATALOGO.md](CATALOGO.md).
-
-### 5.3 Controls & chrome
-
-| Component | Purpose | Key API |
-|---|---|---|
-| `SegmentedPillControl` | The **one** segmented pill control (range pickers everywhere) — accent capsule on selection | `(_ items, selection:, label:)` |
-| `SourceBadge` | Tiny uppercase tinted capsule badge (data source) | `(_ text, tint:)` |
-| `StatePill` | Status pill: tone color + optional dot + optional breathing pulse | `(_ title, tone:, showsDot:, pulsing:)` |
-| `ConnectionDot` | Tiny status dot with optional breathing halo (connection / live state) | `tone:`, `pulsing:`, `size:` |
-
-`CenitTone`: `neutral` (text.secondary) · `accent` · `positive` · `warning` · `critical`.
-
-### 5.4 Signature visualizations
-
-| Component | Purpose | Key API / notes |
-|---|---|---|
-| `RecoveryZoneGauge` | **THE** signature recovery component (Instrumento diurno; replaced the retired dark-legacy open-gauge ring). Full-circle gauge: outer fixed zone arcs (red/amber/green) as reference scale, inner value ring sweeping to `score%`, centre numeral | `score:` (0–100, optional), `label:`, `theme:`, `diameter:` (128) |
-| `RecoveryArc` | The reusable open-gauge `Shape` powering the ring | `startAngle:`, `spanDegrees:`, `fraction:`, `lineWidth:` |
-| `Sparkline` | Tiny inline trend line (Today / live-HR tile): optional area fill, head dot, hover read-out, optional **reference band** (p25–p75 typical range, in ink — FER-155) | `values:`, `gradient:`, `range:`, `referenceBand:`, `bandColor:`, `lineWidth:`, `showsArea:`, `showsHead:`, `showsHover:`, `valueFormat:`, `indexLabel:` |
-| `TrendChart` | Full trend line over `[TrendPoint]` (date, value): gradient stroke, optional area, hover crosshair + tooltip | `points:`, `gradient:`, `valueRange:`, `showsArea:`, `height:`, `showsHover:`, `valueFormat:`, `dateFormat:` |
-| `Hypnogram` | Sleep-stage bands over `[SleepInterval]` (stage, start/end secs), stage axis, hover | `intervals:`, `height:`, `showsStageAxis:`, `showsHover:`, `nightStart:` |
-| `YearHeatStrip` | GitHub-style year grid of `[RecoveryDay]` (date, score?), recovery-tinted cells, month labels, hover ring + tooltip | `days:`, `cellSize:`, `spacing:`, `showsMonthLabels:`, `showsHover:`, `valueFormat:` |
-| `StatePill` / `ConnectionDot` | (see §5.3) | |
-
-### 5.5 Chart hover toolkit (`ChartHover.swift`)
-
-Reusable across every visualization so hover reads identically everywhere:
-
-- `ChartTooltip` — dark read-out card (bold value line + secondary label/date line).
-- `ChartTooltipPlacement` — positions a tooltip near an anchor, flipping/clamping to stay inside the container.
-- `ChartHoverMath` — nearest-datum lookup from a hover location.
-- Crosshair rule (thin vertical `hairlineStrong` line) + highlighted-point dot, shared by `TrendChart` / `Sparkline`.
-- `ReferenceRange` (pure helper) computes the p25–p75 "typical range" band a `Sparkline` draws behind its line (FER-155); the band is ink (`bandColor`, default `hairlineStrong`), never a data hue — the line's gradient still carries the metric.
+Una pantalla nueva toma la pieza del catálogo. Si una pieza anterior comparte ese trabajo, el catálogo la marca como no apta para pantallas nuevas. Sigue en el código hasta que su última pantalla la suelte.
 
 ---
 
