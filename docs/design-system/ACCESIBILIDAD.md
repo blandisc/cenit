@@ -70,10 +70,8 @@ pegados a geometría **no**. La decisión está codificada y comentada en `Typog
 > Grotesk 22 anclado a `.title3`, así que crece con la letra del sistema. El cuerpo
 > (`LiquidType.cuerpo`, el de Entrenar) es `Font.system(.footnote)` y también crece. El número
 > de un anillo (`CenitFont.number`) es un tamaño en puntos y se queda quieto (FER-394).
-> La misma prueba mide la curva: un alto con `@ScaledMetric` relativo a `.title3` y a
-> `.footnote` crece de `.large` a `.accessibility5`; un alto fijo no. En la Mac de integración
-> `ImageRenderer` no agranda un `Font` de estilo de texto, así que la medida usa esa curva de
-> layout y no es una foto del iPhone con la letra al máximo.
+> En la Mac de integración una medida en píxeles no ve la letra grande (22 se quedó en 22),
+> así que la prueba ata ese cableado y no es una foto del iPhone con la letra al máximo.
 
 ---
 
