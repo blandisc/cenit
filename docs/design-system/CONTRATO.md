@@ -16,11 +16,17 @@
   `s400 = 16`) es el DNA canónico y **se queda**; los roles semánticos (`LiquidRadius.tarjeta`) se
   usan donde ya existen y para tokens nuevos. El diccionario vivo está en
   [CATALOGO.md](CATALOGO.md) (generado — el código gana).
-- **Componente**: una pieza que consume tokens (`liquidGlass(_:)`, `StatTile`, …) y encapsula una
+- **Componente**: una pieza que consume tokens (`liquidGlass(_:)`, `LiquidCajita`, …) y encapsula una
   decisión completa. *Una pantalla se compone, no se dibuja.*
 - **Deuda**: un literal de diseño, un call-site de API legacy, o una exención — todo congelado en
   `Tools/design-drift-baseline.json` con trinquete: **ningún conteo puede subir** (job
   `baseline-monotony`), y bajar solo cuenta si es real (valor tokenizado o pieza usada).
+- **Candado**: ese trinquete ya corre en `design-lint` y en `verify.sh`. Una regla que ya está en
+  cero no se anota en el JSON: meterla con un conteo la volvería deuda permitida. Aparte, la puerta
+  vieja (`Tools/check-puerta-vieja.py`, lista `Tools/puerta-vieja.txt`, explicación en
+  [EN-TRANSITO.md](EN-TRANSITO.md)) impide que una pantalla nueva adopte el selector viejo o la
+  letra del sistema sin que el chequeo se detenga. La lista solo puede bajar, en el mismo cambio
+  que suelta la pieza.
 
 ## Cómo se pide un token/componente nuevo (tope de vocabulario)
 

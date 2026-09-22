@@ -22,14 +22,14 @@
 > en migración vive en **[§8](#8-instrumento-diurno--generación-anterior-absorbida--en-migración)**.
 
 - **Source of truth:** the `CenitDesign` Swift package — `Packages/CenitDesign/Sources/CenitDesign/`
-- **Package version:** `0.1.0` (`CenitDesign.version`)
+- **Package version:** `1.0.0` (`CenitDesign.version`)
 - **Token entry points (canónicos — El Eje):** `LiquidColor` · `LiquidType` · `LiquidSpace` / `LiquidRadius` · `LiquidElevation` · `LiquidMotion` · `LiquidHaptica` · `liquidGlass(_:)` / `liquidGlass(tono:regimen:)` — mapa completo en [`LIQUID-GLASS.md`](LIQUID-GLASS.md); índice de componentes en [`CATALOGO.md`](CATALOGO.md)
 - **Legado en migración (no usar en pantallas nuevas):** `CenitPalette` · `CenitFont` · `CenitMotion` · `CenitMetrics` · `CenitElevation` (retirado — sin consumidores de pantalla activos; solo su definición en `Elevation.swift`) · `InstrumentoTheme` / `theme.*` — inventario aún en tránsito en **[§8](#8-instrumento-diurno--generación-anterior-absorbida--en-migración)**; `CenitIcon` sigue vivo para glifos (ver [`ICONOGRAFIA.md`](ICONOGRAFIA.md))
 - **Machine-readable tokens:** [`tokens/design-tokens.json`](tokens/design-tokens.json) (W3C Design Tokens format)
 - **Assets:** [`assets/`](assets/) — app icons + brand marks
 - **Voz y contenido:** [`LENGUAJE.md`](LENGUAJE.md) — cómo suena el sistema: tono, escritura es-MX, microcopy y glosario canónico (compañero de este doc)
 - **«El Eje» (marco canónico):** [`LIQUID-GLASS.md`](LIQUID-GLASS.md) — tokens `Liquid*`, recetas de vidrio, regímenes mosaico/sobrio, motion y hápticos; pantalla de referencia `LiquidHoyScreen` (sobrio) · hub Entrenar (`EntrenarModulo` / `EntrenarTile`, mosaico)
-- **Guías compañeras:** [`ACCESIBILIDAD.md`](ACCESIBILIDAD.md) (contraste, Dynamic Type, VoiceOver, reduce-motion, 44pt) · [`I18N.md`](I18N.md) (locales, plurales, formato) · [`ICONOGRAFIA.md`](ICONOGRAFIA.md) (catálogo `CenitIcon`, glifos, naming)
+- **Guías compañeras:** [`ACCESIBILIDAD.md`](ACCESIBILIDAD.md) (contraste, Dynamic Type, VoiceOver, reduce-motion, 44pt) · [`I18N.md`](I18N.md) (locales, plurales, formato) · [`ICONOGRAFIA.md`](ICONOGRAFIA.md) (catálogo `CenitIcon`, glifos, naming) · [`RETIRADAS.md`](RETIRADAS.md) (qué salió del sistema) · [`EN-TRANSITO.md`](EN-TRANSITO.md) (pantallas que aún usan una pieza vieja)
 
 > ⚠️ This document is **generated from code**. The Swift package is canonical — if a
 > value here disagrees with `Palette.swift` / `Typography.swift` / `Motion.swift` /

@@ -465,12 +465,16 @@ public let catalogEntries: [CatalogEntry] = [
     CatalogEntry(rol: "Tile mosaico (Entrenar)", simbolo: "EntrenarTile",
                  archivo: "Entrenar/EntrenarVidrio.swift",
                  cuandoUsarlo: "Tesela del grid 2-col del hub Entrenar (marcas, volumen, descanso…) — mosaico + minHeight fijo.",
-                 cuandoNo: "No para sub-métricas de una hoja Liquid de detalle (usa `LiquidCajita`); no reinventar tile local."),
+                 cuandoNo: "No para sub-métricas de un detalle (usa `LiquidCajita`); no para la tarjeta con gota y variación (usa `LiquidMetricTile`); no reinventar tile local."),
+    CatalogEntry(rol: "Tarjeta de métrica con variación", simbolo: "LiquidMetricTile",
+                 archivo: "LiquidGlass/LiquidMetricTile.swift",
+                 cuandoUsarlo: "Grid que necesita gota, número y una variación con signo. Si no hay variación, la variante quiet (delta nil) usa pie y mini gráfica. Hoy la usa Salud. Decisión 2026-09-21: esta tarjeta y `LiquidCajita` conviven, cada una con su trabajo.",
+                 cuandoNo: "No para el mosaico de sub-métricas de un detalle (usa `LiquidCajita`); no para una tesela de Entrenar (usa `EntrenarTile`); no para una fila (`LiquidListRow`)."),
     // —— Lecturas / filas / secciones ——
     CatalogEntry(rol: "Cajita de sub-métrica", simbolo: "LiquidCajita",
                  archivo: "LiquidGlass/LiquidCajita.swift",
-                 cuandoUsarlo: "Mosaico de lecturas en detalle Liquid (rótulo · valor · pie) vía `LiquidCajita`/`LiquidCajitaGrid`.",
-                 cuandoNo: "No es el tile de hub con gota+delta (`LiquidMetricTile` está huérfano); no para filas de lista (`LiquidListRow`)."),
+                 cuandoUsarlo: "Mosaico de lecturas en un detalle (rótulo · valor · pie) vía `LiquidCajita`/`LiquidCajitaGrid`. Sin gota y sin variación: el detalle ya dijo de qué habla.",
+                 cuandoNo: "No es la tarjeta con gota y variación (usa `LiquidMetricTile`, la de Salud); no para teselas de Entrenar (`EntrenarTile`); no para filas de lista (`LiquidListRow`)."),
     CatalogEntry(rol: "Fila de lista", simbolo: "LiquidListRow",
                  archivo: "LiquidGlass/LiquidListRow.swift",
                  cuandoUsarlo: "Listas de hoja/detalle Liquid (historial, entradas) con la fila estándar.",
@@ -672,7 +676,11 @@ public let catalogEntries: [CatalogEntry] = [
     CatalogEntry(rol: "Estado vacío que enseña", simbolo: "LiquidVacio",
                  archivo: "LiquidGlass/LiquidVacio.swift",
                  cuandoUsarlo: "Cualquier lista/sección/pantalla que todavía no tiene datos: qué va aquí · cómo se llena (con `cuenta` «faltan 3 noches» si aplica) · dónde vive o UNA acción (`Salida`). Recibe `Text` ya resuelto por la app desde el registro de enseñanza; plano sobre el lienzo, alineado a la izquierda, donde irán los datos.",
-                 cuandoNo: "No para error de lectura ni aviso (`LiquidAviso`); no para «calibrando» con barra (`LiquidCalibracionCard`); no una hoja de onboarding; no reinventar icono+título+cuerpo a mano en la pantalla."),
+                 cuandoNo: "No para error de lectura, aviso o falta de permiso de Salud (`LiquidAviso`); no para «calibrando» con barra (`LiquidCalibracionCard`); no una hoja de onboarding; no reinventar icono+título+cuerpo a mano en la pantalla."),
+    CatalogEntry(rol: "Calibrando la base", simbolo: "LiquidCalibracionCard",
+                 archivo: "LiquidGlass/LiquidCalibracionCard.swift",
+                 cuandoUsarlo: "La base todavía se está formando y hay que mostrar cuántas noches van, con barra. Estado quieto, sin animación propia.",
+                 cuandoNo: "No para un vacío sin progreso (`LiquidVacio`); no para un error o un permiso (`LiquidAviso`)."),
     // —— FER-500 · C2 · el Δ% con signo y valencia (mata las cinco copias a mano) ——
     CatalogEntry(rol: "Nota de Δ% con valencia", simbolo: "LiquidNotaDelta",
                  archivo: "LiquidGlass/LiquidNotaDelta.swift",
@@ -749,6 +757,28 @@ func catalogoDoc() -> String {
     empieza aquí.
 
     \(catalogoTable())
+
+    ## Mapa de estados
+
+    Una situación, una pieza. Si la situación no está aquí, no se inventa una tarjeta nueva.
+
+    | Situación | Pieza | No usar |
+    |---|---|---|
+    | Todavía no hay datos | `LiquidVacio` | Un icono y un título dibujados en la pantalla |
+    | Aviso, error de lectura, o falta permiso de Salud | `LiquidAviso` | Una pastilla o un banner local |
+    | La base se está calibrando | `LiquidCalibracionCard` | Una barra de progreso suelta |
+    | No se pudo guardar | `.saveErrorToast` | Un banner rojo local |
+    | Deshacer | `UndoToast` | Un aviso sin acción de deshacer |
+    | Cargando | No hay pieza | Una tarjeta de spinner. La pantalla conserva su estructura |
+
+    ## Archivo
+
+    Estas piezas siguen en el paquete y no se ofrecen para pantallas nuevas. Se borran cuando su última pantalla las suelte. `StatTile` y los estados vacíos de papel ya no están en el código. Las pantallas que todavía usan una pieza de la generación anterior están en [EN-TRANSITO.md](EN-TRANSITO.md).
+
+    | Pieza | La reemplaza |
+    |---|---|
+    | `Hypnogram` | `LiquidHipnograma` |
+    | `YearHeatStrip` | `LiquidCalendario90` |
     """
 }
 

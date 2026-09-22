@@ -5,8 +5,8 @@ import SwiftUI
 // El mosaico de una pantalla de detalle: [rótulo · valor + unidad · pie]. Papel OPACO con el
 // chrome del sistema (`.superficieSolida`, r/tarjeta), en rejilla de 2 o 3.
 //
-// POR QUÉ NO ES `LiquidMetricTile`: aquel es el tile del grid de Hoy y lleva gota de ícono +
-// delta con valencia. Esta es una lectura desnuda de una sub-métrica dentro de una sección que
+// POR QUÉ NO ES `LiquidMetricTile`: aquella lleva gota y variación (la usa Salud). Esta es
+// una lectura desnuda de una sub-métrica dentro de una sección que
 // ya tiene su franja diciendo de qué habla — un ícono por cajita sería ruido, y el delta ya
 // vive en la gráfica de arriba. Comparten receta y radio; no comparten anatomía.
 //
