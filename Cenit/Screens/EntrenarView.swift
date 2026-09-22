@@ -544,35 +544,43 @@ private struct EntrenarLanding: View {
             sessionsDone: orderedWeekdays.filter { trainedThisWeek($0) != nil }.count,
             sessionsPlanned: split.count, noPlanYet: split.isEmpty,
             todayIndex: orderedWeekdays.firstIndex(of: todayWeekday),
-            onTapToday: { if let r = todayRoutine { openRoutine(r.id) } else { showWeekEditorSheet = true } },
-            onTapOtherDay: { showWeekEditorSheet = true },
+            // La hoja rápida solo rota rutinas YA en el split. Sin ninguna, «toca un día» abría
+            // un editor que no hacía nada — el plan completo sí puede asignar la primera.
+            onTapToday: {
+                if let r = todayRoutine { openRoutine(r.id) }
+                else if split.isEmpty { openWeeklyPlan() }
+                else { showWeekEditorSheet = true }
+            },
+            onTapOtherDay: {
+                if split.isEmpty { openWeeklyPlan() } else { showWeekEditorSheet = true }
+            },
             onEdit: { openWeeklyPlan() }
         )
         EntrenarHubDosis(rows: dosisRows)
-            .padding(.top, dosisRows.isEmpty ? 0 : LiquidSpace.s100)
+            .padding(.top, dosisRows.isEmpty ? 0 : LiquidSpace.s300)
         if dosisRows.isEmpty {
             // FER-433 · DOSIS calla con <3 sesiones en 7 días; en vez de silencio, la cuenta.
             LiquidNotaLine(String(localized: "vacio.mosaico.dosis.linea",
                                   defaultValue: "With 3 sessions in 7 days I tell you your sets per muscle; you have \(sessionsIn7Days)."))
-                .padding(.top, LiquidSpace.s100)
+                .padding(.top, LiquidSpace.s300)
         }
         EntrenarHubPar(raises: parRaises,
                       onOpenRaises: { if let r = todayRoutine { openRoutine(r.id) } })
-            .padding(.top, parRaises.isEmpty ? 0 : LiquidSpace.s100)
+            .padding(.top, parRaises.isEmpty ? 0 : LiquidSpace.s300)
         if let cuerpo = cuerpoData {
             EntrenarHubCuerpo(topMuscleName: cuerpo.name, topMuscleKey: cuerpo.key, onOpenMap: openMuscleMap)
-                .padding(.top, LiquidSpace.s100)
+                .padding(.top, LiquidSpace.s300)
         }
         // FER-360: la tesela «Marcas» ya no calla sin PRs — siempre se muestra (modelo vacío honesto
         // + tap → «Tus marcas»); solo VOLUMEN sigue con su propio silencio (<3 sesiones en 8 semanas).
         let volumen = volumenData
         EntrenarHubMarcasVolumen(marca: marcasData, volumen: volumen, onOpenMarcas: openMarcas)
-            .padding(.top, LiquidSpace.s100)
+            .padding(.top, LiquidSpace.s300)
         if volumen == nil {
             // FER-433 · VOLUMEN calla con <3 sesiones en 8 semanas; en vez de silencio, la cuenta.
             LiquidNotaLine(String(localized: "vacio.mosaico.volumen.linea",
                                   defaultValue: "With 3 sessions in 8 weeks I tell you your volume; you have \(volumenSesiones)."))
-                .padding(.top, LiquidSpace.s100)
+                .padding(.top, LiquidSpace.s300)
         }
         EntrenarHubConstancia(
             semanas: constanciaSemanas,
@@ -581,10 +589,10 @@ private struct EntrenarLanding: View {
                 now: Date(), calendar: Calendar.current),
             monthLabels: constanciaMonthLabels, todaySlot: constanciaTodaySlot
         )
-        .padding(.top, LiquidSpace.s100)
+        .padding(.top, LiquidSpace.s300)
         EntrenarHubHistorial(filas: historialFilas, gapDays: historialGapDays, promedio: historialPromedio,
                              onOpenHistory: openHistory)
-            .padding(.top, LiquidSpace.s100)
+            .padding(.top, LiquidSpace.s300)
     }
 
     // MARK: - DOSIS (v18) — top 4 músculos por series en 7 días; silencio con <3 sesiones en la ventana.

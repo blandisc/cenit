@@ -112,6 +112,9 @@ public enum EntrenarHubMetrics {
     public static let subPillShadowAlfa: Double = 0.10
     /// El disco blanco «↑» dentro de la píldora (mock `.subPill .up{width:18px;height:18px}`).
     public static let subPillBadge: CGFloat = 18
+    /// Toque HIG sin agrandar el cromo. Una línea mide padding V×2 + badge (8+8+18 = 34);
+    /// el inset lleva el área a 44. Si el texto envuelve, la píldora ya pasa de 44 y el extra no estorba.
+    public static let subPillTouchInset: CGFloat = (EntrenarMetrics.row - (subPillPaddingV * 2 + subPillBadge)) / 2
     /// El texto de la píldora — 12.5/400 BASE (mock `.subPill{font-size:12.5px}`, sin peso propio →
     /// regular). Ronda 2 · D2: es texto de LECTURA, así que debe escalar con Dynamic Type — pero
     /// `Font.system(size:)` es de tamaño fijo y SF no acepta `relativeTo:` (a diferencia de Grotesk,

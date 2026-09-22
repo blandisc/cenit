@@ -536,14 +536,22 @@ struct HojaTarjetaEjercicioSesion: View {
         let weight = "\(vivo.plateNumber(vivo.displayWeight(target.weightKg))) \(vivo.weightUnit().uppercased())?"
         let cuerpo = weight + " " + String(localized: "is 8× your record")
         LiquidAviso(titulo: "", cuerpo: cuerpo, tono: LiquidColor.atencionTexto) {
-            HStack(spacing: LiquidSpace.s250) {
-                OutlineCapsule(size: .md, action: { vivo.correctAbsurdCapture() }) {
-                    Text("It was \(vivo.plateNumber(vivo.displayWeight(target.weightKg / 10)))")
-                        .font(LiquidType.captionFuerte).foregroundStyle(LiquidColor.tinta900)
+            VStack(alignment: .leading, spacing: LiquidSpace.s200) {
+                HStack(spacing: LiquidSpace.s250) {
+                    OutlineCapsule(size: .md, action: { vivo.correctAbsurdCapture() }) {
+                        Text("It was \(vivo.plateNumber(vivo.displayWeight(target.weightKg / 10)))")
+                            .font(LiquidType.captionFuerte).foregroundStyle(LiquidColor.tinta900)
+                    }
+                    Button { vivo.confirmAbsurdCaptureAsIs() } label: {
+                        Text("Yes, \(vivo.plateNumber(vivo.displayWeight(target.weightKg)))")
+                            .font(LiquidType.captionFuerte).foregroundStyle(LiquidColor.negativo)
+                    }
+                    .buttonStyle(.plain)
                 }
-                Button { vivo.confirmAbsurdCaptureAsIs() } label: {
-                    Text("Yes, \(vivo.plateNumber(vivo.displayWeight(target.weightKg)))")
-                        .font(LiquidType.captionFuerte).foregroundStyle(LiquidColor.negativo)
+                Button { vivo.editAbsurdCapture() } label: {
+                    Text("Edit the weight")
+                        .font(LiquidType.captionFuerte).foregroundStyle(LiquidColor.tinta700)
+                        .frame(maxWidth: .infinity, minHeight: EntrenarMetrics.row, alignment: .leading)
                 }
                 .buttonStyle(.plain)
             }

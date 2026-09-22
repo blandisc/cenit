@@ -69,7 +69,7 @@ struct EntrenarHubConstancia: View {
                         if i < sortedLabels.count - 1 { Spacer(minLength: 0) }
                     }
                 }
-                .padding(.top, LiquidSpace.s100 + 2)
+                .padding(.top, LiquidSpace.s150)
             }
         }
         .liquidEntrada(index: 6)

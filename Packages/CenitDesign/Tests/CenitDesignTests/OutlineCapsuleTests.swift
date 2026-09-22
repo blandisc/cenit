@@ -44,6 +44,16 @@ final class OutlineCapsuleTests: XCTestCase {
                           OutlineCapsule<Text>.Size.xl.minHeight)
     }
 
+    /// La píldora «Hoy subes» dibuja ~34 pt (pad 8+8 + badge 18). El inset lleva el toque a 44
+    /// sin agrandar el cromo — la misma idea que `lg`, con la altura real de esa píldora.
+    func test_subPillTouchInset_reachesHitTarget() {
+        let line = EntrenarHubMetrics.subPillPaddingV * 2 + EntrenarHubMetrics.subPillBadge
+        XCTAssertEqual(line, 34, "una línea de la píldora: padding vertical ×2 + badge")
+        XCTAssertEqual(EntrenarHubMetrics.subPillTouchInset, (EntrenarMetrics.row - line) / 2)
+        XCTAssertEqual(line + EntrenarHubMetrics.subPillTouchInset * 2, EntrenarMetrics.row,
+                       "toque = 44 sin cambiar el dibujo")
+    }
+
     func test_sizes_differ() {
         XCTAssertNotEqual(OutlineCapsule<Text>.Size.sm.horizontalPad,
                           OutlineCapsule<Text>.Size.md.horizontalPad)

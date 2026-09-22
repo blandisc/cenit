@@ -25,7 +25,7 @@ struct EntrenarHubHeroe<Pliegue: View>: View {
     var raiseTono: LiquidTono = .verde
     /// Ola 1 · E11: en semana ligera SIN subida que ofrecer (`ProgressionPlanner.evaluate` no propone
     /// nada esa semana), este slot explica la ligera en vez de quedar vacío — mismo lugar que
-    /// `raiseLine`, un vidrio cian (no verde: no es una subida) para no leerse como una. Mutuamente
+    /// `raiseLine`, en tinta cian (no verde: no es una subida, y no es un segundo vidrio). Mutuamente
     /// excluyente con `raiseLine` en la práctica (`raiseLine` gana si por lo que sea ambos llegan no-nil).
     let lightWeekLine: Text?
     let onOpenRaise: () -> Void
@@ -95,11 +95,13 @@ struct EntrenarHubHeroe<Pliegue: View>: View {
                 if let raiseLine {
                     subPill(raiseLine).padding(.top, EntrenarHubMetrics.heroNombresToSubPillTop)
                 } else if let lightWeekLine {
-                    EntrenarModulo(tono: .cian) {
-                        lightWeekLine.font(LiquidType.caption).foregroundStyle(LiquidColor.tinta700)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    .padding(.top, EntrenarHubMetrics.heroNombresToSubPillTop)
+                    // Misma voz que la píldora de subida, sin un segundo vidrio dentro del héroe
+                    // (card-in-card: el módulo ya es el vidrio). El cian dice «semana ligera», no «subes».
+                    lightWeekLine
+                        .font(LiquidType.caption)
+                        .foregroundStyle(LiquidTono.cian.rotulo)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.top, EntrenarHubMetrics.heroNombresToSubPillTop)
                 }
                 ctaRow.padding(.top, EntrenarHubMetrics.heroSubPillToCtaTop)
                 pliegue
@@ -112,7 +114,8 @@ struct EntrenarHubHeroe<Pliegue: View>: View {
 
     private func subPill(_ line: Text) -> some View {
         // 2A: cromo vía `OutlineCapsule.Estilo.tenida(_:)` (alfas en `EntrenarHubMetrics.subPill*`).
-        OutlineCapsule(size: .aMedida(insets: EntrenarHubMetrics.subPillInsets, minHeight: nil, touchInset: 0),
+        OutlineCapsule(size: .aMedida(insets: EntrenarHubMetrics.subPillInsets, minHeight: nil,
+                                       touchInset: EntrenarHubMetrics.subPillTouchInset),
                        estilo: .tenida(raiseTono), action: onOpenRaise) {
             HStack(spacing: LiquidSpace.s200) {
                 Circle()

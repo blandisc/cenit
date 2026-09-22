@@ -20,6 +20,12 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
 
 ## Unreleased
 
+- **Entrenar cierra lo que se sentía a medias / Train closes the gaps that felt unfinished**
+  ### ES
+  El mosaico respira: entre tesela y tesela hay el mismo aire que entre el héroe y el mosaico. La semana ligera ya no mete un vidrio dentro de otro. La píldora de subida se puede tocar de verdad. Si la semana todavía no tiene rutina, el día abre el plan en vez de una hoja que no hacía nada. Terminar desde Foco pregunta lo mismo que Terminar en la sesión. Guardar la progresión en la sesión sí escribe la rutina. Un peso absurdo se puede corregir a mano. El historial vacío dice qué va a aparecer, y si no se pudo leer ofrece reintentar. Una sesión ya borrada no se pinta como si siguiera ahí.
+  ### EN
+  The mosaic breathes: the gap between tiles matches the gap between the hero and the mosaic. A light week no longer nests glass inside glass. The raise pill is actually tappable. If the week has no routine yet, a day opens the plan instead of a sheet that did nothing. Finishing from Focus asks the same question as Finish in the session. Saving progression during a session writes the routine. An absurd weight can be corrected by hand. An empty history says what will show up, and a failed read offers a retry. A deleted session no longer renders as if it were still there.
+
 - **El periodo, la búsqueda y las confirmaciones de programa usan la pieza del sistema / The period, the search and the program confirmations use the system piece**
   ### ES
   En el cuerpo de entreno, 30 días, 90 días, 6 meses y 1 año se eligen con el mismo selector de periodo que Salud. En Ayuda, el buscador y el «nada coincide» son las piezas del sistema. Empezar otro programa, o terminar el que ya tienes, se confirma en la tarjeta de vidrio: cada botón dice lo que hace.

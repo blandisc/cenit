@@ -79627,6 +79627,108 @@
           }
         }
       }
+    },
+    "Finished sessions show up here.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finished sessions show up here."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las sesiones que termines aparecen aquí."
+          }
+        }
+      }
+    },
+    "Opens your history": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opens your history"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abre tu historial"
+          }
+        }
+      }
+    },
+    "Nothing to rotate yet. Add a routine from Edit.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing to rotate yet. Add a routine from Edit."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todavía no hay nada que rotar. Agrega una rutina desde Editar."
+          }
+        }
+      }
+    },
+    "Rotates the day's routine": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rotates the day's routine"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rota la rutina del día"
+          }
+        }
+      }
+    },
+    "Edit the weight": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit the weight"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Corregir el peso"
+          }
+        }
+      }
+    },
+    "This workout is no longer in your history.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This workout is no longer in your history."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este entrenamiento ya no está en tu historial."
+          }
+        }
+      }
     }
   },
   "version": "1.1"

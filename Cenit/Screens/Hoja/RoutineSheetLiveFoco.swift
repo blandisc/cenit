@@ -473,8 +473,10 @@ struct HojaFoco: View {
                     action: {
                         withAnimation(vivo.reduceMotion ? nil : LiquidMotion.suave) { vivo.focusDoneRunId = nil }
                         if isLast {
+                            // Misma puerta que «Terminar» de la cabecera: el confirm cuenta las
+                            // series. `requestFinish()` guardaba directo y saltaba esa pregunta.
                             withAnimation(vivo.reduceMotion ? nil : .snappy) { vivo.focusMode = false }
-                            vivo.requestFinish()
+                            vivo.confirmFinish = true
                         }
                     }
                 ) {

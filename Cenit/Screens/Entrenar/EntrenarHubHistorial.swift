@@ -43,6 +43,12 @@ struct EntrenarHubHistorial: View {
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.liquidPress)
+                .accessibilityHint(Text("Opens your history"))
+                if filas.isEmpty {
+                    LiquidNotaLine(String(localized: "Finished sessions show up here."))
+                        .padding(.top, LiquidSpace.s200)
+                        .padding(.bottom, LiquidSpace.s200)
+                }
                 ForEach(Array(filas.enumerated()), id: \.element.id) { i, fila in
                     filaRow(fila)
                     if i == 0, gapDays > 0 {

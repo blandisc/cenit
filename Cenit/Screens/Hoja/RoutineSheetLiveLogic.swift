@@ -178,6 +178,17 @@ extension HojaSesionViva {
     /// Descarta el aviso sin registrar nada — la fila queda pendiente, tal como estaba antes del tap.
     func dismissAbsurdCapture() { absurdCapture = nil }
 
+    /// Tercera salida del aviso absurdo: no acepta el número ni lo divide entre 10; abre el peso para corregirlo.
+    func editAbsurdCapture() {
+        guard let target = absurdCapture else { return }
+        absurdCapture = nil
+        guard let (ei, si) = resolveAbsurdCapture(target) else { return }
+        let cell = LiveStrengthSheet.CellRef.weight(ei, si)
+        activeCell = cell
+        keypadHidden = false
+        syncBufferFromModel(cell)
+    }
+
     // MARK: - El menú de 4 opciones de una serie en sesión (ola 1 · FER-327 · E7 · ux-B §③)
     //
     // Pulsación larga sobre la fila (o su chip de marca) abre este `LiquidMenu` — mismo patrón que
@@ -430,6 +441,40 @@ extension HojaSesionViva {
             if run.exerciseId != res[idx].exerciseId { res[idx].exerciseId = run.exerciseId }
         }
         do { try await store.saveRoutine(routine, exercises: res); return true } catch { return false }
+    }
+
+    /// La hoja de progresión en sesión escribe la rutina, igual que `LiveStrengthSheet`.
+    /// Sin rutina detrás (entrenamiento rápido) no hay dónde guardar: se cierra y no miente con un toast.
+    /// Si el ejercicio todavía no está en la rutina, tampoco: no hay fila que actualizar.
+    func persistProgression(runId: String, enabled: Bool, targetReps: Int, sessions: Int,
+                            incrementKg: Double?, deload: DeloadPolicy, ignoreRecovery: Bool,
+                            useRPE: Bool) {
+        guard let rid = session.routineId else { return }
+        Task {
+            guard let store = await sheet.repo.storeHandle(),
+                  var res = try? await store.routineExercises(routineId: rid),
+                  let routine = (try? await store.routines())?.first(where: { $0.id == rid }) else {
+                routineWriteError = true
+                return
+            }
+            guard let idx = res.firstIndex(where: { $0.id == runId }) else { return }
+            res[idx].progressionEnabled = enabled
+            res[idx].progressionSessions = sessions
+            res[idx].progressionIncrementKg = incrementKg
+            res[idx].progressionDeload = deload
+            res[idx].progressionIgnoreRecovery = ignoreRecovery
+            res[idx].progressionUseRPE = useRPE
+            res[idx].targetReps = targetReps
+            for i in res[idx].sets.indices where res[idx].sets[i].kind == .work {
+                res[idx].sets[i].reps = targetReps
+            }
+            do {
+                try await store.saveRoutine(routine, exercises: res)
+                routineREs[res[idx].id] = res[idx]
+            } catch {
+                routineWriteError = true
+            }
+        }
     }
 
     // MARK: - B8 · «＋ Agregar ejercicio» (FER-169, porteado de `LiveStrengthSheet.addExercises`/

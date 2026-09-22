@@ -1710,6 +1710,13 @@ ES: dict[str, str] = {
     # Confirmaciones de programa: la tarjeta nombra la acción. «Cancel» no existe en El Eje.
     "Keep the program": "Conservar el programa",
     "YOUR PROGRAM": "TU PROGRAMA",
+    # Pulido de Entrenar: estados que se quedaban mudos.
+    "Finished sessions show up here.": "Las sesiones que termines aparecen aquí.",
+    "Opens your history": "Abre tu historial",
+    "Nothing to rotate yet. Add a routine from Edit.": "Todavía no hay nada que rotar. Agrega una rutina desde Editar.",
+    "Rotates the day's routine": "Rota la rutina del día",
+    "Edit the weight": "Corregir el peso",
+    "This workout is no longer in your history.": "Este entrenamiento ya no está en tu historial.",
 }
 
 

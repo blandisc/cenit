@@ -1176,10 +1176,12 @@ struct WorkoutHistoryScreen: View {
     /// `LiquidPatternBlock` con barra `negativo`; a diferencia de un toast no se descarta solo,
     /// porque la condición no cambia sin un reintento (releer la pantalla).
     private var readErrorBanner: some View {
-        LiquidPatternBlock(
-            overline: nil,
-            lineas: [String(localized: "Couldn't read your workout history. Try again.")],
-            tono: LiquidColor.negativo)
+        LiquidAviso(
+            titulo: "",
+            cuerpo: String(localized: "Couldn't read your workout history. Try again."),
+            tono: LiquidColor.negativo,
+            cta: String(localized: "Retry"),
+            accion: { Task { await load() } })
     }
 
     // MARK: - Monthly + weekly aggregates (v3 · 1m)
@@ -1558,9 +1560,21 @@ struct WorkoutSessionDetailScreen: View {
         return RoutineClassifier.classify(primaryMusclesPerExercise: perExercise)
     }
 
+    /// La ruta todavía trae fecha y nombre, pero la fila ya no está en la base (borrada
+    /// entre el tap y la lectura). Sin esto el acta pinta ceros como si la sesión siguiera ahí.
+    private var missingSession: some View {
+        LiquidAviso(
+            titulo: "",
+            cuerpo: String(localized: "This workout is no longer in your history."),
+            tono: LiquidColor.tinta500)
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: LiquidSpace.seccionAire) {
+                if loaded, fullSession == nil {
+                    missingSession
+                } else {
                 heading
                 hero
                 // Handoff «Progreso C» (FER-952): zones ramp → FC media/máx → supports → note → source,
@@ -1591,6 +1605,7 @@ struct WorkoutSessionDetailScreen: View {
                     LiquidCapilar(eje: .horizontal)
                     actions
                 }
+                } // sesión todavía en la base
             }
             .padding(.top, LiquidSpace.topeScroll)
             .padding(.horizontal, LiquidSpace.s600)

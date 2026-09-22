@@ -332,7 +332,12 @@ struct HojaSesionViva: View {
                     exerciseName: run.name, currentWeightKg: run.sets.first?.weightKg,
                     derivedIncrementKg: PlateMath.minimumIncrement(for: .from(equipment: ExerciseCatalog.byID(run.exerciseId)?.equipment), inventory: sheet.model.plates.inventory),
                     onBack: { progressionEdit = nil },
-                    onSave: { _, _, _, _, _, _, _ in progressionEdit = nil }   // La escritura a la rutina sigue F4 (intervención) — F2 solo abre/cierra la hoja intacta.
+                    onSave: { enabled, targetReps, sessions, incrementKg, deload, ignoreRecovery, useRPE in
+                        persistProgression(runId: run.id, enabled: enabled, targetReps: targetReps,
+                                           sessions: sessions, incrementKg: incrementKg, deload: deload,
+                                           ignoreRecovery: ignoreRecovery, useRPE: useRPE)
+                        progressionEdit = nil
+                    }
                 )
             }
         }

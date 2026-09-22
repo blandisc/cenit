@@ -32,7 +32,7 @@ struct WeekEditorSheet: View {
     let dayLetter: (Int) -> String
 
     @State private var saveError = false
-    @State private var lockedToast = false
+    @State private var toastMessage: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: .zero) {
@@ -62,23 +62,19 @@ struct WeekEditorSheet: View {
         .entrenarHojaFondo(tono: .neutro)
         .saveErrorToast(isPresented: $saveError)
         .overlay(alignment: .bottom) {
-            if lockedToast {
+            if let toastMessage {
                 // FER-342: aviso breve sin acción → LiquidAviso (no UndoToast: ese pide CTA).
-                LiquidAviso(
-                    titulo: "",
-                    cuerpo: String(localized: "Days already trained can't be edited"),
-                    tono: LiquidColor.tinta500
-                )
-                .padding(.horizontal, LiquidSpace.s600)
-                .padding(.bottom, LiquidSpace.s700)
-                .transition(LiquidMotion.risingFadeTransition)
-                .task {
-                    try? await Task.sleep(for: .seconds(2))
-                    lockedToast = false
-                }
+                LiquidAviso(titulo: "", cuerpo: toastMessage, tono: LiquidColor.tinta500)
+                    .padding(.horizontal, LiquidSpace.s600)
+                    .padding(.bottom, LiquidSpace.s700)
+                    .transition(LiquidMotion.risingFadeTransition)
+                    .task(id: toastMessage) {
+                        try? await Task.sleep(for: .seconds(2))
+                        self.toastMessage = nil
+                    }
             }
         }
-        .animation(LiquidMotion.fundido, value: lockedToast)
+        .animation(LiquidMotion.fundido, value: toastMessage)
     }
 
     // MARK: - Rows
@@ -123,7 +119,7 @@ struct WeekEditorSheet: View {
         .accessibilityLabel(accessibilityLabel(wd: wd, name: name, isToday: isToday, past: past, done: done))
         // Ronda 2 (menor): un día pasado sin sesión no rota, y sin hint VoiceOver solo se entera al
         // tocar y ver el toast (que no se anuncia solo) — el hint lo dice de antemano.
-        .accessibilityHint(past ? Text("Not editable") : Text(""))
+        .accessibilityHint(past ? Text("Not editable") : Text("Rotates the day's routine"))
     }
 
     private func routineLabel(name: String?, isToday: Bool) -> Text {
@@ -168,7 +164,11 @@ struct WeekEditorSheet: View {
 
     private func rotate(_ wd: Int) {
         let options = rotationOptions
-        guard !options.isEmpty else { return }   // no routines anywhere in the split yet — nothing to cycle to
+        guard !options.isEmpty else {
+            // Sin rutinas en el split no hay ciclo. Antes el tap no hacía nada.
+            showToast(String(localized: "Nothing to rotate yet. Add a routine from Edit."))
+            return
+        }
         let cycle: [String?] = [nil] + options
         let currentIndex = cycle.firstIndex(of: split[wd]) ?? -1
         let next = cycle[(currentIndex + 1) % cycle.count]
@@ -190,7 +190,11 @@ struct WeekEditorSheet: View {
     }
 
     private func showLockedToast() {
-        withAnimation(LiquidMotion.fundido) { lockedToast = true }
+        showToast(String(localized: "Days already trained can't be edited"))
+    }
+
+    private func showToast(_ message: String) {
+        withAnimation(LiquidMotion.fundido) { toastMessage = message }
     }
 
     // MARK: - Weekday labels
