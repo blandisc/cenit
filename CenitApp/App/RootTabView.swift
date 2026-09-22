@@ -4,8 +4,8 @@ import CenitDesign
 import CenitAnalytics
 import CenitStore   // FER-202: `WorkoutRow` — destino de detalle de actividad en el trainStack (fusión de historiales)
 
-/// iOS navigation shell — tres cuartos (FER-490): **Entrenar · Cuerpo · Ajustes** over the floating
-/// `LiquidTabBar`. Cuerpo folds the former Hoy and Tendencias screens into «Ahora | Tiempo»
+/// iOS navigation shell — tres cuartos (FER-490): **Entrenar · Cuerpo · Ajustes** on the system
+/// tab bar. Cuerpo folds the former Hoy and Tendencias screens into «Ahora | Tiempo»
 /// (`CuerpoTabView`). Patrones (Coach) was archived in FER-240; En vivo opens from Hoy's beat cover.
 ///
 /// Hub tabs reconnect screens which don't have a final home yet:
@@ -39,9 +39,10 @@ struct RootTabView: View {
     /// App-level cross-tab navigation (FER-378). A screen can ask to jump tabs; we apply + clear it.
     @EnvironmentObject private var tabRouter: TabRouter
 
-    /// The strength session lives here (FER-716): it presents as a full-screen cover (over the dock, no
-    /// grabber) from ANY tab, and its floating pill hovers over the bar on all five tabs. Owned by
-    /// AppModel so navigation never kills it — dismissing the cover only minimizes it (the pill re-opens).
+    /// The strength session lives here (FER-716): it presents as a full-screen cover (over the tab bar,
+    /// no grabber) from ANY tab. Minimized, the pill sits in each tab's bottom safe area, above the
+    /// system bar. Owned by AppModel so navigation never kills it — dismissing the cover only
+    /// minimizes it (the pill re-opens).
     @Environment(AppModel.self) private var appModel
 
     /// The visible tab. Starts on Train (Entrenar), the launch screen (FER-488).
@@ -60,18 +61,13 @@ struct RootTabView: View {
     /// Bridges the workout-history list and the session detail (siblings in `trainStack`) so a delete or
     /// edit in the detail surfaces «Undo» / a reload on the list (FER-556).
     @StateObject private var workoutHistory = WorkoutHistoryCoordinator()
-    /// Measured height of the «Barra de instrumento» (its button row, above the
-    /// home-indicator bleed). Each tab reserves exactly this much at its bottom so
-    /// the last component clears the bar — see `barReservation`. Starts 0 and is
-    /// filled on first layout via `BarHeightKey`.
-    @State private var barHeight: CGFloat = 0
     /// El ✕ del pill pide confirmación aquí (pantalla completa), no en el frame del pill.
     @State private var confirmDiscardSession = false
 
     // FER-981: `body` kept thin so type-check stays under the long-function budget. Tab shell,
     // heavy tabs, and the modifier chain each type-check in their own scope.
-    // Inject: hooks en el struct NO privado del archivo (regla PR#1036) para iterar el
-    // dock Liquid en vivo durante las sesiones /inject.
+    // Inject: hooks en el struct NO privado del archivo (regla PR#1036) para iterar
+    // el shell en vivo durante las sesiones /inject.
     @ObserveInjection private var inject
 
     var body: some View {
@@ -88,6 +84,11 @@ struct RootTabView: View {
             lazyTab(.cuerpo, "Body", "chart.xyaxis.line") { CuerpoTabView() }
             settingsTab
         }
+        // iOS 26 puede encoger la tab bar al hacer scroll. La píldora de sesión se ancla
+        // al área segura, no a una altura medida: si la barra se encoge, la píldora queda
+        // en el aire, y ese seguimiento no se puede comprobar aquí. La barra se queda fija.
+        // En iPhone Duo la barra del sistema se acomoda sola; no volver a un padding inferior fijo.
+        .tabBarPinned()
     }
 
     // Entrenar — the redesigned light «Instrumento» hub (FER-343 + FER-346): the «Hoy» card +
@@ -110,7 +111,6 @@ struct RootTabView: View {
                 openMuscleMap: { trainStack.append(MuscleVolumeRoute()) },
                 openMarcas: { trainStack.append(PersonalRecordsRoute()) }
             )
-            .barReservation(barHeight)
             .navigationDestination(for: SecondaryScreen.self) { screen in
                 trainChrome(secondaryDestination(screen))
             }
@@ -150,7 +150,7 @@ struct RootTabView: View {
             }
         }
         .environmentObject(workoutHistory)
-        .toolbar(.hidden, for: .tabBar)
+        .activeSessionPillInset(model: appModel, confirmDiscard: $confirmDiscardSession)
         .tabItem { Label("Train", systemImage: "figure.strengthtraining.functional") }
         .tag(Tab.train)
     }
@@ -165,17 +165,17 @@ struct RootTabView: View {
     private var settingsTab: some View {
         NavigationStack(path: $settingsStack) {
             AjustesView()
-                .barReservation(barHeight)
                 .navigationDestination(for: SecondaryScreen.self) { screen in
                     secondaryDestination(screen)
                         .pantallaFondo()
-                        .barReservation(barHeight)
                         .navigationBarTitleDisplayMode(.inline)
                         .toolbarBackground(LiquidColor.fondoAlto, for: .navigationBar)
                 }
         }
-        .toolbar(.hidden, for: .tabBar)
-        .tabItem { Label("Ajustes", systemImage: "gearshape.fill") }
+        .activeSessionPillInset(model: appModel, confirmDiscard: $confirmDiscardSession)
+        // Misma clave que el título de la pantalla («Settings» → «Ajustes» en es).
+        // «Ajustes» como clave era una isla: en un teléfono en inglés la barra decía Ajustes.
+        .tabItem { Label("Settings", systemImage: "gearshape.fill") }
         .tag(Tab.settings)
     }
 
@@ -185,72 +185,14 @@ struct RootTabView: View {
         rootChromeLifecycle(rootChromeCovers(rootChromeOverlays(content)))
     }
 
-    /// Tint + floating instrument bar + active-session pill (FER-163 / FER-716).
+    /// `.tint` colorea el ítem seleccionado de la tab bar del sistema — ese es su papel —
+    /// y los links y controles de las pantallas. No pinta el fondo de la barra.
     ///
-    /// FER-985 — CASO CERRADO en ~201 ms de type-check, a propósito. Se intentó izar la condición del
-    /// pill (`appModel.strengthSession != nil && !appModel.strengthSheetPresented`) a un `let Bool` con
-    /// tipo explícito fuera del `@ViewBuilder`. Medido, el costo NO se fue: se MOVIÓ y quedó peor.
-    ///
-    ///   antes .... método 201 ms · condición (el `if` de abajo) 196 ms
-    ///   después .. método 291 ms · `.tint` 274 ms · sync de pestaña 103 ms   ← peor, y dos hotspots nuevos
-    ///
-    /// Es el MISMO desenlace que el intento previo de FER-981 (mover la cadena a una sola función
-    /// genérica: body 284 → rootChrome 309). Partir o izar piezas de esta cadena redistribuye el costo
-    /// entre las expresiones vecinas en vez de bajarlo, porque el costo real no está en la forma de la
-    /// cadena: son accesos al tipo expandido por el macro `@Observable` de `AppModel` — la misma causa
-    /// confirmada por bisección en el `#Preview` de `CuerpoView`. El único arreglo de fondo sería
-    /// adelgazar `AppModel` (17 vistas dependen de él), y no se paga por ~200 ms de build en Debug.
-    ///
-    /// NO lo vuelvas a intentar sin medir antes y después: dos intentos ya salieron peor.
+    /// FER-985: no partas esta cadena para “bajar” el type-check. Medido, mover el acceso
+    /// a `AppModel` entre funciones vecinas empeora el costo en vez de bajarlo.
     private func rootChromeOverlays<Content: View>(_ content: Content) -> some View {
         content
-        // `.tint` no longer paints the tab bar (it's hidden below; `LiquidTabBar`
-        // sets its own ink), but it still tints links/controls inside the screens —
-        // kept for those.
-        .tint(LiquidColor.verdePrimario)
-        // The «Barra de instrumento» (FER-163): the native bar is hidden per page
-        // (see `lazyTab` and the per-hub NavigationStacks) and this custom bar takes its place.
-        //
-        // It is mounted as an `overlay` (it floats, pinned to the bottom) rather
-        // than via `safeAreaInset` on the `TabView`: a bottom safe-area inset placed
-        // on a `TabView` whose native bar is hidden draws the bar but does NOT reach
-        // the safe area of each page's `ScrollView`, so the last component scrolled
-        // under the bar. Instead each tab reserves the bar's measured height at the
-        // CONTENT level (`barReservation`), where the inset does propagate to scroll
-        // views. The bar reports its height via `BarHeightKey`.
-        //
-        // Color scheme itself is owned by ContentView via `isTodayActive` (FER-160); the
-        // Liquid dock paints its own glass. FER-398 retired the by-the-hour tint.
-        .overlay(alignment: .bottom) {
-            // /inject 2026-07-22 (decisión del dueño): el dock global pasa al lente Liquid
-            // Glass — vidrio flotante con los 4 glifos del sistema y el punto verde activo.
-            // Los rótulos salen del catálogo del APP (FER-112): vivían hardcodeados en español
-            // dentro de CenitDesign, que no tiene catálogo, así que la barra de TODAS las
-            // pantallas se veía en español con el teléfono en inglés.
-            LiquidTabBar(active: liquidTab(for: selection),
-                         rotulos: .cenit) { selection = appTab(for: $0) }
-                .padding(.horizontal, LiquidSpace.dockSide)
-                .padding(.bottom, LiquidSpace.dockBottom)
-                .background(
-                    GeometryReader { proxy in
-                        Color.clear.preference(key: BarHeightKey.self, value: proxy.size.height)
-                    }
-                )
-        }
-        // The active-session pill (FER-716): floats over the dock on the OTHER four tabs while a
-        // session is running and the full-screen cover is minimized. Tapping it re-opens the session.
-        //
-        // FER-132 DEROGADA (FER-167 · F2, orden del épico): el héroe de sesión viva del hub se
-        // retiró — Entrenar ahora es mosaico v18 + píldora, como los otros 4 tabs. La píldora vive
-        // en TODOS los tabs, incluido Entrenar.
-        .overlay(alignment: .bottom) {
-            if appModel.strengthSession != nil && !appModel.strengthSheetPresented {
-                ActiveSessionPillHost(model: appModel, confirmDiscard: $confirmDiscardSession)
-                    .padding(.horizontal, LiquidSpace.s600)
-                    .padding(.bottom, barHeight + LiquidSpace.s200)
-                    .transition(LiquidMotion.risingFadeTransition)
-            }
-        }
+            .tint(LiquidColor.verdePrimario)
     }
 
     /// Confirm discard, session animations, and the guided-strength fullScreenCover (FER-347/716).
@@ -300,7 +242,6 @@ struct RootTabView: View {
     /// Preference, tab selection, cross-tab routing, watch receipt, and DEBUG nav observers.
     private func rootChromeLifecycle<Content: View>(_ content: Content) -> some View {
         content
-        .onPreferenceChange(BarHeightKey.self) { barHeight = $0 }
         // Color scheme lo decide ContentView (cercano a la raíz) según `isTodayActive`; aquí solo lo
         // mantenemos en papel claro — las cuatro pestañas viven en Liquid Glass · El Eje.
         .onChange(of: selection) { _, newValue in
@@ -443,47 +384,23 @@ struct RootTabView: View {
             }
         }
         .pantallaFondo()
-        // Reserve the floating bar's height at the content level so the page's
-        // ScrollView stops above the bar (the inset reaches scroll views here; it
-        // would not from the TabView — see `body`).
-        .barReservation(barHeight)
-        // Hide the native tab bar everywhere; `LiquidTabBar` (floating overlay on the
-        // TabView) is the visible bar. `tabItem` stays so TabView keeps its tag/selection
-        // wiring — its label just never renders.
-        .toolbar(.hidden, for: .tabBar)
+        // La píldora va en el raíz de la pestaña, no en cada destino: así sigue visible
+        // al empujar y el scroll de la página se detiene encima de ella. Vacía, no abre hueco.
+        .activeSessionPillInset(model: appModel, confirmDiscard: $confirmDiscardSession)
         .tabItem { Label(title, systemImage: icon) }
         .tag(tag)
     }
 
-    /// Chrome for a screen pushed onto the Entrenar stack: warm-paper background, reserved bar height,
-    /// and a light navigation bar (the whole tab is «Instrumento» paper — FER-343).
+    /// Chrome for a screen pushed onto the Entrenar stack: warm-paper background and a light
+    /// navigation bar (the whole tab is «Instrumento» paper — FER-343). The system tab bar
+    /// insets the stack; the session pill is on the `NavigationStack`, not here.
     @ViewBuilder
     private func trainChrome<V: View>(_ screen: V) -> some View {
         screen
             .pantallaFondo()
-            .barReservation(barHeight)
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(LiquidColor.fondoAlto, for: .navigationBar)
             .toolbarColorScheme(.light, for: .navigationBar)
-    }
-
-    // MARK: - Custom bar (FER-163 / FER-490)
-
-    /// Dock tabs as drawn by `LiquidTabBar`. Tres cuartos: Entrenar · Cuerpo · Ajustes.
-    private func liquidTab(for tab: Tab) -> LiquidTab {
-        switch tab {
-        case .cuerpo: return .cuerpo
-        case .train: return .entrenar
-        case .settings: return .ajustes
-        }
-    }
-
-    private func appTab(for liquid: LiquidTab) -> Tab {
-        switch liquid {
-        case .cuerpo: return .cuerpo
-        case .entrenar: return .train
-        case .ajustes: return .settings
-        }
     }
 
     @ViewBuilder
@@ -524,24 +441,40 @@ struct RootTabView: View {
     }
 }
 
-/// The «Barra de instrumento»'s measured height, bubbled from the floating overlay
-/// bar up to `RootTabView` so each tab can reserve exactly that much. `max` keeps
-/// the real (non-zero) value if SwiftUI momentarily reports a 0-height pass.
-private struct BarHeightKey: PreferenceKey {
-    static let defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = max(value, nextValue())
+private extension View {
+    /// iOS 26 puede encoger la tab bar. La píldora no sigue esa altura (no se puede
+    /// comprobar aquí), así que la barra no se encoge. En iOS 17–25 el modificador no existe.
+    @ViewBuilder
+    func tabBarPinned() -> some View {
+        if #available(iOS 26.0, *) {
+            self.tabBarMinimizeBehavior(.never)
+        } else {
+            self
+        }
+    }
+
+    /// Píldora de sesión minimizada, en el área segura inferior de la pestaña.
+    /// Sin sesión (o con la hoja abierta) el contenido mide cero y `spacing` es cero:
+    /// no se suma un hueco encima de la tab bar del sistema.
+    func activeSessionPillInset(model: AppModel, confirmDiscard: Binding<Bool>) -> some View {
+        safeAreaInset(edge: .bottom, spacing: .zero) {
+            ActiveSessionPillSlot(model: model, confirmDiscard: confirmDiscard)
+        }
     }
 }
 
-private extension View {
-    /// Reserve `height` points of clear space at the bottom safe area, so a page's
-    /// scroll content clears the floating tab bar. Applied at the content level
-    /// (where the inset reaches scroll views), never on the `TabView` — see
-    /// `RootTabView.body`.
-    func barReservation(_ height: CGFloat) -> some View {
-        safeAreaInset(edge: .bottom, spacing: .zero) {
-            Color.clear.frame(height: height)
+/// El `if` vive en una vista propia para no leer `AppModel` dentro de la cadena de
+/// `RootTabView` (FER-985). Vacío, el `safeAreaInset` no reserva alto.
+private struct ActiveSessionPillSlot: View {
+    @Bindable var model: AppModel
+    @Binding var confirmDiscard: Bool
+
+    var body: some View {
+        if model.strengthSession != nil && !model.strengthSheetPresented {
+            ActiveSessionPillHost(model: model, confirmDiscard: $confirmDiscard)
+                .padding(.horizontal, LiquidSpace.s600)
+                .padding(.bottom, LiquidSpace.s200)
+                .transition(LiquidMotion.risingFadeTransition)
         }
     }
 }

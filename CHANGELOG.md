@@ -20,6 +20,12 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
 
 ## Unreleased
 
+- **La barra de abajo es la del iPhone / The bottom bar is the iPhone's**
+  ### ES
+  Entrenar, Cuerpo y Ajustes siguen en el mismo lugar. La barra es la del sistema, así que los nombres siguen el idioma del teléfono. Si dejas una sesión a medias, la pastilla queda pegada justo encima.
+  ### EN
+  Train, Body and Settings stay where they were. The bar is the system's, so the names follow the phone's language. If you leave a session running, the pill sits just above the bar.
+
 - **Siri y Atajos: qué toca hoy, arrancar rutina y registrar una serie / Siri and Shortcuts: what's due today, start a routine, log a set**
   ### ES
   Tres Atajos nuevos (y frases listas para Siri): «¿qué toca hoy?» lee la misma lectura que el widget, sin puntaje; «arranca {rutina}» abre Entrenar lista para empezar; «registra peso×reps» anota en la sesión viva los números que dictaste, sin recalcular carga. Todo en el teléfono, sin red.

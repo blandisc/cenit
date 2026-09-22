@@ -1,10 +1,11 @@
 import CenitDesign
 
-// MARK: - Los rótulos del dock, traducidos (FER-112 / FER-490)
+// MARK: - Los rótulos de `LiquidTabBar`, traducidos (FER-112 / FER-490)
 //
-// `CenitDesign` no tiene catálogo de cadenas, así que los títulos del dock vivían hardcodeados
-// en español dentro del paquete: la barra que acompaña TODAS las pantallas se veía en español
-// aunque el teléfono estuviera en inglés. Aquí es donde sí hay catálogo, y de aquí salen.
+// El dock de la app es la tab bar del sistema: sus `Label` usan estas mismas claves
+// («Train» / «Body» / «Settings») directo en `RootTabView`. Esto queda para `LiquidTabBar`
+// (galería y previews): `CenitDesign` no tiene catálogo, y sin estas cadenas la pieza
+// se veía en español aunque el teléfono estuviera en inglés.
 //
 // FER-490: tres rótulos (Entrenar · Cuerpo · Ajustes). «Body» ya traduce a «Cuerpo» en es-MX;
 // el paso 9 puede renombrar la clave de catálogo si hace falta.

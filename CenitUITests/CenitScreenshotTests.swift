@@ -32,8 +32,8 @@ import XCTest
 ///    «Tendencias» and «Patrones» have no English translation, so an English run renders a
 ///    mixed-language bar.
 ///
-/// The native tab bar is hidden app-wide (`.toolbar(.hidden, for: .tabBar)`) in favour of the
-/// custom `LiquidTabBar` (FER-163/FER-490) — `app.tabBars` is EMPTY. Never query it.
+/// The dock is the system tab bar. `setUp` asserts `app.tabBars` is on screen. Navigation
+/// still goes through `nav(_:)` — do not tap the bar (rule 1).
 final class CenitScreenshotTests: XCTestCase {
 
     var app: XCUIApplication!
@@ -90,9 +90,8 @@ final class CenitScreenshotTests: XCTestCase {
         }
 
         app.launch()
-        // NOT `app.tabBars` — the native bar is hidden (see the class note), so waiting on it just
-        // burned the full timeout on every test.
         XCTAssertTrue(app.wait(for: .runningForeground, timeout: 15), "app never reached the foreground")
+        XCTAssertTrue(app.tabBars.firstMatch.waitForExistence(timeout: 5), "system tab bar never appeared")
     }
 
     // MARK: - Today (verdict states)
@@ -453,7 +452,7 @@ final class CenitScreenshotTests: XCTestCase {
     /// Drives `ScreenshotNav` (`CenitApp/App/ScreenshotNav.swift`) by posting the Darwin notification
     /// it observes. The Darwin notify center is system-wide on the simulator, so the runner process
     /// can steer the app under test without touching a single pixel — no localized labels, no
-    /// coordinates, no `app.tabBars` (hidden). A key the app doesn't observe is a silent no-op, so
+    /// coordinates, and no taps on `app.tabBars`. A key the app doesn't observe is a silent no-op, so
     /// keep this in sync with `DebugNavWatcher.screens`.
     private func nav(_ screen: String, app a: XCUIApplication? = nil, settle: TimeInterval = 2) {
         CFNotificationCenterPostNotification(
