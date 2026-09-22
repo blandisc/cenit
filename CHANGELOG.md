@@ -20,6 +20,12 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
 
 ## Unreleased
 
+- **El modo oscuro deja de pintar blanco encima del negro / Dark mode stops painting white on black**
+  ### ES
+  Con el teléfono en oscuro, las tarjetas, las pastillas y el filo seguían siendo velos blancos del modo claro, y la tinta ya era clara: el texto se perdía y el orbe de Hoy se apagaba. Ahora el suelo sigue negro, las superficies son carbón con un canto de luz, y las partículas del héroe se leen. El modo claro no cambia.
+  ### EN
+  With the phone in dark mode, cards, pills and edges were still the light mode's white veils while the ink had already turned light, so text disappeared and Today's orb went dim. The floor stays black, surfaces are charcoal with a light edge, and the hero's particles read. Light mode is unchanged.
+
 - **El periodo, la búsqueda y las confirmaciones de programa usan la pieza del sistema / The period, the search and the program confirmations use the system piece**
   ### ES
   En el cuerpo de entreno, 30 días, 90 días, 6 meses y 1 año se eligen con el mismo selector de periodo que Salud. En Ayuda, el buscador y el «nada coincide» son las piezas del sistema. Empezar otro programa, o terminar el que ya tienes, se confirma en la tarjeta de vidrio: cada botón dice lo que hace.

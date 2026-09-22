@@ -252,45 +252,52 @@ public struct LiquidShadowLayer: Sendable {
 }
 
 public enum LiquidElevation {
-    /// Tinta base de las sombras (tinta/900 en distintos alfas).
-    private static let tintaSombra = LiquidTheme.dynamic(light: Color(hex: "#221D16"), dark: Color(hex: "#000000"))
+    /// Sombra de tinta. En claro es `#221D16` al alfa del nivel (el comportamiento de hoy).
+    /// En oscuro el mismo alfa es invisible sobre negro: se multiplica para que la tarjeta
+    /// asentada en un suelo que no es negro puro siga teniendo contacto. La separación
+    /// contra el suelo negro la da el carbón de la superficie, no esta sombra.
+    private static func sombra(_ alfa: Double) -> Color {
+        LiquidTheme.dynamic(
+            light: Color(hex: "#221D16").opacity(alfa),
+            dark: Color.black.opacity(min(0.62, alfa * 4.5)))
+    }
 
     /// `e/0 reposo` — 0 2px 8px tinta al 5 %. Tiles en reposo.
     public static let e0: [LiquidShadowLayer] = [
-        .init(color: tintaSombra.opacity(0.05), radius: 4, y: 2)
+        .init(color: sombra(0.05), radius: 4, y: 2)
     ]
 
     /// `e/1 tarjeta` — 0 5px 14px tinta al 6 %. Pastillas, tarjetas destacadas.
     public static let e1: [LiquidShadowLayer] = [
-        .init(color: tintaSombra.opacity(0.06), radius: 7, y: 5)
+        .init(color: sombra(0.06), radius: 7, y: 5)
     ]
 
     /// `e/2 señal` — glow del tono del dato + apoyo neutro. Orbes, hover-lift.
     public static func e2(tone: Color) -> [LiquidShadowLayer] {
         [
             .init(color: tone.opacity(0.18), radius: 12, y: 10),
-            .init(color: tintaSombra.opacity(0.06), radius: 3, y: 2),
+            .init(color: sombra(0.06), radius: 3, y: 2),
         ]
     }
 
     /// `e/3 flotante` — dock, dial, flotantes.
     public static let e3: [LiquidShadowLayer] = [
-        .init(color: tintaSombra.opacity(0.16), radius: 16, y: 12),
-        .init(color: tintaSombra.opacity(0.08), radius: 3, y: 2),
+        .init(color: sombra(0.16), radius: 16, y: 12),
+        .init(color: sombra(0.08), radius: 3, y: 2),
     ]
 
     /// Confirmación anclada abajo (`ConfirmCard` / receta `.confirmacion`): proyecta hacia
     /// ARRIBA sobre el scrim. `LiquidElevation` modela el resto hacia abajo; este es el
     /// único nivel con `y` negativa.
     public static let confirmacionArriba: [LiquidShadowLayer] = [
-        .init(color: tintaSombra.opacity(0.18), radius: 20, y: -12)
+        .init(color: sombra(0.18), radius: 20, y: -12)
     ]
 
     /// `e/dial` — el sello del dial 24 h es PLANO, no lente (excepción consciente): una sola
     /// sombra de contacto suave, deliberadamente más ligera que `e3`. Nivel nombrado (FER-31)
     /// para que el `LiquidDialSeal` no lleve un arreglo de sombra ad-hoc inline.
     public static let dial: [LiquidShadowLayer] = [
-        .init(color: tintaSombra.opacity(0.08), radius: 5, y: 3)
+        .init(color: sombra(0.08), radius: 5, y: 3)
     ]
 
     /// `e/módulo` — la sombra de dos capas de un módulo de «El Tablero» (FER-28), por índice
@@ -299,8 +306,8 @@ public enum LiquidElevation {
     /// radius ya viene convertido del blur CSS (≈ 2×): 6/28 px → 3/14 pt.
     public static func modulo(index: Int) -> [LiquidShadowLayer] {
         [
-            .init(color: tintaSombra.opacity(0.05), radius: 3, y: 2),
-            .init(color: tintaSombra.opacity(0.07), radius: 14, y: 9 + CGFloat(index) * 1.5),
+            .init(color: sombra(0.05), radius: 3, y: 2),
+            .init(color: sombra(0.07), radius: 14, y: 9 + CGFloat(index) * 1.5),
         ]
     }
 
@@ -309,8 +316,8 @@ public enum LiquidElevation {
     /// compacta), para que el ESPACIO entre tarjetas se lea igual en las dos superficies. Contacto corto
     /// + ambiente medio. Las tarjetas teñidas (Marcas/Volumen) siguen con su sombra del color de su dato.
     public static let tarjeta: [LiquidShadowLayer] = [
-        .init(color: tintaSombra.opacity(0.055), radius: 2, y: 2),
-        .init(color: tintaSombra.opacity(0.09), radius: 10, y: 7),
+        .init(color: sombra(0.055), radius: 2, y: 2),
+        .init(color: sombra(0.09), radius: 10, y: 7),
     ]
 }
 

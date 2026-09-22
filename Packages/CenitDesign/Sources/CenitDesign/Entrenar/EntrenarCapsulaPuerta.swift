@@ -55,10 +55,10 @@ public struct EntrenarCapsulaPuerta: View {
                 .padding(.horizontal, EntrenarCapsulaPuertaMetrics.paddingH)
                 .padding(.vertical, EntrenarCapsulaPuertaMetrics.paddingV)
                 .background {
-                    Capsule().fill(Color.white.opacity(EntrenarCapsulaPuertaMetrics.fondoAlfa))
+                    Capsule().fill(LiquidColor.blancoElevado(EntrenarCapsulaPuertaMetrics.fondoAlfa))
                 }
                 .overlay {
-                    Capsule().strokeBorder(Color.white.opacity(EntrenarCapsulaPuertaMetrics.highlightAlfa),
+                    Capsule().strokeBorder(LiquidColor.filoDeLuz(EntrenarCapsulaPuertaMetrics.highlightAlfa),
                                           lineWidth: 1)
                 }
                 .overlay {

@@ -118,11 +118,13 @@ public enum LiquidTonoMetrics {
     /// `strokeBorder` completo (mismo patrón que `LiquidColor.vidrioBordeSuperficie` en
     /// `LiquidModulo`: SwiftUI no tiene sombra-inset de un solo filo). Neutro .70, teñido .75
     /// (mock: `.mod` inset .7 vs `.hero`/`.dos`/tiles teñidos inset .75).
-    public static let highlightNeutro = Color.white.opacity(0.70)
-    public static let highlightTeñido = Color.white.opacity(0.75)
+    /// En claro, el blanco del mock. En oscuro, canto de luz: el mismo alfa blanco sobre
+    /// carbón es un anillo y tapa la tinta clara.
+    public static let highlightNeutro = LiquidColor.filoDeLuz(0.70)
+    public static let highlightTeñido = LiquidColor.filoDeLuz(0.75)
     /// Segundo aro, SOLO en la variante teñida (mock `inset 0 0 0 1px rgba(255,255,255,.35)` en
     /// `.hero`/`.dos`/`.tMar`/`.tVol`/`.tSub`; el vidrio neutro `.mod`/`.tDes` no lo trae).
-    public static let aroTeñido = Color.white.opacity(0.35)
+    public static let aroTeñido = LiquidColor.filoDeLuz(0.35)
 
     /// Canto exterior teñido — 30 % del tono (mock `0 0 0 .5px rgba(tono,.30)`, redondeado desde
     /// el rango real .28–.30). El canto neutro reusa `LiquidColor.vidrioCanto` directamente: es
@@ -159,9 +161,21 @@ enum LiquidTonoSuperficie {
 
     static func rellenoResuelto(tono: LiquidTono, regimen: LiquidRegimen, intensidad: Double) -> Color {
         let t = tonoDeSuperficie(tono, regimen: regimen)
-        return t == .neutro
-            ? Color.white.opacity(LiquidTonoMetrics.rellenoNeutroAlfa)
-            : t.base.opacity(intensidad)
+        if t == .neutro {
+            return LiquidColor.blancoElevado(LiquidTonoMetrics.rellenoNeutroAlfa)
+        }
+        // Claro: el 10 % del hue sobre blanco (el mock). Oscuro: el mismo 10 % de un hue
+        // claro sobre negro no se ve — se mezcla el hue con el carbón de la tarjeta para
+        // que la tesela tenga cuerpo y el rótulo claro siga pasando AA.
+        let claro = t.base.resolved(at: .light).opacity(intensidad)
+        let papel = LiquidColor.papelTarjeta.resolved(at: .dark).rgbaComponents
+        let tinta = t.base.resolved(at: .dark).rgbaComponents
+        let k = min(0.28, 0.22 * (intensidad / LiquidTono.intensidadDefault))
+        let oscuro = Color(.sRGB,
+                           red: papel.r + (tinta.r - papel.r) * k,
+                           green: papel.g + (tinta.g - papel.g) * k,
+                           blue: papel.b + (tinta.b - papel.b) * k)
+        return LiquidTheme.dynamic(light: claro, dark: oscuro)
     }
 
     static func highlightResuelto(tono: LiquidTono, regimen: LiquidRegimen) -> Color {
