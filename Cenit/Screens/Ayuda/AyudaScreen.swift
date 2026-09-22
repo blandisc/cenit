@@ -125,30 +125,10 @@ struct AyudaScreen: View {
     // MARK: - Buscador
 
     private var buscador: some View {
-        HStack(spacing: LiquidSpace.s150) {
-            Image(systemName: "magnifyingglass")
-                .font(LiquidType.iconSF(size: 15))
-                .foregroundStyle(LiquidColor.tinta500)
-            TextField(String(localized: "ayuda.buscar", defaultValue: "Search a feature"),
-                      text: $busqueda)
-            .font(LiquidType.cuerpo)
-            .foregroundStyle(LiquidColor.tinta900)
-            .textInputAutocapitalization(.never)
-            .autocorrectionDisabled()
-            .submitLabel(.search)
-            if !busqueda.isEmpty {
-                Button {
-                    busqueda = ""
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(LiquidType.iconSF(size: 15))
-                        .foregroundStyle(LiquidColor.tinta500)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(Text("Clear search"))
-            }
-        }
-        .liquidTarjetaSeccion(padding: LiquidSpace.s250)
+        LiquidCampoBusqueda(
+            placeholder: String(localized: "ayuda.buscar", defaultValue: "Search a feature"),
+            text: $busqueda,
+            a11yLimpiar: String(localized: "Clear search"))
     }
 
     // MARK: - Tarjeta de sección (una fila del índice → empuja el detalle)
@@ -196,18 +176,11 @@ struct AyudaScreen: View {
                     || Self.plegar(f.dondeVive).contains(q)
             }
         if hits.isEmpty {
-            VStack(alignment: .leading, spacing: LiquidSpace.s100) {
-                Text(String(localized: "ayuda.buscar.vacio", defaultValue: "Nothing matches that."))
-                    .font(LiquidType.tituloFila)
-                    .foregroundStyle(LiquidColor.tinta900)
-                Text(String(localized: "ayuda.buscar.vacio.sub",
-                            defaultValue: "Try another word, or browse by tab above."))
-                    .font(LiquidType.captionLectura)
-                    .foregroundStyle(LiquidColor.tinta500)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.top, LiquidSpace.s300)
+            LiquidVacio(
+                queEs: Text(String(localized: "ayuda.buscar.vacio",
+                                   defaultValue: "Nothing matches that.")),
+                comoSeLlena: Text(String(localized: "ayuda.buscar.vacio.sub",
+                                         defaultValue: "Try another word, or browse by tab above.")))
         } else {
             VStack(spacing: .zero) {
                 ForEach(hits) { funcionalidad in

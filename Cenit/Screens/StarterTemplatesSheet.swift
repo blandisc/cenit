@@ -110,14 +110,18 @@ struct StarterTemplatesSheet: View {
         // FER-969 / FER-280·2c: write failure → `.saveErrorToast` (misma receta, un solo dialecto).
         .saveErrorToast(isPresented: $saveError)
         .task { if programa { programaActivo = await repo.programServing() } }
-        .alert("You already have a program", isPresented: $confirmReemplazoPrograma) {
-            Button("Keep mine", role: .cancel) { }
-            Button("Start the new one", role: .destructive) {
-                if let motor = motorElegido { instalarPrograma(motor) }
-            }
-        } message: {
-            Text(programaActivoAviso)
-        }
+        .liquidConfirm(
+            isPresented: $confirmReemplazoPrograma,
+            title: String(localized: "You already have a program"),
+            context: String(localized: "YOUR PROGRAM"),
+            message: programaActivoAviso,
+            actions: [
+                .init(String(localized: "Keep mine"), role: .primary),
+                .init(String(localized: "Start the new one"), role: .destructive) {
+                    if let motor = motorElegido { instalarPrograma(motor) }
+                }
+            ]
+        )
         // Ola 1 · E12, capa 4: el enlace terciario «¿Qué es una semana ligera?» abre el glosario
         // del «?» en una hoja propia — esta hoja ya no trae NavigationStack (FER-171), así que el
         // glosario trae el suyo.

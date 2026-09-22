@@ -20,6 +20,12 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
 
 ## Unreleased
 
+- **El periodo, la búsqueda y las confirmaciones de programa usan la pieza del sistema / The period, the search and the program confirmations use the system piece**
+  ### ES
+  En el cuerpo de entreno, 30 días, 90 días, 6 meses y 1 año se eligen con el mismo selector de periodo que Salud. En Ayuda, el buscador y el «nada coincide» son las piezas del sistema. Empezar otro programa, o terminar el que ya tienes, se confirma en la tarjeta de vidrio: cada botón dice lo que hace.
+  ### EN
+  On the training body, 30 days, 90 days, 6 months and 1 year use the same period selector as Health. In Help, the search box and the “nothing matches” state are the system pieces. Starting another program, or ending the one you have, is confirmed on the glass card: each button names what it does.
+
 - **La barra de abajo es la del iPhone / The bottom bar is the iPhone's**
   ### ES
   Entrenar, Cuerpo y Ajustes siguen en el mismo lugar. La barra es la del sistema, así que los nombres siguen el idioma del teléfono. Si dejas una sesión a medias, la pastilla queda pegada justo encima.

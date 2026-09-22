@@ -47496,6 +47496,23 @@
         }
       }
     },
+    "YOUR PROGRAM": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "YOUR PROGRAM"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TU PROGRAMA"
+          }
+        }
+      }
+    },
     "Yes": {
       "extractionState": "stale",
       "localizations": {
@@ -70464,6 +70481,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Seguir con el mío"
+          }
+        }
+      }
+    },
+    "Keep the program": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep the program"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conservar el programa"
           }
         }
       }
