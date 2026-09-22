@@ -251,10 +251,12 @@ paralelo. Origen: FER-131; retiro del marco: épico FER-229.
 ### 8.1 Why a `struct`, not static tokens
 
 The roles are an **instance** (`InstrumentoTheme`), not statics like `CenitPalette`,
-on purpose: the by-the-hour theme engine (**FER-132**) produces dawn/day/dusk/night
-variants by interpolating these same roles. `.base` is the neutral **daytime anchor**.
-Inject with `.instrumentoTheme(_:)`; read with `@Environment(\.instrumentoTheme)`. Every
-screen reads it from the environment, so recoloring by the hour is free.
+because a screen that still uses this generation injects one anchor through the
+environment. The instance used to exist so the by-the-hour engine (**FER-132**) could
+interpolate dawn, day, dusk and night. **FER-398 retired that engine.** `.base` is the
+only anchor: one warm day paper at every hour. Inject with `.instrumentoTheme(_:)`;
+read with `@Environment(\.instrumentoTheme)`. `.instrumentoThemeByHour()` no longer
+exists. A new screen uses El Eje (`LiquidColor`), not this type.
 
 ### 8.2 Color roles — `.base` (daytime anchor)
 
@@ -262,8 +264,10 @@ Warm paper surfaces, warm-gray ink, saturated hue reserved for the measured valu
 Every pair clears **WCAG AA** (large-text 3:1 for the data numerals, normal 4.5:1 for ink).
 Data accents carry color **only on a large numeral** (≥24pt, where AA-large is 3:1); a datum or
 delta on **<24pt** text uses `positiveText` / `negativeText` instead (FER-131 · 02). The «On paper»
-column is the WCAG contrast against `paper`. The by-the-hour engine (FER-132) re-derives every data
-hue against the live paper so this 3:1 floor holds at every hour (FER-131 handoff · 08).
+column is the WCAG contrast against `paper`. Those pairs are the single day anchor,
+`.base`. The by-the-hour engine (FER-132) that re-derived every data hue against a
+changing paper was retired in FER-398, so the 3:1 floor is this table
+(FER-131 handoff · 08).
 
 > ⚠️ The table below is **generated from `Instrumento.swift`** by `swift run CenitDesignTokens`
 > (FER-131 handoff · 01). Do not edit it by hand — change the token in code and re-run the generator;
@@ -373,18 +377,15 @@ siguiente auditoría de duplicación la va a «corregir».
 
 ### 8.6 Daytime specifics — flat surfaces, touch scrub, tinted text (FER-131 handoff)
 
-The «Instrumento diurno» language differs from the legacy dark system in four ways that the
-shared components handle automatically once a subtree is themed with `.instrumentoTheme(_:)` /
-`.instrumentoThemeByHour()` (which also sets `\.instrumentoFlat = true`):
+The «Instrumento diurno» language differs from the legacy dark system in three ways that the
+shared components handle once a subtree is themed with `.instrumentoTheme(.base)` (which also
+sets `\.instrumentoFlat = true`). `.instrumentoThemeByHour()` was removed in FER-398:
 
 - **Flat, no glow (03).** Glow / bloom (the additive plus-lighter halos on chart dots, the REM
   band, the connection dot; the heavy black tooltip shadow) are black-screen effects that muddy
   a glyph on warm paper. On paper they're dropped: the highlight reads as a flat, enlarged
   **paper-fill + colored-ring** scrub handle, the sparkline head is a solid dot, the tooltip
   keeps only a quiet separation shadow. Motion keeps only the physical springs + `breathe`.
-- **Hour-derived data hues (08).** The by-the-hour engine darkens every data hue against the live
-  paper (`InstrumentoTheme.contrastSafeDataHues()`, the `positiveText` OKLab technique generalized)
-  so each holds the **3:1** numeral floor at every minute — never hand-tuned per anchor.
 - **Tinted text <24pt (02).** A datum or delta below 24pt uses `positiveText` / `negativeText`
   (the 4.5:1+ text-tier tokens), never a saturated data hue; the ≥24pt hero numeral keeps the hue.
 - **Touch, not hover (10).** Charts respond to a finger **press-drag scrub** (`DragGesture`, snap to
@@ -392,6 +393,8 @@ shared components handle automatically once a subtree is themed with `.instrumen
   `ChartHaptics`). Controls (`SegmentedPillControl`, `QuietButton`) and the scrub plot meet the
   **44pt** touch minimum. The toolkit's public API carries no "hover" term (it's `showsScrub`,
   `ChartScrubMath`, `ChartScrub.swift`).
+
+Hour-derived data hues (08) went with the engine. `contrastSafeDataHues()` no longer exists.
 
 ### 8.7 Voz evolucionada — handoff «Hoy» 2026-07 (FER-707/708)
 
