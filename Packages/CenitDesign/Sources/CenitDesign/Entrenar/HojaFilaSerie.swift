@@ -146,7 +146,7 @@ public struct HojaFilaSerie: View {
         .background {
             if marca == .activa {
                 RoundedRectangle(cornerRadius: HojaMetrics.activaRadius, style: .continuous)
-                    .fill(Color.white.opacity(HojaMetrics.activaFondoAlfa))
+                    .fill(LiquidColor.blancoElevado(HojaMetrics.activaFondoAlfa))
             }
         }
         .overlay(alignment: .top) {

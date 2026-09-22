@@ -63,13 +63,20 @@ struct LiquidAuroraEdge: View {
 
     /// El especular blanco fijo, centrado en el canto superior (~8 % del perímetro). En la
     /// convención de `AngularGradient` (0 = 3 en punto, horario) el tope está en 0.75.
+    /// Brillo del canto. En claro es blanco; en oscuro, luz cálida al 40 % de ese alfa
+    /// (el blanco puro quema sobre negro y deja de leerse como filo).
+    private static func brillo(_ alfa: Double) -> Color {
+        LiquidTheme.dynamic(light: Color.white.opacity(alfa),
+                            dark: Color(hex: "#ECE9E0").opacity(alfa * 0.40))
+    }
+
     private static let specularStops: [Gradient.Stop] = [
-        .init(color: .white.opacity(0), location: 0.0),
-        .init(color: .white.opacity(0), location: 0.63),
-        .init(color: .white.opacity(0.75), location: 0.72),
-        .init(color: .white.opacity(0.75), location: 0.78),
-        .init(color: .white.opacity(0), location: 0.87),
-        .init(color: .white.opacity(0), location: 1.0),
+        .init(color: brillo(0), location: 0.0),
+        .init(color: brillo(0), location: 0.63),
+        .init(color: brillo(0.75), location: 0.72),
+        .init(color: brillo(0.75), location: 0.78),
+        .init(color: brillo(0), location: 0.87),
+        .init(color: brillo(0), location: 1.0),
     ]
 
     var body: some View {

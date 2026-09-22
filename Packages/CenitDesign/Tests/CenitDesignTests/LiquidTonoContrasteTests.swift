@@ -94,20 +94,30 @@ final class LiquidTonoContrasteTests: XCTestCase {
         }
     }
 
-    /// Cinturón del hub: `EntrenarModulo`/`EntrenarTile` fijan `.mosaico` — el relleno teñido
-    /// sigue siendo `base.opacity(intensidad)`, no blanco.
+    /// Cinturón del hub: `EntrenarModulo`/`EntrenarTile` fijan `.mosaico`. En claro el
+    /// relleno sigue siendo `base` al 10 % (no blanco). En oscuro es un carbón teñido:
+    /// el 10 % de un hue claro sobre negro no llega a verse.
     func testMosaicoContenedorSigueTeñido() {
         let intens = LiquidTono.intensidadDefault
+        LiquidTheme.oscuroHabilitado = true
+        defer { LiquidTheme.oscuroHabilitado = false }
         for tono in LiquidTono.allCases where tono != .neutro {
             let mosaico = LiquidTonoSuperficie.rellenoResuelto(tono: tono, regimen: .mosaico,
                                                               intensidad: intens)
             let sobrio = LiquidTonoSuperficie.rellenoResuelto(tono: tono, regimen: .sobrio,
                                                              intensidad: intens)
-            let esperado = tono.base.opacity(intens)
-            XCTAssertTrue(mismoColor(mosaico, esperado),
-                          "mosaico.\(tono) relleno ≠ base@\(intens)")
-            XCTAssertFalse(mismoColor(mosaico, sobrio),
-                           "mosaico.\(tono) relleno colapsó a sobrio/blanco")
+            let claro = mosaico.resolved(at: .light).rgbaComponents
+            let baseClara = tono.base.resolved(at: .light).opacity(intens).rgbaComponents
+            XCTAssertEqual(claro.r, baseClara.r, accuracy: 1.0 / 255, "mosaico.\(tono) claro")
+            XCTAssertEqual(claro.g, baseClara.g, accuracy: 1.0 / 255, "mosaico.\(tono) claro")
+            XCTAssertEqual(claro.b, baseClara.b, accuracy: 1.0 / 255, "mosaico.\(tono) claro")
+            XCTAssertEqual(claro.a, baseClara.a, accuracy: 0.02, "mosaico.\(tono) claro alfa")
+            let oscuro = mosaico.resolved(at: .dark).rgbaComponents
+            let y = 0.2126 * oscuro.r + 0.7152 * oscuro.g + 0.0722 * oscuro.b
+            XCTAssertLessThan(y, 0.25, "mosaico.\(tono) oscuro tiene que tener cuerpo de carbón")
+            XCTAssertGreaterThan(oscuro.a, 0.9, "mosaico.\(tono) oscuro no puede ser un velo")
+            XCTAssertFalse(mismoColor(mosaico.resolved(at: .light), sobrio.resolved(at: .light)),
+                           "mosaico.\(tono) relleno colapsó a sobrio")
             XCTAssertTrue(LiquidTonoSuperficie.usaAroTeñido(tono: tono, regimen: .mosaico),
                           "mosaico.\(tono) debe llevar aro teñido")
         }

@@ -50,10 +50,10 @@ public struct HojaCapsulaAccion: View {
                 .padding(.vertical, LiquidSpace.s150)
                 .frame(minHeight: HojaMetrics.hitMin)
                 .background {
-                    Capsule().fill(Color.white.opacity(HojaCapsulaAccionMetrics.fondoAlfa))
+                    Capsule().fill(LiquidColor.blancoElevado(HojaCapsulaAccionMetrics.fondoAlfa))
                 }
                 .overlay {
-                    Capsule().strokeBorder(Color.white.opacity(HojaCapsulaAccionMetrics.bordeAlfa),
+                    Capsule().strokeBorder(LiquidColor.filoDeLuz(HojaCapsulaAccionMetrics.bordeAlfa),
                                           lineWidth: 1)
                 }
                 .overlay {

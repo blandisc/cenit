@@ -33,8 +33,11 @@ public enum LiquidColor {
     public static let papelAlto = LiquidTheme.dynamic(light: Color(hex: "#F8F6EF"), dark: Color(hex: "#151310"))
     /// Fin del degradado de pantalla.
     public static let papelBajo = LiquidTheme.dynamic(light: Color(hex: "#F0EDE4"), dark: Color(hex: "#100E0C"))
-    /// Relleno del vidrio/lente (dock) — #FBF9F2 al 50 %.
-    public static let papelDock = Color(hex: "#FBF9F2").opacity(0.38)
+    /// Relleno del vidrio/lente (dock). En claro, #FBF9F2 al 38 %. En oscuro, carbón
+    /// elevado: el crema translúcido sobre negro se lee como una mancha de leche.
+    public static let papelDock = LiquidTheme.dynamic(
+        light: Color(hex: "#FBF9F2").opacity(0.38),
+        dark: Color(hex: "#1F1C18").opacity(0.86))
     /// Tarjeta de HOJA — blanco puro (mock canónico `.card{background:#FFFFFF}`): las
     /// tarjetas internas de las hojas van en blanco, no en el papel cálido de pantalla
     /// (#inject r3, pedido del dueño: «los elementos deberían ser blancos»).
@@ -122,7 +125,6 @@ public enum LiquidColor {
     // clima; el ámbar de atención reusa `atencion` (las decisoras siguen verdes ahí — el
     // ámbar entra por el guardián).
 
-    /// Partícula en rango/atención (verde tinta, más profundo que `verdePrimario`).
     // MARK: Celda sin dato (mosaicos de calendario)
 
     /// El cuadro de un día SIN lectura en un mosaico de calendario. Es tinta al 7 %: se ve como
@@ -133,23 +135,28 @@ public enum LiquidColor {
     /// El mismo hueco cuando debe leerse a tamaño de pip en una leyenda, donde 7 % desaparece.
     public static let celdaVaciaPip = tinta900.opacity(0.14)
 
-    public static let particulaVerde = Color(hex: "#10694E")
-    /// Partícula en desgaste (rojo tinta, más profundo que `negativo`).
-    public static let particulaRoja = Color(hex: "#963426")
+    /// Partícula en rango. En claro es tinta profunda (un punto chico se lava si el tono es medio).
+    /// En oscuro se aclara: la misma mota desaparece sobre negro si conserva esa tinta.
+    /// `ParticulaRGB` se queda en el hex claro — la entrada está forzada a `.light`.
+    public static let particulaVerde = LiquidTheme.dynamic(light: Color(hex: "#10694E"), dark: Color(hex: "#5FCB96"))
+    /// Partícula en desgaste (rojo tinta, más profundo que `negativo` sobre papel claro).
+    public static let particulaRoja = LiquidTheme.dynamic(light: Color(hex: "#963426"), dark: Color(hex: "#E88878"))
     /// FER-22 (decisión B del dueño): en ATENCIÓN el orbe mismo absorbe el ámbar —
-    /// la variante partícula del hue de atención, ahondada como sus hermanas.
-    public static let particulaAmbar = Color(hex: "#96501A")
+    /// la variante partícula del hue de atención, ahondada como sus hermanas en claro
+    /// y luminosa sobre negro.
+    public static let particulaAmbar = LiquidTheme.dynamic(light: Color(hex: "#96501A"), dark: Color(hex: "#F0A45A"))
     /// Partícula neutra: calibrando y el orbe del guardián tranquilo.
-    public static let particulaNeutra = Color(hex: "#737670")
-    /// Partícula blanca: el realce especular puro de la simulación del orbe (tinta `.blanco`).
+    public static let particulaNeutra = LiquidTheme.dynamic(light: Color(hex: "#737670"), dark: Color(hex: "#C2BFB6"))
+    /// Partícula blanca: el realce especular del orbe (tinta `.blanco`).
     /// El sistema es dueño del blanco, no el componente de superficie (FER-31).
-    public static let particulaBlanca = Color.white
+    /// En oscuro es el papel cálido de `ecosistemaBlanco`: el blanco puro quema sobre negro.
+    public static let particulaBlanca = LiquidTheme.dynamic(light: .white, dark: Color(hex: "#ECE9E0"))
 
     /// El realce especular del héroe Metal (antes `SIMD4(1,1,1,1)` fijo en EcosistemaMetal).
     /// Token dinámico para que el orbe siga el modo; B4 afina el arte oscuro.
     public static let ecosistemaBlanco = LiquidTheme.dynamic(light: .white, dark: Color(hex: "#ECE9E0"))
 
-    /// Las MISMAS tintas de partícula de arriba, en componentes sRGB 0–1.
+    /// Las tintas de partícula del modo CLARO, en componentes sRGB 0–1.
     ///
     /// Existen porque la entrada (FER-41) tiene que INTERPOLAR del gris neutro al color del
     /// veredicto, y un `Color` de SwiftUI no expone sus componentes de forma portátil: leerlos
@@ -211,35 +218,45 @@ public enum LiquidColor {
         LiquidTheme.dynamic(light: Color.white.opacity(alpha),
                             dark: Color(hex: "#ECE9E0").opacity(alpha * 0.16))
     }
-    /// `.9` — borde de esfera / gota.
-    public static let vidrioBordeFuerte = Color.white.opacity(0.9)
-    /// `.85` — bordes de vidrio.
-    public static let vidrioBorde = Color.white.opacity(0.85)
+    /// `.9` — borde de esfera / gota. En oscuro, canto de luz (no un anillo blanco).
+    public static let vidrioBordeFuerte = filoDeLuz(0.9)
+    /// `.85` — bordes de vidrio y divisores. En oscuro, el mismo canto: un blanco al 85 %
+    /// sobre carbón es una barra, no una línea.
+    public static let vidrioBorde = filoDeLuz(0.85)
     /// `.8` — borde de pastilla + inner-highlights.
     public static let vidrioBordePastilla = LiquidTheme.dynamic(light: Color.white.opacity(0.8), dark: Color(hex: "#ECE9E0").opacity(0.16))
     /// `.72` — borde de superficie (tiles).
     public static let vidrioBordeSuperficie = LiquidTheme.dynamic(light: Color.white.opacity(0.72), dark: Color(hex: "#ECE9E0").opacity(0.13))
-    /// `.55` — streak especular del dock.
-    public static let vidrioStreak = Color.white.opacity(0.55)
-    /// `.5` — relleno lente/dial.
-    public static let vidrioLente = Color.white.opacity(0.38)
+    /// `.55` — streak especular del dock y el velo del popup de la gráfica.
+    /// En oscuro es un brillo cálido tenue: el blanco al 55 % vuelve la hoja una niebla
+    /// y el popup un recuadro blanco con tinta clara encima.
+    public static let vidrioStreak = LiquidTheme.dynamic(
+        light: Color.white.opacity(0.55),
+        dark: Color(hex: "#ECE9E0").opacity(0.12))
+    /// `.38` — relleno lente/dial. En oscuro, carbón elevado (el blanco translúcido es leche).
+    public static let vidrioLente = LiquidTheme.dynamic(
+        light: Color.white.opacity(0.38),
+        dark: Color(hex: "#1F1C18").opacity(0.86))
     /// `.35` — realce especular de la pastilla del selector del dock en la IMITACIÓN pre-iOS 26
     /// (el vidrio nativo no la necesita). Nombrado (FER-31) para que el `LiquidTabBar` no lleve
     /// `Color.white.opacity(...)` crudo.
-    public static let vidrioRealcePastilla = Color.white.opacity(0.35)
+    public static let vidrioRealcePastilla = filoDeLuz(0.35)
     /// `.46` — relleno pastilla. Subido de 0.32 para estabilizar el vidrio durante
     /// el arrastre de la hoja: menos backdrop = menos «blanqueo» al bajar (pedido del dueño).
-    public static let vidrioPastilla = LiquidTheme.dynamic(light: Color.white.opacity(0.46), dark: Color(hex: "#ECE9E0").opacity(0.05))
+    public static let vidrioPastilla = LiquidTheme.dynamic(light: Color.white.opacity(0.46), dark: Color(hex: "#24201C").opacity(0.92))
     /// `.46` — relleno superficie tile. Subido de 0.30 (canon previo del doc §1
     /// LIQUID-GLASS.md) por la misma razón — la tabla dependía del backdrop y cambiaba
     /// de valor al arrastrar/scrollear la hoja.
-    public static let vidrioSuperficie = LiquidTheme.dynamic(light: Color.white.opacity(0.46), dark: Color(hex: "#ECE9E0").opacity(0.055))
+    /// Relleno de superficie. En claro, blanco al 46 %. En oscuro, carbón elevado y casi
+    /// opaco: el velo crema al 5 % sobre negro no separa la tarjeta y deja la tinta clara
+    /// sin suelo. El canto de luz (`vidrioBordeSuperficie` / `vidrioCanto`) hace el filo.
+    public static let vidrioSuperficie = LiquidTheme.dynamic(light: Color.white.opacity(0.46), dark: Color(hex: "#1F1C18").opacity(0.94))
     /// `.7` — relleno de los steppers circulares del enfoque (FER-170 · F5, ronda 2 del gate — Grok
     /// G8: `FocoHeroe` traía `Color.white.opacity(...)` crudo). Mock `hoja-pantallas.html` `.step
     /// {background:rgba(255,255,255,.7)}` — un alfa propio, distinto de `vidrioBordeSuperficie` (.72)
     /// o `vidrioBordePastilla` (.8): no se aproxima a un token vecino para no perder el decimal exacto
     /// del mock.
-    public static let vidrioStep = Color.white.opacity(0.7)
+    public static let vidrioStep = blancoElevado(0.7)
 
     // MARK: Vidrio de «El Tablero» (FER-28 — módulos de Hoy sobre fondo casi blanco)
     //
@@ -338,8 +355,10 @@ public enum LiquidColor {
     // través del vidrio Y las gráficas conservan su silencio (al 55 % el vidrio no revelaba
     // nada; al 10 % el fondo competía con las gráficas en los días ámbar y rojo).
 
-    /// `.30` — relleno del módulo de vidrio sobre la atmósfera (receta `.superficieAtmosfera`).
-    public static let vidrioAtmosfera = LiquidTheme.dynamic(light: Color.white.opacity(0.30), dark: Color(hex: "#ECE9E0").opacity(0.045))
+    /// `.30` — relleno del módulo sobre la atmósfera clara, para que el polvo se vea a través.
+    /// En oscuro el módulo es carbón casi opaco: el velo crema al 4 % no sostiene el numeral
+    /// y el polvo (ya luminoso) vive en el suelo, no dentro de la tarjeta.
+    public static let vidrioAtmosfera = LiquidTheme.dynamic(light: Color.white.opacity(0.30), dark: Color(hex: "#1C1916").opacity(0.90))
     /// `.45` — el plan B OPACO de la misma receta si el vidrio real no sostiene 60 fps sobre la
     /// capa Metal (condición del dueño: el blur tiene que ser real; si cae a sólido, sube a 45 %,
     /// nunca 30 % opaco, que se ve gris sucio).
@@ -355,8 +374,26 @@ public enum LiquidColor {
     /// Índices fuera de rango se clampan a los extremos.
     static func vidrioSuperficieDensidad(_ index: Int) -> Color {
         let alfas: [Double] = [0.42, 0.46, 0.50, 0.54]
+        // Un paso más claro por índice: la pila sigue teniendo ritmo sobre negro.
+        let oscuros = ["#1A1714", "#1F1C18", "#24201C", "#2A2520"]
         let i = min(max(index, 0), alfas.count - 1)
-        return Color.white.opacity(alfas[i])
+        return LiquidTheme.dynamic(light: Color.white.opacity(alfas[i]),
+                                   dark: Color(hex: oscuros[i]).opacity(0.94))
+    }
+
+    /// Relleno que en claro es un velo blanco y en oscuro un carbón elevado. La tinta del
+    /// sistema se vuelve clara en oscuro: si el relleno sigue blanco, el texto no se lee.
+    static func blancoElevado(_ alfaClara: Double) -> Color {
+        LiquidTheme.dynamic(light: Color.white.opacity(alfaClara),
+                            dark: Color(hex: "#2A2520").opacity(0.94))
+    }
+
+    /// Filo que en claro es blanco translúcido y en oscuro un canto de luz cálida.
+    /// El alfa claro no se copia: un blanco al 70–90 % sobre negro es un anillo.
+    static func filoDeLuz(_ alfaClara: Double) -> Color {
+        let oscuro = min(0.28, max(0.12, alfaClara * 0.22))
+        return LiquidTheme.dynamic(light: Color.white.opacity(alfaClara),
+                                   dark: Color(hex: "#ECE9E0").opacity(oscuro))
     }
 
     // MARK: Plasta de «El Tablero» (FER-28 — 4 masas pálidas monocromas del veredicto)
