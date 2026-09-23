@@ -57,7 +57,7 @@ Las dimensiones combinan el marco de 6 ejes de NN/g, el modelo de zeroheight y e
 
 - **Medición interna:** conteos con `rg --glob '*.swift'` sobre app y paquete. Se leyeron
   `DESIGN.md`, `LIQUID-GLASS.md`, `CONTRATO.md`, `CATALOGO.md`, `ACCESIBILIDAD.md`, `CENSO.md`, la
-  auditoría `AUDITORIA-SISTEMA.md` (2026-09-01) como línea base, `DECISIONS.md`,
+  auditoría `historico/AUDITORIA-SISTEMA.md` (2026-09-01) como línea base, `DECISIONS.md`,
   `design-tokens.json`, `design-lint.yml`, `LiquidColor.swift`, `LiquidType.swift` y
   `LiquidGlassRecipes.swift`, además de los tests del paquete.
 - **Investigación externa:** la especificación estable de tokens del W3C (DTCG 2025.10: formato,
@@ -346,7 +346,7 @@ conservan a propósito por rollback (`Hypnogram`, `YearHeatStrip`, según `RETIR
 1. Marcar como deprecados todos los símbolos públicos de generación anterior que tengan 0 usos en
    la APP. El compilador avisa y los agentes dejan de ofrecerlos.
 2. Convertirlos a `internal` cuando sea posible, porque así salen del autocompletado de la app.
-3. Programar el lote de poda: la lista §3.1 y §3.2 de `AUDITORIA-SISTEMA.md`, re-censada.
+3. Programar el lote de poda: la lista §3.1 y §3.2 de `historico/AUDITORIA-SISTEMA.md`, re-censada.
 4. Que el dueño fije una fecha de caducidad al rollback de `Hypnogram` y `YearHeatStrip`.
 
 ### H9 · Baja-media: la documentación está dispersa y mezcla norma con historia
@@ -436,6 +436,28 @@ persona, humana o agente, usa bien sin preguntar, en todos los modos y tamaños.
 - Arquitectura de tokens en tres capas: [Design Tokens and Theming Architecture](https://sujeet.pro/articles/design-tokens-and-theming). Gobierno: [SeaLab, Governance Models, Metrics, and ROI](https://sealab.design/blog/design-system-governance/).
 
 **Internas.** `DESIGN.md`, `LIQUID-GLASS.md`, `CONTRATO.md`, `CATALOGO.md`, `ACCESIBILIDAD.md`,
-`CENSO.md`, `AUDITORIA-SISTEMA.md`, `RETIRADAS.md`, `docs/DECISIONS.md`, `design-tokens.json`,
+`CENSO.md`, `historico/AUDITORIA-SISTEMA.md`, `RETIRADAS.md`, `docs/DECISIONS.md`, `design-tokens.json`,
 `Tools/design-drift-baseline.json`, `LiquidColor.swift`, `LiquidType.swift`,
 `LiquidGlassRecipes.swift`, `CenitApp/App/CenitApp.swift` y `AjustesView.swift`.
+
+---
+
+## 6. Seguimiento (2026-09-23, misma sesión)
+
+| Hallazgo | Estado | Nota |
+|---|---|---|
+| H1 Dynamic Type | **Abierto: decisión del dueño** | El tope sale de un comentario de FER-394 en `CenitApp.swift` («no prometemos las 5 tallas de accesibilidad: romperían los layouts densos de un vistazo»). No está en `DECISIONS.md`. Desde entonces FER-501 hizo que 7 layouts cedan a tallas AX y varios componentes ya tienen camino de columna única que la app nunca alcanza. Recomendación: levantar el tope por etapas (primero `.accessibility3`, que ya pasa el 200 % de la etiqueta de Apple), manteniendo caps por componente para anillo, dial, keypad y tab bar. |
+| H2 Vidrio y accesibilidad | **Abierto: carril pesado** | No cambia nada para quien no activa esos ajustes. Se ejecuta con verificación en simulador. |
+| H3 Modo oscuro en docs | **Hecho en prosa** | DESIGN, CLAUDE.md, CONTRATO, ACCESIBILIDAD, RETIRADAS, LENGUAJE, contrato de hojas, LIQUID-GLASS, ARCHITECTURE y las instrucciones de `/ui` y `/criterio`. Pendiente: la columna oscura en `CATALOGO.md` y los modos en `design-tokens.json` exigen cambiar el generador en Swift (FER-451 resuelve en `.light` a propósito) y correrlo en macOS. |
+| H4 Tokens y duplicados | **Matizado** | Este repo decidió «rol ≠ valor» (FER-273/275): dos nombres con el mismo valor pueden ser dos roles legítimos. `positivo`/`verdeProfundo` y `atencion`/`ambar` son iguales en claro **y** en oscuro, así que el cambio correcto no es fusionarlos, sino que el rol apunte al primitivo (`positivo = verdeProfundo`) para que no diverjan por accidente. Es Swift: pendiente de una sesión con toolchain. |
+| H5 DTCG 2025.10 | Abierto | Cambio en el generador (Swift). |
+| H6 Regresión visual | Abierto: decisión del dueño | Dependencia de pruebas o comparador propio. |
+| H7 Nombres | Abierto: decisión del dueño | API pública. |
+| H8 Deprecaciones | Abierto | Swift. |
+| H9 Docs dispersas | **Hecho en parte** | Seis fotos históricas en `historico/` con README. `DESIGN.md §8` no se movió: contiene el bloque que regenera `CenitDesignTokens`. |
+| H10 Gates por AST | Abierto | Refactor de tooling; beneficio bajo frente a su riesgo hoy. |
+| H11 Reduce Motion central | Abierto | Swift. |
+
+**Por qué el resto sigue abierto.** Esta sesión corre en Linux sin toolchain de Swift, y
+`CenitDesign` depende de SwiftUI, que no existe en Linux. Ningún cambio de Swift podía pasar por
+`Tools/verify.sh`, y el repo no acepta Swift sin verificar.
