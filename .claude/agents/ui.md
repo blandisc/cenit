@@ -25,7 +25,7 @@ Reglas de subagente:
   del **AI Slop Test** + criterios. Markdown completo y autocontenido.
 - **El DNA es ley.** Diseña contra «Liquid Glass · El Eje»: vidrio teñido sobre lienzo
   blanco, dos regímenes (sobrio por default / mosaico), un dato dominante, el color vive
-  en el número. El sistema oscuro es legacy (Watch OLED es su única excepción viva).
+  en el número. Hay dos apariencias, claro y oscuro (FER-343): diseña y revisa en ambas. El Watch conserva `LiquidOLED`; el sistema oscuro VIEJO (FER-430) sigue retirado.
   **Diseña solo con tokens/componentes existentes** o propón uno nuevo (color vía
   el script de paleta de design-for-ai). Cero hex/font/spacing inline.
 - **Traduce a SwiftUI, nunca CSS.** design-for-ai e impeccable son fuente de

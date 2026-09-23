@@ -1,7 +1,7 @@
 # Lenguaje — voz, escritura y contenido
 
 > Compañero de [`DESIGN.md`](DESIGN.md). Donde `DESIGN.md` define **cómo se ve** el sistema
-> (**El Eje**: vidrio teñido sobre lienzo blanco, dos regímenes mosaico/sobrio),
+> (**El Eje**: vidrio teñido sobre lienzo claro u oscuro, dos regímenes mosaico/sobrio),
 > este documento define **cómo suena**: la voz, las reglas de escritura, el microcopy por
 > componente y el glosario canónico de términos. Es es-MX y describe lo que la app **ya hace** —
 > no inventa una voz nueva.

@@ -884,8 +884,9 @@ stays UIKit/AppKit-free by import; watchOS falls to a light-only `#else` because
 `Color.resolved(at:)`, which sets `EnvironmentValues.colorScheme` explicitly before `resolve(in:)` — a
 dynamic color does NOT resolve dark from the ambient appearance on a headless macOS test host, only from
 an explicit scheme (`LiquidThemeResolveTests`). A single global switch `LiquidTheme.oscuroHabilitado`
-(default `false`, read inside every provider) keeps everything resolving light — in every process, app and
-widgets — until A3 flips it atomically. Light-mode values are byte-identical to the old static hexes
+(read inside every provider) gated the rollout: it kept everything resolving light until A3/FER-347 flipped
+it to `true`, which is where it stays — the user's System · Light · Dark choice is `preferredColorScheme`
+(`ContentView`, `PrefKey.apariencia`, FER-348), not this flag; only tests toggle it. Light-mode values are byte-identical to the old static hexes
 (`LiquidThemeRegresionClaroTests`), so A1 changes nothing visible on its own.
 
 Contrast is mode-aware through one sanctioned helper, `LiquidColor.contrastTuned(_:against:)`: it darkens a

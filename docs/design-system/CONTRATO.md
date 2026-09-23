@@ -85,8 +85,8 @@ antes. No hay atajo en un solo PR, por diseño.
   invocación.
 - **CenitShared**: no importa `CenitDesign` a propósito (frontera de paquetes: Codable no puede
   depender del paquete de UI) — no hay nada que gatear ahí.
-- **Watch OLED**: la excepción viva del sistema oscuro; es su propio contexto de arbitraje, no
-  deuda.
+- **Watch OLED**: vocabulario propio (`LiquidOLED`); es su propio contexto de arbitraje, no
+  deuda. No confundir con el modo oscuro del iPhone (FER-343), que es parte de El Eje.
 
 ## Checklist Fase 1 — wrapping valor-neutral (cero pixel)
 
@@ -104,7 +104,8 @@ Todo issue de lote de wrapping **copia estos 5 puntos como criterios de aceptaci
 ## Regla de arbitraje de colisiones
 
 Cuando N valores compiten por el mismo rol: gana **El Eje**, en su contexto — hay
-**tres**: mosaico, sobrio y **Watch OLED** (el Watch no se pinta de blanco). Si Liquid no define el
+**tres**: mosaico, sobrio y **Watch OLED** (el Watch no se pinta de blanco). En el iPhone, cada
+veredicto se revisa en **los dos modos** (claro y oscuro): un valor que solo funciona en uno no gana. Si Liquid no define el
 rol, gana el valor más frecuente entre pantallas ya migradas; empate → decide el dueño con preview.
 Los veredictos viven en [CENSO.md](CENSO.md); a `docs/DECISIONS.md` solo sube la política.
 **Aplicar** un veredicto (cambiar píxeles) es trabajo de los lotes trimestrales (`/migracion` para

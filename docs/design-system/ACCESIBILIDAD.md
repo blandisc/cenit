@@ -7,7 +7,7 @@
 >
 > Cénit no es un dispositivo médico. Accesibilidad aquí = usable con VoiceOver, Dynamic Type, alto
 > contraste y Reduce Motion, en una app iOS de **El Eje** (vidrio teñido sobre
-> lienzo blanco). El contraste AA del vidrio teñido (`LiquidTono` × rol) se documenta en
+> lienzo claro, o sobre suelo negro en modo oscuro — épico FER-343). El contraste AA del vidrio teñido (`LiquidTono` × rol) se documenta en
 > [`LIQUID-GLASS.md` §4.1](LIQUID-GLASS.md); las pantallas de papel de la generación anterior
 > («Instrumento diurno», absorbida · en migración) siguen midiendo contra `paper` mientras migran.
 

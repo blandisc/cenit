@@ -140,7 +140,7 @@ primero `/ux` (o pídelo). Lee el `Carril`.
 Abre **`docs/design-system/DESIGN.md`** y trabaja contra «Liquid Glass · El Eje» (manifiesto de apertura + `LIQUID-GLASS.md`; §8 es la generación anterior en migración):
 vidrio teñido sobre lienzo blanco, **un número dominante** (régimen sobrio), **color con significado (valor + identidad de señal)**, **jerarquía por
 espacio (no por cajas)**, overline moderada — y el componente firma `RecoveryRing`.
-El sistema oscuro (§1–§7) es **legacy**: se mantiene, no se diseña nuevo ahí.
+El Eje tiene **dos apariencias, claro y oscuro** (épico FER-343): cada estado del preview se revisa en ambas y todo token nuevo nace con su gemelo oscuro (`LiquidTheme.dynamic`). Lo legacy es el sistema oscuro **viejo** (§1–§7, FER-430): no se diseña nuevo ahí.
 Después abre `Packages/CenitDesign`: inventario real de `InstrumentoTheme`,
 `CenitFont`, `NoopMetrics`, componentes. Diseña **con lo que existe**. Si algo de
 verdad falta, **propón un token/componente nuevo en CenitDesign** (con su
@@ -251,8 +251,8 @@ verdad que se codifica; los criterios de UI entran al QA.
 
 ## Reglas no negociables (de CLAUDE.md — síguelas, no las repitas)
 
-- **El DNA es ley.** Diseña contra «Liquid Glass · El Eje» (DESIGN.md, manifiesto de apertura). El oscuro es
-  legacy (Watch OLED la única excepción). Respeta §8.4 enmendada (un dominante en sobrio; el color vive en el dato en sobrio o tiñe la superficie ~10% en mosaico; jerarquía por espacio).
+- **El DNA es ley.** Diseña contra «Liquid Glass · El Eje» (DESIGN.md, manifiesto de apertura). Dos apariencias
+  (claro y oscuro, FER-343); el sistema oscuro viejo es legacy y el Watch conserva `LiquidOLED`. Respeta §8.4 enmendada (un dominante en sobrio; el color vive en el dato en sobrio o tiñe la superficie ~10% en mosaico; jerarquía por espacio).
 - **Solo tokens de CenitDesign.** Cero hex/font/spacing hardcodeado. Token que
   falta → se agrega a CenitDesign con `#Preview` (color nuevo vía el script de
   paleta), no inline.
@@ -266,6 +266,6 @@ verdad que se codifica; los criterios de UI entran al QA.
   regrésalo.
 - No escribas la pantalla final — eso es `/implement`.
 - No inventes tokens, símbolos, componentes ni rutas; léelos de CenitDesign/DESIGN.md.
-- No diseñes nuevo en el sistema oscuro legacy.
+- No diseñes nuevo en el sistema oscuro viejo (FER-430); el modo oscuro de El Eje sí se diseña.
 - No entregues el spec sin pasar el AI Slop Test y sin el preview aprobado.
 - No emitas CSS/Tailwind como si fuera la solución. No hay "hex temporal".

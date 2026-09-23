@@ -5,7 +5,7 @@
 > llamándose `liquidGlass`; este archivo conserva su nombre de ruta.
 
 > **Un solo lenguaje: El Eje.** Cada pantalla se lee como un instrumento de precisión hecho
-> de **vidrio teñido sobre un lienzo blanco**: color con significado (el valor y la
+> de **vidrio teñido sobre un lienzo claro** (u oscuro en modo oscuro, épico FER-343 — ver §1): color con significado (el valor y la
 > identidad de cada señal), jerarquía por espacio, numerales tabulares, movimiento fisiológico.
 > El vidrio toma el tono de identidad de lo que contiene, con la misma refracción, filo y sombra
 > en todo el sistema.
@@ -61,6 +61,7 @@ Una pantalla se arma como Lego: **tokens → átomos → componentes → pantall
 | Tonos de dato (1:1, no intercambiables) | `indigo`→sueño · `cian`→HRV · `rosa`→FC reposo · `ambar`→esfuerzo/temp. piel · `teal`→pasos · `azul`→respiración · `oro`→amanecer | en **sobrio**: el tono tiñe gota + numeral; en **mosaico**: también tiñe la superficie del vidrio (~10 %) vía `LiquidTono` — ver §4.1 |
 | Semánticos | `positivo` `#00774B` · `atencion` `#C4631F` · `negativo` `#B3402A` | deltas y estados (`LiquidDeltaTone`, `LiquidSignalState`) |
 | Partículas del Ecosistema (FER-10) | `particulaVerde` `#10694E` · `particulaRoja` `#963426` · `particulaNeutra` `#737670` · `rojoClaro` `#E06C56` | tinta de las esferas de partículas del héroe (verde=rango/atención, roja=desgaste, neutra=calibrando/guardián) y el rojo claro del clima de alerta |
+| Modo oscuro | cada token de esta tabla con `LiquidTheme.dynamic(light:dark:)` tiene un gemelo oscuro en `LiquidColor.swift`; los hex de esta tabla son los del **claro** | el lienzo oscuro es negro (`fondoBajo` `#000000`), las superficies carbón; el contraste de dato pasa por `contrastTuned` |
 | Blancos de vidrio | `vidrioEspecular` .92 · `vidrioBorde*` .72–.9 · `vidrioStreak` .55 · `vidrioLente` .38 · `vidrioPastilla` .46 · `vidrioSuperficie` .46 · `vidrioAtmosfera` .30 | alfas del ramo **claro**. En oscuro el relleno es carbón elevado y el filo es un canto de luz: un velo blanco sobre negro no sostiene la tinta clara |
 
 ## 2. Tipografía (`LiquidType`)

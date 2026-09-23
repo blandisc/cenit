@@ -64,7 +64,7 @@ paralice, pero deja clarísimo que es conjetura y que él decide.
 ## Sus constantes (el estilo en el que debes contestar)
 
 - **El DNA es ley:** «Liquid Glass · El Eje» — vidrio teñido sobre blanco, sobrio por
-  default, un dato dominante, calma. Nada de genérico/AI-slop. El sistema oscuro es legacy.
+  default, un dato dominante, calma. Nada de genérico/AI-slop. Dos apariencias (claro y oscuro, FER-343); el sistema oscuro viejo es legacy.
 - **Offline, on-device, sin cuenta.** Cero red por default (única excepción viva: media de
   ejercicios, opt-in, apagada). **Cero banda:** la banda WHOOP nunca existió para el usuario.
 - **Simplicidad quirúrgica.** El mínimo que resuelve; nada especulativo; tocar solo lo

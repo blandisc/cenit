@@ -1,7 +1,7 @@
 # Cenit / Cénit — Design System
 
 > **Un solo lenguaje: «El Eje».** Cada pantalla se lee como un instrumento de precisión hecho
-> de vidrio teñido sobre un lienzo blanco: **color con significado (el valor y la identidad
+> de vidrio teñido sobre un lienzo claro (u oscuro, si la persona eligió el modo oscuro): **color con significado (el valor y la identidad
 > de cada señal)**, jerarquía por espacio, numerales tabulares que nunca se reacomodan, movimiento
 > fisiológico. La calidez ya no vive en el lienzo, vive en el vidrio y las tarjetas.
 > «Liquid Glass» ya no es el nombre del sistema (2026-09-21): chocaba con el material de Apple.
@@ -18,7 +18,8 @@
 
 > **«Instrumento diurno / papel cálido» se retiró como marco:** su punto de vista se absorbe; las
 > pantallas de papel migran; los componentes de papel se borran al migrar su último consumidor. El
-> sistema oscuro sigue retirado (FER-430); Watch OLED es la única excepción viva. El inventario aún
+> sistema oscuro **viejo** (la paleta `CenitPalette` de la era previa) sigue retirado (FER-430). El Eje
+> tiene su propio **modo oscuro** (FER-343, ver §7); el Watch conserva `LiquidOLED`. El inventario aún
 > en migración vive en **[§8](#8-instrumento-diurno--generación-anterior-absorbida--en-migración)**.
 
 - **Source of truth:** the `CenitDesign` Swift package — `Packages/CenitDesign/Sources/CenitDesign/`
@@ -210,7 +211,8 @@ See [`assets/`](assets/) (and its [README](assets/README.md)):
 
 ## 7. Usage notes
 
-- **Lienzo canónico = blanco (El Eje).** El sistema oscuro se retiró (FER-430); la única excepción viva es Watch OLED. Previews Liquid no fuerzan `.dark`.
+- **Dos apariencias: claro y oscuro (El Eje, épico FER-343).** La persona elige Sistema · Claro · Oscuro en Ajustes (default: Sistema). En claro el lienzo es casi blanco (`fondoAlto`/`fondoBajo`); en oscuro el suelo es negro, las superficies son carbón con un canto de luz y los tonos de dato tienen su gemelo oscuro. Todo token nuevo de `LiquidColor` nace con los dos valores vía `LiquidTheme.dynamic(light:dark:)`; el contraste de dato pasa por `LiquidColor.contrastTuned` (sabe en qué modo está). Una pantalla nueva se diseña y se revisa en los dos modos. El Apple Watch conserva `LiquidOLED` (D1). Lo que sigue retirado es el sistema oscuro **viejo** (FER-430). Mecánica completa: [`ARCHITECTURE.md` · Two-mode color resolution](../ARCHITECTURE.md).
+- **Los hex de este doc, de [CATALOGO.md](CATALOGO.md) y de [`design-tokens.json`](tokens/design-tokens.json) son los del modo claro.** El generador resuelve en `.light` a propósito (FER-451). Los gemelos oscuros viven junto a cada token en `LiquidColor.swift`.
 - **Data colors come from scales, chrome comes from `accent`.** Never tint a metric with `accent`; never reuse a status color as a recovery color.
 - **Numerics are tabular.** Any live value uses a `*Number` font — en Liquid, `LiquidType.valor*` / helpers; en legado Instrumento, `CenitFont.number(...)` — so digits don't shift.
 - **Compose from the locked set (retired).** This dark-legacy set was retired in FER-444; new cards

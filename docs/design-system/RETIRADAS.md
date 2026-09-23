@@ -1,6 +1,6 @@
 # Qué se retiró
 
-El sistema se llama **El Eje**. El look sigue siendo vidrio teñido sobre lienzo blanco, en mosaico o sobrio.
+El sistema se llama **El Eje**. El look sigue siendo vidrio teñido sobre lienzo claro (u oscuro, en modo oscuro), en mosaico o sobrio.
 
 | Se retiró como nombre o como opción oficial | Qué queda en su lugar |
 |---|---|
