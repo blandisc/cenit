@@ -1,9 +1,9 @@
 # ICONOS — borrador de vocabulario canónico (FER-269c · Fase 3)
 
 > **Solo reporte.** Cero cambios de producción. Inventario auditado de los **65** hits
-> `dimension: iconografia` / `rule: literal-systemName` en [`CENSO.json`](CENSO.json).
+> `dimension: iconografia` / `rule: literal-systemName` en [`CENSO.json`](../CENSO.json).
 > Agrupa por **concepto** (lo que el usuario entiende), no por string SF. Compañero de
-> [`ICONOGRAFIA.md`](ICONOGRAFIA.md) y del catálogo `CenitIcon`.
+> [`ICONOGRAFIA.md`](../ICONOGRAFIA.md) y del catálogo `CenitIcon`.
 
 ## Totales
 
