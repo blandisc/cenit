@@ -16,7 +16,8 @@
           "nav": "today",
           "settle": 5
         }
-      ]
+      ],
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "calibrando",
@@ -31,7 +32,8 @@
           "nav": "today",
           "settle": 5
         }
-      ]
+      ],
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "descargando",
@@ -46,7 +48,8 @@
           "nav": "today",
           "settle": 5
         }
-      ]
+      ],
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "apunto",
@@ -61,7 +64,8 @@
           "nav": "today",
           "settle": 5
         }
-      ]
+      ],
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "exigido",
@@ -76,7 +80,8 @@
           "nav": "today",
           "settle": 5
         }
-      ]
+      ],
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "equilibrado",
@@ -91,7 +96,8 @@
           "nav": "today",
           "settle": 5
         }
-      ]
+      ],
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "desgastado",
@@ -106,7 +112,8 @@
           "nav": "today",
           "settle": 5
         }
-      ]
+      ],
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "insufficient",
@@ -121,7 +128,8 @@
           "nav": "today",
           "settle": 5
         }
-      ]
+      ],
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "t4-sin-permiso",
@@ -137,7 +145,8 @@
           "nav": "today",
           "settle": 5
         }
-      ]
+      ],
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "t5-dormido",
@@ -159,7 +168,8 @@
           "nav": "today",
           "settle": 5
         }
-      ]
+      ],
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "t3-sin-sync",
@@ -194,7 +204,8 @@
           "nav": "today",
           "settle": 5
         }
-      ]
+      ],
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "preparacion-cargando",
@@ -212,7 +223,8 @@
         {
           "wait": 2
         }
-      ]
+      ],
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "preparacion-sin-permiso",
@@ -231,7 +243,8 @@
         {
           "wait": 2
         }
-      ]
+      ],
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "preparacion-sin-historia",
@@ -249,7 +262,8 @@
         {
           "wait": 2
         }
-      ]
+      ],
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "preparacion-con-ventana",
@@ -268,7 +282,8 @@
         {
           "wait": 2
         }
-      ]
+      ],
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "veredicto-acta",
@@ -283,7 +298,8 @@
         {
           "tapText": "Cómo llegué a esto"
         }
-      ]
+      ],
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "guardian",
@@ -298,7 +314,8 @@
         {
           "tapId": "matriz-seccion-guardian"
         }
-      ]
+      ],
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "decide-manual",
@@ -313,7 +330,8 @@
         {
           "tapText": "Deciden tu día"
         }
-      ]
+      ],
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "contexto-manual",
@@ -328,7 +346,8 @@
         {
           "tapText": "Contexto"
         }
-      ]
+      ],
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "autonomico",
@@ -347,7 +366,8 @@
         {
           "wait": 2
         }
-      ]
+      ],
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "sueno",
@@ -366,7 +386,8 @@
         {
           "wait": 2
         }
-      ]
+      ],
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "esfuerzo",
@@ -441,7 +462,8 @@
         {
           "tapId": "matriz-seccion-carga"
         }
-      ]
+      ],
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "metrica-hrv",
@@ -456,7 +478,8 @@
         {
           "tapId": "matriz-seccion-hrv"
         }
-      ]
+      ],
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "metrica-rhr",
@@ -471,7 +494,8 @@
         {
           "tapId": "matriz-seccion-rhr"
         }
-      ]
+      ],
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "metrica-steps",
@@ -486,7 +510,8 @@
         {
           "tapId": "matriz-seccion-steps"
         }
-      ]
+      ],
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "metrica-sleep",
@@ -501,7 +526,8 @@
         {
           "tapId": "matriz-seccion-sleep"
         }
-      ]
+      ],
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "metrica-resp-rate",
@@ -520,7 +546,8 @@
         {
           "wait": 2
         }
-      ]
+      ],
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "metrica-heart-rate",
@@ -539,7 +566,8 @@
         {
           "wait": 2
         }
-      ]
+      ],
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "metrica-spo2",
@@ -558,7 +586,8 @@
         {
           "wait": 2
         }
-      ]
+      ],
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "metrica-vo2max",
@@ -577,7 +606,8 @@
         {
           "wait": 2
         }
-      ]
+      ],
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "fuentes",
@@ -596,7 +626,8 @@
         {
           "wait": 2
         }
-      ]
+      ],
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     }
   ],
   "aristas": [

@@ -22,7 +22,8 @@
       "frames": 2,
       "png": "tendencias-cuerpo-m.png",
       "x": 0,
-      "y": 0
+      "y": 0,
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "detalle-avg-hr-m-full",
@@ -43,7 +44,8 @@
       "png": "tendencias-detalle-avg-hr-m-full.png",
       "x": 0,
       "y": 200,
-      "fixture": "tendencias_full"
+      "fixture": "tendencias_full",
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "detalle-max-hr-m-full",
@@ -64,7 +66,8 @@
       "png": "tendencias-detalle-max-hr-m-full.png",
       "x": 0,
       "y": 460,
-      "fixture": "tendencias_full"
+      "fixture": "tendencias_full",
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "detalle-energy-kcal-m-full",
@@ -85,7 +88,8 @@
       "png": "tendencias-detalle-energy-kcal-m-full.png",
       "x": 0,
       "y": 720,
-      "fixture": "tendencias_full"
+      "fixture": "tendencias_full",
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "detalle-vo2max-m-full",
@@ -106,7 +110,8 @@
       "png": "tendencias-detalle-vo2max-m-full.png",
       "x": 0,
       "y": 980,
-      "fixture": "tendencias_full"
+      "fixture": "tendencias_full",
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "detalle-recovery-m-full",
@@ -127,7 +132,8 @@
       "png": "tendencias-detalle-recovery-m-full.png",
       "x": 0,
       "y": 1240,
-      "fixture": "tendencias_full"
+      "fixture": "tendencias_full",
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "detalle-hrv-m-full",
@@ -148,7 +154,8 @@
       "png": "tendencias-detalle-hrv-m-full.png",
       "x": 0,
       "y": 1500,
-      "fixture": "tendencias_full"
+      "fixture": "tendencias_full",
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "detalle-rhr-m-full",
@@ -169,7 +176,8 @@
       "png": "tendencias-detalle-rhr-m-full.png",
       "x": 0,
       "y": 1760,
-      "fixture": "tendencias_full"
+      "fixture": "tendencias_full",
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "detalle-resp-rate-m-full",
@@ -190,7 +198,8 @@
       "png": "tendencias-detalle-resp-rate-m-full.png",
       "x": 0,
       "y": 2020,
-      "fixture": "tendencias_full"
+      "fixture": "tendencias_full",
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "detalle-spo2-m-full",
@@ -211,7 +220,8 @@
       "png": "tendencias-detalle-spo2-m-full.png",
       "x": 0,
       "y": 2280,
-      "fixture": "tendencias_full"
+      "fixture": "tendencias_full",
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "detalle-skin-temp-m-full",
@@ -232,7 +242,8 @@
       "png": "tendencias-detalle-skin-temp-m-full.png",
       "x": 0,
       "y": 2540,
-      "fixture": "tendencias_full"
+      "fixture": "tendencias_full",
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "detalle-sleep-performance-m-full",
@@ -253,7 +264,8 @@
       "png": "tendencias-detalle-sleep-performance-m-full.png",
       "x": 0,
       "y": 2800,
-      "fixture": "tendencias_full"
+      "fixture": "tendencias_full",
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "detalle-in-bed-min-m-full",
@@ -274,7 +286,8 @@
       "png": "tendencias-detalle-in-bed-min-m-full.png",
       "x": 0,
       "y": 3060,
-      "fixture": "tendencias_full"
+      "fixture": "tendencias_full",
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "detalle-sleep-total-min-m-full",
@@ -295,7 +308,8 @@
       "png": "tendencias-detalle-sleep-total-min-m-full.png",
       "x": 0,
       "y": 3320,
-      "fixture": "tendencias_full"
+      "fixture": "tendencias_full",
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "detalle-hours-vs-needed-pct-m-full",
@@ -316,7 +330,8 @@
       "png": "tendencias-detalle-hours-vs-needed-pct-m-full.png",
       "x": 0,
       "y": 3580,
-      "fixture": "tendencias_full"
+      "fixture": "tendencias_full",
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "detalle-sleep-consistency-m-full",
@@ -337,7 +352,8 @@
       "png": "tendencias-detalle-sleep-consistency-m-full.png",
       "x": 0,
       "y": 3840,
-      "fixture": "tendencias_full"
+      "fixture": "tendencias_full",
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "detalle-restorative-pct-m-full",
@@ -358,7 +374,8 @@
       "png": "tendencias-detalle-restorative-pct-m-full.png",
       "x": 0,
       "y": 4100,
-      "fixture": "tendencias_full"
+      "fixture": "tendencias_full",
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "detalle-restorative-min-m-full",
@@ -379,7 +396,8 @@
       "png": "tendencias-detalle-restorative-min-m-full.png",
       "x": 0,
       "y": 4360,
-      "fixture": "tendencias_full"
+      "fixture": "tendencias_full",
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "detalle-sleep-efficiency-m-full",
@@ -400,7 +418,8 @@
       "png": "tendencias-detalle-sleep-efficiency-m-full.png",
       "x": 0,
       "y": 4620,
-      "fixture": "tendencias_full"
+      "fixture": "tendencias_full",
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "detalle-sleep-deep-min-m-full",
@@ -421,7 +440,8 @@
       "png": "tendencias-detalle-sleep-deep-min-m-full.png",
       "x": 0,
       "y": 4880,
-      "fixture": "tendencias_full"
+      "fixture": "tendencias_full",
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "detalle-sleep-rem-min-m-full",
@@ -442,7 +462,8 @@
       "png": "tendencias-detalle-sleep-rem-min-m-full.png",
       "x": 0,
       "y": 5140,
-      "fixture": "tendencias_full"
+      "fixture": "tendencias_full",
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "detalle-sleep-light-min-m-full",
@@ -463,7 +484,8 @@
       "png": "tendencias-detalle-sleep-light-min-m-full.png",
       "x": 0,
       "y": 5400,
-      "fixture": "tendencias_full"
+      "fixture": "tendencias_full",
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "detalle-sleep-need-min-m-full",
@@ -484,7 +506,8 @@
       "png": "tendencias-detalle-sleep-need-min-m-full.png",
       "x": 0,
       "y": 5660,
-      "fixture": "tendencias_full"
+      "fixture": "tendencias_full",
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "detalle-sleep-debt-min-m-full",
@@ -505,7 +528,8 @@
       "png": "tendencias-detalle-sleep-debt-min-m-full.png",
       "x": 0,
       "y": 5920,
-      "fixture": "tendencias_full"
+      "fixture": "tendencias_full",
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "detalle-strain-m-full",
@@ -526,7 +550,8 @@
       "png": "tendencias-detalle-strain-m-full.png",
       "x": 0,
       "y": 6180,
-      "fixture": "tendencias_full"
+      "fixture": "tendencias_full",
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "detalle-steps-m-full",
@@ -547,7 +572,8 @@
       "png": "tendencias-detalle-steps-m-full.png",
       "x": 0,
       "y": 6440,
-      "fixture": "tendencias_full"
+      "fixture": "tendencias_full",
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "detalle-hr-zones13-min-m-full",
@@ -568,7 +594,8 @@
       "png": "tendencias-detalle-hr-zones13-min-m-full.png",
       "x": 0,
       "y": 6700,
-      "fixture": "tendencias_full"
+      "fixture": "tendencias_full",
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "detalle-hr-zones45-min-m-full",
@@ -589,7 +616,8 @@
       "png": "tendencias-detalle-hr-zones45-min-m-full.png",
       "x": 0,
       "y": 6960,
-      "fixture": "tendencias_full"
+      "fixture": "tendencias_full",
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "detalle-hr-zones-all-min-m-full",
@@ -610,7 +638,8 @@
       "png": "tendencias-detalle-hr-zones-all-min-m-full.png",
       "x": 0,
       "y": 7220,
-      "fixture": "tendencias_full"
+      "fixture": "tendencias_full",
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "detalle-strength-min-m-full",
@@ -631,7 +660,8 @@
       "png": "tendencias-detalle-strength-min-m-full.png",
       "x": 0,
       "y": 7480,
-      "fixture": "tendencias_full"
+      "fixture": "tendencias_full",
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "detalle-active-kcal-m-full",
@@ -652,7 +682,8 @@
       "png": "tendencias-detalle-active-kcal-m-full.png",
       "x": 0,
       "y": 7740,
-      "fixture": "tendencias_full"
+      "fixture": "tendencias_full",
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "detalle-weight-m-full",
@@ -673,7 +704,8 @@
       "png": "tendencias-detalle-weight-m-full.png",
       "x": 0,
       "y": 8000,
-      "fixture": "tendencias_full"
+      "fixture": "tendencias_full",
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "detalle-body-fat-m-full",
@@ -694,7 +726,8 @@
       "png": "tendencias-detalle-body-fat-m-full.png",
       "x": 0,
       "y": 8260,
-      "fixture": "tendencias_full"
+      "fixture": "tendencias_full",
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "detalle-lean-mass-m-full",
@@ -715,7 +748,8 @@
       "png": "tendencias-detalle-lean-mass-m-full.png",
       "x": 0,
       "y": 8520,
-      "fixture": "tendencias_full"
+      "fixture": "tendencias_full",
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "detalle-bmi-m-full",
@@ -736,7 +770,8 @@
       "png": "tendencias-detalle-bmi-m-full.png",
       "x": 0,
       "y": 8780,
-      "fixture": "tendencias_full"
+      "fixture": "tendencias_full",
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "detalle-stress-m-full",
@@ -757,7 +792,8 @@
       "png": "tendencias-detalle-stress-m-full.png",
       "x": 0,
       "y": 9040,
-      "fixture": "tendencias_full"
+      "fixture": "tendencias_full",
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "detalle-heart-rate-m-full",
@@ -778,7 +814,8 @@
       "png": "tendencias-detalle-heart-rate-m-full.png",
       "x": 0,
       "y": 9300,
-      "fixture": "tendencias_full"
+      "fixture": "tendencias_full",
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "explorar-full",
@@ -797,7 +834,8 @@
       "png": "tendencias-explorar-full.png",
       "x": 3200,
       "y": 0,
-      "fixture": "tendencias_full"
+      "fixture": "tendencias_full",
+      "omitido": "Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega aquí. Se borra en la ola 0 · E."
     },
     {
       "id": "explorar-vacio",

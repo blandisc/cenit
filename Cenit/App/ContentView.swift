@@ -26,9 +26,6 @@ struct ContentView: View {
     /// Se mide del tamaño de pantalla + área segura; `nil` hasta medir → la entrada cae al
     /// cénit fijo de siempre (sin regresión). Ver `heroDestinoRect`.
     @State private var heroDestino: CGRect? = nil
-    /// Whether Today is the active tab (RootTabView keeps this in sync). Drives the app's color scheme
-    /// so the status bar is dark on Today's light paper and light on the dark instrument tabs.
-    @State private var isTodayTab = true
     /// Inject: al observar la recarga en caliente, la vista se redibuja cuando InjectionNext intercambia
     /// el código. No-op en Release. Puesta en la raíz → toda la app reacciona; para una pantalla puntual,
     /// copia estas dos líneas (la propiedad + `.enableInjection()` al final del `body`) en ese struct —
@@ -89,7 +86,9 @@ struct ContentView: View {
 
     var body: some View {
         ZStack {
-            RootTabView(isTodayActive: $isTodayTab)
+            // CEN-43 · la raíz es la sesión (antes / durante / después), sin dock ni pestañas.
+            // `RootTabView` queda sin puerta (se borra en la ola 0 · E).
+            FuerzaRootView()
             #if os(iOS) && DEBUG
             // FER-315 · galería de componentes: con el launch-arg `-cenit.component <Nombre>` el harness
             // monta UNA pieza de CenitDesign a pantalla completa (fondo opaco → tapa todo lo de atrás).

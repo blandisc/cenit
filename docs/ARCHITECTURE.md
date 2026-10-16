@@ -748,7 +748,21 @@ Apple Health, Data Sources, Settings, Support). There is no `LiveState` injectio
 (the BLE connection snapshot type was removed with the band amputation), and no separately reachable
 Automations screen. The home / lock-screen widgets live in `CenitWidgets/`.
 
-**Navigation shell (FER-490).** Three tabs — **Entrenar · Cuerpo · Ajustes** — on the system
+**Navigation root (CEN-43 · «Camino C+», DECISIONS 2026-10-15) — supersedes the shell below.** The
+root is the session, not a tab bar: `ContentView` mounts `FuerzaRootView` (`Cenit/App/`), with three
+states and no dock. **Antes** is today's routine with each exercise's «siguiente paso» (read from the
+slots `Repository.seedTodaySlots` seeds — the same `ProgressionPlanner` output the hub and the watch
+use) and «Empezar»; with no routine today it falls back to the existing `EntrenarView` (plan door:
+templates / import / create, and the rest state). **Durante** is the existing live session
+(`RoutineSheet(.live)` in a `fullScreenCover`, state in `AppModel`), and **Después** is its acta;
+the acta's «Listo» closes the session and the root is Antes again. Plan, Progreso and Ajustes are
+sheets from Antes (`WeeklyPlanEditorView` · `WorkoutHistoryScreen`/records/library · `AjustesView`).
+`TabRouter` is still injected, but only its one-shot requests matter (start today / a named routine
+from the widget and Siri, «Ver mapa»); tab requests are consumed and ignored. The Hoy, Cuerpo and
+Tendencias screens and `RootTabView` remain in the tree **unreachable** until the reachability sweep
+(wave 0 · E) deletes them; their appmap nodes are marked `omitido`.
+
+**Navigation shell (FER-490, no longer mounted).** Three tabs — **Entrenar · Cuerpo · Ajustes** — on the system
 `TabView` bar. The item labels are the catalog keys `Train` · `Body` · `Settings` (the same keys as
 the screen titles; Spanish renders Entrenar · Cuerpo · Ajustes). `LiquidTabBar` is no longer the
 shell: it stays in the design system for the component gallery and `LiquidHoyScreen` previews, and
