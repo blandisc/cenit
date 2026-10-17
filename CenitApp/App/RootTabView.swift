@@ -441,7 +441,7 @@ struct RootTabView: View {
     }
 }
 
-private extension View {
+extension View {
     /// iOS 26 puede encoger la tab bar. La píldora no sigue esa altura (no se puede
     /// comprobar aquí), así que la barra no se encoge. En iOS 17–25 el modificador no existe.
     @ViewBuilder
@@ -454,6 +454,7 @@ private extension View {
     }
 
     /// Píldora de sesión minimizada, en el área segura inferior de la pestaña.
+    /// CEN-43: la comparte `FuerzaRootView` (ya no es `private`; este archivo se borra en la ola 0 · E).
     /// Sin sesión (o con la hoja abierta) el contenido mide cero y `spacing` es cero:
     /// no se suma un hueco encima de la tab bar del sistema.
     func activeSessionPillInset(model: AppModel, confirmDiscard: Binding<Bool>) -> some View {

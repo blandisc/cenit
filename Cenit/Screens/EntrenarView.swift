@@ -41,7 +41,8 @@ struct EntrenarView: View {
     @ObserveInjection private var inject
 
     var openRoutine: (String) -> Void
-    var openBreathe: () -> Void
+    /// `nil` = la puerta «Respira» no se muestra (CEN-43: la raíz de Fuerza no tiene esa pantalla).
+    var openBreathe: (() -> Void)?
     var openIntervals: () -> Void
     /// Push «Mis entrenamientos» (the completed-session history, FER-504).
     var openHistory: () -> Void
@@ -58,6 +59,12 @@ struct EntrenarView: View {
     /// Push «Tus marcas» (`PersonalRecordsRoute`, FER-360) — from the hub's «Marcas» tile, ALWAYS
     /// (the tile no longer hides without PRs; it opens the honest-empty screen instead).
     var openMarcas: () -> Void
+    /// CEN-43: avisa a quien aloja el hub (la raíz de Fuerza) que `load()` terminó, para que decida si
+    /// ya hay una rutina de hoy (p. ej. tras aplicar una plantilla). `nil` = nadie escucha.
+    var onPlanLoaded: (() -> Void)? = nil
+    /// CEN-43 (Camino C+): la recuperación salió del producto. La raíz de Fuerza pide NO pintar el hilo
+    /// del veredicto («En rango…») ni «Contexto · Carga». `false` = el hub de siempre.
+    var ocultarRecuperacion: Bool = false
 
     var body: some View {
         EntrenarLanding(openRoutine: openRoutine,
@@ -65,7 +72,8 @@ struct EntrenarView: View {
                         openHistory: openHistory, openWeeklyPlan: openWeeklyPlan,
                         openRoutines: openRoutines,
                         openWorkoutSession: openWorkoutSession, openMuscleMap: openMuscleMap,
-                        openMarcas: openMarcas)
+                        openMarcas: openMarcas, onPlanLoaded: onPlanLoaded,
+                        ocultarRecuperacion: ocultarRecuperacion)
             .enableInjection()   // Inject: ver la nota en `inject` arriba (no-op en Release)
     }
 }
@@ -76,7 +84,7 @@ private struct EntrenarLanding: View {
     @EnvironmentObject var tabRouter: TabRouter
 
     var openRoutine: (String) -> Void
-    var openBreathe: () -> Void
+    var openBreathe: (() -> Void)?
     var openIntervals: () -> Void
     var openHistory: () -> Void
     var openWeeklyPlan: () -> Void
@@ -84,6 +92,8 @@ private struct EntrenarLanding: View {
     var openWorkoutSession: (WorkoutSessionRoute) -> Void
     var openMuscleMap: () -> Void
     var openMarcas: () -> Void
+    var onPlanLoaded: (() -> Void)?
+    var ocultarRecuperacion: Bool = false
 
     @State private var loaded = false
     @State private var loadFailed = false   // store couldn't be read — a real error, NOT «no plan yet»
@@ -243,7 +253,7 @@ private struct EntrenarLanding: View {
                 // FER-132 §5: con `loadFailed` el hilo se OCULTA — el hilo habla del cuerpo, pero
                 // esta pantalla ya no pudo leer NADA de la base, y un veredicto flotando sobre un
                 // error de lectura sugiere que el resto sí cargó cuando no fue así.
-                if !loadFailed {
+                if !loadFailed, !ocultarRecuperacion {
                     hiloDelVeredicto.padding(.top, LiquidSpace.s200)
                     // Ola 2 (FER-488) · decisión 6 (DECISIONS.md 2026-09-15): «Contexto · Carga»
                     // inmediatamente debajo del hilo, nunca en la misma fila — ver `filaCargaEstado`
@@ -1111,7 +1121,7 @@ private struct EntrenarLanding: View {
     /// solo pinta esos dos héroes cuando `model.strengthSession == nil`. La subtítulo «Resumes the
     /// session you have open» nunca se alcanzaba.
     private var puertas: [Puerta] {
-        [
+        let todas: [Puerta] = [
             // FER-246 — misma etiqueta que la sesión que abre (`Quick strength` / «Rápido de fuerza»).
             Puerta(icon: "bolt.fill", label: "Quick strength",
                    subtitle: "Starts empty, you log as you go",
@@ -1124,8 +1134,10 @@ private struct EntrenarLanding: View {
                    hint: "Starts a guided mobility session.") { startMobilityFromDisc() },
             Puerta(icon: "wind", label: "Breathe",
                    subtitle: "Guided breathing · 3 min",
-                   hint: "Opens guided breathing.") { openBreathe() },
+                   hint: "Opens guided breathing.") { openBreathe?() },
         ]
+        // CEN-43: sin destino para «Respira» (la raíz de Fuerza no lo tiene) la puerta no se pinta.
+        return openBreathe == nil ? todas.filter { $0.icon != "wind" } : todas
     }
 
     /// El toggle «Other ways ›» solo. `fillsWidth` (default `true`, el comportamiento de antes):
@@ -1831,6 +1843,7 @@ private struct EntrenarLanding: View {
         if startWhenLoaded { startWhenLoaded = false; startToday() }
         // FER-522: a named Siri start that landed before the prefetch finished.
         if tabRouter.startRoutineId != nil { consumeNamedStart() }
+        onPlanLoaded?()
         return true
     }
 

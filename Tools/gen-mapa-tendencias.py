@@ -174,12 +174,20 @@ def edges(catalog: list[tuple[str, str]]) -> list[dict]:
     return out
 
 
+SIN_PUERTA_CEN43 = ("Sin puerta desde CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y "
+                    "ninguna navegación llega aquí. Se borra en la ola 0 · E.")
+
+
 def build_manifest(full: bool = False) -> dict:
     """Construye el manifiesto en memoria. `full` selecciona los 6 rangos (misma semántica que `--full`)."""
     global RANGES
     RANGES = FULL_RANGES if full else [DEFAULT_RANGE]
     catalog = read_catalog()
     nodos = landing_nodes() + metric_nodes(catalog) + aux_nodes()
+    # CEN-43 (Camino C+, DECISIONS 2026-10-15): la raíz es la sesión y ninguna navegación llega a
+    # Tendencias/Cuerpo. Todo nodo queda omitido hasta el barrido de la ola 0 · E, que borra la familia.
+    for n in nodos:
+        n.setdefault("omitido", SIN_PUERTA_CEN43)
     rangos_txt = "×".join(RANGES) if len(RANGES) > 1 else RANGES[0]
     return {
         "familia": "tendencias",

@@ -20,6 +20,12 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
 
 ## Unreleased
 
+- **Abres Cénit y estás a un toque de tu primera serie / Open Cénit and you're one tap from your first set**
+  ### ES
+  La app ya no tiene barra de pestañas. Al abrirla ves la rutina de hoy, con lo que sigue para cada ejercicio (el peso de la última vez, o la subida que ganaste), y un botón «Empezar». Al terminar ves tu acta y «Listo» te regresa al inicio, con la rutina que sigue o «Hoy ya entrenaste». Tu plan, tu progreso y los ajustes se abren desde el inicio y regresan a él. Las pantallas de salud (Hoy, Cuerpo, Tendencias) ya no tienen puerta de entrada. Si hoy no toca rutina, ves el plan o el descanso de siempre. Tu plan, Progreso y Ajustes están en todos los estados, también sin plan. La primera pantalla ya no muestra la preparación ni la fila de carga, y la animación de arranque del orbe se retiró: la app abre directo en tu entrenamiento.
+  ### EN
+  The app no longer has a tab bar. When you open it you see today's routine, with the next step for each exercise (last time's weight, or the raise you earned), and a Start button. When you finish you see your receipt and Done takes you back to the start, with the next routine or "You already trained today". Your plan, progress and settings open from the start and return to it. The health screens (Today, Body, Trends) no longer have an entry point. If today isn't a training day, you see your plan or rest state as before. Your plan, Progress and Settings are there in every state, even with no plan. The first screen no longer shows readiness or the load row, and the orb launch animation is gone: the app opens straight into your workout.
+
 - **El modo oscuro deja de pintar blanco encima del negro / Dark mode stops painting white on black**
   ### ES
   Con el teléfono en oscuro, las tarjetas, las pastillas y el filo seguían siendo velos blancos del modo claro, y la tinta ya era clara: el texto se perdía y el orbe de Hoy se apagaba. Ahora el suelo sigue negro, las superficies son carbón con un canto de luz, y las partículas del héroe se leen. El modo claro no cambia.

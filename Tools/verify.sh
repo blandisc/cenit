@@ -32,7 +32,10 @@ changed_files() {
 }
 
 wait_idle() {
-  # Nunca dos builds a la vez (regla #1 del CLAUDE.md). Tope: 30 min.
+  # «Un build a la vez» suspendido por el dueño (2026-10-17): no se espera a builds ajenos.
+  # Para volver a esperar: CENIT_WAIT_IDLE=1 Tools/verify.sh …
+  [ "${CENIT_WAIT_IDLE:-0}" = "1" ] || return 0
+  # Tope: 30 min.
   waited=0
   while pgrep -q swift-frontend; do
     [ "$waited" -eq 0 ] && echo "verify: hay otro build corriendo (swift-frontend); esperando a que la máquina quede libre…"
@@ -207,12 +210,16 @@ run_app_build() {
 }
 
 run_app_tests() {
-  # Preferimos el iPhone 17 Pro (el simulador de trabajo del dueño, adelgazado con simslim);
-  # si no existe en esta máquina, cae al primer iPhone disponible.
-  sims=$(xcrun simctl list devices available | grep -oE 'iPhone [0-9A-Za-z ]+' | sed 's/ *$//')
-  sim=$(printf '%s\n' "$sims" | grep -x 'iPhone 17 Pro' | head -1)
-  [ -n "$sim" ] || sim=$(printf '%s\n' "$sims" | head -1)
-  [ -n "$sim" ] || fail "no hay simulador iPhone disponible."
+  # Solo iPhones del runtime iOS más nuevo instalado (por id: «OS=latest» no encuentra el iPhone 17 Pro
+  # si ese modelo solo existe en un runtime viejo); prefiere «iPhone 17 Pro» ahí, si no el primer iPhone.
+  list=$(xcrun simctl list devices available)
+  newest=$(printf '%s\n' "$list" | sed -n 's/^-- iOS \(.*\) --$/\1/p' | sort -V | tail -1)
+  sims=$(printf '%s\n' "$list" | awk -v v="$newest" '/^-- /{on=($0=="-- iOS " v " --")} on && /^ +iPhone /' | sed -E 's/^ +//')
+  line=$(printf '%s\n' "$sims" | grep -E '^iPhone 17 Pro \(' | head -1)
+  [ -n "$line" ] || line=$(printf '%s\n' "$sims" | head -1)
+  [ -n "$line" ] || fail "no hay simulador iPhone disponible."
+  simid=$(printf '%s\n' "$line" | grep -oE '[0-9A-F]{8}(-[0-9A-F]{4}){3}-[0-9A-F]{12}' | head -1)
+  sim="$(printf '%s\n' "$line" | sed -E 's/ \(.*//') (iOS $newest)"
   # Un simulador que quedó a medias de una corrida anterior contesta «Failed to prepare device …
   # Invalid connectionUUID»: se arranca de limpio, no solo se apaga al final.
   xcrun simctl shutdown all 2>/dev/null
@@ -220,7 +227,7 @@ run_app_tests() {
   echo "verify: CenitUnitTests en «$sim»"
   xcodebuild test-without-building \
     -project Cenit.xcodeproj -scheme Cenit \
-    -destination "platform=iOS Simulator,name=$sim" \
+    -destination "platform=iOS Simulator,id=$simid" \
     -only-testing:CenitUnitTests -jobs 4
   status=$?
   xcrun simctl shutdown all 2>/dev/null

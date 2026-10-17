@@ -22,6 +22,7 @@ enum FixtureRegistry {
         let families: [[String: Seed]] = [
             HoyFixtures.all, TendenciasFixtures.all, EntrenarFixtures.all,
             EntrenarHerramientasFixtures.all, AjustesFixtures.all, OnboardingFixtures.all,
+            FuerzaFixtures.all,
         ]
         for family in families {
             for (key, seed) in family {
