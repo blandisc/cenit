@@ -93,14 +93,7 @@ enum ScreenshotFixtures {
                     exerciseCount: 0, spo2Pct: 97.4, skinTempDevC: 0.05,
                     respRateBpm: 14.4, steps: 5200, activeKcalEst: 420))
             }
-            // Revisión conceptual (dueño 2026-08-15): SIN publicar Preparedness el héroe caía
-            // al fallback con nights=0 («Night 0 of 4») — el progreso de las 2 noches bancadas
-            // se perdía. Con evaluate: lowSignal + autonomicNights=2 ⇒ «Night 2 of 4».
-            let prepCal = Preparedness.evaluate(.init(
-                days: days, strainByDay: [:], trend: nil, asOf: Repository.localDayKey(today)))
-            model.repo.setDashboard(days: days,
-                                    appleHealthDays: Set(days.map(\.day)),
-                                    preparedness: prepCal)
+            model.repo.setDashboard(days: days, appleHealthDays: Set(days.map(\.day)))
             return
         }
 
@@ -259,12 +252,6 @@ enum ScreenshotFixtures {
             _ = try? await store.insert(Streams(hr: hr), deviceId: model.legacyDeviceId)
         }
 
-        // FER-1030: the Liquid Hoy hero/axes read `repo.todayPreparedness`, not `days` directly — compute
-        // it with the real engine over the same synthetic history so the fixture states drive the hero
-        // (no `trend`/`strainByDay`: the autonomic axis reads `days` alone, matching a legacyOnly user).
-        let preparedness = Preparedness.evaluate(.init(
-            days: days, strainByDay: [:], trend: nil, asOf: Repository.localDayKey(today)))
-
         // Publish the dashboard last — single refreshSeq bump, drives loadAll.
         // #inject · `sleeps` enciende la ruta RICA de la hoja de Sueño en el simulador
         // (ventana acostarse→despertar, etapas medidas y regularidad con puntaje). Sin ellas
@@ -275,8 +262,7 @@ enum ScreenshotFixtures {
         // hojas perdía su chip de procedencia («Apple Salud · en tu dispositivo»).
         model.repo.setDashboard(days: days,
                                 sleeps: Self.syntheticSleepSessions(days: days),
-                                appleHealthDays: Set(days.map(\.day)),
-                                preparedness: preparedness)
+                                appleHealthDays: Set(days.map(\.day)))
     }
 
     /// #inject · Una sesión de sueño por noche del dashboard, para que `SleepDetailModel.build`

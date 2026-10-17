@@ -95,8 +95,17 @@ public enum HeartRateRecovery {
         }
     }
 
+    /// Robust σ of a baseline sample: 1.253 × mean(|x − mean|); 0 when it can't be estimated. Moved here
+    /// from `IllnessWatch` (retired with the Camino C+, CEN-67) — same estimator, same scale.
+    static func robustSigma(_ sample: [Double]) -> Double {
+        guard sample.count >= 2 else { return 0 }
+        let mean = sample.reduce(0, +) / Double(sample.count)
+        let mad = sample.map { abs($0 - mean) }.reduce(0, +) / Double(sample.count)
+        return 1.253 * mad
+    }
+
     /// Place the `latest` HRR against the user's OWN prior HRR values (bpm). Lower is the concerning
-    /// direction (blunted vagal reactivation). Uses the robust σ estimator shared with `IllnessWatch`
+    /// direction (blunted vagal reactivation). Uses the robust σ estimator (formerly shared with `IllnessWatch`)
     /// (1.253 × mean-abs-dev); returns a nil z when the history can't support a dispersion estimate.
     /// Explicitly an intra-user comparison — never Cole's population cut-off.
     public static func trend(latest: Double, priorHRR: [Double]) -> Trend {
@@ -105,7 +114,7 @@ public enum HeartRateRecovery {
                          note: "Still learning your usual recovery - keep logging sessions.")
         }
         let mean = priorHRR.reduce(0, +) / Double(priorHRR.count)
-        let sigma = IllnessWatch.robustSigma(priorHRR)
+        let sigma = Self.robustSigma(priorHRR)
         guard sigma > 1e-9 else {
             return Trend(z: nil, baselineBpm: mean, bluntedVsNormal: false, nPrior: priorHRR.count,
                          note: "Your recovery has been very steady - not enough spread to trend yet.")

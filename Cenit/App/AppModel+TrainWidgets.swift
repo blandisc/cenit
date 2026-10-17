@@ -24,24 +24,13 @@ extension AppModel {
             split: split, todayWeekday: Calendar.current.component(.weekday, from: Date())),
            let name = routineNames[tid] {
             let serving = await repo.programServing()
-            let hilo = TrainWidgetPublisher.verdict(
-                prep: repo.todayPreparedness, fullyLoaded: repo.fullyLoaded,
-                healthConnected: healthBridge?.auth == .authorized,
-                hasPlan: true,
-                primerUsoSinPlan: TrainWidgetPublisher.esPrimerUsoSinPlan(
-                    sessionLive: strengthSession != nil, semanaVacia: split.isEmpty))
-            let verdict = hilo.map {
-                DosePlan.Verdict(tone: $0.tone.rawValue, word: $0.word, advice: $0.advice)
-            }
             dose = await repo.seedTodayDose(routineId: tid, advice: repo.trainingAdvice,
                                             inventory: plates.inventory, serving: serving,
-                                            verdict: verdict, routineName: name).plan
+                                            verdict: nil, routineName: name).plan
         }
 
         TrainWidgetPublisher.publish(split: split, routineNames: routineNames, sessions: sessions,
-                                     sessionLive: strengthSession != nil, prep: repo.todayPreparedness,
-                                     fullyLoaded: repo.fullyLoaded,
-                                     healthConnected: healthBridge?.auth == .authorized,
+                                     sessionLive: strengthSession != nil,
                                      dosePlan: dose)
         // FER-522: same store trip publishes the routine catalog Siri's RoutineEntityQuery reads
         // (id+name only). One flight with the widget snapshot — no extra store round-trip.

@@ -31,11 +31,7 @@ import CenitTraining
     let repo: Repository
     /// Quién es el usuario —edad, sexo, cuerpo, pulso máximo— para zonas, calorías y líneas base.
     let profile = ProfileStore()
-    /// Las conductas que el usuario enciende o apaga, hoy el aviso temprano de enfermedad.
-    let behavior = BehaviorStore()
     /// Inactivity reminder settings + its restart-safe de-dup state (FER-664).
-    /// The Bucle's goal (metric + optional date) — a single user preference, UserDefaults-backed (FER-311).
-    let goal = GoalStore()
     /// The user's barbell + owned plate denominations, for the session's «⛓ discos» calculator (FER-720).
     let plates = PlatesStore()
     /// Which data sources feed the dashboard + baseline (combined / legacy-only / Apple-Health-only) —

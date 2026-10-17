@@ -244,33 +244,6 @@ enum Hitos {
         return veredicto
     }
 
-    /// Hoy (hitos 1 y 2), desde `TodayView` con `repo.todayPreparedness`. `listo` = `repo.fullyLoaded`
-    /// (la regla del repo: nada que PERSISTA un valor derivado de `days` antes del pase completo).
-    /// El mapeo `Read → (primeraLectura, baseFirme)` vive en `HitoHoy` (CenitEnsenanza, puro y con
-    /// test); aquí solo se extraen los campos. Sin historia real (store vacío pre-onboarding: el
-    /// pase full publica `lowSignal`/`drivers: []`/0 noches) ambos son `nil` = dato ausente, NO
-    /// «umbral no cruzado» (FER-436 · qa r1). Sin reloj ambos son `false`. Un solo hito en Hoy: si
-    /// la base ya es firme, «Primera lectura» ya no tiene sentido (nadie recibe «salió de tus 4
-    /// noches» con 14) y se invalida.
-    static func evaluarHoy(prep: Preparedness.Read?, listo: Bool) {
-        guard listo, let prep else {
-            evaluar(BaseFirmeHitoTip.self, cruzadoAhora: nil)
-            evaluar(PrimerVeredictoHitoTip.self, cruzadoAhora: nil)
-            return
-        }
-        // «No encontré tu día», igual que `Repository.conservaVeredictoPrevio`: sin historia real.
-        let hayHistoria = !(prep.drivers.isEmpty && prep.autonomicNights == 0)
-        let hayVeredicto = prep.verdict != .lowSignal && prep.isNightAnchored
-        let sinReloj = prep.drivers.first(where: { $0.axis == .autonomic })?.state == .noData
-        let elegible = HitoHoy.elegibilidad(
-            hayHistoria: hayHistoria, hayVeredicto: hayVeredicto, sinReloj: sinReloj,
-            autonomicNights: prep.autonomicNights,
-            seed: Baselines.minNightsSeed, trust: Baselines.minNightsTrust)
-        evaluar(BaseFirmeHitoTip.self, cruzadoAhora: elegible.baseFirme)
-        evaluar(PrimerVeredictoHitoTip.self, cruzadoAhora: elegible.primeraLectura)
-        if elegible.baseFirme == true { PrimerVeredictoHitoTip().invalidate(reason: .actionPerformed) }
-    }
-
     /// Tendencias (hitos 3 y 4), desde `CuerpoView.alimentarTendenciasTips`. `diasConDato == nil`
     /// mientras `repo` no ha completado el pase; `cargaLeida == nil` mientras no hay cálculo de carga.
     static func evaluarTendencias(diasConDato: Int?, cargaLeida: Bool?) {

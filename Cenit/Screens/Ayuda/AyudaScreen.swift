@@ -344,25 +344,6 @@ struct AyudaScreen: View {
 
     private func puertas(_ funcionalidad: Funcionalidad) -> [AyudaPuerta] {
         switch funcionalidad.id {
-        case .hoyActa:
-            // Con lectura de hoy: el acta. Sin lectura: «¿Qué decide tu día?». Lo decide Hoy al
-            // recibir la bandera (`TabRouter.abrirActa`); aquí solo cambia el rótulo.
-            let rotulo = hayVeredicto
-                ? String(localized: "ayuda.puerta.lecturaHoy", defaultValue: "Your reading for today")
-                : String(localized: "ayuda.puerta.decide", defaultValue: "What decides your day?")
-            return [AyudaPuerta(id: "acta", rotulo: rotulo) {
-                dismiss()
-                tabRouter.abrirActa = true
-                tabRouter.verAhora()
-            }]
-        case .hoyGuardian:
-            // La hoja del guardián vive en `TodayView` (sus series las carga Hoy): misma ruta.
-            return [AyudaPuerta(id: "guardian",
-                                rotulo: String(localized: "ayuda.puerta.guardian", defaultValue: "The guardian's sheet")) {
-                dismiss()
-                tabRouter.abrirGuardian = true
-                tabRouter.verAhora()
-            }]
         case .entrenarTaller:
             return [AyudaPuerta(id: "taller",
                                 rotulo: String(localized: "ayuda.puerta.taller", defaultValue: "Open the workshop")) {
@@ -373,11 +354,6 @@ struct AyudaScreen: View {
         }
     }
 
-    /// La misma puerta que Hoy exige para pronunciar la palabra (`TodayView.alimentarHoyTips`).
-    private var hayVeredicto: Bool {
-        guard let prep = repo.todayPreparedness else { return false }
-        return prep.verdict != .lowSignal && prep.isNightAnchored
-    }
 }
 
 // MARK: - Cromo de hoja (fondo + nav bar, compartido por el índice y el detalle)

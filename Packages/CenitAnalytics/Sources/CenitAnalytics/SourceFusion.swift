@@ -6,17 +6,9 @@ import Foundation
 import CenitModels
 import BiometricStreams
 
-/// Pure multi-source fusion for daily metrics, sleep sessions, strain estimates, and autonomic trend.
+/// Pure multi-source fusion for daily metrics, sleep sessions and strain estimates.
 /// Single copy of the policy — Repository methods forward here so call sites stay stable.
 public enum SourceFusion {
-
-    /// Pure wrapper over the CenitAnalytics engine, kept pure so the refresh can call it
-    /// off the main actor and so tests pin the seam without a store. `nights` are the
-    /// dense `apple_rmssd_night` rows (oldest→newest); `asOf`/`recentCutoff` are local day keys.
-    public static func autonomicTrend(nights: [(day: String, rmssdMs: Double)],
-                                      asOf: String, recentCutoff: String) -> AutonomicTrend.Read {
-        AutonomicTrend.evaluate(nights: nights, asOf: asOf, recentCutoff: recentCutoff)
-    }
 
     /// FER-970 (R-01): the days whose MERGED strain is nil — the only days Apple workout-HR can
     /// serve (the estimated-strain path). A pure pre-pass over rows performRefresh has already
@@ -195,61 +187,6 @@ public enum SourceFusion {
                                                  value: -strengthOverlayFallbackWindowDays, to: t)
         else { return today }
         return DayKey.utc(back)
-    }
-
-    /// FER-670: build the per-day single-construct fusion map from the mode-filtered per-source rows.
-    /// Three metrics only — steps, sleep total, active kcal (`MetricArbitrationPolicy` refuses the rest):
-    ///   • "steps"           — Apple's pedometer count (`appleAgg.steps`) vs the on-device figure
-    ///                         (the 5.0/MG counter in `computed.steps`, else the 4.0 `steps_est` estimate —
-    ///                         real counter wins, mirroring FER-663).
-    ///   • "sleep_total_min" — imported / computed / Apple `totalSleepMin` (duration IS cross-source
-    ///                         comparable — same split `SourceLens.crossSourceMasked` draws; stages never
-    ///                         enter).
-    ///   • "active_kcal"     — Apple's aggregate (`appleAgg.activeKcal`) vs each on-device row's HR-only
-    ///                         estimate (`activeKcalEst`).
-    /// Only days where ≥2 sources reported a metric produce an entry — a `.single` day has nothing to
-    /// cross-check and nothing to show. Pure + static so a unit test can pin it.
-    public static func fusionByDay(imported: [DailyMetric], computed: [DailyMetric], apple: [DailyMetric],
-                                   appleAgg: [AppleDaily], stepsEst: [String: Double])
-        -> [String: [String: FusedMetricPoint]] {
-        var impByDay: [String: DailyMetric] = [:]
-        var compByDay: [String: DailyMetric] = [:]
-        var appByDay: [String: DailyMetric] = [:]
-        var aggByDay: [String: AppleDaily] = [:]
-        for d in imported { impByDay[d.day] = d }
-        for d in computed { compByDay[d.day] = d }
-        for d in apple    { appByDay[d.day] = d }
-        for d in appleAgg { aggByDay[d.day] = d }
-
-        var out: [String: [String: FusedMetricPoint]] = [:]
-        let allDays = Set(impByDay.keys).union(compByDay.keys).union(appByDay.keys)
-            .union(aggByDay.keys).union(stepsEst.keys)
-        for day in allDays {
-            var points: [String: FusedMetricPoint] = [:]
-
-            var steps: [FusionInput] = []
-            if let s = aggByDay[day]?.steps { steps.append(FusionInput(source: .appleHealth, value: Double(s))) }
-            if let s = compByDay[day]?.steps.map(Double.init) ?? stepsEst[day] {
-                steps.append(FusionInput(source: .legacyComputed, value: s))
-            }
-
-            var sleep: [FusionInput] = []
-            if let m = impByDay[day]?.totalSleepMin  { sleep.append(FusionInput(source: .legacyImport, value: m)) }
-            if let m = compByDay[day]?.totalSleepMin { sleep.append(FusionInput(source: .legacyComputed, value: m)) }
-            if let m = appByDay[day]?.totalSleepMin  { sleep.append(FusionInput(source: .appleHealth, value: m)) }
-
-            var kcal: [FusionInput] = []
-            if let k = aggByDay[day]?.activeKcal          { kcal.append(FusionInput(source: .appleHealth, value: k)) }
-            if let k = impByDay[day]?.activeKcalEst       { kcal.append(FusionInput(source: .legacyImport, value: k)) }
-            if let k = compByDay[day]?.activeKcalEst      { kcal.append(FusionInput(source: .legacyComputed, value: k)) }
-
-            for (key, inputs) in [("steps", steps), ("sleep_total_min", sleep), ("active_kcal", kcal)]
-            where inputs.count >= 2 {
-                if let p = FusionResolver.resolve(metricKey: key, inputs: inputs) { points[key] = p }
-            }
-            if !points.isEmpty { out[day] = points }
-        }
-        return out
     }
 
     /// The same precedence, applied to whole nights. A night is filed under the civil day it ENDS

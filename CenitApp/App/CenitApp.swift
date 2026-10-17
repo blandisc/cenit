@@ -118,8 +118,6 @@ struct CenitApp: App {
                 .environment(model)
                 .environmentObject(model.repo)
                 .environmentObject(model.profile)
-                .environmentObject(model.behavior)
-                .environmentObject(model.goal)
                 .environmentObject(health)
                 .environmentObject(autoBackup)
                 .environmentObject(tabRouter)

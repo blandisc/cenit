@@ -447,16 +447,6 @@ final class HealthKitBridge: ObservableObject {
                        walkingHr: nil,
                        weightKg: nil)
         }
-        // FER-882: Apple's OWN rolling skin-temp baseline over the sync window, then the same final
-        // state's deviation applied to every night (one fold over the window, not a per-day
-        // incremental). Never mixed with the band's baseline.
-        let skinCfg = Baselines.metricCfg["skin_temp"]!   // minVal 20 / maxVal 42 °C absolute
-        let skinSeq: [(day: String, value: Double?)] = byDay.keys.sorted().map { (day: $0, value: byDay[$0]?.skinTempC) }
-        let appleSkinBase = Baselines.foldHistory(skinSeq, epoch: nil, cfg: skinCfg)
-        func appleSkinDev(_ v: Double?) -> Double? {
-            guard let v, appleSkinBase.usable else { return nil }
-            return (Baselines.deviation(v, state: appleSkinBase).delta * 100.0).rounded() / 100.0
-        }
         // Persist DailyMetric.strain only for completed days. Writing today's (partial) strain freezes
         // the "Esfuerzo del día" tile and blocks the live estimatedStrain fallback (AppModel / Repository).
         let todayKey = Self.dayString(Date())
@@ -493,7 +483,7 @@ final class HealthKitBridge: ObservableObject {
                                strain: strainValue,
                                exerciseCount: nil,
                                spo2Pct: bucket.spo2,
-                               skinTempDevC: appleSkinDev(bucket.skinTempC),
+                               skinTempDevC: nil,   // CEN-67: la temperatura salió con el Camino C+
                                respRateBpm: bucket.respRate,
                                steps: bucket.steps.map { Int($0) })
         }
@@ -580,7 +570,7 @@ final class HealthKitBridge: ObservableObject {
             }
             lastAppleWriteSignature = signature
             // CEN-44: la ingesta del RMSSD nocturno (serie de latidos + VFC, R2/FER-1008) está APAGADA:
-            // `ingestNocturnalHRV()` sigue en el archivo pero nada la llama, porque pedía su propia
+            // CEN-67: `ingestNocturnalHRV()` se borró (la VFC salió con el Camino C+); pedía su propia
             // autorización (latidos + SDNN) y esos tipos ya no se piden. La retira el barrido CEN-45.
             if changed {
                 await repo.refresh()   // surface the freshly-synced Apple Health days
@@ -935,213 +925,6 @@ final class HealthKitBridge: ObservableObject {
 
     // MARK: - Nocturnal HRV ingestion (R2, FER-1008)
 
-    /// Convierte la serie de latidos nocturnos de Apple en un RMSSD por noche (R2): trae los intervalos
-    /// beat-to-beat en una ventana incremental, recorta cada noche a la UNIÓN de sus tramos dormido (la
-    /// misma atribución de día de despertar que usa `pullNightlySleep`), y corre el motor puro
-    /// `NocturnalHRV.night` (CenitAnalytics) sobre los latidos ya recortados. Persiste en su PROPIA
-    /// partición vía `metricSeries` — aditivo, nunca toca `byDay`/`DailyMetric`/el camino del
-    /// dispositivo anterior. No-op silencioso (0 filas, sin crash) si falta el permiso de la serie de
-    /// latidos o si Apple simplemente no tiene datos beat-to-beat en la ventana.
-    /// Devuelve `true` si escribió alguna fila (para que el caller refresque la tendencia). `false` si no
-    /// hubo permiso/datos/noches — el caller entonces no necesita re-refrescar por esto.
-    @discardableResult
-    private func ingestNocturnalHRV() async -> Bool {
-        // A) Re-auth una sola vez: una conexión de Apple Health ya existente NO re-prompea solo porque
-        // `readTypes` ganó un tipo nuevo (HealthKit solo re-prompea por scopes que nunca vio), así que
-        // usuarios conectados antes de este cambio necesitan un request explícito, una sola vez.
-        let requestedKey = "appleHeartbeatSeriesRequested"
-        if !UserDefaults.standard.bool(forKey: requestedKey) {
-            var scopes: Set<HKObjectType> = [HKSeriesType.heartbeat()]
-            if let sdnn = HKObjectType.quantityType(forIdentifier: .heartRateVariabilitySDNN) { scopes.insert(sdnn) }
-            try? await store.requestAuthorization(toShare: [], read: scopes)
-            UserDefaults.standard.set(true, forKey: requestedKey)
-        }
-
-        // B) Piso incremental sobre la partición propia: today-45d, o (última noche escrita - 2 días),
-        // lo que sea MÁS TARDE — el margen de 2 días re-cubre una noche que Apple terminó de escribir
-        // tarde, sin reprocesar los 45 días completos en cada sync.
-        guard let dbStore = await repo.storeHandle() else { return false }
-        // Dato en disco: es el id de partición con el que ya se escribieron las filas de usuarios
-        // existentes. Neutro desde FER-479: la migración `v44` reescribió `apple-health-noop`→
-        // `apple-health-computed`, así que este id sigue apuntando a las mismas noches.
-        let deviceId = "apple-health-computed"
-        let today = Date()
-        let calendar = Calendar.current
-        guard let floor45 = calendar.date(byAdding: .day, value: -45, to: calendar.startOfDay(for: today)) else {
-            return false
-        }
-        var windowStartDate = floor45
-        let latestDay = try? await dbStore.metricDays(deviceId: deviceId, key: "apple_rr_clean_night")?.latest
-        if let latestDay, let latestDate = HealthKitBridge.date(from: latestDay) {
-            let minus2 = calendar.date(byAdding: .day, value: -2, to: latestDate) ?? latestDate
-            windowStartDate = max(floor45, minus2)
-        }
-        let predicate = Self.readPredicate(start: windowStartDate, end: today)
-
-        // C) Serie de latidos en la ventana — misma forma de query que `exportAppleHeartbeatSeries`.
-        let seriesType = HKSeriesType.heartbeat()
-        let samples: [HKHeartbeatSeriesSample] = await withCheckedContinuation { cont in
-            let sort = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)
-            let q = HKSampleQuery(sampleType: seriesType, predicate: predicate, limit: HKObjectQueryNoLimit,
-                                  sortDescriptors: [sort]) { _, s, _ in
-                cont.resume(returning: (s as? [HKHeartbeatSeriesSample]) ?? [])
-            }
-            store.execute(q)
-        }
-        guard !samples.isEmpty else { return false }   // sin permiso o sin datos → 0 filas, sin crash
-
-        // D) Latidos → [TimedNN]. Sin gate de rango aquí — NocturnalHRV/HRVAnalyzer lo aplican después.
-        var beats: [TimedNN] = []
-        for sample in samples {
-            for row in await beatToBeat(of: sample) { beats.append(TimedNN(ts: row.ts, nnMs: row.rrMs)) }
-        }
-
-        // E) Ventana por noche = UNIÓN de los tramos realmente dormido de esa noche (misma atribución de
-        // día de despertar que pullNightlySleep). Solo etapas de sueño real — inBed/awake quedan fuera.
-        let sleepSamples = await collectSleepSamples(start: windowStartDate, end: today)
-        let asleepValues: Set<Int> = [
-            HKCategoryValueSleepAnalysis.asleepDeep.rawValue,
-            HKCategoryValueSleepAnalysis.asleepREM.rawValue,
-            HKCategoryValueSleepAnalysis.asleepCore.rawValue,
-            HKCategoryValueSleepAnalysis.asleepUnspecified.rawValue
-        ]
-        // D2: agrupar los tramos asleep en SESIONES (corte por hueco ≥ 1 h) y atribuir CADA sesión a su
-        // wake-day (el día en que TERMINA), no por-muestra. Así una noche que cruza medianoche queda como
-        // UNA noche en un solo día civil, en vez de partirse en dos (que double-contaría a un madrugador o
-        // perdería la noche si ninguna mitad llega al gate de densidad). Es el wake-day que pide el paquete
-        // («dayKey = localDayKey(session.end); unir TODO asleep del wake-day»), no el sample.end.
-        let asleep = sleepSamples
-            .filter { asleepValues.contains($0.hkValue) }
-            .map { (start: $0.start.timeIntervalSince1970, end: $0.end.timeIntervalSince1970) }
-            .sorted { $0.start < $1.start }
-        var intervalsByDay: [String: [(start: Double, end: Double)]] = [:]
-        var session: [(start: Double, end: Double)] = []
-        var sessionMaxEnd = 0.0
-        func flushSession() {
-            guard !session.isEmpty else { return }
-            let day = HealthKitBridge.dayString(Date(timeIntervalSince1970: sessionMaxEnd))
-            intervalsByDay[day, default: []].append(contentsOf: session)
-            session = []; sessionMaxEnd = 0.0
-        }
-        for iv in asleep {
-            if !session.isEmpty, iv.start - sessionMaxEnd >= 3600 { flushSession() }   // hueco ≥ 1 h → nueva sesión
-            session.append(iv); sessionMaxEnd = max(sessionMaxEnd, iv.end)
-        }
-        flushSession()
-        func merged(_ xs: [(start: Double, end: Double)]) -> [(start: Double, end: Double)] {
-            let sorted = xs.sorted { $0.start < $1.start }
-            var out: [(start: Double, end: Double)] = []
-            for iv in sorted {
-                if var last = out.last, iv.start <= last.end {
-                    last.end = max(last.end, iv.end)
-                    out[out.count - 1] = last
-                } else {
-                    out.append(iv)
-                }
-            }
-            return out
-        }
-
-        // F) Por noche: recorta los latidos a la unión, corre el motor, arma las filas.
-        var rows: [MetricPoint] = []
-        for (day, rawIvs) in intervalsByDay {
-            let ivs = merged(rawIvs)
-            let nightBeats = beats.filter { b in ivs.contains { $0.start <= b.ts && b.ts <= $0.end } }
-            let result = NocturnalHRV.night(intervals: nightBeats, windowStart: nil, windowEnd: nil)
-            if let rmssd = result.rmssdMs {
-                rows.append(MetricPoint(day: day, key: "apple_rmssd_night", value: rmssd))   // solo si densa
-            }
-            rows.append(MetricPoint(day: day, key: "apple_rr_clean_night", value: Double(result.nClean)))
-            rows.append(MetricPoint(day: day, key: "apple_rr_pairs_night", value: Double(result.nPairs)))
-        }
-        guard !rows.isEmpty else { return false }
-        _ = try? await dbStore.upsertMetricSeries(rows, deviceId: deviceId)
-        return true
-    }
-
-    #if DEBUG
-    // MARK: - DEV · Apple heartbeat-series export (FER-1008 spike)
-
-    /// One-shot, on-device validation dump: the beat-to-beat (R-R) intervals Apple stored in HealthKit as
-    /// `HKHeartbeatSeriesSample`s over the last `daysBack` days, as CSV rows `ts,rrMs` (epoch seconds,
-    /// milliseconds) — la MISMA forma que la tabla `rrInterval` heredada — so a nocturnal Apple RMSSD can be
-    /// measured against the band's on paired nights. Opt-in: requests its own `HKSeriesType.heartbeat()`
-    /// read scope on demand and touches neither the store nor the normal sync. Returns the CSV plus a
-    /// per-night density summary — the whole open question is whether Apple samples densely enough at night.
-    func exportAppleHeartbeatSeries(daysBack: Int = 45) async -> (csv: String, summary: String) {
-        guard HKHealthStore.isHealthDataAvailable() else { return ("", "Apple Health no disponible.") }
-        let seriesType = HKSeriesType.heartbeat()
-        // Dedicated read consent, asked only when this dev button is tapped (keeps the normal connect
-        // prompt unchanged — heartbeat is never added to the shipped `readTypes`). HealthKit REQUIRES
-        // `heartRateVariabilitySDNN` to be requested ALONGSIDE `HeartbeatSeries` (beat-to-beat can derive
-        // HRV): asking for the series alone throws an NSInvalidArgumentException synchronously at the call
-        // site — an ObjC exception `try?` can't catch, so it crashed the app. Request both together.
-        var readScopes: Set<HKObjectType> = [seriesType]
-        if let hrv = HKObjectType.quantityType(forIdentifier: .heartRateVariabilitySDNN) { readScopes.insert(hrv) }
-        try? await store.requestAuthorization(toShare: [], read: readScopes)
-
-        let end = Date()
-        let start = Calendar.current.date(byAdding: .day, value: -daysBack, to: end)
-            ?? end.addingTimeInterval(-Double(daysBack) * 86_400)
-        let predicate = Self.readPredicate(start: start, end: end)
-
-        // 1) The heartbeat-series samples in the window (each is a run of beats, e.g. one sleep segment).
-        let samples: [HKHeartbeatSeriesSample] = await withCheckedContinuation { cont in
-            let sort = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)
-            let q = HKSampleQuery(sampleType: seriesType, predicate: predicate,
-                                  limit: HKObjectQueryNoLimit, sortDescriptors: [sort]) { _, s, _ in
-                cont.resume(returning: (s as? [HKHeartbeatSeriesSample]) ?? [])
-            }
-            store.execute(q)
-        }
-
-        // 2) Stream each series into R-R intervals (skip gap-preceded beats + non-physiological values).
-        var rows: [(ts: Double, rrMs: Double)] = []
-        for sample in samples { rows.append(contentsOf: await beatToBeat(of: sample)) }
-        rows.sort { $0.ts < $1.ts }
-
-        // 3) CSV (ts,rrMs) — las mismas columnas que la tabla `rrInterval` heredada, para que el análisis corra igual.
-        var csv = "ts,rrMs\n"
-        csv.reserveCapacity(rows.count * 14 + 8)
-        for r in rows { csv += "\(Int(r.ts.rounded())),\(Int(r.rrMs.rounded()))\n" }
-
-        // 4) Per-night density summary (local civil day) so the answer is visible immediately.
-        var perNight: [String: Int] = [:]
-        for r in rows { perNight[Self.dayString(Date(timeIntervalSince1970: r.ts)), default: 0] += 1 }
-        let nights = perNight.keys.sorted()
-        let usable = perNight.values.filter { $0 >= 500 }.count
-        let median = perNight.isEmpty ? 0 : perNight.values.sorted()[perNight.count / 2]
-        var summary = "Series: \(samples.count) · intervalos R-R: \(rows.count)\n"
-        summary += "Noches con datos: \(nights.count) · con ≥500 intervalos: \(usable) · mediana \(median)/noche\n"
-        if let lo = nights.first, let hi = nights.last { summary += "Rango: \(lo) → \(hi)" }
-        if rows.isEmpty { summary += "\nApple no guardó latido-a-latido en esta ventana (o falta el permiso)." }
-        return (csv, summary)
-    }
-    #endif
-
-    /// Stream one `HKHeartbeatSeriesSample` into absolute-timestamped R-R intervals (ms). A beat flagged
-    /// `precededByGap` breaks the chain (its interval spans missing data). Emits every remaining interval
-    /// UNFILTERED by range — `NocturnalHRV`/`HRVAnalyzer` apply the [300, 2000] ms gate downstream, at the
-    /// mismo punto que limpia los intervalos RR heredados. Compiles in release: `ingestNocturnalHRV` (R2)
-    /// calls this outside of any dev-only path.
-    private func beatToBeat(of sample: HKHeartbeatSeriesSample) async -> [(ts: Double, rrMs: Double)] {
-        let base = sample.startDate.timeIntervalSince1970
-        return await withCheckedContinuation { (cont: CheckedContinuation<[(ts: Double, rrMs: Double)], Never>) in
-            var out: [(ts: Double, rrMs: Double)] = []
-            var prev: Double? = nil
-            let q = HKHeartbeatSeriesQuery(heartbeatSeries: sample) { _, timeSinceStart, precededByGap, done, error in
-                if error == nil {
-                    if let p = prev, !precededByGap {
-                        let rr = (timeSinceStart - p) * 1000.0
-                        out.append((ts: base + timeSinceStart, rrMs: rr))   // sin gate de rango; el motor lo hace
-                    }
-                    prev = timeSinceStart
-                }
-                if done { cont.resume(returning: out) }
-            }
-            store.execute(q)
-        }
-    }
 
     // MARK: - Workout helpers
 

@@ -92,29 +92,6 @@ final class Repository: ObservableObject {
         /// Surfaced ONLY via `repo.today`/`estimatedStrain`, never folded into
         /// `days`/`displayDays` or any baseline.
         var strainEstimates: [String: Double] = [:]
-        /// FER-670: per-day single-construct fusion — day → metric key ("steps" / "sleep_total_min" /
-        /// "active_kcal") → the fused point, ONLY for days where ≥2 sources reported that metric (a
-        /// `.single` day has nothing to cross-check, so it's omitted and the dict stays small). Display
-        /// transparency only ("coinciden / en conflicto"); it never feeds `days`/`displayDays` or any
-        /// baseline. HRV/RHR/resp/stages never appear here — `FusionResolver` refuses them (SourceLens
-        /// governs those, FER-629).
-        var fusion: [String: [String: FusedMetricPoint]] = [:]
-        /// R3 (FER-1008): the nocturnal autonomic trend (below/inBase/above vs the user's OWN settled
-        /// baseline), computed ONLY from Apple's own RMSSD-per-night partition (`appleComputedDeviceId`) — never
-        /// from the band, never folded into `days`/any baseline. nil en `.legacyOnly` or before enough dense
-        /// nights. Composed off-main in `assembleDashboard` (FER-1040). Surfaced via
-        /// `todayAutonomicTrend`; the screen (R4) reads it.
-        /// FER-472: the SAME dense `apple_rmssd_night` rows behind `autonomicTrend`, kept verbatim (raw
-        /// milliseconds, waking-day keyed) for `WhatMovesItEngine`'s two `hrv.*` relationships — the
-        /// «Tu patrón» block reads its OWN gate over these, distinct from the trend's z-score read.
-        /// Never `avgHrv`, never through `SourceLens`.
-        var nightlyRmssd: [(day: String, rmssdMs: Double)] = []
-        var autonomicTrend: AutonomicTrend.Read? = nil
-        /// FER-1030: the morning «Preparación» verdict (4 states, no number) by axis-consensus over
-        /// the user's OWN Apple baselines. Derived (never persisted), composed alongside
-        /// `autonomicTrend` in the off-main `assembleDashboard` hop (FER-1040). Surfaced via
-        /// `todayPreparedness`; the hero reads it.
-        var preparedness: Preparedness.Read? = nil
         /// Ola 1 · E2: the closed days whose strain an ESTIMATED strength session (minutes × effort)
         /// contributed to, so Tendencias can label them «estimada». Never persisted.
         var strengthEstimatedDays: Set<String> = []
@@ -139,10 +116,6 @@ final class Repository: ObservableObject {
     /// Display-only daily rows: `days`, but legacy-covered days with nil measured fields back-fill from
     /// Apple Health (FER-149). The dashboard sparklines/trends read these; analytics read `days`.
     var displayDays: [DailyMetric] { dashboard.displayDays }
-    /// FER-472: the dense `apple_rmssd_night` rows (oldest→newest not guaranteed — callers sort), for
-    /// `WhatMovesItEngine`'s `hrv.*` relationships. The SAME rows `todayAutonomicTrend` was computed
-    /// from; never `avgHrv`.
-    var nightlyRmssd: [(day: String, rmssdMs: Double)] { dashboard.nightlyRmssd }
     /// Cached sleep sessions, oldest→newest.
     var sleeps: [CachedSleepSession] { dashboard.sleeps }
     /// Apple Health sleep sessions carrying a real per-epoch stage timeline (FER-486), for nights the
@@ -162,17 +135,6 @@ final class Repository: ObservableObject {
     var refreshSeq: Int { dashboard.seq }
     /// Days surfaced from Apple Health (legacy-uncovered) — Trends/Sleep badge these as "Apple Health". (FER-62)
     var appleHealthDays: Set<String> { dashboard.appleHealthDays }
-    /// FER-670: the fused single-construct point for a `(day, metric)` — nil unless ≥2 sources reported
-    /// that metric on that day. The detail screens read this to show "coinciden / en conflicto" for the
-    /// exact day they display; a nil simply shows nothing. `metric` may be any catalog series key — the
-    /// policy folds aliases (`energy_kcal`, `asleep_min`) onto the map's canonical key, so no caller has
-    /// to know the synonyms.
-    func fusionPoint(day: String, metric: String) -> FusedMetricPoint? {
-        dashboard.fusion[day]?[MetricArbitrationPolicy.canonicalKey(forKey: metric)]
-    }
-    /// FER-670: the whole per-day fusion map, for model builders that resolve their own day key
-    /// (`SleepDetailModel.build`). Same content `fusionPoint` reads.
-    var fusion: [String: [String: FusedMetricPoint]] { dashboard.fusion }
     /// Stored per-source day coverage, UNFILTERED by the mode — the diagnostic coverage on «Datos y
     /// fuentes» reads these so it stays honest in every mode (FER-485).
     var storedStrapDays: Set<String> { dashboard.storedStrapDays }
@@ -188,6 +150,10 @@ final class Repository: ObservableObject {
 
     init(deviceId: String) { self.deviceId = deviceId }
 
+    /// Dato en disco: el id de la partición raíz (el mismo valor que `AppModel.legacyDeviceId`; neutro
+    /// desde FER-479, la migración `v44` reescribió `strap`→`primary`).
+    static let legacyDeviceId = "primary"
+
     /// La fila de hoy, buscada por la fecha local REAL del aparato.
     ///
     /// No es «la fila más nueva que haya»: después de importar historia vieja, esa fila tenía meses y
@@ -198,20 +164,6 @@ final class Repository: ObservableObject {
         return days.last(where: { $0.day == key })
     }
 
-    /// R3 (FER-1008): today's autonomic trend read (or nil while calibrating / en `.legacyOnly`). Pure
-    /// pass-through of the value `performRefresh` computed off Apple's nightly-RMSSD partition.
-    var todayAutonomicTrend: AutonomicTrend.Read? { dashboard.autonomicTrend }
-    /// FER-1030: today's «Preparación» verdict (nil until enough of the user's own nights). The hero reads this.
-    var todayPreparedness: Preparedness.Read? { dashboard.preparedness }
-
-    /// Pure wrapper over the CenitAnalytics engine, kept `nonisolated static` so the refresh can call it
-    /// off the main actor and so tests pin the Repository→engine seam without a store. `nights` are the
-    /// dense `apple_rmssd_night` rows (oldest→newest); `asOf`/`recentCutoff` are local day keys.
-    /// Forwards to `SourceFusion` (single policy copy; plan 2026-07-20).
-    nonisolated static func autonomicTrend(nights: [(day: String, rmssdMs: Double)],
-                                           asOf: String, recentCutoff: String) -> AutonomicTrend.Read {
-        SourceFusion.autonomicTrend(nights: nights, asOf: asOf, recentCutoff: recentCutoff)
-    }
     /// Los 7 días de CALENDARIO que terminan hoy, del más viejo al más nuevo, para la tira de la
     /// semana. No son «las últimas 7 filas guardadas»: con una importación vieja, esas eran datos
     /// añejos. La llave `yyyy-MM-dd` se compara como texto y sale en orden cronológico.
@@ -231,8 +183,24 @@ final class Repository: ObservableObject {
     /// Pure arithmetic, zero DateFormatter (FER-972 · M-04).
     nonisolated private static let dayKeyParser = DayKey.utcFormatter
 
+    /// Days since 1970-01-01 for a `yyyy-MM-dd` key — civil-from-days arithmetic, no DateFormatter.
+    /// Moved here from `ComparisonEngine` (retired with the Camino C+, CEN-67); same algorithm.
+    nonisolated static func epochDay(of day: String) -> Int? {
+        let parts = day.split(separator: "-", omittingEmptySubsequences: false)
+        guard parts.count == 3,
+              let year = Int(parts[0]), let month = Int(parts[1]), let dayOfMonth = Int(parts[2]),
+              (1...12).contains(month), (1...31).contains(dayOfMonth) else { return nil }
+        let y = month <= 2 ? year - 1 : year
+        let era = (y >= 0 ? y : y - 399) / 400
+        let yearOfEra = y - era * 400
+        let shiftedMonth = month + (month > 2 ? -3 : 9)
+        let dayOfYear = (153 * shiftedMonth + 2) / 5 + dayOfMonth - 1
+        let dayOfEra = yearOfEra * 365 + yearOfEra / 4 - yearOfEra / 100 + dayOfYear
+        return era * 146_097 + dayOfEra - 719_468
+    }
+
     nonisolated static func parseDayKey(_ s: String) -> Date? {
-        guard let days = ComparisonEngine.epochDay(of: s) else { return nil }
+        guard let days = Self.epochDay(of: s) else { return nil }
         return Date(timeIntervalSince1970: Double(days) * 86_400)
     }
 
@@ -376,29 +344,6 @@ final class Repository: ObservableObject {
         gen == latestGen && !(isFirstPaint && alreadyFull)
     }
 
-    /// FER-74 — **un recálculo sin la fila de hoy NO borra el veredicto que ya tenías.**
-    ///
-    /// El motor tiene una salida temprana: si la última fila de la ventana no es `asOf`, devuelve
-    /// `lowSignal` con `drivers` VACÍO (no evaluó nada; simplemente no encontró el día). Eso pasa
-    /// más de lo que parece: un jalón para sincronizar que no trae nada, un fetch de Apple Salud
-    /// que falla, o los segundos entre la medianoche y la primera muestra del día nuevo. Al
-    /// publicarlo tal cual, el héroe caía de «En rango» a «Conociéndote · Noche 0 de 4» con 40
-    /// noches en la base — y ese estado MIENTE dos veces: dice que no te conoce y promete un
-    /// progreso que ya hiciste.
-    ///
-    /// La regla: si el pase nuevo no trae juicio POR FALTA DE FILA y el anterior sí lo tenía, y
-    /// seguimos en el MISMO día civil, se conserva el anterior. Si el día cambió, no: el veredicto
-    /// de ayer no puede colarse a hoy (esa es exactamente la clase de bug que FER-1024 cerró).
-    /// Y un pase con datos SIEMPRE gana, aunque su veredicto sea peor.
-    nonisolated static func conservaVeredictoPrevio(nuevo: Preparedness.Read?,
-                                                    previo: Preparedness.Read?,
-                                                    diaPublicado: String?,
-                                                    diaAhora: String) -> Bool {
-        guard previo != nil, diaPublicado == diaAhora else { return false }
-        guard let nuevo else { return true }                    // sin juicio nuevo
-        return nuevo.verdict == .lowSignal && nuevo.drivers.isEmpty   // «no encontré tu día»
-    }
-
     private func performRefresh(windowDays nDays: Int, full: Bool) async {
         guard let store = await ensureStore() else { return }
         refreshGen += 1
@@ -492,52 +437,7 @@ final class Repository: ObservableObject {
         // RMSSD-per-night partition. Read here (needs the store) but COMPOSED off-main inside
         // `assembleDashboard` — the DB read is I/O on the store's executor, cheap on this actor; the
         // CPU-bound trend + verdict math is what must not run here.
-        let nightRows = (try? await store.metricSeries(deviceId: Self.appleComputedDeviceId,
-                                                       key: "apple_rmssd_night", from: fromDay, to: toDay)) ?? []
         let asOf = Self.localDayKey(now)
-        let recentCutoff = Self.localDayKey(Calendar.current.date(byAdding: .day, value: -6, to: now) ?? now)
-
-        // Preparedness v3: FC-reposo nocturna real, solo en refresh completo — leer HR de las
-        // últimas 14 noches es demasiado costoso para el primer pintado. UNA sola llamada a
-        // hrSamples cubriendo TODO el rango (no 14 llamadas), luego se reparte por sesión en memoria.
-        var nocturnalRestingHr: [String: Double] = [:]
-        if full {
-            let recentSleeps = appleSleepRaw.sorted { $0.startTs > $1.startTs }.prefix(14)
-            if let oldestStart = recentSleeps.map(\.startTs).min(),
-               let newestEnd = recentSleeps.map(\.endTs).max() {
-                let hrForNights = (try? await store.hrSamples(deviceId: "apple-health",
-                                                               from: oldestStart, to: newestEnd,
-                                                               limit: 80_000)) ?? []
-                // Si esta lectura devuelve exactamente el límite (80_000), puede venir truncada para
-                // las noches más viejas de la ventana — no se rellena ni se reintenta; el diccionario
-                // simplemente refleja lo que trajo esta única lectura (honesto, no inventado).
-                for session in recentSleeps {
-                    let dayKey = Self.localDayKey(Date(timeIntervalSince1970: Double(session.endTs)))
-                    // Decode the hypnogram ONCE for this night; both reads below use it.
-                    let segs: [StageSegment] = (session.stagesJSON
-                        .flatMap { $0.data(using: .utf8) }
-                        .flatMap { try? JSONDecoder().decode([StageSegment].self, from: $0) } ?? [])
-                    let sessionHR = hrForNights.filter { $0.ts >= session.startTs && $0.ts <= session.endTs }
-
-                    // Deep-sleep windows for THIS night. FER-1048: the estimator now prefers the
-                    // SIGNAL-detected stable segment (`NightStableSegment`, computed inside `estimate`
-                    // from the HR alone), with this `deep` label only a SECOND choice and the whole
-                    // window the last resort. Apple's staging is weak (N3 sensitivity ≈51%, κ≈0.53 —
-                    // Schyvens 2025), so it only STEERS the quantile when the signal can't resolve a
-                    // stretch, and never becomes a claim. (Still decoded so the fallback exists; in
-                    // practice the stable segment or the whole window carries most nights — we do NOT
-                    // loosen any gate to force this branch.)
-                    let deepWindows: [(Int, Int)] = segs.filter { $0.stage == "deep" }.map { ($0.start, $0.end) }
-                    func isDeep(_ ts: Int) -> Bool { deepWindows.contains { ts >= $0.0 && ts <= $0.1 } }
-                    let sessionSamples = sessionHR
-                        .map { NocturnalRestingHR.Sample(ts: $0.ts, bpm: Double($0.bpm), deep: isDeep($0.ts)) }
-                    if let bpm = NocturnalRestingHR.estimate(sessionSamples) {
-                        nocturnalRestingHr[dayKey] = bpm
-                    }
-
-                }
-            }
-        }
 
         // The O(n) merge/fusion work over every row read runs OFF the main actor (`assembleDashboard`
         // is nonisolated) — on a years-deep DB the full pass builds the dashboard without stealing
@@ -554,8 +454,7 @@ final class Repository: ObservableObject {
             appleAggRaw: appleAggRaw, stepsEstRaw: stepsEstRaw,
             perf: perf, cons: cons, need: need, debt: debt, baselineEpoch: baselineEpoch,
             strainHRmax: strainHRmax, strainSex: strainSex,
-            nightRows: nightRows.map { (day: $0.day, rmssdMs: $0.value) }, asOf: asOf, full: full, recentCutoff: recentCutoff,
-            nocturnalRestingHr: nocturnalRestingHr,
+            asOf: asOf, full: full,
             strengthLoads: snap.strengthLoads, appleWorkouts: snap.appleWorkouts))
 
         // Back on the main actor: publish only if this is still the newest refresh, and never let a
@@ -566,13 +465,6 @@ final class Repository: ObservableObject {
         next.loaded = true
         next.fullyLoaded = full
         next.seq = dashboard.seq + 1
-        // FER-74: un pase que perdió la fila de hoy no borra el veredicto del MISMO día.
-        if Self.conservaVeredictoPrevio(nuevo: next.preparedness,
-                                        previo: dashboard.preparedness,
-                                        diaPublicado: lastRefreshDayKey,
-                                        diaAhora: Self.localDayKey(now)) {
-            next.preparedness = dashboard.preparedness
-        }
         // One assignment → one objectWillChange for the whole refresh (was four).
         self.dashboard = next
         // FER-1024: record the local day this published dashboard belongs to, so a later foreground
@@ -603,19 +495,10 @@ final class Repository: ObservableObject {
         /// FER-883: effective HRmax + sex for the estimated strain, threaded from the Repository props.
         var strainHRmax: Double? = nil
         var strainSex: String = "male"
-        /// FER-1040: the `apple_rmssd_night` rows (read on the caller's side — the store is not
-        /// reachable from the off-main hop) plus the local day keys the trend + «Preparación»
-        /// verdict are composed against.
-        var nightRows: [(day: String, rmssdMs: Double)] = []
+        /// The local day key the strength overlay treats as «today».
         var asOf: String = ""
-        /// Whether this is the FULL refresh. The «Preparación» verdict is only published on the full
-        /// pass: the first paint doesn't load `nocturnalRestingHr`, so it would score the AWAKE
-        /// resting-HR construct and then be replaced seconds later by the NOCTURNAL one — the same
-        /// verdict flipping construct within one morning. Same discipline the file already applies to
-        /// anything derived from `days` that persists: wait for `fullyLoaded`.
+        /// Whether this is the FULL refresh (whole stored history) or the launch first paint.
         var full: Bool = false
-        var recentCutoff: String = ""
-        var nocturnalRestingHr: [String: Double] = [:]
         /// Ola 1 · E2: the finished Cénit strength sessions in the window and the Apple workout spans
         /// the overlay needs to tell «the same training» from «extra work».
         var strengthLoads: [StrengthSessionLoad] = []
@@ -689,59 +572,11 @@ final class Repository: ObservableObject {
                                                 workouts: appleWorkouts, today: inputs.asOf)
         let overlaidDisplay = Self.overlayStrengthLoad(days: merged.displayDays, loads: strengthLoads,
                                                        workouts: appleWorkouts, today: inputs.asOf).days
-        // D-Q12: the load does NOT vote. Today's session only marks the `load` axis as PRESENT — the
-        // same thing an Apple workout does — so «Preparación» stops reading a training day as a rest
-        // day. `strainEstimates` itself is untouched: it is the Apple-estimate map the UI labels.
-        var strainByDayForVerdict = strainEstimates
-        if strainByDayForVerdict[inputs.asOf] == nil,
-           let todayLoad = strengthLoads.last(where: { $0.day == inputs.asOf }) {
-            strainByDayForVerdict[inputs.asOf] = todayLoad.strain ?? 0   // presence only; never read as a value
-        }
         // FER-485: stored per-source coverage from the UNFILTERED raws (the always-Combined truth), so the
         // diagnostic coverage shows what's stored even when the mode hides a source from the dashboard.
         let storedStrap = Set(inputs.importedRaw.map(\.day)).union(inputs.computedRaw.map(\.day))
         let storedAppleOnly = Set(inputs.appleRaw.map(\.day)).subtracting(storedStrap)
         let storedSleeps = Self.mergeSleep(imported: inputs.impSleepRaw, computed: inputs.compSleepRaw).count
-        // FER-670: per-day single-construct fusion (steps / sleep total / active kcal) from the
-        // mode-filtered arrays — display transparency only, never a baseline input.
-        var stepsEstByDay: [String: Double] = [:]
-        for p in inputs.stepsEstRaw { stepsEstByDay[p.day] = p.value }
-        let fusion = Self.fusionByDay(imported: inputs.imported, computed: inputs.computed, apple: inputs.apple,
-                                      appleAgg: inputs.appleAggRaw, stepsEst: stepsEstByDay)
-        // R3 (FER-1008) + FER-1030/1040: the nocturnal autonomic trend (Apple RMSSD-per-night only)
-        // and the «Preparación» verdict, composed HERE — off the main actor — over the freshly-merged
-        // Apple days + Apple workout strain (`strainEstimates`, never in `days`). Pure/derived — no
-        // store, no persistence. The verdict's hysteresis is an O(n) pass (FER-1040), but on a
-        // years-deep import even O(n) work has no business on the main thread.
-        let autonomicTrend = Self.autonomicTrend(nights: inputs.nightRows,
-                                                 asOf: inputs.asOf, recentCutoff: inputs.recentCutoff)
-        let cycleNights = merged.days.map {
-            CyclePhaseEngine.NightSample(day: $0.day, skinTempDevC: $0.skinTempDevC,
-                                          restingHr: $0.restingHr.map(Double.init), avgHrv: $0.avgHrv)
-        }
-        // FER-183 (consentimiento): la corrección lútea SOLO toca el veredicto si el usuario activó el
-        // experimento «Fase del ciclo» (apagado por defecto). El gate vive en `CyclePhaseEngine.gatedPhase`
-        // (puro, pinneado por test en el fast loop); aquí solo se lee la preferencia. Revierte FER-181/H8,
-        // donde el estimado se aplicaba al número de TODOS sin un interruptor alcanzable. Sin opt-in → nil →
-        // cero margen lútea. (La hoja del experimento estima por su propia vía cuando el usuario la abre.)
-        let cyclePhase = CyclePhaseEngine.gatedPhase(
-            optIn: false,   // CEN-45: «Fase del ciclo» salió con el Camino C+ (su pantalla se borró).
-            nights: cycleNights, asOf: inputs.asOf)
-        let denseRmssd: Preparedness.DenseRmssd? = (autonomicTrend.asOfWasDense == true)
-            ? autonomicTrend.spark.last.map { Preparedness.DenseRmssd(z: $0, dense: true) }
-            : nil
-        // El veredicto SOLO sale del refresh completo. En el primer pintado `nocturnalRestingHr`
-        // viene vacío, así que el eje caería a la FC DESPIERTA de Apple y segundos después, ya con la
-        // nocturna, podría decir otra cosa: el mismo héroe cambiando de constructo en una misma
-        // mañana. Preferimos no decir nada a decir algo que nos desdecimos — un «preliminar» con un
-        // número que luego se contradice entrena desconfianza.
-        let preparedness: Preparedness.Read? = inputs.full
-            ? Preparedness.evaluate(.init(days: overlaid.days, strainByDay: strainByDayForVerdict,
-                                          trend: autonomicTrend, asOf: inputs.asOf,
-                                          nocturnalRestingHr: inputs.nocturnalRestingHr,
-                                          cyclePhase: cyclePhase,
-                                          nocturnalRmssd: denseRmssd))
-            : nil
         return DashboardData(
             days: overlaid.days,
             displayDays: overlaidDisplay,
@@ -753,10 +588,6 @@ final class Repository: ObservableObject {
             storedAppleOnlyDays: storedAppleOnly,
             storedSleepsCount: storedSleeps,
             strainEstimates: strainEstimates,
-            fusion: fusion,
-            nightlyRmssd: inputs.nightRows,
-            autonomicTrend: autonomicTrend,
-            preparedness: preparedness,
             strengthEstimatedDays: overlaid.estimatedDays
         )
     }
@@ -767,11 +598,10 @@ final class Repository: ObservableObject {
                       sleeps: [CachedSleepSession] = [],
                       importedSleep: [String: ImportedSleepFigures] = [:],
                       appleHealthDays: Set<String> = [],
-                      preparedness: Preparedness.Read? = nil,
                       loaded: Bool = true,
                       fullyLoaded: Bool = true) {
         dashboard = DashboardData(days: days, displayDays: days, sleeps: sleeps, importedSleep: importedSleep,
-                                  appleHealthDays: appleHealthDays, preparedness: preparedness,
+                                  appleHealthDays: appleHealthDays,
                                   loaded: loaded, fullyLoaded: fullyLoaded, seq: dashboard.seq + 1)
     }
 
@@ -833,15 +663,6 @@ final class Repository: ObservableObject {
         -> [String: Double] {
         SourceFusion.appleStrainEstimates(hrByDay: hrByDay, eligibleDays: eligibleDays,
                                           restingHRByDay: restingHRByDay, maxHR: maxHR, sex: sex)
-    }
-
-    /// FER-670: build the per-day single-construct fusion map from the mode-filtered per-source rows.
-    /// Forwards to `SourceFusion` (single policy copy; plan 2026-07-20).
-    nonisolated static func fusionByDay(imported: [DailyMetric], computed: [DailyMetric], apple: [DailyMetric],
-                            appleAgg: [AppleDaily], stepsEst: [String: Double])
-        -> [String: [String: FusedMetricPoint]] {
-        SourceFusion.fusionByDay(imported: imported, computed: computed, apple: apple,
-                                 appleAgg: appleAgg, stepsEst: stepsEst)
     }
 
     /// La misma precedencia, ahora para las noches, con la llave del día en que la noche termina.
@@ -926,430 +747,6 @@ final class Repository: ObservableObject {
         SourceFusion.appleSleepsNotCoveredOnDevice(apple: apple, onDevice: onDevice)
     }
 
-    // MARK: - Lecturas del explorador de métricas (el sustrato genérico)
-
-    /// La serie diaria de cualquier métrica, de la fuente que se pida.
-    func series(key: String, source: String, days: Int = 4000) async -> [(day: String, value: Double)] {
-        guard let store = await ensureStore() else { return [] }
-        let (from, to) = Self.dayWindow(days: days)
-        let pts = (try? await store.metricSeries(deviceId: source, key: key, from: from, to: to)) ?? []
-        return pts.map { ($0.day, $0.value) }
-    }
-
-    /// Daily series for a metric written under the ON-DEVICE COMPUTED source (the retired on-device
-    /// outputs like `steps_est`). Derives `computedDeviceId` here so callers never reconstruct the
-    /// suffix by hand (FER-663).
-    func computedSeries(key: String, days: Int = 4000) async -> [(day: String, value: Double)] {
-        await series(key: key, source: computedDeviceId, days: days)
-    }
-
-    // MARK: - Intraday stress summaries (FER-378) — persisted in metricSeries, no new table
-
-    private static let stressPartPrefix = "stress-part-"     // + PartOfDay.rawValue
-    private static let stressPeakHourKey = "stress-peak-hour"
-    private static let stressDayMeanKey = "stress-day-mean"
-
-    /// Sleep spans (wall-clock seconds) overlapping `[from, to]`, to exclude from the waking reference.
-    private func sleepSpans(from: Int, to: Int) async -> [ClosedRange<Int>] {
-        (await sleepSessions(from: from, to: to)).compactMap { $0.startTs <= $0.endTs ? $0.startTs...$0.endTs : nil }
-    }
-
-    /// Per-day intraday-stress summaries (FER-378), reassembled from `metricSeries`, last `days` days.
-    /// Only days with a stored day-mean appear. Read under the on-device computed device id.
-    func stressDaySummaries(days: Int = 60) async -> [String: StressDaySummary] {
-        guard let store = await ensureStore() else { return [:] }
-        let (from, to) = Self.dayWindow(days: days)
-        func points(_ key: String) async -> [MetricPoint] {
-            (try? await store.metricSeries(deviceId: computedDeviceId, key: key, from: from, to: to)) ?? []
-        }
-        var parts: [String: [PartOfDay: Double]] = [:]
-        for part in PartOfDay.allCases {
-            for p in await points(Self.stressPartPrefix + part.rawValue) { parts[p.day, default: [:]][part] = p.value }
-        }
-        let peakByDay = Dictionary(await points(Self.stressPeakHourKey).map { ($0.day, Int($0.value)) }, uniquingKeysWith: { _, b in b })
-        let meanByDay = Dictionary(await points(Self.stressDayMeanKey).map { ($0.day, $0.value) }, uniquingKeysWith: { _, b in b })
-        var out: [String: StressDaySummary] = [:]
-        for (day, mean) in meanByDay {
-            out[day] = StressDaySummary(partMeans: parts[day] ?? [:], peakHour: peakByDay[day], dayMean: mean)
-        }
-        return out
-    }
-
-    /// Compute + persist any MISSING per-day stress summaries over the last `days` days (FER-378).
-    /// Idempotent — only days without a stored day-mean are computed. Builds ONE recent waking reference
-    /// (sleep excluded) and applies it to all days (documented approximation; the pattern signal is
-    /// relative). No-op without RR / a usable reference. Additive: does NOT touch the daily metrics pipeline.
-    /// FER-972 (P-03): day-keys already attempted this session that yielded no summary (no band
-    /// worn that day) — permanent gaps must not re-trigger the reference build on every open.
-    /// In-memory only; today (back == 0) is never memoized (its data keeps growing).
-    private var stressBackfillAttempted: Set<String> = []
-
-    func backfillStressSummaries(days: Int = 60, restingHR: Double, maxHR: Double) async {
-        guard let store = await ensureStore() else { return }
-        let existing = await stressDaySummaries(days: days)
-        let cal = Calendar.current
-        let startOfToday = cal.startOfDay(for: Date())
-
-        // FER-972 (P-03): the 7-day waking reference (~700k RR rows + 7 sleep-span reads) was
-        // built BEFORE checking whether any day needed it — every sheet open paid it even with
-        // the whole window already summarized. Compute the pending set first and return early.
-        var pending: [Int] = []
-        for back in 0..<days {
-            let dayStart = cal.date(byAdding: .day, value: -back, to: startOfToday)!
-            let key = Repository.localDayKey(dayStart)
-            if existing[key]?.dayMean != nil { continue }
-            if back != 0, stressBackfillAttempted.contains(key) { continue }
-            pending.append(back)
-        }
-        guard !pending.isEmpty else { return }
-
-        var refDays: [[RRInterval]] = [], refExcluded: [[ClosedRange<Int>]] = []
-        for back in 1...7 {
-            let s = cal.date(byAdding: .day, value: -back, to: startOfToday)!
-            let e = cal.date(byAdding: .day, value: 1, to: s)!
-            let from = Int(s.timeIntervalSince1970), to = Int(e.timeIntervalSince1970)
-            refDays.append(await rrIntervals(from: from, to: to))
-            refExcluded.append(await sleepSpans(from: from, to: to))
-        }
-        guard let reference = StressEngine.wakingReference(daysRR: refDays, excludedPerDay: refExcluded,
-                                                           restingHR: restingHR, maxHR: maxHR) else { return }
-
-        var rows: [MetricPoint] = []
-        for back in pending {
-            let dayStart = cal.date(byAdding: .day, value: -back, to: startOfToday)!
-            let key = Repository.localDayKey(dayStart)
-            if back != 0 { stressBackfillAttempted.insert(key) }   // P-03: gaps don't retry this session
-            let dayEnd = cal.date(byAdding: .day, value: 1, to: dayStart)!
-            let from = Int(dayStart.timeIntervalSince1970), to = Int(dayEnd.timeIntervalSince1970)
-            let rr = await rrIntervals(from: from, to: to)
-            guard !rr.isEmpty else { continue }
-            let curve = StressEngine.intradayStress(rr, reference: reference, excluded: await sleepSpans(from: from, to: to),
-                                                    restingHR: restingHR, maxHR: maxHR)
-            let sum = StressEngine.daySummary(curve)
-            guard let mean = sum.dayMean else { continue }
-            for (part, m) in sum.partMeans { rows.append(MetricPoint(day: key, key: Self.stressPartPrefix + part.rawValue, value: m)) }
-            if let pk = sum.peakHour { rows.append(MetricPoint(day: key, key: Self.stressPeakHourKey, value: Double(pk))) }
-            rows.append(MetricPoint(day: key, key: Self.stressDayMeanKey, value: mean))
-        }
-        if !rows.isEmpty { _ = try? await store.upsertMetricSeries(rows, deviceId: computedDeviceId) }
-    }
-
-    /// Qué métricas tiene guardadas una fuente.
-    func availableKeys(source: String) async -> [String] {
-        guard let store = await ensureStore() else { return [] }
-        return (try? await store.metricKeys(deviceId: source)) ?? []
-    }
-
-    /// The set of metric keys that have at least one stored point, keyed by source. Each source is
-    /// one index-only `DISTINCT key` query — the cheap way to answer "does this metric have any data?"
-    /// for the whole catalog without fetching each metric's full series just to test `.isEmpty`
-    /// (FER-27). Used by Explore to flag empty rows and to skip empty metrics before correlating.
-    func availableKeySets(sources: [String]) async -> [String: Set<String>] {
-        var out: [String: Set<String>] = [:]
-        for src in Set(sources) {
-            out[src] = Set(await availableKeys(source: src))
-        }
-        return out
-    }
-
-    /// Las respuestas que el usuario escribe dentro del app viven bajo esta fuente propia.
-    ///
-    /// La tabla de bitácora no tiene columna de origen —su llave es (fuente, día, pregunta)—, así que
-    /// guardarlas bajo la fuente importada dejaría que una reimportación de CSV las pisara en
-    /// silencio, y un borrado se llevaría de paso filas importadas. Con una fuente aparte, las dos
-    /// corrientes no se tocan.
-    ///
-    /// El texto es un valor persistido (neutro desde FER-479; la migración `v44` reescribió
-    /// `noop-journal`→`journal`): así están marcadas las filas que ya existen.
-    static let journalDeviceId = "journal"
-
-    /// Dato en disco: el id de la partición raíz (el mismo valor que `AppModel.legacyDeviceId`; neutro
-    /// desde FER-479, la migración `v44` reescribió `strap`→`primary`).
-    static let legacyDeviceId = "primary"
-
-    /// Todas las conductas registradas —las importadas más las escritas aquí— para cruzar con las
-    /// métricas y sacar ideas.
-    func journalEntries(days: Int = 4000) async -> [JournalEntry] {
-        guard let store = await ensureStore() else { return [] }
-        let (from, to) = Self.dayWindow(days: days)
-        let imported = (try? await store.journalEntries(deviceId: deviceId, from: from, to: to)) ?? []
-        let native = (try? await store.journalEntries(deviceId: Self.journalDeviceId,
-                                                      from: from, to: to)) ?? []
-        return Self.mergeJournal(imported: imported, native: native)
-    }
-
-    /// Solo las filas importadas. La tarjeta de registro las lee para adoptar en el catálogo las
-    /// preguntas con la grafía exacta de la exportación: así un día registrado aquí y uno importado
-    /// caen en la misma conducta.
-    func importedJournalEntries(days: Int = 4000) async -> [JournalEntry] {
-        guard let store = await ensureStore() else { return [] }
-        let (from, to) = Self.dayWindow(days: days)
-        return (try? await store.journalEntries(deviceId: deviceId, from: from, to: to)) ?? []
-    }
-
-    /// Las respuestas de un solo día escritas aquí dentro, para pintar las fichas de la tarjeta de
-    /// registro. Es una lectura dirigida: la lista ya fusionada no carga la fuente, así que no puede
-    /// distinguir cuáles son propias.
-    func nativeJournalAnswers(day: String) async -> [String: Bool] {
-        guard let store = await ensureStore() else { return [:] }
-        let rows = (try? await store.journalEntries(deviceId: Self.journalDeviceId,
-                                                    from: day, to: day)) ?? []
-        return Dictionary(rows.map { ($0.question, $0.answeredYes) },
-                          uniquingKeysWith: { _, last in last })
-    }
-
-    /// Une las dos corrientes. Por cada (día, pregunta) gana la respuesta escrita DENTRO del app: es
-    /// lo último que el usuario hizo a propósito y sigue siendo editable, a diferencia del historial
-    /// importado, que ya no se toca.
-    static func mergeJournal(imported: [JournalEntry], native: [JournalEntry]) -> [JournalEntry] {
-        // El separador de unidad no aparece en un día ni en una pregunta, así que la llave compuesta
-        // no puede colisionar por accidente.
-        func llave(_ entry: JournalEntry) -> String { entry.day + "\u{1F}" + entry.question }
-
-        var porLlave: [String: JournalEntry] = [:]
-        for entry in imported { porLlave[llave(entry)] = entry }
-        for entry in native { porLlave[llave(entry)] = entry }
-        return porLlave.values.sorted { ($0.day, $0.question) < ($1.day, $1.question) }
-    }
-
-    /// Escribe una respuesta propia. El día sigue la convención del importador: la jornada en que se
-    /// despertó.
-    func saveJournalAnswer(day: String, question: String, answeredYes: Bool, notes: String? = nil) async throws {
-        guard let store = await ensureStore() else { return }
-        _ = try await store.upsertJournal(
-            [JournalEntry(day: day, question: question, answeredYes: answeredYes, notes: notes)],
-            deviceId: Self.journalDeviceId)
-    }
-
-    /// Borra una respuesta propia. Nunca toca lo importado: la operación va acotada a la fuente
-    /// propia.
-    func clearJournalAnswer(day: String, question: String) async throws {
-        guard let store = await ensureStore() else { return }
-        _ = try await store.deleteJournal(deviceId: Self.journalDeviceId, day: day, question: question)
-    }
-
-    // MARK: - N-of-1 experiments (FER-307)
-    //
-    // Experiments are native on-device records, partitioned under the same `journalDeviceId` source as
-    // the journal they draw adherence from. The verdict reuses CenitAnalytics' `ExperimentVerdict`
-    // (which reuses `BehaviorInsights`) over `days` (the same daily metrics the Bucle's levers come
-    // from) and the native journal; no math lives here.
-
-    /// The experiment currently in flight (`running`), or nil. MVP is one at a time.
-    func activeExperiment() async -> ExperimentRow? {
-        guard let store = await ensureStore() else { return nil }
-        return (try? await store.activeExperiment(deviceId: Self.journalDeviceId)) ?? nil
-    }
-
-    /// Every experiment, newest first (for the verdict card + proven-lever derivation).
-    func allExperiments() async -> [ExperimentRow] {
-        guard let store = await ensureStore() else { return [] }
-        return (try? await store.experiments(deviceId: Self.journalDeviceId)) ?? []
-    }
-
-    /// The levers an experiment has confirmed (`completed` + `sustained`) — fed to
-    /// `InsightEngine.promoteProven` so "Lo que funciona en ti" shows them as «probado».
-    func provenLevers() async -> Set<Lever> {
-        let all = await allExperiments()
-        var out = Set<Lever>()
-        for e in all where e.status == .completed && e.result == Verdict.sustained.rawValue {
-            out.insert(Lever(behavior: e.behavior, outcome: e.outcome))
-        }
-        return out
-    }
-
-    /// «Empezar de cero» (Patrones): wipe everything the user CONTRIBUTED — the native in-app journal,
-    /// every experiment (with its verdicts, so the derived proven levers clear too), diet adherence marks,
-    /// and the derived `diet-adherence` metric series. It never touches the imported legacy journal (a
-    /// different source id) nor the biometric history the detected findings are recomputed from — those
-    /// aren't stored records, so they regenerate on their own. Irreversible.
-    func resetContributedPatrones() async throws {
-        guard let store = await ensureStore() else { return }
-        _ = try await store.deleteAllJournal(deviceId: Self.journalDeviceId)
-        _ = try await store.deleteAllExperiments(deviceId: Self.journalDeviceId)
-        try await store.deleteAllDietAdherence(deviceId: Self.journalDeviceId)
-        try await store.deleteMetricSeries(deviceId: Self.journalDeviceId, key: Self.dietAdherenceKey)
-    }
-
-    /// Start a 7-day experiment on a candidate lever. No-op (returns nil) if one already runs.
-    @discardableResult
-    func startExperiment(behavior: String, outcome: String, expectedSign: Int,
-                         windowDays: Int = 7) async throws -> ExperimentRow? {
-        guard let store = await ensureStore() else { return nil }
-        if try await store.activeExperiment(deviceId: Self.journalDeviceId) != nil { return nil }   // one at a time
-        let now = Int(Date().timeIntervalSince1970)
-        let row = ExperimentRow(id: UUID().uuidString, behavior: behavior, outcome: outcome,
-                                expectedSign: expectedSign, startDay: Self.localDayKey(Date()),
-                                windowDays: windowDays, status: .running, createdAt: now)
-        _ = try await store.upsertExperiment(row, deviceId: Self.journalDeviceId)
-        return row
-    }
-
-    /// The distinct days in [from, to] the behavior was adhered to — the SET behind the streak/«arco»
-    /// (FER-462). Diet (FER-385) counts days with adherence ≥ threshold from the `diet-adherence` series;
-    /// every other behavior counts «yes» days from the native journal.
-    func adherentDays(behavior: String, from: String, to: String) async -> Set<String> {
-        if behavior == JournalCatalogStore.dietBehaviorKey {
-            let byDay = await dietAdherenceByDay(from: from, to: to)
-            return DietAdherence.adherentDays(percentByDay: byDay)
-        }
-        guard let store = await ensureStore() else { return [] }
-        let entries = (try? await store.journalEntries(deviceId: Self.journalDeviceId,
-                                                       from: from, to: to)) ?? []
-        return Set(entries.filter { $0.question == behavior && $0.answeredYes }.map(\.day))
-    }
-
-    /// Count of distinct days in [from, to] the behavior was adhered to — the adherence a running
-    /// experiment shows ("cumpliste 3 de 4 días").
-    func nativeAdherence(behavior: String, from: String, to: String) async -> Int {
-        await adherentDays(behavior: behavior, from: from, to: to).count
-    }
-
-    // MARK: - Diet plan (FER-371)
-    //
-    // The prescribed diet plan is native on-device user data, partitioned under the same
-    // `journalDeviceId` source as the journal/experiments it will correlate with. MVP is one active
-    // plan (the most recently saved); replacing it just saves a newer one.
-
-    /// The active diet plan (most recent), or nil when none has been captured.
-    func activeDietPlan() async -> DietPlanRow? {
-        guard let store = await ensureStore() else { return nil }
-        return (try? await store.activeDietPlan(deviceId: Self.journalDeviceId)) ?? nil
-    }
-
-    /// Persist a captured plan and make it the active one.
-    func saveDietPlan(_ row: DietPlanRow) async throws {
-        guard let store = await ensureStore() else { return }
-        _ = try await store.upsertDietPlan(row, deviceId: Self.journalDeviceId)
-    }
-
-    /// The metric-series key under which each day's diet-adherence % is stored — a standard metric
-    /// point a future Coach/trends reader can pick up (today only the sparkline reads it back) (FER-372).
-    static let dietAdherenceKey = "diet-adherence"
-
-    /// A day's per-meal adherence marks (only meals the user has marked appear).
-    func dietAdherence(day: String) async -> [DietAdherenceRow] {
-        guard let store = await ensureStore() else { return [] }
-        return (try? await store.dietAdherence(deviceId: Self.journalDeviceId, day: day)) ?? []
-    }
-
-    /// Record one meal's status, recompute the day's adherence %, persist it to `metricSeries`
-    /// (key `diet-adherence`), and return the new % (nil if the plan has no meals). The metric point is
-    /// written whenever at least one meal is marked — which it always is right after this upsert.
-    /// The primary adherence write throws on failure; a derived metric-series failure is logged only
-    /// (the meal mark already landed).
-    @discardableResult
-    func saveDietAdherence(day: String, mealId: String, status: DietMealStatus,
-                           plannedMeals: Int, optionIndex: Int? = nil) async throws -> Int? {
-        guard let store = await ensureStore() else { return nil }
-        _ = try await store.upsertDietAdherence(
-            DietAdherenceRow(day: day, mealId: mealId, status: status, optionIndex: optionIndex),
-            deviceId: Self.journalDeviceId)
-        let rows = (try? await store.dietAdherence(deviceId: Self.journalDeviceId, day: day)) ?? []
-        guard let pct = DietAdherence.dayPercent(statuses: rows.map(\.status), plannedMeals: plannedMeals) else { return nil }
-        do {
-            _ = try await store.upsertMetricSeries(
-                [MetricPoint(day: day, key: Self.dietAdherenceKey, value: Double(pct))],
-                deviceId: Self.journalDeviceId)
-        } catch {
-            // Primary adherence is durable; the sparkline point is derived. Don't lose the meal mark.
-            print("[saveDietAdherence] diet-adherence metricSeries upsert failed after adherence save: \(error)")
-        }
-        return pct
-    }
-
-    /// The recent diet-adherence trend (one value per logged day in [from, to], oldest first) — the
-    /// sparkline behind today's apego.
-    func dietAdherenceSeries(from: String, to: String) async -> [Double] {
-        guard let store = await ensureStore() else { return [] }
-        let pts = (try? await store.metricSeries(deviceId: Self.journalDeviceId,
-                                                 key: Self.dietAdherenceKey, from: from, to: to)) ?? []
-        return pts.map(\.value)
-    }
-
-    /// Day → adherence % for every logged day in [from, to] (FER-385). The Coach derives both the
-    /// «Seguí mi dieta» day set (`DietAdherence.adherentDays`, ≥ threshold) and the eligible universe
-    /// (all keys — the days the behavior is even measured on) from this; days with no record are absent,
-    /// so they stay out of both the contrast and the experiment.
-    func dietAdherenceByDay(from: String, to: String) async -> [String: Double] {
-        guard let store = await ensureStore() else { return [:] }
-        let pts = (try? await store.metricSeries(deviceId: Self.journalDeviceId,
-                                                 key: Self.dietAdherenceKey, from: from, to: to)) ?? []
-        return Dictionary(pts.map { ($0.day, $0.value) }, uniquingKeysWith: { _, latest in latest })
-    }
-
-    /// End a running experiment early, with no verdict.
-    func cancelExperiment(_ row: ExperimentRow) async throws {
-        guard let store = await ensureStore() else { return }
-        let canceled = Self.experimentRow(row, status: .canceled,
-                                          decidedAt: Int(Date().timeIntervalSince1970))
-        _ = try await store.upsertExperiment(canceled, deviceId: Self.journalDeviceId)
-    }
-
-    /// If a running experiment's window has elapsed (today ≥ startDay + windowDays), compute its
-    /// verdict and persist it (`completed`). Idempotent: a `running` experiment whose window isn't up
-    /// yet, or no experiment at all, is left untouched. Call before reading the experiment for display.
-    func closeDueExperiment(today: String) async {
-        // The verdict's "without" side reads the FULL history (`days` below) and the completed row is
-        // persisted — never close over the first-paint window (~90 days) or the verdict could differ.
-        // Idempotent: it simply closes on the next visit/refresh once the full pass has published.
-        guard dashboard.fullyLoaded else { return }
-        guard let store = await ensureStore(),
-              let exp = (try? await store.activeExperiment(deviceId: Self.journalDeviceId)) ?? nil,
-              let endKey = Self.experimentEndDay(exp) else { return }
-        guard today >= endKey else { return }   // window still open
-
-        let series = InsightEngine.outcomeSeries(days, metric: exp.outcome)
-        // "With" = the window days the lever was adhered to; "without" = the rest (mostly baseline). The
-        // experiment deliberately does NOT restrict to registered days the way the lever does — its short
-        // window needs the full baseline on the "without" side, and an adherent diet day is, by
-        // definition, a registered one (FER-385).
-        var adherent = Set<String>()
-        if exp.behavior == JournalCatalogStore.dietBehaviorKey {
-            let byDay = await dietAdherenceByDay(from: exp.startDay, to: endKey)
-            adherent = DietAdherence.adherentDays(percentByDay: byDay).filter { $0 < endKey }
-        } else {
-            let entries = (try? await store.journalEntries(deviceId: Self.journalDeviceId,
-                                                           from: exp.startDay, to: endKey)) ?? []
-            for e in entries where e.question == exp.behavior && e.answeredYes && e.day < endKey {
-                adherent.insert(e.day)
-            }
-        }
-        let result = ExperimentVerdict.evaluate(behavior: exp.behavior, outcome: exp.outcome,
-                                                expectedSign: exp.expectedSign,
-                                                adherentDays: adherent, outcomeByDay: series)
-        let e = result.effect
-        let completed = ExperimentRow(id: exp.id, behavior: exp.behavior, outcome: exp.outcome,
-                                      expectedSign: exp.expectedSign, startDay: exp.startDay,
-                                      windowDays: exp.windowDays, status: .completed,
-                                      result: result.verdict.rawValue, effectDelta: e?.delta,
-                                      effectSize: e?.cohensD, pValue: e?.pApprox, nWith: e?.nWith,
-                                      nWithout: e?.nWithout, createdAt: exp.createdAt,
-                                      decidedAt: Int(Date().timeIntervalSince1970))
-        // Autonomous (not a user write): don't surface to UI, but don't swallow silently either (FER-793).
-        do {
-            _ = try await store.upsertExperiment(completed, deviceId: Self.journalDeviceId)
-        } catch {
-            print("[FER-793] closeDueExperiment upsert failed for \(exp.id): \(error)")
-        }
-    }
-
-    /// The day key on which an experiment's window closes (startDay + windowDays, exclusive).
-    static func experimentEndDay(_ row: ExperimentRow, calendar: Calendar = .current) -> String? {
-        guard let start = dayKeyFormatter.date(from: row.startDay),
-              let end = calendar.date(byAdding: .day, value: row.windowDays, to: start) else { return nil }
-        return localDayKey(end)
-    }
-
-    /// Copy an experiment row with a new status / decidedAt, preserving its result columns.
-    private static func experimentRow(_ r: ExperimentRow, status: ExperimentStatus,
-                                      decidedAt: Int?) -> ExperimentRow {
-        ExperimentRow(id: r.id, behavior: r.behavior, outcome: r.outcome, expectedSign: r.expectedSign,
-                      startDay: r.startDay, windowDays: r.windowDays, status: status, result: r.result,
-                      effectDelta: r.effectDelta, effectSize: r.effectSize, pValue: r.pValue,
-                      nWith: r.nWith, nWithout: r.nWithout, createdAt: r.createdAt, decidedAt: decidedAt)
-    }
-
     /// Todos los entrenamientos —importados, de Apple Salud y los ratos que el aparato detectó solo—,
     /// del más nuevo al más viejo.
     ///
@@ -1381,32 +778,6 @@ final class Repository: ObservableObject {
         let spans = WorkoutSource.parseDismissedSpans(dismissedDetectedSpans)
         return rows.filter { !WorkoutSource.isDismissed($0, spans: spans) }
             .sorted { $0.startTs > $1.startTs }
-    }
-
-    /// "How you wake the morning after each sport" — per sport, how far below your rest-day Charge
-    /// your next-morning Charge tends to sit, over your own history (FER-139). A descriptive
-    /// ASSOCIATION, never a causal cost; the engine and its narrative are framed accordingly.
-    ///
-    /// Takes the already-loaded workout `rows` (the caller has them in hand — Cuerpo loads them once
-    /// per refresh — so this never re-queries the store), builds the two engine inputs and runs
-    /// `ActivityCostEngine`:
-    ///  - Sessions: legacy + Apple Health + manual workouts. Auto-DETECTED bouts are excluded — they
-    ///    carry no real sport, so they'd pool into one meaningless "Activity" bucket (FER-139 scope).
-    ///  - Day-keying: each session's start maps to a day-key in the device's LOCAL zone — the same
-    ///    calendar `DailyMetric.day` uses — so the engine's UTC D→D+1 string arithmetic stays aligned.
-    ///  - Recovery: `days` (the legacy on-device scores), NOT `displayDays`, so the rest-day
-    ///    baseline never mixes in Apple-Health back-fill (house rule, matches the recovery baseline).
-    ///    `days` is band-measured only — the FER-153 Apple estimate lives on `repo.today`, never in `days`.
-    func activityCosts(from rows: [WorkoutRow]) -> [ActivityCost] {
-        let sessions = rows
-            .filter { WorkoutSource.classify($0.source) != .detected }
-            .map { ActivityCostInputs.Session(startTs: $0.startTs,
-                                              sport: WorkoutSource.displaySport($0.sport)) }
-        let activityDaysBySport = ActivityCostInputs.activityDaysBySport(sessions, timeZone: .current)
-        var recoveryByDay: [String: Double] = [:]
-        for d in days { if let r = d.recovery { recoveryByDay[d.day] = r } }
-        return ActivityCostEngine.evaluate(activityDaysBySport: activityDaysBySport,
-                                           recoveryByDay: recoveryByDay)
     }
 
     // MARK: - Editar entrenamientos (agregar y editar a mano · renombrar · descartar · borrar)

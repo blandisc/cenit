@@ -40,12 +40,6 @@ struct DataSourcesView: View {
     /// FER-362 · C4: shows/hides the third-party strength Apple Health already has (Strong, Hevy, Apple
     /// Fitness) inside «Fuerza». On by default — the honest default is to show what's already there.
     @AppStorage(WorkoutSource.showThirdPartyStrengthKey) private var showThirdPartyStrengthWorkouts = true
-    #if DEBUG
-    /// FER-1008 spike (dev-only, never in a store build): export Apple's nocturnal beat-to-beat R-R so a
-    /// nocturnal Apple RMSSD can be validated against the legacy device on paired nights.
-    @State private var exportingHeartbeats = false
-    @State private var heartbeatSummary: String?
-    #endif
     #endif
 
     // Backup & restore + automatic iCloud backup — migrated here from SettingsView for FER-337 so no
@@ -320,9 +314,6 @@ struct DataSourcesView: View {
             watchRecordingRow
             thirdPartyStrengthToggle
 
-            // Reachability for the per-source Apple Health viewer. Pushed within this screen's
-            // NavigationStack — «Ver datos importados ›».
-            appleHealthNavRow
         }
         // Load coverage + write permissions on appear so opening the screen shows "X days imported"
         // and the per-metric list without forcing a re-import first.
@@ -401,23 +392,6 @@ struct DataSourcesView: View {
         .liquidTarjetaSeccion()
     }
 
-    /// «Ver datos importados ›» — the ONE door to `AppleHealthView`, unchanged (destination-closure
-    /// `NavigationLink`, no `.navigationDestination(for:)` rewrite). `LiquidListRow` renders bare (no
-    /// `action:`) so it composes as a plain label inside the link, its own dot + chevron doing the
-    /// affordance work the mock shows.
-    private var appleHealthNavRow: some View {
-        NavigationLink {
-            AppleHealthView()
-        } label: {
-            LiquidListRow(
-                title: String(localized: "View imported data"),
-                tone: health.auth == .authorized ? LiquidColor.verdePrimario : LiquidColor.tinta500,
-                divider: false)
-        }
-        .buttonStyle(.plain)
-        .liquidTarjetaSeccion(padding: LiquidSpace.s300)
-    }
-
     /// Authorized: the sync/reimport control, then either live progress (mid-sync) or the coverage
     /// summary + per-metric status of what has been imported.
     @ViewBuilder
@@ -430,29 +404,6 @@ struct DataSourcesView: View {
             Spacer(minLength: 0)
         }
 
-        #if DEBUG
-        // DEV (FER-1008 spike): vuelca los latidos nocturnos que Apple guardó en HealthKit para medir un
-        // RMSSD de Apple contra la banda en noches pareadas. One-shot, pide su propio permiso, no toca la
-        // DB ni el sync. Gateado a DEBUG: nunca llega a una build de tienda.
-        VStack(alignment: .leading, spacing: LiquidSpace.s150) {
-            LiquidGlassButton(exportingHeartbeats ? "Exportando latidos…" : "Exportar latidos de Apple (dev)",
-                              variant: .glass) {
-                Task {
-                    exportingHeartbeats = true
-                    let (csv, summary) = await health.exportAppleHeartbeatSeries()
-                    heartbeatSummary = summary
-                    exportingHeartbeats = false
-                    FileExport.exportText(csv, suggestedName: "apple-rr.csv")
-                }
-            }
-            .disabled(exportingHeartbeats)
-            .opacity(exportingHeartbeats ? 0.6 : 1)
-            if let s = heartbeatSummary {
-                Text(verbatim: s).font(LiquidType.captionLectura).foregroundStyle(LiquidColor.tinta500)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-        }
-        #endif
 
         if health.syncing {
             appleHealthSyncProgress

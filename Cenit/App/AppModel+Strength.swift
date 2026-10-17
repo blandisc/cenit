@@ -536,19 +536,6 @@ extension AppModel {
             secondaryPerSet: work.map { exercise($0.exerciseId)?.secondaryMuscles ?? [] },
             titleCase: StrengthDisplay.titleCase)
 
-        // Tomorrow's projection given today's session cost (FER-442): recovery base = repo.days
-        // (already oldest→newest from Repository; nils kept so the engine respects missing-day
-        // spacing). "Si descansas bien" → no sleep-debt drag; the only downward pull is the acute
-        // session strain. nil (→ the line is hidden) when there's no strain or fewer than ~2 weeks
-        // of base — we never invent a number.
-        let recoverySeries = repo.days.map(\.recovery)
-        // Same source as `costBand` on the same card: the pulse when it covered the session, else the
-        // session's load — never one line from the pulse and the next from the estimate (gate /qa D4).
-        let costTomorrowPct: Int? = cardiovascularStrain.flatMap { strain in
-            RecoveryForecast.compute(recovery: recoverySeries, sessionStrain: strain)
-                .map { Int($0.estimate.rounded()) }
-        }
-
         return StrengthSummary(routineName: session.routineName,
                                endTs: record.endTs ?? record.startTs, durationS: durationS,
                                volumeKg: volumeKg, setCount: work.count, strain: record.strain,
@@ -557,7 +544,7 @@ extension AppModel {
                                sessionRpeSource: record.sessionRpeSource,
                                avgHr: record.avgHr,
                                costBand: SessionRecoveryCost.cost(sessionStrain: cardiovascularStrain)?.band,
-                               costTomorrowPct: costTomorrowPct,
+                               costTomorrowPct: nil,   // CEN-67: la proyección de recuperación salió con el Camino C+
                                energyKcal: record.energyKcal, energySource: record.energySource,
                                prs: prs, muscles: Array(muscles.prefix(8)),
                                isFirstTime: prior.allSatisfy { $0.value.isEmpty },

@@ -45,14 +45,6 @@ enum ExploreRange: Int, CaseIterable, Identifiable, Hashable {
     /// Cuántos días hacia atrás abarca la ventana. Nada significa «todo el historial».
     var days: Int? { self == .all ? nil : rawValue }
 
-    /// The trend chip's comparison for `series`: this window vs the equally-long window before it. `.all`
-    /// has no previous period of the same length, so it returns nil (and the chip hides). Pass the series
-    /// already trimmed of any in-progress current day. The shared glue for every trend block. (FER-264)
-    func periodComparison(of series: [(day: String, value: Double)]) -> PeriodComparison? {
-        days.map { ComparisonEngine.periodOverPeriod(byDay: series, windowDays: $0,
-                                                     referenceDay: series.last?.day ?? "") }
-    }
-
     /// The period the trend chip compares against — its trailing window vs the equally-long window before
     /// it. `.all` has no previous period of the same length, so it returns nil and the chip hides. (FER-264)
     var comparisonPeriod: TrendStatSummary.ComparisonPeriod? {

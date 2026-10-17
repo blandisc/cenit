@@ -87,14 +87,6 @@ final class TrainWidgetPublisherTests: XCTestCase {
         XCTAssertTrue(completadas.isEmpty)
     }
 
-    // MARK: - Sin veredicto (CEN-65)
-
-    func testElWidgetYaNoLlevaVeredicto() {
-        XCTAssertNil(TrainWidgetPublisher.verdict(prep: nil, fullyLoaded: true, healthConnected: true,
-                                                  hasPlan: true, primerUsoSinPlan: false),
-                     "el oráculo de recuperación se retiró: el widget no pinta palabra del día")
-    }
-
     // MARK: - El contrato de cable (Codable a través del App Group)
 
     func testSnapshotRoundTripsThroughJSON() throws {

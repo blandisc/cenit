@@ -59,10 +59,6 @@ enum TrainWidgetPublisher {
         !sessionLive && semanaVacia
     }
 
-    /// CEN-65 (barrido 2): el widget ya no lleva la palabra del día — el oráculo de recuperación se retiró.
-    static func verdict(prep: Preparedness.Read?, fullyLoaded: Bool, healthConnected: Bool,
-                        hasPlan: Bool, primerUsoSinPlan: Bool) -> TrainWidgetSnapshot.Verdict? { nil }
-
     /// The weekdays (Calendar convention) THIS week that already have a completed session — the same
     /// `TrainingStreak.completedDayStarts` bucketing Entrenar's own streak reads, so the widget's
     /// «trained» dots can never disagree with the app's.
@@ -90,7 +86,7 @@ enum TrainWidgetPublisher {
     /// once. No store access — the caller (`AppModel`) fetches split/routines/sessions once and can
     /// reuse them for `TrainingDayReminder.reschedule` too, so one dashboard publish costs one store trip.
     static func publish(split: [Int: String], routineNames: [String: String], sessions: [StrengthSession],
-                        sessionLive: Bool, prep: Preparedness.Read?, fullyLoaded: Bool, healthConnected: Bool,
+                        sessionLive: Bool,
                         now: Date = Date(), calendar: Calendar = .current,
                         dosePlan: DosePlan? = nil) {
         let todayWeekday = calendar.component(.weekday, from: now)
@@ -101,15 +97,8 @@ enum TrainWidgetPublisher {
         let todayRoutineId = WeeklySplit.todayRoutineId(split: split, todayWeekday: todayWeekday)
         let todayRoutineName = todayRoutineId.flatMap { routineNames[$0] }
 
-        // `hasPlan` con la MISMA regla que la portada (`EntrenarView.todayRoutine != nil`: la rutina de
-        // hoy existe, no solo su id) y «primer uso sin plan» con la regla nombrada compartida — FER-499.
-        let veredicto = Self.verdict(prep: prep, fullyLoaded: fullyLoaded, healthConnected: healthConnected,
-                                     hasPlan: todayRoutineName != nil,
-                                     primerUsoSinPlan: esPrimerUsoSinPlan(sessionLive: sessionLive,
-                                                                          semanaVacia: split.isEmpty))
-
         let snap = snapshot(todayRoutineName: todayRoutineName, sessionLive: sessionLive,
-                            verdict: veredicto, week: weekDays, now: now, dosePlan: dosePlan)
+                            verdict: nil, week: weekDays, now: now, dosePlan: dosePlan)
         TrainWidgetSnapshot.write(snap)
         WidgetCenter.shared.reloadTimelines(ofKind: TrainWidgetSnapshot.trainTodayKind)
         WidgetCenter.shared.reloadTimelines(ofKind: TrainWidgetSnapshot.weekKind)

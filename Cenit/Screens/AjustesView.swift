@@ -79,7 +79,6 @@ private struct AjustesLanding: View {
     // Read only to re-inject into the sibling sheets (a sheet starts a fresh environment branch).
     @EnvironmentObject private var repo: Repository
     @EnvironmentObject private var health: HealthKitBridge
-    @EnvironmentObject private var behavior: BehaviorStore
     @EnvironmentObject private var autoBackup: AutoBackup
     /// FER-435: las puertas de Ayuda hacia Hoy (acta, guardián) viajan por el router.
     @EnvironmentObject private var tabRouter: TabRouter
@@ -111,9 +110,6 @@ private struct AjustesLanding: View {
     /// (conceder en Ajustes de iOS y regresar tiene que reflejarse aquí, no quedarse congelado).
     @State private var restPermiso: UNAuthorizationStatus?
     @State private var pidiendoPermisoDescanso = false
-    /// Ronda 2 #1: solo se usa para PINTAR la nota de negado — ya NO gobierna si el switch puede
-    /// prenderse (ver `illnessNegado` / `encenderVigilanciaEnfermedad`).
-    @State private var illnessPermiso: UNAuthorizationStatus?
     @State private var confirmRecalibrate = false
     @State private var profileWheel: ProfileWheel? = nil
     @State private var presentedSheet: AjustesSheetScreen? = nil
@@ -497,7 +493,7 @@ private struct AjustesLanding: View {
         return "\(sys) · \(temp)"
     }
 
-    // MARK: - Notification permission contract (illness watch + rest-end notice)
+    // MARK: - Notification permission contract (rest-end notice)
     //
     // The rest-end notice follows the `AvisoMatutinoSection` contract: the system permission is
     // requested the instant the switch turns ON (never at launch, never mid-session); if iOS denies
@@ -506,35 +502,6 @@ private struct AjustesLanding: View {
     // whenever the app returns to the foreground. Its ONLY surface IS the system notification, so
     // that contract fits it exactly.
     //
-    // The illness watch does NOT share that contract (ronda 2 #1 reverts a ronda-1 regression that
-    // copied it wholesale): its live surface is the Hoy banner, not a notification, so the switch
-    // always reflects the PREFERENCE alone — never disabled, never auto-off on a denial. The
-    // permission is still requested on enable (for the system notice), and still reread on
-    // foreground, purely to decide whether to show the «you'll still see it in Hoy» note.
-
-    /// The illness-watch switch shows exactly the preference — the permission never overrides it.
-    private var illnessEncendido: Bool { behavior.illnessWatch }
-    /// Preference ON but the system notice denied: the banner in Hoy still fires, only the
-    /// notification won't — the note below says so, the switch stays on.
-    private var illnessNegado: Bool {
-        guard behavior.illnessWatch, let illnessPermiso else { return false }
-        return illnessPermiso == .denied
-    }
-    private func encenderVigilanciaEnfermedad(_ on: Bool) {
-        // La preferencia manda YA, pase lo que pase con el permiso que se pide abajo.
-        behavior.illnessWatch = on
-        model.reevaluateIllness()
-        guard on else { return }
-        Task {
-            var estado = await IllnessNotifier.authorizationStatus()
-            if estado == .notDetermined {
-                _ = await IllnessNotifier.requestAuthorization()
-                estado = await IllnessNotifier.authorizationStatus()
-            }
-            illnessPermiso = estado
-        }
-    }
-
     /// Same shape for the rest-end notice; `restNotify` keeps holding what the owner ASKED for
     /// (`RestEndNotifier.schedule` rechecks the real system permission at schedule time regardless).
     private var restEncendido: Bool {
@@ -570,7 +537,6 @@ private struct AjustesLanding: View {
     /// reflected here without needing to toggle anything.
     @MainActor
     private func sincronizarPermisosDeAviso() async {
-        illnessPermiso = await IllnessNotifier.authorizationStatus()
         restPermiso = await RestEndNotifier.authorizationStatus()
     }
 
@@ -612,7 +578,6 @@ private struct AjustesLanding: View {
             .environment(model)
             .environmentObject(repo)
             .environmentObject(health)
-            .environmentObject(behavior)
             .environmentObject(autoBackup)
         case .support:
             NavigationStack {
@@ -629,7 +594,6 @@ private struct AjustesLanding: View {
             .environment(model)
             .environmentObject(repo)
             .environmentObject(health)
-            .environmentObject(behavior)
             .environmentObject(autoBackup)
         case .ayuda:
             // FER-435: «Cómo funciona Cénit» trae su propio «Listo» (también la abre el «?» de
