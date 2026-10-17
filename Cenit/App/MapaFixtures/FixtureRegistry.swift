@@ -20,7 +20,7 @@ enum FixtureRegistry {
     static let all: [String: Seed] = {
         var merged: [String: Seed] = [:]
         let families: [[String: Seed]] = [
-            HoyFixtures.all, TendenciasFixtures.all, EntrenarFixtures.all,
+            EntrenarFixtures.all,
             EntrenarHerramientasFixtures.all, AjustesFixtures.all, OnboardingFixtures.all,
             FuerzaFixtures.all,
         ]

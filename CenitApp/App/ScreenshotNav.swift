@@ -4,7 +4,7 @@ import SwiftUI
 
 /// Debug-only navigation for screenshot automation.
 ///
-/// Two transport layers — both post to `.cenitDebugNav` which RootTabView observes:
+/// Two transport layers — both post to `.cenitDebugNav`, which `FuerzaRootView` observes (CEN-45):
 ///   1. Darwin notifications (no dialog): notifyutil -p cenit.nav.<screen>
 ///   2. URL scheme (backup):              xcrun simctl openurl booted "cenit://<screen>"
 ///
@@ -30,7 +30,7 @@ extension Notification.Name {
 /// Handles `cenit://<screen>` URLs and broadcasts the target screen via NotificationCenter.
 ///
 /// `session` is NOT handled here: that one is the Live Activity's deep link and has to work in
-/// Release too, so `RootTabView` owns it (FER-398). Skipping it keeps the two handlers from both
+/// Release too, so `FuerzaRootView` owns it (FER-398). Skipping it keeps the two handlers from both
 /// reacting to the same URL.
 struct DebugURLHandler: ViewModifier {
     func body(content: Content) -> some View {
@@ -42,7 +42,7 @@ struct DebugURLHandler: ViewModifier {
 }
 
 /// Watches Darwin notifications posted by `notifyutil -p cenit.nav.<screen>` and
-/// bridges them to NSNotificationCenter so RootTabView can react without any iOS
+/// bridges them to NSNotificationCenter so the Fuerza root can react without any iOS
 /// permission dialogs or URL-scheme intercept flows.
 final class DebugNavWatcher {
     static let shared = DebugNavWatcher()
@@ -53,11 +53,12 @@ final class DebugNavWatcher {
     // y `automations` (sin destino) — capturaban la pantalla ANTERIOR con nombre ajeno y el test seguía
     // verde (falso verde que `Tools/check-shots.py` ahora mata). Toda clave aquí resuelve a una pantalla real.
     // FER-490 A3: today → Cuerpo/Ahora; body/trends/sleep → Cuerpo/Tiempo (aliases en RootTabView).
+    // CEN-45 (Camino C+): sin Hoy ni Cuerpo ni Respirar, `today`/`body`/`trends`/`sleep`/`explore`/
+    // `breathe` salen. El resto lo atiende la raíz de Fuerza (`FuerzaDebugNav`).
     private static let screens = [
-        "today", "body", "trends", "train", "entrenar", "settings", "ajustes", "more",
-        "breathe", "intervals", "routineToday",
-        "library", "weeklyplan", "misrutinas", "workouthistory",
-        "sleep", "explore", "workouts",
+        "train", "entrenar", "settings", "ajustes", "more",
+        "intervals", "routineToday",
+        "library", "weeklyplan", "misrutinas", "workouthistory", "workouts",
         "applehealth", "datasources", "support",
     ]
 

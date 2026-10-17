@@ -5,10 +5,11 @@ Una clave DEBUG muerta hace que el barrido de capturas fotografíe la pantalla A
 nombre ajeno y el test siga verde — pasó con `coach`/`dieta`/`automations` (FER-381) y con
 `compare` (FER-489). Este gate cruza estáticamente:
 
-  - R1: todo elemento de `ScreenshotNav.screens` está en los alias de pestaña de
-    `RootTabView` o en los `rawValue` de `SecondaryScreen` (si no → «clave nav muerta»).
-  - R2: toda `nav` de los manifiestos `docs/appmap/mapa/*.json` y de `CenitUITests/*.swift`
-    está declarada en `screens` (si no → «clave nav desconocida»).
+  - R1: todo elemento de `ScreenshotNav.screens` está en `FuerzaDebugNav.clavesNav`, las claves
+    que atiende la raíz de Fuerza (CEN-45; antes, el dock `RootTabView`) (si no → «clave nav muerta»).
+  - R2: toda `nav` de un nodo NO omitido de los manifiestos `docs/appmap/mapa/*.json` y de
+    `CenitUITests/*.swift` está declarada en `screens` (si no → «clave nav desconocida»). Un nodo
+    omitido no se captura, así que su `nav` no se exige.
   - R3: toda `fixture` de un nodo no omitido en `docs/appmap/mapa/*.json` existe en
     `Cenit/App/MapaFixtures/*.swift` o en la lista blanca de `ScreenshotFixtures.swift`
     (si no → «fixture … que no existe»). Caza inexistente/renombrada; no valida que sea
@@ -27,7 +28,7 @@ import re
 import sys
 
 SCREENSHOT_NAV = "CenitApp/App/ScreenshotNav.swift"
-ROOT_TAB = "CenitApp/App/RootTabView.swift"
+ROOT_NAV = "Cenit/App/FuerzaDebugNav.swift"
 MAPA_GLOB = "docs/appmap/mapa/*.json"
 UITESTS_GLOB = "CenitUITests/*.swift"
 MAPA_FIXTURES_GLOB = "Cenit/App/MapaFixtures/*.swift"
@@ -37,9 +38,9 @@ SCREENS_RE = re.compile(
     r"private\s+static\s+let\s+screens\s*=\s*\[(.*?)\]",
     re.S,
 )
-TAB_SWITCH_MARKER = "let tab: Tab? = switch screen {"
-SECONDARY_MARKER = re.compile(
-    r"private\s+enum\s+SecondaryScreen\s*:\s*String\b"
+CLAVES_NAV_RE = re.compile(
+    r"static\s+let\s+clavesNav\s*:\s*\[String\]\s*=\s*\[(.*?)\]",
+    re.S,
 )
 STRING_RE = re.compile(r'"([^"]+)"')
 NAV_JSON_RE = re.compile(r'"nav"\s*:\s*"([^"]+)"')
@@ -88,46 +89,25 @@ def parse_screens(src: str) -> list[str]:
     return STRING_RE.findall(m.group(1))
 
 
-def parse_tab_aliases(src: str) -> set[str]:
-    idx = src.find(TAB_SWITCH_MARKER)
-    if idx < 0:
-        raise EntradaInvalida(
-            f"no encontré `{TAB_SWITCH_MARKER}` en {ROOT_TAB}"
-        )
-    brace = src.find("{", idx)
-    body = _brace_block(src, brace)
-    # Solo los strings de los `case "x", "y":` — `default` no trae comillas.
-    return set(STRING_RE.findall(body))
-
-
-def parse_secondary_rawvalues(src: str) -> set[str]:
-    m = SECONDARY_MARKER.search(src)
+def parse_claves_nav(src: str) -> set[str]:
+    m = CLAVES_NAV_RE.search(src)
     if not m:
         raise EntradaInvalida(
-            f"no encontré `private enum SecondaryScreen: String` en {ROOT_TAB}"
+            f"no encontré `static let clavesNav: [String] = […]` en {ROOT_NAV}"
         )
-    brace = src.find("{", m.end())
-    body = _brace_block(src, brace)
-    raws: set[str] = set()
-    for line in body.splitlines():
-        line = _strip_line_comment(line).strip()
-        if not line:
-            continue
-        cm = CASE_LINE_RE.match(line)
-        if not cm:
-            continue
-        rest = cm.group(1).strip()
-        if "=" in rest:
-            # `case x = "y"` → solo el rawValue explícito.
-            raws.update(STRING_RE.findall(rest))
-        else:
-            # `case a, b` → cada identificador es el rawValue implícito.
-            raws.update(IDENT_RE.findall(rest))
-    return raws
+    return set(STRING_RE.findall(m.group(1)))
 
 
 def parse_nav_uses_json(text: str) -> list[str]:
-    return NAV_JSON_RE.findall(text)
+    """`nav` de los nodos NO omitidos del manifiesto."""
+    data = json.loads(text)
+    navs: list[str] = []
+    for nodo in data.get("nodos", []):
+        if not isinstance(nodo, dict) or "omitido" in nodo:
+            continue
+        # La `nav` vive en los pasos del nodo (y en cualquier sub-objeto): se recogen todas.
+        navs.extend(NAV_JSON_RE.findall(json.dumps(nodo, ensure_ascii=False)))
+    return navs
 
 
 def parse_nav_uses_swift(src: str) -> list[str]:
@@ -223,9 +203,9 @@ def _load(
 ]:
     """(screens, reachable, uses, declared_fixtures, fixture_uses)."""
     screens_src = _read(repo, SCREENSHOT_NAV)
-    root_src = _read(repo, ROOT_TAB)
+    root_src = _read(repo, ROOT_NAV)
     screens = parse_screens(screens_src)
-    reachable = parse_tab_aliases(root_src) | parse_secondary_rawvalues(root_src)
+    reachable = parse_claves_nav(root_src)
 
     mapa_paths = sorted(glob.glob(os.path.join(repo, MAPA_GLOB)))
     if not mapa_paths:
@@ -275,7 +255,7 @@ def check(repo: str = ".") -> list[str]:
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(
-        description="Cruza claves nav de ScreenshotNav con RootTabView, mapa y UITests"
+        description="Cruza claves nav de ScreenshotNav con FuerzaDebugNav, mapa y UITests"
     )
     ap.add_argument("--repo", default=".")
     args = ap.parse_args(argv)

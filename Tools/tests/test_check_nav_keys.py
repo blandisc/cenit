@@ -2,8 +2,8 @@
 """Tests for Tools/check-nav-keys.py (FER-497 / FER-512).
 
 Sobre un repo temporal de juguete — nunca sobre el árbol real. Cubre R1 (clave muerta),
-R2 (nav desconocida), R3 (fixture inexistente), árbol consistente, rawValues
-explícitos/implícitos y comentarios `//`.
+R2 (nav desconocida; los nodos omitidos no cuentan), R3 (fixture inexistente), árbol consistente y
+el parseo de `FuerzaDebugNav.clavesNav` (CEN-45).
 """
 import importlib.util
 import json
@@ -26,24 +26,13 @@ enum ScreenshotNav {
 }
 """
 
-ROOT_TAB = """\
-struct RootTabView {
-    private enum SecondaryScreen: String {
-        case library
-        case workoutHistory = "workouthistory"
-        case breathe, intervals
-        // case ghost = "should-not-count"
-        case explore
-    }
-
-    func handle(_ screen: String) {
-        let tab: Tab? = switch screen {
-        case "today":              .today
-        case "body", "trends":     .body
-        default:                   nil
-        }
-        _ = tab
-    }
+ROOT_NAV = """\
+enum FuerzaDebugNav {
+    static let clavesNav: [String] = [
+        "today", "body", "trends",
+        "library", "workouthistory",
+        "intervals",
+    ]
 }
 """
 
@@ -93,10 +82,10 @@ def _write(path, text):
         fh.write(text)
 
 
-def _repo(tmp, screenshot=SCREENSHOT_NAV, root=ROOT_TAB, mapa=MAPA, uitest=UITEST,
+def _repo(tmp, screenshot=SCREENSHOT_NAV, root=ROOT_NAV, mapa=MAPA, uitest=UITEST,
           hoy_fixtures=HOY_FIXTURES, screenshot_fixtures=SCREENSHOT_FIXTURES):
     _write(os.path.join(tmp, "CenitApp/App/ScreenshotNav.swift"), screenshot)
-    _write(os.path.join(tmp, "CenitApp/App/RootTabView.swift"), root)
+    _write(os.path.join(tmp, "Cenit/App/FuerzaDebugNav.swift"), root)
     _write(os.path.join(tmp, "docs/appmap/mapa/hoy.json"),
            json.dumps(mapa, ensure_ascii=False))
     _write(os.path.join(tmp, "CenitUITests/CenitScreenshotTests.swift"), uitest)
@@ -110,23 +99,25 @@ def _repo(tmp, screenshot=SCREENSHOT_NAV, root=ROOT_TAB, mapa=MAPA, uitest=UITES
 
 
 class CheckNavKeys(unittest.TestCase):
-    def test_parse_secondary_explicit_rawvalue(self):
-        # `case x = "y"` se lee como `y`, no como `x`.
-        raws = gate.parse_secondary_rawvalues(ROOT_TAB)
-        self.assertIn("workouthistory", raws)
-        self.assertNotIn("workoutHistory", raws)
+    def test_parse_claves_nav(self):
+        claves = gate.parse_claves_nav(ROOT_NAV)
+        self.assertEqual(claves, {"today", "body", "trends", "library", "workouthistory", "intervals"})
 
-    def test_parse_secondary_comma_cases(self):
-        # `case a, b` produce dos rawValues implícitos.
-        raws = gate.parse_secondary_rawvalues(ROOT_TAB)
-        self.assertIn("breathe", raws)
-        self.assertIn("intervals", raws)
+    def test_parse_claves_nav_sin_bloque_entrada_invalida(self):
+        with self.assertRaises(gate.EntradaInvalida):
+            gate.parse_claves_nav("enum FuerzaDebugNav {}")
 
-    def test_parse_secondary_ignora_comentarios(self):
-        # Un `case` dentro de un comentario `//` no cuenta.
-        raws = gate.parse_secondary_rawvalues(ROOT_TAB)
-        self.assertNotIn("should-not-count", raws)
-        self.assertNotIn("ghost", raws)
+    def test_r2_ignora_nav_de_nodo_omitido(self):
+        # Un nodo omitido no se captura: su `nav` no tiene que estar declarada.
+        mapa = {
+            "familia": "hoy",
+            "nodos": [
+                {"id": "viejo", "omitido": "pantalla retirada", "pasos": [{"nav": "fantasma"}]},
+            ],
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            _repo(tmp, mapa=mapa)
+            self.assertEqual(gate.check(tmp), [])
 
     def test_screens_con_clave_muerta_falla_r1(self):
         dead = """\

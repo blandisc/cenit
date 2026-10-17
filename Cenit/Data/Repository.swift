@@ -725,7 +725,7 @@ final class Repository: ObservableObject {
         // donde el estimado se aplicaba al número de TODOS sin un interruptor alcanzable. Sin opt-in → nil →
         // cero margen lútea. (La hoja del experimento estima por su propia vía cuando el usuario la abre.)
         let cyclePhase = CyclePhaseEngine.gatedPhase(
-            optIn: UserDefaults.standard.bool(forKey: CyclePhaseExperiment.enabledKey),
+            optIn: false,   // CEN-45: «Fase del ciclo» salió con el Camino C+ (su pantalla se borró).
             nights: cycleNights, asOf: inputs.asOf)
         let denseRmssd: Preparedness.DenseRmssd? = (autonomicTrend.asOfWasDense == true)
             ? autonomicTrend.spark.last.map { Preparedness.DenseRmssd(z: $0, dense: true) }

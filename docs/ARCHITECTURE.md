@@ -759,28 +759,16 @@ the acta's «Listo» closes the session and the root is Antes again. Plan, Progr
 sheets from Antes (`WeeklyPlanEditorView` · `WorkoutHistoryScreen`/records/library · `AjustesView`).
 `TabRouter` is still injected, but only its one-shot requests matter (start today / a named routine
 from the widget and Siri, «Ver mapa»); tab requests are consumed and ignored. The Hoy, Cuerpo and
-Tendencias screens and `RootTabView` remain in the tree **unreachable** until the reachability sweep
-(wave 0 · E) deletes them; their appmap nodes are marked `omitido`.
+Tendencias screens and `RootTabView` were deleted by the first reachability sweep (CEN-45, see
+`docs/specs/fuerza-v1/matriz-alcanzabilidad.md`); their appmap nodes stay `omitido`. The minimized-session
+pill lives in `ActiveSessionPill.swift`, and the DEBUG capture keys (`cenit.nav.<key>`) are answered by
+the root from `FuerzaDebugNav.clavesNav`. The verdict oracle (`LiquidHoyBuilder`) is still compiled: the
+hub, the Watch and the widgets read it, and it feeds `deferRaise`; it goes in sweep 2 with wave 1.
 
-**Navigation shell (FER-490, no longer mounted).** Three tabs — **Entrenar · Cuerpo · Ajustes** — on the system
-`TabView` bar. The item labels are the catalog keys `Train` · `Body` · `Settings` (the same keys as
-the screen titles; Spanish renders Entrenar · Cuerpo · Ajustes). `LiquidTabBar` is no longer the
-shell: it stays in the design system for the component gallery and `LiquidHoyScreen` previews, and
-is not for new screens. The minimized strength-session pill is a bottom `safeAreaInset` on each tab
-root (empty, with zero spacing, when there is no session), so a pushed screen keeps it and scroll
-content clears it without a second measured gap. On iOS 26 the bar is pinned with
-`tabBarMinimizeBehavior(.never)`: the pill is not tied to a measured bar height, and a shrinking bar
-would leave it floating. The system bar is what moves to the side on iPhone Duo; this shell does not
-add a fixed bottom pad for that. The app launches on
-Entrenar (`RootTabView.selection = .train`). **Cuerpo** folds the former **Hoy** and **Tendencias**
-screens into one tab with two modes, **«Ahora | Tiempo»** (`CuerpoTabView`): a fixed selector mounts
-exactly one subtree at a time (`TodayView` for Ahora, `CuerpoView` for Tiempo), each keeping its own
-scroll position. The verdict word is a single oracle (`LiquidHoyBuilder.hiloEntrenar`): large only in
-Entrenar, compact (`EntrenarHilo`, orb 44) in Cuerpo/Ahora, both opening the same Acta
-(`LiquidActaVeredicto`). Tab enums live in `RootTabView.Tab` / `TabRouter.Tab` (app),
-`CenitDesign.LiquidTab` (the design-system bar, not the shell) and `CenitEnsenanza.Pestana`
-(teaching registry) — all three collapsed 4→3 in lockstep. The whole shell is light «El Eje» (the
-by-tab dark scheme was retired in FER-430).
+**Navigation shell (FER-490, deleted in CEN-45).** The three-tab `TabView` shell (Entrenar · Cuerpo ·
+Ajustes, with Cuerpo's «Ahora | Tiempo» modes over `TodayView`/`CuerpoView`) is gone; see git history
+before CEN-45 for its design. `TabRouter.Tab`, `CenitDesign.LiquidTab` and `CenitEnsenanza.Pestana`
+still exist for the teaching registry and the design gallery.
 
 **Inject (hot-reload).** The app target links the third-party `Inject` package (`project.yml`) for
 Debug UI hot-reload with InjectionIII / InjectionNext. In **Release** the library is a **no-op**: the

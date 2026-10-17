@@ -100,9 +100,6 @@ private struct AjustesLanding: View {
     @State private var showMaxHR = false
     // FER-183: «Fase del ciclo» vuelve a ser alcanzable (un control real la abre), ahora VIVA. El
     // opt-in gobierna, además, si el veredicto aplica el margen lútea (ver Repository, FER-183).
-    @State private var showCyclePhase = false
-    @AppStorage(CyclePhaseExperiment.enabledKey) private var cyclePhaseOn = false
-    @AppStorage(WhitespaceMetricsExperiment.enabledKey) private var whitespaceMetrics = false
     /// FER-93: las dos comodidades de la sesión, las dos apagadas por defecto.
     @AppStorage(SessionComfort.keepAwakeKey) private var keepScreenAwake = false
     @AppStorage(SessionComfort.restSoundKey) private var restSound = false
@@ -149,9 +146,6 @@ private struct AjustesLanding: View {
         .sheet(isPresented: $showMaxHR) {
             MaxHRSheet(profile: profile)
         }
-        .sheet(isPresented: $showCyclePhase) {
-            CyclePhaseSheet().environmentObject(repo)
-        }
         .sheet(item: $profileWheel) { wheel in
             ProfileWheelSheet(wheel: wheel, profile: profile)
         }
@@ -164,7 +158,6 @@ private struct AjustesLanding: View {
             switch DebugRoute.key(for: "ajustes") {
             case "unidades":      showUnits = true
             case "fcmax":         showMaxHR = true
-            case "ciclo":         showCyclePhase = true
             case "perfil-edad":   profileWheel = .age
             case "perfil-peso":   profileWheel = .weight
             case "perfil-altura": profileWheel = .height
@@ -172,22 +165,6 @@ private struct AjustesLanding: View {
             }
         }
         #endif
-        // Confirm de recalibrar cuelga del landing ESTABLE (no del idle-branch de `recalibrateRow`):
-        // si viviera solo en el `else`, el swap a «Deshacer» desmontaría al presentador a media salida.
-        // El de borrar-animaciones vive en la tarjeta de Biblioteca (vista distinta) — dos
-        // `liquidConfirm` en el mismo nodo no (bug FER-174).
-        .liquidConfirm(
-            isPresented: $confirmRecalibrate,
-            title: String(localized: "Recalibrate your recovery?"),
-            context: String(localized: "RECOVERY · BASELINE"),
-            message: String(localized: "Your baseline will re-anchor from today and your earlier nights will be ignored. You'll lose your recovery number for a few days while it recalibrates. Your data and history aren't deleted."),
-            actions: [
-                .init(String(localized: "Leave the baseline as is"), role: .primary),
-                .init(String(localized: "Recalibrate from today"), role: .destructive) {
-                    model.recalibrateBaseline()
-                }
-            ]
-        )
     }
 
     // MARK: - Header (one-off chrome: wordmark + a privacy line)
@@ -320,8 +297,8 @@ private struct AjustesLanding: View {
             section(String(localized: "Data")) {
                 VStack(spacing: .zero) {
                     LiquidListRow(title: String(localized: "Data Sources"),
-                                  subtitle: String(localized: "Apple Health · backup")) { presentedSheet = .dataSources }
-                    recalibrateRow
+                                  subtitle: String(localized: "Apple Health · backup"),
+                                  divider: false) { presentedSheet = .dataSources }
                 }
                 .liquidTarjetaSeccion(padding: LiquidSpace.s300)
             }
@@ -330,55 +307,9 @@ private struct AjustesLanding: View {
             // con el que se horneó, así que el control encendía una función que no funciona y anunciaba
             // en la tienda una excepción de red que la app no ejerce. `MediaDownloadCoordinator` sigue
             // vivo (y su toggle sigue OFF de fábrica → cero red): FER-919 lo revive con otra fuente.
-            // FER-1021: el interruptor de «vigilar enfermedad» vivía en la difunta AutomationsView
-            // (retirada con la banda). El motor sigue vivo y ruteado a Apple (temp de muñeca + FC en
-            // reposo nocturna, FER-884); esto le repone el acceso para que la feature sea alcanzable.
-            // «Salud» es el nombre de la app de Apple, no de esta sección. Ronda 2 #12: tampoco
-            // «Watch» en inglés — en una app de Apple Watch ese nombre es el hardware, no la sección.
-            section(String(localized: "Monitoring")) {
-                VStack(alignment: .leading, spacing: LiquidSpace.s300) {
-                    // Ronda 2 #1 (revierte una regresión de ronda 1): la superficie viva de esta
-                    // feature es el banner de Hoy, NO una notificación — a diferencia del aviso
-                    // matutino / recordatorio de entreno, cuya ÚNICA superficie SÍ es la notificación.
-                    // El switch sigue SIEMPRE la preferencia (`behavior.illnessWatch`), nunca el
-                    // permiso del sistema: negarlo en Ajustes de iOS apaga el AVISO, no la vigilancia,
-                    // así que el switch no se deshabilita ni se auto-apaga por esa respuesta.
-                    Toggle(isOn: Binding(get: { illnessEncendido }, set: { encenderVigilanciaEnfermedad($0) })) {
-                        Text(String(localized: "Watch for unusual-load signals"))
-                            .font(LiquidType.tituloFila).foregroundStyle(LiquidColor.tinta900)
-                    }
-                    .tint(LiquidColor.verdePrimario)
-                    .frame(minHeight: 44)
-                    // Ronda 3 #3: interpola el nombre real de la pestaña (`Today`/«Hoy»), no el
-                    // literal español «Hoy» dentro de la cadena fuente inglesa — el dock usa esa
-                    // MISMA clave (`LiquidTabRotulos+Cenit.swift`), así que en UI inglesa esto ya
-                    // dice «Today», el nombre real de la pestaña.
-                    Text(String(localized: "I cross your wrist temperature with your resting nighttime pulse to spot nights when your body is under more load than usual: a rough night, a hard day, or something you may be coming down with. It's approximate, not a diagnosis, and I need about two weeks of data. If it fires, you'll see it in \(String(localized: "Today")) and, if you allow notifications, as a notification."))
-                        .font(LiquidType.captionLectura).foregroundStyle(LiquidColor.tinta500)
-                        .fixedSize(horizontal: false, vertical: true)
-                    if illnessNegado {
-                        LiquidNotaLine(String(localized: "You'll still see it in \(String(localized: "Today")); I can't send you a notification until you allow it."),
-                                      tono: LiquidColor.atencionTexto)
-                        Button { abrirAjustesDeIOS() } label: {
-                            Text(String(localized: "Open Settings")).font(LiquidType.captionLectura).foregroundStyle(LiquidColor.tinta700)
-                        }
-                        .buttonStyle(.liquidPress)
-                        .frame(minHeight: LiquidControl.hitTarget)
-                        .contentShape(Rectangle())
-                    }
-                }
-                .liquidTarjetaSeccion()
-            }
-            // El aviso matutino trae su propia sección entera (switch + hora + estado real del
-            // permiso); vive en `AjustesAvisoMatutino.swift` (FER-177, ya migrada a Liquid Glass).
-            AvisoMatutinoSection()
             // El recordatorio del día que toca entrenar, mismo patrón; vive en
             // `AjustesRecordatorioEntreno.swift` (FER-178, ya migrada a Liquid Glass).
             RecordatorioEntrenoSection()
-            // La puerta informada del «Historial de FA». Trae su propio overline y se calla sola
-            // cuando las series de latidos ya llegan; vive en `AjustesHistorialFA.swift` (FER-115,
-            // ya migrada a Liquid Glass).
-            HistorialFASection()
             section(String(localized: "During a session")) {
                 VStack(alignment: .leading, spacing: LiquidSpace.s300) {
                     Toggle(isOn: $keepScreenAwake) {
@@ -435,23 +366,6 @@ private struct AjustesLanding: View {
                 }
                 .liquidTarjetaSeccion()
             }
-            section(String(localized: "Experimental")) {
-                VStack(alignment: .leading, spacing: LiquidSpace.s300) {
-                    experimentalTogglesCard
-                    // FER-183: «Fase del ciclo» en su propia tarjeta de navegación — misma receta
-                    // que «Units & format» — en vez de al final de la tarjeta de switches (padding
-                    // distinto, chevron peleando con el cromo de toggle).
-                    VStack(spacing: .zero) {
-                        LiquidListRow(
-                            title: String(localized: "Cycle phase"),
-                            subtitle: cyclePhaseOn
-                                ? String(localized: "On · adjusts your recovery on luteal days")
-                                : String(localized: "Off · a self-knowledge experiment"),
-                            divider: false) { showCyclePhase = true }
-                    }
-                    .liquidTarjetaSeccion(padding: LiquidSpace.s300)
-                }
-            }
             section(String(localized: "More")) {
                 VStack(spacing: .zero) {
                     // FER-435: la puerta para volver a aprender y el registro de lo que cambió.
@@ -493,22 +407,6 @@ private struct AjustesLanding: View {
                 presentedSheet = .novedades
             }
         }
-    }
-
-    /// The experimental-metrics toggle, alone (ronda 2 #2 moved the media download out of this card).
-    private var experimentalTogglesCard: some View {
-        VStack(alignment: .leading, spacing: LiquidSpace.s300) {
-            Toggle(isOn: $whitespaceMetrics) {
-                Text(String(localized: "Experimental metrics"))
-                    .font(LiquidType.tituloFila).foregroundStyle(LiquidColor.tinta900)
-            }
-            .tint(LiquidColor.verdePrimario)
-            .frame(minHeight: 44)
-            Text(String(localized: "New, approximate readings: nocturnal vagal reserve, thermal stability, night respiration and post-session recovery. They need several days of use to read well."))
-                .font(LiquidType.captionLectura).foregroundStyle(LiquidColor.tinta500)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .liquidTarjetaSeccion()
     }
 
     /// «Recalibrar recuperación» (FER-677): re-anchors every nightly baseline from today. Two states —
