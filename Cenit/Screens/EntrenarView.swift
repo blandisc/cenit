@@ -12,25 +12,6 @@ import CenitAnalytics
 // TU SEMANA · MÚSCULOS CARGADOS · BITÁCORA (FER-131). Color solo en el dato; el `NavigationStack`
 // del tab es dueño de la navegación.
 
-/// La boleta del veredicto de Hoy, compartida por la landing de Entrenar (FER-85) y la cabecera de la
-/// sesión en vivo (FER-133): el MISMO `LiquidActaVeredicto` con el MISMO contexto, para que ninguna
-/// de las dos pantallas pueda contar el día distinto. Sin «Ver más»: ninguna de las dos cambia de
-/// pestaña desde aquí, solo cierran la hoja.
-struct VeredictoActaSheet: View {
-    let prep: Preparedness.Read?
-    let healthConnected: Bool
-    let fullyLoaded: Bool
-
-    var body: some View {
-        LiquidMetricSheet(tono: LiquidHoyBuilder.actaTono(prep), detent: .porContenido) {
-            LiquidActaVeredicto(
-                LiquidHoyBuilder.acta(prep: prep, healthConnected: healthConnected,
-                                      verdictPending: prep == nil && !fullyLoaded),
-                onVerMas: nil)
-        }
-    }
-}
-
 struct EntrenarView: View {
     /// Inject: los hooks de recarga en caliente van AQUÍ y no en `EntrenarLanding`. Swift emite los
     /// miembros de un tipo `private` como símbolos locales, y `-interposable` solo puede interponer
@@ -62,9 +43,6 @@ struct EntrenarView: View {
     /// CEN-43: avisa a quien aloja el hub (la raíz de Fuerza) que `load()` terminó, para que decida si
     /// ya hay una rutina de hoy (p. ej. tras aplicar una plantilla). `nil` = nadie escucha.
     var onPlanLoaded: (() -> Void)? = nil
-    /// CEN-43 (Camino C+): la recuperación salió del producto. La raíz de Fuerza pide NO pintar el hilo
-    /// del veredicto («En rango…») ni «Contexto · Carga». `false` = el hub de siempre.
-    var ocultarRecuperacion: Bool = false
 
     var body: some View {
         EntrenarLanding(openRoutine: openRoutine,
@@ -72,8 +50,7 @@ struct EntrenarView: View {
                         openHistory: openHistory, openWeeklyPlan: openWeeklyPlan,
                         openRoutines: openRoutines,
                         openWorkoutSession: openWorkoutSession, openMuscleMap: openMuscleMap,
-                        openMarcas: openMarcas, onPlanLoaded: onPlanLoaded,
-                        ocultarRecuperacion: ocultarRecuperacion)
+                        openMarcas: openMarcas, onPlanLoaded: onPlanLoaded)
             .enableInjection()   // Inject: ver la nota en `inject` arriba (no-op en Release)
     }
 }
@@ -93,7 +70,6 @@ private struct EntrenarLanding: View {
     var openMuscleMap: () -> Void
     var openMarcas: () -> Void
     var onPlanLoaded: (() -> Void)?
-    var ocultarRecuperacion: Bool = false
 
     @State private var loaded = false
     @State private var loadFailed = false   // store couldn't be read — a real error, NOT «no plan yet»
@@ -116,15 +92,6 @@ private struct EntrenarLanding: View {
     /// absoluto, `Cenit/Data/Repository+Strength.swift:36-41`). El peso es el SEMBRADO (`fromKg`, el de
     /// la última vez), no el que espera (`toKg`) — la subida sigue a un toque dentro de la sesión.
     @State private var retainedToday: [(name: String, weightKg: Double)] = []
-    /// Ola 2 (FER-488) · «Contexto · Carga»: el ACWR + serie del dashboard band-masked, la MISMA fábrica
-    /// que Hoy (`TrainingLoadModel.fromDashboard`, compartida vía `TrainingLoadSheet.swift`) — nunca una
-    /// segunda derivación que pudiera discrepar de la franja de Hoy.
-    @State private var trainingLoad: TrainingLoadModel?
-    /// Esfuerzo (fuerza) registrado en los últimos 28 días — decide la rama «Calibrando» del predicado
-    /// de tres ramas (ver `filaCargaEstado`) cuando todavía no hay ACWR.
-    @State private var hasEffortHistory = false
-    /// La hoja de «Contexto · Carga» (montada al tocar la fila) — el mismo `TrainingLoadSheet` que Hoy.
-    @State private var trainingLoadItem: TrainingLoadItem?
     /// The verdict `todaySlots` were seeded with; `nil` until the first load. Guards «Empezar» from
     /// handing the session a table built under a verdict that has since changed (FER-82).
     @State private var slotsAdvice: TrainingRegulation.Advice?
@@ -136,9 +103,6 @@ private struct EntrenarLanding: View {
     /// de Hoy (sin él afirmaba «anoche no llegó nada» a quien no ha conectado Salud).
     @EnvironmentObject private var health: HealthKitBridge
 
-    /// FER-85/FER-84: la boleta del veredicto, servida DENTRO de Entrenar. El hilo la abre como
-    /// hoja; nunca cambia de pestaña. Es la misma acta que Hoy sirve, con el mismo modelo.
-    @State private var showVeredictoActa = false
     /// FER-138: las teselas de SEMANA (`EntrenarHubSemana`, salvo la de HOY) abren la hoja rápida de
     /// rotar días — pero solo cuando ya hay al menos una rutina en el split; en primer uso (`split`
     /// vacío, `primerUsoSection`) TU SEMANA sigue abriendo el editor completo vía `openWeeklyPlan`,
@@ -253,24 +217,7 @@ private struct EntrenarLanding: View {
                 // FER-132 §5: con `loadFailed` el hilo se OCULTA — el hilo habla del cuerpo, pero
                 // esta pantalla ya no pudo leer NADA de la base, y un veredicto flotando sobre un
                 // error de lectura sugiere que el resto sí cargó cuando no fue así.
-                if !loadFailed, !ocultarRecuperacion {
-                    hiloDelVeredicto.padding(.top, LiquidSpace.s200)
-                    // Ola 2 (FER-488) · decisión 6 (DECISIONS.md 2026-09-15): «Contexto · Carga»
-                    // inmediatamente debajo del hilo, nunca en la misma fila — ver `filaCargaEstado`
-                    // para el predicado de tres ramas (banda / calibrando / oculta).
-                    if let filaCargaEstado {
-                        EntrenarFilaCarga(estado: filaCargaEstado, rotulo: "Context · Load",
-                                          accessibilityLabel: filaCargaAccessibilityLabel(filaCargaEstado),
-                                          hint: "Opens the load sheet") {
-                            // La fila solo existe con un modelo ya publicado (`filaCargaEstado`); el
-                            // guard evita abrir una hoja fabricada vacía si alguna vez se desincronizan.
-                            guard let model = trainingLoad else { return }
-                            trainingLoadItem = TrainingLoadItem(model: model,
-                                                                onSeeTrends: { tabRouter.verTendencias() })
-                        }
-                        .padding(.top, LiquidSpace.s100)
-                    }
-                }
+
                 // FER-373 (C7) «pintado instantáneo»: kicker/título/subtítulo/chips del héroe de
                 // primer uso son copy + catálogo empaquetado (`StarterTemplates`), no una lectura de
                 // la DB — así que pintan ANTES de que `load()` conteste, en vez de dejar la pantalla
@@ -326,18 +273,6 @@ private struct EntrenarLanding: View {
         // FER-377: mensaje honesto — «tu semana quedó armada» si todo cupió, o «guardé tus rutinas» si
         // la semana ya tenía días ocupados y no cupo la frecuencia completa.
         .planAppliedToast(isPresented: $showPlanAppliedToast, fitFully: planAppliedFitFully)
-        // La boleta del veredicto, dentro de Entrenar (FER-85): el mismo modelo y la misma vista
-        // que sirve Hoy, así que las dos pantallas no pueden divergir ni en la tabla ni en la
-        // gráfica de cajas. «Ver más» cierra la hoja sin cambiar de pestaña.
-        .sheet(isPresented: $showVeredictoActa) {
-            // El MISMO contexto que Hoy le pasa a su acta: sin `healthConnected` la hoja afirmaba
-            // «anoche no llegó nada» a quien simplemente no ha conectado Salud, y sin él las dos
-            // pantallas contaban historias distintas del mismo día — justo lo que este épico mata.
-            // `VeredictoActaSheet` (compartida con `LiveStrengthSheet`, FER-133) es el único sitio que
-            // arma este contenido, para que las dos pantallas no puedan divergir.
-            VeredictoActaSheet(prep: repo.todayPreparedness, healthConnected: healthConnected,
-                               fullyLoaded: repo.fullyLoaded)
-        }
         // FER-138: la hoja rápida de rotar días — TU SEMANA (encabezado y tira) la abre, en las dos
         // secciones que la muestran. `$split` es un binding: rotar un día en la hoja actualiza esta
         // misma landing al instante, sin esperar a que la hoja cierre.
@@ -347,13 +282,6 @@ private struct EntrenarLanding: View {
                             doneWeekdays: Set(orderedWeekdays.filter { trainedThisWeek($0) != nil }),
                             dayLetter: weekdayLetter)
                 .environmentObject(repo)
-        }
-        // Ola 2 (FER-488): la hoja «Carga de entrenamiento» que abre «Contexto · Carga» — el MISMO
-        // `TrainingLoadSheet` que Hoy, mismo patrón (`TodayView.swift`, el `.sheet(item:)` junto a
-        // `trainingLoadItem`). «Ver más en Cuerpo» despacha al tab Cuerpo vía `TabRouter`.
-        .sheet(item: $trainingLoadItem) { item in
-            TrainingLoadSheet(model: item.model, onSeeTrends: item.onSeeTrends)
-                .recEntranceGate()
         }
         // FER-251: plantillas — catálogo completo (`templatesGroup == nil`) o acotado al chip tocado.
         .sheet(isPresented: $showTemplates, onDismiss: { templatesGroup = nil }) {
@@ -1625,62 +1553,6 @@ private struct EntrenarLanding: View {
                                                        semanaVacia: !loaded || split.isEmpty)
     }
 
-    /// El hilo del veredicto: la misma pastilla que es la puerta de Hoy, construida por el MISMO
-    /// constructor (`LiquidHoyBuilder.hiloEntrenar`) para que las dos pantallas no puedan divergir.
-    ///
-    /// Derivarlo aquí por mi cuenta ya había producido dos contradicciones que el gate cazó: decía
-    /// la palabra-veredicto las mañanas en que Hoy la retira por no tener la noche anclada, y
-    /// colapsaba los tres estados sin veredicto en «Conociéndote», que le decía «te estoy
-    /// conociendo» a quien nunca conectó Apple Salud.
-    ///
-    /// FER-499: este call-site es un PASE DIRECTO. La supresión en primer uso sin plan (FER-376) y la
-    /// palabra «Sin Apple Salud, la progresión…» (FER-488) vivían aquí, así que el widget y el reloj,
-    /// que llaman al mismo oráculo, publicaban el hilo crudo («Conecta Apple Salud») el mismo día. Ahora
-    /// las dos reglas viven dentro de `hiloEntrenar` y `esPrimerUsoSinPlan` viaja como argumento;
-    /// `OraculoUnicoTests` fija que los tres consumidores reciben la misma palabra.
-    @ViewBuilder private var hiloDelVeredicto: some View {
-        if let hilo = LiquidHoyBuilder.hiloEntrenar(
-            prep: repo.todayPreparedness,
-            nights: repo.todayPreparedness?.autonomicNights ?? 0,
-            healthConnected: healthConnected,
-            verdictPending: repo.todayPreparedness == nil && !repo.fullyLoaded,
-            hasPlan: todayRoutine != nil,
-            primerUsoSinPlan: esPrimerUsoSinPlan) {
-            EntrenarHilo(tone: hilo.tono.entrenarTone,
-                         word: LocalizedStringKey(hilo.palabra),
-                         advice: hilo.consejo.map { LocalizedStringKey($0) },
-                         hint: "Opens today's ballot") {
-                showVeredictoActa = true
-            }
-        }
-    }
-
-    // MARK: - «Contexto · Carga» (Ola 2 · FER-488)
-
-    /// Predicado de tres ramas — decisión 6 del dueño (DECISIONS.md 2026-09-15 §6), precisada por la
-    /// revisión adversarial: con ACWR pinta la banda; sin ACWR pero con esfuerzo REGISTRADO en la
-    /// ventana de 28 días pinta «Calibrando»; sin ninguna de las dos, la fila NO EXISTE — no es un
-    /// estado vacío, es ausencia (`EntrenarFilaCarga.Estado` no tiene un tercer caso a propósito).
-    /// Nunca «Calibrando» sobre un orbe dormido (sin Salud y sin esfuerzo): sin esfuerzo,
-    /// `hasEffortHistory` es `false` y ninguna de las dos ramas aplica. Se oculta además en el mismo
-    /// caso que el hilo (`esPrimerUsoSinPlan && !healthConnected`, FER-376) — nunca aparece «Contexto
-    /// · Carga» cuando el hilo de arriba ya se calló por lo mismo. `loadFailed` la oculta por estar
-    /// en el mismo `if !loadFailed` que el hilo, en el body.
-    private var filaCargaEstado: EntrenarFilaCarga.Estado? {
-        guard !(esPrimerUsoSinPlan && !healthConnected) else { return nil }
-        if let band = trainingLoad?.band { return .banda(band.shortLabel) }
-        if trainingLoad?.acwr == nil && hasEffortHistory { return .calibrando }
-        return nil
-    }
-
-    /// La etiqueta VoiceOver completa de la fila, ya localizada — sustituye a los textos visibles.
-    private func filaCargaAccessibilityLabel(_ estado: EntrenarFilaCarga.Estado) -> String {
-        switch estado {
-        case .banda(let palabra): return String(localized: "Training load, \(palabra)")
-        case .calibrando: return String(localized: "Training load, calibrating")
-        }
-    }
-
     // MARK: - Data
 
     /// Rebuild the whole screen from the store. Returns whether THIS pass published its work: false
@@ -1697,19 +1569,6 @@ private struct EntrenarLanding: View {
         // mismo patrón que `TodayView.recomputeDerived`.
         let days = repo.days
         guard let store = await repo.storeHandle() else { loadFailed = true; loaded = true; return false }
-        // La MISMA fábrica que Hoy (`TrainingLoadModel.fromDashboard`), nunca una segunda derivación —
-        // y el MISMO hop: `load()` corre en el MainActor (es un método de `View`), así que el corte del
-        // ACWR sobre 28 días se calcula en un `Task.detached`, igual que `TodayView.recomputeDerived`
-        // (FER-982). Solo entran valores ya snapshoteados (`days` y las claves de día); el guard de
-        // `seq` al final descarta el resultado si un refresh más nuevo ganó mientras tanto.
-        let todayKey = Repository.localDayKey(Date())
-        // FER-488 · decisión 6: «Calibrando» exige esfuerzo (fuerza) REGISTRADO en los últimos 28 días.
-        let effortCutoff = Repository.localDayKey(
-            Calendar.current.date(byAdding: .day, value: -28, to: Date()) ?? Date())
-        let (trainingLoadValue, hasEffortHistoryValue) = await Task.detached(priority: .userInitiated) {
-            (TrainingLoadModel.fromDashboard(days: days, todayKey: todayKey),
-             days.filter { $0.day >= effortCutoff }.contains { ($0.strain ?? 0) > 0 })
-        }.value
         let rs = (try? await store.routines()) ?? []
         let customAll = (try? await store.customExercises()) ?? []
         let customAllByID = Dictionary(customAll.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
@@ -1817,8 +1676,6 @@ private struct EntrenarLanding: View {
         raisesToday = raisingToday
         atLimitHeldToday = heldToday
         retainedToday = retained
-        trainingLoad = trainingLoadValue
-        hasEffortHistory = hasEffortHistoryValue
         slotsAdvice = passAdvice
         todayServing = passServing
         routines = rs
@@ -1850,19 +1707,3 @@ private struct EntrenarLanding: View {
 }
 
 #endif
-
-// MARK: - El tono del hilo, una sola vez
-
-extension LiquidHoyBuilder.HiloEntrenar.Tono {
-    /// El mapeo `Tono` → `EntrenarHilo.Tone` que comparten la landing (`hiloDelVeredicto`) y la
-    /// cabecera de la sesión en vivo (`LiveStrengthSheet`, FER-133). Una sola definición: antes
-    /// vivía copiada en los dos archivos.
-    var entrenarTone: EntrenarHilo.Tone {
-        switch self {
-        case .claro:    return .clear
-        case .atencion: return .caution
-        case .alerta:   return .ease
-        case .hueco:    return .hollow
-        }
-    }
-}

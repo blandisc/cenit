@@ -87,13 +87,12 @@ final class TrainWidgetPublisherTests: XCTestCase {
         XCTAssertTrue(completadas.isEmpty)
     }
 
-    // MARK: - Mapeo de tono (la resolución del veredicto a texto/tono)
+    // MARK: - Sin veredicto (CEN-65)
 
-    func testMapeoDeTonoCubreLosCuatroCasos() {
-        XCTAssertEqual(TrainWidgetSnapshot.VerdictTone(.claro), .clear)
-        XCTAssertEqual(TrainWidgetSnapshot.VerdictTone(.atencion), .caution)
-        XCTAssertEqual(TrainWidgetSnapshot.VerdictTone(.alerta), .ease)
-        XCTAssertEqual(TrainWidgetSnapshot.VerdictTone(.hueco), .hollow)
+    func testElWidgetYaNoLlevaVeredicto() {
+        XCTAssertNil(TrainWidgetPublisher.verdict(prep: nil, fullyLoaded: true, healthConnected: true,
+                                                  hasPlan: true, primerUsoSinPlan: false),
+                     "el oráculo de recuperación se retiró: el widget no pinta palabra del día")
     }
 
     // MARK: - El contrato de cable (Codable a través del App Group)

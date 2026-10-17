@@ -28,12 +28,6 @@ Cenit/Screens/Hoja/RoutineSheetLiveKeypad.swift
 Cenit/Screens/Hoja/RoutineSheetLiveLogic.swift
 Cenit/Screens/Hoja/RoutineSheetLiveTarjeta.swift
 Cenit/Screens/Hoja/RoutineSheetLogic.swift
-Cenit/Screens/Hoy/HoyGramatica.swift
-Cenit/Screens/Hoy/LiquidHoyBuilder+Estados.swift
-Cenit/Screens/Hoy/LiquidHoyBuilder+Inputs.swift
-Cenit/Screens/Hoy/LiquidHoyBuilder+Matriz.swift
-Cenit/Screens/Hoy/LiquidHoyBuilder.swift
-Cenit/Screens/Hoy/MetricLevelsHostModel.swift
 Cenit/Screens/InstrumentoAddButton.swift
 Cenit/Screens/IntervalTimerView.swift
 Cenit/Screens/LiveStrengthSheet.swift
@@ -65,8 +59,6 @@ Cenit/Screens/StrengthImportSource.swift
 Cenit/Screens/StrengthSessionModel.swift
 Cenit/Screens/SupportView.swift
 Cenit/Screens/TrainingBodyScreen.swift
-Cenit/Screens/TrainingLoadSheet.swift
-Cenit/Screens/TrainingLoadStrip.swift
 Cenit/Screens/WeekEditorSheet.swift
 Cenit/Screens/WeeklyPlanEditorView.swift
 Cenit/Screens/WorkoutDetailScreen.swift

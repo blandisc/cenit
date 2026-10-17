@@ -59,14 +59,9 @@ enum TrainWidgetPublisher {
         !sessionLive && semanaVacia
     }
 
+    /// CEN-65 (barrido 2): el widget ya no lleva la palabra del día — el oráculo de recuperación se retiró.
     static func verdict(prep: Preparedness.Read?, fullyLoaded: Bool, healthConnected: Bool,
-                        hasPlan: Bool, primerUsoSinPlan: Bool) -> TrainWidgetSnapshot.Verdict? {
-        LiquidHoyBuilder.hiloEntrenar(prep: prep, nights: prep?.autonomicNights ?? 0,
-                                      healthConnected: healthConnected,
-                                      verdictPending: prep == nil && !fullyLoaded,
-                                      hasPlan: hasPlan, primerUsoSinPlan: primerUsoSinPlan)
-            .map { TrainWidgetSnapshot.Verdict(tone: .init($0.tono), word: $0.palabra, advice: $0.consejo) }
-    }
+                        hasPlan: Bool, primerUsoSinPlan: Bool) -> TrainWidgetSnapshot.Verdict? { nil }
 
     /// The weekdays (Calendar convention) THIS week that already have a completed session — the same
     /// `TrainingStreak.completedDayStarts` bucketing Entrenar's own streak reads, so the widget's
@@ -140,13 +135,3 @@ extension TrainWidgetSnapshot.WeekDayState {
     }
 }
 
-extension TrainWidgetSnapshot.VerdictTone {
-    init(_ tono: LiquidHoyBuilder.HiloEntrenar.Tono) {
-        switch tono {
-        case .claro:    self = .clear
-        case .atencion: self = .caution
-        case .alerta:   self = .ease
-        case .hueco:    self = .hollow
-        }
-    }
-}

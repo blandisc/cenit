@@ -57,10 +57,6 @@ struct TrainingBodyScreen: View {
     /// El MISMO puente de Salud que la landing (`EntrenarView.healthConnected`): sin él el hilo no
     /// puede distinguir «sin lectura» de «sin conectar Salud» (FER-136 · V7).
     @EnvironmentObject private var health: HealthKitBridge
-    /// La boleta del veredicto, servida DENTRO de «Tu cuerpo» (FER-136 · V7): el MISMO
-    /// `VeredictoActaSheet` que abre la landing y la sesión en vivo — un solo destino, nunca una
-    /// segunda acta.
-    @State private var showVeredictoActa = false
 
     /// FER-470: idem — la columna del nombre de músculo (ancho fijo 96) se truncaba a Dynamic Type
     /// grande. Escala con el texto; ancho exacto para que las filas alineen su filo.
@@ -206,13 +202,6 @@ struct TrainingBodyScreen: View {
                 systemicGate: systemicGate
             )
         }
-        // El hilo del veredicto abre la MISMA boleta que Entrenar (`EntrenarView.showVeredictoActa`)
-        // y la sesión en vivo (`LiveStrengthSheet.bodyVeredictoActaSheet`) — el mismo contenido, para
-        // que Tu cuerpo no pueda contar el día distinto (FER-136 · V7).
-        .sheet(isPresented: $showVeredictoActa) {
-            VeredictoActaSheet(prep: repo.todayPreparedness, healthConnected: healthConnected,
-                               fullyLoaded: repo.fullyLoaded)
-        }
         .enableInjection()
     }
 
@@ -227,32 +216,12 @@ struct TrainingBodyScreen: View {
     private var header: some View {
         VStack(alignment: .leading, spacing: .zero) {
             Text("Your body · \(cabeceraFecha)").liquidKicker().foregroundStyle(LiquidColor.tinta700)
-            if loaded {
-                hiloDelVeredicto.padding(.top, LiquidSpace.s200)
-            }
         }
     }
 
     /// «Sáb 15 ago» — el mismo helper compartido que usa la cabecera de la landing
     /// (`CenitFormat.weekdayHeading`, quisquilloso ronda 4: antes dos copias a mano).
     private var cabeceraFecha: String { CenitFormat.weekdayHeading(Date()) }
-
-    @ViewBuilder private var hiloDelVeredicto: some View {
-        HiloVeredictoCompacto(
-            prep: repo.todayPreparedness,
-            healthConnected: healthConnected,
-            nights: repo.todayPreparedness?.autonomicNights ?? 0,
-            verdictPending: repo.todayPreparedness == nil && !repo.fullyLoaded,
-            hasPlan: true,
-            primerUsoSinPlan: false,
-            advice: { hilo in
-                // Hueco: consejo del copy. Con veredicto: mapa muscular, o consejo genérico.
-                if hilo.tono == .hueco { return hilo.consejo.map { LocalizedStringKey($0) } }
-                return muscleReading.map { LocalizedStringKey($0.thread) }
-                    ?? hilo.consejo.map { LocalizedStringKey($0) }
-            },
-            onOpenActa: { showVeredictoActa = true })
-    }
 
     private var healthConnected: Bool {
         #if DEBUG

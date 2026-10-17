@@ -743,3 +743,15 @@ sesiones con propuesta de descarga, semana ligera, reps en reserva. No se reescr
    subidas»). El oráculo `LiquidHoyBuilder` sigue compilado para el reloj y los widgets; se va en el
    barrido 2, junto con mover `ProgressionMath` a CenitTraining.
 
+## 2026-10-17 · Barrido 2 en dos tiempos (director, reversible)
+
+- **2a + 2b (CEN-65):** las matemáticas de fuerza (`PlateMath`, `WeeklySplit`, `ProgressionMath`, `OneRepMax`,
+  el núcleo de `TrainingRegulation`) pasan a CenitTraining; el oráculo `LiquidHoyBuilder` se borra y con él
+  la palabra del día del reloj, los widgets, la sesión en vivo, el mapa muscular y el hub. El aviso matutino
+  y el guardián de enfermedad dejan de evaluarse y se cancelan sus avisos pendientes. La bienvenida queda en
+  la promesa (los cinco actos viejos se borran).
+- **2c (issue aparte):** podar `CenitAnalytics`/`CenitImport` y el motor de análisis del `Repository` a lo
+  mínimo. Se separa porque ese mismo motor produce el sueño y el pulso en reposo que lee «cómo amaneciste»:
+  es cirugía sobre datos, carril pesado. Hasta entonces, `Preparedness` se sigue calculando por dentro sin
+  ninguna superficie que lo muestre, y el criterio de `strings` del binario de FER-380 sigue pendiente.
+

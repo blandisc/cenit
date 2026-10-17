@@ -203,38 +203,15 @@ import CenitTraining
         onNoRecoverableStrengthSession = { [weak self] in self?.restActivity.endOrphans() }
         RestThumbnailStore.clear()   // FER-789: sweep any rest thumbnail left by a killed session
         ActiveSessionSnapshot.clear()   // FER-522: drop a stale Siri exercise catalog until a session binds
-        // Illness/strain early-warning recomputes when the daily history changes. `days` is no longer
-        // its own @Published (folded into `dashboard` for single-publish refreshes, FER-30), so watch
-        // the dashboard and project its days — still one emission per refresh.
-        // FER-872: the launch cascade publishes the dashboard 4-5× in the first seconds (firstPaint,
-        // full, morning analyzeRecent, HealthKit sync…). The illness window only reads counts + the
-        // last two nights, so dedup by (count, last day) collapses those redundant re-evals into one —
-        // a genuine data change (a new night or a longer history) still changes the signature and fires.
-        // `reevaluateIllness()` calls `evaluateIllness` directly, so a settings toggle is never deduped.
-        repo.$dashboard.map(\.days)
-            .removeDuplicates { (a: [DailyMetric], b: [DailyMetric]) -> Bool in
-                a.count == b.count && a.last?.day == b.last?.day
-            }
-            .sink { [weak self] (days: [DailyMetric]) in self?.evaluateIllness(days) }
-            .store(in: &hrCancellables)
-
-        // FER-114 · el aviso matutino se re-arma con cada lectura nueva del motor. El texto no
-        // cambia nunca (es un recordatorio, no la entrega de la lectura: el texto de una
-        // notificación se congela al programarla y Cénit solo calcula con la app abierta), pero
-        // sí cambia si HAY algo que recordar: `MorningReadingScheduler` decide si se programa.
-        //
-        // OJO con las dos trampas de este `.sink`, que el scheduler ya absorbe (ver `reschedule`):
-        //   · `$dashboard` es `@Published`, así que esto dispara DE INMEDIATO con el valor de
-        //     `init` (`preparedness == nil`). Eso no es «no hay aviso que dar», es «todavía no sé»,
-        //     y por eso una publicación sin lectura ya no cancela lo pendiente.
-        //   · dos publicaciones seguidas lanzan dos tasks: el scheduler las pone EN COLA para que
-        //     el `cancelAll()` de la vieja no aterrice después de los `add` de la nueva.
-        repo.$dashboard.map(\.preparedness)
-            .removeDuplicates()
-            .sink { (prep: Preparedness.Read?) in
-                Task { await MorningReadingScheduler.reschedule(prep: prep) }
-            }
-            .store(in: &hrCancellables)
+        // CEN-65 (barrido 2, Camino C+): el guardián de enfermedad y el aviso matutino de la lectura
+        // salieron del producto (su interruptor se fue en el barrido 1). Ya no se evalúan ni se programan;
+        // al arrancar se cancela cualquier aviso matutino que una versión anterior hubiera dejado pendiente.
+        Task.detached {
+            let center = UNUserNotificationCenter.current()
+            let ids = await center.pendingNotificationRequests().map(\.identifier)
+                .filter { $0.hasPrefix("morning-reading-") || $0.hasPrefix("illness") }
+            center.removePendingNotificationRequests(withIdentifiers: ids)
+        }
 
         // FER-95 · E14 — «fuera de la app»: los dos widgets de pantalla de inicio + el recordatorio del
         // día que toca entrenar se re-arman en cada publicación del dashboard, igual que el aviso

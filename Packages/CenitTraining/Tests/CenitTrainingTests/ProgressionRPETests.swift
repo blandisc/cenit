@@ -1,5 +1,5 @@
 import XCTest
-@testable import CenitAnalytics
+@testable import CenitTraining
 
 /// Ola 1 · E4 — el ritmo «Según reps en reserva». Arrays are OLDEST → NEWEST, like `history`.
 /// Gate /biomecanico #2 (the at-limit cap), #3 and #4; Helms 2016, Zourdos 2016, Steele 2017.

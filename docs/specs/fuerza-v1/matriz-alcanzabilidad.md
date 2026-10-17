@@ -72,3 +72,13 @@ Raíz: `FuerzaRootView` (CEN-43). Criterio: un archivo se borra si ninguna naveg
 | Registro de enseñanza de Hoy/Cuerpo (`CenitEnsenanza`, `docs/FEATURES.md`) | Generado; sale del índice de Ayuda ya, y su contenido se retira con el barrido 2. |
 
 Criterio de cierre de FER-380 (`strings` del binario sin «readiness/preparación/recovery»): **pendiente del barrido 2**, porque el oráculo sigue compilado.
+
+## Barrido 2a + 2b (CEN-65)
+
+Borrado: `Cenit/Screens/Hoy/*` (el oráculo `LiquidHoyBuilder`, `HoyGramatica`, `MetricLevelsHostModel`),
+`Cuerpo/HiloVeredictoCompacto`, `TrainingLoadSheet`, `TrainingLoadStrip`, `System/MorningReadingScheduler`, los
+actos de bienvenida `Acta`, `Ciclo`, `Encendido`, `Landing`, `Perfil`, `Permiso`, `Salida`, y 12 archivos de
+pruebas que solo los cubrían. Movido a CenitTraining: `PlateMath`, `WeeklySplit`, `ProgressionState`,
+`OneRepMax`, `TrainingRegulation` (núcleo). Pendiente para 2c: el motor de análisis del `Repository` y los
+paquetes CenitAnalytics/CenitImport.
+

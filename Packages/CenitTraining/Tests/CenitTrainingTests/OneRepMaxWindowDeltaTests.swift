@@ -1,5 +1,5 @@
 import XCTest
-@testable import CenitAnalytics
+@testable import CenitTraining
 
 /// FER-149 — the «≈ +N %» trend chip: fortnight-vs-fortnight change over a fixed 90-day window
 /// anchored at HOY (never the last logged day). Table signed off by the CSO + CDO; endpoints below

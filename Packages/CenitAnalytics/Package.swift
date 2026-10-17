@@ -8,11 +8,12 @@ let package = Package(
     dependencies: [
         .package(path: "../BiometricStreams"),
         .package(path: "../CenitModels"),
+        .package(path: "../CenitTraining"),
     ],
     targets: [
         .target(
             name: "CenitAnalytics",
-            dependencies: ["BiometricStreams", "CenitModels"],
+            dependencies: ["BiometricStreams", "CenitModels", "CenitTraining"],
             swiftSettings: [.enableExperimentalFeature("StrictConcurrency")]
         ),
         .testTarget(

@@ -1,5 +1,5 @@
 import XCTest
-@testable import CenitAnalytics
+@testable import CenitTraining
 
 /// FER-327 · E6 — `PlateMath.snap` es el ÚNICO «redondea a lo construible» del app. Cualquier peso
 /// crudo (el escalón de un drop, la semana ligera) tiene que salir de aquí en un número que la persona

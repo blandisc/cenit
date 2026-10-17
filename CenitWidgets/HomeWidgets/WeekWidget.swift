@@ -10,6 +10,7 @@
 import SwiftUI
 import WidgetKit
 import CenitDesign
+import CenitTraining
 
 struct WeekEntry: TimelineEntry {
     let date: Date

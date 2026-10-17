@@ -1,6 +1,7 @@
 import XCTest
 import Foundation
 @testable import CenitAnalytics
+import CenitTraining
 
 final class TrainingRegulationTests: XCTestCase {
 

@@ -1,5 +1,5 @@
 import XCTest
-@testable import CenitAnalytics
+@testable import CenitTraining
 
 /// FER-346 — the estimated-1RM helper. Checks the cited formulas against known points, the honest
 /// reps clamp, the single-rep identity, and the day-bucketed sparkline aggregation.

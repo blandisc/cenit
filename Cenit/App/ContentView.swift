@@ -285,7 +285,7 @@ struct ContentView: View {
     /// y tener que corregirlo a la vista del usuario.
     private var climaEntrada: LiquidAmbiente {
         #if os(iOS)
-        return LiquidHoyBuilder.ambiente(prep: repo.todayPreparedness)
+        return .neutro   // CEN-65: sin oráculo de recuperación, la entrada (retirada) queda neutra
         #else
         return .neutro
         #endif

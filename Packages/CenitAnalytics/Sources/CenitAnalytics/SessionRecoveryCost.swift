@@ -1,4 +1,5 @@
 import Foundation
+import CenitTraining
 
 // SessionRecoveryCost.swift — qualitative "recovery cost" of one strength session (FER-349).
 //
