@@ -265,7 +265,9 @@ import CenitTraining
                 // FER-495: except for the Entrenar fixtures that seed their OWN plan
                 // (`EntrenarFixtures.all`, e.g. «train-retenida» / «train-hoy») — re-seeding the
                 // default plan here raced with theirs and won, wiping the state the node wanted.
-                if EntrenarFixtures.all[fixtureState] == nil {
+                // CEN-43: lo mismo para los de la raíz de Fuerza (`FuerzaFixtures.all`), que siembran
+                // o vacían su propio plan.
+                if EntrenarFixtures.all[fixtureState] == nil, FuerzaFixtures.all[fixtureState] == nil {
                     await ScreenshotFixtures.seedTrainingPlan(self)
                 }
             }

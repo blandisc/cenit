@@ -32,8 +32,8 @@ import XCTest
 ///    «Tendencias» and «Patrones» have no English translation, so an English run renders a
 ///    mixed-language bar.
 ///
-/// The dock is the system tab bar. `setUp` asserts `app.tabBars` is on screen. Navigation
-/// still goes through `nav(_:)` — do not tap the bar (rule 1).
+/// CEN-43: there is no dock any more — the root is `FuerzaRootView`. `setUp` waits for its «Ajustes»
+/// entry. Navigation still goes through `nav(_:)` (rule 1).
 final class CenitScreenshotTests: XCTestCase {
 
     var app: XCUIApplication!
@@ -91,7 +91,9 @@ final class CenitScreenshotTests: XCTestCase {
 
         app.launch()
         XCTAssertTrue(app.wait(for: .runningForeground, timeout: 15), "app never reached the foreground")
-        XCTAssertTrue(app.tabBars.firstMatch.waitForExistence(timeout: 5), "system tab bar never appeared")
+        // CEN-43: la raíz ya no tiene dock; la señal de «la app está lista» es una de sus tres entradas
+        // (presentes en todo estado de la raíz de Fuerza).
+        XCTAssertTrue(app.buttons["fuerza.ajustes"].waitForExistence(timeout: 15), "la raíz de Fuerza nunca apareció")
     }
 
     // MARK: - Today (verdict states)

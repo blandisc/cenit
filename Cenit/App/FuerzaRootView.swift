@@ -234,7 +234,8 @@ private struct FuerzaAntes: View {
                             fila(slot)
                         }
                         .padding(.top, LiquidSpace.s300)
-                        LiquidGlassButton("Start", variant: .primary, expands: true) { empezar() }
+                        LiquidGlassButton(String(localized: "Start"), variant: .primary, expands: true) { empezar() }
+                            .accessibilityIdentifier("fuerza.empezar")
                             .padding(.top, LiquidSpace.s400)
                     }
                 }
@@ -289,7 +290,16 @@ private struct FuerzaAntes: View {
             openWorkoutSession: { _ in abrirProgreso() },
             openMuscleMap: abrirProgreso,
             openMarcas: abrirProgreso,
-            onPlanLoaded: { Task { await cargar() } })
+            onPlanLoaded: { Task { await cargar() } },
+            ocultarRecuperacion: true)
+            // Plan · Progreso · Ajustes en TODO estado de la raíz (sin esto, sin rutina hoy Ajustes y
+            // Progreso quedaban inalcanzables).
+            .safeAreaInset(edge: .bottom, spacing: .zero) {
+                hojas
+                    .padding(.horizontal, LiquidSpace.s600)
+                    .padding(.vertical, LiquidSpace.s300)
+                    .background(LiquidColor.fondoAlto)
+            }
     }
 
     // MARK: Piezas
@@ -305,8 +315,11 @@ private struct FuerzaAntes: View {
         HStack(spacing: LiquidSpace.s300) {
             LiquidGlassButton(String(localized: "Your plan"),
                               variant: .quiet, action: abrirPlan)
+                .accessibilityIdentifier("fuerza.plan")
             LiquidGlassButton(String(localized: "Progress"), variant: .quiet, action: abrirProgreso)
+                .accessibilityIdentifier("fuerza.progreso")
             LiquidGlassButton(String(localized: "Settings"), variant: .quiet, action: abrirAjustes)
+                .accessibilityIdentifier("fuerza.ajustes")
         }
     }
 
@@ -510,6 +523,16 @@ private struct FuerzaAntes: View {
             let wd = (todayWeekday - 1 + offset) % 7 + 1
             if let rid = plan[wd], let r = porId[rid] {
                 let dia = Calendar.current.weekdaySymbols[wd - 1]
+                // Mañana se dice «mañana»; a 7 días es el mismo día de la semana que hoy, y «Sigue: Empuje ·
+                // sábado» dicho un sábado se lee como hoy → «el próximo sábado».
+                if offset == 1 {
+                    return String(format: String(localized: "fuerza.antes.siguiente.manana",
+                                                 defaultValue: "Next: %@ · tomorrow"), r.name)
+                }
+                if offset == 7 {
+                    return String(format: String(localized: "fuerza.antes.siguiente.proximo",
+                                                 defaultValue: "Next: %@ · next %@"), r.name, dia)
+                }
                 return String(format: String(localized: "fuerza.antes.siguiente", defaultValue: "Next: %@ · %@"),
                               r.name, dia)
             }

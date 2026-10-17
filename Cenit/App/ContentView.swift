@@ -271,7 +271,11 @@ struct ContentView: View {
         #if os(iOS) && DEBUG
         if UserDefaults.standard.string(forKey: "cenit.entrada") == "YES" { return true }
         #endif
-        return onboarded && !entradaLista && !EntradaDeArranque.yaCorrio
+        // CEN-43 (Camino C+, DECISIONS 2026-09-15 punto 4): el ritual del orbe pertenece a la primera
+        // pantalla, y esa ya es la raíz de Fuerza, que no tiene orbe donde aterrizar. Sin destino la
+        // coreografía se quedaba girando 20-30 s sobre una pantalla en blanco. Se retira del arranque;
+        // el código se queda (y `-cenit.entrada YES` lo sigue mostrando para el mapa) hasta el barrido.
+        return false
     }
 
     /// El clima al que la entrada tiñe el orbe: el MISMO mapeo veredicto → ambiente que usa la

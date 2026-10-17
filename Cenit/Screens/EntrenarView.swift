@@ -62,6 +62,9 @@ struct EntrenarView: View {
     /// CEN-43: avisa a quien aloja el hub (la raíz de Fuerza) que `load()` terminó, para que decida si
     /// ya hay una rutina de hoy (p. ej. tras aplicar una plantilla). `nil` = nadie escucha.
     var onPlanLoaded: (() -> Void)? = nil
+    /// CEN-43 (Camino C+): la recuperación salió del producto. La raíz de Fuerza pide NO pintar el hilo
+    /// del veredicto («En rango…») ni «Contexto · Carga». `false` = el hub de siempre.
+    var ocultarRecuperacion: Bool = false
 
     var body: some View {
         EntrenarLanding(openRoutine: openRoutine,
@@ -69,7 +72,8 @@ struct EntrenarView: View {
                         openHistory: openHistory, openWeeklyPlan: openWeeklyPlan,
                         openRoutines: openRoutines,
                         openWorkoutSession: openWorkoutSession, openMuscleMap: openMuscleMap,
-                        openMarcas: openMarcas, onPlanLoaded: onPlanLoaded)
+                        openMarcas: openMarcas, onPlanLoaded: onPlanLoaded,
+                        ocultarRecuperacion: ocultarRecuperacion)
             .enableInjection()   // Inject: ver la nota en `inject` arriba (no-op en Release)
     }
 }
@@ -89,6 +93,7 @@ private struct EntrenarLanding: View {
     var openMuscleMap: () -> Void
     var openMarcas: () -> Void
     var onPlanLoaded: (() -> Void)?
+    var ocultarRecuperacion: Bool = false
 
     @State private var loaded = false
     @State private var loadFailed = false   // store couldn't be read — a real error, NOT «no plan yet»
@@ -248,7 +253,7 @@ private struct EntrenarLanding: View {
                 // FER-132 §5: con `loadFailed` el hilo se OCULTA — el hilo habla del cuerpo, pero
                 // esta pantalla ya no pudo leer NADA de la base, y un veredicto flotando sobre un
                 // error de lectura sugiere que el resto sí cargó cuando no fue así.
-                if !loadFailed {
+                if !loadFailed, !ocultarRecuperacion {
                     hiloDelVeredicto.padding(.top, LiquidSpace.s200)
                     // Ola 2 (FER-488) · decisión 6 (DECISIONS.md 2026-09-15): «Contexto · Carga»
                     // inmediatamente debajo del hilo, nunca en la misma fila — ver `filaCargaEstado`

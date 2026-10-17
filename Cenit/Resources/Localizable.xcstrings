@@ -79729,6 +79729,40 @@
           }
         }
       }
+    },
+    "fuerza.antes.siguiente.manana": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next: %@ · tomorrow"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sigue: %@ · mañana"
+          }
+        }
+      }
+    },
+    "fuerza.antes.siguiente.proximo": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next: %@ · next %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sigue: %@ · el próximo %@"
+          }
+        }
+      }
     }
   },
   "version": "1.1"
