@@ -116,7 +116,11 @@ struct OnboardingWizard: View {
     private var contenido: some View {
         switch acto {
         case .promesa:
-            OnbActoPromesa(densidad: $densidad, onEmpezar: { ir(a: .permiso) })
+            // CEN-44 (Camino C+): el permiso de Salud ya NO se pide aquí. Se pide una sola vez al cerrar
+            // la primera sesión de fuerza (`FuerzaRootView`). «Empezar» salta el acto del permiso y la
+            // salida y entra directo al Acta (perfil-coda, sin Salud). El acto `.permiso` queda en el
+            // archivo, inalcanzable salvo por el fixture de depuración; el onboarding nuevo lo retira.
+            OnbActoPromesa(densidad: $densidad, onEmpezar: { irAActa(desde: .promesa, luego: .entrar) })
         case .permiso:
             OnbActoPermiso(
                 onAtras: { ir(a: .promesa) },
@@ -141,7 +145,7 @@ struct OnboardingWizard: View {
             OnbActoActa(
                 landing: landing,
                 sello: $perfilSello,
-                desdeSalida: actaAtras == .salida,
+                desdeSalida: actaAtras == .salida || actaAtras == .promesa,
                 onAtras: { ir(a: actaAtras) },
                 onContinuar: { salirDelActa() })
         case .sesion:

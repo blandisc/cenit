@@ -387,6 +387,7 @@ extension AppModel {
         // FER-969 (X-01): while a failed save is pending retry the snapshot is the only copy —
         // never tear the session down from here in that state (the receipt can't be up yet anyway).
         if let s = strengthSession, s.summary == nil, s.saveError { return }
+        if strengthSession?.summary != nil { actasCerradas += 1 }   // CEN-44: el permiso de Salud se ofrece al cerrar el acta
         strengthSession = nil
         strengthSheetPresented = false
         // FER-93: aquí se cierra de verdad la sesión (el recibo ya se leyó), así que aquí se

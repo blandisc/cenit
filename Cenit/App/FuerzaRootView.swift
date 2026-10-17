@@ -56,6 +56,7 @@ struct FuerzaRootView: View {
         .tint(LiquidColor.verdePrimario)
         .sheet(item: $hoja) { hoja in contenido(de: hoja) }
         .modifier(FuerzaSesionEnVivo(confirmDiscardSession: $confirmDiscardSession))
+        .modifier(FuerzaPermisoSalud())
         .modifier(FuerzaEntradas(abrirProgreso: { ruta in hoja = .progreso(abrir: ruta) }))
     }
 
@@ -106,6 +107,46 @@ private struct FuerzaSesionEnVivo: ViewModifier {
                         .environmentObject(tabRouter)
                 }
             }
+    }
+}
+
+// MARK: - El permiso de Apple Salud, al cerrar la primera sesión
+
+/// CEN-44 · Camino C+: Apple Salud sale de la puerta de entrada. Ni el onboarding ni el arranque piden
+/// nada; el permiso se ofrece UNA vez, en el momento en que la primera sesión de fuerza cierra su acta
+/// (el paso de DESPUÉS a ANTES), con una tarjeta que dice qué se guarda y qué se lee. «Continuar» abre
+/// el diálogo del sistema (`HealthKitBridge.requestAuthorization`: escribir entreno + energía activa,
+/// leer FC, FC en reposo y sueño); «Ahora no» lo deja para Ajustes › Fuentes de datos › Conectar Apple
+/// Health. Sin permiso, la sesión y la progresión funcionan completas. Quien ya conectó Salud (usuarios
+/// de antes) o no tiene Salud no ve la tarjeta.
+private struct FuerzaPermisoSalud: ViewModifier {
+    /// Ya se mostró la tarjeta (se acepte o no): nunca se vuelve a ofrecer sola.
+    static let ofrecidoKey = "health.firstSessionPromptShown"
+
+    @Environment(AppModel.self) private var appModel
+    @EnvironmentObject private var health: HealthKitBridge
+    @State private var ofrecer = false
+
+    func body(content: Content) -> some View {
+        content
+            .onChange(of: appModel.actasCerradas) { _, _ in
+                guard health.auth == .unknown,
+                      !UserDefaults.standard.bool(forKey: Self.ofrecidoKey) else { return }
+                UserDefaults.standard.set(true, forKey: Self.ofrecidoKey)
+                ofrecer = true
+            }
+            .liquidConfirm(
+                isPresented: $ofrecer,
+                title: String(localized: "Save your workouts in Apple Health?"),
+                context: String(localized: "FIRST SESSION · DONE"),
+                message: String(localized: "Cénit saves each workout and its active energy in Apple Health, and reads your heart rate, resting heart rate and sleep. Nothing leaves your iPhone. If you skip it, you can do it later in Settings › Data Sources."),
+                actions: [
+                    .init(String(localized: "Continue"), role: .primary) {
+                        Task { await health.requestAuthorization() }
+                    },
+                    .init(String(localized: "Not now"))
+                ]
+            )
     }
 }
 

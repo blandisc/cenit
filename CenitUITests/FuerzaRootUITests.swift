@@ -14,7 +14,11 @@ final class FuerzaRootUITests: XCTestCase {
         "-cenit.onboarded", "YES",
         "-cenit.acceptedTermsVersion", "2.0",
         "-cenit.didOfferRestore", "YES",
+        // CEN-44: cada prueba arranca como si la tarjeta de Apple Salud nunca se hubiera ofrecido.
+        "-health.firstSessionPromptShown", "NO",
     ]
+
+    private static let tituloPermisoSalud = "¿Guardar tus entrenamientos en Apple Salud?"
 
     override func setUp() {
         continueAfterFailure = false
@@ -61,6 +65,8 @@ final class FuerzaRootUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Empuje"].exists)
         assertSinDockNiRecuperacion(app)
         assertTresHojas(app)
+        // CEN-44: al abrir no se pide Apple Salud (ni tarjeta ni diálogo del sistema).
+        XCTAssertFalse(app.staticTexts[Self.tituloPermisoSalud].exists, "el permiso no se pide al abrir")
         snap(app, "01-antes-con-rutina")
 
         // Durante: la sesión en vivo.
@@ -92,6 +98,12 @@ final class FuerzaRootUITests: XCTestCase {
         let entendido = app.buttons["Entendido"]
         if entendido.waitForExistence(timeout: 2) { entendido.tap() }
         listo.tap()
+        // CEN-44: al cerrar el acta de la primera sesión se ofrece Apple Salud, una vez. «Ahora no» la deja
+        // para Ajustes › Fuentes de datos.
+        XCTAssertTrue(app.staticTexts[Self.tituloPermisoSalud].waitForExistence(timeout: 10),
+                      "al cerrar la primera sesión se ofrece Apple Salud")
+        snap(app, "04b-permiso-salud")
+        app.buttons["Ahora no"].tap()
         XCTAssertTrue(app.staticTexts["Hoy ya entrenaste"].waitForExistence(timeout: 10),
                       "tras el acta, la raíz dice «Hoy ya entrenaste»")
         // La única rutina está agendada hoy: la que sigue es la misma, dentro de 7 días → «el próximo …».

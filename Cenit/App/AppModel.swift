@@ -105,6 +105,10 @@ import CenitTraining
             }
         }
     }
+    /// CEN-44: cuántas veces se cerró el acta de una sesión guardada (el paso de DESPUÉS a ANTES). La raíz
+    /// (`FuerzaRootView`) lo observa para ofrecer, una sola vez, el permiso de Apple Salud. Descartar una
+    /// sesión no lo mueve.
+    var actasCerradas = 0
     /// Subscription to the active session's changes — drives the rest Live Activity's reconcile loop.
     // AppModel-internal (split D1)
     var restActivityCancellable: AnyCancellable?

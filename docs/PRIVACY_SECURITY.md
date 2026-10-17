@@ -114,24 +114,27 @@ refuse a job that will not fit rather than filling the device.
 
 ### What is read
 
-The app requests read access to seventeen HealthKit types. Ten are quantities: heart rate, resting
-heart rate, heart-rate variability, oxygen saturation, respiratory rate, step count, active energy,
-basal energy, maximum oxygen uptake, and wrist temperature during sleep. To those it adds sleep
-analysis, workouts, and the beat-to-beat heartbeat series, plus four read only to prefill the profile
-during onboarding: biological sex, date of birth, body mass and height.
+Since the "Cénit Fuerza" path (CEN-44, DECISIONS 2026-10-15) the app requests read access to three
+HealthKit types and no others: heart rate, resting heart rate, and sleep analysis. Heart rate is the
+one recorded during a strength session; resting heart rate and sleep are values Apple itself computes,
+and Cénit only reads them. Heart-rate variability, the beat-to-beat heartbeat series, oxygen
+saturation, respiratory rate, step count, basal energy, maximum oxygen uptake, wrist temperature,
+workouts from other apps and the profile characteristics (biological sex, date of birth, body mass,
+height) are no longer requested. Code that once consumed them may still sit in the tree behind no
+entry point; it neither asks for permission nor queries at launch, and HealthKit returns nothing for
+a type that was never authorized.
 
-The heartbeat series deserves a note. It is what makes on-device nocturnal variability possible from
-raw intervals rather than from a vendor's summary, and HealthKit requires it be requested alongside
-the variability type. Installs that predate it get a one-time supplementary request for those two
-types only.
+The permission is not asked at launch or in onboarding. It is asked once, when the first strength
+session closes, with a card that says what is saved and what is read. Choosing "Not now" leaves the
+same request one tap away in Settings › Data Sources. Without it, sessions and progression work in full.
 
-The authorization call passes an **empty share set**: connecting Apple Health asks for read access
-and nothing else.
+The `NSHealthShareUsageDescription` and `NSHealthUpdateUsageDescription` strings, on the phone and on
+the watch, list exactly these types (App Store guideline 5.1.3(i)).
 
 ### What is written
 
-Two types, requested separately and only when the user turns on the corresponding setting: workouts,
-and active energy.
+Two types, requested in the same single dialog as the three reads (or, for the opt-in toggle in
+Settings, on their own): workouts, and active energy.
 
 The write is gated twice — by a preference that defaults to off, and by a live authorization check
 immediately before saving. What it writes is one strength-training workout carrying one active-energy
@@ -143,7 +146,8 @@ Deletion is scoped by a compound predicate to objects this app itself wrote for 
 It exists so re-saving is idempotent, not so the app can clean up anything it did not create.
 
 The watch app requests read access to heart rate, active energy and workouts, and share access to
-workouts and active energy, so it can run a real workout session and mirror it to the phone.
+workouts and active energy, so it can run a real workout session and mirror it to the phone. Its
+usage descriptions say so.
 
 ---
 

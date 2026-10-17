@@ -41,13 +41,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cénit reads your own Apple Health data on-device: sleep, heart rate, heart-rate variability, workouts, and related samples, to show your days and nightly trends. Cénit never uploads it. No server, no account."
+            "value" : "Cénit reads your heart rate, resting heart rate and sleep from Apple Health, on your iPhone, to guide your strength training. Cénit never uploads it. No server, no account."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cénit lee tus propios datos de Apple Salud en el dispositivo: sueño, frecuencia cardiaca, variabilidad, entrenamientos y muestras relacionadas, para mostrarte tus días y tus tendencias de cada noche. Cénit nunca los sube. Sin servidor ni cuenta."
+            "value" : "Cénit lee de Apple Salud tu frecuencia cardiaca, tu frecuencia cardiaca en reposo y tu sueño, en tu iPhone, para guiar tu entrenamiento de fuerza. Cénit nunca los sube. Sin servidor ni cuenta."
           }
         }
       }
@@ -58,13 +58,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cénit saves your strength workouts into Apple Health, on-device and only when you allow it."
+            "value" : "Cénit saves your strength workouts and their active energy into Apple Health, on your iPhone and only when you allow it."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cénit guarda tus entrenamientos de fuerza en Apple Salud, en el dispositivo y solo cuando tú lo permites."
+            "value" : "Cénit guarda tus entrenamientos de fuerza y su energía activa en Apple Salud, en tu iPhone y solo cuando tú lo permites."
           }
         }
       }
