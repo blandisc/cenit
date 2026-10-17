@@ -29,15 +29,36 @@ extension Repository {
     /// share one verdict: reading it per exercise leaves a window (each `await` on the store yields to
     /// the main actor, where a refresh publishes) for a table where some rows took the raise and others
     /// held it — one screen, two verdicts, which is the whole thing this epic removes.
-    /// `isNightAnchored` es la MISMA puerta que Hoy exige para pronunciar la palabra (FER-85): sin
-    /// noche anclada, Hoy degrada el día a «lectura de día» y NO dice el veredicto. Si Entrenar
-    /// actuara igual sobre ese veredicto, retendría una subida por una palabra que la otra pantalla
-    /// se está negando a decir — un oráculo con dos puertas es dos oráculos.
+    /// Camino C+ (ola 1): el consejo de entrenamiento ya no sale del veredicto de recuperación sino de
+    /// la línea «cómo amaneciste» (`ComoAmaneciste`, en CenitTraining), y SOLO si el usuario la encendió
+    /// en Ajustes. Apagada (el default) el plan corre como está: la subida la gana el registro.
+    /// Encendida, el sueño corto o el pulso en reposo alto retienen la subida (`.lighter`); nada la
+    /// baja ni bloquea entrenar. `.pending` se conserva para el arranque en frío con la línea encendida:
+    /// sin días cargados todavía, no se anuncia una subida que la lectura está por retener.
+    ///
+    /// READ IT ONCE PER PASS, before the loop that builds a table (FER-82): every exercise of one
+    /// session shares one reading.
     var trainingAdvice: TrainingRegulation.Advice {
-        let read = todayPreparedness
-        let usable = read?.isNightAnchored == true ? read?.verdict : nil
-        return TrainingRegulation.advice(verdict: usable,
-                                         isPending: read == nil && !fullyLoaded)
+        guard let lectura = comoAmaneciste else { return .silent }
+        if days.isEmpty && !fullyLoaded { return .pending }
+        switch lectura {
+        case .sinDato:                 return .silent
+        case .enRango:                 return .planAsIs
+        case .sueñoCorto, .pulsoAlto:  return .lighter
+        }
+    }
+
+    /// La lectura de esta mañana, o `nil` si la línea está apagada. Hoy = la fila del día civil de hoy
+    /// (el sueño de la noche que terminó hoy y el pulso en reposo de hoy); la base = el pulso en reposo
+    /// de hasta 28 días anteriores.
+    var comoAmaneciste: ComoAmaneciste.Lectura? {
+        guard UserDefaults.standard.bool(forKey: PrefKey.comoAmaneciste.rawValue) else { return nil }
+        let hoyKey = Self.localDayKey(Date())
+        let hoy = days.last { $0.day == hoyKey }
+        let base = days.filter { $0.day < hoyKey }.suffix(28).compactMap { $0.restingHr.map(Double.init) }
+        return ComoAmaneciste.leer(sueñoMin: hoy?.totalSleepMin,
+                                   pulsoHoy: hoy?.restingHr.map(Double.init),
+                                   pulsoBase: Array(base))
     }
 
     // MARK: - Routines

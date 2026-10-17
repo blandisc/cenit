@@ -2,6 +2,7 @@
 import Foundation
 import CenitStore
 import CenitTraining
+import CenitModels
 
 /// CEN-43 · fixtures de la raíz de Fuerza (`FuerzaRootView`), usados por `CenitUITests/FuerzaRootUITests`.
 /// Deterministas: la rutina se agenda en el día de la semana en que corre la app (nada depende de qué día
@@ -21,6 +22,25 @@ enum FuerzaFixtures {
             await wipe(model)
             await seedEmpujeHoy(model, enDias: 1)
             model.repo.setDashboard(days: [])
+        },
+        /// Ola 1: dos sesiones previas que cumplen 3×8 / 3×10 → la progresión (encendida de fábrica)
+        /// propone subir en los dos ejercicios. «Cómo amaneciste» sin datos de sueño.
+        "fuerza-sube": { model in
+            await wipe(model)
+            await seedEmpujeHoy(model, sesionesPrevias: 2)
+            model.repo.setDashboard(days: [])
+        },
+        /// Ola 1: lo mismo, con anoche de 5 h. Con la línea encendida (`-cenit.fuerza.comoAmaneciste YES`)
+        /// la subida se retiene; apagada (el default), sube igual.
+        "fuerza-sube-sueno-corto": { model in
+            await wipe(model)
+            await seedEmpujeHoy(model, sesionesPrevias: 2)
+            let hoy = Repository.localDayKey(Date())
+            model.repo.setDashboard(days: [
+                DailyMetric(day: hoy, totalSleepMin: 300, efficiency: nil, deepMin: nil, remMin: nil,
+                            lightMin: nil, disturbances: nil, restingHr: nil, avgHrv: nil, recovery: nil,
+                            strain: nil, exerciseCount: nil),
+            ])
         },
         /// Store vacío: sin rutinas ni plan → la puerta de plan (plantillas / importar / crear).
         "fuerza-sin-rutina": { model in
@@ -47,7 +67,7 @@ enum FuerzaFixtures {
     }
 
     @MainActor
-    private static func seedEmpujeHoy(_ model: AppModel, enDias: Int = 0) async {
+    private static func seedEmpujeHoy(_ model: AppModel, enDias: Int = 0, sesionesPrevias: Int = 1) async {
         guard let store = await model.repo.storeHandle() else { return }
         let cal = Calendar(identifier: .gregorian)
         let now = Int(Date().timeIntervalSince1970)
@@ -69,8 +89,10 @@ enum FuerzaFixtures {
         let weekday = cal.component(.weekday, from: dia)
         try? await store.setRoutineSchedule(weekday: weekday, routineId: routine.id)
 
-        // Una sesión previa (hace 3 días): da el «Última vez» de cada ejercicio.
-        if let day = cal.date(byAdding: .day, value: -3, to: Date()) {
+        // Sesiones previas (hace 3, 6, … días): dan el «Última vez» de cada ejercicio y, con dos que
+        // cumplen, la subida (progressionSessions = 2).
+        for k in 1...max(1, sesionesPrevias) {
+            guard let day = cal.date(byAdding: .day, value: -3 * k, to: Date()) else { continue }
             let start = Int(cal.startOfDay(for: day).timeIntervalSince1970) + 18 * 3600
             let session = StrengthSession(routineId: routine.id, startTs: start, endTs: start + 40 * 60)
             var sets: [SetEntry] = []

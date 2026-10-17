@@ -101,6 +101,7 @@ private struct AjustesLanding: View {
     // FER-183: «Fase del ciclo» vuelve a ser alcanzable (un control real la abre), ahora VIVA. El
     // opt-in gobierna, además, si el veredicto aplica el margen lútea (ver Repository, FER-183).
     /// FER-93: las dos comodidades de la sesión, las dos apagadas por defecto.
+    @AppStorage(PrefKey.comoAmaneciste.rawValue) private var comoAmaneciste = false   // ola 1 · Camino C+
     @AppStorage(SessionComfort.keepAwakeKey) private var keepScreenAwake = false
     @AppStorage(SessionComfort.restSoundKey) private var restSound = false
     @AppStorage(SessionComfort.restNotifyKey) private var restNotify = false
@@ -310,6 +311,22 @@ private struct AjustesLanding: View {
             // El recordatorio del día que toca entrenar, mismo patrón; vive en
             // `AjustesRecordatorioEntreno.swift` (FER-178, ya migrada a Liquid Glass).
             RecordatorioEntrenoSection()
+            // Ola 1 · Camino C+: la única señal de salud que queda, apagada de fábrica (DECISIONS 2026-10-15).
+            section(String(localized: "Your body")) {
+                VStack(alignment: .leading, spacing: LiquidSpace.s300) {
+                    Toggle(isOn: $comoAmaneciste) {
+                        Text(String(localized: "How you woke up"))
+                            .font(LiquidType.tituloFila).foregroundStyle(LiquidColor.tinta900)
+                    }
+                    .tint(LiquidColor.verdePrimario)
+                    .frame(minHeight: 44)
+                    .accessibilityIdentifier("ajustes.comoAmaneciste")
+                    Text(String(localized: "If you slept under 6 hours or your resting pulse woke up 7 or more beats above your normal, I hold today's weight raises. It reads sleep and resting pulse from Apple Health. Off, progression only looks at your log."))
+                        .font(LiquidType.captionLectura).foregroundStyle(LiquidColor.tinta500)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .liquidTarjetaSeccion()
+            }
             section(String(localized: "During a session")) {
                 VStack(alignment: .leading, spacing: LiquidSpace.s300) {
                     Toggle(isOn: $keepScreenAwake) {

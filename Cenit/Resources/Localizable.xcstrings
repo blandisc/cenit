@@ -73337,13 +73337,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hit your reps and the routine adds weight; you enable it on each exercise's card."
+            "value": "Hit your reps and the routine adds weight. It comes on; you can turn it off on each exercise's card."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cumple tus reps y la rutina sube el peso; se activa en la tarjeta de cada ejercicio."
+            "value": "Cumple tus reps y la rutina sube el peso. Viene encendida; la apagas en la tarjeta de cada ejercicio."
           }
         }
       }
@@ -79828,6 +79828,74 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sigue: %@ · el próximo %@"
+          }
+        }
+      }
+    },
+    "fuerza.amanecer.sueno": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You slept %lldh %02lldm · I'm holding today's raises."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dormiste %lld h %02lld min · hoy mantengo las subidas."
+          }
+        }
+      }
+    },
+    "fuerza.amanecer.pulso": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your resting pulse woke up at %lld (you're usually at %lld) · I'm holding today's raises."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu pulso en reposo amaneció en %lld (sueles estar en %lld) · hoy mantengo las subidas."
+          }
+        }
+      }
+    },
+    "How you woke up": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How you woke up"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cómo amaneciste"
+          }
+        }
+      }
+    },
+    "If you slept under 6 hours or your resting pulse woke up 7 or more beats above your normal, I hold today's weight raises. It reads sleep and resting pulse from Apple Health. Off, progression only looks at your log.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "If you slept under 6 hours or your resting pulse woke up 7 or more beats above your normal, I hold today's weight raises. It reads sleep and resting pulse from Apple Health. Off, progression only looks at your log."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Si dormiste menos de 6 h o tu pulso en reposo amaneció 7 o más latidos arriba de lo normal, mantengo las subidas de hoy. Lee sueño y pulso en reposo de Apple Salud. Apagada, la progresión solo mira tu registro."
           }
         }
       }

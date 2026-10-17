@@ -723,3 +723,23 @@ cambia el camino, solo confirma el retiro); el spike de CoreMotion falla (se cie
 - **Autonomía:** el director sigue sin esperar la prueba del dueño en el iPhone y valida en simulador
   (`CenitUITests/FuerzaRootUITests`). El 2026-10-17 el dueño suspendió temporalmente «un build a la vez»
   (`verify.sh` ya no espera; `CENIT_WAIT_IDLE=1` lo restablece).
+
+## 2026-10-17 · Ola 1, piezas 1 y 2: progresión encendida y «cómo amaneciste» (director, reversible)
+
+Hallazgo al abrir la ola 1: el motor «siguiente paso» que pedía el plan **ya existía** (`ProgressionMath`
+en CenitAnalytics + `ProgressionPlanner`): doble progresión por rango de reps (E13), estancamiento a 3
+sesiones con propuesta de descarga, semana ligera, reps en reserva. No se reescribe. Lo que faltaba:
+
+1. **La progresión venía apagada** (`RoutineExercise.progressionEnabled = false`): una rutina de plantilla
+   nunca proponía subir hasta encenderla ejercicio por ejercicio. Ahora **viene encendida** para toda
+   rutina nueva (plantilla, hecha a mano o importada); se apaga por ejercicio. Las filas guardadas antes
+   conservan su valor.
+2. **El consejo de entrenamiento deja de salir del veredicto de recuperación.** `Repository.trainingAdvice`
+   lee ahora `ComoAmaneciste` (CenitTraining, puro y probado): sueño < 6 h o pulso en reposo ≥ 7 lpm sobre
+   tu mediana (≥ 7 días de base) retienen la subida; nada la baja ni bloquea. Citas: Knowles 2018, Craven
+   2022, Achten & Jeukendrup 2003, Buchheit 2014. Los cortes son perillas rotuladas. **Apagada de fábrica**
+   (Ajustes › Tu cuerpo › Cómo amaneciste, decisión del dueño 2026-10-15): apagada, el plan corre como
+   está. La raíz muestra una sola línea, y solo cuando retiene («Dormiste 5 h 00 min · hoy mantengo las
+   subidas»). El oráculo `LiquidHoyBuilder` sigue compilado para el reloj y los widgets; se va en el
+   barrido 2, junto con mover `ProgressionMath` a CenitTraining.
+
