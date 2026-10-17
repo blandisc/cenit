@@ -1,5 +1,5 @@
 import XCTest
-@testable import CenitAnalytics
+@testable import CenitTraining
 
 /// FER-B — double-progression classifier. Table-driven entrada→salida, mirroring `MetricLevels` tests.
 final class ProgressionStateTests: XCTestCase {

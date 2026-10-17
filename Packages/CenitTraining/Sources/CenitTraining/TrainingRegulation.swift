@@ -88,20 +88,6 @@ public enum TrainingRegulation {
         case pending
     }
 
-    /// Translate Hoy's verdict into Entrenar's advice. `isPending` has no default on purpose: every
-    /// caller must state whether the verdict is merely late or genuinely absent (FER-82 gate round 1 —
-    /// a defaulted parameter is how three surfaces silently kept the old oracle).
-    public static func advice(verdict: Preparedness.Verdict?, isPending: Bool) -> Advice {
-        if isPending { return .pending }
-        switch verdict {
-        case .full:      return .planAsIs
-        case .caution:   return .lighter
-        case .easy:      return .recover
-        case .lowSignal: return .silent
-        case nil:        return .silent
-        }
-    }
-
     /// Whether an earned progression raise may go through today. `.lighter` / `.recover` hold it (the
     /// seed stays at last time's weight and the raise waits one tap away), `.pending` holds it until
     /// the verdict lands. `.silent` lets it through: with no usable read the plan runs as written.

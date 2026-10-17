@@ -1,4 +1,5 @@
 import Foundation
+import CenitTraining
 
 // MuscleFatigueMap.swift — per-muscle training load / freshness, crossed with the
 // systemic recovery (FER-350). The jewel of the loop: which muscles are loaded vs fresh, and

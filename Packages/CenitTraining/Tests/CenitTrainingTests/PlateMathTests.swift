@@ -1,5 +1,5 @@
 import XCTest
-@testable import CenitAnalytics
+@testable import CenitTraining
 
 /// FER-720 (F5 · 3a) — the barbell plate-loading and warm-up-ramp helper. Checks the mock's headline
 /// case (92.5 → 20+15+1.25 per side on a 20 kg bar), inventory limits, non-exact loads, and the ramp.

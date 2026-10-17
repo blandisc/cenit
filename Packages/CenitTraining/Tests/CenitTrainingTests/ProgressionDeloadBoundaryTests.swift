@@ -1,5 +1,5 @@
 import XCTest
-@testable import CenitAnalytics
+@testable import CenitTraining
 
 /// Ola 1 · E10 (FER-329): la sesión servida en semana ligera (`PastSession.deload`) es FRONTERA —
 /// no cuenta como acierto ni como fallo, no rompe la racha de aciertos, y sí corta la de estancamiento.

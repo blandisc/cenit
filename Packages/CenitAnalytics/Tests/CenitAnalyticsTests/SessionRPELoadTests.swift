@@ -1,5 +1,6 @@
 import XCTest
 @testable import CenitAnalytics
+import CenitTraining
 
 /// Ola 1 · E2 — minutes × effort onto the same 0–21 ruler heart rate uses.
 /// Gate estadístico H2 (affine map), H3 (median of ratios), H4 (refit hysteresis), H8 (relative

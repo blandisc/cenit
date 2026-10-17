@@ -1,5 +1,6 @@
 import XCTest
 @testable import CenitAnalytics
+import CenitTraining
 
 /// FER-82 — «un solo oráculo»: Entrenar reads the SAME verdict Hoy shows, and one pure mapping turns
 /// it into training advice. These tests pin the contract that makes the app stop contradicting itself:

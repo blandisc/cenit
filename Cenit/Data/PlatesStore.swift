@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 import CenitAnalytics
+import CenitTraining
 
 /// The user's barbell + the plate denominations they own (FER-720 · 3a), UserDefaults-backed
 /// (single-user, on-device), mirroring `GoalStore`. Not analytics history, so no database table. The

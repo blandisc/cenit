@@ -1,5 +1,5 @@
 import XCTest
-@testable import CenitAnalytics
+@testable import CenitTraining
 
 /// FER-327 · E6 — un AMRAP («las que puedas») entra al ciclo de doble progresión SIN cambiar la
 /// fórmula: `ProgressionMath.metGoal` ya dice «cumpliste si cada serie de trabajo llegó al objetivo»,

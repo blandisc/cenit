@@ -7,6 +7,7 @@
 // verdict specifically comes from `LiquidHoyBuilder.hiloEntrenar`, the SAME builder Entrenar's own
 // hilo calls — FER-82's «un solo oráculo» — so a widget can never contradict the app it mirrors).
 import Foundation
+import CenitTraining
 
 public struct TrainWidgetSnapshot: Codable, Equatable, Sendable {
 

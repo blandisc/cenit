@@ -1,5 +1,5 @@
 import XCTest
-@testable import CenitAnalytics
+@testable import CenitTraining
 
 /// Pure derivation for the «La Semana» planner (FER-531). Weekday numbering follows
 /// `Calendar.component(.weekday)` (1 = Sunday … 7 = Saturday); Monday = 2. The Monday-first display

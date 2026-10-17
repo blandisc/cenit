@@ -2,6 +2,7 @@
 import SwiftUI
 import CenitDesign
 import CenitAnalytics
+import CenitTraining
 
 // MARK: - Plate calculator + warm-up (FER-720 · 3a · FER-302 Liquid Glass · El Eje)
 //
