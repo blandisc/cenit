@@ -713,3 +713,13 @@ Watch como registro (repeticiones automáticas como spike) y, al final, IA con m
 
 Señales que reabren esta entrada: Apple publica API de series/reps; Apple expone Readiness a terceros (no
 cambia el camino, solo confirma el retiro); el spike de CoreMotion falla (se cierra la ola 2 con nota).
+
+## 2026-10-16 · Ola 0: dos recomendaciones aceptadas y autonomía (dueño)
+
+- **Ajustes se poda en el barrido (CEN-45)**, no antes: hacerlo dos veces cuesta el doble.
+- **Día de descanso (CEN-57):** con plan y sin rutina hoy, la raíz dice «Hoy descansas · Sigue: {rutina} ·
+  {mañana | día | el próximo día}». El «Empezar» del widget o Siri ese día solo abre esa pantalla; ya no arranca
+  movilidad guiada. Si la movilidad se queda como «otra forma» se decide en la ola 1.
+- **Autonomía:** el director sigue sin esperar la prueba del dueño en el iPhone y valida en simulador
+  (`CenitUITests/FuerzaRootUITests`). El 2026-10-17 el dueño suspendió temporalmente «un build a la vez»
+  (`verify.sh` ya no espera; `CENIT_WAIT_IDLE=1` lo restablece).

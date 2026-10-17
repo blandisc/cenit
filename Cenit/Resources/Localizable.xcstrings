@@ -79747,6 +79747,23 @@
         }
       }
     },
+    "fuerza.antes.descanso.titulo": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rest day today"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoy descansas"
+          }
+        }
+      }
+    },
     "fuerza.antes.hecho.titulo": {
       "extractionState": "manual",
       "localizations": {

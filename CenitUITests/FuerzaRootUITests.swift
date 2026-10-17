@@ -154,6 +154,21 @@ final class FuerzaRootUITests: XCTestCase {
         snap(app, "08-tras-plantilla")
     }
 
+    // MARK: Descanso (CEN-57)
+
+    func test_diaDeDescanso_hoyDescansasConLaQueSigue() throws {
+        let app = launch("fuerza-descanso")
+        XCTAssertTrue(app.staticTexts["Hoy descansas"].waitForExistence(timeout: 20),
+                      "con plan y sin rutina hoy, la raíz dice «Hoy descansas»")
+        XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS 'Empuje' AND label CONTAINS 'mañana'"))
+            .firstMatch.exists, "nombra la rutina que sigue: «Sigue: Empuje · mañana»")
+        XCTAssertFalse(app.buttons["fuerza.empezar"].exists, "en descanso no hay «Empezar»")
+        XCTAssertFalse(app.staticTexts["Arma tu semana"].exists, "con plan no se ofrece armar la semana")
+        assertSinDockNiRecuperacion(app)
+        assertTresHojas(app)
+        snap(app, "11-hoy-descansas")
+    }
+
     // MARK: Hojas
 
     func test_hojas_abrenYRegresan() throws {
