@@ -26,6 +26,12 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
   ### EN
   Cénit no longer asks for Health permissions when you open it or during the welcome. When you close the receipt of your first strength session it shows a card explaining what happens: it saves your workout and its active energy to Apple Health, and reads your heart rate, resting heart rate and sleep. Nothing else: it no longer asks for heart-rate variability, temperature, oxygen, breathing, steps, VO2 max, weight, height or date of birth. If you choose "Not now", you can connect any time in Settings › Data Sources. Without the permission, your sessions and progression work in full. The system prompts on iPhone and watch now list exactly what is requested.
 
+- **En tu día de descanso, Cénit te lo dice / On rest days, Cénit tells you**
+  ### ES
+  Si tienes plan y hoy no toca rutina, al abrir (o al tocar «Empezar» en el widget) ves «Hoy descansas» con la rutina que sigue, en vez de la pantalla para armar tu semana.
+  ### EN
+  If you have a plan and today has no routine, opening the app (or tapping Start on the widget) shows "Rest day today" with your next routine, instead of the build-your-week screen.
+
 - **Abres Cénit y estás a un toque de tu primera serie / Open Cénit and you're one tap from your first set**
   ### ES
   La app ya no tiene barra de pestañas. Al abrirla ves la rutina de hoy, con lo que sigue para cada ejercicio (el peso de la última vez, o la subida que ganaste), y un botón «Empezar». Al terminar ves tu acta y «Listo» te regresa al inicio, con la rutina que sigue o «Hoy ya entrenaste». Tu plan, tu progreso y los ajustes se abren desde el inicio y regresan a él. Las pantallas de salud (Hoy, Cuerpo, Tendencias) ya no tienen puerta de entrada. Si hoy no toca rutina, ves el plan o el descanso de siempre. Tu plan, Progreso y Ajustes están en todos los estados, también sin plan. La primera pantalla ya no muestra la preparación ni la fila de carga, y la animación de arranque del orbe se retiró: la app abre directo en tu entrenamiento.

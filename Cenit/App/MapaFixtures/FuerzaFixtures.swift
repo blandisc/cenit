@@ -16,6 +16,12 @@ enum FuerzaFixtures {
             await seedEmpujeHoy(model)
             model.repo.setDashboard(days: [])
         },
+        /// CEN-57: la rutina «Empuje» agendada MAÑANA y nada hoy → «Hoy descansas · Sigue: Empuje · mañana».
+        "fuerza-descanso": { model in
+            await wipe(model)
+            await seedEmpujeHoy(model, enDias: 1)
+            model.repo.setDashboard(days: [])
+        },
         /// Store vacío: sin rutinas ni plan → la puerta de plan (plantillas / importar / crear).
         "fuerza-sin-rutina": { model in
             await wipe(model)
@@ -41,7 +47,7 @@ enum FuerzaFixtures {
     }
 
     @MainActor
-    private static func seedEmpujeHoy(_ model: AppModel) async {
+    private static func seedEmpujeHoy(_ model: AppModel, enDias: Int = 0) async {
         guard let store = await model.repo.storeHandle() else { return }
         let cal = Calendar(identifier: .gregorian)
         let now = Int(Date().timeIntervalSince1970)
@@ -59,7 +65,8 @@ enum FuerzaFixtures {
             rex(bench, 0, sets: 3, reps: 8, kg: 80),
             rex(incline, 1, sets: 3, reps: 10, kg: 26),
         ])
-        let weekday = cal.component(.weekday, from: Date())
+        let dia = cal.date(byAdding: .day, value: enDias, to: Date()) ?? Date()
+        let weekday = cal.component(.weekday, from: dia)
         try? await store.setRoutineSchedule(weekday: weekday, routineId: routine.id)
 
         // Una sesión previa (hace 3 días): da el «Última vez» de cada ejercicio.

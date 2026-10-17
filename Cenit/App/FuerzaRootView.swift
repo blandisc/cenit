@@ -213,6 +213,8 @@ private struct FuerzaAntes: View {
     @State private var hoy: HoyPlan?
     /// Hoy ya hay una sesión terminada de la rutina de hoy (el acta cerró): «hoy ya entrenaste».
     @State private var yaEntrenaste = false
+    /// CEN-57: hay plan pero hoy no toca rutina → «Hoy descansas» con la que sigue (no el hub de plan).
+    @State private var descansa = false
     /// «Siguiente: Pierna · jueves» — la próxima rutina del plan después de hoy.
     @State private var siguiente: String?
     /// Un «Empezar» del widget / Siri llegó antes de que terminara la carga.
@@ -233,7 +235,9 @@ private struct FuerzaAntes: View {
             } else if let hoy, !yaEntrenaste {
                 antes(hoy)
             } else if hoy != nil {
-                hoyYaEntrenaste
+                tarjetaDelDia(String(localized: "fuerza.antes.hecho.titulo", defaultValue: "You already trained today"))
+            } else if descansa {
+                tarjetaDelDia(String(localized: "fuerza.antes.descanso.titulo", defaultValue: "Rest day today"))
             } else {
                 hubDePlan
             }
@@ -290,15 +294,16 @@ private struct FuerzaAntes: View {
         }
     }
 
-    /// «Hoy ya entrenaste» — después del acta. Un toque por la rutina que viene, y las tres hojas.
-    private var hoyYaEntrenaste: some View {
+    /// «Hoy ya entrenaste» (después del acta) o «Hoy descansas» (CEN-57: hay plan y hoy no toca): el
+    /// título, la rutina que viene y las tres hojas.
+    private func tarjetaDelDia(_ titulo: String) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: .zero) {
                 cabecera
                 EntrenarModulo(tono: .neutro, intensidad: EntrenarHubMetrics.heroIntensidad,
                                insets: EntrenarHubMetrics.heroInsets) {
                     VStack(alignment: .leading, spacing: .zero) {
-                        Text(String(localized: "fuerza.antes.hecho.titulo", defaultValue: "You already trained today"))
+                        Text(verbatim: titulo)
                             .font(LiquidType.displayM).tracking(LiquidType.displayMTracking)
                             .foregroundStyle(LiquidColor.tinta900)
                             .fixedSize(horizontal: false, vertical: true)
@@ -549,6 +554,7 @@ private struct FuerzaAntes: View {
         hoy = nuevoHoy
         yaEntrenaste = entrenoHoy
         siguiente = proxima
+        descansa = nuevoHoy == nil && proxima != nil
         cargado = true
         if iniciarAlCargar {
             iniciarAlCargar = false
