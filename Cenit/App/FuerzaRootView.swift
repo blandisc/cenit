@@ -367,8 +367,7 @@ private struct FuerzaAntes: View {
             openWorkoutSession: { _ in abrirProgreso() },
             openMuscleMap: abrirProgreso,
             openMarcas: abrirProgreso,
-            onPlanLoaded: { Task { await cargar() } },
-            ocultarRecuperacion: true)
+            onPlanLoaded: { Task { await cargar() } })
             // Plan · Progreso · Ajustes en TODO estado de la raíz (sin esto, sin rutina hoy Ajustes y
             // Progreso quedaban inalcanzables).
             .safeAreaInset(edge: .bottom, spacing: .zero) {

@@ -136,9 +136,6 @@ struct LiveStrengthSheet: View {
     /// `session.runs.isEmpty`, so a fast double-tap ran two overlapping adds that both saw the same empty
     /// state and inserted the exercise twice. Set/checked on the MainActor before the first await.
     @State private var isAddingExercises = false
-    /// El hilo compacto de la cabecera (FER-133): la MISMA hoja del acta de Hoy que abre el hilo de
-    /// la landing (`EntrenarView.showVeredictoActa`) — dos puertas, un solo destino.
-    @State private var showVeredictoActa = false
     /// Inject: recarga en caliente para esta pantalla (dev-only, no-op en Release).
     @ObserveInjection private var inject
 
@@ -347,12 +344,6 @@ struct LiveStrengthSheet: View {
             .sheet(item: $changeExercise) { target in
                 bodyChangeSheet(target)
             }
-            // El hilo compacto de la cabecera (FER-133) abre la MISMA hoja del acta de Hoy que
-            // `EntrenarView.hiloDelVeredicto` — mismo modelo y misma vista, para que la sesión y la
-            // landing nunca puedan contar el día distinto.
-            .sheet(isPresented: $showVeredictoActa) {
-                bodyVeredictoActaSheet
-            }
             .sheet(item: $restEdit) { edit in
                 restEditorSheet(edit)
             }
@@ -434,14 +425,6 @@ struct LiveStrengthSheet: View {
             onClose: { changeExercise = nil }
         )
         .presentationBackground(LiquidColor.fondoAlto)
-    }
-
-    /// La boleta del veredicto (FER-133): `VeredictoActaSheet`, la MISMA vista que
-    /// `EntrenarView.showVeredictoActa` — dos call sites, un solo oráculo.
-    private var bodyVeredictoActaSheet: some View {
-        VeredictoActaSheet(prep: model.repo.todayPreparedness,
-                           healthConnected: model.healthBridge?.auth == .authorized,
-                           fullyLoaded: model.repo.fullyLoaded)
     }
 
     @ViewBuilder
@@ -705,8 +688,6 @@ struct LiveStrengthSheet: View {
             if !isEmptyAdHoc {
                 sessionProgressStrip.padding(.top, LiquidSpace.s300)
             }
-            // El hilo compacto del veredicto (FER-133): SOLO con lighter/recover, silencio en lo demás.
-            hiloCompacto
             // The Apple Watch mirror status (FER-742) — drawn ONLY when the watch fails.
             watchStatusLine
         }
@@ -895,38 +876,6 @@ struct LiveStrengthSheet: View {
         guard total > 0 else { return 0 }
         return CGFloat(doneExerciseCount) / CGFloat(total)
     }
-
-    // MARK: - Hilo compacto del veredicto (FER-133 · V4)
-
-    /// SOLO cuando el día tiene algo que decir Y lo dice conteniendo la subida (`lighter`/`recover`):
-    /// `TrainingRegulation.explainsHeldRaise` es exactamente ese criterio (`speaks && !allowsRaise`).
-    /// Con `planAsIs`/`silent`/`pending` el hilo calla — el handoff dice «en verde, silencio», y el
-    /// veredicto ya se dijo una vez en la landing (`EntrenarView.hiloDelVeredicto`).
-    @ViewBuilder private var hiloCompacto: some View {
-        if TrainingRegulation.explainsHeldRaise(model.repo.trainingAdvice),
-           let hilo = LiquidHoyBuilder.hiloEntrenar(
-               prep: model.repo.todayPreparedness,
-               nights: model.repo.todayPreparedness?.autonomicNights ?? 0,
-               healthConnected: model.healthBridge?.auth == .authorized,
-               verdictPending: model.repo.todayPreparedness == nil && !model.repo.fullyLoaded,
-               hasPlan: !isEmptyAdHoc,
-               // Con una sesión viva nunca es «primer uso sin plan» (el predicado de la portada exige
-               // `strengthSession == nil`), y sin Salud `explainsHeldRaise` no retiene nada.
-               primerUsoSinPlan: false) {
-            EntrenarHilo(tone: hilo.tono.entrenarTone,
-                         word: LocalizedStringKey(hilo.palabra),
-                         advice: hilo.consejo.map { LocalizedStringKey($0) },
-                         radio: EntrenarMetrics.orbeSesionCabecera,
-                         hint: "Opens today's ballot") {
-                showVeredictoActa = true
-            }
-            // `LiquidSpace.s300` (12), no `space2` (8) como en `EntrenarView.hiloDelVeredicto`: ahí el
-            // hilo abre la landing y separa del héroe de la sesión; aquí separa de la barra de
-            // progreso de 3 pt — un elemento más delgado pide más aire para no leerse pegado.
-            .padding(.top, LiquidSpace.s300)
-        }
-    }
-
 
     // MARK: - La barra de estado (FER-86 · E5 — ahora es `SessionStatsBar`, la pieza de E2)
 

@@ -26,6 +26,12 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
   ### EN
   Cénit no longer asks for Health permissions when you open it or during the welcome. When you close the receipt of your first strength session it shows a card explaining what happens: it saves your workout and its active energy to Apple Health, and reads your heart rate, resting heart rate and sleep. Nothing else: it no longer asks for heart-rate variability, temperature, oxygen, breathing, steps, VO2 max, weight, height or date of birth. If you choose "Not now", you can connect any time in Settings › Data Sources. Without the permission, your sessions and progression work in full. The system prompts on iPhone and watch now list exactly what is requested.
 
+- **La recuperación ya no aparece en ningún lado / Recovery no longer shows up anywhere**
+  ### ES
+  La palabra del día se fue del Apple Watch, de los widgets, de la sesión en vivo y del mapa muscular. Ya no llegan el aviso matutino de la lectura ni los avisos del guardián de señales inusuales, y se cancelan los que hubieran quedado programados.
+  ### EN
+  The word of the day is gone from the Apple Watch, the widgets, the live session and the muscle map. The morning reading notice and the unusual-signals guardian notices no longer arrive, and any already scheduled are cancelled.
+
 - **La progresión viene encendida, y «cómo amaneciste» es opcional / Progression comes on; «how you woke up» is optional**
   ### ES
   Toda rutina nueva te propone subir peso cuando cumples tus reps, sin tener que encender nada; lo apagas por ejercicio si quieres. En Ajustes › Tu cuerpo puedes encender «Cómo amaneciste»: si dormiste menos de 6 h o tu pulso en reposo amaneció 7 latidos o más arriba de lo normal, la app mantiene las subidas de ese día y te lo dice en una línea. Viene apagado.
