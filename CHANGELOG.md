@@ -20,6 +20,12 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
 
 ## Unreleased
 
+- **Apple Salud pide solo lo que usa, y hasta que terminas tu primera sesión / Apple Health asks only for what it uses, and only after your first session**
+  ### ES
+  Cénit ya no te pide permisos de Salud al abrirla ni en la bienvenida. Al cerrar el acta de tu primera sesión de fuerza te muestra una tarjeta que dice qué pasa: guarda tu entrenamiento y su energía activa en Apple Salud, y lee tu frecuencia cardiaca, tu frecuencia cardiaca en reposo y tu sueño. Nada más: ya no pide variabilidad cardiaca, temperatura, oxígeno, respiración, pasos, VO₂ máx, peso, estatura ni fecha de nacimiento. Si eliges «Ahora no», lo conectas cuando quieras en Ajustes › Fuentes de datos. Sin el permiso, tus sesiones y tu progresión funcionan completas. Los avisos del sistema en el iPhone y en el reloj ahora enumeran exactamente lo que se pide.
+  ### EN
+  Cénit no longer asks for Health permissions when you open it or during the welcome. When you close the receipt of your first strength session it shows a card explaining what happens: it saves your workout and its active energy to Apple Health, and reads your heart rate, resting heart rate and sleep. Nothing else: it no longer asks for heart-rate variability, temperature, oxygen, breathing, steps, VO2 max, weight, height or date of birth. If you choose "Not now", you can connect any time in Settings › Data Sources. Without the permission, your sessions and progression work in full. The system prompts on iPhone and watch now list exactly what is requested.
+
 - **Abres Cénit y estás a un toque de tu primera serie / Open Cénit and you're one tap from your first set**
   ### ES
   La app ya no tiene barra de pestañas. Al abrirla ves la rutina de hoy, con lo que sigue para cada ejercicio (el peso de la última vez, o la subida que ganaste), y un botón «Empezar». Al terminar ves tu acta y «Listo» te regresa al inicio, con la rutina que sigue o «Hoy ya entrenaste». Tu plan, tu progreso y los ajustes se abren desde el inicio y regresan a él. Las pantallas de salud (Hoy, Cuerpo, Tendencias) ya no tienen puerta de entrada. Si hoy no toca rutina, ves el plan o el descanso de siempre. Tu plan, Progreso y Ajustes están en todos los estados, también sin plan. La primera pantalla ya no muestra la preparación ni la fila de carga, y la animación de arranque del orbe se retiró: la app abre directo en tu entrenamiento.

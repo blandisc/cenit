@@ -131,8 +131,8 @@ targets:
         # Los avisos de permiso se traducen en `Cenit/Resources/InfoPlist.xcstrings` (FER-398): sin ese
         # catálogo, un iPhone en español veía las cinco cadenas de abajo en inglés. Aquí vive el DEFAULT
         # en inglés (la lengua base del proyecto); el catálogo aporta `es`.
-        NSHealthShareUsageDescription: "Cénit reads your own Apple Health data on-device: sleep, heart rate, heart-rate variability, workouts, and related samples, to show your days and nightly trends. Cénit never uploads it. No server, no account."
-        NSHealthUpdateUsageDescription: "Cénit saves your strength workouts into Apple Health, on-device and only when you allow it."
+        NSHealthShareUsageDescription: "Cénit reads your heart rate, resting heart rate and sleep from Apple Health, on your iPhone, to guide your strength training. Cénit never uploads it. No server, no account."
+        NSHealthUpdateUsageDescription: "Cénit saves your strength workouts and their active energy into Apple Health, on your iPhone and only when you allow it."
         NSPhotoLibraryAddUsageDescription: "Cénit saves the workout card you choose to share to your photo library. It only saves the image you explicitly ask it to."
         NSCalendarsFullAccessUsageDescription: "Cénit crosses your calendar events with your day's stress, on your iPhone, to show what your most activated moments coincided with. Cénit never uploads it. No server, no account."
         NSCalendarsUsageDescription: "Cénit crosses your calendar events with your day's stress, on your iPhone, to show what your most activated moments coincided with. Cénit never uploads it. No server, no account."
@@ -234,8 +234,8 @@ targets:
           - workout-processing
         # Los avisos de permiso se traducen en `CenitWatch/Resources/InfoPlist.xcstrings` (FER-398).
         # El valor de aquí es el DEFAULT en inglés (la lengua base del proyecto); el catálogo aporta `es`.
-        NSHealthShareUsageDescription: "Cénit reads your heart rate on the watch during a strength session, to record the workout. Cénit never uploads it. No server, no account."
-        NSHealthUpdateUsageDescription: "Cénit saves your strength session into Apple Health as a workout, on-device and only when you allow it."
+        NSHealthShareUsageDescription: "Cénit reads your heart rate, active energy and workouts on the watch during a strength session, to record it. Cénit never uploads it. No server, no account."
+        NSHealthUpdateUsageDescription: "Cénit saves your strength session into Apple Health as a workout with its active energy, on the watch and only when you allow it."
     entitlements:
       path: CenitWatch/Resources/CenitWatch.entitlements
       properties:

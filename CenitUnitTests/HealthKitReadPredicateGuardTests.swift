@@ -155,17 +155,29 @@ final class HealthKitReadPredicateGuardTests: XCTestCase {
             """)
     }
 
-    /// FER-398 — connecting Apple Health must ask for READ scopes only. Asking to SHARE resting HR /
-    /// HRV / SpO₂ / respiratory rate / sleep was permission to write data the app stopped writing in
-    /// FER-1003: a prompt that lies. The one write left (the strength `HKWorkout`) asks separately,
-    /// from its own opt-in toggle.
-    func testConnectPromptRequestsNoShareScopes() throws {
+    /// CEN-44 (Camino C+) — the ONE Apple Health dialog asks for the four types the spec names and
+    /// nothing else: WRITE the workout + active energy (`workoutShareTypes`), READ heart rate, resting
+    /// heart rate and sleep (`readTypes`). FER-398 still holds in spirit: no write-back of HR / HRV /
+    /// SpO₂ / sleep. The opt-in workout share (FER-390) keeps its own read-less request.
+    func testConnectPromptRequestsExactlyTheCaminoCTypes() throws {
         let code = normalisedCode(try bridgeSource)
-        XCTAssertTrue(code.contains("requestAuthorization(toShare:[],read:readTypes)"),
-                      "`requestAuthorization()` must request an EMPTY share set (FER-398).")
+        XCTAssertTrue(code.contains("requestAuthorization(toShare:workoutShareTypes,read:readTypes)"),
+                      "`requestAuthorization()` must request the workout share + the three read types (CEN-44).")
         XCTAssertFalse(code.contains("quantityWriteIds"),
                        "`quantityWriteIds` is the retired write-back's scope list — it must stay gone.")
         XCTAssertTrue(code.contains("requestAuthorization(toShare:workoutShareTypes,read:[])"),
                       "The opt-in workout share (FER-390) must survive untouched.")
+        // The read set is exactly heart rate, resting heart rate and sleep: nothing retired may creep back.
+        let start = try XCTUnwrap(code.range(of: "varreadTypes:Set<HKObjectType>{"))
+        let end = try XCTUnwrap(code.range(of: "returnscopes", range: start.upperBound..<code.endIndex))
+        let body = String(code[start.upperBound..<end.lowerBound])
+        for needed in [".heartRate", ".restingHeartRate", ".sleepAnalysis"] {
+            XCTAssertTrue(body.contains(needed), "`readTypes` must request \(needed) (CEN-44).")
+        }
+        for retired in ["heartRateVariabilitySDNN", "oxygenSaturation", "respiratoryRate", "stepCount",
+                        "basalEnergyBurned", "vo2Max", "appleSleepingWristTemperature", "HKSeriesType",
+                        "characteristicType", "bodyMass", "height", "workoutType"] {
+            XCTAssertFalse(body.contains(retired), "`\(retired)` must not be in `readTypes` (CEN-44).")
+        }
     }
 }

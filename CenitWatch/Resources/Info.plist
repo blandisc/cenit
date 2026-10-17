@@ -23,9 +23,9 @@
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>NSHealthShareUsageDescription</key>
-	<string>Cénit reads your heart rate on the watch during a strength session, to record the workout. Cénit never uploads it. No server, no account.</string>
+	<string>Cénit reads your heart rate, active energy and workouts on the watch during a strength session, to record it. Cénit never uploads it. No server, no account.</string>
 	<key>NSHealthUpdateUsageDescription</key>
-	<string>Cénit saves your strength session into Apple Health as a workout, on-device and only when you allow it.</string>
+	<string>Cénit saves your strength session into Apple Health as a workout with its active energy, on the watch and only when you allow it.</string>
 	<key>WKApplication</key>
 	<true/>
 	<key>WKBackgroundModes</key>

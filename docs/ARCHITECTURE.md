@@ -250,7 +250,7 @@ window; subsequent foreground syncs use a **delta window** from `lastSync` plus 
 back-margin (`deltaBackMarginDays`), and skip a redundant dashboard rebuild when the pulled Apple rows
 fingerprint unchanged. Manual / onboarding / re-bucket callers keep `.manual` (full window).
 
-**Nocturnal beat-to-beat RMSSD (FER-1008).** During sync, `HealthKitBridge.ingestNocturnalHRV` reads
+**Switched off in CEN-44** (Camino C+: the heartbeat series and HRV are no longer requested; the function stays unreferenced until the CEN-45 sweep). **Nocturnal beat-to-beat RMSSD (FER-1008).** During sync, `HealthKitBridge.ingestNocturnalHRV` reads
 Apple heartbeat series for recent nights, runs pure `NocturnalHRV` (`CenitAnalytics`), and writes
 `apple_rmssd_night` / density counts under a dedicated Apple-computed partition (`metricSeries`).
 `Repository.autonomicTrend` reads those points for the categorical `AutonomicTrend` on Today. See §7

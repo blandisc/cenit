@@ -7,13 +7,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cénit reads your heart rate on the watch during a strength session, to record the workout. Cénit never uploads it. No server, no account."
+            "value" : "Cénit reads your heart rate, active energy and workouts on the watch during a strength session, to record it. Cénit never uploads it. No server, no account."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cénit lee tu frecuencia cardiaca en el reloj durante la sesión de fuerza para grabar el entrenamiento. Cénit nunca la sube. Sin servidor ni cuenta."
+            "value" : "Cénit lee tu frecuencia cardiaca, tu energía activa y tus entrenamientos en el reloj durante la sesión de fuerza, para grabarla. Cénit nunca los sube. Sin servidor ni cuenta."
           }
         }
       }
@@ -24,13 +24,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cénit saves your strength session into Apple Health as a workout, on-device and only when you allow it."
+            "value" : "Cénit saves your strength session into Apple Health as a workout with its active energy, on the watch and only when you allow it."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cénit guarda tu sesión de fuerza como entrenamiento en Apple Salud, en el dispositivo y solo cuando tú lo permites."
+            "value" : "Cénit guarda tu sesión de fuerza como entrenamiento, con su energía activa, en Apple Salud, desde el reloj y solo cuando tú lo permites."
           }
         }
       }

@@ -298,7 +298,7 @@ struct DataSourcesView: View {
     @ViewBuilder
     private var appleHealthLiveBody: some View {
         VStack(alignment: .leading, spacing: LiquidSpace.s300) {
-            Text(String(localized: "Sync the last few weeks, on-device: Cénit reads your Apple Health HR, HRV, sleep, SpO₂ and steps. Cénit uploads nothing; your strength workouts are saved back to Apple Health when you allow it. (For a one-time bulk history, use the export import above.)"))
+            Text(String(localized: "Sync the last few weeks, on-device: Cénit reads your Apple Health heart rate, resting heart rate and sleep. Cénit uploads nothing; your strength workouts and their active energy are saved to Apple Health when you allow it. (For a one-time bulk history, use the export import above.)"))
                 .font(LiquidType.cuerpo).foregroundStyle(LiquidColor.tinta500)
                 .fixedSize(horizontal: false, vertical: true)
 

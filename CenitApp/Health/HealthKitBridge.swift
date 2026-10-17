@@ -126,39 +126,25 @@ final class HealthKitBridge: ObservableObject {
 
     // MARK: - Types
 
-    /// Todo lo que el diálogo de permisos de Salud va a pedir al conectar, en cuatro grupos con una
-    /// razón cada uno. Se arma por grupos —no en una lista plana— porque la pregunta que importa al
-    /// revisar este archivo es «¿por qué pedimos esto?», y así la respuesta está junto al tipo.
+    /// Lo que el diálogo de permisos de Salud pide de LECTURA (CEN-44 · Camino C+): tres tipos y nada
+    /// más. Frecuencia cardiaca (la de la sesión), frecuencia cardiaca en reposo y sueño. Los dos
+    /// últimos son la señal mínima «cómo amaneciste»; los calcula Apple, Cénit solo los lee.
+    /// Todo lo demás que este puente llegó a pedir (VFC, temperatura, SpO₂, respiración, pasos,
+    /// VO₂máx, energía en reposo, entrenamientos ajenos, serie de latidos, sexo / edad / peso /
+    /// estatura) YA NO SE PIDE. Si algún código sin puerta aún los consulta, HealthKit responde
+    /// vacío sin diálogo. La lista debe coincidir con `NSHealthShareUsageDescription` (regla 5.1.3(i)).
     private var readTypes: Set<HKObjectType> {
         var scopes = Set<HKObjectType>()
-
-        // 1) Las cantidades diarias que `sync` agrega en `DailyBucket`.
-        for pull in Self.dailyQuantityPulls {
-            if let type = HKObjectType.quantityType(forIdentifier: pull.identifier) { scopes.insert(type) }
-        }
-        // 2) Sueño y entrenamientos: las dos series no numéricas del pipeline.
+        if let hr = HKObjectType.quantityType(forIdentifier: .heartRate) { scopes.insert(hr) }
+        if let rhr = HKObjectType.quantityType(forIdentifier: .restingHeartRate) { scopes.insert(rhr) }
         if let sleep = HKObjectType.categoryType(forIdentifier: .sleepAnalysis) { scopes.insert(sleep) }
-        scopes.insert(HKObjectType.workoutType())
-        // 3) Latido a latido de la noche, para el RMSSD nocturno on-device (R2 · FER-1008). HealthKit
-        //    exige que la serie de latidos venga acompañada de heartRateVariabilitySDNN, y esa ya
-        //    entró en el grupo 1.
-        scopes.insert(HKSeriesType.heartbeat())
-        // 4) Perfil, solo para prellenar el onboarding (FER-361) desde `readProfileCharacteristics()`:
-        //    sexo, fecha de nacimiento (de ahí la edad), peso y estatura.
-        for id in [HKCharacteristicTypeIdentifier.biologicalSex, .dateOfBirth] {
-            if let type = HKObjectType.characteristicType(forIdentifier: id) { scopes.insert(type) }
-        }
-        for id in [HKQuantityTypeIdentifier.bodyMass, .height] {
-            if let type = HKObjectType.quantityType(forIdentifier: id) { scopes.insert(type) }
-        }
         return scopes
     }
 
-    /// The ONLY share (write) types Cénit ever asks for, and only when the user opts into saving
-    /// strength workouts (FER-390). Connecting Apple Health asks for READ scopes alone — FER-398:
-    /// the connect prompt used to also request resting HR / HRV / SpO₂ / respiratory rate / sleep
-    /// for a write-back that FER-1003 had already switched off, i.e. permission to write data the
-    /// app never writes. Asking for it is exactly the ask App Review reads as dishonest, and it is.
+    /// The ONLY share (write) types Cénit ever asks for: the strength workout and its active energy
+    /// (FER-390). Since CEN-44 they travel in the SAME dialog as the three read types (one prompt, asked
+    /// when the first strength session closes); the opt-in toggle's own request reuses them. FER-398
+    /// stays true: nothing else is ever requested for writing — no HR / HRV / SpO₂ / sleep write-back.
     private var workoutShareTypes: Set<HKSampleType> {
         var s: Set<HKSampleType> = [HKObjectType.workoutType()]
         if let energy = HKObjectType.quantityType(forIdentifier: .activeEnergyBurned) { s.insert(energy) }
@@ -181,11 +167,14 @@ final class HealthKitBridge: ObservableObject {
         let apply: (Double, inout DailyBucket) -> Void
     }
 
-    /// Las once cantidades diarias en UNA tabla, en vez de once llamadas calcadas.
+    /// Las cantidades diarias que `sync` aún jala, en UNA tabla (CEN-44: solo las que Cénit sigue
+    /// pidiendo a Salud).
     ///
-    /// De aquí salen tres cosas a la vez: el permiso que se pide (`readTypes`), la etapa de progreso
-    /// que ve el usuario y el volcado a `DailyBucket`. Agregar una métrica es agregar un renglón, y
-    /// su unidad vive en un solo lugar en vez de repetirse en el sitio de llamada.
+    /// De aquí salen dos cosas a la vez: la etapa de progreso que ve el usuario y el volcado a
+    /// `DailyBucket`. Las demás cantidades que vivieron aquí (VFC, SpO₂, respiración, pasos, energía
+    /// activa y en reposo, VO₂máx, temperatura de muñeca) se APAGARON quitando su renglón: ya no se
+    /// piden ni se consultan. Los campos de `DailyBucket` que alimentaban quedan en nil; el código
+    /// que los consume sigue en el árbol sin puerta y lo retira el barrido de CEN-45.
     ///
     /// El orden **es** el orden de las etapas, así que mover un renglón mueve la barra de progreso.
     private static let dailyQuantityPulls: [QuantityPull] = {
@@ -196,46 +185,34 @@ final class HealthKitBridge: ObservableObject {
             QuantityPull(stageKey: "avg_hr", identifier: .heartRate,
                          unit: perMinute, statistic: .discreteAverage) { $1.avgHr = $0 },
             QuantityPull(stageKey: "max_hr", identifier: .heartRate,
-                         unit: perMinute, statistic: .discreteMax) { $1.maxHr = $0 },
-            QuantityPull(stageKey: "hrv", identifier: .heartRateVariabilitySDNN,
-                         unit: .secondUnit(with: .milli), statistic: .discreteAverage) { $1.hrv = $0 },
-            QuantityPull(stageKey: "spo2", identifier: .oxygenSaturation,
-                         unit: .percent(), statistic: .discreteAverage, scale: 100) { $1.spo2 = $0 },
-            QuantityPull(stageKey: "resp_rate", identifier: .respiratoryRate,
-                         unit: perMinute, statistic: .discreteAverage) { $1.respRate = $0 },
-            QuantityPull(stageKey: "steps", identifier: .stepCount,
-                         unit: .count(), statistic: .cumulativeSum) { $1.steps = $0 },
-            QuantityPull(stageKey: "active_kcal", identifier: .activeEnergyBurned,
-                         unit: .kilocalorie(), statistic: .cumulativeSum) { $1.activeKcal = $0 },
-            QuantityPull(stageKey: "basal_kcal", identifier: .basalEnergyBurned,
-                         unit: .kilocalorie(), statistic: .cumulativeSum) { $1.basalKcal = $0 },
-            QuantityPull(stageKey: "vo2max", identifier: .vo2Max,
-                         unit: HKUnit(from: "ml/kg*min"), statistic: .discreteAverage) { $1.vo2max = $0 },
-            // FER-882: temperatura de muñeca dormido, absoluta en °C. La desviación contra la
-            // baseline PROPIA de Apple se calcula más abajo, justo antes de armar `DailyMetric`.
-            QuantityPull(stageKey: "skin_temp", identifier: .appleSleepingWristTemperature,
-                         unit: .degreeCelsius(), statistic: .discreteAverage) { $1.skinTempC = $0 }
+                         unit: perMinute, statistic: .discreteMax) { $1.maxHr = $0 }
         ]
     }()
 
     // MARK: - Authorization
 
-    /// Request READ permission only (FER-398). HealthKit never reveals whether *read* was granted, so
-    /// we treat a successful request as `.authorized` and let queries return empty if the user declined.
-    /// Nothing is shared here: the one write Cénit does (the strength `HKWorkout`) asks separately, in
-    /// `requestWorkoutShareAuthorization`, the moment the user turns that toggle on.
+    /// The one Apple Health permission dialog (CEN-44 · Camino C+): READ heart rate, resting heart rate
+    /// and sleep; WRITE the workout and its active energy. Asked when the first strength session closes
+    /// (`FuerzaRootView`), or from Ajustes → Apple Salud for who tapped «Ahora no»; never at launch or
+    /// in onboarding. HealthKit never reveals whether *read* was granted, so a successful request is
+    /// treated as `.authorized` and queries simply return empty if the user declined. Write IS
+    /// observable: if the workout share was granted, saving finished sessions is switched on (the
+    /// person just agreed to exactly that), and Ajustes can still turn it off.
     func requestAuthorization() async {
         guard HKHealthStore.isHealthDataAvailable() else {
             auth = .unavailable
             return
         }
         do {
-            try await store.requestAuthorization(toShare: [], read: readTypes)
+            try await store.requestAuthorization(toShare: workoutShareTypes, read: readTypes)
         } catch {
             auth = .denied
             return
         }
         auth = .authorized
+        if store.authorizationStatus(for: HKObjectType.workoutType()) == .sharingAuthorized {
+            UserDefaults.standard.set(true, forKey: Self.saveStrengthWorkoutsKey)
+        }
         // FER-94: se recuerda la conexión, porque HealthKit no permite preguntarla en el siguiente
         // arranque; sin esta bandera el auto-sync de lanzamiento no correría.
         UserDefaults.standard.set(true, forKey: Self.connectedDefaultsKey)
@@ -602,16 +579,11 @@ final class HealthKitBridge: ObservableObject {
                 changed = (signature != lastAppleWriteSignature)
             }
             lastAppleWriteSignature = signature
-            // R2/D1: ingerir el RMSSD nocturno ANTES del refresh, para que la tendencia lo lea recién
-            // escrito. Si se ingiere después (o el refresh se salta por `!changed`), el primer sync computa
-            // la tendencia sobre la partición VACÍA → «0 de 21 noches» + un banner falso de «pocas muestras»
-            // hasta el siguiente refresh o relaunch. Aditivo, partición propia; se salta en legacyOnly.
-            var ingestedNocturnal = false
-            if repo.dataSourceMode != .legacyOnly {
-                ingestedNocturnal = await ingestNocturnalHRV()
-            }
-            if changed || ingestedNocturnal {
-                await repo.refresh()   // surface the freshly-synced Apple Health days + la tendencia al día
+            // CEN-44: la ingesta del RMSSD nocturno (serie de latidos + VFC, R2/FER-1008) está APAGADA:
+            // `ingestNocturnalHRV()` sigue en el archivo pero nada la llama, porque pedía su propia
+            // autorización (latidos + SDNN) y esos tipos ya no se piden. La retira el barrido CEN-45.
+            if changed {
+                await repo.refresh()   // surface the freshly-synced Apple Health days
             }
             coverage = try? await db.appleHealthCoverage(deviceId: appleDeviceId)
             return Set(byDay.keys)   // FER-226: los días locales escritos aquí, para la poda del re-bucket
