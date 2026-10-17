@@ -34,8 +34,6 @@ struct AyudaScreen: View {
     @State private var path: [Pestana] = []
     /// Texto del buscador. No vacío ⇒ el índice se reemplaza por resultados filtrados de las 68.
     @State private var busqueda = ""
-    @State private var showDecide = false
-    @State private var showContexto = false
     @State private var showTaller = false
     /// Pestañas cuyos consejos ya se pidió volver a ver en esta apertura — el pie lo confirma.
     @State private var reiniciadas: Set<Pestana> = []
@@ -60,17 +58,12 @@ struct AyudaScreen: View {
                 .environmentObject(repo)
                 .environmentObject(tabRouter)
         }
-        .sheet(isPresented: $showDecide) {
-            LiquidMetricSheet(tono: LiquidColor.tinta700, detent: .porContenido) { HojaDecideTuDia() }
-        }
-        .sheet(isPresented: $showContexto) {
-            LiquidMetricSheet(tono: LiquidColor.tinta700, detent: .porContenido) { HojaContexto() }
-        }
     }
 
     /// Índice de 3 secciones (FER-490): Cuerpo · Entrenar · Ajustes. Los «trucos»
     /// transversales se listan dentro de Entrenar.
-    private static let seccionesIndice: [Pestana] = [.cuerpo, .entrenar, .ajustes]
+    // CEN-45 (Camino C+): Cuerpo ya no existe como destino; su sección sale del índice.
+    private static let seccionesIndice: [Pestana] = [.entrenar, .ajustes]
 
     // MARK: - Índice (la puerta: header + buscador + tres tarjetas, o resultados)
 
@@ -370,17 +363,6 @@ struct AyudaScreen: View {
                 tabRouter.abrirGuardian = true
                 tabRouter.verAhora()
             }]
-        case .hoyManuales:
-            return [
-                AyudaPuerta(id: "decide",
-                            rotulo: String(localized: "ayuda.puerta.decide", defaultValue: "What decides your day?")) {
-                    showDecide = true
-                },
-                AyudaPuerta(id: "contexto",
-                            rotulo: String(localized: "ayuda.puerta.contexto", defaultValue: "Your context")) {
-                    showContexto = true
-                },
-            ]
         case .entrenarTaller:
             return [AyudaPuerta(id: "taller",
                                 rotulo: String(localized: "ayuda.puerta.taller", defaultValue: "Open the workshop")) {

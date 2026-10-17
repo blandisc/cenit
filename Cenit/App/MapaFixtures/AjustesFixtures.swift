@@ -12,7 +12,6 @@ import CenitStore
 enum AjustesFixtures {
     static let all: [String: FixtureRegistry.Seed] = [
         "appleHealthDays": { model in await seedAppleHealthDays(model) },
-        "historialFAOculta": { model in await seedHistorialFAOculta(model) },
     ]
 
     /// «Apple Salud · con filas» (`AppleHealthView`): dos semanas de aggregates (`AppleDaily`) + series
@@ -57,15 +56,5 @@ enum AjustesFixtures {
         _ = try? await store.upsertMetricSeries(points, deviceId: "apple-health")
     }
 
-    /// «Historial de FA · oculta» (`AjustesHistorialFA`): una sola fila reciente de `apple_rmssd_night`
-    /// (la partición `Repository.appleComputedDeviceId`) basta — `HistorialFAPuerta.estado` la lee como
-    /// evidencia de que el motor YA emitió un RMSSD nocturno, y la sección deja de pintarse.
-    @MainActor
-    private static func seedHistorialFAOculta(_ model: AppModel) async {
-        guard let store = await model.repo.storeHandle() else { return }
-        let day = Repository.localDayKey(Date())
-        let punto = MetricPoint(day: day, key: HistorialFAPuerta.claveRmssd, value: 42)
-        _ = try? await store.upsertMetricSeries([punto], deviceId: Repository.appleComputedDeviceId)
-    }
 }
 #endif

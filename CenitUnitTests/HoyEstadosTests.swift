@@ -124,23 +124,6 @@ final class HoyEstadosTests: XCTestCase {
             ventana: v, lastSync: nil, hayNocheRegistrada: false, syncing: false), .sinSync)
     }
 
-    /// FER-73 · H13: solo una sesión ≥ 3 h que TERMINA HOY sella la noche; una siesta de ayer
-    /// por la tarde (la sesión más tardía desde ayer al mediodía) ya no cierra la ventana.
-    func test_hayNocheQueTerminaHoy_ignora_siesta_de_ayer() {
-        let now = date(y: 2026, m: 8, d: 5, h: 8)
-        func s(_ ini: Date, _ fin: Date) -> CachedSleepSession {
-            CachedSleepSession(startTs: Int(ini.timeIntervalSince1970), endTs: Int(fin.timeIntervalSince1970),
-                               efficiency: nil, restingHr: nil, avgHrv: nil, stagesJSON: nil)
-        }
-        let siesta = s(date(y: 2026, m: 8, d: 4, h: 15), date(y: 2026, m: 8, d: 4, h: 16))
-        let noche = s(date(y: 2026, m: 8, d: 4, h: 23), date(y: 2026, m: 8, d: 5, h: 6, min: 40))
-        let siestaHoy = s(date(y: 2026, m: 8, d: 5, h: 6), date(y: 2026, m: 8, d: 5, h: 7))
-        XCTAssertFalse(TodayView.hayNocheQueTerminaHoy(sessions: [siesta], calendar: cal, now: now))
-        XCTAssertFalse(TodayView.hayNocheQueTerminaHoy(sessions: [siestaHoy], calendar: cal, now: now),
-                       "una hora que termina hoy no es la noche")
-        XCTAssertTrue(TodayView.hayNocheQueTerminaHoy(sessions: [siesta, noche], calendar: cal, now: now))
-    }
-
     /// Ventana abierta ∧ import viejo → leyendo (SIEMPRE, sin importar el import).
     func test_causaT3_ventanaAbierta_importViejo_leyendo() {
         // 08:00 < 11 → ventana abierta (sin sesión que termine hoy).

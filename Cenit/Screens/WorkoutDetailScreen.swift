@@ -48,7 +48,7 @@ struct WorkoutDetailScreen: View {
     private struct EditTarget: Identifiable { let row: WorkoutRow; let id = UUID() }
 
     /// HRR-60s opt-in (FER-848): the block only exists behind the experimental-metrics toggle.
-    @AppStorage(WhitespaceMetricsExperiment.enabledKey) private var experimentalMetrics = false
+    private let experimentalMetrics = false   // CEN-45: las métricas experimentales salieron con el Camino C+
     /// Post-session 60-second heart-rate recovery, computed on appear from the stored HR stream (FER-852).
     @State private var hrr: HRRState = .loading
     /// How many recent prior sessions back the personal HRR baseline — bounds the on-appear store reads.

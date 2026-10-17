@@ -26,6 +26,12 @@ Dates are approximate; Cénit is built from source — see the [README](README.m
   ### EN
   Cénit no longer asks for Health permissions when you open it or during the welcome. When you close the receipt of your first strength session it shows a card explaining what happens: it saves your workout and its active energy to Apple Health, and reads your heart rate, resting heart rate and sleep. Nothing else: it no longer asks for heart-rate variability, temperature, oxygen, breathing, steps, VO2 max, weight, height or date of birth. If you choose "Not now", you can connect any time in Settings › Data Sources. Without the permission, your sessions and progression work in full. The system prompts on iPhone and watch now list exactly what is requested.
 
+- **Cénit más ligero: fuera las pantallas de recuperación / A lighter Cénit: recovery screens removed**
+  ### ES
+  Se retiraron unas 20 800 líneas: Hoy, Cuerpo, Tendencias, los detalles de sueño, estrés, temperatura, esfuerzo y preparación, Comparar, edad física y corporal, fase del ciclo, Respirar y el explorador de métricas. Ajustes pierde Monitoreo, el aviso matutino, el historial de FA, recalibrar recuperación y la sección Experimental.
+  ### EN
+  About 20,800 lines removed: Today, Body, Trends, the sleep, stress, temperature, strain and readiness details, Compare, fitness and body age, cycle phase, Breathe and the metric explorer. Settings loses Monitoring, the morning notice, AF history, recalibrate recovery and the Experimental section.
+
 - **En tu día de descanso, Cénit te lo dice / On rest days, Cénit tells you**
   ### ES
   Si tienes plan y hoy no toca rutina, al abrir (o al tocar «Empezar» en el widget) ves «Hoy descansas» con la rutina que sigue, en vez de la pantalla para armar tu semana.

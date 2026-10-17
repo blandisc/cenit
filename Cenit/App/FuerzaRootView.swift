@@ -58,6 +58,20 @@ struct FuerzaRootView: View {
         .modifier(FuerzaSesionEnVivo(confirmDiscardSession: $confirmDiscardSession))
         .modifier(FuerzaPermisoSalud())
         .modifier(FuerzaEntradas(abrirProgreso: { ruta in hoja = .progreso(abrir: ruta) }))
+        #if DEBUG
+        // CEN-45: las claves de captura (`FuerzaDebugNav`) que antes atendía el dock.
+        .onReceive(NotificationCenter.default.publisher(for: .cenitDebugNav)) { note in
+            guard let clave = note.object as? String else { return }
+            switch clave {
+            case "train", "entrenar", "intervals": hoja = nil
+            case "settings", "ajustes", "more", "applehealth", "datasources", "support": hoja = .ajustes
+            case "weeklyplan", "misrutinas", "routineToday": hoja = .plan(abrir: nil)
+            case "library": hoja = .progreso(abrir: AnyHashable(FuerzaDestino.biblioteca))
+            case "workouthistory", "workouts": hoja = .progreso(abrir: AnyHashable(FuerzaDestino.historial))
+            default: break
+            }
+        }
+        #endif
     }
 
     @ViewBuilder
@@ -252,6 +266,11 @@ private struct FuerzaAntes: View {
             NavigationStack { IntervalTimerView().fuerzaHoja(cerrar: { mostrarIntervalos = false }) }
         }
         .onAppear { atenderPeticiones() }
+        #if DEBUG
+        .onReceive(NotificationCenter.default.publisher(for: .cenitDebugNav)) { note in
+            if (note.object as? String) == "intervals" { mostrarIntervalos = true }
+        }
+        #endif
         .onChange(of: tabRouter.startTodaySession) { _, pide in if pide { atenderPeticiones() } }
         .onChange(of: tabRouter.startRoutineId) { _, id in if id != nil { atenderPeticiones() } }
     }
@@ -642,6 +661,7 @@ private struct FuerzaHojaProgreso: View {
     private static func empujar(_ valor: AnyHashable, en path: inout NavigationPath) {
         if let r = valor.base as? WorkoutSessionRoute { path.append(r) }
         else if let r = valor.base as? MuscleVolumeRoute { path.append(r) }
+        else if let d = valor.base as? FuerzaDestino { path.append(d) }   // CEN-45: claves de captura
     }
 
     var body: some View {

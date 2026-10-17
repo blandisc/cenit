@@ -809,7 +809,8 @@
           "nav": "breathe",
           "settle": 2
         }
-      ]
+      ],
+      "omitido": "Respirar se retiró con el Camino C+ (CEN-45): BreathingView se borró."
     },
     {
       "id": "intervalos",
