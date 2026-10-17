@@ -32,7 +32,10 @@ changed_files() {
 }
 
 wait_idle() {
-  # Nunca dos builds a la vez (regla #1 del CLAUDE.md). Tope: 30 min.
+  # «Un build a la vez» suspendido por el dueño (2026-10-17): no se espera a builds ajenos.
+  # Para volver a esperar: CENIT_WAIT_IDLE=1 Tools/verify.sh …
+  [ "${CENIT_WAIT_IDLE:-0}" = "1" ] || return 0
+  # Tope: 30 min.
   waited=0
   while pgrep -q swift-frontend; do
     [ "$waited" -eq 0 ] && echo "verify: hay otro build corriendo (swift-frontend); esperando a que la máquina quede libre…"
