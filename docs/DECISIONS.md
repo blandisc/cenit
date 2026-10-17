@@ -673,3 +673,43 @@ por el veredicto del día. El hook `DoseExercise.restBumpSeconds` permanece `nil
 piso de «opcional hoy» reusa `ProgramDeload.lightWorkSetCount` (mismo conteo en `.lighter` y
 `.recover` — no dos números). Test-guardián: `DosePlanTests.testOptionalCountIdenticalForLighterAndRecover`
 (+ `testRestBumpSecondsHookStaysNil`).
+
+## 2026-10-15 · Camino C+: Cénit Fuerza (dueño)
+
+El dueño reabrió la entrada del 2026-09-14 (camino B) con un criterio nuevo: **la recuperación la va a
+tomar Apple; Cénit se aligera y se centra en el registro de fuerza, la progresión que guía de la mano, el
+Watch como registro (repeticiones automáticas como spike) y, al final, IA con modelo local.** Se eligió un
+«camino C+»: el C descartado en septiembre (solo fuerza) más UNA señal de salud mínima. Plan completo en
+`docs/_plan-cenit-fuerza-2026-10-15.md`; specs en `docs/specs/fuerza-v1/`.
+
+1. **Pitch:** «Abres, entrenas, y la app sabe cuál es tu siguiente paso.» Reemplaza «te dice cuánto cargar
+   hoy y por qué». La preparación deja de ser cerebro: no se calcula.
+2. **La sesión es la app.** Raíz nueva con tres estados (antes / durante / después). Sin dock ni pestañas;
+   Progreso y Plan son hojas desde la raíz. Revierte «tres cuartos» del 2026-09-15 (punto 1) y la fusión
+   Hoy+Tendencias (ola 1 de aquella entrada) queda cancelada: Hoy, Cuerpo y Tendencias no se funden, se
+   retiran.
+3. **Señal mínima «cómo amaneciste» (decisión explícita del dueño):** horas de sueño y FC en reposo, ambas
+   calculadas por Apple y leídas de HealthKit, se muestran como UNA línea dentro de la sesión y votan en la
+   progresión igual que votaba el veredicto (`deferRaise`), **opcional y apagada por defecto**. Nunca una
+   pantalla, nunca un puntaje. Todo lo demás de `CenitAnalytics` (preparación, VFC, esfuerzo, estrés,
+   temperatura, enfermedad, edad, correlaciones) sale de producción y se borra por barridos.
+4. **Apple Salud sale de la puerta de entrada.** Cuatro tipos: escribir el entreno (+ energía), leer FC en
+   sesión, FC en reposo y sueño. El permiso se pide al terminar la primera sesión, nunca en el onboarding.
+   El onboarding pasa de seis actos a dos pantallas (ola 1). FER-251 («el permiso es el único gate») queda
+   sin objeto: ya no hay gate.
+5. **Guiar es determinístico.** El motor «siguiente paso» vive en `CenitTraining` con método citado y tests.
+   La IA local (ola 4) sigue la regla de oro del 2026-09-14 (lenguaje, nunca matemática) y sus tres
+   puertas; no cambia.
+6. **Mismo código, app nueva, por barridos.** No se crea un target nuevo: se cambia la raíz y las pantallas
+   viejas quedan sin puerta; cada ola borra lo inalcanzable con matriz de alcanzabilidad + `strings` del
+   binario (regla de FER-380). Las migraciones de GRDB siguen append-only; colapsar el esquema a «v1 solo
+   fuerza» es opcional y, si se hace, va en la ola 5, porque no hay usuarios pero tampoco hay beneficio
+   para el usuario.
+7. **Modelos:** implementa **Sonnet** (modelos propios); Fable orquesta y escribe decisiones y specs. Grok y
+   DeepSeek no participan en este épico (decisión del dueño 2026-10-15; no revierte el reparto general del
+   2026-08-27 para otros trabajos).
+8. **Secuencia:** ola 0 decidir y cortar → ola 1 núcleo que guía → ola 2 Watch cuenta (spike CoreMotion,
+   criterio ≥ 90 % en 5 ejercicios o se queda la corona) → ola 3 tienda → ola 4 IA local → ola 5 poda y cobro.
+
+Señales que reabren esta entrada: Apple publica API de series/reps; Apple expone Readiness a terceros (no
+cambia el camino, solo confirma el retiro); el spike de CoreMotion falla (se cierra la ola 2 con nota).
