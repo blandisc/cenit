@@ -211,12 +211,16 @@ private struct FuerzaAntes: View {
         let serving: ProgramServing.Context?
         let advice: TrainingRegulation.Advice
         let tono: LiquidTono
+        /// Ola 1: la lectura «cómo amaneciste» del MISMO pase que sembró los slots (nil = línea apagada).
+        let amanecer: ComoAmaneciste.Lectura?
     }
 
     @EnvironmentObject private var repo: Repository
     @EnvironmentObject private var tabRouter: TabRouter
     @Environment(AppModel.self) private var appModel
     @AppStorage(UnitPrefs.systemKey) private var unitSystemRaw: String = UnitSystem.metric.rawValue
+    /// Ola 1: encender o apagar «cómo amaneciste» en Ajustes vuelve a sembrar la rutina de hoy.
+    @AppStorage(PrefKey.comoAmaneciste.rawValue) private var amanecerActivo = false
 
     let abrirPlan: () -> Void
     let abrirRutina: (String) -> Void
@@ -266,6 +270,7 @@ private struct FuerzaAntes: View {
             NavigationStack { IntervalTimerView().fuerzaHoja(cerrar: { mostrarIntervalos = false }) }
         }
         .onAppear { atenderPeticiones() }
+        .onChange(of: amanecerActivo) { _, _ in Task { await cargar() } }
         #if DEBUG
         .onReceive(NotificationCenter.default.publisher(for: .cenitDebugNav)) { note in
             if (note.object as? String) == "intervals" { mostrarIntervalos = true }
@@ -294,6 +299,13 @@ private struct FuerzaAntes: View {
                         Text(verbatim: meta(h))
                             .font(LiquidType.cuerpoBanner).foregroundStyle(LiquidColor.tinta700)
                             .padding(.top, EntrenarHubMetrics.heroTituloToMetaTop)
+                        if let linea = lineaAmanecer(h.amanecer) {
+                            Text(verbatim: linea)
+                                .font(LiquidType.captionLectura).foregroundStyle(LiquidColor.atencionTexto)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .padding(.top, EntrenarHubMetrics.heroTituloToMetaTop)
+                                .accessibilityIdentifier("fuerza.amanecer")
+                        }
                         ForEach(Array(h.slots.enumerated()), id: \.offset) { _, slot in
                             fila(slot)
                         }
@@ -508,7 +520,7 @@ private struct FuerzaAntes: View {
                         var held = slot
                         held.raise = raise
                         return held
-                    }, serving: plan.serving, advice: plan.advice, tono: plan.tono)
+                    }, serving: plan.serving, advice: plan.advice, tono: plan.tono, amanecer: plan.amanecer)
                 }
             }
             iniciar(actual)
@@ -558,7 +570,8 @@ private struct FuerzaAntes: View {
                                                   serving: serving)
             let musculos = slots.compactMap { $0.exercise?.primaryMuscles }
             let familia = RoutineClassifier.classify(primaryMusclesPerExercise: musculos)?.family ?? .push
-            nuevoHoy = HoyPlan(routine: rutina, slots: slots, serving: serving, advice: advice, tono: familia.tono)
+            nuevoHoy = HoyPlan(routine: rutina, slots: slots, serving: serving, advice: advice, tono: familia.tono,
+                               amanecer: repo.comoAmaneciste)
         }
         let recientes = (try? await store.recentSessions(limit: 20)) ?? []
         let entrenoHoy = nuevoHoy.map { plan in
@@ -581,6 +594,24 @@ private struct FuerzaAntes: View {
         }
         atenderPeticiones()
         return true
+    }
+
+    /// Ola 1: la única línea de salud de la raíz — solo cuando retiene la subida. En rango o sin dato no
+    /// dice nada (la ausencia ya es la buena noticia, y la línea nunca es un puntaje).
+    private func lineaAmanecer(_ l: ComoAmaneciste.Lectura?) -> String? {
+        switch l {
+        case .sueñoCorto(let minutos)?:
+            let h = Int(minutos) / 60, m = Int(minutos) % 60
+            return String(format: String(localized: "fuerza.amanecer.sueno",
+                                         defaultValue: "You slept %lldh %02lldm · I'm holding today's raises."),
+                          h, m)
+        case .pulsoAlto(let hoy, let base)?:
+            return String(format: String(localized: "fuerza.amanecer.pulso",
+                                         defaultValue: "Your resting pulse woke up at %lld (you're usually at %lld) · I'm holding today's raises."),
+                          Int(hoy.rounded()), Int(base.rounded()))
+        default:
+            return nil
+        }
     }
 
     /// «Siguiente: Pierna · jueves» — la próxima rutina agendada después de hoy (hasta 7 días adelante).

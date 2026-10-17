@@ -50,7 +50,7 @@ final class StrengthStoreTests: XCTestCase {
                             progressionEnabled: true, progressionSessions: 2,
                             progressionIncrementKg: 2.5, progressionDeload: .warn,
                             progressionIgnoreRecovery: true),
-            RoutineExercise(id: "b", routineId: "rt1", exerciseId: "ex2", position: 1, targetSets: 3),  // default OFF
+            RoutineExercise(id: "b", routineId: "rt1", exerciseId: "ex2", position: 1, targetSets: 3),  // default ON (ola 1)
         ]
         try await store.saveRoutine(r, exercises: exs)
         let back = try await store.routineExercises(routineId: "rt1")
@@ -61,7 +61,7 @@ final class StrengthStoreTests: XCTestCase {
         XCTAssertEqual(a.progressionDeload, .warn)
         XCTAssertTrue(a.progressionIgnoreRecovery)
         let b = back.first { $0.id == "b" }!
-        XCTAssertFalse(b.progressionEnabled)
+        XCTAssertTrue(b.progressionEnabled, "ola 1 · Camino C+: la progresión viene encendida")
         XCTAssertEqual(b.progressionSessions, 2)
         XCTAssertNil(b.progressionIncrementKg)
         XCTAssertEqual(b.progressionDeload, .propose)

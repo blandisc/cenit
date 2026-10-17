@@ -220,8 +220,11 @@ public struct RoutineExercise: Codable, Sendable, Identifiable, Equatable {
     /// grouping is by equality, so gaps in the numbering don't matter. The guided session (FER-347)
     /// reads it to cycle a group and skip the between-exercise rest.
     public var supersetGroup: Int?
-    /// Load progression (FER-A). OFF by default — the user turns it on per exercise. When on, hitting
+    /// Load progression (FER-A). ON by default since the Camino C+ (2026-10-17, ola 1): «guiar de la
+    /// mano» means every new routine — template, hand-built or imported — proposes the next weight
+    /// without a setting to discover. The user can still turn it off per exercise. When on, hitting
     /// the rep goal on all work sets for `progressionSessions` consecutive sessions bumps the weight.
+    /// Rows stored before this change keep whatever they had (the column has its own value).
     public var progressionEnabled: Bool
     /// How many consecutive qualifying sessions before the weight goes up (default 2 = double progression).
     public var progressionSessions: Int
@@ -246,7 +249,7 @@ public struct RoutineExercise: Codable, Sendable, Identifiable, Equatable {
                 restMode: RestMode = .heartRate, restSeconds: Int = 90,
                 supersetGroup: Int? = nil, sets: [RoutineSet] = [],
                 hrRestReference: HRRestReference = .restingMargin, hrRestValue: Double = 0,
-                progressionEnabled: Bool = false, progressionSessions: Int = 2,
+                progressionEnabled: Bool = true, progressionSessions: Int = 2,
                 progressionIncrementKg: Double? = nil, progressionDeload: DeloadPolicy = .propose,
                 progressionIgnoreRecovery: Bool = false, note: String? = nil,
                 progressionUseRPE: Bool = false) {

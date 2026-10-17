@@ -28,6 +28,10 @@ enum PrefKey: String, CaseIterable {
     case apariencia = "cenit.apariencia"
     case didOfferRestore = "cenit.didOfferRestore"
 
+    // Cénit Fuerza (Camino C+): la línea «cómo amaneciste» — sueño y pulso en reposo retienen una
+    // subida. Apagada de fábrica (decisión del dueño, 2026-10-15).
+    case comoAmaneciste = "cenit.fuerza.comoAmaneciste"
+
     // Session comforts (FER-93).
     case sessionKeepScreenAwake = "cenit.session.keepScreenAwake"
     case sessionRestSound = "cenit.session.restSound"

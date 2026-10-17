@@ -78,8 +78,8 @@ The training planner — plan, routines, a guided live strength session, plus Br
   your sessions; the ones that can't speak yet stay quiet and say why. _(Train, below the hero.)_
 - **Your Plan and the multi-week program** — Assign routines per day, see volume per muscle, and
   turn your week into a program with a deload week. _(Train → Week → Edit.)_
-- **Per-exercise progression** — Hit your reps and the routine adds weight; you enable it on each
-  exercise's card. _(Routine editor → exercise card.)_
+- **Per-exercise progression** — Hit your reps and the routine adds weight. It comes on; you can
+  turn it off on each exercise's card. _(Routine editor → exercise card.)_
 - **Reps in reserve** — How many more reps you could have done; 0 is failure. With this the app
   decides whether you go up. _(Live session, on each set's keypad.)_
 - **As many as you can, and drop and continue** — Two set modes: AMRAP counts toward raises and

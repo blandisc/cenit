@@ -24,12 +24,16 @@ final class FuerzaRootUITests: XCTestCase {
         continueAfterFailure = false
     }
 
-    private func launch(_ fixture: String) -> XCUIApplication {
+    private func launch(_ fixture: String, extra: [String] = []) -> XCUIApplication {
         let app = XCUIApplication()
         app.terminate()   // arranque limpio: una instancia viva ignoraría los argumentos y el fixture
-        app.launchArguments = Self.baseArgs + ["-cenit.fixture", fixture]
+        app.launchArguments = Self.baseArgs + ["-cenit.fixture", fixture] + extra
         app.launch()
         return app
+    }
+
+    private func fila(_ app: XCUIApplication, contiene texto: String) -> XCUIElement {
+        app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", texto)).firstMatch
     }
 
     private func snap(_ app: XCUIApplication, _ name: String) {
@@ -152,6 +156,35 @@ final class FuerzaRootUITests: XCTestCase {
         assertSinDockNiRecuperacion(app)
         assertTresHojas(app)
         snap(app, "08-tras-plantilla")
+    }
+
+    // MARK: Progresión y «cómo amaneciste» (ola 1)
+
+    func test_progresionEncendidaDeFabrica_proponeSubir() throws {
+        let app = launch("fuerza-sube")
+        XCTAssertTrue(app.buttons["fuerza.empezar"].waitForExistence(timeout: 20))
+        XCTAssertTrue(fila(app, contiene: "Sube a").exists,
+                      "con dos sesiones cumplidas, la rutina propone subir sin encender nada")
+        XCTAssertFalse(app.staticTexts["fuerza.amanecer"].exists, "la línea de salud viene apagada")
+        snap(app, "12-progresion-sube")
+    }
+
+    func test_amanecerApagado_noRetieneAunqueDurmierasPoco() throws {
+        let app = launch("fuerza-sube-sueno-corto")
+        XCTAssertTrue(app.buttons["fuerza.empezar"].waitForExistence(timeout: 20))
+        XCTAssertTrue(fila(app, contiene: "Sube a").exists, "apagada, la progresión solo mira el registro")
+        XCTAssertFalse(app.staticTexts["fuerza.amanecer"].exists)
+    }
+
+    func test_amanecerEncendido_suenoCortoRetieneLaSubida() throws {
+        let app = launch("fuerza-sube-sueno-corto", extra: ["-cenit.fuerza.comoAmaneciste", "YES"])
+        XCTAssertTrue(app.buttons["fuerza.empezar"].waitForExistence(timeout: 20))
+        let linea = app.staticTexts["fuerza.amanecer"]
+        XCTAssertTrue(linea.waitForExistence(timeout: 5), "con la línea encendida y 5 h de sueño, se avisa")
+        XCTAssertTrue(linea.label.contains("Dormiste 5 h 00 min"), linea.label)
+        XCTAssertTrue(fila(app, contiene: "Mantén").exists, "la subida queda retenida («Mantén …»)")
+        XCTAssertFalse(fila(app, contiene: "Sube a").exists)
+        snap(app, "13-amanecer-retiene")
     }
 
     // MARK: Descanso (CEN-57)
