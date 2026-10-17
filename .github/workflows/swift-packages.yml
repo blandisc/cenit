@@ -32,9 +32,10 @@ jobs:
     #   - CenitStore:   Compression (RawOutbox.swift) — and CenitImport inherits it
     #     (depends on CenitStore, so fails to build on Linux transitively).
     #   - CenitTraining: Compression (Exercise.swift — zlib-inflated catalog, FER-875).
+    #   - CenitAnalytics: depends on CenitTraining since CEN-65 (strength math moved there),
+    #     so it inherits Compression.
     # Pure / Foundation-only packages build/test on Linux: BiometricStreams,
-    # CenitModels, CenitAnalytics (depends on CenitModels + BiometricStreams only — L3-C1b;
-    # no longer links GRDB via CenitStore), CenitEnsenanza (no deps — épico FER-428, L4/FER-430).
+    # CenitModels, CenitEnsenanza (no deps — épico FER-428, L4/FER-430).
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -43,7 +44,8 @@ jobs:
           - package: BiometricStreams
             os: ubuntu-latest
           - package: CenitAnalytics
-            os: ubuntu-latest
+            # CEN-65: ahora depende de CenitTraining (Compression, solo Apple) → macOS.
+            os: macos-15
           - package: CenitEnsenanza
             os: ubuntu-latest
           - package: CenitTraining
