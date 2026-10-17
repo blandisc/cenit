@@ -120,7 +120,10 @@ struct OnboardingWizard: View {
             // la primera sesión de fuerza (`FuerzaRootView`). «Empezar» salta el acto del permiso y la
             // salida y entra directo al Acta (perfil-coda, sin Salud). El acto `.permiso` queda en el
             // archivo, inalcanzable salvo por el fixture de depuración; el onboarding nuevo lo retira.
-            OnbActoPromesa(densidad: $densidad, onEmpezar: { irAActa(desde: .promesa, luego: .entrar) })
+            // CEN-66 · bienvenida de dos pantallas: la promesa y, al tocar «Empezar», la raíz de Fuerza,
+            // que sin plan ES la segunda pantalla (plantilla / arma la tuya / importa). El Acta, el perfil
+            // y «Tu sesión» salen del camino; siguen en el archivo hasta el barrido 2.
+            OnbActoPromesa(densidad: $densidad, onEmpezar: { terminar() })
         case .permiso:
             OnbActoPermiso(
                 onAtras: { ir(a: .promesa) },

@@ -187,6 +187,38 @@ final class FuerzaRootUITests: XCTestCase {
         snap(app, "13-amanecer-retiene")
     }
 
+    // MARK: Bienvenida de dos pantallas (CEN-66)
+
+    func test_bienvenida_dosPantallas_unToqueALaPuertaDePlan() throws {
+        let app = XCUIApplication()
+        app.terminate()
+        // Usuario nuevo: sin onboarding hecho (los demás argumentos base siguen: idioma, términos).
+        var args = Self.baseArgs
+        if let i = args.firstIndex(of: "-cenit.onboarded") { args[i + 1] = "NO" }
+        app.launchArguments = args + ["-cenit.fixture", "fuerza-sin-rutina"]
+        app.launch()
+        // Pantalla 1: la promesa.
+        let titular = app.staticTexts["Abres, entrenas, y yo sé cuál es tu siguiente paso."]
+        XCTAssertTrue(titular.waitForExistence(timeout: 20), "la bienvenida abre con la promesa nueva")
+        XCTAssertFalse(app.staticTexts.containing(NSPredicate(format: "label CONTAINS 'Apple Salud'")).firstMatch.exists,
+                       "la bienvenida no pide Apple Salud")
+        snap(app, "14-bienvenida-promesa")
+        // Un solo toque separa la promesa de la puerta de plan. Se mide desde el toque: el arranque y
+        // las esperas de XCUITest sobre la animación de partículas (ya oculta a accesibilidad) son del
+        // arnés, no de la persona, y en simulador suman 20-30 s que el usuario no vive.
+        let empezar = app.buttons["Empezar"]
+        XCTAssertTrue(empezar.waitForExistence(timeout: 10))
+        empezar.tap()
+        let tras = Date()
+        // Pantalla 2: la puerta de plan, ya dentro de la app.
+        XCTAssertTrue(app.staticTexts["Arma tu semana"].waitForExistence(timeout: 10),
+                      "«Empezar» lleva directo a armar tu semana")
+        let segundos = Date().timeIntervalSince(tras)
+        assertTresHojas(app)
+        snap(app, "15-bienvenida-puerta-de-plan")
+        XCTAssertLessThan(segundos, 3, "del toque a la puerta de plan en menos de 3 s (fue \(segundos) s)")
+    }
+
     // MARK: Descanso (CEN-57)
 
     func test_diaDeDescanso_hoyDescansasConLaQueSigue() throws {

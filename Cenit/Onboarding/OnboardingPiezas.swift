@@ -72,11 +72,11 @@ enum OnbCopy {
     // Acto 1 · Promesa
     static var promesaTitular: String {
         String(localized: "onb.1.titular",
-               defaultValue: "I tell you how much weight to load today. And why.")
+               defaultValue: "Open it, train, and I know your next step.")
     }
     static var promesaCuerpo: String {
         String(localized: "onb.1.cuerpo",
-               defaultValue: "I load your routine with last time's weight and, when your pace earns it, I propose a raise. If your body woke up out of range, I keep the weight and the raise is one tap away.")
+               defaultValue: "I load your routine with last time's weight and, when you hit your reps, I propose a raise. No tabs and no scores: just your workout.")
     }
     static var promesaPrivacidad: String {
         String(localized: "onb.1.privacidad",
