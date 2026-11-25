@@ -41,6 +41,7 @@ struct EntrenarHubSemana: View {
                     }
                     Spacer(minLength: LiquidSpace.s200)
                     EntrenarCapsulaPuerta(String(localized: "Edit").uppercased(), action: onEdit)
+                        .fixedSize(horizontal: true, vertical: false)
                 }
                 .padding(.top, LiquidSpace.s200)
             }
